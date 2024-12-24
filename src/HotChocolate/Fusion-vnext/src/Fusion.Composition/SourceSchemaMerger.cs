@@ -49,6 +49,7 @@ internal sealed class SourceSchemaMerger
         new DisallowedInaccessibleElementsRule(),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
+        new ExternalUnusedRule(),
         new OutputFieldTypesMergeableRule(),
         new RootMutationUsedRule()
     ];

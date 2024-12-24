@@ -128,6 +128,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ExternalUnused(
+        OutputFieldDefinition externalField,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalUnused, coordinate, schema.Name),
+            LogEntryCodes.ExternalUnused,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
     public static LogEntry OutputFieldTypesNotMergeable(
         OutputFieldDefinition field,
         string typeName,
