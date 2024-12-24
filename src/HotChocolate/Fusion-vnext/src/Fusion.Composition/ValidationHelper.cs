@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
@@ -12,6 +13,28 @@ internal sealed class ValidationHelper
     public static bool IsExternal(IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.External);
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> if the specified <paramref name="field"/> has an <c>@provides</c>
+    /// directive that references the specified <paramref name="fieldName"/>.
+    /// </summary>
+    public static bool ProvidesFieldName(OutputFieldDefinition field, string fieldName)
+    {
+        var providesDirective = field.Directives.FirstOrDefault(WellKnownDirectiveNames.Provides);
+
+        var fieldsArgumentValueNode =
+            providesDirective?.Arguments.GetValueOrDefault(WellKnownArgumentNames.Fields);
+
+        if (fieldsArgumentValueNode is not StringValueNode fieldsArgumentStringNode)
+        {
+            return false;
+        }
+
+        var selectionSet =
+            Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{fieldsArgumentStringNode.Value}}}");
+
+        return selectionSet.Selections.OfType<FieldNode>().Any(f => f.Name.Value == fieldName);
     }
 
     public static bool SameTypeShape(ITypeDefinition typeA, ITypeDefinition typeB)

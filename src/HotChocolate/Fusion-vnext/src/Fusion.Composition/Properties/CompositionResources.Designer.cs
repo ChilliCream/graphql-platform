@@ -132,6 +132,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to External field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by an @provides directive in the schema..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalUnused {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalUnused", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
