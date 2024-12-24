@@ -10,6 +10,14 @@ public static class DemoProjectSchemaExtensions
         }
         """;
 
+    public const string AccountsExtensionWithCostSdl =
+        """
+        extend type Query {
+          userById(id: ID! @is(field: "id")): User! @cost(weight: "1.0")
+          usersById(ids: [ID!]! @is(field: "id")): [User!]!
+        }
+        """;
+
     public const string AccountsExtensionWithTagSdl =
         """
         extend type Query {
@@ -37,6 +45,19 @@ public static class DemoProjectSchemaExtensions
         """
         extend type Query {
           authorById(id: ID! @is(field: "id")): Author
+          productById(id: ID! @is(field: "id")): Product
+        }
+
+        schema
+            @rename(coordinate: "Query.authorById", newName: "userById")
+            @rename(coordinate: "Author", newName: "User") {
+        }
+        """;
+
+    public const string ReviewsExtensionWithCostSdl =
+        """
+        extend type Query {
+          authorById(id: ID! @is(field: "id")): Author @cost(weight: "2.0")
           productById(id: ID! @is(field: "id")): Product
         }
 

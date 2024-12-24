@@ -1,3 +1,4 @@
+using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Shared.Reviews;
