@@ -50,6 +50,7 @@ internal sealed class SourceSchemaMerger
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
         new ExternalUnusedRule(),
-        new OutputFieldTypesMergeableRule()
+        new OutputFieldTypesMergeableRule(),
+        new RootMutationUsedRule()
     ];
 }

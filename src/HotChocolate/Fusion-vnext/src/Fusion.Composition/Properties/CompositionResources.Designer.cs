@@ -148,5 +148,14 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldTypesNotMergeable", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The root mutation type in schema &apos;{0}&apos; must be named &apos;Mutation&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_RootMutationUsed {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RootMutationUsed", resourceCulture);
+            }
+        }
     }
 }

@@ -35,6 +35,8 @@ internal record OutputFieldGroupEvent(
     ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
+internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
+
 internal record TypeEvent(
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;

@@ -26,6 +26,8 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
         foreach (var schema in context.SchemaDefinitions)
         {
+            PublishEvent(new SchemaEvent(schema), context);
+
             foreach (var type in schema.Types)
             {
                 PublishEvent(new TypeEvent(type, schema), context);
