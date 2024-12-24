@@ -54,4 +54,7 @@
   <data name="LogEntryHelper_RootQueryUsed" xml:space="preserve">
     <value>The root query type in schema '{0}' must be named 'Query'.</value>
   </data>
+  <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
+    <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
+  </data>
 </root>
