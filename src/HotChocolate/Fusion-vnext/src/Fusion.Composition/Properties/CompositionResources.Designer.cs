@@ -166,5 +166,14 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RootQueryUsed", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The root subscription type in schema &apos;{0}&apos; must be named &apos;Subscription&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_RootSubscriptionUsed {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RootSubscriptionUsed", resourceCulture);
+            }
+        }
     }
 }

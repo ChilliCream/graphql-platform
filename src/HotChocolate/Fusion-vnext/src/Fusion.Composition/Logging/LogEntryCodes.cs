@@ -9,4 +9,5 @@ public static class LogEntryCodes
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
+    public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
 }
