@@ -110,6 +110,22 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
+    internal override bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            if (Unsafe.Add(ref first, i).SkipDirectiveDefinition(node))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public override void OnBeforeDiscoverTypes()
     {
         ref var first = ref GetReference();
