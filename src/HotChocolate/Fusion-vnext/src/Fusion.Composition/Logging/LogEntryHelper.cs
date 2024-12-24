@@ -148,4 +148,14 @@ internal static class LogEntryHelper
             field,
             schemaA);
     }
+
+    public static LogEntry RootMutationUsed(SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_RootMutationUsed, schema.Name),
+            LogEntryCodes.RootMutationUsed,
+            severity: LogSeverity.Error,
+            member: schema,
+            schema: schema);
+    }
 }
