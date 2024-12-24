@@ -82,7 +82,14 @@ public sealed class DemoProject : IDisposable
 
     public DemoSubgraph Resale { get; }
 
-    public static async Task<DemoProject> CreateAsync(CancellationToken ct = default)
+    public static async Task<DemoProject> CreateAsync(
+        CancellationToken ct = default)
+        => await CreateAsync(false, ct).ConfigureAwait(false);
+
+
+    public static async Task<DemoProject> CreateAsync(
+        bool enableCost,
+        CancellationToken ct = default)
     {
         var disposables = new List<IDisposable>();
         TestServerFactory testServerFactory = new();
@@ -92,7 +99,8 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<ReviewRepository>()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<ReviewsQuery>()
                 .AddMutationType<ReviewsMutation>()
                 .AddSubscriptionType<ReviewsSubscription>()
@@ -115,7 +123,8 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<Reviews2.ReviewRepository>()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<Reviews2.ReviewsQuery>()
                 .AddMutationType<Reviews2.ReviewsMutation>()
                 .AddSubscriptionType<Reviews2.ReviewsSubscription>()
@@ -138,7 +147,8 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<UserRepository>()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<AccountQuery>()
                 .AddMutationType<AccountMutation>()
                 .AddMutationConventions()
@@ -159,7 +169,8 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<ProductRepository>()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<ProductQuery>()
                 .AddMutationType<ProductMutation>()
                 .AddGlobalObjectIdentification()
@@ -180,7 +191,8 @@ public sealed class DemoProject : IDisposable
         var shipping = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<ShippingQuery>()
                 .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1))
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
@@ -198,7 +210,8 @@ public sealed class DemoProject : IDisposable
         var shipping2 = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<Shipping2.ShippingQuery>()
                 .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1))
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
@@ -216,7 +229,8 @@ public sealed class DemoProject : IDisposable
         var appointment = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<AppointmentQuery>()
                 .AddObjectType<Appointments.Patient1>()
                 .AddObjectType<Patient2>()
@@ -236,7 +250,8 @@ public sealed class DemoProject : IDisposable
         var patient1 = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<Patient1Query>()
                 .AddGlobalObjectIdentification()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
@@ -254,7 +269,8 @@ public sealed class DemoProject : IDisposable
         var books = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<BookQuery>()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
@@ -271,7 +287,8 @@ public sealed class DemoProject : IDisposable
         var authors = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<AuthorQuery>()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
@@ -288,7 +305,8 @@ public sealed class DemoProject : IDisposable
         var resale = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer(disableDefaultSecurity: true)
+                .AddGraphQLServer(disableDefaultSecurity: !enableCost)
+                .DisableIntrospection(false)
                 .AddQueryType<ResaleQuery>()
                 .AddGlobalObjectIdentification()
                 .AddMutationConventions()

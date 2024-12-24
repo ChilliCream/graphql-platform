@@ -171,6 +171,13 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
     }
 }
 
+internal sealed class CostDirectiveTypeInterceptor : TypeInterceptor
+{
+    internal override bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+        => node.Name.Value.Equals("cost", StringComparison.Ordinal)
+            || node.Name.Value.Equals("listSize", StringComparison.Ordinal);
+}
+
 file static class Extensions
 {
     public static bool HasCostDirective(this IHasDirectiveDefinition directiveProvider)
