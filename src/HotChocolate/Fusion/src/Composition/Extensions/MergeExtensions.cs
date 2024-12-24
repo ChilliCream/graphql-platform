@@ -1,5 +1,7 @@
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -189,6 +191,25 @@ internal static class MergeExtensions
             }
             else
             {
+                if (directive.Name.EqualsOrdinal("cost"))
+                {
+                    var currentCost = target.Directives.FirstOrDefault("cost")!;
+                    if (currentCost.Arguments.TryGetValue("weight", out var value)
+                        && value is StringValueNode stringValueNode
+                        && double.TryParse(stringValueNode.Value, out var currentWeight)
+                        && directive.Arguments.TryGetValue("weight", out value)
+                        && value is StringValueNode newStringValueNode
+                        && double.TryParse(newStringValueNode.Value, out var newWeight)
+                        && newWeight > currentWeight)
+                    {
+                        target.Directives.Remove(currentCost);
+                        target.Directives.Add(directive);
+                    }
+
+                    continue;
+                }
+
+
                 if (directiveDefinition is not null && directiveDefinition.IsRepeatable)
                 {
                     target.Directives.Add(directive);

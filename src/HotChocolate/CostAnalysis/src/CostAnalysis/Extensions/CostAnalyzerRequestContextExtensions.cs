@@ -58,11 +58,16 @@ public static class CostAnalyzerRequestContextExtensions
 
     internal static CostAnalyzerMode GetCostAnalyzerMode(
         this IRequestContext context,
-        bool enforceCostLimits)
+        RequestCostOptions options)
     {
         if (context is null)
         {
             throw new ArgumentNullException(nameof(context));
+        }
+
+        if (options.SkipAnalyzer)
+        {
+            return CostAnalyzerMode.Skip;
         }
 
         if (context.ContextData.ContainsKey(WellKnownContextData.ValidateCost))
@@ -72,7 +77,7 @@ public static class CostAnalyzerRequestContextExtensions
 
         var flags = CostAnalyzerMode.Analyze;
 
-        if (enforceCostLimits)
+        if (options.EnforceCostLimits)
         {
             flags |= CostAnalyzerMode.Enforce;
         }

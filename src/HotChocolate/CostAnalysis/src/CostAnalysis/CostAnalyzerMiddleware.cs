@@ -36,7 +36,7 @@ internal sealed class CostAnalyzerMiddleware(
         }
 
         var requestOptions = context.TryGetCostOptions() ?? options;
-        var mode = context.GetCostAnalyzerMode(requestOptions.EnforceCostLimits);
+        var mode = context.GetCostAnalyzerMode(requestOptions);
 
         if (mode == CostAnalyzerMode.Skip)
         {
