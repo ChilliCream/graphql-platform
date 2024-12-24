@@ -123,6 +123,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableTag"/>
     public bool EnableTag { get; set; } = true;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ErrorOnAspNetCoreAuthorizationAttributes"/>
+    public bool ErrorOnAspNetCoreAuthorizationAttributes { get; set; } = true;
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultQueryDependencyInjectionScope"/>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
         DependencyInjectionScope.Resolver;
@@ -170,6 +173,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
+            ErrorOnAspNetCoreAuthorizationAttributes = options.ErrorOnAspNetCoreAuthorizationAttributes,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
         };
