@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Glob" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
     <PackageReference Include="IdentityModel" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" />
   </ItemGroup>

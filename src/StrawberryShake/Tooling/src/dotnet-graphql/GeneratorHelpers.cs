@@ -1,9 +1,10 @@
 using HotChocolate.Language;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using StrawberryShake.CodeGeneration;
 using StrawberryShake.CodeGeneration.CSharp;
 using StrawberryShake.Tools.Configuration;
 using static System.IO.Path;
-using static GlobExpressions.Glob;
 
 namespace StrawberryShake.Tools;
 
@@ -137,5 +138,21 @@ internal static class GeneratorHelpers
         }
 
         return profiles;
+    }
+
+    private static HashSet<string> Files(string path, string pattern)
+        => MatchPatterns(path, [pattern]);
+
+    private static HashSet<string> MatchPatterns(string path, string[] patterns)
+    {
+        var matcher = new Matcher();
+
+        matcher.AddIncludePatterns(patterns);
+
+        return matcher
+            .Execute(new DirectoryInfoWrapper(new DirectoryInfo(path)))
+            .Files
+            .Select(x => x.Path)
+            .ToHashSet();
     }
 }

@@ -17,7 +17,7 @@
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
-    <PackageVersion Include="Glob" Version="1.1.9" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.0" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
     <PackageVersion Include="Marten" Version="7.33.0" />
