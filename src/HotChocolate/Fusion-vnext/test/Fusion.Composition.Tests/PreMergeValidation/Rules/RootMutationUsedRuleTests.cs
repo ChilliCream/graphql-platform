@@ -91,6 +91,15 @@ public sealed class RootMutationUsedRuleTests : CompositionTestBase
                 [
                     "The root mutation type in schema 'A' must be named 'Mutation'."
                 ]
+            },
+            // A type named 'Mutation' is not the root mutation type.
+            {
+                [
+                    "scalar Mutation"
+                ],
+                [
+                    "The root mutation type in schema 'A' must be named 'Mutation'."
+                ]
             }
         };
     }

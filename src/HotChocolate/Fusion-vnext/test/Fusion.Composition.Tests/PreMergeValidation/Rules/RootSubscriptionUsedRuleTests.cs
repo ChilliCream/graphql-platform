@@ -91,6 +91,15 @@ public sealed class RootSubscriptionUsedRuleTests : CompositionTestBase
                 [
                     "The root subscription type in schema 'A' must be named 'Subscription'."
                 ]
+            },
+            // A type named 'Subscription' is not the root subscription type.
+            {
+                [
+                    "scalar Subscription"
+                ],
+                [
+                    "The root subscription type in schema 'A' must be named 'Subscription'."
+                ]
             }
         };
     }

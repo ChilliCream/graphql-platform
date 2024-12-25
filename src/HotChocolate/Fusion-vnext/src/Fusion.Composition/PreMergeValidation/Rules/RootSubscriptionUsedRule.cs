@@ -20,14 +20,22 @@ internal sealed class RootSubscriptionUsedRule : IEventHandler<SchemaEvent>
         var schema = @event.Schema;
         var rootSubscription = schema.SubscriptionType;
 
-        if (rootSubscription is not null
-            && rootSubscription.Name != WellKnownTypeNames.Subscription)
+        if (rootSubscription is not null)
         {
-            context.Log.Write(RootSubscriptionUsed(schema));
+            if (rootSubscription.Name != WellKnownTypeNames.Subscription)
+            {
+                context.Log.Write(RootSubscriptionUsed(schema));
+            }
         }
+        else
+        {
+            var namedSubscriptionType =
+                schema.Types.FirstOrDefault(t => t.Name == WellKnownTypeNames.Subscription);
 
-        // An object type named 'Subscription' will be set as the root subscription type if it has
-        // not yet been defined, so it's not necessary to check for this type in the absence of a
-        // root subscription type.
+            if (namedSubscriptionType is not null)
+            {
+                context.Log.Write(RootSubscriptionUsed(schema));
+            }
+        }
     }
 }
