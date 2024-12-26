@@ -3,7 +3,9 @@ using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Results;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
 
@@ -36,6 +38,11 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
                 if (type is ComplexTypeDefinition complexType)
                 {
+                    if (complexType.Directives.ContainsName(WellKnownDirectiveNames.Key))
+                    {
+                        PublishEntityEvents(complexType, schema, context);
+                    }
+
                     foreach (var field in complexType.Fields)
                     {
                         PublishEvent(new OutputFieldEvent(field, type, schema), context);
@@ -102,6 +109,87 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                             [.. argumentGroup],
                             fieldName,
                             typeName),
+                        context);
+                }
+            }
+        }
+    }
+
+    private void PublishEntityEvents(
+        ComplexTypeDefinition entityType,
+        SchemaDefinition schema,
+        CompositionContext context)
+    {
+        var keyDirectives =
+            entityType.Directives
+                .Where(d => d.Name == WellKnownDirectiveNames.Key)
+                .ToArray();
+
+        foreach (var keyDirective in keyDirectives)
+        {
+            if (
+                !keyDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
+                || f is not StringValueNode fields)
+            {
+                continue;
+            }
+
+            try
+            {
+                var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+
+                PublishKeyFieldEvents(
+                    selectionSet,
+                    entityType,
+                    keyDirective,
+                    entityType,
+                    schema,
+                    context);
+            }
+            catch (SyntaxException)
+            {
+                // Ignore.
+            }
+        }
+    }
+
+    private void PublishKeyFieldEvents(
+        SelectionSetNode selectionSet,
+        ComplexTypeDefinition entityType,
+        Directive keyDirective,
+        ComplexTypeDefinition parentType,
+        SchemaDefinition schema,
+        CompositionContext context)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode fieldNode)
+            {
+                if (parentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
+                {
+                    PublishEvent(
+                        new KeyFieldEvent(
+                            entityType,
+                            keyDirective,
+                            field,
+                            parentType,
+                            schema),
+                        context);
+
+                    if (field.Type.NullableType() is ComplexTypeDefinition fieldType)
+                    {
+                        parentType = fieldType;
+                    }
+                }
+
+                if (fieldNode.SelectionSet is not null)
+                {
+                    PublishKeyFieldEvents(
+                        fieldNode.SelectionSet,
+                        entityType,
+                        keyDirective,
+                        parentType,
+                        schema,
                         context);
                 }
             }

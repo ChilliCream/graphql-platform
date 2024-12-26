@@ -45,6 +45,9 @@
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>External field '{0}' in schema '{1}' is not referenced by an @provides directive in the schema.</value>
   </data>
+  <data name="LogEntryHelper_KeyFieldsSelectInvalidType" xml:space="preserve">
+    <value>An @key directive on type '{0}' in schema '{1}' references field '{2}' which must not be a list, interface, or union type.</value>
+  </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>Field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>
