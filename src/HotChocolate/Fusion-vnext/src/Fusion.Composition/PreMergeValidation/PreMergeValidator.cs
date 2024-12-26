@@ -142,6 +142,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                     selectionSet,
                     entityType,
                     keyDirective,
+                    [],
                     entityType,
                     schema,
                     context);
@@ -157,6 +158,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         SelectionSetNode selectionSet,
         ComplexTypeDefinition entityType,
         Directive keyDirective,
+        List<string> fieldNamePath,
         ComplexTypeDefinition parentType,
         SchemaDefinition schema,
         CompositionContext context)
@@ -165,6 +167,17 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         {
             if (selection is FieldNode fieldNode)
             {
+                fieldNamePath.Add(fieldNode.Name.Value);
+
+                PublishEvent(
+                    new KeyFieldNodeEvent(
+                        entityType,
+                        keyDirective,
+                        fieldNode,
+                        [.. fieldNamePath],
+                        schema),
+                    context);
+
                 if (parentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
                 {
                     PublishEvent(
@@ -188,10 +201,13 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         fieldNode.SelectionSet,
                         entityType,
                         keyDirective,
+                        fieldNamePath,
                         parentType,
                         schema,
                         context);
                 }
+
+                fieldNamePath = [];
             }
         }
     }

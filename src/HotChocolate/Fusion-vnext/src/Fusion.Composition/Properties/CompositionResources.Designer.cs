@@ -141,6 +141,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
+        /// </summary>
+        internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not be a list, interface, or union type..
         /// </summary>
         internal static string LogEntryHelper_KeyFieldsSelectInvalidType {
