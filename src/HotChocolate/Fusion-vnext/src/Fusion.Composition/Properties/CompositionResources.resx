@@ -48,6 +48,9 @@
   <data name="LogEntryHelper_KeyDirectiveInFieldsArgument" xml:space="preserve">
     <value>An @key directive on type '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
   </data>
+  <data name="LogEntryHelper_KeyFieldsHasArguments" xml:space="preserve">
+    <value>An @key directive on type '{0}' in schema '{1}' references field '{2}', which must not have arguments.</value>
+  </data>
   <data name="LogEntryHelper_KeyFieldsSelectInvalidType" xml:space="preserve">
     <value>An @key directive on type '{0}' in schema '{1}' references field '{2}', which must not be a list, interface, or union type.</value>
   </data>
