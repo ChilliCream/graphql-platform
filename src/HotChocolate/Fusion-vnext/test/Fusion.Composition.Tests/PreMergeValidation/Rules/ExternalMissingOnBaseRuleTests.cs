@@ -118,6 +118,7 @@ public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
                 [
                     "External field 'Product.name' in schema 'A' is not defined (non-external) " +
                     "in any other schema.",
+
                     "External field 'Product.name' in schema 'B' is not defined (non-external) " +
                     "in any other schema."
                 ]

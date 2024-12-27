@@ -167,6 +167,7 @@ public sealed class OutputFieldTypesMergeableRuleTests : CompositionTestBase
                 [
                     "Field 'User.birthdate' has a different type shape in schema 'A' than it " +
                     "does in schema 'B'.",
+
                     "Field 'User.birthdate' has a different type shape in schema 'B' than it " +
                     "does in schema 'C'."
                 ]
