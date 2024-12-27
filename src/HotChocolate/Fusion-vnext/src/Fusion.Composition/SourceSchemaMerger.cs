@@ -51,6 +51,7 @@ internal sealed class SourceSchemaMerger
         new ExternalMissingOnBaseRule(),
         new ExternalUnusedRule(),
         new KeyDirectiveInFieldsArgumentRule(),
+        new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
         new OutputFieldTypesMergeableRule(),
         new RootMutationUsedRule(),
