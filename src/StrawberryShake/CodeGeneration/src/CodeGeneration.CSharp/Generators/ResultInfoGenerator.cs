@@ -32,7 +32,8 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
             throw new InvalidOperationException(
                 "A result entity mapper can only be generated for complex types");
 
-        var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name);
+        var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name)
+            .Prefix(settings);
         fileName = className;
         path = State;
         ns = CreateStateNamespace(complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal);
@@ -45,7 +46,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
 
         var constructorBuilder = classBuilder
             .AddConstructor()
-            .SetTypeName(complexTypeDescriptor.RuntimeType.Name);
+            .SetTypeName(complexTypeDescriptor.RuntimeType.Name.Prefix(settings));
 
         foreach (var prop in complexTypeDescriptor.Properties)
         {

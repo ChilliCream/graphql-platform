@@ -6,6 +6,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class ClientInterfaceGenerator : ClassBaseGenerator<ClientDescriptor>
 {
+    protected override bool CanHandle(
+        ClientDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override void Generate(ClientDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,

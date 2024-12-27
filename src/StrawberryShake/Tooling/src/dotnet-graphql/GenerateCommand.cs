@@ -139,7 +139,7 @@ public static class GenerateCommand
                 }
                 else
                 {
-                    await WriteCodeFilesAsync(clientName, result, outputDir, cancellationToken);
+                    await WriteCodeFilesAsync(clientName, settings.SecondaryStorePrefix result, outputDir, cancellationToken);
 
                     if (args.Strategy is RequestStrategy.PersistedOperation)
                     {
@@ -166,12 +166,13 @@ public static class GenerateCommand
 
         private async Task WriteCodeFilesAsync(
             string clientName,
+            string secondaryStorePrefix,
             CSharpGeneratorResult result,
             string outputDir,
             CancellationToken cancellationToken)
         {
             var deleteList = Directory.Exists(outputDir)
-                ? [..Directory.GetFiles(outputDir, $"{clientName}.*.cs"),]
+                ? [..Directory.GetFiles(outputDir, $"{clientName}.*.cs", $"{secondaryStorePrefix}{clientName}.*.cs"),]
                 : new HashSet<string>();
 
             foreach (var doc in result.Documents)

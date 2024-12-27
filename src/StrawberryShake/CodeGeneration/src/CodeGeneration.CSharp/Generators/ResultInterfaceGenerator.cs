@@ -7,6 +7,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
 {
+    protected override bool CanHandle(
+        InterfaceTypeDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override void Generate(InterfaceTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,

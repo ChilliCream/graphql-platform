@@ -30,7 +30,8 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             throw new InvalidOperationException(
                 "A result type can only be generated for complex types");
 
-        fileName = resultBuilderDescriptor.RuntimeType.Name;
+        fileName = resultBuilderDescriptor.RuntimeType.Name
+            .Prefix(settings);
         path = State;
         ns = resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal;
 

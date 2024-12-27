@@ -19,7 +19,8 @@ public partial class JsonResultBuilderGenerator
     {
         var concreteType =
             CreateResultInfoName(
-                resultNamedType.ImplementedBy.First().RuntimeType.Name);
+                resultNamedType.ImplementedBy.First().RuntimeType.Name)
+                .Prefix(settings);
 
         // protected override IOperationResultDataInfo BuildData(JsonElement dataProp)
         var buildDataMethod = classBuilder

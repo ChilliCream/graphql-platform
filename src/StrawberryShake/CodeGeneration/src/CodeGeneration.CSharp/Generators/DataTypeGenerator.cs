@@ -9,6 +9,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
 {
+    protected override bool CanHandle(
+        DataTypeDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override CSharpSyntaxGeneratorResult Generate(
         DataTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)

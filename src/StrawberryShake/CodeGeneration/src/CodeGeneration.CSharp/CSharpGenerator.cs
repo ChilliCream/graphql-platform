@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
+using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
@@ -129,7 +130,9 @@ public static class CSharpGenerator
             var clientModel = await analyzer.AnalyzeAsync();
 
             // With the client model we finally can create CSharp code.
-            return Generate(clientModel, settings);
+            return !settings.NoStore && settings.DualStore
+                ? GenerateWithDualStore(clientModel, settings)
+                : Generate(clientModel, settings, secondaryStore: false);
         }
         catch (GraphQLException ex)
         {
@@ -137,9 +140,26 @@ public static class CSharpGenerator
         }
     }
 
-    public static CSharpGeneratorResult Generate(
+    public static CSharpGeneratorResult GenerateWithDualStore(
         ClientModel clientModel,
         CSharpGeneratorSettings settings)
+    {
+        var result1 = Generate(clientModel, settings, secondaryStore: false);
+
+        settings.NoStore = true;
+        settings.RazorComponents = false;
+
+        var result2 = Generate(clientModel, settings, secondaryStore: true);
+
+        return new CSharpGeneratorResult(
+            [..result1.Documents, ..result2.Documents],
+            result1.OperationTypes);
+    }
+
+    public static CSharpGeneratorResult Generate(
+        ClientModel clientModel,
+        CSharpGeneratorSettings settings,
+        bool secondaryStore)
     {
         if (clientModel is null)
         {
@@ -195,16 +215,20 @@ public static class CSharpGenerator
         DependencyInjectionMapper.Map(context);
 
         // Last we execute all our generators with the descriptors.
-        var results = GenerateCSharpDocuments(context, settings);
+        var results = GenerateCSharpDocuments(context, settings, secondaryStore);
 
         var documents = new List<SourceDocument>();
 
         if (settings.SingleCodeFile)
         {
+            var fileName = secondaryStore
+                ? $"{settings.SecondaryStorePrefix}{settings.ClientName}"
+                : settings.ClientName;
+
             GenerateSingleCSharpDocument(
                 results.Where(t => t.Result.IsCSharpDocument),
                 SourceDocumentKind.CSharp,
-                settings.ClientName,
+                fileName,
                 documents);
 
             if (results.Any(t => t.Result.IsRazorComponent))
@@ -212,7 +236,7 @@ public static class CSharpGenerator
                 GenerateSingleCSharpDocument(
                     results.Where(t => t.Result.IsRazorComponent),
                     SourceDocumentKind.Razor,
-                    settings.ClientName,
+                    fileName,
                     documents);
             }
         }
@@ -306,14 +330,17 @@ public static class CSharpGenerator
 
     private static IReadOnlyList<GeneratorResult> GenerateCSharpDocuments(
         MapperContext context,
-        CSharpGeneratorSettings settings)
+        CSharpGeneratorSettings settings,
+        bool secondaryStore)
     {
         var generatorSettings = new CSharpSyntaxGeneratorSettings(
             settings.AccessModifier,
             settings.NoStore,
             settings.InputRecords,
             settings.EntityRecords,
-            settings.RazorComponents);
+            settings.RazorComponents,
+            secondaryStore,
+            settings.SecondaryStorePrefix);
 
         var results = new List<GeneratorResult>();
 
@@ -321,10 +348,14 @@ public static class CSharpGenerator
         {
             foreach (var generator in _generators)
             {
-                if (generator.CanHandle(descriptor, generatorSettings))
+                var newDescriptor = secondaryStore
+                    ? OverrideDescriptor(descriptor, settings.SecondaryStorePrefix)
+                    : descriptor;
+
+                if (generator.CanHandle(newDescriptor, generatorSettings))
                 {
                     var result =
-                        generator.Generate(descriptor, generatorSettings);
+                        generator.Generate(newDescriptor, generatorSettings);
                     results.Add(new(generator.GetType(), result));
                 }
             }
@@ -332,6 +363,27 @@ public static class CSharpGenerator
 
         return results;
     }
+
+    private static ICodeDescriptor OverrideDescriptor(ICodeDescriptor descriptor, string prefix)
+        => descriptor switch
+        {
+            DependencyInjectionDescriptor dependencyInjection
+                when OverrideDescriptor(dependencyInjection.StoreAccessor, prefix) is StoreAccessorDescriptor storeAccessor
+                => new DependencyInjectionDescriptor(
+                    dependencyInjection.ClientDescriptor,
+                    dependencyInjection.Entities,
+                    dependencyInjection.Operations,
+                    dependencyInjection.TypeDescriptors,
+                    dependencyInjection.TransportProfiles,
+                    dependencyInjection.EntityIdFactoryDescriptor,
+                    storeAccessor,
+                    dependencyInjection.ResultFromEntityMappers),
+            StoreAccessorDescriptor storeAccessor
+                => new StoreAccessorDescriptor(
+                    $"{prefix}{storeAccessor.Name}",
+                    storeAccessor.RuntimeType.Namespace),
+            _ => descriptor
+        };
 
     private static void GenerateMultipleCSharpDocuments(
         IEnumerable<GeneratorResult> results,

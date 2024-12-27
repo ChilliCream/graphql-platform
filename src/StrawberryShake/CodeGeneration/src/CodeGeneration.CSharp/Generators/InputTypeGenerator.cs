@@ -10,6 +10,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescriptor>
 {
+    protected override bool CanHandle(
+        InputObjectTypeDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override CSharpSyntaxGeneratorResult Generate(
         InputObjectTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)

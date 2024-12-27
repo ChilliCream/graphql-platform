@@ -34,6 +34,16 @@ public class CSharpGeneratorSettings
     public bool NoStore { get; set; }
 
     /// <summary>
+    /// Generates the client with and without a store
+    /// </summary>
+    public bool DualStore { get; set; }
+
+    /// <summary>
+    /// The prefix of the additional store when dual store generation is enabled
+    /// </summary>
+    public string SecondaryStorePrefix { get; set; } = "ServerSide";
+
+    /// <summary>
     /// Generates input types as records.
     /// </summary>
     public bool InputRecords { get; set; }

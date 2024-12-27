@@ -14,6 +14,11 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
             TypeNames.String,
             TypeNames.Object.MakeNullable());
 
+    protected override bool CanHandle(
+        InputObjectTypeDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override void Generate(
         InputObjectTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,

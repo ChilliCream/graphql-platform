@@ -9,6 +9,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor>
 {
+    protected override bool CanHandle(
+        OperationDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override void Generate(OperationDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,

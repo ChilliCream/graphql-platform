@@ -31,7 +31,8 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
             throw new InvalidOperationException(
                 "A result data factory can only be generated for complex types");
 
-        fileName = CreateResultFactoryName(descriptor.RuntimeType.Name);
+        fileName = CreateResultFactoryName(descriptor.RuntimeType.Name)
+            .Prefix(settings);
         path = State;
         ns = CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal);
 
@@ -72,7 +73,7 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
         var ifHasCorrectType = IfBuilder
             .New()
             .SetCondition(
-                $"{_dataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name)} {_info}")
+                $"{_dataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name).Prefix(settings)} {_info}")
             .AddCode(returnStatement);
 
         var createMethod = classBuilder

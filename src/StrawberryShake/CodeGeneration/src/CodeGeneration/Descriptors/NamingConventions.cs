@@ -80,4 +80,10 @@ public static class NamingConventions
 
     public static string CreateInputValueField(string name) =>
         "_value_" + NameUtils.GetParamNameUnsafe(name);
+
+    public static string Prefix(this string value, CSharpSyntaxGeneratorSettings settings)
+        => settings.SecondaryStore
+            ? $"{settings.SecondaryStorePrefix}{value}"
+            : value;
+
 }

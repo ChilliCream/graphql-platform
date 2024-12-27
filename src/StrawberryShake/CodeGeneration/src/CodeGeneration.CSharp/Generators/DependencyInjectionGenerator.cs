@@ -61,7 +61,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         out string? path,
         out string ns)
     {
-        fileName = CreateServiceCollectionExtensions(descriptor.Name);
+        fileName = CreateServiceCollectionExtensions(descriptor.Name)
+            .Prefix(settings);
         path = DependencyInjection;
         ns = DependencyInjectionNamespace;
 
@@ -71,7 +72,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .SetAccessModifier(settings.AccessModifier);
 
         var addClientMethod = factory
-            .AddMethod($"Add{descriptor.Name}")
+            .AddMethod($"Add{descriptor.Name.Prefix(settings)}")
             .SetPublic()
             .SetStatic()
             .SetReturnType(IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
@@ -552,9 +553,12 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
             var factoryName =
                 CreateResultFactoryName(
-                    typeDescriptor.ImplementedBy.First().RuntimeType.Name);
+                    typeDescriptor.ImplementedBy.First().RuntimeType.Name)
+                    .Prefix(settings);
 
-            var builderName = CreateResultBuilderName(operationName);
+            var builderName = CreateResultBuilderName(operationName)
+                .Prefix(settings);
+
             body.AddCode(
                 RegisterOperation(
                     settings,

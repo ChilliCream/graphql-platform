@@ -5,6 +5,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class EnumGenerator : CodeGenerator<EnumTypeDescriptor>
 {
+    protected override bool CanHandle(
+        EnumTypeDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override void Generate(EnumTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,

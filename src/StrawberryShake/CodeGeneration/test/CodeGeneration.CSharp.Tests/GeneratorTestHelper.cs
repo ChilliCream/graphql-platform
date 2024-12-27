@@ -81,21 +81,23 @@ public static class GeneratorTestHelper
             settings.Profiles.Add(TransportProfile.Default);
         }
 
-        var result = Generate(
-            clientModel,
-            new CSharpGeneratorSettings
-            {
-                Namespace = settings.Namespace ?? "Foo.Bar",
-                ClientName = settings.ClientName ?? "FooClient",
-                AccessModifier = settings.AccessModifier,
-                StrictSchemaValidation = settings.StrictValidation,
-                RequestStrategy = settings.RequestStrategy,
-                TransportProfiles = settings.Profiles,
-                NoStore = settings.NoStore,
-                InputRecords = settings.InputRecords,
-                EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents,
-            });
+        var generatorSettings = new CSharpGeneratorSettings
+        {
+            Namespace = settings.Namespace ?? "Foo.Bar",
+            ClientName = settings.ClientName ?? "FooClient",
+            AccessModifier = settings.AccessModifier,
+            StrictSchemaValidation = settings.StrictValidation,
+            RequestStrategy = settings.RequestStrategy,
+            TransportProfiles = settings.Profiles,
+            NoStore = settings.NoStore,
+            InputRecords = settings.InputRecords,
+            EntityRecords = settings.EntityRecords,
+            RazorComponents = settings.RazorComponents,
+        };
+
+        var result = !settings.NoStore && settings.SecondaryStore
+            ? GenerateWithDualStore(clientModel, generatorSettings)
+            : Generate(clientModel, generatorSettings, secondaryStore: false);
 
         Assert.False(
             result.Errors.Any(),
@@ -278,6 +280,8 @@ public static class GeneratorTestHelper
         public bool EntityRecords { get; set; }
 
         public bool RazorComponents { get; set; }
+
+        public bool SecondaryStore { get; set; }
 
         public List<TransportProfile> Profiles { get; set; } = [];
 

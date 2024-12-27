@@ -29,6 +29,11 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     private static readonly string _filesType =
         TypeNames.Dictionary.WithGeneric(TypeNames.String, TypeNames.Upload.MakeNullable());
 
+    protected override bool CanHandle(
+        OperationDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override void Generate(
         OperationDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,

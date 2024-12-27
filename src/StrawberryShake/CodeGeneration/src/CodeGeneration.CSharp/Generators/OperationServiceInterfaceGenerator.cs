@@ -12,6 +12,11 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
     private const string _strategy = "strategy";
     private const string _cancellationToken = "cancellationToken";
 
+    protected override bool CanHandle(
+        OperationDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.SecondaryStore;
+
     protected override void Generate(OperationDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,
