@@ -19,13 +19,22 @@ internal sealed class RootMutationUsedRule : IEventHandler<SchemaEvent>
         var schema = @event.Schema;
         var rootMutation = schema.MutationType;
 
-        if (rootMutation is not null && rootMutation.Name != WellKnownTypeNames.Mutation)
+        if (rootMutation is not null)
         {
-            context.Log.Write(RootMutationUsed(schema));
+            if (rootMutation.Name != WellKnownTypeNames.Mutation)
+            {
+                context.Log.Write(RootMutationUsed(schema));
+            }
         }
+        else
+        {
+            var namedMutationType =
+                schema.Types.FirstOrDefault(t => t.Name == WellKnownTypeNames.Mutation);
 
-        // An object type named 'Mutation' will be set as the root mutation type if it has not yet
-        // been defined, so it's not necessary to check for this type in the absence of a root
-        // mutation type.
+            if (namedMutationType is not null)
+            {
+                context.Log.Write(RootMutationUsed(schema));
+            }
+        }
     }
 }
