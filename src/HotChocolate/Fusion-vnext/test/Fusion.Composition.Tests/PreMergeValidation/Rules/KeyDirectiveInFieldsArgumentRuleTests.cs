@@ -45,7 +45,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive does not include any
+            // In this example, the "fields" argument of the @key directive does not include any
             // directive applications, satisfying the rule.
             {
                 [
@@ -64,8 +64,8 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive includes a directive
-            // application `@lowercase`, which is not allowed.
+            // In this example, the "fields" argument of the @key directive includes a directive
+            // application @lowercase, which is not allowed.
             {
                 [
                     """
@@ -82,7 +82,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     "which must not include directive applications."
                 ]
             },
-            // In this example, the `fields` argument includes a directive application `@lowercase`
+            // In this example, the "fields" argument includes a directive application @lowercase
             // nested inside the selection set, which is also invalid.
             {
                 [

@@ -70,8 +70,8 @@ public sealed class RootMutationUsedRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // The following example violates the rule because `RootMutation` is used as the root
-            // mutation type, but a type named `Mutation` is also defined.
+            // The following example violates the rule because "RootMutation" is used as the root
+            // mutation type, but a type named "Mutation" is also defined.
             {
                 [
                     """

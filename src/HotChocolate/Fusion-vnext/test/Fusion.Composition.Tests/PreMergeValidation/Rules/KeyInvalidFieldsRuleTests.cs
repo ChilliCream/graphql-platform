@@ -44,8 +44,8 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive is properly defined
-            // with valid syntax and references existing fields.
+            // In this example, the "fields" argument of the @key directive is properly defined with
+            // valid syntax and references existing fields.
             {
                 [
                     """
@@ -67,8 +67,8 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive references a field
-            // `id`, which does not exist on the `Product` type.
+            // In this example, the "fields" argument of the @key directive references a field "id",
+            // which does not exist on the "Product" type.
             {
                 [
                     """

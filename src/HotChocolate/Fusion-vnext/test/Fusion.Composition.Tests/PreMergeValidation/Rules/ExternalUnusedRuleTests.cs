@@ -44,7 +44,7 @@ public sealed class ExternalUnusedRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In this example, the `name` field is marked with @external and is used by the
+            // In this example, the "name" field is marked with @external and is used by the
             // @provides directive, satisfying the rule.
             {
                 [
@@ -84,7 +84,7 @@ public sealed class ExternalUnusedRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `name` field is marked with @external but is not used by the
+            // In this example, the "name" field is marked with @external but is not used by the
             // @provides directive, violating the rule.
             {
                 [

@@ -45,8 +45,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In this example, the Product type has a valid @key directive referencing the scalar
-            // field `sku`.
+            // In this example, the "Product" type has a valid @key directive referencing the scalar
+            // field "sku".
             {
                 [
                     """
@@ -64,8 +64,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In the following example, the Product type has an invalid @key directive referencing
-            // a field (featuredItem) whose type is an interface, violating the rule.
+            // In the following example, the "Product" type has an invalid @key directive
+            // referencing a field ("featuredItem") whose type is an interface, violating the rule.
             {
                 [
                     """
@@ -84,8 +84,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     "'Product.featuredItem', which must not be a list, interface, or union type."
                 ]
             },
-            // In this example, the @key directive references a field (tags) of type List, which is
-            // also not allowed.
+            // In this example, the @key directive references a field ("tags") of type "List", which
+            // is also not allowed.
             {
                 [
                     """
@@ -100,8 +100,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     "'Product.tags', which must not be a list, interface, or union type."
                 ]
             },
-            // In this example, the @key directive references a field (relatedItems) of type Union,
-            // which violates the rule.
+            // In this example, the @key directive references a field ("relatedItems") of type
+            // "Union", which violates the rule.
             {
                 [
                     """

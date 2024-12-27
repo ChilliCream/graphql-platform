@@ -70,8 +70,8 @@ public sealed class RootQueryUsedRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // The following example violates the rule because `RootQuery` is used as the root query
-            // type, but a type named `Query` is also defined.
+            // The following example violates the rule because "RootQuery" is used as the root query
+            // type, but a type named "Query" is also defined.
             {
                 [
                     """

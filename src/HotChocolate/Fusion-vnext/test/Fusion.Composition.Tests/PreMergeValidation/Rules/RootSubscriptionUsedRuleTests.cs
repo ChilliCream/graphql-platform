@@ -70,8 +70,8 @@ public sealed class RootSubscriptionUsedRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // The following example violates the rule because `RootSubscription` is used as the
-            // root subscription type, but a type named `Subscription` is also defined.
+            // The following example violates the rule because "RootSubscription" is used as the
+            // root subscription type, but a type named "Subscription" is also defined.
             {
                 [
                     """
