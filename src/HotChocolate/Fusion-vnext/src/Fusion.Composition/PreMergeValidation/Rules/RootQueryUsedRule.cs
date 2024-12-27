@@ -19,13 +19,22 @@ internal sealed class RootQueryUsedRule : IEventHandler<SchemaEvent>
         var schema = @event.Schema;
         var rootQuery = schema.QueryType;
 
-        if (rootQuery is not null && rootQuery.Name != WellKnownTypeNames.Query)
+        if (rootQuery is not null)
         {
-            context.Log.Write(RootQueryUsed(schema));
+            if (rootQuery.Name != WellKnownTypeNames.Query)
+            {
+                context.Log.Write(RootQueryUsed(schema));
+            }
         }
+        else
+        {
+            var namedQueryType =
+                schema.Types.FirstOrDefault(t => t.Name == WellKnownTypeNames.Query);
 
-        // An object type named 'Query' will be set as the root query type if it has not yet been
-        // defined, so it's not necessary to check for this type in the absence of a root query
-        // type.
+            if (namedQueryType is not null)
+            {
+                context.Log.Write(RootQueryUsed(schema));
+            }
+        }
     }
 }
