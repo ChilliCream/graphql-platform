@@ -149,7 +149,9 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
             }
             catch (SyntaxException)
             {
-                // Ignore.
+                PublishEvent(
+                    new KeyFieldsInvalidSyntaxEvent(entityType, keyDirective, schema),
+                    context);
             }
         }
     }
@@ -159,10 +161,12 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         ComplexTypeDefinition entityType,
         Directive keyDirective,
         List<string> fieldNamePath,
-        ComplexTypeDefinition parentType,
+        ComplexTypeDefinition? parentType,
         SchemaDefinition schema,
         CompositionContext context)
     {
+        ComplexTypeDefinition? nextParentType = null;
+
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is FieldNode fieldNode)
@@ -178,20 +182,36 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         schema),
                     context);
 
-                if (parentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
+                if (parentType is not null)
                 {
-                    PublishEvent(
-                        new KeyFieldEvent(
-                            entityType,
-                            keyDirective,
-                            field,
-                            parentType,
-                            schema),
-                        context);
-
-                    if (field.Type.NullableType() is ComplexTypeDefinition fieldType)
+                    if (parentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
                     {
-                        parentType = fieldType;
+                        PublishEvent(
+                            new KeyFieldEvent(
+                                entityType,
+                                keyDirective,
+                                field,
+                                parentType,
+                                schema),
+                            context);
+
+                        if (field.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        {
+                            nextParentType = fieldType;
+                        }
+                    }
+                    else
+                    {
+                        PublishEvent(
+                            new KeyFieldsInvalidReferenceEvent(
+                                entityType,
+                                keyDirective,
+                                fieldNode,
+                                parentType,
+                                schema),
+                            context);
+
+                        nextParentType = null;
                     }
                 }
 
@@ -202,7 +222,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         entityType,
                         keyDirective,
                         fieldNamePath,
-                        parentType,
+                        nextParentType,
                         schema,
                         context);
                 }

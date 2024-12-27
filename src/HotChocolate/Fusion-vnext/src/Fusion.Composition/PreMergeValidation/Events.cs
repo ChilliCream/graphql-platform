@@ -40,6 +40,18 @@ internal record KeyFieldNodeEvent(
     ImmutableArray<string> FieldNamePath,
     SchemaDefinition Schema) : IEvent;
 
+internal record KeyFieldsInvalidReferenceEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    FieldNode FieldNode,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record KeyFieldsInvalidSyntaxEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    SchemaDefinition Schema) : IEvent;
+
 internal record OutputFieldEvent(
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,

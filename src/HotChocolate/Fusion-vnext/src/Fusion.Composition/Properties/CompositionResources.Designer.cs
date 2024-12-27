@@ -168,6 +168,24 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which does not exist..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidFields_Reference {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidFields_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidFields_Syntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidFields_Syntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {

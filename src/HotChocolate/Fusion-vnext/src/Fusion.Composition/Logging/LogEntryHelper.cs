@@ -204,6 +204,43 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry KeyInvalidFieldsReference(
+        string entityTypeName,
+        Directive keyDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_KeyInvalidFields_Reference,
+                entityTypeName,
+                schema.Name,
+                new SchemaCoordinate(typeName, fieldName)),
+            LogEntryCodes.KeyInvalidFields,
+            LogSeverity.Error,
+            new SchemaCoordinate(entityTypeName),
+            keyDirective,
+            schema);
+    }
+
+    public static LogEntry KeyInvalidFieldsSyntax(
+        string entityTypeName,
+        Directive keyDirective,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_KeyInvalidFields_Syntax,
+                entityTypeName,
+                schema.Name),
+            LogEntryCodes.KeyInvalidFields,
+            LogSeverity.Error,
+            new SchemaCoordinate(entityTypeName),
+            keyDirective,
+            schema);
+    }
+
     public static LogEntry OutputFieldTypesNotMergeable(
         OutputFieldDefinition field,
         string typeName,
