@@ -78,7 +78,7 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.id', which does not exist."
                 ]
             },
@@ -100,7 +100,7 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductInfo.category', which does not exist."
                 ]
             },
@@ -122,13 +122,13 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductCategory.id', which does not exist.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductCategory.name', which does not exist.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.info', which does not exist."
                 ]
             },
@@ -142,10 +142,10 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.id', which does not exist.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.name', which does not exist."
                 ]
             }

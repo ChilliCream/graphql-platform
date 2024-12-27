@@ -76,7 +76,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'User.tags', which must not have arguments."
                 ]
             },
@@ -95,7 +95,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'UserInfo.tags', which must not have arguments."
                 ]
             },
@@ -110,10 +110,10 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'User.id', which must not have arguments.",
 
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'User.tags', which must not have arguments."
                 ]
             }

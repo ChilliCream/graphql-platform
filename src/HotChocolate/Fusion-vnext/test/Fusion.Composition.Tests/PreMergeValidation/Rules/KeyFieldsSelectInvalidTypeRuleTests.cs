@@ -80,7 +80,7 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.featuredItem', which must not be a list, interface, or union type."
                 ]
             },
@@ -96,7 +96,7 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.tags', which must not be a list, interface, or union type."
                 ]
             },
@@ -118,7 +118,7 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.relatedItems', which must not be a list, interface, or union type."
                 ]
             },
@@ -140,7 +140,7 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductInfo.featuredItem', which must not be a list, interface, or union " +
                     "type."
                 ]
@@ -159,7 +159,7 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductInfo.tags', which must not be a list, interface, or union type."
                 ]
             },
@@ -183,7 +183,7 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductInfo.relatedItems', which must not be a list, interface, or union " +
                     "type."
                 ]
@@ -213,13 +213,13 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.featuredItem', which must not be a list, interface, or union type.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.tags', which must not be a list, interface, or union type.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.relatedItems', which must not be a list, interface, or union type."
                 ]
             }

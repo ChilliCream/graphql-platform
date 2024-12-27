@@ -78,7 +78,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field 'name', " +
+                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
                     "which must not include directive applications."
                 ]
             },
@@ -101,7 +101,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'name.firstName', which must not include directive applications."
                 ]
             },
@@ -118,10 +118,10 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field 'id', " +
+                    "A @key directive on type 'User' in schema 'A' references field 'id', " +
                     "which must not include directive applications.",
 
-                    "An @key directive on type 'User' in schema 'A' references field 'name', " +
+                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
                     "which must not include directive applications."
                 ]
             }
