@@ -53,6 +53,7 @@ internal sealed class SourceSchemaMerger
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
+        new KeyInvalidFieldsRule(),
         new OutputFieldTypesMergeableRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
