@@ -25,6 +25,13 @@ internal record FieldArgumentGroupEvent(
     string FieldName,
     string TypeName) : IEvent;
 
+internal record KeyFieldEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
 internal record OutputFieldEvent(
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,

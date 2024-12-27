@@ -153,6 +153,7 @@ Storeless
 strawberryshake
 streamable
 Structs
+subgraphs
 sublicensable
 supergraph
 Swashbuckle

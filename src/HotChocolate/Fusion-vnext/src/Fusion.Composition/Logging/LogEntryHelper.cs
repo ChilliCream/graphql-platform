@@ -144,6 +144,26 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry KeyFieldsSelectInvalidType(
+        string entityTypeName,
+        Directive keyDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_KeyFieldsSelectInvalidType,
+                entityTypeName,
+                schema.Name,
+                new SchemaCoordinate(typeName, fieldName)),
+            LogEntryCodes.KeyFieldsSelectInvalidType,
+            LogSeverity.Error,
+            new SchemaCoordinate(entityTypeName),
+            keyDirective,
+            schema);
+    }
+
     public static LogEntry OutputFieldTypesNotMergeable(
         OutputFieldDefinition field,
         string typeName,
