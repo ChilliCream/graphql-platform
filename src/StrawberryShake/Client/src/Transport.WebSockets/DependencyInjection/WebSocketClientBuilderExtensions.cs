@@ -30,6 +30,58 @@ public static class WebSocketClientBuilderExtensions
         Action<IWebSocketClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
+        ConfigureWebSocketClient((IScopedClientBuilder<T>)clientBuilder, configureClient, configureClientBuilder);
+
+        return clientBuilder;
+    }
+
+    /// <summary>
+    /// Adds the <see cref="ISocketClientFactory"/> and related services to the
+    /// <see cref="IServiceCollection"/> and configures a <see cref="WebSocketClient"/>
+    /// with the correct name
+    /// </summary>
+    /// <param name="clientBuilder">
+    /// The <see cref="IClientBuilder{T}"/>
+    /// </param>
+    /// <param name="configureClient">
+    /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
+    /// </param>
+    /// <param name="configureClientBuilder">
+    /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
+    /// with a <see cref="IWebSocketClientBuilder"/>
+    /// </param>
+    public static IClientBuilder<T> ConfigureWebSocketClient<T>(
+        this IClientBuilder<T> clientBuilder,
+        Action<IServiceProvider, IWebSocketClient> configureClient,
+        Action<IWebSocketClientBuilder>? configureClientBuilder = null)
+        where T : IStoreAccessor
+    {
+        ConfigureWebSocketClient((IScopedClientBuilder<T>)clientBuilder, configureClient, configureClientBuilder);
+
+        return clientBuilder;
+    }
+
+    /// <summary>
+    /// Adds the <see cref="ISocketClientFactory"/> and related services to the
+    /// <see cref="IServiceCollection"/> and configures a <see cref="WebSocketClient"/>
+    /// with the correct name
+    /// </summary>
+    /// <param name="clientBuilder">
+    /// The <see cref="IScopedClientBuilder{T}"/>
+    /// </param>
+    /// <param name="configureClient">
+    /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
+    /// </param>
+    /// <param name="configureClientBuilder">
+    /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
+    /// with a <see cref="IWebSocketClientBuilder"/>
+    /// </param>
+    public static IScopedClientBuilder<T> ConfigureWebSocketClient<T>(
+        this IScopedClientBuilder<T> clientBuilder,
+        Action<IWebSocketClient> configureClient,
+        Action<IWebSocketClientBuilder>? configureClientBuilder = null)
+        where T : IStoreAccessor
+    {
         if (clientBuilder == null)
         {
             throw new ArgumentNullException(nameof(clientBuilder));
@@ -54,7 +106,7 @@ public static class WebSocketClientBuilderExtensions
     /// with the correct name
     /// </summary>
     /// <param name="clientBuilder">
-    /// The <see cref="IClientBuilder{T}"/>
+    /// The <see cref="IScopedClientBuilder{T}"/>
     /// </param>
     /// <param name="configureClient">
     /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
@@ -63,8 +115,8 @@ public static class WebSocketClientBuilderExtensions
     /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
     /// with a <see cref="IWebSocketClientBuilder"/>
     /// </param>
-    public static IClientBuilder<T> ConfigureWebSocketClient<T>(
-        this IClientBuilder<T> clientBuilder,
+    public static IScopedClientBuilder<T> ConfigureWebSocketClient<T>(
+        this IScopedClientBuilder<T> clientBuilder,
         Action<IServiceProvider, IWebSocketClient> configureClient,
         Action<IWebSocketClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor

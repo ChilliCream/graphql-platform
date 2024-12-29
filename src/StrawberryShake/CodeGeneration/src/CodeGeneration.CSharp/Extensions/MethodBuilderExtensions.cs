@@ -56,4 +56,17 @@ internal static class MethodBuilderExtensions
         method.AddCode(code);
         return code;
     }
+
+    public static MethodBuilder If(
+        this MethodBuilder builder,
+        bool condition,
+        Action<MethodBuilder> configure)
+    {
+        if (condition)
+        {
+            configure(builder);
+        }
+
+        return builder;
+    }
 }
