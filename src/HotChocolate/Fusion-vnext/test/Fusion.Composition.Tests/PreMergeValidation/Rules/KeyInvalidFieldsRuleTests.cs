@@ -67,26 +67,6 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive has invalid syntax
-            // because it is missing a closing brace.
-            {
-                [
-                    """
-                    type Product @key(fields: "featuredItem { id") {
-                        featuredItem: Node!
-                        sku: String!
-                    }
-
-                    interface Node {
-                        id: ID!
-                    }
-                    """
-                ],
-                [
-                    "An @key directive on type 'Product' in schema 'A' contains invalid syntax " +
-                    "in the 'fields' argument."
-                ]
-            },
             // In this example, the `fields` argument of the `@key` directive references a field
             // `id`, which does not exist on the `Product` type.
             {

@@ -149,9 +149,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
             }
             catch (SyntaxException)
             {
-                PublishEvent(
-                    new KeyFieldsInvalidSyntaxEvent(entityType, keyDirective, schema),
-                    context);
+                // Ignore.
             }
         }
     }

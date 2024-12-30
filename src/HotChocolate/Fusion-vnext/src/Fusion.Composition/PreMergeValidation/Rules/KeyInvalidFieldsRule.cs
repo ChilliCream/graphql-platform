@@ -4,43 +4,27 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
 /// <summary>
-/// <para>
-/// The <c>@key</c> directive specifies the set of fields used to uniquely identify an entity. The
-/// <c>fields</c> argument must be valid and meet the following conditions:
-/// </para>
-/// <para>
-/// 1. It must have valid GraphQL syntax.<br/>
-/// 2. It must reference fields that are defined on the annotated type.
-/// </para>
-/// <para>
-/// Violations of these conditions result in an invalid schema composition, as the entity key cannot
-/// be properly resolved.
-/// </para>
+/// Even if the selection set for <c>@key(fields: "…")</c> is syntactically valid, field references
+/// within that selection set must also refer to <b>actual</b> fields on the annotated type. This
+/// includes nested selections, which must appear on the corresponding return type. If any
+/// referenced field is missing or incorrectly named, composition fails with a
+/// <c>KEY_INVALID_FIELDS</c> error because the entity key cannot be resolved correctly.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Fields">
 /// Specification
 /// </seealso>
-internal sealed class KeyInvalidFieldsRule
-    : IEventHandler<KeyFieldsInvalidReferenceEvent>
-    , IEventHandler<KeyFieldsInvalidSyntaxEvent>
+internal sealed class KeyInvalidFieldsRule : IEventHandler<KeyFieldsInvalidReferenceEvent>
 {
     public void Handle(KeyFieldsInvalidReferenceEvent @event, CompositionContext context)
     {
         var (entityType, keyDirective, fieldNode, type, schema) = @event;
 
         context.Log.Write(
-            KeyInvalidFieldsReference(
+            KeyInvalidFields(
                 entityType.Name,
                 keyDirective,
                 fieldNode.Name.Value,
                 type.Name,
                 schema));
-    }
-
-    public void Handle(KeyFieldsInvalidSyntaxEvent @event, CompositionContext context)
-    {
-        var (entityType, keyDirective, schema) = @event;
-
-        context.Log.Write(KeyInvalidFieldsSyntax(entityType.Name, keyDirective, schema));
     }
 }
