@@ -60,6 +60,9 @@
   <data name="LogEntryHelper_KeyInvalidSyntax" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' contains invalid syntax in the 'fields' argument.</value>
   </data>
+  <data name="LogEntryHelper_ProvidesOnNonCompositeField" xml:space="preserve">
+    <value>A @provides directive on field '{0}' in schema '{1}' is specified on a non-composite field, which cannot be provided.</value>
+  </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>Field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>

@@ -15,6 +15,11 @@ internal sealed class ValidationHelper
         return type.Directives.ContainsName(WellKnownDirectiveNames.External);
     }
 
+    public static bool HasProvidesDirective(IDirectivesProvider type)
+    {
+        return type.Directives.ContainsName(WellKnownDirectiveNames.Provides);
+    }
+
     /// <summary>
     /// Returns <c>true</c> if the specified <paramref name="field"/> has a <c>@provides</c>
     /// directive that references the specified <paramref name="fieldName"/>.

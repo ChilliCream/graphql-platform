@@ -262,6 +262,22 @@ internal static class LogEntryHelper
             schemaA);
     }
 
+    public static LogEntry ProvidesOnNonCompositeField(
+        OutputFieldDefinition externalField,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ProvidesOnNonCompositeField, externalField.Name, schema.Name),
+            LogEntryCodes.ProvidesOnNonCompositeField,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
     public static LogEntry RootMutationUsed(SchemaDefinition schema)
     {
         return new LogEntry(
