@@ -45,7 +45,7 @@ public sealed class DisallowedInaccessibleElementsRuleTests : CompositionTestBas
     {
         return new TheoryData<string[]>
         {
-            // Here, the String type is not marked as @inaccessible, which adheres to the rule.
+            // Here, the "String" type is not marked as @inaccessible, which adheres to the rule.
             {
                 [
                     """
@@ -63,8 +63,8 @@ public sealed class DisallowedInaccessibleElementsRuleTests : CompositionTestBas
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the String scalar is marked as @inaccessible. This violates the rule
-            // because String is a required built-in type that cannot be inaccessible.
+            // In this example, the "String" scalar is marked as @inaccessible. This violates the
+            // rule because "String" is a required built-in type that cannot be inaccessible.
             {
                 [
                     """
@@ -80,7 +80,7 @@ public sealed class DisallowedInaccessibleElementsRuleTests : CompositionTestBas
                     "The built-in scalar type 'String' in schema 'A' is not accessible."
                 ]
             },
-            // In this example, the introspection type __Type is marked as @inaccessible. This
+            // In this example, the introspection type "__Type" is marked as @inaccessible. This
             // violates the rule because introspection types must remain accessible for GraphQL
             // introspection queries to work.
             {

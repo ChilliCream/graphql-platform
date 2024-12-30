@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 
@@ -144,6 +145,45 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry KeyDirectiveInFieldsArgument(
+        string entityTypeName,
+        Directive keyDirective,
+        ImmutableArray<string> fieldNamePath,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_KeyDirectiveInFieldsArgument,
+                entityTypeName,
+                schema.Name,
+                string.Join(".", fieldNamePath)),
+            LogEntryCodes.KeyDirectiveInFieldsArg,
+            LogSeverity.Error,
+            new SchemaCoordinate(entityTypeName),
+            keyDirective,
+            schema);
+    }
+
+    public static LogEntry KeyFieldsHasArguments(
+        string entityTypeName,
+        Directive keyDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_KeyFieldsHasArguments,
+                entityTypeName,
+                schema.Name,
+                new SchemaCoordinate(typeName, fieldName)),
+            LogEntryCodes.KeyFieldsHasArgs,
+            LogSeverity.Error,
+            new SchemaCoordinate(entityTypeName),
+            keyDirective,
+            schema);
+    }
+
     public static LogEntry KeyFieldsSelectInvalidType(
         string entityTypeName,
         Directive keyDirective,
@@ -158,6 +198,26 @@ internal static class LogEntryHelper
                 schema.Name,
                 new SchemaCoordinate(typeName, fieldName)),
             LogEntryCodes.KeyFieldsSelectInvalidType,
+            LogSeverity.Error,
+            new SchemaCoordinate(entityTypeName),
+            keyDirective,
+            schema);
+    }
+
+    public static LogEntry KeyInvalidFields(
+        string entityTypeName,
+        Directive keyDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_KeyInvalidFields,
+                entityTypeName,
+                schema.Name,
+                new SchemaCoordinate(typeName, fieldName)),
+            LogEntryCodes.KeyInvalidFields,
             LogSeverity.Error,
             new SchemaCoordinate(entityTypeName),
             keyDirective,

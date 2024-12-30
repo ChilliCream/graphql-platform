@@ -132,7 +132,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to External field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by an @provides directive in the schema..
+        ///   Looks up a localized string similar to External field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by a @provides directive in the schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalUnused {
             get {
@@ -141,11 +141,38 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not be a list, interface, or union type..
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
+        /// </summary>
+        internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
+        /// </summary>
+        internal static string LogEntryHelper_KeyFieldsHasArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyFieldsHasArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not be a list, interface, or union type..
         /// </summary>
         internal static string LogEntryHelper_KeyFieldsSelectInvalidType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_KeyFieldsSelectInvalidType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which does not exist..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidFields", resourceCulture);
             }
         }
         

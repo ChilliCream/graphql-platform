@@ -45,7 +45,7 @@ public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // Here, the `name` field on Product is defined in source schema A and marked as
+            // Here, the "name" field on "Product" is defined in source schema A and marked as
             // @external in source schema B, which is valid because there is a base definition in
             // source schema A.
             {
@@ -73,9 +73,9 @@ public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `name` field on Product is marked as @external in source schema
-            // B but has no non-@external declaration in any other source schema, violating the
-            // rule.
+            // In this example, the "name" field on "Product" is marked as @external in source
+            // schema B but has no non-@external declaration in any other source schema, violating
+            // the rule.
             {
                 [
                     """
@@ -97,7 +97,7 @@ public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
                     "in any other schema."
                 ]
             },
-            // The `name` field is external in both source schemas.
+            // The "name" field is marked as @external in both source schemas.
             {
                 [
                     """
@@ -118,6 +118,7 @@ public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
                 [
                     "External field 'Product.name' in schema 'A' is not defined (non-external) " +
                     "in any other schema.",
+
                     "External field 'Product.name' in schema 'B' is not defined (non-external) " +
                     "in any other schema."
                 ]

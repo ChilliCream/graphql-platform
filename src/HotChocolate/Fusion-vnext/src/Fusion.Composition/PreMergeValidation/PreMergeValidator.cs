@@ -142,6 +142,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                     selectionSet,
                     entityType,
                     keyDirective,
+                    [],
                     entityType,
                     schema,
                     context);
@@ -157,28 +158,58 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         SelectionSetNode selectionSet,
         ComplexTypeDefinition entityType,
         Directive keyDirective,
-        ComplexTypeDefinition parentType,
+        List<string> fieldNamePath,
+        ComplexTypeDefinition? parentType,
         SchemaDefinition schema,
         CompositionContext context)
     {
+        ComplexTypeDefinition? nextParentType = null;
+
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is FieldNode fieldNode)
             {
-                if (parentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
-                {
-                    PublishEvent(
-                        new KeyFieldEvent(
-                            entityType,
-                            keyDirective,
-                            field,
-                            parentType,
-                            schema),
-                        context);
+                fieldNamePath.Add(fieldNode.Name.Value);
 
-                    if (field.Type.NullableType() is ComplexTypeDefinition fieldType)
+                PublishEvent(
+                    new KeyFieldNodeEvent(
+                        entityType,
+                        keyDirective,
+                        fieldNode,
+                        [.. fieldNamePath],
+                        schema),
+                    context);
+
+                if (parentType is not null)
+                {
+                    if (parentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
                     {
-                        parentType = fieldType;
+                        PublishEvent(
+                            new KeyFieldEvent(
+                                entityType,
+                                keyDirective,
+                                field,
+                                parentType,
+                                schema),
+                            context);
+
+                        if (field.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        {
+                            nextParentType = fieldType;
+                        }
+                    }
+                    else
+                    {
+                        PublishEvent(
+                            new KeyFieldsInvalidReferenceEvent(
+                                entityType,
+                                keyDirective,
+                                fieldNode,
+                                parentType,
+                                schema),
+                            context);
+
+                        nextParentType = null;
                     }
                 }
 
@@ -188,10 +219,13 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         fieldNode.SelectionSet,
                         entityType,
                         keyDirective,
-                        parentType,
+                        fieldNamePath,
+                        nextParentType,
                         schema,
                         context);
                 }
+
+                fieldNamePath = [];
             }
         }
     }
