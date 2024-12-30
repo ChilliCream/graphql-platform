@@ -47,6 +47,11 @@ internal record KeyFieldsInvalidReferenceEvent(
     ComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
+internal record KeyFieldsInvalidSyntaxEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    SchemaDefinition Schema) : IEvent;
+
 internal record OutputFieldEvent(
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,
