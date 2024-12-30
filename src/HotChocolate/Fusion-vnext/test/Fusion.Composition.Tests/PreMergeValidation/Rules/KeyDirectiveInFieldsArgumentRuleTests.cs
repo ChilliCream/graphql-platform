@@ -45,7 +45,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive does not include any
+            // In this example, the "fields" argument of the @key directive does not include any
             // directive applications, satisfying the rule.
             {
                 [
@@ -64,8 +64,8 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive includes a directive
-            // application `@lowercase`, which is not allowed.
+            // In this example, the "fields" argument of the @key directive includes a directive
+            // application @lowercase, which is not allowed.
             {
                 [
                     """
@@ -78,11 +78,11 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field 'name', " +
+                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
                     "which must not include directive applications."
                 ]
             },
-            // In this example, the `fields` argument includes a directive application `@lowercase`
+            // In this example, the "fields" argument includes a directive application @lowercase
             // nested inside the selection set, which is also invalid.
             {
                 [
@@ -101,7 +101,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'name.firstName', which must not include directive applications."
                 ]
             },
@@ -118,10 +118,10 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field 'id', " +
+                    "A @key directive on type 'User' in schema 'A' references field 'id', " +
                     "which must not include directive applications.",
 
-                    "An @key directive on type 'User' in schema 'A' references field 'name', " +
+                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
                     "which must not include directive applications."
                 ]
             }

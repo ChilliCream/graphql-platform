@@ -44,8 +44,8 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive is properly defined
-            // with valid syntax and references existing fields.
+            // In this example, the "fields" argument of the @key directive is properly defined with
+            // valid syntax and references existing fields.
             {
                 [
                     """
@@ -67,8 +67,8 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `fields` argument of the `@key` directive references a field
-            // `id`, which does not exist on the `Product` type.
+            // In this example, the "fields" argument of the @key directive references a field "id",
+            // which does not exist on the "Product" type.
             {
                 [
                     """
@@ -78,7 +78,7 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.id', which does not exist."
                 ]
             },
@@ -100,7 +100,7 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductInfo.category', which does not exist."
                 ]
             },
@@ -122,13 +122,13 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductCategory.id', which does not exist.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'ProductCategory.name', which does not exist.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.info', which does not exist."
                 ]
             },
@@ -142,10 +142,10 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.id', which does not exist.",
 
-                    "An @key directive on type 'Product' in schema 'A' references field " +
+                    "A @key directive on type 'Product' in schema 'A' references field " +
                     "'Product.name', which does not exist."
                 ]
             }

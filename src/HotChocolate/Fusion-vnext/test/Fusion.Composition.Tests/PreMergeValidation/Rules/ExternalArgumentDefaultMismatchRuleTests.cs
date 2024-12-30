@@ -45,8 +45,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
     {
         return new TheoryData<string[]>
         {
-            // Here, the `name` field on Product is defined in one source schema and marked as
-            // @external in another. The argument `language` has the same default value in both
+            // Here, the "name" field on "Product" is defined in one source schema and marked as
+            // @external in another. The argument "language" has the same default value in both
             // source schemas, satisfying the rule.
             {
                 [
@@ -62,8 +62,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     """
                 ]
             },
-            // Here, the `name` field on Product is defined with multiple arguments. Both arguments
-            // have the same default value in the source schemas, satisfying the rule.
+            // Here, the "name" field on "Product" is defined with multiple arguments. Both
+            // arguments have the same default value in the source schemas, satisfying the rule.
             {
                 [
                     """
@@ -90,8 +90,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
     {
         return new TheoryData<string[], string[]>
         {
-            // Here, the `name` field on Product is defined in one source schema and marked as
-            // @external in another. The argument `language` has different default values in the
+            // Here, the "name" field on "Product" is defined in one source schema and marked as
+            // @external in another. The argument "language" has different default values in the
             // two source schemas, violating the rule.
             {
                 [
@@ -111,10 +111,11 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     "inconsistent default values."
                 ]
             },
-            // In the following example, the `name` field on Product is defined in one source schema
-            // and marked as @external in another. The argument `language` has a default value in
-            // the source schema where the field is defined, but it does not have a default value in
-            // the source schema where the field is marked as @external, violating the rule.
+            // In the following example, the "name" field on "Product" is defined in one source
+            // schema and marked as @external in another. The argument "language" has a default
+            // value in the source schema where the field is defined, but it does not have a default
+            // value in the source schema where the field is marked as @external, violating the
+            // rule.
             {
                 [
                     """
@@ -133,7 +134,7 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     "inconsistent default values."
                 ]
             },
-            // Here, the `name` field on Product is defined without a default value in the
+            // Here, the "name" field on "Product" is defined without a default value in the
             // non-external source schema, violating the rule.
             {
                 [
@@ -153,7 +154,7 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     "inconsistent default values."
                 ]
             },
-            // Here, the `name` field on Product is defined with multiple arguments. One argument
+            // Here, the "name" field on "Product" is defined with multiple arguments. One argument
             // has a matching default value, whilst the other does not, violating the rule.
             {
                 [
@@ -173,9 +174,9 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     "inconsistent default values."
                 ]
             },
-            // Here, the `name` field on Product is defined with multiple arguments. One argument
-            // has a matching default value, whilst the other omits the value completely,
-            // violating the rule.
+            // Here, the "name" field on "Product" is defined with multiple arguments. One argument
+            // has a matching default value, whilst the other omits the value completely, violating
+            // the rule.
             {
                 [
                     """

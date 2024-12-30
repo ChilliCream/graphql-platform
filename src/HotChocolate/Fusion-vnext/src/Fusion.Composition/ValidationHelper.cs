@@ -16,7 +16,7 @@ internal sealed class ValidationHelper
     }
 
     /// <summary>
-    /// Returns <c>true</c> if the specified <paramref name="field"/> has an <c>@provides</c>
+    /// Returns <c>true</c> if the specified <paramref name="field"/> has a <c>@provides</c>
     /// directive that references the specified <paramref name="fieldName"/>.
     /// </summary>
     public static bool ProvidesFieldName(OutputFieldDefinition field, string fieldName)

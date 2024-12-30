@@ -44,8 +44,8 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In this example, the `User` type has a valid `@key` directive that references the
-            // argument-free fields `id` and `name`.
+            // In this example, the "User" type has a valid @key directive that references the
+            // argument-free fields "id" and "name".
             {
                 [
                     """
@@ -64,8 +64,8 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the `@key` directive references a field (`tags`) that is defined
-            // with arguments (`limit`), which is not allowed.
+            // In this example, the @key directive references a field ("tags") that is defined with
+            // arguments ("limit"), which is not allowed.
             {
                 [
                     """
@@ -76,7 +76,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'User.tags', which must not have arguments."
                 ]
             },
@@ -95,7 +95,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'UserInfo.tags', which must not have arguments."
                 ]
             },
@@ -110,10 +110,10 @@ public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'User.id', which must not have arguments.",
 
-                    "An @key directive on type 'User' in schema 'A' references field " +
+                    "A @key directive on type 'User' in schema 'A' references field " +
                     "'User.tags', which must not have arguments."
                 ]
             }
