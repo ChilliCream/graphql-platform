@@ -164,7 +164,7 @@ public static class SchemaPrinter
 
         var locations = directiveType.Locations
             .AsEnumerable()
-            .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
+            .Select(l => new NameNode(l.Format().ToString()))
             .ToList();
 
         return new DirectiveDefinitionNode

@@ -48,6 +48,15 @@ public static class TypeExtensions
             _ => type,
         };
 
+    public static ITypeDefinition NullableType(this ITypeDefinition type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        return type.Kind == TypeKind.NonNull
+            ? ((NonNullTypeDefinition)type).NullableType
+            : type;
+    }
+
     public static INamedTypeDefinition NamedType(this ITypeDefinition type)
     {
         while (true)

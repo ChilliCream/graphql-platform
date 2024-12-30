@@ -37,6 +37,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("internal static class {0}", typeName);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
+        _writer.WriteIndentedLine("private static readonly object _sync = new object();");
         _writer.WriteIndentedLine("private static bool _bindingsInitialized;");
         return typeName;
     }
@@ -94,15 +95,18 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
 
                 if (first)
                 {
-                    _writer.WriteIndentedLine("if (_bindingsInitialized)");
+                    _writer.WriteIndentedLine("if (!_bindingsInitialized)");
                     _writer.WriteIndentedLine("{");
-                    using (_writer.IncreaseIndent())
-                    {
-                        _writer.WriteIndentedLine("return;");
-                    }
+                    _writer.IncreaseIndent();
 
-                    _writer.WriteIndentedLine("}");
-                    _writer.WriteIndentedLine("_bindingsInitialized = true;");
+                    _writer.WriteIndentedLine("lock (_sync)");
+                    _writer.WriteIndentedLine("{");
+                    _writer.IncreaseIndent();
+
+                    _writer.WriteIndentedLine("if (!_bindingsInitialized)");
+                    _writer.WriteIndentedLine("{");
+                    _writer.IncreaseIndent();
+
                     _writer.WriteLine();
                     _writer.WriteIndentedLine(
                         "const global::{0} bindingFlags =",
@@ -120,6 +124,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     _writer.WriteIndentedLine("var type = typeof({0});", method.ContainingType.ToFullyQualified());
                     _writer.WriteIndentedLine("global::System.Reflection.MethodInfo resolver = default!;");
                     _writer.WriteIndentedLine("global::System.Reflection.ParameterInfo[] parameters = default!;");
+
+                    _writer.WriteIndentedLine("_bindingsInitialized = true;");
                     first = false;
                 }
 
@@ -182,8 +188,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     using (_writer.WriteForEach("binding", $"_args_{resolver.TypeName}_{resolver.Member.Name}"))
                     {
                         using (_writer.WriteIfClause(
-                           "binding.Kind == global::{0}.Argument",
-                           WellKnownTypes.ArgumentKind))
+                            "binding.Kind == global::{0}.Argument",
+                            WellKnownTypes.ArgumentKind))
                         {
                             _writer.WriteIndentedLine("argumentCount++;");
                         }
@@ -204,8 +210,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                             using (_writer.IncreaseIndent())
                             {
                                 _writer.WriteIndentedLine(
-                                    ".SetMessage(\"The node resolver `{0}.{1}` mustn't have more than one " +
-                                    "argument. Node resolvers can only have a single argument called `id`.\")",
+                                    ".SetMessage(\"The node resolver `{0}.{1}` mustn't have more than one "
+                                    + "argument. Node resolvers can only have a single argument called `id`.\")",
                                     resolver.Member.ContainingType.ToDisplayString(),
                                     resolver.Member.Name);
                                 _writer.WriteIndentedLine(".Build());");
@@ -213,6 +219,16 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         }
                     }
                 }
+            }
+
+            if (!first)
+            {
+                _writer.DecreaseIndent();
+                _writer.WriteIndentedLine("}");
+                _writer.DecreaseIndent();
+                _writer.WriteIndentedLine("}");
+                _writer.DecreaseIndent();
+                _writer.WriteIndentedLine("}");
             }
         }
 
@@ -224,8 +240,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         IMethodSymbol resolverMethod,
         ILocalTypeLookup typeLookup)
     {
-        if (type.TypeKind is TypeKind.Error &&
-            typeLookup.TryGetTypeName(type, resolverMethod, out var typeDisplayName))
+        if (type.TypeKind is TypeKind.Error && typeLookup.TryGetTypeName(type, resolverMethod, out var typeDisplayName))
         {
             return typeDisplayName;
         }
@@ -269,9 +284,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         ILocalTypeLookup typeLookup)
     {
         using (_writer.WriteMethod(
-           "public static",
-           returnType: WellKnownTypes.FieldResolverDelegates,
-           methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
+            "public static",
+            returnType: WellKnownTypes.FieldResolverDelegates,
+            methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
         {
             using (_writer.WriteIfClause(condition: "!_bindingsInitialized"))
             {
@@ -341,9 +356,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
     private void AddStaticPureResolver(Resolver resolver, IMethodSymbol resolverMethod, ILocalTypeLookup typeLookup)
     {
         using (_writer.WriteMethod(
-           "public static",
-           returnType: WellKnownTypes.FieldResolverDelegates,
-           methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
+            "public static",
+            returnType: WellKnownTypes.FieldResolverDelegates,
+            methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
         {
             using (_writer.WriteIfClause(condition: "!_bindingsInitialized"))
             {
@@ -436,9 +451,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
     private void AddStaticPropertyResolver(Resolver resolver)
     {
         using (_writer.WriteMethod(
-           "public static",
-           returnType: WellKnownTypes.FieldResolverDelegates,
-           methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
+            "public static",
+            returnType: WellKnownTypes.FieldResolverDelegates,
+            methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
         {
             using (_writer.WriteIfClause(condition: "!_bindingsInitialized"))
             {
@@ -489,13 +504,13 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         {
             var parameter = resolver.Parameters[i];
 
-            if(resolver.IsNodeResolver
-               && parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
-               && (parameter.Name == "id" || parameter.Key == "id"))
+            if (resolver.IsNodeResolver
+                && parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
+                && (parameter.Name == "id" || parameter.Key == "id"))
             {
                 _writer.WriteIndentedLine(
-                    "var args{0} = context.GetLocalState<{1}>(" +
-                    "global::HotChocolate.WellKnownContextData.InternalId);",
+                    "var args{0} = context.GetLocalState<{1}>("
+                    + "global::HotChocolate.WellKnownContextData.InternalId);",
                     i,
                     parameter.Type.ToFullyQualified());
                 continue;
@@ -524,8 +539,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     break;
                 case ResolverParameterKind.EventMessage:
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetScopedState<{1}>(" +
-                        "global::HotChocolate.WellKnownContextData.EventMessage);",
+                        "var args{0} = context.GetScopedState<{1}>("
+                        + "global::HotChocolate.WellKnownContextData.EventMessage);",
                         i,
                         parameter.Type.ToFullyQualified());
                     break;
@@ -593,8 +608,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 }
                 case ResolverParameterKind.SetGlobalState:
                     _writer.WriteIndentedLine(
-                        "var args{0} = new HotChocolate.SetState<{1}>(" +
-                        "value => context.SetGlobalState(\"{2}\", value));",
+                        "var args{0} = new HotChocolate.SetState<{1}>("
+                        + "value => context.SetGlobalState(\"{2}\", value));",
                         i,
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
                         parameter.Key);
@@ -633,8 +648,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 }
                 case ResolverParameterKind.SetScopedState:
                     _writer.WriteIndentedLine(
-                        "var args{0} = new HotChocolate.SetState<{1}>(" +
-                        "value => context.SetScopedState(\"{2}\", value));",
+                        "var args{0} = new HotChocolate.SetState<{1}>("
+                        + "value => context.SetScopedState(\"{2}\", value));",
                         i,
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
                         parameter.Key);
@@ -673,8 +688,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 }
                 case ResolverParameterKind.SetLocalState:
                     _writer.WriteIndentedLine(
-                        "var args{0} = new HotChocolate.SetState<{1}>(" +
-                        "value => context.SetLocalState(\"{2}\", value));",
+                        "var args{0} = new HotChocolate.SetState<{1}>("
+                        + "value => context.SetLocalState(\"{2}\", value));",
                         i,
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
                         parameter.Key);

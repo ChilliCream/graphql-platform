@@ -1,6 +1,5 @@
 using HotChocolate.Data.TestContext;
 using HotChocolate.Pagination;
-using CookieCrumble;
 using Microsoft.EntityFrameworkCore;
 using Squadron;
 
@@ -77,6 +76,27 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Fetch_First_2_Items_Between()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // .. get first page
+        var arguments = new PagingArguments(4);
+        await using var context = new CatalogContext(connectionString);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToPageAsync(arguments);
+
+        // Act
+        arguments = new PagingArguments(2, after: page.CreateCursor(page.First!), before: page.CreateCursor(page.Last!));
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Assert
+        page.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Fetch_Last_2_Items()
     {
         // Arrange
@@ -112,6 +132,29 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         // Act
         arguments = arguments with { Before = page.CreateCursor(page.First!), };
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Assert
+        page.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Last_2_Items_Between()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // .. get last page
+        var arguments = new PagingArguments(last: 4);
+        await using var context = new CatalogContext(connectionString);
+        var page = await context.Products
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
+            .ToPageAsync(arguments);
+
+        // Act
+        arguments = new PagingArguments(after: page.CreateCursor(page.First!), last: 2, before: page.CreateCursor(page.Last!));
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert

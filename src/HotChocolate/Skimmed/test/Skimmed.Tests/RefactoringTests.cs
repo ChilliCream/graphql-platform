@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
 

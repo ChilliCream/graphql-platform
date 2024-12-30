@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ChilliCream.Nitro" Version="14.0.0-preview.10" />
+    <PackageReference Include="ChilliCream.Nitro" Version="14.0.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="14.0.0-preview.build.0" />
     <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="14.0.0-preview.build.0" />
     <PackageReference Include="HotChocolate.Fusion" Version="14.0.0-preview.build.0" />

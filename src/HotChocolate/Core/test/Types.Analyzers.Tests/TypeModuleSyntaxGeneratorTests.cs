@@ -157,4 +157,20 @@ public class TypeModuleSyntaxGeneratorTests
             """
         ]).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task GenerateSource_With_Problematic_Assembly_Name_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            internal class ATestBType: ObjectType<ATestB>;
+            internal record ATestB(int Id);
+            """
+        ], assemblyName:"Custom-Module").MatchMarkdownAsync();
+    }
 }

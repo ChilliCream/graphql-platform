@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Types;
 
 namespace HotChocolate.Utilities;

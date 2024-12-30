@@ -1,5 +1,4 @@
 using System.Globalization;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;

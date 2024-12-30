@@ -5,6 +5,9 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public sealed class CostOptions
 {
+    private bool _skipAnalyzer = false;
+    private bool _enforceCostLimits = true;
+
     /// <summary>
     /// Gets or sets the maximum allowed field cost.
     /// </summary>
@@ -18,12 +21,45 @@ public sealed class CostOptions
     /// <summary>
     /// Defines if the analyzer shall enforce cost limits.
     /// </summary>
-    public bool EnforceCostLimits { get; set; } = true;
+    public bool EnforceCostLimits
+    {
+        get => _enforceCostLimits;
+        set
+        {
+            if(value)
+            {
+                SkipAnalyzer = false;
+            }
+
+            _enforceCostLimits = value;
+        }
+    }
+
+    /// <summary>
+    /// Skips the cost analyzer.
+    /// </summary>
+    public bool SkipAnalyzer
+    {
+        get => _skipAnalyzer;
+        set
+        {
+            if(value)
+            {
+                EnforceCostLimits = false;
+            }
+            _skipAnalyzer = value;
+        }
+    }
 
     /// <summary>
     /// Defines if cost defaults shall be applied to the schema.
     /// </summary>
     public bool ApplyCostDefaults { get; set; } = true;
+
+    /// <summary>
+    /// Defines if the non-spec slicing argument default value shall be applied.
+    /// </summary>
+    public bool ApplySlicingArgumentDefaultValue { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the default cost for an async resolver pipeline.

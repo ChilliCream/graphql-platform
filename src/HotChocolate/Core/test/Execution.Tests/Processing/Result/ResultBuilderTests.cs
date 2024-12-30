@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Execution.Processing;
 
 public class ResultBuilderTests
