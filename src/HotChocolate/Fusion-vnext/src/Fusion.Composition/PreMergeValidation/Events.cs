@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
@@ -24,6 +25,20 @@ internal record FieldArgumentGroupEvent(
     ImmutableArray<FieldArgumentInfo> ArgumentGroup,
     string FieldName,
     string TypeName) : IEvent;
+
+internal record KeyFieldEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record KeyFieldNodeEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    FieldNode FieldNode,
+    ImmutableArray<string> FieldNamePath,
+    SchemaDefinition Schema) : IEvent;
 
 internal record OutputFieldEvent(
     OutputFieldDefinition Field,
