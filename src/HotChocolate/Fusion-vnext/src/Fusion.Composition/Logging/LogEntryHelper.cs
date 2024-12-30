@@ -262,6 +262,28 @@ internal static class LogEntryHelper
             schemaA);
     }
 
+    public static LogEntry ProvidesDirectiveInFieldsArgument(
+        ImmutableArray<string> fieldNamePath,
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ProvidesDirectiveInFieldsArgument,
+                coordinate,
+                schema.Name,
+                string.Join(".", fieldNamePath)),
+            LogEntryCodes.ProvidesDirectiveInFieldsArg,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
     public static LogEntry RootMutationUsed(SchemaDefinition schema)
     {
         return new LogEntry(
