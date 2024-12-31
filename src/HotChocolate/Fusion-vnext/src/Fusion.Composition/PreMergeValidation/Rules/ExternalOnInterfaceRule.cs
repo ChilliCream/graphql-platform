@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
@@ -11,7 +10,7 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// direct resolutions at the interface level. Instead, each implementing object type provides the
 /// concrete field implementations. Marking an interface field with <c>@external</c> is therefore
 /// nonsensical, as there is no actual field resolution in the interface itself to “borrow” from
-/// another schema. Such usage raises an EXTERNAL_ON_INTERFACE error.
+/// another schema. Such usage raises an <c>EXTERNAL_ON_INTERFACE</c> error.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-External-on-Interface">
 /// Specification
