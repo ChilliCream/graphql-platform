@@ -8,8 +8,6 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-// TODO: Flatten unnecessary inline fragments
-// TODO: Remove selections from skipped fragment if they are part of the parent selection
 public sealed class OperationPlanner(CompositeSchema schema)
 {
     private readonly MergeSelectionSetRewriter _selectionSetMergeRewriter = new(schema);
