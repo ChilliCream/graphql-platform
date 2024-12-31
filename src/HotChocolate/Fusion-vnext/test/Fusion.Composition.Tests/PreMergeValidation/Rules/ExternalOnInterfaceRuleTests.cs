@@ -45,7 +45,7 @@ public sealed class ExternalOnInterfaceRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // Here, the interface Node merely describes the field "id". Object types "User" and
+            // Here, the interface "Node" merely describes the field "id". Object types "User" and
             // "Product" implement and resolve "id". No @external usage occurs on the interface
             // itself, so no error is triggered.
             {
@@ -86,7 +86,7 @@ public sealed class ExternalOnInterfaceRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "Interface 'Node' in schema 'A' contains a field marked as external."
+                    "Interface field 'Node.id' in schema 'A' must not be marked as external."
                 ]
             }
         };

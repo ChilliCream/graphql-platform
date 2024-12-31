@@ -137,7 +137,7 @@ internal static class LogEntryHelper
         var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_ExternalOnInterface, type.Name, schema.Name),
+            string.Format(LogEntryHelper_ExternalOnInterface, coordinate, schema.Name),
             LogEntryCodes.ExternalOnInterface,
             LogSeverity.Error,
             coordinate,
