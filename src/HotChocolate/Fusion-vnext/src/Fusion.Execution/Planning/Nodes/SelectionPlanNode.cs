@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -75,6 +76,8 @@ public abstract class SelectionPlanNode : PlanNode
     /// </summary>
     public IReadOnlyList<SelectionSetNode> RequirementNodes
         => _requirements ?? (IReadOnlyList<SelectionSetNode>)Array.Empty<SelectionSetNode>();
+
+    public IReadOnlyList<UnresolvableSelection> UnresolvableSelections { get; }
 
     /// <summary>
     /// Defines if the selection is conditional.
@@ -161,6 +164,21 @@ public abstract class SelectionPlanNode : PlanNode
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
         (_requirements ??= []).Add(selectionSet);
+    }
+
+    public void AddUnresolvableSelection(ISelectionNode selectionNode, ImmutableStack<SelectionPlanNode> path)
+    {
+
+    }
+
+    public void AddUnresolvableSelection(UnresolvableSelection unresolvable)
+    {
+
+    }
+
+    public void ClearUnresolvableSelections()
+    {
+
     }
 
     private void InitializeConditions()

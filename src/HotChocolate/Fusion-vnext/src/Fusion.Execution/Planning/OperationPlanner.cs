@@ -12,6 +12,7 @@ namespace HotChocolate.Fusion.Planning;
 // TODO: Remove selections from skipped fragment if they are part of the parent selection
 public sealed class OperationPlanner(CompositeSchema schema)
 {
+    private readonly MergeSelectionSetRewriter _selectionSetMergeRewriter = new(schema);
     private int _lastRequirementId;
 
     public RequestPlanNode CreatePlan(DocumentNode document, string? operationName)
@@ -30,10 +31,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 schema.QueryType,
                 operationDefinition.SelectionSet);
 
-            var context = new PlaningContext(
-                operation,
-                operation,
-                ImmutableStack<SelectionPathSegment>.Empty);
+            var context = new PlaningContext(operation);
 
             if (TryPlanSelectionSet(context))
             {
@@ -47,9 +45,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return operationPlan;
     }
 
-    private bool TryPlanSelectionSet(
-        PlaningContext context,
-        bool skipUnresolved = false)
+    private bool TryPlanSelectionSet(PlaningContext context)
     {
         if (context.Parent.SelectionNodes is null)
         {
@@ -57,7 +53,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 "A leaf field cannot be a parent node.");
         }
 
-        List<IUnresolvedSelection>? unresolvedSelections = null;
         var type = (CompositeComplexType)context.Parent.DeclaringType;
         var haveConditionalSelectionsBeenRemoved = false;
 
@@ -72,12 +67,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             TryPlanSelection(
                 context,
                 type,
-                selection,
-                unresolvedSelection =>
-                {
-                    unresolvedSelections ??= new List<IUnresolvedSelection>();
-                    unresolvedSelections.Add(unresolvedSelection);
-                });
+                selection);
         }
 
         if (haveConditionalSelectionsBeenRemoved)
@@ -100,25 +90,41 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        return skipUnresolved
-            || unresolvedSelections is null
-            || unresolvedSelections.Count == 0
-            || TryHandleUnresolvedSelections(context, type, unresolvedSelections);
+        if (context.Parent.UnresolvableSelections.Count == 0)
+        {
+            return true;
+        }
+
+        if (!HasLookup(type))
+        {
+            if (context.Parent.Parent is not SelectionPlanNode grandParent)
+            {
+                return false;
+            }
+
+            foreach (var unresolvable in context.Parent.UnresolvableSelections)
+            {
+                grandParent.AddUnresolvableSelection(unresolvable);
+            }
+
+            context.Parent.ClearUnresolvableSelections();
+            return true;
+        }
+
+        return TryHandleUnresolvedSelections(context, type);
     }
 
     private bool TryPlanSelection(
         PlaningContext context,
         CompositeComplexType type,
-        ISelectionNode selectionNode,
-        Action<IUnresolvedSelection> trackUnresolvedSelection)
+        ISelectionNode selectionNode)
     {
         if (selectionNode is FieldNode fieldNode)
         {
             return TryPlanFieldSelection(
                 context,
                 type,
-                fieldNode,
-                trackUnresolvedSelection);
+                fieldNode);
         }
 
         if (selectionNode is InlineFragmentNode inlineFragmentNode)
@@ -126,8 +132,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             return TryPlanInlineFragmentSelection(
                 context,
                 type,
-                inlineFragmentNode,
-                trackUnresolvedSelection);
+                inlineFragmentNode);
         }
 
         return false;
@@ -136,8 +141,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
     private bool TryPlanInlineFragmentSelection(
         PlaningContext context,
         CompositeComplexType type,
-        InlineFragmentNode inlineFragmentNode,
-        Action<IUnresolvedSelection> trackUnresolvedSelection)
+        InlineFragmentNode inlineFragmentNode)
     {
         var typeCondition = type;
         if (inlineFragmentNode.TypeCondition?.Name.Value is { } conditionTypeName &&
@@ -148,9 +152,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         var inlineFragmentPlanNode = new InlineFragmentPlanNode(typeCondition, inlineFragmentNode);
-        var inlineFragmentContext = new PlaningContext(context.Operation, inlineFragmentPlanNode,
-            ImmutableStack<SelectionPathSegment>.Empty);
-        List<IUnresolvedSelection>? unresolvedSelections = null;
+        var inlineFragmentContext = new PlaningContext(context.Operation, inlineFragmentPlanNode);
 
         foreach (var selection in inlineFragmentNode.SelectionSet.Selections)
         {
@@ -162,28 +164,24 @@ public sealed class OperationPlanner(CompositeSchema schema)
             TryPlanSelection(
                 inlineFragmentContext,
                 typeCondition,
-                selection,
-                unresolvedSelection =>
-                {
-                    unresolvedSelections ??= new List<IUnresolvedSelection>();
-                    unresolvedSelections.Add(unresolvedSelection);
-                });
+                selection);
         }
 
-        if (unresolvedSelections is { Count: > 0 })
+        if (inlineFragmentPlanNode.UnresolvableSelections.Count > 0)
         {
-            var unresolvedInlineFragment =
-                new UnresolvedInlineFragment(typeCondition, inlineFragmentNode.Directives, unresolvedSelections);
+            foreach (var unresolvable in inlineFragmentPlanNode.UnresolvableSelections)
+            {
+                context.Parent.AddUnresolvableSelection(unresolvable);
+            }
 
-            trackUnresolvedSelection(unresolvedInlineFragment);
+            inlineFragmentPlanNode.ClearUnresolvableSelections();
+            return true;
         }
 
         if (inlineFragmentPlanNode.Selections.Count > 0)
         {
             AddSelectionDirectives(inlineFragmentPlanNode, inlineFragmentNode.Directives);
-
             context.Parent.AddSelection(inlineFragmentPlanNode);
-
             return true;
         }
 
@@ -193,8 +191,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
     private bool TryPlanFieldSelection(
         PlaningContext context,
         CompositeComplexType type,
-        FieldNode fieldNode,
-        Action<UnresolvedField> trackUnresolvedSelection)
+        FieldNode fieldNode)
     {
         if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
         {
@@ -247,20 +244,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
             var fieldPlanNode = new FieldPlanNode(fieldNode, field);
             AddSelectionDirectives(fieldPlanNode, fieldNode.Directives);
 
-            var pathSegment = new SelectionPathSegment(fieldPlanNode);
-
-            if (TryPlanSelectionSet(context with { Parent = fieldPlanNode, Path = context.Path.Push(pathSegment) }))
+            if (TryPlanSelectionSet(context with { Parent = fieldPlanNode, Path = context.Path.Push(fieldPlanNode) }))
             {
                 context.Parent.AddSelection(fieldPlanNode);
                 return true;
             }
-
-            trackUnresolvedSelection(new UnresolvedField(fieldNode, field));
-            return false;
         }
 
-        // unresolvable fields will be collected to backtrack later.
-        trackUnresolvedSelection(new UnresolvedField(fieldNode, field));
+        context.Parent.AddUnresolvableSelection(fieldNode, context.Path);
         return false;
     }
 
@@ -286,35 +277,38 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
     private bool TryHandleUnresolvedSelections(
         PlaningContext context,
-        CompositeComplexType type,
-        List<IUnresolvedSelection> unresolvedSelections)
+        CompositeComplexType type)
     {
         if (!TryResolveEntityType(context.Parent, out var entityPath))
         {
             return false;
         }
 
+        var unresolvedSelections = new List<SelectionSetNode>();
+        foreach (var (selection, path) in context.Parent.UnresolvableSelections)
+        {
+            unresolvedSelections.Add(
+                CreateSelectionSetFromPath(
+                    context.Parent,
+                    new SelectionSetNode([selection]),
+                    path));
+        }
+        context.Parent.ClearUnresolvableSelections();
+
+        var requirements = _selectionSetMergeRewriter.RewriteSelectionSets(unresolvedSelections, type);
+        var schemasWeighted = GetSchemasWeighted(type, requirements);
+        schemasWeighted.Remove(context.Operation.SchemaName);
+
         // if we have found an entity to branch of from we will check
         // if any of the unresolved selections can be resolved through one of the entity lookups.
-        var schemasInContext = new Dictionary<string, OperationPlanNode>();
-        var processedFields = new HashSet<string>();
-        var selections = new List<ISelectionNode>();
-
-        schemasInContext.Add(context.Operation.SchemaName, context.Operation);
-
-        // we first try to weight the schemas that the fields can be resolved by.
-        // The schema is weighted by the fields it potentially can resolve.
-        var schemasWeighted = GetSchemasWeighted(unresolvedSelections, schemasInContext.Keys);
+        var schemasInContext = new Dictionary<string, OperationPlanNode>
+        {
+            { context.Operation.SchemaName, context.Operation }
+        };
 
         foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
         {
             if (schemasInContext.ContainsKey(schemaName))
-            {
-                continue;
-            }
-
-            // if the path is not resolvable we will skip it and move to the next.
-            if (!IsEntityPathResolvable(entityPath, schemaName))
             {
                 continue;
             }
@@ -330,51 +324,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 continue;
             }
 
-            // note : this can lead to an operation explosions as fields could be unresolvable
-            // and would be spread out in the lower level call. We do that for now to test out the
-            // overall concept and will backtrack later to the upper call.
-            selections.Clear();
-
-            foreach (var unresolvedSelection in unresolvedSelections)
-            {
-                if (unresolvedSelection is UnresolvedField unresolvedField)
-                {
-                    if (unresolvedField.Field.Sources.ContainsSchema(schemaName) &&
-                        !processedFields.Contains(unresolvedField.Field.Name))
-                    {
-                        selections.Add(unresolvedField.FieldNode);
-                    }
-                }
-                // TODO: Are we only concerned with the top-level of fields here?
-                else if (unresolvedSelection is UnresolvedInlineFragment unresolvedInlineFragment)
-                {
-                    var resolvableFields = new List<FieldNode>();
-
-                    foreach (var unresolvedSubSelection in unresolvedInlineFragment.UnresolvedSelections)
-                    {
-                        if (unresolvedSubSelection is UnresolvedField unresolvedSubField)
-                        {
-                            // We're specifically not checking processed fields here as fields outside the inline fragment should still be added.
-                            if (unresolvedSubField.Field.Sources.ContainsSchema(schemaName))
-                            {
-                                resolvableFields.Add(unresolvedSubField.FieldNode);
-                            }
-                        }
-                    }
-
-                    if (resolvableFields.Count > 0)
-                    {
-                        selections.Add(new InlineFragmentNode(
-                            null,
-                            new NamedTypeNode(unresolvedInlineFragment.TypeCondition.Name),
-                            unresolvedInlineFragment.Directives,
-                            new SelectionSetNode(resolvableFields)));
-                    }
-                }
-            }
-
-            var (lookupOp, lookupField) = CreateLookupOperation(schemaName, lookup, type, context.Parent, selections);
-            if (!TryPlanSelectionSet(context with { Operation = lookupOp, Parent = lookupField }, true))
+            var (lookupOp, lookupField) = CreateLookupOperation(schemaName, lookup, type, context.Parent, requirements);
+            if (!TryPlanSelectionSet(context with { Operation = lookupOp, Parent = lookupField }))
             {
                 continue;
             }
@@ -404,7 +355,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     ? requiredFromOperation.Selections.Single()
                     : context.Parent;
                 var requiredFromPathStack = requiredFromOperation != context.Operation
-                    ? ImmutableStack<SelectionPathSegment>.Empty.Push(new SelectionPathSegment(lookupField))
+                    ? ImmutableStack<SelectionPlanNode>.Empty.Push(lookupField)
                     : context.Path;
                 var requiredFromPath = CreateFieldPath(requiredFromPathStack);
                 var requiredFromContext = new PlaningContext(
@@ -415,8 +366,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 if (!TryPlanSelection(
                     requiredFromContext,
                     (CompositeComplexType)requiredFromSelectionSet.DeclaringType,
-                    CreateFieldNodeFromPath(requiredField),
-                    _ => { }))
+                    CreateFieldNodeFromPath(requiredField)))
                 {
                     return false;
                 }
@@ -432,54 +382,21 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 lookupField.AddArgument(new ArgumentAssignment(argument.Name, new VariableNode(requirementName)));
             }
 
-            // we register the fields that we were able to resolve with the lookup
-            // so that if there are still unresolved fields we can check if we can
-            // resolve them with another lookup.
-            foreach (var selection in lookupField.Selections)
+            unresolvedSelections.Clear();
+
+            foreach (var (selection, path) in lookupField.UnresolvableSelections)
             {
-                switch (selection)
-                {
-                    case FieldPlanNode field:
-                        processedFields.Add(field.Field.Name);
-                        break;
-
-                    case InlineFragmentPlanNode inlineFragmentNode:
-                        foreach (var inlineFragmentSelection in inlineFragmentNode.Selections)
-                        {
-                            if (inlineFragmentSelection is FieldPlanNode field)
-                            {
-                                processedFields.Add(field.Field.Name);
-                            }
-                        }
-
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
+                unresolvedSelections.Add(
+                    CreateSelectionSetFromPath(
+                        lookupField,
+                        new SelectionSetNode([selection]),
+                        path));
             }
+
+            lookupField.ClearUnresolvableSelections();
         }
 
-        var unresolvedFields = new HashSet<string>();
-        foreach (var unresolvedSelection in unresolvedSelections)
-        {
-            if (unresolvedSelection is UnresolvedField unresolvedField)
-            {
-                unresolvedFields.Add(unresolvedField.Field.Name);
-            }
-            else if (unresolvedSelection is UnresolvedInlineFragment unresolvedInlineFragment)
-            {
-                foreach (var inlineFragmentSelection in unresolvedInlineFragment.UnresolvedSelections)
-                {
-                    if (inlineFragmentSelection is UnresolvedField field)
-                    {
-                        unresolvedFields.Add(field.Field.Name);
-                    }
-                }
-            }
-        }
-
-        return unresolvedFields.Count == processedFields.Count;
+        return unresolvedSelections.Count == 0;
     }
 
     /// <summary>
@@ -557,8 +474,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        lookup = default;
-        fieldSchemaDependencies = default;
+        lookup = null;
+        fieldSchemaDependencies = null;
         return false;
     }
 
@@ -607,14 +524,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
         Lookup lookup,
         CompositeComplexType entityType,
         SelectionPlanNode parent,
-        IReadOnlyList<ISelectionNode> selections)
+        SelectionSetNode selectionSet)
     {
         var lookupFieldNode = new FieldNode(
             new NameNode(lookup.Name),
             null,
             [],
             [],
-            new SelectionSetNode(selections));
+            selectionSet);
 
         var selectionNodes = new ISelectionNode[] { lookupFieldNode };
 
@@ -637,49 +554,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
     }
 
     private static Dictionary<string, int> GetSchemasWeighted(
-        IEnumerable<IUnresolvedSelection> unresolvedSelections,
-        IEnumerable<string> skipSchemaNames)
-    {
-        var counts = new Dictionary<string, int>();
-        var unresolvedSelectionBacklog = new Queue<IUnresolvedSelection>(unresolvedSelections);
-
-        while (unresolvedSelectionBacklog.TryDequeue(out var unresolvedSelection))
-        {
-            if (unresolvedSelection is UnresolvedField unresolvedField)
-            {
-                foreach (var schemaName in unresolvedField.Field.Sources.Schemas)
-                {
-                    if (counts.TryGetValue(schemaName, out var count))
-                    {
-                        counts[schemaName] = count + 1;
-                    }
-                    else
-                    {
-                        counts[schemaName] = 1;
-                    }
-                }
-            }
-            else if (unresolvedSelection is UnresolvedInlineFragment unresolvedInlineFragment)
-            {
-                foreach (var selection in unresolvedInlineFragment.UnresolvedSelections)
-                {
-                    unresolvedSelectionBacklog.Enqueue(selection);
-                }
-            }
-        }
-
-        foreach (var schemaName in skipSchemaNames)
-        {
-            counts.Remove(schemaName);
-        }
-
-        return counts;
-    }
-
-    private static Dictionary<string, int> GetSchemasWeighted(
-        CompositeObjectType operationType,
+        CompositeComplexType operationType,
         SelectionSetNode selectionSet)
     {
+        // this is to simplified ... we need to traverse instead
         var counts = new Dictionary<string, int>();
         var selectionBacklog = new Queue<ISelectionNode>(selectionSet.Selections);
         var visitedSelections = new HashSet<ISelectionNode>(SyntaxComparer.BySyntax);
@@ -717,13 +595,13 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
-    private static FieldPath CreateFieldPath(ImmutableStack<SelectionPathSegment> path)
+    private static FieldPath CreateFieldPath(ImmutableStack<SelectionPlanNode> path)
     {
         var current = FieldPath.Root;
 
         foreach (var segment in path.Reverse())
         {
-            if (segment.PlanNode is FieldPlanNode field)
+            if (segment is FieldPlanNode field)
             {
                 current = current.Append(field.Field.Name);
             }
@@ -748,6 +626,56 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         return current;
+    }
+
+    private static SelectionSetNode CreateSelectionSetFromPath(
+        SelectionPlanNode parent,
+        SelectionSetNode selectionSet,
+        ImmutableStack<SelectionPlanNode> path)
+    {
+        path = path.Pop(out var segment);
+
+        if(ReferenceEquals(segment, parent))
+        {
+            return selectionSet;
+        }
+
+        var current = CreateSelectionFromNode(segment, selectionSet);
+
+        while (!path.IsEmpty)
+        {
+            path = path.Pop(out segment);
+
+            if (ReferenceEquals(segment, parent))
+            {
+                return new SelectionSetNode([current]);
+            }
+
+            current = CreateSelectionFromNode(segment, new SelectionSetNode([current]));
+        }
+
+        return new SelectionSetNode([current]);
+    }
+
+    private static ISelectionNode CreateSelectionFromNode(
+        SelectionPlanNode node,
+        SelectionSetNode selectionSet)
+    {
+        switch (node)
+        {
+            case FieldPlanNode field:
+                return field.FieldNode.WithSelectionSet(selectionSet);
+
+            case InlineFragmentPlanNode fragment:
+                return new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(fragment.DeclaringType.Name),
+                    fragment.Directives.ToSyntaxNode(),
+                    selectionSet);
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(node));
+        }
     }
 
     private void TryMakeOperationConditional(
@@ -826,69 +754,62 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return false;
     }
 
-    private IReadOnlyList<IUnresolvedSelection> ParseRequirements(
-        CompositeComplexType type,
-        SelectionSetNode selectionSetNode)
-    {
-        var unresolvedFields = new List<IUnresolvedSelection>();
-
-        foreach (var selectionNode in selectionSetNode.Selections)
-        {
-            if (selectionNode is FieldNode fieldNode)
-            {
-                if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
-                {
-                    throw new InvalidOperationException(
-                        "There is an unknown field in the selection set.");
-                }
-
-                unresolvedFields.Add(new UnresolvedField(fieldNode, field));
-            }
-            else if (selectionNode is InlineFragmentNode fragmentNode)
-            {
-                var typeCondition = type;
-                if (fragmentNode.TypeCondition?.Name is { Value : { } conditionTypeName }  &&
-                    schema.TryGetType<CompositeComplexType>(conditionTypeName, out var typeConditionType))
-                {
-                    typeCondition = typeConditionType;
-                }
-
-                unresolvedFields.Add(
-                    new UnresolvedInlineFragment(
-                        typeCondition,
-                        fragmentNode.Directives,
-                        ParseRequirements(typeCondition, fragmentNode.SelectionSet)));
-            }
-        }
-
-        return unresolvedFields;
-    }
+    private bool HasLookup(CompositeComplexType type)
+        => type.IsEntity() || ReferenceEquals(type, schema.QueryType);
 
     private string GetNextRequirementName()
         => $"__fusion_requirement_{++_lastRequirementId}";
-
-    public record SelectionPathSegment(
-        SelectionPlanNode PlanNode);
-
-    public interface IUnresolvedSelection;
-
-    public record UnresolvedField(
-        FieldNode FieldNode,
-        CompositeOutputField Field)
-        : IUnresolvedSelection;
-
-    public record UnresolvedInlineFragment(
-        CompositeComplexType TypeCondition,
-        IReadOnlyList<DirectiveNode> Directives,
-        IReadOnlyList<IUnresolvedSelection> UnresolvedSelections)
-        : IUnresolvedSelection;
 
     private record struct LookupOperation(
         OperationPlanNode Operation,
         FieldPlanNode Field);
 
-    private record struct PlaningContext(
-        OperationPlanNode Operation,
-        SelectionPlanNode Parent,
-        ImmutableStack<SelectionPathSegment> Path);
+    private readonly record struct PlaningContext
+    {
+        public PlaningContext(
+            OperationPlanNode operation)
+            : this(operation, operation)
+        {
+        }
+
+        public PlaningContext(
+            OperationPlanNode operation,
+            SelectionPlanNode parent,
+            ImmutableStack<SelectionPlanNode>? path = null)
+        {
+            Operation = operation;
+            Parent = parent;
+            Path = path ?? ImmutableStack<SelectionPlanNode>.Empty;
+            Requirements = [];
+        }
+
+        public PlaningContext(
+            OperationPlanNode operation,
+            SelectionPlanNode parent,
+            ImmutableStack<SelectionPlanNode> path,
+            List<ISelectionNode> requirements)
+        {
+            Operation = operation;
+            Parent = parent;
+            Path = path;
+            Requirements = requirements;
+        }
+
+        public OperationPlanNode Operation { get; init; }
+        public SelectionPlanNode Parent { get; init; }
+        public ImmutableStack<SelectionPlanNode> Path { get; init; }
+        public List<ISelectionNode> Requirements { get; init; }
+
+        public void Deconstruct(
+            out OperationPlanNode operation,
+            out SelectionPlanNode parent,
+            out ImmutableStack<SelectionPlanNode> path,
+            out List<ISelectionNode> requirements)
+        {
+            operation = Operation;
+            parent = Parent;
+            path = Path;
+            requirements = Requirements;
+        }
+    }
 }
