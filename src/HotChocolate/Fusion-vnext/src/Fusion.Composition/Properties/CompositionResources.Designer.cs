@@ -141,6 +141,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
         
+        internal static string LogEntryHelper_ProvidesDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
         internal static string LogEntryHelper_RootMutationUsed {
             get {
                 return ResourceManager.GetString("LogEntryHelper_RootMutationUsed", resourceCulture);
