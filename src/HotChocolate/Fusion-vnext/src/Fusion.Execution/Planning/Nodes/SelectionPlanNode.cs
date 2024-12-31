@@ -12,6 +12,7 @@ public abstract class SelectionPlanNode : PlanNode
     private List<CompositeDirective>? _directives;
     private List<SelectionPlanNode>? _selections;
     private List<SelectionSetNode>? _requirements;
+    private List<UnresolvableSelection>? _unresolvableSelections;
     private bool? _isConditional;
     private string? _skipVariable;
     private string? _includeVariable;
@@ -77,7 +78,8 @@ public abstract class SelectionPlanNode : PlanNode
     public IReadOnlyList<SelectionSetNode> RequirementNodes
         => _requirements ?? (IReadOnlyList<SelectionSetNode>)Array.Empty<SelectionSetNode>();
 
-    public IReadOnlyList<UnresolvableSelection> UnresolvableSelections { get; }
+    public IReadOnlyList<UnresolvableSelection> UnresolvableSelections =>
+        _unresolvableSelections ?? (IReadOnlyList<UnresolvableSelection>)Array.Empty<UnresolvableSelection>();
 
     /// <summary>
     /// Defines if the selection is conditional.
@@ -168,17 +170,21 @@ public abstract class SelectionPlanNode : PlanNode
 
     public void AddUnresolvableSelection(ISelectionNode selectionNode, ImmutableStack<SelectionPlanNode> path)
     {
+        ArgumentNullException.ThrowIfNull(selectionNode);
+        ArgumentNullException.ThrowIfNull(path);
 
+        (_unresolvableSelections ??= []).Add(new UnresolvableSelection(selectionNode, path));
     }
 
     public void AddUnresolvableSelection(UnresolvableSelection unresolvable)
     {
-
+        ArgumentNullException.ThrowIfNull(unresolvable);
+        (_unresolvableSelections ??= []).Add(unresolvable);
     }
 
     public void ClearUnresolvableSelections()
     {
-
+        _unresolvableSelections?.Clear();
     }
 
     private void InitializeConditions()

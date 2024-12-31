@@ -25,9 +25,7 @@ nodes:
     operation: >-
       query($__fusion_requirement_1: ID!) {
         productById(id: $__fusion_requirement_1) {
-          ... on Product {
-            estimatedDelivery(postCode: "12345")
-          }
+          estimatedDelivery(postCode: "12345")
         }
       }
     requirements:

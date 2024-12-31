@@ -144,15 +144,19 @@ public sealed class OperationPlanner(CompositeSchema schema)
         InlineFragmentNode inlineFragmentNode)
     {
         var typeCondition = type;
-        if (inlineFragmentNode.TypeCondition?.Name.Value is { } conditionTypeName &&
+        if (inlineFragmentNode.TypeCondition?.Name.Value is { } typeConditionName
             // TODO: CompositeComplexType does not include unions which are a valid value for type conditions.
-            schema.TryGetType<CompositeComplexType>(conditionTypeName, out var typeConditionType))
+            && schema.TryGetType<CompositeComplexType>(typeConditionName, out var typeConditionType))
         {
             typeCondition = typeConditionType;
         }
 
         var inlineFragmentPlanNode = new InlineFragmentPlanNode(typeCondition, inlineFragmentNode);
-        var inlineFragmentContext = new PlaningContext(context.Operation, inlineFragmentPlanNode);
+        var inlineFragmentContext = context with
+        {
+            Parent = inlineFragmentPlanNode,
+            Path = context.Path.Push(inlineFragmentPlanNode)
+        };
 
         foreach (var selection in inlineFragmentNode.SelectionSet.Selections)
         {
@@ -175,7 +179,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
             }
 
             inlineFragmentPlanNode.ClearUnresolvableSelections();
-            return true;
         }
 
         if (inlineFragmentPlanNode.Selections.Count > 0)
@@ -285,6 +288,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         }
 
         var unresolvedSelections = new List<SelectionSetNode>();
+
         foreach (var (selection, path) in context.Parent.UnresolvableSelections)
         {
             unresolvedSelections.Add(
@@ -293,6 +297,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     new SelectionSetNode([selection]),
                     path));
         }
+
         context.Parent.ClearUnresolvableSelections();
 
         var requirements = _selectionSetMergeRewriter.RewriteSelectionSets(unresolvedSelections, type);
@@ -421,22 +426,6 @@ public sealed class OperationPlanner(CompositeSchema schema)
         {
             entityPath = null;
             return false;
-        }
-
-        return true;
-    }
-
-    private static bool IsEntityPathResolvable(Stack<PlanNode> entityPath, string schemaName)
-    {
-        foreach (var planNode in entityPath.Skip(1))
-        {
-            if (planNode is FieldPlanNode fieldPlanNode)
-            {
-                if (!fieldPlanNode.Field.Sources.Contains(schemaName))
-                {
-                    return false;
-                }
-            }
         }
 
         return true;
@@ -670,7 +659,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 return new InlineFragmentNode(
                     null,
                     new NamedTypeNode(fragment.DeclaringType.Name),
-                    fragment.Directives.ToSyntaxNode(),
+                    fragment.DirectiveNodes,
                     selectionSet);
 
             default:
