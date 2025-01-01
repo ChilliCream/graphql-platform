@@ -19,6 +19,7 @@ public static class LogEntryCodes
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
     public const string RequireDirectiveInFieldsArg = "REQUIRE_DIRECTIVE_IN_FIELDS_ARG";
+    public const string RequireInvalidFieldsType = "REQUIRE_INVALID_FIELDS_TYPE";
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
