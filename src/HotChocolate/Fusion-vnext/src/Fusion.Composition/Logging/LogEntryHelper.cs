@@ -300,6 +300,29 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ProvidesFieldsHasArguments(
+        string providedFieldName,
+        string providedTypeName,
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ProvidesFieldsHasArguments,
+                coordinate,
+                schema.Name,
+                new SchemaCoordinate(providedTypeName, providedFieldName)),
+            LogEntryCodes.ProvidesFieldsHasArgs,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
     public static LogEntry RootMutationUsed(SchemaDefinition schema)
     {
         return new LogEntry(

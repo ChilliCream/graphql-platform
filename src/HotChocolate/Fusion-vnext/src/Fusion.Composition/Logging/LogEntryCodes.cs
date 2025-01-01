@@ -14,6 +14,7 @@ public static class LogEntryCodes
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string ProvidesDirectiveInFieldsArg = "PROVIDES_DIRECTIVE_IN_FIELDS_ARG";
+    public const string ProvidesFieldsHasArgs = "PROVIDES_FIELDS_HAS_ARGS";
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
