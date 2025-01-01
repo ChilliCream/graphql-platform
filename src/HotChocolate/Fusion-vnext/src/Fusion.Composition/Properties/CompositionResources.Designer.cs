@@ -231,6 +231,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be accessible..
+        /// </summary>
+        internal static string LogEntryHelper_QueryRootTypeInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The root mutation type in schema &apos;{0}&apos; must be named &apos;Mutation&apos;..
         /// </summary>
         internal static string LogEntryHelper_RootMutationUsed {
