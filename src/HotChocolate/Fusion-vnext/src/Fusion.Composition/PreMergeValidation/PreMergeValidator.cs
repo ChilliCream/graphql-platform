@@ -56,6 +56,11 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         {
                             PublishEvent(
                                 new FieldArgumentEvent(argument, field, type, schema), context);
+
+                            if (argument.Directives.ContainsName(WellKnownDirectiveNames.Require))
+                            {
+                                PublishRequireEvents(argument, field, complexType, schema, context);
+                            }
                         }
                     }
                 }
@@ -338,6 +343,88 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         providesDirective,
                         fieldNamePath,
                         nextParentType,
+                        schema,
+                        context);
+                }
+
+                fieldNamePath = [];
+            }
+        }
+    }
+
+    private void PublishRequireEvents(
+        InputFieldDefinition argument,
+        OutputFieldDefinition field,
+        ComplexTypeDefinition type,
+        SchemaDefinition schema,
+        CompositionContext context)
+    {
+        var requireDirective =
+            argument.Directives.First(d => d.Name == WellKnownDirectiveNames.Require);
+
+        if (
+            !requireDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
+            || f is not StringValueNode fields)
+        {
+            return;
+        }
+
+        try
+        {
+            var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+
+            PublishRequireFieldEvents(
+                selectionSet,
+                argument,
+                field,
+                type,
+                requireDirective,
+                [],
+                schema,
+                context);
+        }
+        catch (SyntaxException)
+        {
+            // Ignore.
+        }
+    }
+
+    private void PublishRequireFieldEvents(
+        SelectionSetNode selectionSet,
+        InputFieldDefinition argument,
+        OutputFieldDefinition field,
+        ComplexTypeDefinition type,
+        Directive requireDirective,
+        List<string> fieldNamePath,
+        SchemaDefinition schema,
+        CompositionContext context)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode fieldNode)
+            {
+                fieldNamePath.Add(fieldNode.Name.Value);
+
+                PublishEvent(
+                    new RequireFieldNodeEvent(
+                        fieldNode,
+                        [.. fieldNamePath],
+                        requireDirective,
+                        argument,
+                        field,
+                        type,
+                        schema),
+                    context);
+
+                if (fieldNode.SelectionSet is not null)
+                {
+                    PublishRequireFieldEvents(
+                        fieldNode.SelectionSet,
+                        argument,
+                        field,
+                        type,
+                        requireDirective,
+                        fieldNamePath,
                         schema,
                         context);
                 }
