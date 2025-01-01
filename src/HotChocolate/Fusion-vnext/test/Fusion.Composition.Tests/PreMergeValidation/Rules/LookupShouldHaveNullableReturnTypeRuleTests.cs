@@ -35,7 +35,7 @@ public sealed class LookupShouldHaveNullableReturnTypeRuleTests : CompositionTes
         var result = _preMergeValidator.Validate(context);
 
         // assert
-        Assert.True(result.IsFailure);
+        Assert.False(result.IsFailure);
         Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
         Assert.True(context.Log.All(e => e.Code == "LOOKUP_SHOULD_HAVE_NULLABLE_RETURN_TYPE"));
         Assert.True(context.Log.All(e => e.Severity == LogSeverity.Warning));
