@@ -7,6 +7,7 @@ public static class LogEntryCodes
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
+    public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
     public const string KeyDirectiveInFieldsArg = "KEY_DIRECTIVE_IN_FIELDS_ARG";
     public const string KeyFieldsHasArgs = "KEY_FIELDS_HAS_ARGS";
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";

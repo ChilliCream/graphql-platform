@@ -161,6 +161,19 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry InputFieldDefaultMismatch(
+        string fieldName,
+        string typeName)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_InputFieldDefaultMismatch, fieldName, typeName),
+            LogEntryCodes.InputFieldDefaultMismatch,
+            LogSeverity.Error,
+            coordinate);
+    }
+
     public static LogEntry KeyDirectiveInFieldsArgument(
         string entityTypeName,
         Directive keyDirective,

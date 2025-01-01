@@ -105,6 +105,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
         
+        internal static string LogEntryHelper_InputFieldDefaultMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultMismatch", resourceCulture);
+            }
+        }
+        
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
             get {
                 return ResourceManager.GetString("LogEntryHelper_KeyDirectiveInFieldsArgument", resourceCulture);
