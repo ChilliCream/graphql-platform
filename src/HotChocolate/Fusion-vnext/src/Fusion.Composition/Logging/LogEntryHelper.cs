@@ -323,6 +323,29 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ProvidesFieldsMissingExternal(
+        string providedFieldName,
+        string providedTypeName,
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ProvidesFieldsMissingExternal,
+                coordinate,
+                schema.Name,
+                new SchemaCoordinate(providedTypeName, providedFieldName)),
+            LogEntryCodes.ProvidesFieldsMissingExternal,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
     public static LogEntry RootMutationUsed(SchemaDefinition schema)
     {
         return new LogEntry(

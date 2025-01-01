@@ -59,6 +59,7 @@ internal sealed class SourceSchemaMerger
         new OutputFieldTypesMergeableRule(),
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
+        new ProvidesFieldsMissingExternalRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
         new RootSubscriptionUsedRule()
