@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
@@ -20,20 +19,16 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (field, _, schema) = @event;
+        var (field, type, schema) = @event;
 
         if (ValidationHelper.HasProvidesDirective(field))
         {
-            var fieldType = field.Type.InnerNullableType();
-            while (fieldType is not INamedTypeDefinition)
-            {
-                fieldType = fieldType.InnerNullableType();
-            }
+            var fieldType = field.Type.NamedType();
 
-            if (fieldType is not InterfaceTypeDefinition and not ObjectTypeDefinition)
+            if (fieldType is not ComplexTypeDefinition)
             {
                 context.Log.Write(
-                    ProvidesOnNonCompositeField(field, (INamedTypeDefinition)fieldType, schema));
+                    ProvidesOnNonCompositeField(field, type, schema));
             }
         }
     }

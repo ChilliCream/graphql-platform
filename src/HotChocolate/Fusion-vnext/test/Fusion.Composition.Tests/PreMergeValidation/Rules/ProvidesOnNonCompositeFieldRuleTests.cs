@@ -74,8 +74,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this counter-example, "email" has a scalar base type (String). Because scalars
-            // do not expose sub-fields, attaching @provides to email triggers a
+            // In this example, "email" has a scalar base type (String). Because scalars do not
+            // expose sub-fields, attaching @provides to "email" triggers a
             // PROVIDES_ON_NON_OBJECT_FIELD error.
             {
                 [
@@ -87,8 +87,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @provides directive on field 'email' in schema 'A' is specified on a non-composite field, " +
-                    "which cannot be provided."
+                    "The field 'User.email' in schema 'A' includes a @provides directive, but " +
+                    "does not return a composite type."
                 ]
             },
             // Here, the schema is defined with "email" being a non-null string.
@@ -102,12 +102,11 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @provides directive on field 'email' in schema 'A' is specified on a non-composite field, " +
-                    "which cannot be provided."
+                    "The field 'User.email' in schema 'A' includes a @provides directive, but " +
+                    "does not return a composite type."
                 ]
             },
-            // Here, the schema is defined with emails being a non-null collection of non-null
-            // strings.
+            // Here, the schema is defined with "emails" being a non-null list of non-null strings.
             {
                 [
                     """
@@ -118,8 +117,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @provides directive on field 'emails' in schema 'A' is specified on a non-composite field, " +
-                    "which cannot be provided."
+                    "The field 'User.emails' in schema 'A' includes a @provides directive, but " +
+                    "does not return a composite type."
                 ]
             }
         };

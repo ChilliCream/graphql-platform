@@ -135,12 +135,6 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
         
-        internal static string LogEntryHelper_ProvidesOnNonCompositeField {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_ProvidesOnNonCompositeField", resourceCulture);
-            }
-        }
-        
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
             get {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldTypesNotMergeable", resourceCulture);
@@ -162,6 +156,12 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_ProvidesFieldsMissingExternal {
             get {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsMissingExternal", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_ProvidesOnNonCompositeField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesOnNonCompositeField", resourceCulture);
             }
         }
         
