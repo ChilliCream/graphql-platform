@@ -49,6 +49,7 @@ internal sealed class SourceSchemaMerger
         new DisallowedInaccessibleElementsRule(),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
+        new ExternalOnInterfaceRule(),
         new ExternalUnusedRule(),
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),

@@ -129,6 +129,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ExternalOnInterface(
+        OutputFieldDefinition externalField,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalOnInterface, coordinate, schema.Name),
+            LogEntryCodes.ExternalOnInterface,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
     public static LogEntry ExternalUnused(
         OutputFieldDefinition externalField,
         INamedTypeDefinition type,
