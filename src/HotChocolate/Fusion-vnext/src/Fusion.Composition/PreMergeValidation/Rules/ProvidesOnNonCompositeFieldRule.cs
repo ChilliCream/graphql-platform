@@ -27,8 +27,7 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
 
             if (fieldType is not ComplexTypeDefinition)
             {
-                context.Log.Write(
-                    ProvidesOnNonCompositeField(field, type, schema));
+                context.Log.Write(ProvidesOnNonCompositeField(field, type, schema));
             }
         }
     }
