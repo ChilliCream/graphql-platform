@@ -66,6 +66,9 @@
   <data name="LogEntryHelper_ProvidesDirectiveInFieldsArgument" xml:space="preserve">
     <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
   </data>
+  <data name="LogEntryHelper_ProvidesFieldsHasArguments" xml:space="preserve">
+    <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must not have arguments.</value>
+  </data>
   <data name="LogEntryHelper_RootMutationUsed" xml:space="preserve">
     <value>The root mutation type in schema '{0}' must be named 'Mutation'.</value>
   </data>

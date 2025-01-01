@@ -204,6 +204,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesFieldsHasArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsHasArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The root mutation type in schema &apos;{0}&apos; must be named &apos;Mutation&apos;..
         /// </summary>
         internal static string LogEntryHelper_RootMutationUsed {

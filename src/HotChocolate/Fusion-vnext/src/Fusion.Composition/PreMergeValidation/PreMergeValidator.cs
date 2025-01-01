@@ -263,6 +263,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                 type,
                 providesDirective,
                 [],
+                field.Type,
                 schema,
                 context);
         }
@@ -278,9 +279,12 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         ComplexTypeDefinition type,
         Directive providesDirective,
         List<string> fieldNamePath,
+        ITypeDefinition? parentType,
         SchemaDefinition schema,
         CompositionContext context)
     {
+        ComplexTypeDefinition? nextParentType = null;
+
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is FieldNode fieldNode)
@@ -297,6 +301,34 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         schema),
                     context);
 
+                if (parentType?.NullableType() is ComplexTypeDefinition providedType)
+                {
+                    if (
+                        providedType.Fields.TryGetField(
+                            fieldNode.Name.Value,
+                            out var providedField))
+                    {
+                        PublishEvent(
+                            new ProvidesFieldEvent(
+                                providedField,
+                                providedType,
+                                providesDirective,
+                                field,
+                                type,
+                                schema),
+                            context);
+
+                        if (providedField.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        {
+                            nextParentType = fieldType;
+                        }
+                    }
+                    else
+                    {
+                        nextParentType = null;
+                    }
+                }
+
                 if (fieldNode.SelectionSet is not null)
                 {
                     PublishProvidesFieldEvents(
@@ -305,6 +337,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         type,
                         providesDirective,
                         fieldNamePath,
+                        nextParentType,
                         schema,
                         context);
                 }
