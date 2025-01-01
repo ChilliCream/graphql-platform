@@ -56,6 +56,7 @@ internal sealed class SourceSchemaMerger
         new KeyFieldsSelectInvalidTypeRule(),
         new KeyInvalidFieldsRule(),
         new KeyInvalidSyntaxRule(),
+        new LookupShouldHaveNullableReturnTypeRule(),
         new OutputFieldTypesMergeableRule(),
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),

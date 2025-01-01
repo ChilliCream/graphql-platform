@@ -12,6 +12,7 @@ public static class LogEntryCodes
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";
     public const string KeyInvalidFields = "KEY_INVALID_FIELDS";
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
+    public const string LookupShouldHaveNullableReturnType = "LOOKUP_SHOULD_HAVE_NULLABLE_RETURN_TYPE";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string ProvidesDirectiveInFieldsArg = "PROVIDES_DIRECTIVE_IN_FIELDS_ARG";
     public const string ProvidesFieldsHasArgs = "PROVIDES_FIELDS_HAS_ARGS";
