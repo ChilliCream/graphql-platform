@@ -16,6 +16,7 @@ public static class LogEntryCodes
     public const string ProvidesDirectiveInFieldsArg = "PROVIDES_DIRECTIVE_IN_FIELDS_ARG";
     public const string ProvidesFieldsHasArgs = "PROVIDES_FIELDS_HAS_ARGS";
     public const string ProvidesFieldsMissingExternal = "PROVIDES_FIELDS_MISSING_EXTERNAL";
+    public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";

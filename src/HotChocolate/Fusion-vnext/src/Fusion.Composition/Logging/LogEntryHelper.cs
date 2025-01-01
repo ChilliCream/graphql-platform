@@ -346,6 +346,19 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry QueryRootTypeInaccessible(
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_QueryRootTypeInaccessible, schema.Name),
+            LogEntryCodes.QueryRootTypeInaccessible,
+            LogSeverity.Error,
+            new SchemaCoordinate(type.Name),
+            type,
+            schema);
+    }
+
     public static LogEntry RootMutationUsed(SchemaDefinition schema)
     {
         return new LogEntry(
