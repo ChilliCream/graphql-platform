@@ -62,6 +62,22 @@ internal record OutputFieldGroupEvent(
     ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
+internal record ProvidesFieldEvent(
+    OutputFieldDefinition ProvidedField,
+    ComplexTypeDefinition ProvidedType,
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record ProvidesFieldNodeEvent(
+    FieldNode FieldNode,
+    ImmutableArray<string> FieldNamePath,
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
 internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(

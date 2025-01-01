@@ -42,6 +42,9 @@
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>External field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
   </data>
+  <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
+    <value>Interface field '{0}' in schema '{1}' must not be marked as external.</value>
+  </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>External field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
@@ -65,6 +68,15 @@
   </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>Field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ProvidesDirectiveInFieldsArgument" xml:space="preserve">
+    <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
+  </data>
+  <data name="LogEntryHelper_ProvidesFieldsHasArguments" xml:space="preserve">
+    <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must not have arguments.</value>
+  </data>
+  <data name="LogEntryHelper_ProvidesFieldsMissingExternal" xml:space="preserve">
+    <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must be marked as external.</value>
   </data>
   <data name="LogEntryHelper_RootMutationUsed" xml:space="preserve">
     <value>The root mutation type in schema '{0}' must be named 'Mutation'.</value>

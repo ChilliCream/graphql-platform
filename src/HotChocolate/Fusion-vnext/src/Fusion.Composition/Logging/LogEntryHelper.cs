@@ -129,6 +129,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ExternalOnInterface(
+        OutputFieldDefinition externalField,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalOnInterface, coordinate, schema.Name),
+            LogEntryCodes.ExternalOnInterface,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
     public static LogEntry ExternalUnused(
         OutputFieldDefinition externalField,
         INamedTypeDefinition type,
@@ -260,6 +276,74 @@ internal static class LogEntryHelper
             coordinate,
             field,
             schemaA);
+    }
+
+    public static LogEntry ProvidesDirectiveInFieldsArgument(
+        ImmutableArray<string> fieldNamePath,
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ProvidesDirectiveInFieldsArgument,
+                coordinate,
+                schema.Name,
+                string.Join(".", fieldNamePath)),
+            LogEntryCodes.ProvidesDirectiveInFieldsArg,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
+    public static LogEntry ProvidesFieldsHasArguments(
+        string providedFieldName,
+        string providedTypeName,
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ProvidesFieldsHasArguments,
+                coordinate,
+                schema.Name,
+                new SchemaCoordinate(providedTypeName, providedFieldName)),
+            LogEntryCodes.ProvidesFieldsHasArgs,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
+    public static LogEntry ProvidesFieldsMissingExternal(
+        string providedFieldName,
+        string providedTypeName,
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ProvidesFieldsMissingExternal,
+                coordinate,
+                schema.Name,
+                new SchemaCoordinate(providedTypeName, providedFieldName)),
+            LogEntryCodes.ProvidesFieldsMissingExternal,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
     }
 
     public static LogEntry ProvidesOnNonCompositeField(

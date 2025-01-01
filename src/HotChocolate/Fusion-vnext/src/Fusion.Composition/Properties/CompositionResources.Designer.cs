@@ -93,6 +93,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
         
+        internal static string LogEntryHelper_ExternalOnInterface {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalOnInterface", resourceCulture);
+            }
+        }
+        
         internal static string LogEntryHelper_ExternalUnused {
             get {
                 return ResourceManager.GetString("LogEntryHelper_ExternalUnused", resourceCulture);
@@ -138,6 +144,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
             get {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldTypesNotMergeable", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_ProvidesDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_ProvidesFieldsHasArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsHasArguments", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_ProvidesFieldsMissingExternal {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsMissingExternal", resourceCulture);
             }
         }
         

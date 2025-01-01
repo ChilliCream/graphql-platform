@@ -47,6 +47,11 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                     {
                         PublishEvent(new OutputFieldEvent(field, type, schema), context);
 
+                        if (field.Directives.ContainsName(WellKnownDirectiveNames.Provides))
+                        {
+                            PublishProvidesEvents(field, complexType, schema, context);
+                        }
+
                         foreach (var argument in field.Arguments)
                         {
                             PublishEvent(
@@ -221,6 +226,116 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         fieldNode.SelectionSet,
                         entityType,
                         keyDirective,
+                        fieldNamePath,
+                        nextParentType,
+                        schema,
+                        context);
+                }
+
+                fieldNamePath = [];
+            }
+        }
+    }
+
+    private void PublishProvidesEvents(
+        OutputFieldDefinition field,
+        ComplexTypeDefinition type,
+        SchemaDefinition schema,
+        CompositionContext context)
+    {
+        var providesDirective =
+            field.Directives.First(d => d.Name == WellKnownDirectiveNames.Provides);
+
+        if (
+            !providesDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
+            || f is not StringValueNode fields)
+        {
+            return;
+        }
+
+        try
+        {
+            var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+
+            PublishProvidesFieldEvents(
+                selectionSet,
+                field,
+                type,
+                providesDirective,
+                [],
+                field.Type,
+                schema,
+                context);
+        }
+        catch (SyntaxException)
+        {
+            // Ignore.
+        }
+    }
+
+    private void PublishProvidesFieldEvents(
+        SelectionSetNode selectionSet,
+        OutputFieldDefinition field,
+        ComplexTypeDefinition type,
+        Directive providesDirective,
+        List<string> fieldNamePath,
+        ITypeDefinition? parentType,
+        SchemaDefinition schema,
+        CompositionContext context)
+    {
+        ComplexTypeDefinition? nextParentType = null;
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode fieldNode)
+            {
+                fieldNamePath.Add(fieldNode.Name.Value);
+
+                PublishEvent(
+                    new ProvidesFieldNodeEvent(
+                        fieldNode,
+                        [.. fieldNamePath],
+                        providesDirective,
+                        field,
+                        type,
+                        schema),
+                    context);
+
+                if (parentType?.NullableType() is ComplexTypeDefinition providedType)
+                {
+                    if (
+                        providedType.Fields.TryGetField(
+                            fieldNode.Name.Value,
+                            out var providedField))
+                    {
+                        PublishEvent(
+                            new ProvidesFieldEvent(
+                                providedField,
+                                providedType,
+                                providesDirective,
+                                field,
+                                type,
+                                schema),
+                            context);
+
+                        if (providedField.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        {
+                            nextParentType = fieldType;
+                        }
+                    }
+                    else
+                    {
+                        nextParentType = null;
+                    }
+                }
+
+                if (fieldNode.SelectionSet is not null)
+                {
+                    PublishProvidesFieldEvents(
+                        fieldNode.SelectionSet,
+                        field,
+                        type,
+                        providesDirective,
                         fieldNamePath,
                         nextParentType,
                         schema,
