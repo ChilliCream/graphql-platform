@@ -346,6 +346,25 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ProvidesOnNonCompositeField(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ProvidesOnNonCompositeField,
+                coordinate,
+                schema.Name),
+            LogEntryCodes.ProvidesOnNonCompositeField,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry QueryRootTypeInaccessible(
         INamedTypeDefinition type,
         SchemaDefinition schema)
