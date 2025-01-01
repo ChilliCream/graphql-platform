@@ -165,6 +165,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
         
+        internal static string LogEntryHelper_QueryRootTypeInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
+            }
+        }
+        
         internal static string LogEntryHelper_RootMutationUsed {
             get {
                 return ResourceManager.GetString("LogEntryHelper_RootMutationUsed", resourceCulture);
