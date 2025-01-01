@@ -42,6 +42,9 @@
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>External field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
   </data>
+  <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
+    <value>Interface field '{0}' in schema '{1}' must not be marked as external.</value>
+  </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>External field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
