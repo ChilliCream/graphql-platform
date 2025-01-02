@@ -42,6 +42,11 @@ public static class CompositeSchemaBuilder
                     typeDefinitions.Add(objectType.Name.Value, objectType);
                     break;
 
+                case InterfaceTypeDefinitionNode interfaceType:
+                    types.Add(CreateInterfaceType(interfaceType));
+                    typeDefinitions.Add(interfaceType.Name.Value, interfaceType);
+                    break;
+
                 case ScalarTypeDefinitionNode scalarType:
                     types.Add(CreateScalarType(scalarType));
                     typeDefinitions.Add(scalarType.Name.Value, scalarType);
@@ -94,10 +99,19 @@ public static class CompositeSchemaBuilder
         return new CompositeObjectType(
             definition.Name.Value,
             definition.Description?.Value,
-            CreateObjectFields(definition.Fields));
+            CreateOutputFields(definition.Fields));
     }
 
-    private static CompositeOutputFieldCollection CreateObjectFields(
+    private static CompositeInterfaceType CreateInterfaceType(
+        InterfaceTypeDefinitionNode definition)
+    {
+        return new CompositeInterfaceType(
+            definition.Name.Value,
+            definition.Description?.Value,
+            CreateOutputFields(definition.Fields));
+    }
+
+    private static CompositeOutputFieldCollection CreateOutputFields(
         IReadOnlyList<FieldDefinitionNode> fields)
     {
         var sourceFields = new CompositeOutputField[fields.Count];
@@ -201,6 +215,13 @@ public static class CompositeSchemaBuilder
                         schemaContext);
                     break;
 
+                case CompositeInterfaceType interfaceType:
+                    CompleteInterfaceType(
+                        interfaceType,
+                        schemaContext.GetTypeDefinition<InterfaceTypeDefinitionNode>(interfaceType.Name),
+                        schemaContext);
+                    break;
+
                 case CompositeScalarType scalarType:
                     CompleteScalarType(
                         scalarType,
@@ -250,8 +271,24 @@ public static class CompositeSchemaBuilder
         type.Complete(new CompositeObjectTypeCompletionContext(directives, interfaces, sources));
     }
 
+    private static void CompleteInterfaceType(
+        CompositeInterfaceType type,
+        InterfaceTypeDefinitionNode typeDef,
+        CompositeSchemaContext schemaContext)
+    {
+        foreach (var fieldDef in typeDef.Fields)
+        {
+            CompleteOutputField(type, type.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
+        }
+
+        var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
+        var interfaces = CompletionTools.CreateInterfaceTypeCollection(typeDef.Interfaces, schemaContext);
+        var sources = CompletionTools.CreateSourceInterfaceTypeCollection(typeDef, schemaContext);
+        type.Complete(new CompositeInterfaceTypeCompletionContext(directives, interfaces, sources));
+    }
+
     private static void CompleteOutputField(
-        CompositeObjectType declaringType,
+        CompositeComplexType declaringType,
         CompositeOutputField field,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext schemaContext)
