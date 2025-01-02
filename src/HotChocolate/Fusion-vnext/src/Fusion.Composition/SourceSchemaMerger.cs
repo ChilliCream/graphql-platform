@@ -62,6 +62,7 @@ internal sealed class SourceSchemaMerger
         new ProvidesFieldsMissingExternalRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
+        new RequireDirectiveInFieldsArgumentRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
         new RootSubscriptionUsedRule()
