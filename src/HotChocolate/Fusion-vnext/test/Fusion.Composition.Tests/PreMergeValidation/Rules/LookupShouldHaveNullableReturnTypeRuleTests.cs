@@ -35,7 +35,7 @@ public sealed class LookupShouldHaveNullableReturnTypeRuleTests : CompositionTes
         var result = _preMergeValidator.Validate(context);
 
         // assert
-        Assert.False(result.IsFailure);
+        Assert.True(result.IsSuccess);
         Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
         Assert.True(context.Log.All(e => e.Code == "LOOKUP_SHOULD_HAVE_NULLABLE_RETURN_TYPE"));
         Assert.True(context.Log.All(e => e.Severity == LogSeverity.Warning));
@@ -51,12 +51,12 @@ public sealed class LookupShouldHaveNullableReturnTypeRuleTests : CompositionTes
                 [
                     """
                     type Query {
-                      userById(id: ID!): User @lookup
+                        userById(id: ID!): User @lookup
                     }
 
                     type User {
-                      id: ID!
-                      name: String
+                        id: ID!
+                        name: String
                     }
                     """
                 ]
@@ -74,17 +74,17 @@ public sealed class LookupShouldHaveNullableReturnTypeRuleTests : CompositionTes
                 [
                     """
                     type Query {
-                      userById(id: ID!): User! @lookup
+                        userById(id: ID!): User! @lookup
                     }
 
                     type User {
-                      id: ID!
-                      name: String
+                        id: ID!
+                        name: String
                     }
                     """
                 ],
                 [
-                    "Lookup field 'Query.userById' in schema 'A' should return a nullable type."
+                    "The lookup field 'Query.userById' in schema 'A' should return a nullable type."
                 ]
             }
         };
