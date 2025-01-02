@@ -33,6 +33,13 @@ internal static class DescriptorHelpers
         return definition;
     }
 
+    public static TDefinition SetStrictNonNull<TDefinition>(this TDefinition definition)
+        where TDefinition : FieldDefinitionBase
+    {
+        definition.ContextData[WellKnownContextData.IsStrictNonNull] = true;
+        return definition;
+    }
+
     private static bool IsTypeMoreSpecific(
         TypeReference typeReference,
         IExtendedType type)

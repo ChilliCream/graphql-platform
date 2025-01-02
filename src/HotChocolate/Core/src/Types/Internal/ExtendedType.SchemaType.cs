@@ -23,7 +23,8 @@ internal sealed partial class ExtendedType
             {
                 var definition = type.GetGenericTypeDefinition();
 
-                if (definition == typeof(NonNullType<>))
+                if (definition == typeof(NonNullType<>) ||
+                    definition == typeof(StrictNonNullType<>))
                 {
                     return FromType(type.GetGenericArguments()[0], type, false, cache);
                 }

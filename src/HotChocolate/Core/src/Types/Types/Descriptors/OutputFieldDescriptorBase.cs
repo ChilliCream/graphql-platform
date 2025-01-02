@@ -61,6 +61,12 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
                 TypeResources.ObjectFieldDescriptorBase_FieldType);
         }
 
+        if (type.IsGenericType &&
+            type.GetGenericTypeDefinition() == typeof(StrictNonNullType<>))
+        {
+            Definition.SetStrictNonNull();
+        }
+
         Definition.SetMoreSpecificType(
             typeInfo.GetExtendedType(),
             TypeContext.Output);

@@ -1,6 +1,8 @@
 #nullable enable
 
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -110,6 +112,11 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
+                if (IsStrictNonNull(field))
+                {
+                    continue;
+                }
+
                 var levels = GetSemanticNonNullLevels(field.Type);
 
                 if (levels.Count < 1)
@@ -133,6 +140,11 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
             foreach (var field in interfaceDef.Fields)
             {
                 if (field.Type is null)
+                {
+                    continue;
+                }
+
+                if (IsStrictNonNull(field))
                 {
                     continue;
                 }
@@ -365,6 +377,59 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                 index++;
             }
         }
+    }
+
+    private static bool IsStrictNonNull(OutputFieldDefinitionBase field)
+    {
+        if (field.ContextData.TryGetValue(WellKnownContextData.IsStrictNonNull, out _))
+        {
+            return true;
+        }
+
+        var member = field switch
+        {
+            ObjectFieldDefinition obj => obj.Member,
+            InterfaceFieldDefinition @interface => @interface.Member,
+            _ => null
+        };
+
+        if (member is ICustomAttributeProvider attributeProvider)
+        {
+            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
+                typeAttribute is { Type.IsGenericType: true } &&
+                typeAttribute.Type.GetGenericTypeDefinition() == typeof(StrictNonNullType<>))
+            {
+                return true;
+            }
+
+            if (TryGetAttribute(attributeProvider, out GraphQLStrictNonNullTypeAttribute? _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetAttribute<T>(
+        ICustomAttributeProvider attributeProvider,
+        [NotNullWhen(true)] out T? attribute)
+        where T : Attribute
+    {
+        if (attributeProvider.IsDefined(typeof(T), true))
+        {
+            foreach (var item in attributeProvider.GetCustomAttributes(typeof(T), true))
+            {
+                if (item is T casted)
+                {
+                    attribute = casted;
+                    return true;
+                }
+            }
+        }
+
+        attribute = null;
+        return false;
     }
 
     private static IError CreateSemanticNonNullViolationError(Path path)

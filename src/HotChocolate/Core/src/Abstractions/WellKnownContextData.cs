@@ -343,4 +343,10 @@ public static class WellKnownContextData
     /// The key to determine whether the @authorize directive was already registered.
     /// </summary>
     public const string AreAuthorizeDirectivesRegistered = "HotChocolate.Authorization.AuthDirectivesRegistered";
+
+    /// <summary>
+    /// The key to determine if a code-first implementation of `StrictNonNull`
+    /// has been applied to a field.
+    /// </summary>
+    public const string IsStrictNonNull = "HotChocolate.Types.StrictNonNull";
 }

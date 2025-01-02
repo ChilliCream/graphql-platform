@@ -4,19 +4,24 @@ schema {
 
 type Foo {
   bar: String @semanticNonNull
+  strictBar: String!
 }
 
 type Query {
   scalar: String
   nonNulScalar: String @semanticNonNull
+  strictNonNullScalar: String!
   scalarArray: [String]
   nonNullScalarArray: [String] @semanticNonNull(levels: [ 0, 1 ])
   outerNonNullScalarArray: [String] @semanticNonNull
+  strictNonNullScalarArray: [String!]!
+  strictOuterNonNullScalarArray: [String!]!
   scalarNestedArray: [[String]]
   nonNullScalarNestedArray: [[String]] @semanticNonNull(levels: [ 0, 1, 2 ])
   innerNonNullScalarNestedArray: [[String]] @semanticNonNull(levels: [ 0, 2 ])
   object: Foo
   nonNullObject: Foo @semanticNonNull
+  strictNonNullObject: Foo!
   objectArray: [Foo]
   nonNullObjectArray: [Foo] @semanticNonNull(levels: [ 0, 1 ])
   objectNestedArray: [[Foo]]
