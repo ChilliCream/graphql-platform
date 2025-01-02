@@ -401,6 +401,24 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry RequireInvalidFieldsType(
+        Directive requireDirective,
+        string argumentName,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_RequireInvalidFieldsType, coordinate, schema.Name),
+            LogEntryCodes.RequireInvalidFieldsType,
+            LogSeverity.Error,
+            coordinate,
+            requireDirective,
+            schema);
+    }
+
     public static LogEntry RootMutationUsed(SchemaDefinition schema)
     {
         return new LogEntry(
