@@ -195,6 +195,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; should return a nullable type..
+        /// </summary>
+        internal static string LogEntryHelper_LookupShouldHaveNullableReturnType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_LookupShouldHaveNullableReturnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
