@@ -257,6 +257,25 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry LookupMustNotReturnList(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_LookupMustNotReturnList,
+                coordinate,
+                schema.Name),
+            LogEntryCodes.LookupMustNotReturnList,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry LookupShouldHaveNullableReturnType(
         OutputFieldDefinition field,
         INamedTypeDefinition type,
