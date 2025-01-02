@@ -92,6 +92,26 @@ internal static class CompletionTools
         return new SourceObjectTypeCollection(temp);
     }
 
+    public static SourceInterfaceTypeCollection CreateSourceInterfaceTypeCollection(
+        InterfaceTypeDefinitionNode typeDef,
+        CompositeSchemaContext context)
+    {
+        var types = TypeDirectiveParser.Parse(typeDef.Directives);
+        var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
+        var temp = new SourceInterfaceType[types.Length];
+
+        for (var i = 0; i < types.Length; i++)
+        {
+            var type = types[i];
+            temp[i] = new SourceInterfaceType(
+                typeDef.Name.Value,
+                type.SchemaName,
+                GetLookupBySchema(lookups, type.SchemaName));
+        }
+
+        return new SourceInterfaceTypeCollection(temp);
+    }
+
     private static ImmutableArray<Lookup> GetLookupBySchema(
         ImmutableArray<LookupDirective> allLookups,
         string schemaName)

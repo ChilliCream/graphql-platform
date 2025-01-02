@@ -10,7 +10,13 @@ public sealed class CompositeInterfaceType(
     CompositeOutputFieldCollection fields)
     : CompositeComplexType(name, description, fields)
 {
+    private bool _isEntity;
+
     public override TypeKind Kind => TypeKind.Object;
+
+    public override bool IsEntity => _isEntity;
+
+    public new ISourceComplexTypeCollection<SourceInterfaceType> Sources { get; private set; } = null!;
 
     public bool IsAssignableFrom(ICompositeNamedType type)
     {
@@ -31,5 +37,12 @@ public sealed class CompositeInterfaceType(
     {
         Directives = context.Directives;
         Implements = context.Interfaces;
+        Sources = context.Sources;
+        base.Sources = context.Sources;
+        _isEntity = Sources.Any(t => t.Lookups.Length > 0);
+
+        base.Complete();
     }
+
+    public override string ToString() => Name;
 }
