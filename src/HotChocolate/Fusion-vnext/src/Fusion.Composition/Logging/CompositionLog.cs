@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Logging.Contracts;
 
 namespace HotChocolate.Fusion.Logging;
 
-public sealed class CompositionLog : ICompositionLog, IEnumerable<LogEntry>
+public sealed class CompositionLog : ICompositionLog
 {
     public bool HasErrors { get; private set; }
 

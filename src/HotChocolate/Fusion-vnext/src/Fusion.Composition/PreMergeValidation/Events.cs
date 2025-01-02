@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
@@ -25,6 +26,32 @@ internal record FieldArgumentGroupEvent(
     string FieldName,
     string TypeName) : IEvent;
 
+internal record KeyFieldEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record KeyFieldNodeEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    FieldNode FieldNode,
+    ImmutableArray<string> FieldNamePath,
+    SchemaDefinition Schema) : IEvent;
+
+internal record KeyFieldsInvalidReferenceEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    FieldNode FieldNode,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record KeyFieldsInvalidSyntaxEvent(
+    ComplexTypeDefinition EntityType,
+    Directive KeyDirective,
+    SchemaDefinition Schema) : IEvent;
+
 internal record OutputFieldEvent(
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,
@@ -34,6 +61,33 @@ internal record OutputFieldGroupEvent(
     string FieldName,
     ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
+
+internal record ProvidesFieldEvent(
+    OutputFieldDefinition ProvidedField,
+    ComplexTypeDefinition ProvidedType,
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record ProvidesFieldNodeEvent(
+    FieldNode FieldNode,
+    ImmutableArray<string> FieldNamePath,
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record RequireFieldNodeEvent(
+    FieldNode FieldNode,
+    ImmutableArray<string> FieldNamePath,
+    Directive RequireDirective,
+    InputFieldDefinition Argument,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(
     INamedTypeDefinition Type,

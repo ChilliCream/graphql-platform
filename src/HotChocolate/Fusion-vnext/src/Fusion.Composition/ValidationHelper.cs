@@ -1,24 +1,13 @@
-using System.Collections.Immutable;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class ValidationHelper
 {
-    public static bool FieldsAreMergeable(ImmutableArray<OutputFieldDefinition> fields)
+    public static bool HasProvidesDirective(IDirectivesProvider type)
     {
-        for (var i = 0; i < fields.Length - 1; i++)
-        {
-            var typeA = fields[i].Type;
-            var typeB = fields[i + 1].Type;
-
-            if (!SameTypeShape(typeA, typeB))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return type.Directives.ContainsName(WellKnownDirectiveNames.Provides);
     }
 
     public static bool IsAccessible(IDirectivesProvider type)
@@ -29,6 +18,28 @@ internal sealed class ValidationHelper
     public static bool IsExternal(IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.External);
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> if the specified <paramref name="field"/> has a <c>@provides</c>
+    /// directive that references the specified <paramref name="fieldName"/>.
+    /// </summary>
+    public static bool ProvidesFieldName(OutputFieldDefinition field, string fieldName)
+    {
+        var providesDirective = field.Directives.FirstOrDefault(WellKnownDirectiveNames.Provides);
+
+        var fieldsArgumentValueNode =
+            providesDirective?.Arguments.GetValueOrDefault(WellKnownArgumentNames.Fields);
+
+        if (fieldsArgumentValueNode is not StringValueNode fieldsArgumentStringNode)
+        {
+            return false;
+        }
+
+        var selectionSet =
+            Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{fieldsArgumentStringNode.Value}}}");
+
+        return selectionSet.Selections.OfType<FieldNode>().Any(f => f.Name.Value == fieldName);
     }
 
     public static bool SameTypeShape(ITypeDefinition typeA, ITypeDefinition typeB)

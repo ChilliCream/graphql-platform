@@ -49,6 +49,22 @@ internal sealed class SourceSchemaMerger
         new DisallowedInaccessibleElementsRule(),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
-        new OutputFieldTypesMergeableRule()
+        new ExternalOnInterfaceRule(),
+        new ExternalUnusedRule(),
+        new KeyDirectiveInFieldsArgumentRule(),
+        new KeyFieldsHasArgumentsRule(),
+        new KeyFieldsSelectInvalidTypeRule(),
+        new KeyInvalidFieldsRule(),
+        new KeyInvalidSyntaxRule(),
+        new OutputFieldTypesMergeableRule(),
+        new ProvidesDirectiveInFieldsArgumentRule(),
+        new ProvidesFieldsHasArgumentsRule(),
+        new ProvidesFieldsMissingExternalRule(),
+        new ProvidesOnNonCompositeFieldRule(),
+        new QueryRootTypeInaccessibleRule(),
+        new RequireDirectiveInFieldsArgumentRule(),
+        new RootMutationUsedRule(),
+        new RootQueryUsedRule(),
+        new RootSubscriptionUsedRule()
     ];
 }
