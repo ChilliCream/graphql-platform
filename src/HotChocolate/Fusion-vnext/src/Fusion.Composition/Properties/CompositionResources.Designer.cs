@@ -240,11 +240,38 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes a @provides directive, but does not return a composite type..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesOnNonCompositeField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesOnNonCompositeField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be accessible..
         /// </summary>
         internal static string LogEntryHelper_QueryRootTypeInaccessible {
             get {
                 return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
+        /// </summary>
+        internal static string LogEntryHelper_RequireDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_RequireInvalidFieldsType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidFieldsType", resourceCulture);
             }
         }
         

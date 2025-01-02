@@ -78,8 +78,17 @@
   <data name="LogEntryHelper_ProvidesFieldsMissingExternal" xml:space="preserve">
     <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must be marked as external.</value>
   </data>
+  <data name="LogEntryHelper_ProvidesOnNonCompositeField" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' includes a @provides directive, but does not return a composite type.</value>
+  </data>
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
+  </data>
+  <data name="LogEntryHelper_RequireDirectiveInFieldsArgument" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
+  </data>
+  <data name="LogEntryHelper_RequireInvalidFieldsType" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
   </data>
   <data name="LogEntryHelper_RootMutationUsed" xml:space="preserve">
     <value>The root mutation type in schema '{0}' must be named 'Mutation'.</value>
