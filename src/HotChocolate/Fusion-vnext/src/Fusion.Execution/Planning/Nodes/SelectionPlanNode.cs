@@ -188,6 +188,7 @@ public abstract class SelectionPlanNode : PlanNode
         (_unresolvableSelections ??= []).Add(unresolvable);
     }
 
+    // todo: change name
     public bool TryMoveRequirementsToParent()
     {
         if (Parent is not SelectionPlanNode parentSelection)
@@ -213,7 +214,7 @@ public abstract class SelectionPlanNode : PlanNode
             _unresolvableSelections = null;
         }
 
-        if(_requirements is not null)
+        if (_requirements is not null)
         {
             foreach (var requirement in _requirements)
             {
@@ -227,36 +228,42 @@ public abstract class SelectionPlanNode : PlanNode
         return true;
     }
 
-    public IReadOnlyList<SelectionSetNode> TakeDataRequirements(DataRequirementKind kind = DataRequirementKind.All)
+    public IReadOnlyList<SelectionSetNode> TakeDataRequirements()
     {
-        if(_requirements is null && _unresolvableSelections is null)
+        if (_requirements is null)
         {
             return Array.Empty<SelectionSetNode>();
         }
 
         var requirements = new List<SelectionSetNode>();
 
-        if (_requirements is not null && kind.HasFlag(DataRequirementKind.DataRequirements))
+        foreach (var (selectionSet, path) in _requirements)
         {
-            foreach (var (selectionSet, path) in _requirements)
-            {
-                requirements.Add(CreateSelectionSetFromPath(this, selectionSet, path));
-            }
-
-            _requirements.Clear();
-            _requirements = null;
+            requirements.Add(CreateSelectionSetFromPath(this, selectionSet, path));
         }
 
-        if (_unresolvableSelections is not null && kind.HasFlag(DataRequirementKind.UnresolvableSelections))
-        {
-            foreach (var (selection, path) in _unresolvableSelections)
-            {
-                requirements.Add(CreateSelectionSetFromPath(this, new SelectionSetNode([selection]), path));
-            }
+        _requirements.Clear();
+        _requirements = null;
 
-            _unresolvableSelections.Clear();
-            _unresolvableSelections = null;
+        return requirements;
+    }
+
+    public IReadOnlyList<SelectionSetNode> TakeUnresolvableSelections()
+    {
+        if (_unresolvableSelections is null)
+        {
+            return Array.Empty<SelectionSetNode>();
         }
+
+        var requirements = new List<SelectionSetNode>();
+
+        foreach (var (selection, path) in _unresolvableSelections)
+        {
+            requirements.Add(CreateSelectionSetFromPath(this, new SelectionSetNode([selection]), path));
+        }
+
+        _unresolvableSelections.Clear();
+        _unresolvableSelections = null;
 
         return requirements;
     }
@@ -268,7 +275,7 @@ public abstract class SelectionPlanNode : PlanNode
     {
         path = path.Pop(out var segment);
 
-        if(ReferenceEquals(segment, parent))
+        if (ReferenceEquals(segment, parent))
         {
             return selectionSet;
         }
@@ -352,12 +359,4 @@ public abstract class SelectionPlanNode : PlanNode
             return null;
         }
     }
-}
-
-[Flags]
-public enum DataRequirementKind
-{
-    UnresolvableSelections = 1,
-    DataRequirements = 2,
-    All = DataRequirements | UnresolvableSelections,
 }

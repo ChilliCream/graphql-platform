@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -104,7 +103,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 fieldPlanNode.AddSelection(new FieldPlanNode(new FieldNode("__typename"), outputFieldInfo));
             }
 
-            // TODO : I have removed the operation validation ... when an op endsup without selections... we need to do
+            // TODO : I have removed the operation validation ... when an op ends up without selections... we need to do
             // this in a different place.
         }
     }
@@ -371,7 +370,153 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return requirementsList.Count == 0;
     }
 
+    private bool TryResolveRequirements(
+        PlaningContext context,
+        CompositeComplexType type,
+        IReadOnlyList<SelectionSetNode> requirements,
+        IReadOnlyList<string> skippedSchemas)
+    {
+        var selectionSet = _selectionSetMergeRewriter.RewriteSelectionSets(requirements, type);
+        var schemasWeighted = GetSchemasWeighted(type, selectionSet, skippedSchemas);
 
+        // if there are no schemas available that can resolve the requirements we will return false to signal
+        // that the requirements are not resolvable.
+        if (schemasWeighted.Count == 0)
+        {
+            return false;
+        }
+
+        // if we have found an entity to branch of from we will check
+        // if any of the unresolved selections can be resolved through one of the entity lookups.
+        var operationsInContext = new List<OperationPlanNode>();
+        var schemasInContext = new HashSet<string> { context.Operation.SchemaName };
+
+        foreach (var schemaName in schemasWeighted.OrderByDescending(t => t.Value).Select(t => t.Key))
+        {
+            // next we try to find a lookup
+            if (!TryGetLookup(
+                context.Parent,
+                schemaName,
+                schemasInContext,
+                out var lookup,
+                out var fieldSchemaDependencies))
+            {
+                continue;
+            }
+
+            var (lookupOp, lookupField) = CreateLookupOperation(schemaName, lookup, type, context.Parent, selectionSet);
+            PlanSelectionSet(new PlaningContext(lookupOp, lookupField), type);
+
+            // TODO: this will not work always as requirements from subsequent runs might need to be resolved with
+            // previous node.
+            // we collect new requirements and unresolved selections.
+            requirementsList = lookupField.TakeDataRequirements();
+            requirements = _selectionSetMergeRewriter.RewriteSelectionSets(requirementsList, type);
+
+            operationsInContext.Add(lookupOp);
+            schemasInContext.Add(schemaName);
+            TryMakeOperationConditional(lookupOp, lookupField.Selections);
+
+            // add requirements to the operation
+            for (var i = 0; i < lookup.Fields.Length; i++)
+            {
+                var field = lookup.Fields[i];
+                var argument = lookup.Arguments[i];
+
+                if (!TryResolveLookupRequirement(
+                    context,
+                    operationsInContext,
+                    lookup.Fields[i],
+                    argument.Type,
+                    fieldSchemaDependencies[field],
+                    out var requirement))
+                {
+                    return false;
+                }
+
+                lookupOp.AddRequirement(requirement);
+                lookupField.AddArgument(new ArgumentAssignment(argument.Name, new VariableNode(requirement.Name)));
+            }
+
+            // we add the lookup operation to all the schemas that we have requirements with.
+            foreach (var requiredSchema in fieldSchemaDependencies.Values.Distinct())
+            {
+                var operation = GetOperation(operationsInContext, requiredSchema);
+                operation.AddDependantOperation(lookupOp);
+            }
+        }
+
+        return true;
+    }
+
+    private bool TryResolveLookupRequirement(
+        PlaningContext context,
+        IReadOnlyList<OperationPlanNode> operationsInContext,
+        FieldPath requiredField,
+        ITypeNode requiredFieldType,
+        string requiredFromSchema,
+        [NotNullWhen(true)] out FieldRequirementPlanNode? lookupRequirement)
+    {
+        var requirementName = GetNextRequirementName();
+        var requiredFromOperation = GetOperation(operationsInContext, requiredFromSchema);
+
+        // if we can resolve lookup requirements without an extra request by getting the data from the
+        // parent operation this is preferable.
+        SelectionPlanNode requiredFromSelectionSet;
+        ImmutableStack<SelectionPlanNode> requiredFromPathStack;
+        if (requiredFromOperation == context.Operation)
+        {
+            requiredFromSelectionSet = context.Parent;
+            requiredFromPathStack = context.Path;
+        }
+        else
+        {
+            requiredFromSelectionSet = requiredFromOperation.Selections.Single();
+
+            // TODO: we need to resolve the lookup field properly as it could be nested.
+            var lookup = requiredFromSelectionSet.Selections[0];
+            requiredFromPathStack = ImmutableStack<SelectionPlanNode>.Empty.Push(lookup);
+        }
+
+        var requiredFromPath = CreateFieldPath(requiredFromPathStack);
+        var requiredFromContext = new PlaningContext(
+            requiredFromOperation,
+            requiredFromSelectionSet,
+            requiredFromPathStack);
+
+        if (!TryPlanSelection(
+            requiredFromContext,
+            (CompositeComplexType)requiredFromSelectionSet.DeclaringType,
+            CreateFieldNodeFromPath(requiredField)))
+        {
+            lookupRequirement = null;
+            return false;
+        }
+
+        lookupRequirement = new FieldRequirementPlanNode(
+            requirementName,
+            requiredFromOperation,
+            requiredFromPath,
+            requiredField,
+            requiredFieldType);
+        return true;
+    }
+
+    private static OperationPlanNode GetOperation(
+        IReadOnlyList<OperationPlanNode> operationsInContext,
+        string schemaName)
+    {
+        foreach (var operation in operationsInContext)
+        {
+            if (operation.SchemaName == schemaName)
+            {
+                return operation;
+            }
+        }
+
+        throw new InvalidOperationException(
+            "We should have found an operation in the context that matches the required schema.");
+    }
 
     /// <summary>
     /// Tries to find an entity type in the current selection path.
@@ -513,9 +658,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
     private static Dictionary<string, int> GetSchemasWeighted(
         CompositeComplexType operationType,
-        SelectionSetNode selectionSet)
+        SelectionSetNode selectionSet,
+        IReadOnlyList<string>? skippedSchemas = null)
     {
-        // this is to simplified ... we need to traverse instead
+        // this is too simplified ... we need to traverse instead
         var counts = new Dictionary<string, int>();
         var selectionBacklog = new Queue<ISelectionNode>(selectionSet.Selections);
         var visitedSelections = new HashSet<ISelectionNode>(SyntaxComparer.BySyntax);
@@ -547,6 +693,14 @@ public sealed class OperationPlanner(CompositeSchema schema)
                         selectionBacklog.Enqueue(selection);
                     }
                 }
+            }
+        }
+
+        if (skippedSchemas?.Count > 0)
+        {
+            foreach (var schemaName in skippedSchemas)
+            {
+                counts.Remove(schemaName);
             }
         }
 
