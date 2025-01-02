@@ -1,6 +1,7 @@
 using System.Text;
+using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Skimmed;
 
@@ -160,5 +161,98 @@ public class SchemaParserTests
         Assert.Equal("String", argument.Type.NamedType().Name);
         Assert.True(argument.Directives.ContainsName("custom"));
         Assert.Equal(DirectiveLocation.EnumValue, directive.Locations);
+    }
+
+    [Fact]
+    public void Parse_Input_Object_With_Default_Value()
+    {
+        // arrange
+        var sdl =
+            """
+            input BookFilter {
+                genre: Genre = FANTASY
+            }
+            enum Genre {
+                FANTASY
+                SCIENCE_FICTION
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        // assert
+        Assert.Collection(
+            schema.Types.OrderBy(t => t.Name),
+            type =>
+            {
+                var inputType = Assert.IsType<InputObjectTypeDefinition>(type);
+                Assert.Equal("BookFilter", inputType.Name);
+                var genreField = Assert.Single(inputType.Fields);
+                Assert.Equal("genre", genreField.Name);
+                Assert.IsType<EnumTypeDefinition>(genreField.Type);
+                Assert.NotNull(genreField.DefaultValue);
+                Assert.Equal("FANTASY", genreField.DefaultValue.Value);
+            },
+            type =>
+            {
+                var genreType = Assert.IsType<EnumTypeDefinition>(type);
+                Assert.Equal("Genre", genreType.Name);
+            });
+    }
+
+    [Fact]
+    public void Parse_Input_Object_With_Multiple_Default_Values()
+    {
+        // arrange
+        var sdl =
+            """
+            input BookFilter {
+                genre: Genre = FANTASY
+                author: String = "Lorem ipsum"
+            }
+            enum Genre {
+                FANTASY
+                SCIENCE_FICTION
+            }
+
+            scalar String
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        // assert
+        Assert.Collection(
+            schema.Types.OrderBy(t => t.Name),
+            type =>
+            {
+                var inputType = Assert.IsType<InputObjectTypeDefinition>(type);
+                Assert.Equal("BookFilter", inputType.Name);
+                Assert.Collection(inputType.Fields.OrderBy(f => f.Name),
+                    authorField =>
+                    {
+                        Assert.Equal("author", authorField.Name);
+                        var fieldType = Assert.IsType<ScalarTypeDefinition>(authorField.Type);
+                        Assert.Equal("String", fieldType.Name);
+                        Assert.NotNull(authorField.DefaultValue);
+                        Assert.Equal("Lorem ipsum", authorField.DefaultValue.Value);
+                    },
+                    genreField =>
+                    {
+                        Assert.Equal("genre", genreField.Name);
+                        Assert.IsType<EnumTypeDefinition>(genreField.Type);
+                        Assert.NotNull(genreField.DefaultValue);
+                        Assert.Equal("FANTASY", genreField.DefaultValue.Value);
+                    });
+            },
+            type =>
+            {
+                var genreType = Assert.IsType<EnumTypeDefinition>(type);
+                Assert.Equal("Genre", genreType.Name);
+            },
+            type =>
+            {
+                var stringType = Assert.IsType<ScalarTypeDefinition>(type);
+                Assert.Equal("String", stringType.Name);
+            });
     }
 }
