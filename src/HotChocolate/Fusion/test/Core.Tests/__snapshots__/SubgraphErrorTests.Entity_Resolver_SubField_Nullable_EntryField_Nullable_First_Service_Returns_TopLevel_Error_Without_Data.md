@@ -6,7 +6,16 @@
 {
   "errors": [
     {
-      "message": "Top Level Error"
+      "message": "Top Level Error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "productById"
+      ]
     }
   ],
   "data": {
