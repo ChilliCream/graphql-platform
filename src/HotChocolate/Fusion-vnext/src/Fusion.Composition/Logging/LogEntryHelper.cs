@@ -272,7 +272,7 @@ internal static class LogEntryHelper
             LogEntryCodes.LookupMustNotReturnList,
             LogSeverity.Error,
             coordinate,
-            type,
+            field,
             schema);
     }
 

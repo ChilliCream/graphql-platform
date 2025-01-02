@@ -195,7 +195,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Lookup field &apos;{0}&apos; in schema &apos;{1}&apos; must not return a list..
+        ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; must not return a list..
         /// </summary>
         internal static string LogEntryHelper_LookupMustNotReturnList {
             get {

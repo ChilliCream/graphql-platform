@@ -52,6 +52,7 @@ public sealed class LookupMustNotReturnListRuleTests : CompositionTestBase
                     type Query {
                         userById(id: ID!): User @lookup
                     }
+
                     type User {
                         id: ID!
                         name: String
@@ -74,6 +75,7 @@ public sealed class LookupMustNotReturnListRuleTests : CompositionTestBase
                     type Query {
                         usersByIds(ids: [ID!]!): [User!] @lookup
                     }
+
                     type User {
                         id: ID!
                         name: String
@@ -81,7 +83,25 @@ public sealed class LookupMustNotReturnListRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "Lookup field 'Query.usersByIds' in schema 'A' must not return a list."
+                    "The lookup field 'Query.usersByIds' in schema 'A' must not return a list."
+                ]
+            },
+            // Non-null list.
+            {
+                [
+                    """
+                    type Query {
+                        usersByIds(ids: [ID!]!): [User!]! @lookup
+                    }
+
+                    type User {
+                        id: ID!
+                        name: String
+                    }
+                    """
+                ],
+                [
+                    "The lookup field 'Query.usersByIds' in schema 'A' must not return a list."
                 ]
             }
         };

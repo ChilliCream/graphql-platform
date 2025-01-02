@@ -6,9 +6,9 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
 /// <summary>
 /// Fields annotated with the <c>@lookup</c> directive are intended to retrieve a single entity
-/// based on provided arguments. To avoid ambiguity in entity resolution, such fields must return
-/// a <b>single object</b> and not a <c>list</c>. This validation rule enforces that any field
-/// annotated with <c>@lookup</c> must have a return type that is NOT a list.
+/// based on provided arguments. To avoid ambiguity in entity resolution, such fields must return a
+/// single object and not a list. This validation rule enforces that any field annotated with
+/// <c>@lookup</c> must have a return type that is <b>NOT</b> a list.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec--lookup-must-not-return-a-list">
 /// Specification
@@ -19,20 +19,9 @@ internal sealed class LookupMustNotReturnListRule : IEventHandler<OutputFieldEve
     {
         var (field, type, schema) = @event;
 
-        if (ValidationHelper.IsLookup(field) && IsListType(field.Type))
+        if (ValidationHelper.IsLookup(field) && field.Type.NullableType() is ListTypeDefinition)
         {
             context.Log.Write(LookupMustNotReturnList(field, type, schema));
-        }
-
-        static bool IsListType(ITypeDefinition type)
-        {
-            if (type is NonNullTypeDefinition nonNullType)
-            {
-                var innerType = nonNullType.NullableType;
-                return IsListType(innerType); // Spec mentions `IsSingleObjectType(innerType)`
-            }
-
-            return type is ListTypeDefinition;
         }
     }
 }
