@@ -109,7 +109,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         }
         else
         {
-            var field = ((CompositeComplexType)context.Type).Fields[fieldNode.ResponseName()];
+            var field = ((CompositeComplexType)context.Type).Fields[fieldNode.Name.Value];
             var fieldContext = context.Branch(field.Type.NamedType());
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);

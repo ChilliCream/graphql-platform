@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -10,7 +11,8 @@ public abstract class SelectionPlanNode : PlanNode
 {
     private List<CompositeDirective>? _directives;
     private List<SelectionPlanNode>? _selections;
-    private List<SelectionSetNode>? _requirements;
+    private List<DataRequirement>? _requirements;
+    private List<UnresolvableSelection>? _unresolvableSelections;
     private bool? _isConditional;
     private string? _skipVariable;
     private string? _includeVariable;
@@ -73,8 +75,11 @@ public abstract class SelectionPlanNode : PlanNode
     /// <summary>
     /// Gets the requirements that are needed to execute this selection.
     /// </summary>
-    public IReadOnlyList<SelectionSetNode> RequirementNodes
-        => _requirements ?? (IReadOnlyList<SelectionSetNode>)Array.Empty<SelectionSetNode>();
+    public IReadOnlyList<DataRequirement> DataRequirements
+        => _requirements ?? (IReadOnlyList<DataRequirement>)Array.Empty<DataRequirement>();
+
+    public IReadOnlyList<UnresolvableSelection> UnresolvableSelections =>
+        _unresolvableSelections ?? (IReadOnlyList<UnresolvableSelection>)Array.Empty<UnresolvableSelection>();
 
     /// <summary>
     /// Defines if the selection is conditional.
@@ -157,10 +162,160 @@ public abstract class SelectionPlanNode : PlanNode
     public bool RemoveDirective(CompositeDirective directive)
         => _directives?.Remove(directive) == true;
 
-    public void AddRequirementNode(SelectionSetNode selectionSet)
+    public void AddDataRequirement(SelectionSetNode selectionSet, ImmutableStack<SelectionPlanNode> path)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
-        (_requirements ??= []).Add(selectionSet);
+        ArgumentNullException.ThrowIfNull(path);
+        (_requirements ??= []).Add(new DataRequirement(selectionSet, path));
+    }
+
+    public void AddDataRequirement(DataRequirement requirement)
+    {
+        ArgumentNullException.ThrowIfNull(requirement);
+        (_requirements ??= []).Add(requirement);
+    }
+
+    public void AddUnresolvableSelection(ISelectionNode selectionNode, ImmutableStack<SelectionPlanNode> path)
+    {
+        ArgumentNullException.ThrowIfNull(selectionNode);
+        ArgumentNullException.ThrowIfNull(path);
+        (_unresolvableSelections ??= []).Add(new UnresolvableSelection(selectionNode, path));
+    }
+
+    public void AddUnresolvableSelection(UnresolvableSelection unresolvable)
+    {
+        ArgumentNullException.ThrowIfNull(unresolvable);
+        (_unresolvableSelections ??= []).Add(unresolvable);
+    }
+
+    // todo: change name
+    public bool TryMoveRequirementsToParent()
+    {
+        if (Parent is not SelectionPlanNode parentSelection)
+        {
+            return false;
+        }
+
+        return TryMoveRequirementsTo(parentSelection);
+    }
+
+    public bool TryMoveRequirementsTo(SelectionPlanNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (_unresolvableSelections is not null)
+        {
+            foreach (var unresolvable in _unresolvableSelections)
+            {
+                node.AddUnresolvableSelection(unresolvable);
+            }
+
+            _unresolvableSelections.Clear();
+            _unresolvableSelections = null;
+        }
+
+        if (_requirements is not null)
+        {
+            foreach (var requirement in _requirements)
+            {
+                node.AddDataRequirement(requirement);
+            }
+
+            _requirements.Clear();
+            _requirements = null;
+        }
+
+        return true;
+    }
+
+    public IReadOnlyList<SelectionSetNode> TakeDataRequirements()
+    {
+        if (_requirements is null)
+        {
+            return Array.Empty<SelectionSetNode>();
+        }
+
+        var requirements = new List<SelectionSetNode>();
+
+        foreach (var (selectionSet, path) in _requirements)
+        {
+            requirements.Add(CreateSelectionSetFromPath(this, selectionSet, path));
+        }
+
+        _requirements.Clear();
+        _requirements = null;
+
+        return requirements;
+    }
+
+    public IReadOnlyList<SelectionSetNode> TakeUnresolvableSelections()
+    {
+        if (_unresolvableSelections is null)
+        {
+            return Array.Empty<SelectionSetNode>();
+        }
+
+        var requirements = new List<SelectionSetNode>();
+
+        foreach (var (selection, path) in _unresolvableSelections)
+        {
+            requirements.Add(CreateSelectionSetFromPath(this, new SelectionSetNode([selection]), path));
+        }
+
+        _unresolvableSelections.Clear();
+        _unresolvableSelections = null;
+
+        return requirements;
+    }
+
+    private static SelectionSetNode CreateSelectionSetFromPath(
+        SelectionPlanNode parent,
+        SelectionSetNode selectionSet,
+        ImmutableStack<SelectionPlanNode> path)
+    {
+        path = path.Pop(out var segment);
+
+        if (ReferenceEquals(segment, parent))
+        {
+            return selectionSet;
+        }
+
+        var current = CreateSelectionFromNode(segment, selectionSet);
+
+        while (!path.IsEmpty)
+        {
+            path = path.Pop(out segment);
+
+            if (ReferenceEquals(segment, parent))
+            {
+                return new SelectionSetNode([current]);
+            }
+
+            current = CreateSelectionFromNode(segment, new SelectionSetNode([current]));
+        }
+
+        return new SelectionSetNode([current]);
+    }
+
+    private static ISelectionNode CreateSelectionFromNode(
+        SelectionPlanNode node,
+        SelectionSetNode selectionSet)
+    {
+        switch (node)
+        {
+            case FieldPlanNode field:
+                return field.FieldNode.WithSelectionSet(selectionSet);
+
+            case InlineFragmentPlanNode fragment:
+                return new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(fragment.DeclaringType.Name),
+                    fragment.DirectiveNodes,
+                    selectionSet);
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(node));
+        }
     }
 
     private void InitializeConditions()
