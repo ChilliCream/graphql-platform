@@ -408,7 +408,14 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         }
         catch (SyntaxException)
         {
-            // Ignore.
+            PublishEvent(
+                new RequireFieldsInvalidSyntaxEvent(
+                    requireDirective,
+                    argument,
+                    field,
+                    type,
+                    schema),
+                context);
         }
     }
 
