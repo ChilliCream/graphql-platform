@@ -36,6 +36,26 @@ namespace Microsoft.Extensions.DependencyInjection
             return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.State.StarWarsOnReviewSubNoStoreClientStoreAccessor>("StarWarsOnReviewSubNoStoreClient", services, serviceCollection);
         }
 
+        public static global::StrawberryShake.IScopedClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.State.StarWarsOnReviewSubNoStoreClientStoreAccessor> AddScopedStarWarsOnReviewSubNoStoreClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly, global::System.Action<global::Microsoft.Extensions.DependencyInjection.IServiceCollection>? configureClientServices = null)
+        {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddScoped(services, sp =>
+            {
+                var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+                ConfigureClientDefault(sp, serviceCollection, strategy);
+                if (configureClientServices is not null)
+                {
+                    configureClientServices(serviceCollection);
+                }
+
+                return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+            });
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddScoped(services, sp => new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.State.StarWarsOnReviewSubNoStoreClientStoreAccessor());
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddScoped(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.OnReviewSubSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddScoped(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.StarWarsOnReviewSubNoStoreClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddScoped(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.IStarWarsOnReviewSubNoStoreClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            return new global::StrawberryShake.ScopedClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.State.StarWarsOnReviewSubNoStoreClientStoreAccessor>("StarWarsOnReviewSubNoStoreClient", services);
+        }
+
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::Microsoft.Extensions.DependencyInjection.ServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.WebSockets.IWebSocketConnection>(services, sp =>
