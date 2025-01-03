@@ -150,6 +150,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
