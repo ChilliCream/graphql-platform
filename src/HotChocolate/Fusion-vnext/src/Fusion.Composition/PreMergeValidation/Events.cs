@@ -84,6 +84,15 @@ internal record ProvidesFieldNodeEvent(
     ComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
+internal record RequireFieldNodeEvent(
+    FieldNode FieldNode,
+    ImmutableArray<string> FieldNamePath,
+    Directive RequireDirective,
+    InputFieldDefinition Argument,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
 internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(

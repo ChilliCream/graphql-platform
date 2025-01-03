@@ -283,6 +283,44 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry LookupMustNotReturnList(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_LookupMustNotReturnList,
+                coordinate,
+                schema.Name),
+            LogEntryCodes.LookupMustNotReturnList,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
+    public static LogEntry LookupShouldHaveNullableReturnType(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_LookupShouldHaveNullableReturnType,
+                coordinate,
+                schema.Name),
+            LogEntryCodes.LookupShouldHaveNullableReturnType,
+            LogSeverity.Warning,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry OutputFieldTypesNotMergeable(
         OutputFieldDefinition field,
         string typeName,
@@ -401,6 +439,47 @@ internal static class LogEntryHelper
             LogSeverity.Error,
             new SchemaCoordinate(type.Name),
             type,
+            schema);
+    }
+
+    public static LogEntry RequireDirectiveInFieldsArgument(
+        ImmutableArray<string> fieldNamePath,
+        Directive requireDirective,
+        string argumentName,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_RequireDirectiveInFieldsArgument,
+                coordinate,
+                schema.Name,
+                string.Join(".", fieldNamePath)),
+            LogEntryCodes.RequireDirectiveInFieldsArg,
+            LogSeverity.Error,
+            coordinate,
+            requireDirective,
+            schema);
+    }
+
+    public static LogEntry RequireInvalidFieldsType(
+        Directive requireDirective,
+        string argumentName,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_RequireInvalidFieldsType, coordinate, schema.Name),
+            LogEntryCodes.RequireInvalidFieldsType,
+            LogSeverity.Error,
+            coordinate,
+            requireDirective,
             schema);
     }
 
