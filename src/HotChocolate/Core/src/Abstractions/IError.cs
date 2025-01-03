@@ -91,7 +91,7 @@ public interface IError
     /// Returns a new error that contains all properties of this error
     /// but with the specified <paramref name="path" />.
     /// </returns>
-    IError WithPath(Path? path);
+    IError WithPath(Path path);
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
@@ -104,17 +104,7 @@ public interface IError
     /// Returns a new error that contains all properties of this error
     /// but with the specified <paramref name="path" />.
     /// </returns>
-    IError WithPath(IReadOnlyList<object>? path);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
-    /// but with the <see cref="Path"/> removed.
-    /// </summary>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but with the <see cref="Path"/> removed.
-    /// </returns>
-    IError RemovePath();
+    IError WithPath(IReadOnlyList<object> path);
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
@@ -128,17 +118,7 @@ public interface IError
     /// Returns a new error that contains all properties of this error
     /// but with the specified <paramref name="locations" />.
     /// </returns>
-    IError WithLocations(IReadOnlyList<Location>? locations);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
-    /// but with the <see cref="Locations"/> removed.
-    /// </summary>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but with the <see cref="Locations"/> removed.
-    /// </returns>
-    IError RemoveLocations();
+    IError WithLocations(IReadOnlyList<Location> locations);
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
