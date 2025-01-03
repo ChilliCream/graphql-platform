@@ -483,6 +483,24 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry RequireInvalidSyntax(
+        Directive requireDirective,
+        string argumentName,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_RequireInvalidSyntax, coordinate, schema.Name),
+            LogEntryCodes.RequireInvalidSyntax,
+            LogSeverity.Error,
+            coordinate,
+            requireDirective,
+            schema);
+    }
+
     public static LogEntry RootMutationUsed(SchemaDefinition schema)
     {
         return new LogEntry(

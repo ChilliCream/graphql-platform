@@ -294,6 +294,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_RequireInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The root mutation type in schema &apos;{0}&apos; must be named &apos;Mutation&apos;..
         /// </summary>
         internal static string LogEntryHelper_RootMutationUsed {

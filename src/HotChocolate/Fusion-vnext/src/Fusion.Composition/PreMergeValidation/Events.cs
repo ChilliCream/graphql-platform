@@ -93,6 +93,13 @@ internal record RequireFieldNodeEvent(
     ComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
+internal record RequireFieldsInvalidSyntaxEvent(
+    Directive RequireDirective,
+    InputFieldDefinition Argument,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
 internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(

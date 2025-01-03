@@ -96,6 +96,9 @@
   <data name="LogEntryHelper_RequireInvalidFieldsType" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
   </data>
+  <data name="LogEntryHelper_RequireInvalidSyntax" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' contains invalid syntax in the 'fields' argument.</value>
+  </data>
   <data name="LogEntryHelper_RootMutationUsed" xml:space="preserve">
     <value>The root mutation type in schema '{0}' must be named 'Mutation'.</value>
   </data>
