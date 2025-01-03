@@ -25,6 +25,7 @@ internal sealed partial class ExtendedType
                 var definition = type.GetGenericTypeDefinition();
                 if (typeof(ListType<>) == definition ||
                     typeof(NonNullType<>) == definition ||
+                    typeof(StrictNonNullType<>) == definition ||
                     typeof(NativeType<>) == definition)
                 {
                     return IsSchemaType(type.GetGenericArguments()[0]);

@@ -63,6 +63,7 @@ public class SemanticNonNullTests
             .AddGraphQL()
             .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
+            .UseField(_ => _ => default)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -74,6 +75,7 @@ public class SemanticNonNullTests
             .AddGraphQL()
             .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<QueryWithTypeAttribute>()
+            .UseField(_ => _ => default)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -86,6 +88,7 @@ public class SemanticNonNullTests
             .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddType<Foo>()
             .AddQueryType<QueryWithTypeAttributeAsString>()
+            .UseField(_ => _ => default)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -144,9 +147,12 @@ public class SemanticNonNullTests
             descriptor.Name("Query");
             descriptor.Field("scalar").Type<StringType>();
             descriptor.Field("nonNulScalar").Type<NonNullType<StringType>>();
+            descriptor.Field("strictNonNullScalar").Type<StrictNonNullType<StringType>>();
             descriptor.Field("scalarArray").Type<ListType<StringType>>();
             descriptor.Field("nonNullScalarArray").Type<NonNullType<ListType<NonNullType<StringType>>>>();
             descriptor.Field("outerNonNullScalarArray").Type<NonNullType<ListType<StringType>>>();
+            descriptor.Field("strictNonNullScalarArray").Type<StrictNonNullType<ListType<StrictNonNullType<StringType>>>>();
+            descriptor.Field("strictOuterNonNullScalarArray").Type<StrictNonNullType<ListType<StringType>>>();
             descriptor.Field("scalarNestedArray").Type<ListType<ListType<StringType>>>();
             descriptor.Field("nonNullScalarNestedArray").Type<NonNullType<ListType<NonNullType<ListType<NonNullType<StringType>>>>>>();
             descriptor.Field("innerNonNullScalarNestedArray").Type<NonNullType<ListType<ListType<NonNullType<StringType>>>>>();
@@ -166,6 +172,8 @@ public class SemanticNonNullTests
         {
             descriptor.Name("Foo");
             descriptor.Field("bar").Type<NonNullType<StringType>>();
+            descriptor.Field("strictBar").Type<StrictNonNullType<StringType>>();
+
         }
     }
 
@@ -175,11 +183,20 @@ public class SemanticNonNullTests
 
         public string NonNulScalar { get; } = null!;
 
+        [GraphQLStrictNonNullType]
+        public string StrictNonNullScalar { get; } = null!;
+
         public string?[]? ScalarArray { get; }
 
         public string[] NonNullScalarArray { get; } = null!;
 
+        [GraphQLStrictNonNullType]
+        public string[] StrictNonNullScalarArray { get; } = null!;
+
         public string?[] OuterNonNullScalarArray { get; } = null!;
+
+        [GraphQLStrictNonNullType]
+        public string?[] StrictOuterNonNullScalarArray { get; } = null!;
 
         public string?[]?[]? ScalarNestedArray { get; }
 
@@ -190,6 +207,9 @@ public class SemanticNonNullTests
         public Foo? Object { get; }
 
         public Foo NonNullObject { get; } = null!;
+
+        [GraphQLStrictNonNullType]
+        public Foo StrictNonNullObject { get; } = null!;
 
         public Foo?[]? ObjectArray { get; }
 
@@ -211,6 +231,9 @@ public class SemanticNonNullTests
         [GraphQLType<NonNullType<StringType>>]
         public string NonNulScalar { get; } = null!;
 
+        [GraphQLType<StrictNonNullType<StringType>>]
+        public string StrictNonNullScalar { get; } = null!;
+
         [GraphQLType<ListType<StringType>>]
         public string?[]? ScalarArray { get; }
 
@@ -219,6 +242,12 @@ public class SemanticNonNullTests
 
         [GraphQLType<NonNullType<ListType<StringType>>>]
         public string?[] OuterNonNullScalarArray { get; } = null!;
+
+        [GraphQLType<StrictNonNullType<ListType<StrictNonNullType<StringType>>>>]
+        public string[] StrictNonNullScalarArray { get; } = null!;
+
+        [GraphQLType<StrictNonNullType<ListType<NonNullType<StringType>>>>]
+        public string?[] StrictOuterNonNullScalarArray { get; } = null!;
 
         [GraphQLType<ListType<ListType<StringType>>>]
         public string?[]?[]? ScalarNestedArray { get; }
@@ -234,6 +263,9 @@ public class SemanticNonNullTests
 
         [GraphQLType<NonNullType<FooType>>]
         public Foo NonNullObject { get; } = null!;
+
+        [GraphQLType<StrictNonNullType<FooType>>]
+        public Foo StrictNonNullObject { get; } = null!;
 
         [GraphQLType<ListType<FooType>>]
         public Foo?[]? ObjectArray { get; }
@@ -260,6 +292,10 @@ public class SemanticNonNullTests
         [GraphQLType("String!")]
         public string NonNulScalar { get; } = null!;
 
+        [GraphQLType("String!")]
+        [GraphQLStrictNonNullType]
+        public string StrictNonNullScalar { get; } = null!;
+
         [GraphQLType("[String]")]
         public string?[]? ScalarArray { get; }
 
@@ -268,6 +304,14 @@ public class SemanticNonNullTests
 
         [GraphQLType("[String]!")]
         public string?[] OuterNonNullScalarArray { get; } = null!;
+
+        [GraphQLType("[String!]!")]
+        [GraphQLStrictNonNullType]
+        public string[] StrictNonNullScalarArray { get; } = null!;
+
+        [GraphQLType("[String]!")]
+        [GraphQLStrictNonNullType]
+        public string?[] StrictOuterNonNullScalarArray { get; } = null!;
 
         [GraphQLType("[[String]]")]
         public string?[]?[]? ScalarNestedArray { get; }
@@ -283,6 +327,10 @@ public class SemanticNonNullTests
 
         [GraphQLType("Foo!")]
         public Foo NonNullObject { get; } = null!;
+
+        [GraphQLType("Foo!")]
+        [GraphQLStrictNonNullType]
+        public Foo StrictNonNullObject { get; } = null!;
 
         [GraphQLType("[Foo]")]
         public Foo?[]? ObjectArray { get; }
@@ -303,6 +351,9 @@ public class SemanticNonNullTests
     public class Foo
     {
         public string Bar { get; } = default!;
+
+        [GraphQLStrictNonNullType]
+        public string StrictBar { get; } = default!;
     }
 
     [ObjectType("Query")]
