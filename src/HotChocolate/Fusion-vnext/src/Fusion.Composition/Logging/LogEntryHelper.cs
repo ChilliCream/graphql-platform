@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 
@@ -162,16 +163,28 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry InputFieldDefaultMismatch(
-        string fieldName,
-        string typeName)
+        IValueNode defaultValueA,
+        IValueNode defaultValueB,
+        InputFieldDefinition field,
+        string typeName,
+        SchemaDefinition schemaA,
+        SchemaDefinition schemaB)
     {
-        var coordinate = new SchemaCoordinate(typeName, fieldName);
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_InputFieldDefaultMismatch, fieldName, typeName),
+            string.Format(
+                LogEntryHelper_InputFieldDefaultMismatch,
+                defaultValueA,
+                coordinate,
+                schemaA.Name,
+                defaultValueB,
+                schemaB.Name),
             LogEntryCodes.InputFieldDefaultMismatch,
             LogSeverity.Error,
-            coordinate);
+            coordinate,
+            field,
+            schemaA);
     }
 
     public static LogEntry KeyDirectiveInFieldsArgument(

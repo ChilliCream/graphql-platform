@@ -49,7 +49,7 @@
     <value>External field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
   <data name="LogEntryHelper_InputFieldDefaultMismatch" xml:space="preserve">
-    <value>The field '{0}' on type '{1}' has inconsistent default values.</value>
+    <value>The default value '{0}' of input field '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
   <data name="LogEntryHelper_KeyDirectiveInFieldsArgument" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>

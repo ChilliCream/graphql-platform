@@ -1,46 +1,60 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
 /// <summary>
-/// Input fields in different source schemas that have the same name are required to have
-/// consistent default values. This ensures that there is no ambiguity or inconsistency
-/// when merging input fields from different source schemas.
-/// <br />
-/// A mismatch in default values for input fields with the same name across different source
-/// schemas will result in a schema composition error.
+/// <para>
+/// Input fields in different source schemas that have the same name are required to have consistent
+/// default values. This ensures that there is no ambiguity or inconsistency when merging input
+/// fields from different source schemas.
+/// </para>
+/// <para>
+/// A mismatch in default values for input fields with the same name across different source schemas
+/// will result in a schema composition error.
+/// </para>
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-External-Unused">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Input-Field-Default-Mismatch">
 /// Specification
 /// </seealso>
-internal sealed class InputFieldDefaultMismatchRule : IEventHandler<TypeGroupEvent>
+internal sealed class InputFieldDefaultMismatchRule : IEventHandler<InputFieldGroupEvent>
 {
-    public void Handle(TypeGroupEvent @event, CompositionContext context)
+    public void Handle(InputFieldGroupEvent @event, CompositionContext context)
     {
-        var (typeName, typeInfos) = @event;
+        var (_, fieldGroup, typeName) = @event;
 
-        if (typeInfos.Any(i => i.Type is not InputObjectTypeDefinition))
+        var fieldGroupWithDefaultValues = fieldGroup
+            .Where(i => i.Field.DefaultValue is not null)
+            .ToImmutableArray();
+
+        var defaultValues = fieldGroupWithDefaultValues
+            .Select(i => i.Field.DefaultValue!)
+            .ToImmutableHashSet(SyntaxComparer.BySyntax);
+
+        if (defaultValues.Count <= 1)
         {
-            return; // Different shape caught elsewhere.
+            return;
         }
 
-        var defaultValuesByField = typeInfos
-            .SelectMany(
-                i => ((InputObjectTypeDefinition)i.Type).Fields,
-                (_, f) => (f.Name, f.DefaultValue))
-            .ToLookup(f => f.Name, f => f.DefaultValue);
-
-        foreach (var field in defaultValuesByField)
+        for (var i = 0; i < fieldGroupWithDefaultValues.Length - 1; i++)
         {
-            var defaultValue = field.First();
+            var (fieldA, _, schemaA) = fieldGroupWithDefaultValues[i];
+            var (fieldB, _, schemaB) = fieldGroupWithDefaultValues[i + 1];
+            var defaultValueA = fieldA.DefaultValue!;
+            var defaultValueB = fieldB.DefaultValue!;
 
-            if (field.Skip(1).Any(dv => !SyntaxComparer.BySyntax.Equals(dv, defaultValue)))
+            if (!SyntaxComparer.BySyntax.Equals(defaultValueA, defaultValueB))
             {
                 context.Log.Write(
-                    InputFieldDefaultMismatch(field.Key, typeName));
+                    InputFieldDefaultMismatch(
+                        defaultValueA,
+                        defaultValueB,
+                        fieldA,
+                        typeName,
+                        schemaA,
+                        schemaB));
             }
         }
     }

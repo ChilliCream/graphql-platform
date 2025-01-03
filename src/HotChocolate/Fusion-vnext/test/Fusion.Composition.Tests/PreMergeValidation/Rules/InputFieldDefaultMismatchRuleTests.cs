@@ -50,7 +50,7 @@ public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
             {
                 [
                     """
-                    # Source schema A
+                    # Schema A
                     input BookFilter {
                         genre: Genre = FANTASY
                     }
@@ -61,7 +61,35 @@ public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
                     }
                     """,
                     """
-                    # Source schema B
+                    # Schema B
+                    input BookFilter {
+                        genre: Genre = FANTASY
+                    }
+
+                    enum Genre {
+                        FANTASY
+                        SCIENCE_FICTION
+                    }
+                    """
+                ]
+            },
+            // If only one of the source schemas defines a default value for a given input field,
+            // the composition is still valid.
+            {
+                [
+                    """
+                    # Schema A
+                    input BookFilter {
+                        genre: Genre
+                    }
+
+                    enum Genre {
+                        FANTASY
+                        SCIENCE_FICTION
+                    }
+                    """,
+                    """
+                    # Schema B
                     input BookFilter {
                         genre: Genre = FANTASY
                     }
@@ -85,20 +113,78 @@ public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
             {
                 [
                     """
-                    # Source schema A
+                    # Schema A
                     input BookFilter {
                         minPageCount: Int = 10
                     }
                     """,
                     """
-                    # Source schema B
+                    # Schema B
                     input BookFilter {
                         minPageCount: Int = 20
                     }
                     """
                 ],
                 [
-                    "The field 'minPageCount' on type 'BookFilter' has inconsistent default values."
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
+                    "'A' differs from the default value of '20' in schema 'B'."
+                ]
+            },
+            // Two different default values, and one without a default value.
+            {
+                [
+                    """
+                    # Schema A
+                    input BookFilter {
+                        minPageCount: Int = 10
+                    }
+                    """,
+                    """
+                    # Schema B
+                    input BookFilter {
+                        minPageCount: Int
+                    }
+                    """,
+                    """
+                    # Schema C
+                    input BookFilter {
+                        minPageCount: Int = 20
+                    }
+                    """
+                ],
+                [
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
+                    "'A' differs from the default value of '20' in schema 'C'."
+                ]
+            },
+            // Three different default values.
+            {
+                [
+                    """
+                    # Schema A
+                    input BookFilter {
+                        minPageCount: Int = 10
+                    }
+                    """,
+                    """
+                    # Schema B
+                    input BookFilter {
+                        minPageCount: Int = 20
+                    }
+                    """,
+                    """
+                    # Schema C
+                    input BookFilter {
+                        minPageCount: Int = 30
+                    }
+                    """
+                ],
+                [
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
+                    "'A' differs from the default value of '20' in schema 'B'.",
+
+                    "The default value '20' of input field 'BookFilter.minPageCount' in schema " +
+                    "'B' differs from the default value of '30' in schema 'C'."
                 ]
             }
         };

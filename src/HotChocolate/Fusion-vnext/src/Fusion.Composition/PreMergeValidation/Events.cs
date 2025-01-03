@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.PreMergeValidation.Info;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
@@ -24,6 +25,11 @@ internal record FieldArgumentGroupEvent(
     string ArgumentName,
     ImmutableArray<FieldArgumentInfo> ArgumentGroup,
     string FieldName,
+    string TypeName) : IEvent;
+
+internal record InputFieldGroupEvent(
+    string FieldName,
+    ImmutableArray<InputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
 internal record KeyFieldEvent(
