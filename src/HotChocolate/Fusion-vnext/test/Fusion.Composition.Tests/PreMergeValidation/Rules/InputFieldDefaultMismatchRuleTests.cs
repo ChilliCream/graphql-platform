@@ -100,6 +100,35 @@ public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
                     }
                     """
                 ]
+            },
+            // Multiple input fields.
+            {
+                [
+                    """
+                    # Schema A
+                    input BookFilter {
+                        genre1: Genre = FANTASY
+                        genre2: Genre
+                    }
+
+                    enum Genre {
+                        FANTASY
+                        SCIENCE_FICTION
+                    }
+                    """,
+                    """
+                    # Schema B
+                    input BookFilter {
+                        genre1: Genre
+                        genre2: Genre = SCIENCE_FICTION
+                    }
+
+                    enum Genre {
+                        FANTASY
+                        SCIENCE_FICTION
+                    }
+                    """
+                ]
             }
         };
     }
