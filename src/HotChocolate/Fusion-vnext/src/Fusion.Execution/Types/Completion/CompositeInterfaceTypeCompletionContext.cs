@@ -4,9 +4,12 @@ namespace HotChocolate.Fusion.Types.Completion;
 
 internal ref struct CompositeInterfaceTypeCompletionContext(
     DirectiveCollection directives,
-    CompositeInterfaceTypeCollection interfaces)
+    CompositeInterfaceTypeCollection interfaces,
+    SourceInterfaceTypeCollection sources)
 {
     public DirectiveCollection Directives { get; } = directives;
 
     public CompositeInterfaceTypeCollection Interfaces { get; } = interfaces;
+
+    public SourceInterfaceTypeCollection Sources { get; } = sources;
 }

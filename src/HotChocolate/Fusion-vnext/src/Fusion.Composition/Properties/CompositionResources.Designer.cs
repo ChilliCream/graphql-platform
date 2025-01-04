@@ -150,6 +150,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
@@ -191,6 +200,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_KeyInvalidSyntax {
             get {
                 return ResourceManager.GetString("LogEntryHelper_KeyInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; must not return a list..
+        /// </summary>
+        internal static string LogEntryHelper_LookupMustNotReturnList {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_LookupMustNotReturnList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; should return a nullable type..
+        /// </summary>
+        internal static string LogEntryHelper_LookupShouldHaveNullableReturnType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_LookupShouldHaveNullableReturnType", resourceCulture);
             }
         }
         
@@ -254,6 +281,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_RequireDirectiveInFieldsArgument {
             get {
                 return ResourceManager.GetString("LogEntryHelper_RequireDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_RequireInvalidFieldsType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidFieldsType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_RequireInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidSyntax", resourceCulture);
             }
         }
         

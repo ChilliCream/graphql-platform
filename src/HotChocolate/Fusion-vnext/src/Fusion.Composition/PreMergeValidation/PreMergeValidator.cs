@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.PreMergeValidation.Info;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
@@ -81,20 +82,42 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         {
             PublishEvent(new TypeGroupEvent(typeName, [.. typeGroup]), context);
 
-            MultiValueDictionary<string, OutputFieldInfo> fieldGroupByName = [];
+            MultiValueDictionary<string, InputFieldInfo> inputFieldGroupByName = [];
+            MultiValueDictionary<string, OutputFieldInfo> outputFieldGroupByName = [];
 
             foreach (var (type, schema) in typeGroup)
             {
-                if (type is ComplexTypeDefinition complexType)
+                switch (type)
                 {
-                    foreach (var field in complexType.Fields)
-                    {
-                        fieldGroupByName.Add(field.Name, new OutputFieldInfo(field, type, schema));
-                    }
+                    case InputObjectTypeDefinition inputType:
+                        foreach (var field in inputType.Fields)
+                        {
+                            inputFieldGroupByName.Add(
+                                field.Name,
+                                new InputFieldInfo(field, type, schema));
+                        }
+
+                        break;
+
+                    case ComplexTypeDefinition complexType:
+                        foreach (var field in complexType.Fields)
+                        {
+                            outputFieldGroupByName.Add(
+                                field.Name,
+                                new OutputFieldInfo(field, type, schema));
+                        }
+
+                        break;
                 }
             }
 
-            foreach (var (fieldName, fieldGroup) in fieldGroupByName)
+            foreach (var (fieldName, fieldGroup) in inputFieldGroupByName)
+            {
+                PublishEvent(
+                    new InputFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
+            }
+
+            foreach (var (fieldName, fieldGroup) in outputFieldGroupByName)
             {
                 PublishEvent(
                     new OutputFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
@@ -385,7 +408,14 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         }
         catch (SyntaxException)
         {
-            // Ignore.
+            PublishEvent(
+                new RequireFieldsInvalidSyntaxEvent(
+                    requireDirective,
+                    argument,
+                    field,
+                    type,
+                    schema),
+                context);
         }
     }
 
@@ -446,18 +476,3 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         }
     }
 }
-
-internal record TypeInfo(
-    INamedTypeDefinition Type,
-    SchemaDefinition Schema);
-
-internal record OutputFieldInfo(
-    OutputFieldDefinition Field,
-    INamedTypeDefinition Type,
-    SchemaDefinition Schema);
-
-internal record FieldArgumentInfo(
-    InputFieldDefinition Argument,
-    OutputFieldDefinition Field,
-    INamedTypeDefinition Type,
-    SchemaDefinition Schema);
