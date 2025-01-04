@@ -109,3 +109,11 @@ internal record TypeEvent(
 internal record TypeGroupEvent(
     string TypeName,
     ImmutableArray<TypeInfo> TypeGroup) : IEvent;
+
+internal record EnumTypeEvent(
+    EnumTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record EnumTypeGroupEvent(
+    string TypeName,
+    ImmutableArray<EnumTypeInfo> TypeGroup) : IEvent;

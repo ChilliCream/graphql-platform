@@ -15,6 +15,11 @@ internal sealed class ValidationHelper
         return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
     }
 
+    public static bool IsInaccessible(IDirectivesProvider type)
+    {
+        return type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
+    }
+
     public static bool IsExternal(IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.External);

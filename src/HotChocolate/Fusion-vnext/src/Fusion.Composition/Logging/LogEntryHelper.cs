@@ -100,6 +100,23 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EnumValuesMustBeTheSameAcrossSchemas(
+        EnumTypeDefinition enumType,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(enumType.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_EnumValuesMustBeTheSameAcrossSchemas,
+                enumType.Name,
+                schema.Name),
+            LogEntryCodes.EnumValuesMustBeTheSameAcrossSchemas,
+            LogSeverity.Error,
+            coordinate,
+            schema: schema);
+    }
+
     public static LogEntry ExternalArgumentDefaultMismatch(
         string argumentName,
         string fieldName,

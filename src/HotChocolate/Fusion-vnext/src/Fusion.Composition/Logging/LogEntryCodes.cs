@@ -3,6 +3,8 @@ namespace HotChocolate.Fusion.Logging;
 public static class LogEntryCodes
 {
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
+    public const string EnumValuesMustBeTheSameAcrossSchemas =
+        "ENUM_VALUES_MUST_BE_THE_SAME_ACROSS_SCHEMAS";
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
