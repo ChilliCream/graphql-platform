@@ -1,49 +1,32 @@
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// <para>
-/// A <c>SelectedValue</c> is defined as either a <c>Path</c> or a <c>SelectedObjectValue</c>.
-/// </para>
-/// <para>
-/// The <c>|</c> operator can be used to match multiple possible <c>SelectedValue</c>s.
-/// </para>
+/// TODO: Add summary.
 /// </summary>
 internal sealed class SelectedValueNode(
-    Location? location = null,
-    PathNode? path = null,
-    SelectedObjectValueNode? selectedObjectValue = null,
-    SelectedListValueNode? selectedListValue = null,
+    SelectedValueEntryNode selectedValueEntry,
     SelectedValueNode? selectedValue = null)
     : IFieldSelectionMapSyntaxNode
 {
+    public SelectedValueNode(
+        Location? location,
+        SelectedValueEntryNode selectedValueEntry,
+        SelectedValueNode? selectedValue) : this(selectedValueEntry, selectedValue)
+    {
+        Location = location;
+    }
+
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.SelectedValue;
 
-    public Location? Location { get; } = location;
+    public Location? Location { get; }
 
-    public PathNode? Path { get; } = path;
-
-    public SelectedObjectValueNode? SelectedObjectValue { get; } = selectedObjectValue;
-
-    public SelectedListValueNode? SelectedListValue { get; } = selectedListValue;
+    public SelectedValueEntryNode SelectedValueEntry { get; } = selectedValueEntry;
 
     public SelectedValueNode? SelectedValue { get; } = selectedValue;
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
-        if (Path is not null)
-        {
-            yield return Path;
-        }
-
-        if (SelectedObjectValue is not null)
-        {
-            yield return SelectedObjectValue;
-        }
-
-        if (SelectedListValue is not null)
-        {
-            yield return SelectedListValue;
-        }
+        yield return SelectedValueEntry;
 
         if (SelectedValue is not null)
         {

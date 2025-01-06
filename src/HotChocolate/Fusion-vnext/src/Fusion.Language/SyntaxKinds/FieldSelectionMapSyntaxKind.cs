@@ -8,5 +8,6 @@ internal enum FieldSelectionMapSyntaxKind
     SelectedListValue,
     SelectedObjectField,
     SelectedObjectValue,
-    SelectedValue
+    SelectedValue,
+    SelectedValueEntry
 }

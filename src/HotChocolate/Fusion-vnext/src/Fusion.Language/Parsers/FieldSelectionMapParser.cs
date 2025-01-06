@@ -47,15 +47,42 @@ internal ref struct FieldSelectionMapParser
     ///
     /// <code>
     /// SelectedValue ::
-    ///     Path
-    ///     SelectedObjectValue
-    ///     Path . SelectedObjectValue
-    ///     Path SelectedListValue
-    ///     SelectedValue | SelectedValue
+    ///     SelectedValue | SelectedValueEntry
+    ///     |opt SelectedValueEntry
     /// </code>
     /// </summary>
     /// <returns>The parsed <see cref="SelectedValueNode"/>.</returns>
     private SelectedValueNode ParseSelectedValue()
+    {
+        var start = Start();
+
+        var selectedValueEntry = ParseSelectedValueEntry();
+        SelectedValueNode? selectedValue = null;
+
+        if (_reader.TokenKind == TokenKind.Pipe)
+        {
+            MoveNext(); // skip "|"
+            selectedValue = ParseSelectedValue();
+        }
+
+        var location = CreateLocation(in start);
+
+        return new SelectedValueNode(location, selectedValueEntry, selectedValue);
+    }
+
+    /// <summary>
+    /// Parses a <see cref="SelectedValueEntryNode"/>.
+    ///
+    /// <code>
+    /// SelectedValueEntry ::
+    ///     Path [lookahead != .]
+    ///     Path . SelectedObjectValue
+    ///     Path SelectedListValue
+    ///     SelectedObjectValue
+    /// </code>
+    /// </summary>
+    /// <returns>The parsed <see cref="SelectedValueEntryNode"/>.</returns>
+    private SelectedValueEntryNode ParseSelectedValueEntry()
     {
         var start = Start();
 
@@ -85,22 +112,9 @@ internal ref struct FieldSelectionMapParser
                 throw new SyntaxException(_reader, UnexpectedToken, _reader.TokenKind);
         }
 
-        SelectedValueNode? selectedValue = null;
-
-        if (_reader.TokenKind == TokenKind.Pipe)
-        {
-            MoveNext(); // skip "|"
-            selectedValue = ParseSelectedValue();
-        }
-
         var location = CreateLocation(in start);
 
-        return new SelectedValueNode(
-            location,
-            path,
-            selectedObjectValue,
-            selectedListValue,
-            selectedValue);
+        return new SelectedValueEntryNode(location, path, selectedObjectValue, selectedListValue);
     }
 
     /// <summary>

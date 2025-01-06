@@ -64,6 +64,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => Enter((SelectedObjectValueNode)node, writer),
             FieldSelectionMapSyntaxKind.SelectedValue
                 => Enter((SelectedValueNode)node, writer),
+            FieldSelectionMapSyntaxKind.SelectedValueEntry
+                => Enter((SelectedValueEntryNode)node, writer),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -103,6 +105,11 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
         TContext writer) =>
         DefaultAction;
 
+    protected virtual ISyntaxVisitorAction Enter(
+        SelectedValueEntryNode node,
+        TContext writer) =>
+        DefaultAction;
+
     protected virtual ISyntaxVisitorAction Leave(
         IFieldSelectionMapSyntaxNode node,
         TContext context)
@@ -121,6 +128,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => Leave((SelectedObjectValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedValue
                 => Leave((SelectedValueNode)node, context),
+            FieldSelectionMapSyntaxKind.SelectedValueEntry
+                => Leave((SelectedValueEntryNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -152,6 +161,11 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
 
     protected virtual ISyntaxVisitorAction Leave(
         SelectedValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        SelectedValueEntryNode node,
         TContext context) =>
         DefaultAction;
 
@@ -201,6 +215,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => VisitChildren((SelectedObjectValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedValue
                 => VisitChildren((SelectedValueNode)node, context),
+            FieldSelectionMapSyntaxKind.SelectedValueEntry
+                => VisitChildren((SelectedValueEntryNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -280,6 +296,23 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
         SelectedValueNode node,
         TContext context)
     {
+        if (Visit(node.SelectedValueEntry, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if (node.SelectedValue is not null && Visit(node.SelectedValue, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        SelectedValueEntryNode node,
+        TContext context)
+    {
         if (node.Path is not null && Visit(node.Path, node, context).IsBreak())
         {
             return Break;
@@ -291,7 +324,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
             return Break;
         }
 
-        if (node.SelectedValue is not null && Visit(node.SelectedValue, node, context).IsBreak())
+        if (node.SelectedListValue is not null &&
+            Visit(node.SelectedListValue, node, context).IsBreak())
         {
             return Break;
         }

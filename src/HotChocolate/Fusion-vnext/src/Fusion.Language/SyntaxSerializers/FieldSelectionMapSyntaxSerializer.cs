@@ -128,6 +128,21 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         SelectedValueNode node,
         ISyntaxWriter writer)
     {
+        Visit(node.SelectedValueEntry, writer);
+
+        if (node.SelectedValue is not null)
+        {
+            writer.Write($" {Pipe} ");
+            Visit(node.SelectedValue, writer);
+        }
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        SelectedValueEntryNode node,
+        ISyntaxWriter writer)
+    {
         if (node.Path is not null)
         {
             Visit(node.Path, writer);
@@ -141,12 +156,6 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         if (node.SelectedListValue is not null)
         {
             Visit(node.SelectedListValue, writer);
-        }
-
-        if (node.SelectedValue is not null)
-        {
-            writer.Write($" {Pipe} ");
-            Visit(node.SelectedValue, writer);
         }
 
         return Skip;
