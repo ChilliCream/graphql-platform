@@ -11,7 +11,7 @@ public abstract class SelectionPlanNode : PlanNode
 {
     private List<CompositeDirective>? _directives;
     private List<SelectionPlanNode>? _selections;
-    private List<DataRequirement>? _requirements;
+    private List<FieldRequirementsPlanNode>? _requirements;
     private List<UnresolvableSelection>? _unresolvableSelections;
     private bool? _isConditional;
     private string? _skipVariable;
@@ -73,10 +73,10 @@ public abstract class SelectionPlanNode : PlanNode
         => _selections ?? (IReadOnlyList<SelectionPlanNode>)Array.Empty<SelectionPlanNode>();
 
     /// <summary>
-    /// Gets the requirements that are needed to execute this selection.
+    /// Gets the requirements that are needed to execute a child selection.
     /// </summary>
-    public IReadOnlyList<DataRequirement> DataRequirements
-        => _requirements ?? (IReadOnlyList<DataRequirement>)Array.Empty<DataRequirement>();
+    public IReadOnlyList<FieldRequirementsPlanNode> FieldRequirements
+        => _requirements ?? (IReadOnlyList<FieldRequirementsPlanNode>)Array.Empty<FieldRequirementsPlanNode>();
 
     public IReadOnlyList<UnresolvableSelection> UnresolvableSelections =>
         _unresolvableSelections ?? (IReadOnlyList<UnresolvableSelection>)Array.Empty<UnresolvableSelection>();
@@ -127,6 +127,40 @@ public abstract class SelectionPlanNode : PlanNode
         }
     }
 
+    public FieldPlanNode? FindField(FieldNode fieldNode)
+    {
+        if (_selections is not null)
+        {
+            foreach (var selection in _selections)
+            {
+                if (selection is FieldPlanNode field
+                    && FieldNodeMergeComparer.Instance.Equals(field.FieldNode, fieldNode))
+                {
+                    return field;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public InlineFragmentPlanNode? FindInlineFragment(InlineFragmentNode inlineFragmentNode)
+    {
+        if (_selections is not null)
+        {
+            foreach (var selection in _selections)
+            {
+                if (selection is InlineFragmentPlanNode fragment
+                    && InlineFragmentNodeMergeComparer.Instance.Equals(fragment, inlineFragmentNode))
+                {
+                    return fragment;
+                }
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Adds a child selection to this selection.
     /// </summary>
@@ -162,14 +196,14 @@ public abstract class SelectionPlanNode : PlanNode
     public bool RemoveDirective(CompositeDirective directive)
         => _directives?.Remove(directive) == true;
 
-    public void AddDataRequirement(SelectionSetNode selectionSet, ImmutableStack<SelectionPlanNode> path)
+    public void AddDataRequirement(FieldRequirements requirements, ImmutableStack<SelectionPlanNode> path)
     {
-        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(requirements);
         ArgumentNullException.ThrowIfNull(path);
-        (_requirements ??= []).Add(new DataRequirement(selectionSet, path));
+        (_requirements ??= []).Add(new FieldRequirementsPlanNode(requirements, path));
     }
 
-    public void AddDataRequirement(DataRequirement requirement)
+    public void AddDataRequirement(FieldRequirementsPlanNode requirement)
     {
         ArgumentNullException.ThrowIfNull(requirement);
         (_requirements ??= []).Add(requirement);
@@ -228,21 +262,14 @@ public abstract class SelectionPlanNode : PlanNode
         return true;
     }
 
-    public IReadOnlyList<SelectionSetNode> TakeDataRequirements()
+    public IReadOnlyList<FieldRequirementsPlanNode> TakeFieldRequirements()
     {
         if (_requirements is null)
         {
-            return Array.Empty<SelectionSetNode>();
+            return Array.Empty<FieldRequirementsPlanNode>();
         }
 
-        var requirements = new List<SelectionSetNode>();
-
-        foreach (var (selectionSet, path) in _requirements)
-        {
-            requirements.Add(CreateSelectionSetFromPath(this, selectionSet, path));
-        }
-
-        _requirements.Clear();
+        var requirements = _requirements;
         _requirements = null;
 
         return requirements;

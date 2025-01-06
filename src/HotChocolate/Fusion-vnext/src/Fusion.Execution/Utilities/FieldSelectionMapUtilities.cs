@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -7,6 +8,12 @@ namespace HotChocolate.Fusion.Utilities;
 
 internal static class FieldSelectionMapUtilities
 {
+    public static bool IsMergeableWith(this FieldPlanNode field, FieldNode y)
+        => field.FieldNode.IsMergeableWith(y);
+
+    public static bool IsMergeableWith(this FieldNode x, FieldNode y)
+        => FieldNodeMergeComparer.Instance.Equals(x, y);
+
     public static SelectionPath CreateSelectionPath(this ImmutableStack<SelectionPlanNode> path)
     {
         var current = SelectionPath.Root;
@@ -25,7 +32,7 @@ internal static class FieldSelectionMapUtilities
 
         return current;
     }
-    
+
     public static ISelectionNode ToSelectionNode(this SelectionPath path)
     {
         var current = CreateFrom(path);

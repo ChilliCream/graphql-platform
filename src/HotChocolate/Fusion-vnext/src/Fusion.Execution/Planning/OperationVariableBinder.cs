@@ -73,7 +73,7 @@ internal static class OperationVariableBinder
             }
         }
 
-        foreach (var requirement in operation.Requirements.Values)
+        foreach (var requirement in operation.DataRequirements.Values)
         {
             var variable = new VariableDefinitionNode(
                 null,

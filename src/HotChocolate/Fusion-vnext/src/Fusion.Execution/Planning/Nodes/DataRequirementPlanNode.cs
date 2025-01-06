@@ -4,9 +4,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning.Nodes;
 
-public sealed record FieldRequirementPlanNode : IParentPlanNodeProvider
+public sealed record DataRequirementPlanNode : IParentPlanNodeProvider
 {
-    public FieldRequirementPlanNode(
+    public DataRequirementPlanNode(
         string name,
         SelectionPath requiredField,
         ITypeNode type)
@@ -16,7 +16,7 @@ public sealed record FieldRequirementPlanNode : IParentPlanNodeProvider
         Type = type;
     }
 
-    public FieldRequirementPlanNode(
+    public DataRequirementPlanNode(
         string name,
         OperationPlanNode dependsOn,
         SelectionPath selectionSet,
@@ -30,7 +30,7 @@ public sealed record FieldRequirementPlanNode : IParentPlanNodeProvider
         Type = type;
     }
 
-    public FieldRequirementPlanNode(
+    public DataRequirementPlanNode(
         string name,
         ImmutableArray<OperationPlanNode> dependsOn,
         SelectionPath selectionSet,

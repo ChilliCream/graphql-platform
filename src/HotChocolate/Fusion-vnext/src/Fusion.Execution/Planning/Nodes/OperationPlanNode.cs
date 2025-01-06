@@ -12,7 +12,7 @@ public sealed class OperationPlanNode : SelectionPlanNode
         new Dictionary<string, VariableDefinitionNode>();
     private readonly List<OperationPlanNode> _dependants = [];
     // private List<OperationPlanNode>? _operations;
-    private Dictionary<string, FieldRequirementPlanNode>? _requirements;
+    private Dictionary<string, DataRequirementPlanNode>? _requirements;
     private Dictionary<string, VariableDefinitionNode>? _variables;
 
     public OperationPlanNode(
@@ -39,21 +39,18 @@ public sealed class OperationPlanNode : SelectionPlanNode
 
     public string SchemaName { get; }
 
-    // todo: variable representations are missing.
-    // todo: how to we represent state?
-
-    public IReadOnlyDictionary<string, FieldRequirementPlanNode> Requirements
-        => _requirements ??= new Dictionary<string, FieldRequirementPlanNode>();
+    public IReadOnlyDictionary<string, DataRequirementPlanNode> DataRequirements
+        => _requirements ??= new Dictionary<string, DataRequirementPlanNode>();
 
     public IReadOnlyDictionary<string, VariableDefinitionNode> VariableDefinitions
         => _variables ?? _emptyVariableMap;
 
     public IReadOnlyList<OperationPlanNode> Dependants => _dependants;
 
-    public void AddRequirement(FieldRequirementPlanNode requirement)
+    public void AddRequirement(DataRequirementPlanNode requirement)
     {
         ArgumentNullException.ThrowIfNull(requirement);
-        var requirements = _requirements ??= new Dictionary<string, FieldRequirementPlanNode>();
+        var requirements = _requirements ??= new Dictionary<string, DataRequirementPlanNode>();
         requirement = requirement with { Parent = this };
         requirements.Add(requirement.Name, requirement);
     }

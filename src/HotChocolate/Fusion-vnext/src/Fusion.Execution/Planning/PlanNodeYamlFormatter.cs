@@ -78,11 +78,11 @@ public static class PlanNodeYamlFormatter
             writer.WriteLine("    includeIf: \"{0}\"", operation.IncludeVariable);
         }
 
-        if (operation.Requirements.Count > 0)
+        if (operation.DataRequirements.Count > 0)
         {
             writer.WriteLine("    requirements:");
 
-            foreach (var requirement in operation.Requirements.Values)
+            foreach (var requirement in operation.DataRequirements.Values)
             {
                 writer.WriteLine("      - name: \"{0}\"", requirement.Name);
                 if (requirement.DependsOn is not null)

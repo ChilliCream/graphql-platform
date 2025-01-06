@@ -199,10 +199,13 @@ public sealed class OperationPlanner(CompositeSchema schema)
         {
             var source = field.Sources[context.Operation.SchemaName];
             var fieldNamedType = field.Type.NamedType();
+            var fieldPlanNode = context.Parent.FindField(fieldNode);
 
-            if (source.Requirements is not null)
+            // if fieldPlanNode already exists we already have collected
+            // the requirements for this field.
+            if (fieldPlanNode is null && source.Requirements is not null)
             {
-                context.Parent.AddDataRequirement(source.Requirements.SelectionSet, context.Path);
+                context.Parent.AddDataRequirement(source.Requirements, context.Path);
             }
 
             // if the field has no selection set it must be a leaf type.
@@ -214,6 +217,11 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 {
                     throw new InvalidOperationException(
                         "Only complex types can have a selection set.");
+                }
+
+                if(fieldPlanNode is not null)
+                {
+                    return true;
                 }
 
                 var leafField = new FieldPlanNode(fieldNode, field);
@@ -233,7 +241,8 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     "Only object, interface, or union types can have a selection set.");
             }
 
-            var fieldPlanNode = new FieldPlanNode(fieldNode, field);
+            fieldPlanNode ??= new FieldPlanNode(fieldNode, field);
+
             AddSelectionDirectives(fieldPlanNode, fieldNode.Directives);
 
             if (TryPlanSelectionSet(context with { Parent = fieldPlanNode, Path = context.Path.Push(fieldPlanNode) }))
@@ -356,7 +365,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                     return false;
                 }
 
-                var requirement = new FieldRequirementPlanNode(
+                var requirement = new DataRequirementPlanNode(
                     requirementName,
                     requiredFromOperation,
                     requiredFromPath,
@@ -456,7 +465,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         SelectionPath requiredField,
         ITypeNode requiredFieldType,
         string requiredFromSchema,
-        [NotNullWhen(true)] out FieldRequirementPlanNode? lookupRequirement)
+        [NotNullWhen(true)] out DataRequirementPlanNode? lookupRequirement)
     {
         var requirementName = GetNextRequirementName();
         var requiredFromOperation = GetOperation(operationsInContext, requiredFromSchema);
@@ -494,7 +503,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             return false;
         }
 
-        lookupRequirement = new FieldRequirementPlanNode(
+        lookupRequirement = new DataRequirementPlanNode(
             requirementName,
             requiredFromOperation,
             requiredFromPath,

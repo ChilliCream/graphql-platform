@@ -55,12 +55,12 @@ public static class PlanNodeJsonFormatter
             writer.WriteString("includeIf", operation.SkipVariable);
         }
 
-        if (operation.Requirements.Count > 0)
+        if (operation.DataRequirements.Count > 0)
         {
             writer.WritePropertyName("requirements");
             writer.WriteStartArray();
 
-            foreach (var requirement in operation.Requirements.Values)
+            foreach (var requirement in operation.DataRequirements.Values)
             {
                 writer.WriteStartObject();
                 writer.WriteString("name", requirement.Name);

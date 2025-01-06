@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Diagnostics.CodeAnalysis;
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -77,10 +76,11 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
                     break;
             }
         }
+        return;
 
         void MergeField(string fieldName, Context ctx)
         {
-            foreach (var field in ctx.Fields[fieldName].GroupBy(t => t, t => t, FieldComparer.Instance))
+            foreach (var field in ctx.Fields[fieldName].GroupBy(t => t, t => t, FieldNodeMergeComparer.Instance))
             {
                 var mergedField = field.Key;
 
@@ -317,68 +317,139 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         public Context Branch(ICompositeNamedType type)
             => new(type, fragments);
     }
+}
 
-    private sealed class FieldComparer : IEqualityComparer<FieldNode>
+internal sealed class FieldNodeMergeComparer : IEqualityComparer<FieldNode>
+{
+    public bool Equals(FieldNode? x, FieldNode? y)
     {
-        public bool Equals(FieldNode? x, FieldNode? y)
+        if (ReferenceEquals(x, y))
         {
-            if (ReferenceEquals(x, y))
-            {
-                return true;
-            }
-
-            if (x is null)
-            {
-                return false;
-            }
-
-            if (y is null)
-            {
-                return false;
-            }
-
-            return Equals(x.Alias, y.Alias)
-                && x.Name.Equals(y.Name)
-                && Equals(x.Directives, y.Directives)
-                && Equals(x.Arguments, y.Arguments);
+            return true;
         }
 
-        private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
+        if (x is null)
         {
-            if (a.Count == 0 && b.Count == 0)
-            {
-                return true;
-            }
-
-            return a.SequenceEqual(b, SyntaxComparer.BySyntax);
+            return false;
         }
 
-        public int GetHashCode(FieldNode obj)
+        if (y is null)
         {
-            var hashCode = new HashCode();
-
-            if (obj.Alias is not null)
-            {
-                hashCode.Add(obj.Alias.Value);
-            }
-
-            hashCode.Add(obj.Name.Value);
-
-            for (var i = 0; i < obj.Directives.Count; i++)
-            {
-                hashCode.Add(SyntaxComparer.BySyntax.GetHashCode(obj.Directives[i]));
-            }
-
-            for (var i = 0; i < obj.Arguments.Count; i++)
-            {
-                hashCode.Add(SyntaxComparer.BySyntax.GetHashCode(obj.Arguments[i]));
-            }
-
-            return hashCode.ToHashCode();
+            return false;
         }
 
-        public static FieldComparer Instance { get; } = new();
+        return Equals(x.Alias, y.Alias)
+            && x.Name.Equals(y.Name)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Arguments, y.Arguments);
     }
+
+    private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
+    {
+        if (a.Count == 0 && b.Count == 0)
+        {
+            return true;
+        }
+
+        return a.SequenceEqual(b, SyntaxComparer.BySyntax);
+    }
+
+    public int GetHashCode(FieldNode obj)
+    {
+        var hashCode = new HashCode();
+
+        if (obj.Alias is not null)
+        {
+            hashCode.Add(obj.Alias.Value);
+        }
+
+        hashCode.Add(obj.Name.Value);
+
+        for (var i = 0; i < obj.Directives.Count; i++)
+        {
+            hashCode.Add(SyntaxComparer.BySyntax.GetHashCode(obj.Directives[i]));
+        }
+
+        for (var i = 0; i < obj.Arguments.Count; i++)
+        {
+            hashCode.Add(SyntaxComparer.BySyntax.GetHashCode(obj.Arguments[i]));
+        }
+
+        return hashCode.ToHashCode();
+    }
+
+    public static FieldNodeMergeComparer Instance { get; } = new();
+}
+
+internal sealed class InlineFragmentNodeMergeComparer : IEqualityComparer<InlineFragmentNode>
+{
+    public bool Equals(InlineFragmentPlanNode? x, InlineFragmentNode? y)
+    {
+        if (x is null)
+        {
+            return false;
+        }
+
+        if (y is null)
+        {
+            return false;
+        }
+
+        return Equals(x.DeclaringType.Name, y.TypeCondition?.Name.Value)
+            && x.Directives.Count == y.Directives.Count
+            && Equals(x.DirectiveNodes, y.Directives);
+    }
+
+    public bool Equals(InlineFragmentNode? x, InlineFragmentNode? y)
+    {
+        if (ReferenceEquals(x, y))
+        {
+            return true;
+        }
+
+        if (x is null)
+        {
+            return false;
+        }
+
+        if (y is null)
+        {
+            return false;
+        }
+
+        return Equals(x.TypeCondition?.Name.Value, y.TypeCondition?.Name.Value)
+            && x.Directives.Count == y.Directives.Count
+            && Equals(x.Directives, y.Directives);
+    }
+
+    private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
+    {
+        if (a.Count == 0 && b.Count == 0)
+        {
+            return true;
+        }
+
+        return a.SequenceEqual(b, SyntaxComparer.BySyntax);
+    }
+
+    public int GetHashCode(InlineFragmentNode obj)
+    {
+        var hashCode = new HashCode();
+
+        if (obj.TypeCondition is not null)
+        {
+            hashCode.Add(obj.TypeCondition.Name.Value);
+        }
+
+        for (var i = 0; i < obj.Directives.Count; i++)
+        {
+            hashCode.Add(SyntaxComparer.BySyntax.GetHashCode(obj.Directives[i]));
+        }
+
+        return hashCode.ToHashCode();
+    }
+
+    public static InlineFragmentNodeMergeComparer Instance { get; } = new();
 }
 
 file static class FileExtensions
