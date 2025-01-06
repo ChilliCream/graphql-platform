@@ -45,20 +45,18 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In the following example, the field "name" in "AuthorInput" has compatible types
-            // across source schemas, making them mergeable.
+            // In this example, the field "name" in "AuthorInput" has compatible types across source
+            // schemas, making them mergeable.
             {
                 [
                     """
-                    # Schema A
                     input AuthorInput {
                         name: String!
                     }
                     """,
                     """
-                    # Schema B
                     input AuthorInput {
-                        name: String!
+                        name: String
                     }
                     """
                 ]
@@ -68,19 +66,16 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
             {
                 [
                     """
-                    # Schema A
                     input AuthorInput {
                         tags: [String!]
                     }
                     """,
                     """
-                    # Schema B
                     input AuthorInput {
                         tags: [String]!
                     }
                     """,
                     """
-                    # Schema C
                     input AuthorInput {
                         tags: [String]
                     }
@@ -91,7 +86,6 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
             {
                 [
                     """
-                    # Schema A
                     input AuthorInput {
                         name: String!
                         tags: [String!]
@@ -99,11 +93,10 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     }
                     """,
                     """
-                    # Schema B
                     input AuthorInput {
-                        name: String!
+                        name: String
                         tags: [String]!
-                        birthdate: DateTime
+                        birthdate: DateTime!
                     }
                     """
                 ]
@@ -115,18 +108,16 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the field "birthdate" on "AuthorInput" is not mergeable as the
-            // field has different named types ("String" and "DateTime") across source schemas.
+            // In this example, the field "birthdate" on "AuthorInput" is not mergeable as the field
+            // has different named types ("String" and "DateTime") across source schemas.
             {
                 [
                     """
-                    # Schema A
                     input AuthorInput {
                         birthdate: String!
                     }
                     """,
                     """
-                    # Schema B
                     input AuthorInput {
                         birthdate: DateTime!
                     }
@@ -137,17 +128,15 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     "'A' than it does in schema 'B'."
                 ]
             },
-            // List versus non-list
+            // List versus non-list.
             {
                 [
                     """
-                    # Schema A
                     input AuthorInput {
                         birthdate: String!
                     }
                     """,
                     """
-                    # Schema B
                     input AuthorInput {
                         birthdate: [String!]
                     }
