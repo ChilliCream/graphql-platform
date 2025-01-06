@@ -50,6 +50,7 @@ internal ref struct FieldSelectionMapParser
     ///     Path
     ///     SelectedObjectValue
     ///     Path . SelectedObjectValue
+    ///     Path SelectedListValue
     ///     SelectedValue | SelectedValue
     /// </code>
     /// </summary>
@@ -60,6 +61,7 @@ internal ref struct FieldSelectionMapParser
 
         PathNode? path = null;
         SelectedObjectValueNode? selectedObjectValue = null;
+        SelectedListValueNode? selectedListValue = null;
 
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (_reader.TokenKind)
@@ -67,6 +69,12 @@ internal ref struct FieldSelectionMapParser
             case TokenKind.Name: // For a PathSegment.
             case TokenKind.LeftAngleBracket: // For a <TypeName>.
                 path = ParsePath();
+
+                if (_reader.TokenKind == TokenKind.LeftSquareBracket)
+                {
+                    selectedListValue = ParseSelectedListValue();
+                }
+
                 break;
 
             case TokenKind.LeftBrace:
@@ -87,17 +95,12 @@ internal ref struct FieldSelectionMapParser
 
         var location = CreateLocation(in start);
 
-        if (path is not null)
-        {
-            return new SelectedValueNode(location, path, selectedValue);
-        }
-
-        if (selectedObjectValue is not null)
-        {
-            return new SelectedValueNode(location, selectedObjectValue, selectedValue);
-        }
-
-        throw new InvalidOperationException();
+        return new SelectedValueNode(
+            location,
+            path,
+            selectedObjectValue,
+            selectedListValue,
+            selectedValue);
     }
 
     /// <summary>
@@ -258,6 +261,7 @@ internal ref struct FieldSelectionMapParser
     /// <code>
     /// SelectedListValue ::
     ///     [ SelectedValue ]
+    ///     [ SelectedListValue ]
     /// </code>
     /// </summary>
     /// <returns>The parsed <see cref="SelectedListValueNode"/>.</returns>
@@ -268,13 +272,33 @@ internal ref struct FieldSelectionMapParser
 
         Expect(TokenKind.LeftSquareBracket);
 
-        var selectedValue = ParseSelectedValue();
+        SelectedListValueNode? selectedListValue = null;
+        SelectedValueNode? selectedValue = null;
+
+        if (_reader.TokenKind == TokenKind.LeftSquareBracket)
+        {
+            selectedListValue = ParseSelectedListValue();
+        }
+        else
+        {
+            selectedValue = ParseSelectedValue();
+        }
 
         Expect(TokenKind.RightSquareBracket);
 
         var location = CreateLocation(in start);
 
-        return new SelectedListValueNode(location, selectedValue);
+        if (selectedListValue is not null)
+        {
+            return new SelectedListValueNode(location, selectedListValue);
+        }
+
+        if (selectedValue is not null)
+        {
+            return new SelectedListValueNode(location, selectedValue);
+        }
+
+        throw new InvalidOperationException();
     }
 
     /// <summary>

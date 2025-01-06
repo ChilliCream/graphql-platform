@@ -142,8 +142,7 @@ public sealed class FieldSelectionMapParserTests
 
         // assert
         Assert.Equal(
-            // FIXME: Add the correct exception message.
-            "...",
+            "Expected a `RightSquareBracket`-token, but found a `Name`-token.",
             Assert.Throws<SyntaxException>(Act).Message);
     }
 

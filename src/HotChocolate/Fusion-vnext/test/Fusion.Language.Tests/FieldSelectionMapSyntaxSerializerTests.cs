@@ -108,7 +108,8 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
         // arrange
         var selectedListValueNode = new SelectedListValueNode(
             selectedValue: new SelectedValueNode(
-                new PathNode(pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
+                path: new PathNode(
+                    pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
 
         // act
         _serializer.Serialize(selectedListValueNode, _writer);
@@ -124,7 +125,8 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
         var selectedObjectFieldNode = new SelectedObjectFieldNode(
             new NameNode("field1"),
             new SelectedValueNode(
-                new PathNode(pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
+                path: new PathNode(
+                    pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))));
 
         // act
         _serializer.Serialize(selectedObjectFieldNode, _writer);
@@ -164,7 +166,7 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                 new SelectedObjectFieldNode(
                     new NameNode("field1"),
                     new SelectedValueNode(
-                        new PathNode(
+                        path: new PathNode(
                             pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")))))
             ]);
 
@@ -212,7 +214,7 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                     typeName: new NameNode("Type1"),
                     pathSegment: new PathSegmentNode(fieldName: new NameNode("field2")))),
             selectedValue: new SelectedValueNode(
-                new PathNode(
+                path: new PathNode(
                     pathSegment: new PathSegmentNode(
                         fieldName: new NameNode("field1"),
                         typeName: new NameNode("Type2"),
@@ -248,7 +250,7 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                     new SelectedObjectFieldNode(
                         new NameNode("field1"),
                         new SelectedValueNode(
-                            new PathNode(
+                            path: new PathNode(
                                 pathSegment: new PathSegmentNode(
                                     fieldName: new NameNode("field1")))))
                 ]),
@@ -259,7 +261,7 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
                         new SelectedObjectFieldNode(
                             new NameNode("field2"),
                             new SelectedValueNode(
-                                new PathNode(
+                                path: new PathNode(
                                     pathSegment: new PathSegmentNode(
                                         fieldName: new NameNode("field2")))))
                     ])));

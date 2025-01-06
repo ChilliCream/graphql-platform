@@ -67,6 +67,7 @@
             "TypeName": null
           },
           "SelectedObjectValue": null,
+          "SelectedListValue": null,
           "SelectedValue": null
         }
       }
@@ -79,5 +80,6 @@
       "Column": 1
     }
   },
+  "SelectedListValue": null,
   "SelectedValue": null
 }

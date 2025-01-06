@@ -8,55 +8,25 @@ namespace HotChocolate.Fusion;
 /// The <c>|</c> operator can be used to match multiple possible <c>SelectedValue</c>s.
 /// </para>
 /// </summary>
-internal sealed class SelectedValueNode : IFieldSelectionMapSyntaxNode
+internal sealed class SelectedValueNode(
+    Location? location = null,
+    PathNode? path = null,
+    SelectedObjectValueNode? selectedObjectValue = null,
+    SelectedListValueNode? selectedListValue = null,
+    SelectedValueNode? selectedValue = null)
+    : IFieldSelectionMapSyntaxNode
 {
-    public SelectedValueNode(
-        PathNode path,
-        SelectedValueNode? selectedValue = null)
-    {
-        ArgumentNullException.ThrowIfNull(path);
-
-        Path = path;
-        SelectedValue = selectedValue;
-    }
-
-    public SelectedValueNode(
-        SelectedObjectValueNode selectedObjectValue,
-        SelectedValueNode? selectedValue = null)
-    {
-        ArgumentNullException.ThrowIfNull(selectedObjectValue);
-
-        SelectedObjectValue = selectedObjectValue;
-        SelectedValue = selectedValue;
-    }
-
-    public SelectedValueNode(
-        Location? location,
-        PathNode path,
-        SelectedValueNode? selectedValue)
-        : this(path, selectedValue)
-    {
-        Location = location;
-    }
-
-    public SelectedValueNode(
-        Location? location,
-        SelectedObjectValueNode selectedObjectValue,
-        SelectedValueNode? selectedValue)
-        : this(selectedObjectValue, selectedValue)
-    {
-        Location = location;
-    }
-
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.SelectedValue;
 
-    public Location? Location { get; }
+    public Location? Location { get; } = location;
 
-    public PathNode? Path { get; }
+    public PathNode? Path { get; } = path;
 
-    public SelectedObjectValueNode? SelectedObjectValue { get; }
+    public SelectedObjectValueNode? SelectedObjectValue { get; } = selectedObjectValue;
 
-    public SelectedValueNode? SelectedValue { get; }
+    public SelectedListValueNode? SelectedListValue { get; } = selectedListValue;
+
+    public SelectedValueNode? SelectedValue { get; } = selectedValue;
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
@@ -68,6 +38,11 @@ internal sealed class SelectedValueNode : IFieldSelectionMapSyntaxNode
         if (SelectedObjectValue is not null)
         {
             yield return SelectedObjectValue;
+        }
+
+        if (SelectedListValue is not null)
+        {
+            yield return SelectedListValue;
         }
 
         if (SelectedValue is not null)

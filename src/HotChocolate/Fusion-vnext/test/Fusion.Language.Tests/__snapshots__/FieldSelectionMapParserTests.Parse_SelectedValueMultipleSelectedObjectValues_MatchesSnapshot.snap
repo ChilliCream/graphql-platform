@@ -67,6 +67,7 @@
             "TypeName": null
           },
           "SelectedObjectValue": null,
+          "SelectedListValue": null,
           "SelectedValue": null
         }
       }
@@ -79,6 +80,7 @@
       "Column": 1
     }
   },
+  "SelectedListValue": null,
   "SelectedValue": {
     "Kind": "SelectedValue",
     "Location": {
@@ -148,6 +150,7 @@
               "TypeName": null
             },
             "SelectedObjectValue": null,
+            "SelectedListValue": null,
             "SelectedValue": null
           }
         }
@@ -160,6 +163,7 @@
         "Column": 22
       }
     },
+    "SelectedListValue": null,
     "SelectedValue": null
   }
 }

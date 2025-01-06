@@ -64,7 +64,14 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     {
         writer.Write(LeftSquareBracket);
 
-        Visit(node.SelectedValue, writer);
+        if (node.SelectedValue is not null)
+        {
+            Visit(node.SelectedValue, writer);
+        }
+        else if (node.SelectedListValue is not null)
+        {
+            Visit(node.SelectedListValue, writer);
+        }
 
         writer.Write(RightSquareBracket);
 
@@ -129,6 +136,11 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         if (node.SelectedObjectValue is not null)
         {
             Visit(node.SelectedObjectValue, writer);
+        }
+
+        if (node.SelectedListValue is not null)
+        {
+            Visit(node.SelectedListValue, writer);
         }
 
         if (node.SelectedValue is not null)

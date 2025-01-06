@@ -11,12 +11,26 @@ namespace HotChocolate.Fusion;
 /// specification by only allowing one <c>SelectedValue</c> as an element.
 /// </para>
 /// </summary>
-internal sealed class SelectedListValueNode(SelectedValueNode selectedValue)
-    : IFieldSelectionMapSyntaxNode
+internal sealed class SelectedListValueNode : IFieldSelectionMapSyntaxNode
 {
-    public SelectedListValueNode(
-        Location? location,
-        SelectedValueNode selectedValue) : this(selectedValue)
+    public SelectedListValueNode(SelectedValueNode selectedValue)
+    {
+        SelectedValue = selectedValue;
+    }
+
+    public SelectedListValueNode(SelectedListValueNode selectedListValue)
+    {
+        SelectedListValue = selectedListValue;
+    }
+
+    public SelectedListValueNode(Location? location, SelectedValueNode selectedValue)
+        : this(selectedValue)
+    {
+        Location = location;
+    }
+
+    public SelectedListValueNode(Location? location, SelectedListValueNode selectedListValue)
+        : this(selectedListValue)
     {
         Location = location;
     }
@@ -25,12 +39,21 @@ internal sealed class SelectedListValueNode(SelectedValueNode selectedValue)
 
     public Location? Location { get; }
 
-    public readonly SelectedValueNode SelectedValue = selectedValue
-        ?? throw new ArgumentNullException(nameof(selectedValue));
+    public SelectedValueNode? SelectedValue { get; }
+
+    public SelectedListValueNode? SelectedListValue { get; }
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
-        yield return SelectedValue;
+        if (SelectedValue is not null)
+        {
+            yield return SelectedValue;
+        }
+
+        if (SelectedListValue is not null)
+        {
+            yield return SelectedListValue;
+        }
     }
 
     public override string ToString() => this.Print();

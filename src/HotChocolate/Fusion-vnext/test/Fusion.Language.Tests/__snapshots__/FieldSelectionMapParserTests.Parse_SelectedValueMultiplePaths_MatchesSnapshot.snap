@@ -67,6 +67,7 @@
     "TypeName": null
   },
   "SelectedObjectValue": null,
+  "SelectedListValue": null,
   "SelectedValue": {
     "Kind": "SelectedValue",
     "Location": {
@@ -136,6 +137,7 @@
       "TypeName": null
     },
     "SelectedObjectValue": null,
+    "SelectedListValue": null,
     "SelectedValue": null
   }
 }
