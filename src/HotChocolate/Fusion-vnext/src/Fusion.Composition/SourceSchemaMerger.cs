@@ -47,7 +47,29 @@ internal sealed class SourceSchemaMerger
     private static readonly List<object> _preMergeValidationRules =
     [
         new DisallowedInaccessibleElementsRule(),
+        new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
-        new OutputFieldTypesMergeableRule()
+        new ExternalOnInterfaceRule(),
+        new ExternalUnusedRule(),
+        new InputFieldDefaultMismatchRule(),
+        new KeyDirectiveInFieldsArgumentRule(),
+        new KeyFieldsHasArgumentsRule(),
+        new KeyFieldsSelectInvalidTypeRule(),
+        new KeyInvalidFieldsRule(),
+        new KeyInvalidSyntaxRule(),
+        new LookupMustNotReturnListRule(),
+        new LookupShouldHaveNullableReturnTypeRule(),
+        new OutputFieldTypesMergeableRule(),
+        new ProvidesDirectiveInFieldsArgumentRule(),
+        new ProvidesFieldsHasArgumentsRule(),
+        new ProvidesFieldsMissingExternalRule(),
+        new ProvidesOnNonCompositeFieldRule(),
+        new QueryRootTypeInaccessibleRule(),
+        new RequireDirectiveInFieldsArgumentRule(),
+        new RequireInvalidFieldsTypeRule(),
+        new RequireInvalidSyntaxRule(),
+        new RootMutationUsedRule(),
+        new RootQueryUsedRule(),
+        new RootSubscriptionUsedRule()
     ];
 }

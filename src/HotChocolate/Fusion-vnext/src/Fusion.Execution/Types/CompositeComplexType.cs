@@ -25,6 +25,8 @@ public abstract class CompositeComplexType : ICompositeNamedType
 
     public abstract TypeKind Kind { get; }
 
+    public abstract bool IsEntity { get; }
+
     public string Name { get; }
 
     public string? Description { get; }

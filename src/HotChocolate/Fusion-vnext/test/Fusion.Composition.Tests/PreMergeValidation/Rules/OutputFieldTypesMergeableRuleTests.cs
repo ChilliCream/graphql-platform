@@ -1,47 +1,44 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.PreMergeValidation;
 using HotChocolate.Fusion.PreMergeValidation.Rules;
-using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Composition.PreMergeValidation.Rules;
 
-public sealed class OutputFieldTypesMergeableRuleTests
+public sealed class OutputFieldTypesMergeableRuleTests : CompositionTestBase
 {
+    private readonly PreMergeValidator _preMergeValidator =
+        new([new OutputFieldTypesMergeableRule()]);
+
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
     public void Examples_Valid(string[] sdl)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new OutputFieldTypesMergeableRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.True(log.IsEmpty);
+        Assert.True(context.Log.IsEmpty);
     }
 
     [Theory]
     [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl)
+    public void Examples_Invalid(string[] sdl, string[] errorMessages)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new OutputFieldTypesMergeableRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Single(log);
-        Assert.Equal("OUTPUT_FIELD_TYPES_NOT_MERGEABLE", log.First().Code);
-        Assert.Equal(LogSeverity.Error, log.First().Severity);
+        Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
+        Assert.True(context.Log.All(e => e.Code == "OUTPUT_FIELD_TYPES_NOT_MERGEABLE"));
+        Assert.True(context.Log.All(e => e.Severity == LogSeverity.Error));
     }
 
     public static TheoryData<string[]> ValidExamplesData()
@@ -101,9 +98,9 @@ public sealed class OutputFieldTypesMergeableRuleTests
         };
     }
 
-    public static TheoryData<string[]> InvalidExamplesData()
+    public static TheoryData<string[], string[]> InvalidExamplesData()
     {
-        return new TheoryData<string[]>
+        return new TheoryData<string[], string[]>
         {
             // Fields are not mergeable if the named types are different in kind or name.
             {
@@ -118,6 +115,10 @@ public sealed class OutputFieldTypesMergeableRuleTests
                         birthdate: DateTime!
                     }
                     """
+                ],
+                [
+                    "Field 'User.birthdate' has a different type shape in schema 'A' than it " +
+                    "does in schema 'B'."
                 ]
             },
             {
@@ -138,6 +139,37 @@ public sealed class OutputFieldTypesMergeableRuleTests
 
                     scalar Tag
                     """
+                ],
+                [
+                    "Field 'User.tags' has a different type shape in schema 'A' than it does in " +
+                    "schema 'B'."
+                ]
+            },
+            // More than two schemas.
+            {
+                [
+                    """
+                    type User {
+                        birthdate: String!
+                    }
+                    """,
+                    """
+                    type User {
+                        birthdate: DateTime!
+                    }
+                    """,
+                    """
+                    type User {
+                        birthdate: Int!
+                    }
+                    """
+                ],
+                [
+                    "Field 'User.birthdate' has a different type shape in schema 'A' than it " +
+                    "does in schema 'B'.",
+
+                    "Field 'User.birthdate' has a different type shape in schema 'B' than it " +
+                    "does in schema 'C'."
                 ]
             }
         };

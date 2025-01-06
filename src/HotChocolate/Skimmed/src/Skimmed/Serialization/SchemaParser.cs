@@ -434,6 +434,7 @@ public static class SchemaParser
             var field = new InputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.DefaultValue = fieldNode.DefaultValue;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 

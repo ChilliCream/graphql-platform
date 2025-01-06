@@ -69,7 +69,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; is not accessible..
+        ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleBuiltInScalar {
             get {
@@ -78,7 +78,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;{0}&apos; on built-in directive type &apos;{1}&apos; is not accessible..
+        ///   Looks up a localized string similar to The built-in directive argument &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleDirectiveArgument {
             get {
@@ -87,7 +87,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The introspection argument &apos;{0}&apos; with schema coordinate &apos;{1}&apos; is not accessible..
+        ///   Looks up a localized string similar to The introspection argument &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleIntrospectionArgument {
             get {
@@ -96,7 +96,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The introspection field &apos;{0}&apos; on type &apos;{1}&apos; is not accessible..
+        ///   Looks up a localized string similar to The introspection field &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleIntrospectionField {
             get {
@@ -105,7 +105,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The introspection type &apos;{0}&apos; is not accessible..
+        ///   Looks up a localized string similar to The introspection type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleIntrospectionType {
             get {
@@ -114,7 +114,16 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field &apos;{0}&apos; on type &apos;{1}&apos; is only declared as external..
+        ///   Looks up a localized string similar to The argument with schema coordinate &apos;{0}&apos; has inconsistent default values..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalArgumentDefaultMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalArgumentDefaultMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to External field &apos;{0}&apos; in schema &apos;{1}&apos; is not defined (non-external) in any other schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalMissingOnBase {
             get {
@@ -123,11 +132,200 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field &apos;{0}&apos; on type &apos;{1}&apos; is not mergeable..
+        ///   Looks up a localized string similar to Interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as external..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalOnInterface {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalOnInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to External field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by a @provides directive in the schema..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalUnused {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalUnused", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldDefaultMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
+        /// </summary>
+        internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
+        /// </summary>
+        internal static string LogEntryHelper_KeyFieldsHasArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyFieldsHasArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not be a list, interface, or union type..
+        /// </summary>
+        internal static string LogEntryHelper_KeyFieldsSelectInvalidType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyFieldsSelectInvalidType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which does not exist..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; must not return a list..
+        /// </summary>
+        internal static string LogEntryHelper_LookupMustNotReturnList {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_LookupMustNotReturnList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; should return a nullable type..
+        /// </summary>
+        internal static string LogEntryHelper_LookupShouldHaveNullableReturnType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_LookupShouldHaveNullableReturnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
             get {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldTypesNotMergeable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not have arguments..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesFieldsHasArguments {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsHasArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must be marked as external..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesFieldsMissingExternal {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsMissingExternal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes a @provides directive, but does not return a composite type..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesOnNonCompositeField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesOnNonCompositeField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be accessible..
+        /// </summary>
+        internal static string LogEntryHelper_QueryRootTypeInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
+        /// </summary>
+        internal static string LogEntryHelper_RequireDirectiveInFieldsArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireDirectiveInFieldsArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_RequireInvalidFieldsType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidFieldsType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_RequireInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The root mutation type in schema &apos;{0}&apos; must be named &apos;Mutation&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_RootMutationUsed {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RootMutationUsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The root query type in schema &apos;{0}&apos; must be named &apos;Query&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_RootQueryUsed {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RootQueryUsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The root subscription type in schema &apos;{0}&apos; must be named &apos;Subscription&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_RootSubscriptionUsed {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RootSubscriptionUsed", resourceCulture);
             }
         }
     }

@@ -1,54 +1,51 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.PreMergeValidation;
 using HotChocolate.Fusion.PreMergeValidation.Rules;
-using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Composition.PreMergeValidation.Rules;
 
-public sealed class DisallowedInaccessibleElementsRuleTests
+public sealed class DisallowedInaccessibleElementsRuleTests : CompositionTestBase
 {
+    private readonly PreMergeValidator _preMergeValidator =
+        new([new DisallowedInaccessibleElementsRule()]);
+
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
     public void Examples_Valid(string[] sdl)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new DisallowedInaccessibleElementsRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.True(log.IsEmpty);
+        Assert.True(context.Log.IsEmpty);
     }
 
     [Theory]
     [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl)
+    public void Examples_Invalid(string[] sdl, string[] errorMessages)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new DisallowedInaccessibleElementsRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Single(log);
-        Assert.Equal("DISALLOWED_INACCESSIBLE", log.First().Code);
-        Assert.Equal(LogSeverity.Error, log.First().Severity);
+        Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
+        Assert.True(context.Log.All(e => e.Code == "DISALLOWED_INACCESSIBLE"));
+        Assert.True(context.Log.All(e => e.Severity == LogSeverity.Error));
     }
 
     public static TheoryData<string[]> ValidExamplesData()
     {
         return new TheoryData<string[]>
         {
-            // Here, the String type is not marked as @inaccessible, which adheres to the rule.
+            // Here, the "String" type is not marked as @inaccessible, which adheres to the rule.
             {
                 [
                     """
@@ -62,12 +59,12 @@ public sealed class DisallowedInaccessibleElementsRuleTests
         };
     }
 
-    public static TheoryData<string[]> InvalidExamplesData()
+    public static TheoryData<string[], string[]> InvalidExamplesData()
     {
-        return new TheoryData<string[]>
+        return new TheoryData<string[], string[]>
         {
-            // In this example, the String scalar is marked as @inaccessible. This violates the rule
-            // because String is a required built-in type that cannot be inaccessible.
+            // In this example, the "String" scalar is marked as @inaccessible. This violates the
+            // rule because "String" is a required built-in type that cannot be inaccessible.
             {
                 [
                     """
@@ -78,9 +75,12 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                         name: String
                     }
                     """
+                ],
+                [
+                    "The built-in scalar type 'String' in schema 'A' is not accessible."
                 ]
             },
-            // In this example, the introspection type __Type is marked as @inaccessible. This
+            // In this example, the introspection type "__Type" is marked as @inaccessible. This
             // violates the rule because introspection types must remain accessible for GraphQL
             // introspection queries to work.
             {
@@ -92,6 +92,9 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                         fields(includeDeprecated: Boolean = false): [__Field!]
                     }
                     """
+                ],
+                [
+                    "The introspection type '__Type' in schema 'A' is not accessible."
                 ]
             },
             // Inaccessible introspection field.
@@ -104,6 +107,9 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                         fields(includeDeprecated: Boolean = false): [__Field!]
                     }
                     """
+                ],
+                [
+                    "The introspection field '__Type.kind' in schema 'A' is not accessible."
                 ]
             },
             // Inaccessible introspection argument.
@@ -116,6 +122,10 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                         fields(includeDeprecated: Boolean = false @inaccessible): [__Field!]
                     }
                     """
+                ],
+                [
+                    "The introspection argument '__Type.fields(includeDeprecated:)' in schema " +
+                    "'A' is not accessible."
                 ]
             },
             // Inaccessible built-in directive argument.
@@ -125,6 +135,9 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                     directive @skip(if: Boolean! @inaccessible)
                         on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
                     """
+                ],
+                [
+                    "The built-in directive argument '@skip(if:)' in schema 'A' is not accessible."
                 ]
             }
         };

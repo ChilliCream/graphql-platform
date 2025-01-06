@@ -104,6 +104,58 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Authors_And_Reviews_Query_GetUserReviews_Report_Cost()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync(enableCost: true);
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory)
+            .ComposeAsync(
+                [
+                    demoProject.Reviews2.ToConfiguration(Reviews2ExtensionWithCostSdl),
+                    demoProject.Accounts.ToConfiguration(AccountsExtensionWithCostSdl)
+                ]);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query GetUser {
+                users {
+                    name
+                    reviews {
+                        body
+                        author {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .ReportCost()
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+
+        Assert.Null(result.ExpectOperationResult().Errors);
+    }
+
+    [Fact]
     public async Task Authors_And_Reviews_Query_GetUserReviews_Skip_Author()
     {
         // arrange

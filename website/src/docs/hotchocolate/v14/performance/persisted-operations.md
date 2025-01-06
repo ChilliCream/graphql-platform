@@ -20,7 +20,7 @@ Extracting operations is supported by client libraries like [Relay](https://rela
 
 # Benefits
 
-There are two main benefits to using persisted operations:
+There are several benefits to using persisted operations:
 
 **Performance**
 
@@ -30,7 +30,7 @@ There are two main benefits to using persisted operations:
 
 **Security**
 
-The server can be tweaked to [only execute persisted operations](#blocking-regular-operations) and refuse any other operation provided by a client. This gets rid of a whole suite of potential attack vectors, since malicious actors can no longer craft and execute harmful operations against your GraphQL server.
+- The server can be tweaked to [only execute persisted operations](#blocking-regular-operations) and refuse any other operation provided by a client. This gets rid of a whole suite of potential attack vectors, since malicious actors can no longer craft and execute harmful operations against your GraphQL server.
 
 # Usage
 
