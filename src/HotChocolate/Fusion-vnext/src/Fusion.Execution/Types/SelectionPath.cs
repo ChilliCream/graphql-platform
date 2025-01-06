@@ -1,30 +1,46 @@
+using System.Collections.Immutable;
 using System.Text;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class SelectionPath
+public sealed class SelectionPath : IEquatable<SelectionPath>
 {
+    private readonly ImmutableArray<SelectionPath> _segments;
+
     private SelectionPath(
         SelectionPath? parent,
         string name,
         SelectionPathSegmentKind kind)
     {
-        Parent = parent;
+        _segments = parent is not null
+            ? parent._segments.Add(this)
+            : ImmutableArray<SelectionPath>.Empty.Add(this);
         Name = name;
         Kind = kind;
     }
 
-    public SelectionPath? Parent { get; }
+    public SelectionPath? Parent
+        => _segments.Length > 0 ? _segments[^1] : null;
 
     public string Name { get; }
 
     public SelectionPathSegmentKind Kind { get; }
 
+    public ImmutableArray<SelectionPath> Segments => _segments;
+
     public SelectionPath AppendField(string fieldName)
-        => new(this, fieldName, SelectionPathSegmentKind.Field);
+    {
+        return Kind == SelectionPathSegmentKind.Root
+            ? new SelectionPath(null, fieldName, SelectionPathSegmentKind.Field)
+            : new SelectionPath(this, fieldName, SelectionPathSegmentKind.Field);
+    }
 
     public SelectionPath AppendFragment(string typeName)
-        => new(this, typeName, SelectionPathSegmentKind.InlineFragment);
+    {
+        return Kind == SelectionPathSegmentKind.Root
+            ? new SelectionPath(null, typeName, SelectionPathSegmentKind.InlineFragment)
+            : new SelectionPath(this, typeName, SelectionPathSegmentKind.InlineFragment);
+    }
 
     public static SelectionPath Root { get; } =
         new(null, "root", SelectionPathSegmentKind.Root);
@@ -36,9 +52,9 @@ public sealed class SelectionPath
 
         foreach (var segment in s.Split("."))
         {
-            if (segment.Contains('<'))
+            if (segment.StartsWith('<'))
             {
-                var typeName = segment.Substring(segment.IndexOf('<') + 1, segment.Length - segment.IndexOf('>') - 2);
+                var typeName = segment[1..^1];
                 current = current.AppendFragment(typeName);
             }
             else
@@ -52,38 +68,62 @@ public sealed class SelectionPath
 
     public override string ToString()
     {
-        var first = true;
         var path = new StringBuilder();
-        var current = this;
 
-        do
+        foreach (var segment in _segments)
         {
-            if (ReferenceEquals(current, Root))
+            if (segment.Kind == SelectionPathSegmentKind.Root)
             {
-                break;
+                continue;
             }
 
-            if (first)
+            if (path.Length > 0)
             {
-                first = false;
+                path.Append('.');
+            }
+
+            if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
+            {
+                path.Append('<');
+                path.Append(segment.Name);
+                path.Append('>');
             }
             else
             {
-                path.Insert(0, ".");
+                path.Append(segment.Name);
             }
-
-            if (current.Kind == SelectionPathSegmentKind.InlineFragment)
-            {
-                path.Insert(0, $"<{current.Name}>");
-            }
-            else
-            {
-                path.Insert(0, current.Name);
-            }
-
-            current = current.Parent;
-        } while (current != null);
+        }
 
         return path.ToString();
     }
+
+    public bool Equals(SelectionPath? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Kind == other.Kind
+            && Name == other.Name
+            && _segments.SequenceEqual(other._segments);
+    }
+
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj)
+            || (obj is SelectionPath other && Equals(other));
+
+    public override int GetHashCode()
+        => HashCode.Combine(_segments, Name, (int)Kind);
+
+    public static bool operator ==(SelectionPath? left, SelectionPath? right)
+        => Equals(left, right);
+
+    public static bool operator !=(SelectionPath? left, SelectionPath? right)
+        => !Equals(left, right);
 }

@@ -64,14 +64,27 @@ public static class PlanNodeJsonFormatter
             {
                 writer.WriteStartObject();
                 writer.WriteString("name", requirement.Name);
-                writer.WriteNumber("dependsOn", nodeIdLookup[requirement.From]);
+
+                if (requirement.DependsOn is not null)
+                {
+                    writer.WritePropertyName("dependsOn");
+                    writer.WriteStartArray();
+                    foreach (var item in requirement.DependsOn)
+                    {
+                        writer.WriteNumberValue(nodeIdLookup[item]);
+                    }
+                    writer.WriteEndArray();
+                }
 
                 writer.WritePropertyName("selectionSet");
                 writer.WriteStartArray();
 
-                foreach (var segment in requirement.SelectionSet.Reverse())
+                if (requirement.SelectionSet is not null)
                 {
-                    writer.WriteStringValue(segment.Name);
+                    foreach (var segment in requirement.SelectionSet.Segments)
+                    {
+                        writer.WriteStringValue(segment.Name);
+                    }
                 }
 
                 writer.WriteEndArray();
@@ -79,7 +92,7 @@ public static class PlanNodeJsonFormatter
                 writer.WritePropertyName("field");
                 writer.WriteStartArray();
 
-                foreach (var segment in requirement.RequiredField.Reverse())
+                foreach (var segment in requirement.RequiredField.Segments)
                 {
                     writer.WriteStringValue(segment.Name);
                 }

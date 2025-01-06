@@ -1,31 +1,67 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning.Nodes;
 
-public sealed class FieldRequirementPlanNode : PlanNode
+public sealed record FieldRequirementPlanNode : IParentPlanNodeProvider
 {
     public FieldRequirementPlanNode(
         string name,
-        OperationPlanNode from,
-        FieldPath selectionSet,
-        FieldPath requiredField,
+        SelectionPath requiredField,
         ITypeNode type)
     {
         Name = name;
-        From = from;
+        RequiredField = requiredField;
+        Type = type;
+    }
+
+    public FieldRequirementPlanNode(
+        string name,
+        OperationPlanNode dependsOn,
+        SelectionPath selectionSet,
+        SelectionPath requiredField,
+        ITypeNode type)
+    {
+        Name = name;
+        DependsOn = ImmutableArray<OperationPlanNode>.Empty.Add(dependsOn);
         SelectionSet = selectionSet;
         RequiredField = requiredField;
         Type = type;
     }
 
-    public string Name { get; }
+    public FieldRequirementPlanNode(
+        string name,
+        ImmutableArray<OperationPlanNode> dependsOn,
+        SelectionPath selectionSet,
+        SelectionPath requiredField,
+        ITypeNode type)
+    {
+        Name = name;
+        DependsOn = dependsOn;
+        SelectionSet = selectionSet;
+        RequiredField = requiredField;
+        Type = type;
+    }
 
-    public OperationPlanNode From { get; }
+    public PlanNode? Parent { get; init; }
+    public string Name { get; init; }
+    public ImmutableArray<OperationPlanNode>? DependsOn { get; init; }
+    public SelectionPath? SelectionSet { get; init; }
+    public SelectionPath RequiredField { get; init; }
+    public ITypeNode Type { get; init; }
 
-    public FieldPath SelectionSet { get; }
-
-    public FieldPath RequiredField { get; }
-
-    public ITypeNode Type { get; }
+    public void Deconstruct(
+        out string name,
+        out ImmutableArray<OperationPlanNode>? dependsOn,
+        out SelectionPath? selectionSet,
+        out SelectionPath requiredField,
+        out ITypeNode type)
+    {
+        name = Name;
+        dependsOn = DependsOn;
+        selectionSet = SelectionSet;
+        requiredField = RequiredField;
+        type = Type;
+    }
 }

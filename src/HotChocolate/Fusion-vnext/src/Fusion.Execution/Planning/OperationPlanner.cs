@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Fusion.Utilities;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -341,7 +342,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 var requiredFromPathStack = requiredFromOperation != context.Operation
                     ? ImmutableStack<SelectionPlanNode>.Empty.Push(lookupField)
                     : context.Path;
-                var requiredFromPath = CreateFieldPath(requiredFromPathStack);
+                var requiredFromPath = requiredFromPathStack.CreateSelectionPath();
                 var requiredFromContext = new PlaningContext(
                     requiredFromOperation,
                     requiredFromSelectionSet,
@@ -350,7 +351,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
                 if (!TryPlanSelection(
                     requiredFromContext,
                     (CompositeComplexType)requiredFromSelectionSet.DeclaringType,
-                    CreateFieldNodeFromPath(requiredField)))
+                    requiredField.ToSelectionNode()))
                 {
                     return false;
                 }
@@ -452,7 +453,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
     private bool TryResolveLookupRequirement(
         PlaningContext context,
         IReadOnlyList<OperationPlanNode> operationsInContext,
-        FieldPath requiredField,
+        SelectionPath requiredField,
         ITypeNode requiredFieldType,
         string requiredFromSchema,
         [NotNullWhen(true)] out FieldRequirementPlanNode? lookupRequirement)
@@ -478,7 +479,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
             requiredFromPathStack = ImmutableStack<SelectionPlanNode>.Empty.Push(lookup);
         }
 
-        var requiredFromPath = CreateFieldPath(requiredFromPathStack);
+        var requiredFromPath = requiredFromPathStack.CreateSelectionPath();
         var requiredFromContext = new PlaningContext(
             requiredFromOperation,
             requiredFromSelectionSet,
@@ -487,7 +488,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         if (!TryPlanSelection(
             requiredFromContext,
             (CompositeComplexType)requiredFromSelectionSet.DeclaringType,
-            CreateFieldNodeFromPath(requiredField)))
+            requiredField.ToSelectionNode()))
         {
             lookupRequirement = null;
             return false;
@@ -550,10 +551,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
         string schemaName,
         IReadOnlyCollection<string> schemasInContext,
         [NotNullWhen(true)] out Lookup? lookup,
-        [NotNullWhen(true)] out ImmutableDictionary<FieldPath, string>? fieldSchemaDependencies)
+        [NotNullWhen(true)] out ImmutableDictionary<SelectionPath, string>? fieldSchemaDependencies)
     {
         var declaringType = (CompositeComplexType)selection.DeclaringType;
-        var builder = ImmutableDictionary.CreateBuilder<FieldPath, string>();
+        var builder = ImmutableDictionary.CreateBuilder<SelectionPath, string>();
 
         if (declaringType.Sources.TryGetType(schemaName, out var source) && source.Lookups.Length > 0)
         {
@@ -584,13 +585,13 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
     private static bool IsResolvable(
         ICompositeType type,
-        FieldPath fieldPath,
+        SelectionPath selectionPath,
         IEnumerable<string> schemasInContext,
         [NotNullWhen(true)] out string? requiredSchema)
     {
         foreach (var schemaName in schemasInContext)
         {
-            if (IsResolvable(type, fieldPath, schemaName))
+            if (IsResolvable(type, selectionPath, schemaName))
             {
                 requiredSchema = schemaName;
                 return true;
@@ -603,10 +604,10 @@ public sealed class OperationPlanner(CompositeSchema schema)
 
     private static bool IsResolvable(
         ICompositeType type,
-        FieldPath fieldPath,
+        SelectionPath selectionPath,
         string schemaName)
     {
-        foreach (var segment in fieldPath.Reverse())
+        foreach (var segment in selectionPath.Segments)
         {
             if (type.NamedType() is not CompositeComplexType complexType
                 || !complexType.Fields.TryGetField(segment.Name, out var field)
@@ -707,38 +708,7 @@ public sealed class OperationPlanner(CompositeSchema schema)
         return counts;
     }
 
-    private static FieldPath CreateFieldPath(ImmutableStack<SelectionPlanNode> path)
-    {
-        var current = FieldPath.Root;
 
-        foreach (var segment in path.Reverse())
-        {
-            if (segment is FieldPlanNode field)
-            {
-                current = current.Append(field.Field.Name);
-            }
-        }
-
-        return current;
-    }
-
-    private static FieldNode CreateFieldNodeFromPath(FieldPath path)
-    {
-        var current = new FieldNode(path.Name);
-
-        foreach (var segment in path.Skip(1))
-        {
-            current = new FieldNode(
-                null,
-                new NameNode(segment.Name),
-                null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
-                new SelectionSetNode([current]));
-        }
-
-        return current;
-    }
 
     private void TryMakeOperationConditional(
         OperationPlanNode operation,

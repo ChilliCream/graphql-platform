@@ -20,7 +20,7 @@ public sealed record DataRequirement(
 // name is not good ...
 public sealed record FieldReference(
     // what is required
-    FieldPath Path,
+    SelectionPath Path,
 
     // whats the type of the data that is required
     ITypeNode Type);

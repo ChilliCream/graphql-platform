@@ -303,11 +303,11 @@ public static class CompositeSchemaBuilder
                     argumentsBuilder.Add(new RequiredArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath>();
+                var fieldsBuilder = ImmutableArray.CreateBuilder<SelectionPath>();
 
                 foreach (var field in requireDirective.Map)
                 {
-                    fieldsBuilder.Add(FieldPath.Parse(field));
+                    fieldsBuilder.Add(SelectionPath.Parse(field));
                 }
 
                 var arguments = argumentsBuilder.ToImmutable();

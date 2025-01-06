@@ -1,7 +1,4 @@
-using System.Buffers;
-using System.Buffers.Text;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Fusion.Planning.Nodes;
 
 namespace HotChocolate.Fusion.Planning;
@@ -88,7 +85,15 @@ public static class PlanNodeYamlFormatter
             foreach (var requirement in operation.Requirements.Values)
             {
                 writer.WriteLine("      - name: \"{0}\"", requirement.Name);
-                writer.WriteLine("        dependsOn: \"{0}\"", nodeIdLookup[requirement.From]);
+                if (requirement.DependsOn is not null)
+                {
+                    writer.WriteLine("        dependsOn:");
+                    foreach (var item in requirement.DependsOn)
+                    {
+                        writer.WriteLine("          - \"{0}\"", nodeIdLookup[item]);
+                    }
+                }
+
                 writer.WriteLine("        selectionSet: \"{0}\"", requirement.SelectionSet);
                 writer.WriteLine("        field: \"{0}\"", requirement.RequiredField);
                 writer.WriteLine("        type: \"{0}\"", requirement.Type.ToString(false));

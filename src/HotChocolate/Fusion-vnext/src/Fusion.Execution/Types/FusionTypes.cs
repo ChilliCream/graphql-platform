@@ -13,28 +13,8 @@ internal static class FusionTypes
     public const string Lookup = "fusion__lookup";
 
     public static bool IsBuiltInType(string typeName)
-    {
-        if(typeName == FieldDefinition ||
-            typeName == FieldSelectionMap ||
-            typeName == FieldSelectionSet)
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => typeName is FieldDefinition or FieldSelectionMap or FieldSelectionSet;
 
     public static bool IsBuiltInDirective(string directiveName)
-    {
-        if(directiveName == Type ||
-            directiveName == Field ||
-            directiveName == InputField ||
-            directiveName == Requires ||
-            directiveName == Lookup)
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => directiveName is Type or Field or InputField or Requires or Lookup;
 }
