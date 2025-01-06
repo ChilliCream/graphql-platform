@@ -70,8 +70,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "yarn"
-          cache-dependency-path: "website/yarn.lock"
 
       - name: Install cspell
         run: npm install -g cspell
