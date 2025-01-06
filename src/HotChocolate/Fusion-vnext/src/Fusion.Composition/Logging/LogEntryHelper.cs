@@ -187,6 +187,27 @@ internal static class LogEntryHelper
             schemaA);
     }
 
+    public static LogEntry InputFieldTypesNotMergeable(
+        InputFieldDefinition field,
+        string typeName,
+        SchemaDefinition schemaA,
+        SchemaDefinition schemaB)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_InputFieldTypesNotMergeable,
+                coordinate,
+                schemaA.Name,
+                schemaB.Name),
+            LogEntryCodes.InputFieldTypesNotMergeable,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schemaA);
+    }
+
     public static LogEntry KeyDirectiveInFieldsArgument(
         string entityTypeName,
         Directive keyDirective,
