@@ -53,8 +53,9 @@ public sealed class OperationPlanNode : SelectionPlanNode
     public void AddRequirement(FieldRequirementPlanNode requirement)
     {
         ArgumentNullException.ThrowIfNull(requirement);
-        (_requirements ??= new Dictionary<string, FieldRequirementPlanNode>()).Add(requirement.Name, requirement);
-        requirement.Parent = this;
+        var requirements = _requirements ??= new Dictionary<string, FieldRequirementPlanNode>();
+        requirement = requirement with { Parent = this };
+        requirements.Add(requirement.Name, requirement);
     }
 
     public void AddVariableDefinition(VariableDefinitionNode variable)
