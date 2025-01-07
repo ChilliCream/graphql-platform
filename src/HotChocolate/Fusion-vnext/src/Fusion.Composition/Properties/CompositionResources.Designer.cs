@@ -249,6 +249,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @override directive on field &apos;{0}&apos; in schema &apos;{1}&apos; must not reference the same schema..
+        /// </summary>
+        internal static string LogEntryHelper_OverrideFromSelf {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OverrideFromSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_ProvidesDirectiveInFieldsArgument {
