@@ -114,6 +114,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_EnumTypesInconsistent {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EnumTypesInconsistent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument with schema coordinate &apos;{0}&apos; has inconsistent default values..
         /// </summary>
         internal static string LogEntryHelper_ExternalArgumentDefaultMismatch {
@@ -155,6 +164,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_InputFieldDefaultMismatch {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InputFieldDefaultMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldTypesNotMergeable {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldTypesNotMergeable", resourceCulture);
             }
         }
         

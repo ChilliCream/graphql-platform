@@ -100,6 +100,24 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EnumTypesInconsistent(
+        EnumTypeDefinition enumType,
+        string enumValue,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_EnumTypesInconsistent,
+                enumType.Name,
+                schema.Name,
+                enumValue),
+            LogEntryCodes.EnumTypesInconsistent,
+            LogSeverity.Error,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
+    }
+
     public static LogEntry ExternalArgumentDefaultMismatch(
         string argumentName,
         string fieldName,
@@ -181,6 +199,27 @@ internal static class LogEntryHelper
                 defaultValueB,
                 schemaB.Name),
             LogEntryCodes.InputFieldDefaultMismatch,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schemaA);
+    }
+
+    public static LogEntry InputFieldTypesNotMergeable(
+        InputFieldDefinition field,
+        string typeName,
+        SchemaDefinition schemaA,
+        SchemaDefinition schemaB)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_InputFieldTypesNotMergeable,
+                coordinate,
+                schemaA.Name,
+                schemaB.Name),
+            LogEntryCodes.InputFieldTypesNotMergeable,
             LogSeverity.Error,
             coordinate,
             field,
