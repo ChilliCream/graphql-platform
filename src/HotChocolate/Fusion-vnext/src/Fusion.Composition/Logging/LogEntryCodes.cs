@@ -19,6 +19,7 @@ public static class LogEntryCodes
     public const string LookupShouldHaveNullableReturnType = "LOOKUP_SHOULD_HAVE_NULLABLE_RETURN_TYPE";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
+    public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";
     public const string ProvidesDirectiveInFieldsArg = "PROVIDES_DIRECTIVE_IN_FIELDS_ARG";
     public const string ProvidesFieldsHasArgs = "PROVIDES_FIELDS_HAS_ARGS";
     public const string ProvidesFieldsMissingExternal = "PROVIDES_FIELDS_MISSING_EXTERNAL";
