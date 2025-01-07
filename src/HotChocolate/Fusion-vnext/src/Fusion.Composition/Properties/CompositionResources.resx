@@ -90,6 +90,9 @@
   <data name="LogEntryHelper_ProvidesFieldsMissingExternal" xml:space="preserve">
     <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must be marked as external.</value>
   </data>
+  <data name="LogEntryHelper_ProvidesInvalidSyntax" xml:space="preserve">
+    <value>The @provides directive on field '{0}' in schema '{1}' contains invalid syntax in the 'fields' argument.</value>
+  </data>
   <data name="LogEntryHelper_ProvidesOnNonCompositeField" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' includes a @provides directive, but does not return a composite type.</value>
   </data>

@@ -276,6 +276,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; includes a @provides directive, but does not return a composite type..
         /// </summary>
         internal static string LogEntryHelper_ProvidesOnNonCompositeField {
