@@ -18,10 +18,10 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// exact match in their values.
 /// </para>
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Enum-Types-Inconsistent">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Enum-Values-Mismatch">
 /// Specification
 /// </seealso>
-internal sealed class EnumTypesInconsistentRule : IEventHandler<EnumTypeGroupEvent>
+internal sealed class EnumValuesMismatchRule : IEventHandler<EnumTypeGroupEvent>
 {
     public void Handle(EnumTypeGroupEvent @event, CompositionContext context)
     {
@@ -44,8 +44,7 @@ internal sealed class EnumTypesInconsistentRule : IEventHandler<EnumTypeGroupEve
             {
                 if (!enumType.Values.ContainsName(enumValue))
                 {
-                    context.Log.Write(
-                        EnumTypesInconsistent(enumType, enumValue, schema));
+                    context.Log.Write(EnumValuesMismatch(enumType, enumValue, schema));
                 }
             }
         }
