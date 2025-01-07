@@ -65,6 +65,7 @@ internal sealed class SourceSchemaMerger
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),
+        new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
         new RequireDirectiveInFieldsArgumentRule(),

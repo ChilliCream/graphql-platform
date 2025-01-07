@@ -449,6 +449,23 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ProvidesInvalidSyntax(
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ProvidesInvalidSyntax, coordinate, schema.Name),
+            LogEntryCodes.ProvidesInvalidSyntax,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
     public static LogEntry ProvidesOnNonCompositeField(
         OutputFieldDefinition field,
         INamedTypeDefinition type,

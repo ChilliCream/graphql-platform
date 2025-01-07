@@ -92,6 +92,12 @@ internal record ProvidesFieldNodeEvent(
     ComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
+internal record ProvidesFieldsInvalidSyntaxEvent(
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
 internal record RequireFieldNodeEvent(
     FieldNode FieldNode,
     ImmutableArray<string> FieldNamePath,
