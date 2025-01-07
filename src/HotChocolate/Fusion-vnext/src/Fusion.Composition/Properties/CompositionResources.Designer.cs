@@ -116,9 +116,9 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
         /// </summary>
-        internal static string LogEntryHelper_EnumTypesInconsistent {
+        internal static string LogEntryHelper_EnumValuesMismatch {
             get {
-                return ResourceManager.GetString("LogEntryHelper_EnumTypesInconsistent", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_EnumValuesMismatch", resourceCulture);
             }
         }
         
@@ -281,6 +281,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_ProvidesFieldsMissingExternal {
             get {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsMissingExternal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidSyntax", resourceCulture);
             }
         }
         

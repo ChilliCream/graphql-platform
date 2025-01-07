@@ -47,7 +47,7 @@ internal sealed class SourceSchemaMerger
     private static readonly List<object> _preMergeValidationRules =
     [
         new DisallowedInaccessibleElementsRule(),
-        new EnumTypesInconsistentRule(),
+        new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
         new ExternalOnInterfaceRule(),
@@ -66,6 +66,7 @@ internal sealed class SourceSchemaMerger
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),
+        new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
         new RequireDirectiveInFieldsArgumentRule(),
