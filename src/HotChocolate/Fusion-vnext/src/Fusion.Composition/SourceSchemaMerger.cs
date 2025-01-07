@@ -62,6 +62,7 @@ internal sealed class SourceSchemaMerger
         new LookupMustNotReturnListRule(),
         new LookupShouldHaveNullableReturnTypeRule(),
         new OutputFieldTypesMergeableRule(),
+        new OverrideFromSelfRule(),
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),
