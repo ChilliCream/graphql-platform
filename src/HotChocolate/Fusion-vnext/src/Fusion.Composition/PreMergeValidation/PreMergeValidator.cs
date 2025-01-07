@@ -65,6 +65,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         }
                     }
                 }
+                else if (type is EnumTypeDefinition enumType)
+                {
+                    PublishEvent(new EnumTypeEvent(enumType, schema), context);
+                }
             }
 
             foreach (var directive in schema.DirectiveDefinitions)
@@ -84,6 +88,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
             MultiValueDictionary<string, InputFieldInfo> inputFieldGroupByName = [];
             MultiValueDictionary<string, OutputFieldInfo> outputFieldGroupByName = [];
+            MultiValueDictionary<string, EnumTypeInfo> enumTypeGroupByName = [];
 
             foreach (var (type, schema) in typeGroup)
             {
@@ -107,6 +112,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                                 new OutputFieldInfo(field, type, schema));
                         }
 
+                        break;
+
+                    case EnumTypeDefinition enumType:
+                        enumTypeGroupByName.Add(enumType.Name, new EnumTypeInfo(enumType, schema));
                         break;
                 }
             }
@@ -144,6 +153,11 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                             typeName),
                         context);
                 }
+            }
+
+            foreach (var (enumName, enumGroup) in enumTypeGroupByName)
+            {
+                PublishEvent(new EnumTypeGroupEvent(enumName, [.. enumGroup]), context);
             }
         }
     }

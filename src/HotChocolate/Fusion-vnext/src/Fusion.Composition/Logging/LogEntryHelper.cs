@@ -100,6 +100,24 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EnumTypesInconsistent(
+        EnumTypeDefinition enumType,
+        string enumValue,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_EnumTypesInconsistent,
+                enumType.Name,
+                schema.Name,
+                enumValue),
+            LogEntryCodes.EnumTypesInconsistent,
+            LogSeverity.Error,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
+    }
+
     public static LogEntry ExternalArgumentDefaultMismatch(
         string argumentName,
         string fieldName,

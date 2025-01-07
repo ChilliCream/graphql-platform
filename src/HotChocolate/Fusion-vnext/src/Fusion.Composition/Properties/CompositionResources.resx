@@ -36,6 +36,9 @@
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The built-in directive argument '{0}' in schema '{1}' is not accessible.</value>
   </data>
+  <data name="LogEntryHelper_EnumTypesInconsistent" xml:space="preserve">
+    <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
     <value>The argument with schema coordinate '{0}' has inconsistent default values.</value>
   </data>
