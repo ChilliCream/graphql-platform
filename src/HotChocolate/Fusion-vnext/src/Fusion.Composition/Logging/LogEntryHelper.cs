@@ -100,21 +100,22 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry EnumValuesMustBeTheSameAcrossSchemas(
+    public static LogEntry EnumTypesInconsistent(
         EnumTypeDefinition enumType,
+        string enumValue,
         SchemaDefinition schema)
     {
-        var coordinate = new SchemaCoordinate(enumType.Name);
-
         return new LogEntry(
             string.Format(
-                LogEntryHelper_EnumValuesMustBeTheSameAcrossSchemas,
+                LogEntryHelper_EnumTypesInconsistent,
                 enumType.Name,
-                schema.Name),
-            LogEntryCodes.EnumValuesMustBeTheSameAcrossSchemas,
+                schema.Name,
+                enumValue),
+            LogEntryCodes.EnumTypesInconsistent,
             LogSeverity.Error,
-            coordinate,
-            schema: schema);
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
     }
 
     public static LogEntry ExternalArgumentDefaultMismatch(

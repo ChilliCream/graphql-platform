@@ -157,9 +157,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
             foreach (var (enumName, enumGroup) in enumTypeGroupByName)
             {
-                PublishEvent(
-                    new EnumTypeGroupEvent(enumName, [.. enumGroup]),
-                    context);
+                PublishEvent(new EnumTypeGroupEvent(enumName, [.. enumGroup]), context);
             }
         }
     }

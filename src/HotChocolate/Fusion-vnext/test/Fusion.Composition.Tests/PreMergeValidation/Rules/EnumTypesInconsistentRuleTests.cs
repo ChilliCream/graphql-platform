@@ -4,10 +4,9 @@ using HotChocolate.Fusion.PreMergeValidation.Rules;
 
 namespace HotChocolate.Composition.PreMergeValidation.Rules;
 
-public sealed class EnumValuesMustBeTheSameAcrossSchemasRuleTests : CompositionTestBase
+public sealed class EnumTypesInconsistentRuleTests : CompositionTestBase
 {
-    private readonly PreMergeValidator _preMergeValidator =
-        new([new EnumValuesMustBeTheSameAcrossSchemasRule()]);
+    private readonly PreMergeValidator _preMergeValidator = new([new EnumTypesInconsistentRule()]);
 
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
@@ -37,8 +36,7 @@ public sealed class EnumValuesMustBeTheSameAcrossSchemasRuleTests : CompositionT
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
-        Assert.True(
-            context.Log.All(e => e.Code == "ENUM_VALUES_MUST_BE_THE_SAME_ACROSS_SCHEMAS"));
+        Assert.True(context.Log.All(e => e.Code == "ENUM_TYPES_INCONSISTENT"));
         Assert.True(context.Log.All(e => e.Severity == LogSeverity.Error));
     }
 
@@ -79,7 +77,7 @@ public sealed class EnumValuesMustBeTheSameAcrossSchemasRuleTests : CompositionT
                     """
                 ]
             },
-            // Here, the two definitions of "Genre" have shared values in a differing order
+            // Here, the two definitions of "Genre" have shared values in a differing order.
             {
                 [
                     """
@@ -105,9 +103,8 @@ public sealed class EnumValuesMustBeTheSameAcrossSchemasRuleTests : CompositionT
     {
         return new TheoryData<string[], string[]>
         {
-            // Here, the "name" field on "Product" is defined in one source schema and marked as
-            // @external in another. The argument "language" has different default values in the
-            // two source schemas, violating the rule.
+            // Here, the two definitions of "Genre" have different values ("FANTASY" and
+            // "SCIENCE_FICTION"), violating the rule.
             {
                 [
                     """
@@ -122,8 +119,8 @@ public sealed class EnumValuesMustBeTheSameAcrossSchemasRuleTests : CompositionT
                     """
                 ],
                 [
-                    "The enum 'Genre' in schema 'A' must contain consistent values across schemas.",
-                    "The enum 'Genre' in schema 'B' must contain consistent values across schemas."
+                    "The enum type 'Genre' in schema 'A' must define the value 'SCIENCE_FICTION'.",
+                    "The enum type 'Genre' in schema 'B' must define the value 'FANTASY'."
                 ]
             }
         };

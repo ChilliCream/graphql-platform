@@ -18,10 +18,10 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// exact match in their values.
 /// </para>
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Enum-Type-Values-Must-Be-The-Same-Across-Source-Schemas">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Enum-Types-Inconsistent">
 /// Specification
 /// </seealso>
-internal sealed class EnumValuesMustBeTheSameAcrossSchemasRule : IEventHandler<EnumTypeGroupEvent>
+internal sealed class EnumTypesInconsistentRule : IEventHandler<EnumTypeGroupEvent>
 {
     public void Handle(EnumTypeGroupEvent @event, CompositionContext context)
     {
@@ -32,29 +32,21 @@ internal sealed class EnumValuesMustBeTheSameAcrossSchemasRule : IEventHandler<E
             return;
         }
 
-        var allValues = enumGroup
+        var enumValues = enumGroup
             .SelectMany(e => e.Type.Values)
-            .ToImmutableArray();
-
-        var inaccessibleValues = allValues
-            .Where(ValidationHelper.IsInaccessible)
-            .Select(e => e.Name)
-            .ToImmutableHashSet();
-        var requiredValues = allValues
-            .Select(e => e.Name)
-            .Except(inaccessibleValues)
+            .Where(ValidationHelper.IsAccessible)
+            .Select(v => v.Name)
             .ToImmutableHashSet();
 
-        foreach (var @enum in enumGroup)
+        foreach (var (enumType, schema) in enumGroup)
         {
-            var enumValues = @enum.Type.Values
-                .Select(e => e.Name)
-                .Except(inaccessibleValues)
-                .ToImmutableHashSet();
-            if (enumValues.Count != requiredValues.Count)
+            foreach (var enumValue in enumValues)
             {
-                context.Log.Write(
-                    EnumValuesMustBeTheSameAcrossSchemas(@enum.Type, @enum.Schema));
+                if (!enumType.Values.ContainsName(enumValue))
+                {
+                    context.Log.Write(
+                        EnumTypesInconsistent(enumType, enumValue, schema));
+                }
             }
         }
     }
