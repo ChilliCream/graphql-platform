@@ -60,7 +60,7 @@ Remember to save any changes you've made before exiting the Console UI.
 The `nitro stage edit` command also provides a non-interactive user interface for managing the stages of an API.
 
 ```shell
-nitro stage edit --api-id abc123 --configuration '[{"name":"stage1","displayName":"Stage 1","conditions":[{"afterStage":"stage2"}]}]'
+nitro stage edit --api-id abc123 --configuration '[{"Name":"stage1","DisplayName":"Stage 1","Conditions":[{"AfterStage":"stage2"}]}]'
 ```
 
 **Options**

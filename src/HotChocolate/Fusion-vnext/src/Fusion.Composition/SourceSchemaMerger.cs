@@ -53,6 +53,7 @@ internal sealed class SourceSchemaMerger
         new ExternalOnInterfaceRule(),
         new ExternalUnusedRule(),
         new InputFieldDefaultMismatchRule(),
+        new InputFieldTypesMergeableRule(),
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
