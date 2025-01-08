@@ -398,6 +398,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry OverrideOnInterface(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_OverrideOnInterface, coordinate, schema.Name),
+            LogEntryCodes.OverrideOnInterface,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry ProvidesDirectiveInFieldsArgument(
         ImmutableArray<string> fieldNamePath,
         Directive providesDirective,
