@@ -305,6 +305,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry KeyInvalidFieldsType(
+        Directive keyDirective,
+        string entityTypeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(entityTypeName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_KeyInvalidFieldsType, coordinate, schema.Name),
+            LogEntryCodes.KeyInvalidFieldsType,
+            LogSeverity.Error,
+            coordinate,
+            keyDirective,
+            schema);
+    }
+
     public static LogEntry KeyInvalidSyntax(
         string entityTypeName,
         Directive keyDirective,
@@ -395,6 +411,22 @@ internal static class LogEntryHelper
             LogSeverity.Error,
             coordinate,
             overrideDirective,
+            schema);
+    }
+
+    public static LogEntry OverrideOnInterface(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_OverrideOnInterface, coordinate, schema.Name),
+            LogEntryCodes.OverrideOnInterface,
+            LogSeverity.Error,
+            coordinate,
+            field,
             schema);
     }
 

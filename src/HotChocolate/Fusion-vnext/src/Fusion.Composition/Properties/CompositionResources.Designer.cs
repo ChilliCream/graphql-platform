@@ -213,6 +213,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidFieldsType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidFieldsType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
         /// </summary>
         internal static string LogEntryHelper_KeyInvalidSyntax {
@@ -254,6 +263,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_OverrideFromSelf {
             get {
                 return ResourceManager.GetString("LogEntryHelper_OverrideFromSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @override directive..
+        /// </summary>
+        internal static string LogEntryHelper_OverrideOnInterface {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OverrideOnInterface", resourceCulture);
             }
         }
         

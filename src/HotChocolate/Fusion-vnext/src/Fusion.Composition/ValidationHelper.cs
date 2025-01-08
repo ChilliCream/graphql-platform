@@ -5,6 +5,11 @@ namespace HotChocolate.Fusion;
 
 internal sealed class ValidationHelper
 {
+    public static bool HasOverrideDirective(IDirectivesProvider type)
+    {
+        return type.Directives.ContainsName(WellKnownDirectiveNames.Override);
+    }
+
     public static bool HasProvidesDirective(IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.Provides);
