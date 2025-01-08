@@ -226,6 +226,24 @@ internal static class LogEntryHelper
             schemaA);
     }
 
+    public static LogEntry InputWithMissingRequiredFields(
+        string requiredFieldName,
+        InputObjectTypeDefinition inputType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_InputWithMissingRequiredFields,
+                inputType.Name,
+                schema.Name,
+                requiredFieldName),
+            LogEntryCodes.InputWithMissingRequiredFields,
+            LogSeverity.Error,
+            new SchemaCoordinate(inputType.Name),
+            inputType,
+            schema);
+    }
+
     public static LogEntry KeyDirectiveInFieldsArgument(
         string entityTypeName,
         Directive keyDirective,
