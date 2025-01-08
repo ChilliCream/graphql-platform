@@ -305,6 +305,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry KeyInvalidFieldsType(
+        Directive keyDirective,
+        string entityTypeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(entityTypeName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_KeyInvalidFieldsType, coordinate, schema.Name),
+            LogEntryCodes.KeyInvalidFieldsType,
+            LogSeverity.Error,
+            coordinate,
+            keyDirective,
+            schema);
+    }
+
     public static LogEntry KeyInvalidSyntax(
         string entityTypeName,
         Directive keyDirective,

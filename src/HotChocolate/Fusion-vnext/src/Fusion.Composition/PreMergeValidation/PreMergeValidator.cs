@@ -178,6 +178,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                 !keyDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
                 || f is not StringValueNode fields)
             {
+                PublishEvent(
+                    new KeyFieldsInvalidTypeEvent(keyDirective, entityType, schema),
+                    context);
+
                 continue;
             }
 

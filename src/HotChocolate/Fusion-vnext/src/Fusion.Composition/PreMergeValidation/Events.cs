@@ -66,6 +66,11 @@ internal record KeyFieldsInvalidSyntaxEvent(
     Directive KeyDirective,
     SchemaDefinition Schema) : IEvent;
 
+internal record KeyFieldsInvalidTypeEvent(
+    Directive KeyDirective,
+    ComplexTypeDefinition EntityType,
+    SchemaDefinition Schema) : IEvent;
+
 internal record OutputFieldEvent(
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,

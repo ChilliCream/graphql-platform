@@ -213,6 +213,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidFieldsType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidFieldsType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
         /// </summary>
         internal static string LogEntryHelper_KeyInvalidSyntax {
