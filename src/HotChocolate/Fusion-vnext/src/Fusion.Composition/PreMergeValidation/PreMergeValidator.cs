@@ -292,6 +292,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
             !providesDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)
         {
+            PublishEvent(
+                new ProvidesFieldsInvalidTypeEvent(providesDirective, field, type, schema),
+                context);
+
             return;
         }
 
