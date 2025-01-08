@@ -40,6 +40,10 @@ internal record InputFieldGroupEvent(
     ImmutableArray<InputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
+internal record InputTypeGroupEvent(
+    string InputTypeName,
+    ImmutableArray<InputTypeInfo> InputTypeGroup) : IEvent;
+
 internal record KeyFieldEvent(
     ComplexTypeDefinition EntityType,
     Directive KeyDirective,

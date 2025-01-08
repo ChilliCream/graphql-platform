@@ -54,6 +54,7 @@ internal sealed class SourceSchemaMerger
         new ExternalUnusedRule(),
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
+        new InputWithMissingRequiredFieldsRule(),
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
