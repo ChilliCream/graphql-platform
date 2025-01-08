@@ -9,14 +9,11 @@ public abstract class PlanNode
 {
     public PlanNode? Previous { get; init; }
 
-    public required SelectionPath Path { get; init; }
-}
-
-public abstract class SelectionNode : PlanNode
-{
-    public required string SchemaName { get; init; }
-
     public abstract ISyntaxNode SyntaxNode { get; }
+
+    public required SelectionPath Path { get; init; }
+
+    public required string SchemaName { get; init; }
 
     public int PathCost { get; init; }
 
@@ -25,13 +22,22 @@ public abstract class SelectionNode : PlanNode
     public int TotalCost => PathCost + Backlog.Count;
 }
 
-public class FieldPlanNode : SelectionNode
+public class FieldPlanNode : PlanNode
 {
     public required FieldNode FieldNode { get; init; }
 
     public override ISyntaxNode SyntaxNode => FieldNode;
 
     public required CompositeOutputField Field { get; init; }
+}
+
+public class LookupPlanNode : PlanNode
+{
+    public required SelectionSetNode SelectionSetNode { get; init; }
+
+    public override ISyntaxNode SyntaxNode => SelectionSetNode;
+
+    public required Lookup Lookup { get; init; }
 }
 
 
@@ -41,7 +47,7 @@ public sealed record BacklogItem(int Priority, ISyntaxNode Parent, ISyntaxNode N
 
 public class Planner(CompositeSchema schema)
 {
-    private PlanNode PlanSelectionSet(SortedSet<SelectionNode> openSet)
+    private PlanNode PlanSelectionSet(SortedSet<PlanNode> openSet)
     {
         while (openSet.Any())
         {
@@ -59,7 +65,8 @@ public class Planner(CompositeSchema schema)
             switch (next.Node)
             {
                 case FieldNode fieldNode:
-                    var field = ((CompositeComplexType)type).Fields[fieldNode.Name.Value];
+                    var complexType = (CompositeComplexType)type;
+                    var field = complexType.Fields[fieldNode.Name.Value];
                     var backlogBase = current.Backlog.Remove(next);
 
                     foreach (var source in field.Sources)
@@ -72,18 +79,13 @@ public class Planner(CompositeSchema schema)
                         var cost = current.PathCost + 1;
                         var backlog = backlogBase;
 
-                        if(source.SchemaName != current.SchemaName)
-                        {
-                            cost += 10;
-                            // we need to enqueue lookups in this case
-                        }
-                        else
+                        if (source.SchemaName == current.SchemaName)
                         {
                             if (source.Requirements is not null)
                             {
                                 foreach (var requirement in source.Requirements.SelectionSet.Selections)
                                 {
-                                    backlog = backlog.Add(new BacklogItem(-1, current.SyntaxNode, requirement));
+                                    backlog = backlog.Add(new BacklogItem(-1, current.SyntaxNode, requirement, source.SchemaName));
                                 }
                             }
 
@@ -100,6 +102,20 @@ public class Planner(CompositeSchema schema)
 
                             openSet.Add(fieldPlanNode);
                         }
+                        else
+                        {
+                            cost += 10;
+
+                            if (!complexType.Sources.TryGetType(source.SchemaName, out var sourceType)
+                                || sourceType.Lookups.Length == 0)
+                            {
+                                continue;
+                            }
+
+                            foreach (var VARIABLE in complexType.Sources[])
+                            {
+                            }
+                        }
                     }
                     break;
             }
@@ -111,7 +127,7 @@ public class Planner(CompositeSchema schema)
 
     }
 
-    private ICompositeNamedType GetCurrentTypeContext(SelectionNode node, BacklogItem backlogItem)
+    private ICompositeNamedType GetCurrentTypeContext(PlanNode node, BacklogItem backlogItem)
     {
         throw new InvalidOperationException();
     }

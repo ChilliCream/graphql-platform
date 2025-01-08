@@ -37,6 +37,8 @@ public sealed class Lookup
     /// </summary>
     public ImmutableArray<FieldPath> Fields { get; }
 
+    public SelectionSetNode SelectionSet => throw new Exception();
+
     /// <summary>
     /// Gets the complexity score of fulfilling the requirements.
     /// </summary>
