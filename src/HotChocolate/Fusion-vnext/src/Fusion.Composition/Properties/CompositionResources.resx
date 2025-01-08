@@ -87,6 +87,9 @@
   <data name="LogEntryHelper_OverrideFromSelf" xml:space="preserve">
     <value>The @override directive on field '{0}' in schema '{1}' must not reference the same schema.</value>
   </data>
+  <data name="LogEntryHelper_OverrideOnInterface" xml:space="preserve">
+    <value>The interface field '{0}' in schema '{1}' must not be annotated with the @override directive.</value>
+  </data>
   <data name="LogEntryHelper_ProvidesDirectiveInFieldsArgument" xml:space="preserve">
     <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
   </data>
