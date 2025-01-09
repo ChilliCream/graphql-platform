@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -20,7 +21,7 @@ internal sealed class LookupReturnsNonNullableTypeRule : IEventHandler<OutputFie
     {
         var (field, type, schema) = @event;
 
-        if (ValidationHelper.IsLookup(field) && field.Type is NonNullTypeDefinition)
+        if (field.HasLookupDirective() && field.Type is NonNullTypeDefinition)
         {
             context.Log.Write(LookupReturnsNonNullableType(field, type, schema));
         }

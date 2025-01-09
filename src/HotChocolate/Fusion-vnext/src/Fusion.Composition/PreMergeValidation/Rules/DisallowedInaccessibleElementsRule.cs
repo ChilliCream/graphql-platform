@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -25,13 +26,13 @@ internal sealed class DisallowedInaccessibleElementsRule
 
         // Built-in scalar types must be accessible.
         if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
-            && !ValidationHelper.IsAccessible(scalar))
+            && scalar.HasInaccessibleDirective())
         {
             context.Log.Write(DisallowedInaccessibleBuiltInScalar(scalar, schema));
         }
 
         // Introspection types must be accessible.
-        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(type))
+        if (type.IsIntrospectionType && type.HasInaccessibleDirective())
         {
             context.Log.Write(DisallowedInaccessibleIntrospectionType(type, schema));
         }
@@ -42,7 +43,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         var (field, type, schema) = @event;
 
         // Introspection fields must be accessible.
-        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(field))
+        if (type.IsIntrospectionType && field.HasInaccessibleDirective())
         {
             context.Log.Write(
                 DisallowedInaccessibleIntrospectionField(
@@ -57,7 +58,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         var (argument, field, type, schema) = @event;
 
         // Introspection arguments must be accessible.
-        if (type.IsIntrospectionType && !ValidationHelper.IsAccessible(argument))
+        if (type.IsIntrospectionType && argument.HasInaccessibleDirective())
         {
             context.Log.Write(
                 DisallowedInaccessibleIntrospectionArgument(
@@ -73,7 +74,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         var (argument, directive, schema) = @event;
 
         // Built-in directive arguments must be accessible.
-        if (BuiltIns.IsBuiltInDirective(directive.Name) && !ValidationHelper.IsAccessible(argument))
+        if (BuiltIns.IsBuiltInDirective(directive.Name) && argument.HasInaccessibleDirective())
         {
             context.Log.Write(
                 DisallowedInaccessibleDirectiveArgument(

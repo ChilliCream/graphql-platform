@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -21,15 +22,15 @@ internal sealed class InputWithMissingRequiredFieldsRule : IEventHandler<InputTy
 
         var requiredFieldNames =
             inputTypeGroup
-                .Where(i => ValidationHelper.IsAccessible(i.InputType))
+                .Where(i => !i.InputType.HasInaccessibleDirective())
                 .SelectMany(i => i.InputType.Fields)
-                .Where(f => ValidationHelper.IsAccessible(f) && f.Type is NonNullTypeDefinition)
+                .Where(f => !f.HasInaccessibleDirective() && f.Type is NonNullTypeDefinition)
                 .Select(f => f.Name)
                 .ToImmutableHashSet();
 
         foreach (var (inputType, schema) in inputTypeGroup)
         {
-            if (ValidationHelper.IsInaccessible(inputType))
+            if (inputType.HasInaccessibleDirective())
             {
                 continue;
             }

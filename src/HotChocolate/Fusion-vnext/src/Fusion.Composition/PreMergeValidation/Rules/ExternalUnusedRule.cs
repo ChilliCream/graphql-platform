@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -18,7 +19,7 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
     {
         var (field, type, schema) = @event;
 
-        if (ValidationHelper.IsExternal(field))
+        if (field.HasExternalDirective())
         {
             var referencingFields =
                 schema.Types

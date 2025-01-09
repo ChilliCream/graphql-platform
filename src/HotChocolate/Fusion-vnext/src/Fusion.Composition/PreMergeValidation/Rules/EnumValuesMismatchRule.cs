@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
@@ -34,7 +35,7 @@ internal sealed class EnumValuesMismatchRule : IEventHandler<EnumTypeGroupEvent>
 
         var enumValues = enumGroup
             .SelectMany(e => e.Type.Values)
-            .Where(ValidationHelper.IsAccessible)
+            .Where(v => !v.HasInaccessibleDirective())
             .Select(v => v.Name)
             .ToImmutableHashSet();
 
