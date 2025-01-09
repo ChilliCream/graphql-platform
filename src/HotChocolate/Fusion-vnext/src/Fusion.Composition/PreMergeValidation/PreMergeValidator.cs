@@ -86,6 +86,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         {
             PublishEvent(new TypeGroupEvent(typeName, [.. typeGroup]), context);
 
+            MultiValueDictionary<string, InputTypeInfo> inputTypeGroupByName = [];
             MultiValueDictionary<string, InputFieldInfo> inputFieldGroupByName = [];
             MultiValueDictionary<string, OutputFieldInfo> outputFieldGroupByName = [];
             MultiValueDictionary<string, EnumTypeInfo> enumTypeGroupByName = [];
@@ -95,6 +96,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                 switch (type)
                 {
                     case InputObjectTypeDefinition inputType:
+                        inputTypeGroupByName.Add(
+                            inputType.Name,
+                            new InputTypeInfo(inputType, schema));
+
                         foreach (var field in inputType.Fields)
                         {
                             inputFieldGroupByName.Add(
@@ -118,6 +123,11 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         enumTypeGroupByName.Add(enumType.Name, new EnumTypeInfo(enumType, schema));
                         break;
                 }
+            }
+
+            foreach (var (inputTypeName, inputTypeGroup) in inputTypeGroupByName)
+            {
+                PublishEvent(new InputTypeGroupEvent(inputTypeName, [.. inputTypeGroup]), context);
             }
 
             foreach (var (fieldName, fieldGroup) in inputFieldGroupByName)
@@ -178,6 +188,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                 !keyDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
                 || f is not StringValueNode fields)
             {
+                PublishEvent(
+                    new KeyFieldsInvalidTypeEvent(keyDirective, entityType, schema),
+                    context);
+
                 continue;
             }
 
@@ -292,6 +306,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
             !providesDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)
         {
+            PublishEvent(
+                new ProvidesFieldsInvalidTypeEvent(providesDirective, field, type, schema),
+                context);
+
             return;
         }
 

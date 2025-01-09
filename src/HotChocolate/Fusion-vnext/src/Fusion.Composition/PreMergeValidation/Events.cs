@@ -40,6 +40,10 @@ internal record InputFieldGroupEvent(
     ImmutableArray<InputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
 
+internal record InputTypeGroupEvent(
+    string InputTypeName,
+    ImmutableArray<InputTypeInfo> InputTypeGroup) : IEvent;
+
 internal record KeyFieldEvent(
     ComplexTypeDefinition EntityType,
     Directive KeyDirective,
@@ -64,6 +68,11 @@ internal record KeyFieldsInvalidReferenceEvent(
 internal record KeyFieldsInvalidSyntaxEvent(
     ComplexTypeDefinition EntityType,
     Directive KeyDirective,
+    SchemaDefinition Schema) : IEvent;
+
+internal record KeyFieldsInvalidTypeEvent(
+    Directive KeyDirective,
+    ComplexTypeDefinition EntityType,
     SchemaDefinition Schema) : IEvent;
 
 internal record OutputFieldEvent(
@@ -93,6 +102,12 @@ internal record ProvidesFieldNodeEvent(
     SchemaDefinition Schema) : IEvent;
 
 internal record ProvidesFieldsInvalidSyntaxEvent(
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record ProvidesFieldsInvalidTypeEvent(
     Directive ProvidesDirective,
     OutputFieldDefinition Field,
     ComplexTypeDefinition Type,
