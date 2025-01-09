@@ -459,6 +459,54 @@ public static class TypeExtensions
         throw new ArgumentException(TypeResources.TypeExtensions_InvalidStructure);
     }
 
+    /// <summary>
+    /// Gets the named type (the most inner type) from a type structure.
+    /// </summary>
+    /// <param name="type">
+    /// The type from which the named type shall be extracted.
+    /// </param>
+    /// <typeparam name="T">
+    /// The expected type of the named type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the named type.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// The type structure is invalid or
+    /// the named type is not of the expected type.
+    /// </exception>
+    public static T NamedType<T>(this IType type) where T : INamedType
+    {
+        var namedType = type.NamedType();
+
+        if(namedType is T t)
+        {
+            return t;
+        }
+
+        throw new ArgumentException(
+            "The named type is not of the expected type.",
+            nameof(type));
+    }
+
+    /// <summary>
+    /// Gets the named type (the most inner type) from a type structure.
+    /// </summary>
+    /// <param name="type">
+    /// The type from which the named type shall be extracted.
+    /// </param>
+    /// <returns>
+    /// Returns the named type.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// The type structure is invalid.
+    /// </exception>
     public static INamedType NamedType(this IType type)
     {
         if (type is null)
