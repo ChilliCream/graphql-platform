@@ -114,6 +114,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_EnumValuesMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EnumValuesMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument with schema coordinate &apos;{0}&apos; has inconsistent default values..
         /// </summary>
         internal static string LogEntryHelper_ExternalArgumentDefaultMismatch {
@@ -150,6 +159,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_FieldArgumentTypesNotMergeable {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FieldArgumentTypesNotMergeable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputFieldDefaultMismatch {
@@ -164,6 +182,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_InputFieldTypesNotMergeable {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InputFieldTypesNotMergeable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must define the required field &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputWithMissingRequiredFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputWithMissingRequiredFields", resourceCulture);
             }
         }
         
@@ -204,6 +231,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_KeyInvalidFieldsType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_KeyInvalidFieldsType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
         /// </summary>
         internal static string LogEntryHelper_KeyInvalidSyntax {
@@ -240,6 +276,24 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @override directive on field &apos;{0}&apos; in schema &apos;{1}&apos; must not reference the same schema..
+        /// </summary>
+        internal static string LogEntryHelper_OverrideFromSelf {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OverrideFromSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @override directive..
+        /// </summary>
+        internal static string LogEntryHelper_OverrideOnInterface {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OverrideOnInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_ProvidesDirectiveInFieldsArgument {
@@ -263,6 +317,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_ProvidesFieldsMissingExternal {
             get {
                 return ResourceManager.GetString("LogEntryHelper_ProvidesFieldsMissingExternal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesInvalidFieldsType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidFieldsType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidSyntax", resourceCulture);
             }
         }
         

@@ -15,6 +15,14 @@ internal record DirectiveEvent(
     DirectiveDefinition Directive,
     SchemaDefinition Schema) : IEvent;
 
+internal record EnumTypeEvent(
+    EnumTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record EnumTypeGroupEvent(
+    string TypeName,
+    ImmutableArray<EnumTypeInfo> TypeGroup) : IEvent;
+
 internal record FieldArgumentEvent(
     InputFieldDefinition Argument,
     OutputFieldDefinition Field,
@@ -31,6 +39,10 @@ internal record InputFieldGroupEvent(
     string FieldName,
     ImmutableArray<InputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
+
+internal record InputTypeGroupEvent(
+    string InputTypeName,
+    ImmutableArray<InputTypeInfo> InputTypeGroup) : IEvent;
 
 internal record KeyFieldEvent(
     ComplexTypeDefinition EntityType,
@@ -58,6 +70,11 @@ internal record KeyFieldsInvalidSyntaxEvent(
     Directive KeyDirective,
     SchemaDefinition Schema) : IEvent;
 
+internal record KeyFieldsInvalidTypeEvent(
+    Directive KeyDirective,
+    ComplexTypeDefinition EntityType,
+    SchemaDefinition Schema) : IEvent;
+
 internal record OutputFieldEvent(
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,
@@ -79,6 +96,18 @@ internal record ProvidesFieldEvent(
 internal record ProvidesFieldNodeEvent(
     FieldNode FieldNode,
     ImmutableArray<string> FieldNamePath,
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record ProvidesFieldsInvalidSyntaxEvent(
+    Directive ProvidesDirective,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record ProvidesFieldsInvalidTypeEvent(
     Directive ProvidesDirective,
     OutputFieldDefinition Field,
     ComplexTypeDefinition Type,
