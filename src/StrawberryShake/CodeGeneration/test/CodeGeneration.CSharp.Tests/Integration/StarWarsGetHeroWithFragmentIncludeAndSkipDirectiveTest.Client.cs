@@ -315,7 +315,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection : global::System.IEquatable<GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection>, IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection
     {
-        public GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo includedPageInfo, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo skippedPageInfo)
+        public GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo? includedPageInfo, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo? skippedPageInfo)
         {
             IncludedPageInfo = includedPageInfo;
             SkippedPageInfo = skippedPageInfo;
@@ -324,11 +324,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo IncludedPageInfo { get; }
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo? IncludedPageInfo { get; }
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo SkippedPageInfo { get; }
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo? SkippedPageInfo { get; }
 
         public virtual global::System.Boolean Equals(GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection? other)
         {
@@ -347,7 +347,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
                 return false;
             }
 
-            return (IncludedPageInfo.Equals(other.IncludedPageInfo)) && SkippedPageInfo.Equals(other.SkippedPageInfo);
+            return (((IncludedPageInfo is null && other.IncludedPageInfo is null) || IncludedPageInfo != null && IncludedPageInfo.Equals(other.IncludedPageInfo))) && ((SkippedPageInfo is null && other.SkippedPageInfo is null) || SkippedPageInfo != null && SkippedPageInfo.Equals(other.SkippedPageInfo));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -375,8 +375,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             unchecked
             {
                 int hash = 5;
-                hash ^= 397 * IncludedPageInfo.GetHashCode();
-                hash ^= 397 * SkippedPageInfo.GetHashCode();
+                if (IncludedPageInfo != null)
+                {
+                    hash ^= 397 * IncludedPageInfo.GetHashCode();
+                }
+
+                if (SkippedPageInfo != null)
+                {
+                    hash ^= 397 * SkippedPageInfo.GetHashCode();
+                }
+
                 return hash;
             }
         }
@@ -561,11 +569,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo IncludedPageInfo { get; }
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo? IncludedPageInfo { get; }
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo SkippedPageInfo { get; }
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo? SkippedPageInfo { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -1686,22 +1694,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.FriendsConnectionData(typename, includedPageInfo: Deserialize_NonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "includedPageInfo")), skippedPageInfo: Deserialize_NonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "skippedPageInfo")));
+                return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.FriendsConnectionData(typename, includedPageInfo: Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "includedPageInfo")), skippedPageInfo: Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "skippedPageInfo")));
             }
 
             throw new global::System.NotSupportedException();
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData Deserialize_NonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::System.Text.Json.JsonElement? obj)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData? Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
-                throw new global::System.ArgumentNullException();
+                return null;
             }
 
             if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
-                throw new global::System.ArgumentNullException();
+                return null;
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
@@ -1728,16 +1736,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             return _booleanParser.Parse(obj.Value.GetBoolean()!);
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData Deserialize_NonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::System.Text.Json.JsonElement? obj)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData? Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
-                throw new global::System.ArgumentNullException();
+                return null;
             }
 
             if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
-                throw new global::System.ArgumentNullException();
+                return null;
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
@@ -1815,7 +1823,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
             if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo ?? throw new global::System.ArgumentNullException(), snapshot), MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo ?? throw new global::System.ArgumentNullException(), snapshot));
+                returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
             else
             {
@@ -1825,10 +1833,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             return returnValue;
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo? MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (data is null)
+            {
+                return null;
+            }
+
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
+            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1840,10 +1853,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             return returnValue;
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo? MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (data is null)
+            {
+                return null;
+            }
+
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
+            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1886,7 +1904,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
             if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo ?? throw new global::System.ArgumentNullException(), snapshot), MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo ?? throw new global::System.ArgumentNullException(), snapshot));
+                returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
             else
             {
@@ -1896,10 +1914,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             return returnValue;
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo? MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (data is null)
+            {
+                return null;
+            }
+
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
+            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1911,10 +1934,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             return returnValue;
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo MapNonNullableIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo? MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.PageInfoData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (data is null)
+            {
+                return null;
+            }
+
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
+            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }

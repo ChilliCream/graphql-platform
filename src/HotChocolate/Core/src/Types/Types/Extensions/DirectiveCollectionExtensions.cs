@@ -105,11 +105,11 @@ public static class DirectiveCollectionExtensions
         throw ThrowHelper.MissingIfArgument(directive);
     }
 
-    private static DirectiveNode? GetSkipDirectiveNode(
+    public static DirectiveNode? GetSkipDirectiveNode(
         this IReadOnlyList<DirectiveNode> directives)
         => GetDirectiveNode(directives, WellKnownDirectives.Skip);
 
-    private static DirectiveNode? GetIncludeDirectiveNode(
+    public static DirectiveNode? GetIncludeDirectiveNode(
         this IReadOnlyList<DirectiveNode> directives)
         => GetDirectiveNode(directives, WellKnownDirectives.Include);
 
