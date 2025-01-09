@@ -23,8 +23,7 @@ internal sealed class RequireInvalidFieldsTypeRule : IEventHandler<FieldArgument
 
         var requireDirective = argument.Directives.FirstOrDefault(Require);
 
-        if (
-            requireDirective is not null
+        if (requireDirective is not null
             && requireDirective.Arguments.TryGetValue(Fields, out var fields)
             && fields is not StringValueNode)
         {

@@ -184,8 +184,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
         foreach (var keyDirective in keyDirectives)
         {
-            if (
-                !keyDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
+            if (!keyDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
                 || f is not StringValueNode fields)
             {
                 PublishEvent(
@@ -302,8 +301,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         var providesDirective =
             field.Directives.First(d => d.Name == WellKnownDirectiveNames.Provides);
 
-        if (
-            !providesDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
+        if (!providesDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)
         {
             PublishEvent(
@@ -365,8 +363,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
                 if (parentType?.NullableType() is ComplexTypeDefinition providedType)
                 {
-                    if (
-                        providedType.Fields.TryGetField(
+                    if (providedType.Fields.TryGetField(
                             fieldNode.Name.Value,
                             out var providedField))
                     {
@@ -419,8 +416,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
         var requireDirective =
             argument.Directives.First(d => d.Name == WellKnownDirectiveNames.Require);
 
-        if (
-            !requireDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
+        if (!requireDirective.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)
         {
             return;

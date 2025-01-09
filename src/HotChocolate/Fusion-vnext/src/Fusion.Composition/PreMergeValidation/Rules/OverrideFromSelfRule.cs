@@ -23,8 +23,7 @@ internal sealed class OverrideFromSelfRule : IEventHandler<OutputFieldEvent>
 
         var overrideDirective = field.Directives[Override].FirstOrDefault();
 
-        if (
-            overrideDirective?.Arguments[From] is StringValueNode from
+        if (overrideDirective?.Arguments[From] is StringValueNode from
             && from.Value == schema.Name)
         {
             context.Log.Write(OverrideFromSelf(overrideDirective, field, type, schema));
