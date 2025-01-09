@@ -1,8 +1,5 @@
 using HotChocolate.Fusion.Events;
-using HotChocolate.Language;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
-using static HotChocolate.Fusion.WellKnownArgumentNames;
-using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
@@ -15,25 +12,18 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Require-Invalid-Fields-Type">
 /// Specification
 /// </seealso>
-internal sealed class RequireInvalidFieldsTypeRule : IEventHandler<FieldArgumentEvent>
+internal sealed class RequireInvalidFieldsTypeRule : IEventHandler<RequireFieldsInvalidTypeEvent>
 {
-    public void Handle(FieldArgumentEvent @event, CompositionContext context)
+    public void Handle(RequireFieldsInvalidTypeEvent @event, CompositionContext context)
     {
-        var (argument, field, type, schema) = @event;
+        var (requireDirective, argument, field, type, schema) = @event;
 
-        var requireDirective = argument.Directives.FirstOrDefault(Require);
-
-        if (requireDirective is not null
-            && requireDirective.Arguments.TryGetValue(Fields, out var fields)
-            && fields is not StringValueNode)
-        {
-            context.Log.Write(
-                RequireInvalidFieldsType(
-                    requireDirective,
-                    argument.Name,
-                    field.Name,
-                    type.Name,
-                    schema));
-        }
+        context.Log.Write(
+            RequireInvalidFieldsType(
+                requireDirective,
+                argument.Name,
+                field.Name,
+                type.Name,
+                schema));
     }
 }

@@ -129,6 +129,13 @@ internal record RequireFieldsInvalidSyntaxEvent(
     ComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
+internal record RequireFieldsInvalidTypeEvent(
+    Directive RequireDirective,
+    InputFieldDefinition Argument,
+    OutputFieldDefinition Field,
+    ComplexTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
 internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(
