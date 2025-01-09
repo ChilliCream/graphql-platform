@@ -43,13 +43,13 @@
     <value>The argument with schema coordinate '{0}' has inconsistent default values.</value>
   </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
-    <value>External field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
+    <value>The external field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
   </data>
   <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
-    <value>Interface field '{0}' in schema '{1}' must not be marked as external.</value>
+    <value>The interface field '{0}' in schema '{1}' must not be marked as external.</value>
   </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
-    <value>External field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
+    <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
   <data name="LogEntryHelper_FieldArgumentTypesNotMergeable" xml:space="preserve">
     <value>The argument '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
@@ -88,7 +88,7 @@
     <value>The lookup field '{0}' in schema '{1}' should return a nullable type.</value>
   </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
-    <value>Field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
+    <value>The output field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>
   <data name="LogEntryHelper_OverrideFromSelf" xml:space="preserve">
     <value>The @override directive on field '{0}' in schema '{1}' must not reference the same schema.</value>

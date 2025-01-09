@@ -132,7 +132,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to External field &apos;{0}&apos; in schema &apos;{1}&apos; is not defined (non-external) in any other schema..
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not defined (non-external) in any other schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalMissingOnBase {
             get {
@@ -141,7 +141,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as external..
+        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as external..
         /// </summary>
         internal static string LogEntryHelper_ExternalOnInterface {
             get {
@@ -150,7 +150,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to External field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by a @provides directive in the schema..
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by a @provides directive in the schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalUnused {
             get {
@@ -267,7 +267,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
+        ///   Looks up a localized string similar to The output field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {
             get {

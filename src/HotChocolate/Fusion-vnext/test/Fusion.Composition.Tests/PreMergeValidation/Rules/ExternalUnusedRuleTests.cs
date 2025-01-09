@@ -97,7 +97,7 @@ public sealed class ExternalUnusedRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "External field 'Product.title' in schema 'A' is not referenced by a " +
+                    "The external field 'Product.title' in schema 'A' is not referenced by a " +
                     "@provides directive in the schema."
                 ]
             },
@@ -117,7 +117,7 @@ public sealed class ExternalUnusedRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "External field 'Product.title' in schema 'A' is not referenced by a " +
+                    "The external field 'Product.title' in schema 'A' is not referenced by a " +
                     "@provides directive in the schema."
                 ]
             }

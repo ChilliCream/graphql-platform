@@ -86,7 +86,7 @@ public sealed class ExternalOnInterfaceRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "Interface field 'Node.id' in schema 'A' must not be marked as external."
+                    "The interface field 'Node.id' in schema 'A' must not be marked as external."
                 ]
             }
         };
