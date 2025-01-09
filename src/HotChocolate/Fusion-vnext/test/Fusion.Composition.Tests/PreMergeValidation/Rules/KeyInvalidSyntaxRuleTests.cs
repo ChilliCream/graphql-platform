@@ -68,7 +68,7 @@ public sealed class KeyInvalidSyntaxRuleTests : CompositionTestBase
         return new TheoryData<string[], string[]>
         {
             // Here, the selection set "featuredItem { id" is missing the closing brace "}". It is
-            // thus invalid syntax, causing a "KEY_INVALID_SYNTAX" error.
+            // thus invalid syntax, causing a KEY_INVALID_SYNTAX error.
             {
                 [
                     """
