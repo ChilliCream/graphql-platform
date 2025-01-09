@@ -159,6 +159,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_FieldArgumentTypesNotMergeable {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FieldArgumentTypesNotMergeable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputFieldDefaultMismatch {

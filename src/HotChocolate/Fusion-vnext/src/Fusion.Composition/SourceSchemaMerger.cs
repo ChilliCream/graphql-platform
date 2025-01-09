@@ -52,6 +52,7 @@ internal sealed class SourceSchemaMerger
         new ExternalMissingOnBaseRule(),
         new ExternalOnInterfaceRule(),
         new ExternalUnusedRule(),
+        new FieldArgumentTypesMergeableRule(),
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
