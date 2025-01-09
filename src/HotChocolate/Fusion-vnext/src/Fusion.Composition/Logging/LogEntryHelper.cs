@@ -180,6 +180,28 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry FieldArgumentTypesNotMergeable(
+        InputFieldDefinition argument,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schemaA,
+        SchemaDefinition schemaB)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argument.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_FieldArgumentTypesNotMergeable,
+                coordinate,
+                schemaA.Name,
+                schemaB.Name),
+            LogEntryCodes.FieldArgumentTypesNotMergeable,
+            LogSeverity.Error,
+            coordinate,
+            argument,
+            schemaA);
+    }
+
     public static LogEntry InputFieldDefaultMismatch(
         IValueNode defaultValueA,
         IValueNode defaultValueB,

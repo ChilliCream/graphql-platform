@@ -8,6 +8,7 @@ public static class LogEntryCodes
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
+    public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
     public const string InputFieldTypesNotMergeable = "INPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string InputWithMissingRequiredFields = "INPUT_WITH_MISSING_REQUIRED_FIELDS";

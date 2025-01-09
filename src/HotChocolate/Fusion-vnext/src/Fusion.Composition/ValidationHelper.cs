@@ -30,6 +30,11 @@ internal sealed class ValidationHelper
         return type.Directives.ContainsName(WellKnownDirectiveNames.External);
     }
 
+    public static bool IsInternal(IDirectivesProvider type)
+    {
+        return type.Directives.ContainsName(WellKnownDirectiveNames.Internal);
+    }
+
     public static bool IsLookup(IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.Lookup);
