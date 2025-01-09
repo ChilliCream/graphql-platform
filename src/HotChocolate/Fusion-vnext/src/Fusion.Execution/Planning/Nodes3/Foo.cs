@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Planning.Nodes2;
+namespace HotChocolate.Fusion.Planning.Nodes3;
 
 public abstract class PlanNode
 {
@@ -118,20 +118,16 @@ public class Planner(/*CompositeSchema schema*/)
                                 continue;
                             }
 
-                            // foreach (var VARIABLE in complexType.Sources[])
+                            //foreach (var VARIABLE in complexType.Sources[])
                             {
                             }
                         }
                     }
                     break;
             }
-
-
-
-
         }
 
-        throw new NotImplementedException();
+        throw new Exception();
     }
 
     private ICompositeNamedType GetCurrentTypeContext(PlanNode node, BacklogItem backlogItem)
