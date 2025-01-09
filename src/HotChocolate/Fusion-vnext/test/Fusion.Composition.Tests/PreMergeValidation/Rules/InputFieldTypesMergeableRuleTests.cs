@@ -100,7 +100,7 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     }
                     """
                 ]
-            },
+            }
         };
     }
 
