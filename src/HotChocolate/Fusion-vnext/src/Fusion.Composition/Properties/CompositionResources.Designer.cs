@@ -251,18 +251,18 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; must not return a list..
         /// </summary>
-        internal static string LogEntryHelper_LookupMustNotReturnList {
+        internal static string LogEntryHelper_LookupReturnsList {
             get {
-                return ResourceManager.GetString("LogEntryHelper_LookupMustNotReturnList", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_LookupReturnsList", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The lookup field &apos;{0}&apos; in schema &apos;{1}&apos; should return a nullable type..
         /// </summary>
-        internal static string LogEntryHelper_LookupShouldHaveNullableReturnType {
+        internal static string LogEntryHelper_LookupReturnsNonNullableType {
             get {
-                return ResourceManager.GetString("LogEntryHelper_LookupShouldHaveNullableReturnType", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_LookupReturnsNonNullableType", resourceCulture);
             }
         }
         

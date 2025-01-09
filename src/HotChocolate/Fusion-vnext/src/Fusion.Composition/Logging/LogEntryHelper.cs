@@ -378,7 +378,7 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry LookupMustNotReturnList(
+    public static LogEntry LookupReturnsList(
         OutputFieldDefinition field,
         INamedTypeDefinition type,
         SchemaDefinition schema)
@@ -387,17 +387,17 @@ internal static class LogEntryHelper
 
         return new LogEntry(
             string.Format(
-                LogEntryHelper_LookupMustNotReturnList,
+                LogEntryHelper_LookupReturnsList,
                 coordinate,
                 schema.Name),
-            LogEntryCodes.LookupMustNotReturnList,
+            LogEntryCodes.LookupReturnsList,
             LogSeverity.Error,
             coordinate,
             field,
             schema);
     }
 
-    public static LogEntry LookupShouldHaveNullableReturnType(
+    public static LogEntry LookupReturnsNonNullableType(
         OutputFieldDefinition field,
         INamedTypeDefinition type,
         SchemaDefinition schema)
@@ -406,10 +406,10 @@ internal static class LogEntryHelper
 
         return new LogEntry(
             string.Format(
-                LogEntryHelper_LookupShouldHaveNullableReturnType,
+                LogEntryHelper_LookupReturnsNonNullableType,
                 coordinate,
                 schema.Name),
-            LogEntryCodes.LookupShouldHaveNullableReturnType,
+            LogEntryCodes.LookupReturnsNonNullableType,
             LogSeverity.Warning,
             coordinate,
             field,

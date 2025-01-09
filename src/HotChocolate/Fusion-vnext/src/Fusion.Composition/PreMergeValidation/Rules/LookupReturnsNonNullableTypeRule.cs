@@ -11,10 +11,10 @@ namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 /// entity matching the provided criteria is not found, following the standard GraphQL practices for
 /// representing missing data.
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec--lookup-Should-Have-Nullable-Return-Type">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Lookup-Returns-Non-Nullable-Type">
 /// Specification
 /// </seealso>
-internal sealed class LookupShouldHaveNullableReturnTypeRule : IEventHandler<OutputFieldEvent>
+internal sealed class LookupReturnsNonNullableTypeRule : IEventHandler<OutputFieldEvent>
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
@@ -22,7 +22,7 @@ internal sealed class LookupShouldHaveNullableReturnTypeRule : IEventHandler<Out
 
         if (ValidationHelper.IsLookup(field) && field.Type is NonNullTypeDefinition)
         {
-            context.Log.Write(LookupShouldHaveNullableReturnType(field, type, schema));
+            context.Log.Write(LookupReturnsNonNullableType(field, type, schema));
         }
     }
 }
