@@ -1,0 +1,20 @@
+{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "pureScalarListItemReturningNull"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    }
+  ],
+  "data": null
+}

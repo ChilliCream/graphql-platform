@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-public class SemanticNonNullTests
+public partial class SemanticNonNullTests
 {
     #region Scalar
 

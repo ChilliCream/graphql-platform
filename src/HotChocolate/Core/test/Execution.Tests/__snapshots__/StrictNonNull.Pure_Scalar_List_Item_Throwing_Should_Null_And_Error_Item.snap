@@ -1,0 +1,18 @@
+{
+  "errors": [
+    {
+      "message": "Another error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "pureScalarListItemThrowingError",
+        1
+      ]
+    }
+  ],
+  "data": null
+}
