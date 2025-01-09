@@ -17,7 +17,7 @@ internal sealed class KeyInvalidFieldsRule : IEventHandler<KeyFieldsInvalidRefer
 {
     public void Handle(KeyFieldsInvalidReferenceEvent @event, CompositionContext context)
     {
-        var (entityType, keyDirective, fieldNode, type, schema) = @event;
+        var (fieldNode, type, keyDirective, entityType, schema) = @event;
 
         context.Log.Write(
             KeyInvalidFields(

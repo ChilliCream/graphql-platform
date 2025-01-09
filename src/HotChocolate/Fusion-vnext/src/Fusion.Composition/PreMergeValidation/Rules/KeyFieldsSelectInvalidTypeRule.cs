@@ -18,7 +18,7 @@ internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<KeyFieldEve
 {
     public void Handle(KeyFieldEvent @event, CompositionContext context)
     {
-        var (entityType, keyDirective, field, type, schema) = @event;
+        var (keyDirective, entityType, field, type, schema) = @event;
 
         var fieldType = field.Type.NullableType();
 

@@ -210,7 +210,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
             catch (SyntaxException)
             {
                 PublishEvent(
-                    new KeyFieldsInvalidSyntaxEvent(entityType, keyDirective, schema),
+                    new KeyFieldsInvalidSyntaxEvent(keyDirective, entityType, schema),
                     context);
             }
         }
@@ -235,10 +235,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
 
                 PublishEvent(
                     new KeyFieldNodeEvent(
-                        entityType,
-                        keyDirective,
                         fieldNode,
                         [.. fieldNamePath],
+                        keyDirective,
+                        entityType,
                         schema),
                     context);
 
@@ -248,8 +248,8 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                     {
                         PublishEvent(
                             new KeyFieldEvent(
-                                entityType,
                                 keyDirective,
+                                entityType,
                                 field,
                                 parentType,
                                 schema),
@@ -264,10 +264,10 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                     {
                         PublishEvent(
                             new KeyFieldsInvalidReferenceEvent(
-                                entityType,
-                                keyDirective,
                                 fieldNode,
                                 parentType,
+                                keyDirective,
+                                entityType,
                                 schema),
                             context);
 
