@@ -1,12 +1,15 @@
 using System.Collections.Immutable;
+using System.ComponentModel.Design;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning.Nodes3;
 
-public abstract class PlanNode
+public abstract record PlanNode
 {
+    public required int Id { get; init; }
+
     public PlanNode? Previous { get; init; }
 
     public abstract ISyntaxNode SyntaxNode { get; }
@@ -24,38 +27,37 @@ public abstract class PlanNode
     // public required ImmutableDictionary<int, ImmutableList<AvailableField>> Fields { get; init; }
 }
 
-public record AvailableField(string SchemaName, ImmutableHashSet<string> Fields);
-
-public class FieldPlanNode : PlanNode
+public record OperationPlanNode : PlanNode
 {
-    public required FieldNode FieldNode { get; init; }
+    public required SelectionSetNode SelectionSet { get; init; }
 
-    public override ISyntaxNode SyntaxNode => FieldNode;
+    public required ICompositeNamedType Type { get; init; }
 
-    public required CompositeOutputField Field { get; init; }
+    public override ISyntaxNode SyntaxNode => SelectionSet;
 }
 
-public class LookupPlanNode : PlanNode
+public sealed record BacklogItem(
+    int Priority,
+    SelectionPath Path,
+    ISyntaxNode Node,
+    SelectionSetNode SelectionSet,
+    IReadOnlyList<ISelectionNode> Selections,
+    ICompositeNamedType Type,
+    string? IgnoreSchemaName = null);
+
+public enum BacklogItemKind
 {
-    public required SelectionSetNode SelectionSetNode { get; init; }
-
-    public override ISyntaxNode SyntaxNode => SelectionSetNode;
-
-    public required Lookup Lookup { get; init; }
+    Selections,
+    Requirements
 }
 
-
-public sealed record BacklogItem(int Priority, ISyntaxNode Parent, ISyntaxNode Node, string? IgnoreSchemaName = null);
-
-public sealed record BacklogItem2(int Priority, int SelectionSetId, IReadOnlyList<ISelectionNode> Selections, string? IgnoreSchemaName = null);
-
-
-
-public class Planner(/*CompositeSchema schema*/)
+public class Planner( /*CompositeSchema schema*/)
 {
-    private PlanNode PlanSelectionSet(SortedSet<PlanNode> openSet)
+    private PlanNode? PlanSelectionSet(SortedSet<PlanNode> openSet)
     {
-        while (openSet.Any())
+        var nextId = 1;
+
+        while (openSet.Count != 0)
         {
             var current = openSet.First();
             openSet.Remove(current);
@@ -65,73 +67,218 @@ public class Planner(/*CompositeSchema schema*/)
                 return current;
             }
 
-            var next = current.Backlog.First();
-            var type = GetCurrentTypeContext(current, next);
+            var workItem = current.Backlog[0];
+            var backlog = current.Backlog.Remove(workItem);
+            var type = workItem.Type;
 
-            switch (next.Node)
+            switch (workItem.Node.Kind)
             {
-                case FieldNode fieldNode:
-                    var complexType = (CompositeComplexType)type;
-                    var field = complexType.Fields[fieldNode.Name.Value];
-                    var backlogBase = current.Backlog.Remove(next);
-
-                    foreach (var source in field.Sources)
+                case SyntaxKind.OperationDefinition:
+                {
+                    var rootType = (CompositeObjectType)type;
+                    var selections = PlanRootSelections(rootType, workItem.Selections, current.SchemaName, ref backlog);
+                    var operation = new OperationPlanNode
                     {
-                        if(source.SchemaName.Equals(next.IgnoreSchemaName, StringComparison.Ordinal))
-                        {
-                            continue;
-                        }
-
-                        var cost = current.PathCost + 1;
-                        var backlog = backlogBase;
-
-                        if (source.SchemaName == current.SchemaName)
-                        {
-                            if (source.Requirements is not null)
-                            {
-                                foreach (var requirement in source.Requirements.SelectionSet.Selections)
-                                {
-                                    backlog = backlog.Add(new BacklogItem(-1, current.SyntaxNode, requirement, source.SchemaName));
-                                }
-                            }
-
-                            var fieldPlanNode = new FieldPlanNode
-                            {
-                                Previous = current,
-                                Path = current.Path.AppendField(fieldNode.Name.Value),
-                                SchemaName = current.SchemaName,
-                                PathCost = cost,
-                                Backlog = backlog,
-                                FieldNode = fieldNode,
-                                Field = field,
-                            };
-
-                            openSet.Add(fieldPlanNode);
-                        }
-                        else
-                        {
-                            cost += 10;
-
-                            if (!complexType.Sources.TryGetType(source.SchemaName, out var sourceType)
-                                || sourceType.Lookups.Length == 0)
-                            {
-                                continue;
-                            }
-
-                            //foreach (var VARIABLE in complexType.Sources[])
-                            {
-                            }
-                        }
-                    }
+                        Id = nextId++,
+                        Previous = current,
+                        Path = current.Path,
+                        SchemaName = current.SchemaName,
+                        PathCost = current.PathCost + 1,
+                        Backlog = backlog,
+                        SelectionSet = new SelectionSetNode(selections),
+                        Type = rootType
+                    };
+                    openSet.Add(operation);
                     break;
+                }
+                case SyntaxKind.Field:
+                {
+                    break;
+                }
+                case SyntaxKind.InlineFragment:
+                {
+                    break;
+                }
+                default:
+                    throw new InvalidOperationException();
             }
         }
 
-        throw new Exception();
+        return null;
     }
 
-    private ICompositeNamedType GetCurrentTypeContext(PlanNode node, BacklogItem backlogItem)
+    private IReadOnlyList<ISelectionNode> PlanRootSelections(
+        CompositeObjectType rootType,
+        IReadOnlyList<ISelectionNode> selections,
+        string schemaName,
+        ref ImmutableSortedSet<BacklogItem> backlog)
     {
-        throw new InvalidOperationException();
+        throw new NotSupportedException();
+    }
+
+    private IReadOnlyList<ISelectionNode> PlanLookupSelections(
+        CompositeComplexType complexType,
+        IReadOnlyList<ISelectionNode> selections,
+        string schemaName,
+        ref ImmutableSortedSet<BacklogItem> backlog)
+    {
+        throw new NotSupportedException();
+    }
+
+    private class Rewriter
+    {
+        private (SelectionSetNode?, SelectionSetNode?) RewriteSelectionSet(
+            RewriterContext context,
+            ICompositeNamedType type,
+            SelectionSetNode selectionSetNode,
+            SelectionSetNode? providedSelectionSetNode)
+        {
+            var complexType = type as CompositeComplexType;
+            List<ISelectionNode>? resolvableSelections = null;
+            List<ISelectionNode>? unresolvableSelections = null;
+
+            for (var i = 0; i < selectionSetNode.Selections.Count; i++)
+            {
+                var selection = selectionSetNode.Selections[i];
+
+                switch (selection)
+                {
+                    case FieldNode fieldNode:
+                    {
+                        var (resolvable, unresolvable) =
+                            RewriteFieldNode(
+                                context,
+                                complexType!,
+                                fieldNode,
+                                GetProvidedField());
+
+                        CompleteSelection(fieldNode, resolvable, unresolvable, i);
+                        break;
+                    }
+
+                    case InlineFragmentNode inlineFragmentNode:
+                    {
+                        var (resolvable, unresolvable) =
+                            RewriteFragmentNode(
+                                context,
+                                type,
+                                inlineFragmentNode,
+                                GetProvidedFragment());
+
+                        CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
+                        break;
+                    }
+                }
+            }
+
+            if (resolvableSelections is null && unresolvableSelections is null)
+            {
+                return (selectionSetNode, null);
+            }
+
+            return
+            (
+                selectionSetNode.WithSelections(resolvableSelections ?? selectionSetNode.Selections),
+                unresolvableSelections is null ? null : selectionSetNode.WithSelections(unresolvableSelections)
+            );
+
+            void CompleteSelection<T>(T original, T? resolvable, T? unresolvable, int i) where T : ISelectionNode
+            {
+                if (unresolvable is not null)
+                {
+                    unresolvableSelections ??= [];
+                    unresolvableSelections.Add(unresolvable);
+                }
+
+                if (resolvable is null)
+                {
+                    return;
+                }
+
+                if (resolvableSelections is not null)
+                {
+                    resolvableSelections.Add(resolvable);
+                }
+                else if (!ReferenceEquals(resolvable, original))
+                {
+                    resolvableSelections ??= [];
+
+                    for (var j = 0; j < i; j++)
+                    {
+                        resolvableSelections.Add(selectionSetNode.Selections[j]);
+                    }
+
+                    resolvableSelections.Add(resolvable);
+                }
+            }
+
+            FieldNode? GetProvidedField() => null;
+
+            InlineFragmentNode? GetProvidedFragment() => null;
+        }
+
+        private (FieldNode?, FieldNode?) RewriteFieldNode(
+            RewriterContext context,
+            CompositeComplexType complexType,
+            FieldNode fieldNode,
+            FieldNode? providedFieldNode)
+        {
+            var field = complexType.Fields[fieldNode.Name.Value];
+
+            if (providedFieldNode is null)
+            {
+                // if the field is not available in the current schema we return null
+                // which will remove the field from the rewritten selection set.
+                if (!field.Sources.TryGetMember(context.SchemaName, out var source))
+                {
+                    return (null, fieldNode);
+                }
+
+                // if requirements are not allowed we return null
+                // which will remove the field from the rewritten selection set.
+                if (!context.AllowRequirements && source.Requirements is not null)
+                {
+                    return (null, fieldNode);
+                }
+            }
+
+            var selectionSet = fieldNode.SelectionSet;
+
+            if (selectionSet is not null)
+            {
+                var (resolvable, unresolvable) = RewriteSelectionSet(
+                    context,
+                    field.Type.NamedType(),
+                    selectionSet,
+                    providedFieldNode?.SelectionSet);
+
+                if (!ReferenceEquals(resolvable, selectionSet))
+                {
+                    return
+                    (
+                        fieldNode.WithSelectionSet(resolvable),
+                        unresolvable is null ? null : fieldNode.WithSelectionSet(unresolvable)
+                    );
+                }
+            }
+
+            return (fieldNode, null);
+        }
+
+        private (InlineFragmentNode?, InlineFragmentNode?) RewriteFragmentNode(
+            RewriterContext context,
+            ICompositeNamedType typeCondition,
+            InlineFragmentNode fieldNode,
+            InlineFragmentNode? providedFieldNode)
+        {
+
+        }
+    }
+
+    private class RewriterContext
+    {
+        public required string SchemaName { get; init; }
+        public required bool AllowRequirements { get; init; }
+        public required ImmutableSortedSet<BacklogItem> Backlog { get; set; }
     }
 }
