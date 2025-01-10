@@ -92,7 +92,7 @@ public sealed class RootQueryUsedRuleTests : CompositionTestBase
                     "The root query type in schema 'A' must be named 'Query'."
                 ]
             },
-            // A type named 'Query' is not the root query type.
+            // A type named "Query" is not the root query type.
             {
                 [
                     "scalar Query"

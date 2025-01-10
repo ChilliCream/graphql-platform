@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
@@ -25,7 +26,7 @@ internal sealed class ProvidesFieldsMissingExternalRule : IEventHandler<Provides
     {
         var (providedField, providedType, providesDirective, field, type, schema) = @event;
 
-        if (!ValidationHelper.IsExternal(providedField))
+        if (!providedField.HasExternalDirective())
         {
             context.Log.Write(
                 ProvidesFieldsMissingExternal(

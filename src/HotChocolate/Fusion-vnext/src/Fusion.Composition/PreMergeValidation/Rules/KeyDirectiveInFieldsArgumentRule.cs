@@ -15,7 +15,7 @@ internal sealed class KeyDirectiveInFieldsArgumentRule : IEventHandler<KeyFieldN
 {
     public void Handle(KeyFieldNodeEvent @event, CompositionContext context)
     {
-        var (entityType, keyDirective, fieldNode, fieldNamePath, schema) = @event;
+        var (fieldNode, fieldNamePath, keyDirective, entityType, schema) = @event;
 
         if (fieldNode.Directives.Count != 0)
         {

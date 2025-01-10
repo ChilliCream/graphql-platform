@@ -4,10 +4,9 @@ using HotChocolate.Fusion.PreMergeValidation.Rules;
 
 namespace HotChocolate.Composition.PreMergeValidation.Rules;
 
-public sealed class LookupMustNotReturnListRuleTests : CompositionTestBase
+public sealed class LookupReturnsListRuleTests : CompositionTestBase
 {
-    private readonly PreMergeValidator _preMergeValidator =
-        new([new LookupMustNotReturnListRule()]);
+    private readonly PreMergeValidator _preMergeValidator = new([new LookupReturnsListRule()]);
 
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
@@ -37,7 +36,7 @@ public sealed class LookupMustNotReturnListRuleTests : CompositionTestBase
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
-        Assert.True(context.Log.All(e => e.Code == "LOOKUP_MUST_NOT_RETURN_LIST"));
+        Assert.True(context.Log.All(e => e.Code == "LOOKUP_RETURNS_LIST"));
         Assert.True(context.Log.All(e => e.Severity == LogSeverity.Error));
     }
 

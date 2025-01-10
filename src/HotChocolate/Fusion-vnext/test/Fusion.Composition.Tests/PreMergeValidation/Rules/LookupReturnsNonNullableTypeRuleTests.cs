@@ -4,10 +4,10 @@ using HotChocolate.Fusion.PreMergeValidation.Rules;
 
 namespace HotChocolate.Composition.PreMergeValidation.Rules;
 
-public sealed class LookupShouldHaveNullableReturnTypeRuleTests : CompositionTestBase
+public sealed class LookupReturnsNonNullableTypeRuleTests : CompositionTestBase
 {
     private readonly PreMergeValidator _preMergeValidator =
-        new([new LookupShouldHaveNullableReturnTypeRule()]);
+        new([new LookupReturnsNonNullableTypeRule()]);
 
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
@@ -37,7 +37,7 @@ public sealed class LookupShouldHaveNullableReturnTypeRuleTests : CompositionTes
         // assert
         Assert.True(result.IsSuccess);
         Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
-        Assert.True(context.Log.All(e => e.Code == "LOOKUP_SHOULD_HAVE_NULLABLE_RETURN_TYPE"));
+        Assert.True(context.Log.All(e => e.Code == "LOOKUP_RETURNS_NON_NULLABLE_TYPE"));
         Assert.True(context.Log.All(e => e.Severity == LogSeverity.Warning));
     }
 

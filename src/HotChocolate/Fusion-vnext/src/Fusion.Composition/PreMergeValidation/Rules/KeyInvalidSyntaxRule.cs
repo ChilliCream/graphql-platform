@@ -17,7 +17,7 @@ internal sealed class KeyInvalidSyntaxRule : IEventHandler<KeyFieldsInvalidSynta
 {
     public void Handle(KeyFieldsInvalidSyntaxEvent @event, CompositionContext context)
     {
-        var (entityType, keyDirective, schema) = @event;
+        var (keyDirective, entityType, schema) = @event;
 
         context.Log.Write(KeyInvalidSyntax(entityType.Name, keyDirective, schema));
     }

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -20,7 +21,7 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
         var (fieldName, fieldGroup, typeName) = @event;
 
         var externalFields = fieldGroup
-            .Where(i => ValidationHelper.IsExternal(i.Field))
+            .Where(i => i.Field.HasExternalDirective())
             .ToImmutableArray();
 
         if (externalFields.Length == 0)

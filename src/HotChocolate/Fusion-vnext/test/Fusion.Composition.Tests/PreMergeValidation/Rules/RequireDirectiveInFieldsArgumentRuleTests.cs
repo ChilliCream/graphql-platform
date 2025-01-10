@@ -104,7 +104,7 @@ public sealed class RequireDirectiveInFieldsArgumentRuleTests : CompositionTestB
 
                     type Profile {
                         id: ID!
-                        info: ProfileInfo!
+                        info: ProfileInfo
                     }
 
                     type ProfileInfo {

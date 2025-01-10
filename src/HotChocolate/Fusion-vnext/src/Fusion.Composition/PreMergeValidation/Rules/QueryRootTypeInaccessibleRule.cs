@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
@@ -19,7 +20,7 @@ internal sealed class QueryRootTypeInaccessibleRule : IEventHandler<SchemaEvent>
         var schema = @event.Schema;
         var rootQuery = schema.QueryType;
 
-        if (rootQuery is not null && !ValidationHelper.IsAccessible(rootQuery))
+        if (rootQuery?.HasInaccessibleDirective() == true)
         {
             context.Log.Write(QueryRootTypeInaccessible(rootQuery, schema));
         }

@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -21,7 +22,7 @@ internal sealed class OverrideOnInterfaceRule : IEventHandler<OutputFieldEvent>
     {
         var (field, type, schema) = @event;
 
-        if (type is InterfaceTypeDefinition && ValidationHelper.HasOverrideDirective(field))
+        if (type is InterfaceTypeDefinition && field.HasOverrideDirective())
         {
             context.Log.Write(OverrideOnInterface(field, type, schema));
         }

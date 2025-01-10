@@ -100,7 +100,7 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     }
                     """
                 ]
-            },
+            }
         };
     }
 
@@ -124,8 +124,8 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "Input field 'AuthorInput.birthdate' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'."
+                    "The input field 'AuthorInput.birthdate' has a different type shape in " +
+                    "schema 'A' than it does in schema 'B'."
                 ]
             },
             // List versus non-list.
@@ -143,8 +143,8 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "Input field 'AuthorInput.birthdate' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'."
+                    "The input field 'AuthorInput.birthdate' has a different type shape in " +
+                    "schema 'A' than it does in schema 'B'."
                 ]
             }
         };

@@ -21,7 +21,7 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
     {
         var (field, type, schema) = @event;
 
-        if (ValidationHelper.HasProvidesDirective(field))
+        if (field.HasProvidesDirective())
         {
             var fieldType = field.Type.NamedType();
 

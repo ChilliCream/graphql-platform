@@ -115,10 +115,6 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     type ProductCategory {
                         description: String
                     }
-
-                    type ProductInfo {
-                        updatedAt: DateTime!
-                    }
                     """
                 ],
                 [
