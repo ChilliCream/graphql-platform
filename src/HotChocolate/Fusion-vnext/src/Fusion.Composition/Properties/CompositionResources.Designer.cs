@@ -69,6 +69,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Source schema validation failed. View the composition log for details..
+        /// </summary>
+        internal static string ErrorHelper_SourceSchemaValidationFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SourceSchemaValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleBuiltInScalar {

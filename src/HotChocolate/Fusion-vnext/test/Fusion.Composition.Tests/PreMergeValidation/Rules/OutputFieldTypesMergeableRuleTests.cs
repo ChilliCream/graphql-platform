@@ -1,5 +1,5 @@
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.PreMergeValidation;
 using HotChocolate.Fusion.PreMergeValidation.Rules;
 
 namespace HotChocolate.Composition.PreMergeValidation.Rules;
