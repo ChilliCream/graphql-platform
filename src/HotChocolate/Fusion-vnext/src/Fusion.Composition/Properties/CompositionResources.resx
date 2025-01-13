@@ -21,6 +21,9 @@
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed. View the composition log for details.</value>
   </data>
+  <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
+    <value>Source schema validation failed. View the composition log for details.</value>
+  </data>
   <data name="LogEntryHelper_DisallowedInaccessibleBuiltInScalar" xml:space="preserve">
     <value>The built-in scalar type '{0}' in schema '{1}' is not accessible.</value>
   </data>
