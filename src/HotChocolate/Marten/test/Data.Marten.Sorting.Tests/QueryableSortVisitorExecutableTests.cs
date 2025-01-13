@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
@@ -39,14 +38,10 @@ public class QueryableSortVisitorExecutableTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -91,14 +86,10 @@ public class QueryableSortVisitorExecutableTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 

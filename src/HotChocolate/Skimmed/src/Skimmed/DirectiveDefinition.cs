@@ -8,13 +8,13 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a GraphQL directive definition.
 /// </summary>
-public class DirectiveDefinition(string name)
+public class DirectiveDefinition
     : INamedTypeSystemMemberDefinition<DirectiveDefinition>
     , IDescriptionProvider
     , IFeatureProvider
     , ISealable
 {
-    private string _name = name.EnsureGraphQLName();
+    private string _name;
     private IInputFieldDefinitionCollection? _arguments;
     private IFeatureCollection? _features;
     private string? _description;
@@ -22,6 +22,14 @@ public class DirectiveDefinition(string name)
     private bool _isRepeatable;
     private DirectiveLocation _locations;
     private bool _isReadOnly;
+
+    /// <summary>
+    /// Represents a GraphQL directive definition.
+    /// </summary>
+    public DirectiveDefinition(string name)
+    {
+        _name = name.EnsureGraphQLName();
+    }
 
     /// <summary>
     /// Gets or sets the name of the directive.

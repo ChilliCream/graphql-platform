@@ -136,6 +136,7 @@ Rgba
 Rhai
 Roslynator
 runbooks
+Satisfiability
 Senn
 shoooe
 Skywalker
@@ -152,6 +153,7 @@ Storeless
 strawberryshake
 streamable
 Structs
+subgraphs
 sublicensable
 supergraph
 Swashbuckle

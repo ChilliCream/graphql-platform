@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;

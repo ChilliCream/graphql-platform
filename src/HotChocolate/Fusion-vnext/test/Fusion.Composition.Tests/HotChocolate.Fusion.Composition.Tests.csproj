@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Composition.Tests</AssemblyName>
@@ -9,6 +9,10 @@
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
   </ItemGroup>
 
 </Project>

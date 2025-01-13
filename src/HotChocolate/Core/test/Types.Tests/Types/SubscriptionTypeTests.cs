@@ -7,7 +7,6 @@
 #nullable enable
 
 using System.Runtime.CompilerServices;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
 using HotChocolate.Tests;

@@ -19,35 +19,41 @@ namespace TestNamespace
 {
     internal static class TestTypeResolvers
     {
+        private static readonly object _sync = new object();
         private static bool _bindingsInitialized;
         private readonly static global::HotChocolate.Internal.IParameterBinding[] _args_TestType_GetTest = new global::HotChocolate.Internal.IParameterBinding[1];
 
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
-            if (_bindingsInitialized)
+            if (!_bindingsInitialized)
             {
-                return;
-            }
-            _bindingsInitialized = true;
-
-            const global::System.Reflection.BindingFlags bindingFlags =
-                global::System.Reflection.BindingFlags.Public
-                    | global::System.Reflection.BindingFlags.NonPublic
-                    | global::System.Reflection.BindingFlags.Static;
-
-            var type = typeof(global::TestNamespace.TestType);
-            global::System.Reflection.MethodInfo resolver = default!;
-            global::System.Reflection.ParameterInfo[] parameters = default!;
-
-            resolver = type.GetMethod(
-                "GetTest",
-                bindingFlags,
-                new global::System.Type[]
+                lock (_sync)
                 {
-                    typeof(int)
-                })!;
-            parameters = resolver.GetParameters();
-            _args_TestType_GetTest[0] = bindingResolver.GetBinding(parameters[0]);
+                    if (!_bindingsInitialized)
+                    {
+
+                        const global::System.Reflection.BindingFlags bindingFlags =
+                            global::System.Reflection.BindingFlags.Public
+                                | global::System.Reflection.BindingFlags.NonPublic
+                                | global::System.Reflection.BindingFlags.Static;
+
+                        var type = typeof(global::TestNamespace.TestType);
+                        global::System.Reflection.MethodInfo resolver = default!;
+                        global::System.Reflection.ParameterInfo[] parameters = default!;
+                        _bindingsInitialized = true;
+
+                        resolver = type.GetMethod(
+                            "GetTest",
+                            bindingFlags,
+                            new global::System.Type[]
+                            {
+                                typeof(int)
+                            })!;
+                        parameters = resolver.GetParameters();
+                        _args_TestType_GetTest[0] = bindingResolver.GetBinding(parameters[0]);
+                    }
+                }
+            }
         }
 
         public static HotChocolate.Resolvers.FieldResolverDelegates TestType_GetTest()

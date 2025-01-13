@@ -13,6 +13,11 @@ public interface ITypeDefinition : IEquatable<ITypeDefinition>
     TypeKind Kind { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the type is an introspection type.
+    /// </summary>
+    bool IsIntrospectionType => this is INamedTypeDefinition type && type.Name.StartsWith("__");
+
+    /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.
     /// </summary>
     /// <param name="other">

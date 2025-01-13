@@ -27,6 +27,24 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Accounts_And_Reviews_With_Cost()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync(enableCost: true);
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+        [
+            demoProject.Accounts.ToConfiguration(AccountsExtensionWithCostSdl),
+            demoProject.Reviews.ToConfiguration(ReviewsExtensionWithCostSdl)
+        ]);
+
+        fusionConfig.MatchSnapshot(extension: ".graphql");
+    }
+
+
+    [Fact]
     public async Task Accounts_And_Reviews_Infer_Patterns()
     {
         // arrange

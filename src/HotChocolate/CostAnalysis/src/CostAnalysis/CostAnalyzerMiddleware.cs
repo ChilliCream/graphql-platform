@@ -14,7 +14,7 @@ namespace HotChocolate.CostAnalysis;
 
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
-    [SchemaService] CostOptions options,
+    [SchemaService] RequestCostOptions options,
     DocumentValidatorContextPool contextPool,
     ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
@@ -35,7 +35,8 @@ internal sealed class CostAnalyzerMiddleware(
             context.OperationId = operationId;
         }
 
-        var mode = context.GetCostAnalyzerMode(options);
+        var requestOptions = context.TryGetCostOptions() ?? options;
+        var mode = context.GetCostAnalyzerMode(requestOptions);
 
         if (mode == CostAnalyzerMode.Skip)
         {
@@ -43,7 +44,7 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        if (!TryAnalyze(context, mode, context.Document, operationId, out var costMetrics))
+        if (!TryAnalyze(context, requestOptions, mode, context.Document, operationId, out var costMetrics))
         {
             // a error happened during the analysis and the error is already set.
             return;
@@ -65,6 +66,7 @@ internal sealed class CostAnalyzerMiddleware(
 
     private bool TryAnalyze(
         IRequestContext context,
+        RequestCostOptions requestOptions,
         CostAnalyzerMode mode,
         DocumentNode document,
         string operationId,
@@ -80,12 +82,13 @@ internal sealed class CostAnalyzerMiddleware(
                 // we check if the operation was already resolved by another middleware,
                 // if not we resolve the operation.
                 var operationDefinition =
-                    context.Operation?.Definition ?? document.GetOperation(context.Request.OperationName);
+                    context.Operation?.Definition
+                        ?? document.GetOperation(context.Request.OperationName);
 
                 validatorContext = contextPool.Get();
                 PrepareContext(context, document, validatorContext);
 
-                var analyzer = new CostAnalyzer(options);
+                var analyzer = new CostAnalyzer(requestOptions);
                 costMetrics = analyzer.Analyze(operationDefinition, validatorContext);
                 cache.TryAddCostMetrics(operationId, costMetrics);
             }
@@ -95,20 +98,20 @@ internal sealed class CostAnalyzerMiddleware(
 
             if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
             {
-                if (costMetrics.FieldCost > options.MaxFieldCost)
+                if (costMetrics.FieldCost > requestOptions.MaxFieldCost)
                 {
                     context.Result = ErrorHelper.MaxFieldCostReached(
                         costMetrics,
-                        options.MaxFieldCost,
+                        requestOptions.MaxFieldCost,
                         (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
                     return false;
                 }
 
-                if (costMetrics.TypeCost > options.MaxTypeCost)
+                if (costMetrics.TypeCost > requestOptions.MaxTypeCost)
                 {
                     context.Result = ErrorHelper.MaxTypeCostReached(
                         costMetrics,
-                        options.MaxTypeCost,
+                        requestOptions.MaxTypeCost,
                         (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
                     return false;
                 }
@@ -155,7 +158,7 @@ internal sealed class CostAnalyzerMiddleware(
         return (core, next) =>
         {
             // this needs to be a schema service
-            var options = core.SchemaServices.GetRequiredService<CostOptions>();
+            var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
             var contextPool = core.Services.GetRequiredService<DocumentValidatorContextPool>();
             var cache = core.Services.GetRequiredService<ICostMetricsCache>();
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();

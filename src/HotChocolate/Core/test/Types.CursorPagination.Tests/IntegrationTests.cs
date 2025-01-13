@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;

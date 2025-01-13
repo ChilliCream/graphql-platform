@@ -140,6 +140,7 @@ namespace TestNamespace
 {
     internal static class ATestBAttrTypeResolvers
     {
+        private static readonly object _sync = new object();
         private static bool _bindingsInitialized;
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
@@ -148,6 +149,7 @@ namespace TestNamespace
 
     internal static class ATestAAttrTypeResolvers
     {
+        private static readonly object _sync = new object();
         private static bool _bindingsInitialized;
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {

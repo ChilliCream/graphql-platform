@@ -1,4 +1,4 @@
-using CookieCrumble;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace StrawberryShake.Tools.Configuration;
