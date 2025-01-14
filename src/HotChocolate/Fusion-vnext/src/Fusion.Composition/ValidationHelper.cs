@@ -5,26 +5,6 @@ namespace HotChocolate.Fusion;
 
 internal sealed class ValidationHelper
 {
-    public static bool HasProvidesDirective(IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Provides);
-    }
-
-    public static bool IsAccessible(IDirectivesProvider type)
-    {
-        return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
-    }
-
-    public static bool IsExternal(IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.External);
-    }
-
-    public static bool IsLookup(IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Lookup);
-    }
-
     /// <summary>
     /// Returns <c>true</c> if the specified <paramref name="field"/> has a <c>@provides</c>
     /// directive that references the specified <paramref name="fieldName"/>.

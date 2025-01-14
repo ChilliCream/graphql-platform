@@ -100,18 +100,18 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry EnumTypesInconsistent(
+    public static LogEntry EnumValuesMismatch(
         EnumTypeDefinition enumType,
         string enumValue,
         SchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(
-                LogEntryHelper_EnumTypesInconsistent,
+                LogEntryHelper_EnumValuesMismatch,
                 enumType.Name,
                 schema.Name,
                 enumValue),
-            LogEntryCodes.EnumTypesInconsistent,
+            LogEntryCodes.EnumValuesMismatch,
             LogSeverity.Error,
             new SchemaCoordinate(enumType.Name),
             enumType,
@@ -180,6 +180,28 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry FieldArgumentTypesNotMergeable(
+        InputFieldDefinition argument,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schemaA,
+        SchemaDefinition schemaB)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argument.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_FieldArgumentTypesNotMergeable,
+                coordinate,
+                schemaA.Name,
+                schemaB.Name),
+            LogEntryCodes.FieldArgumentTypesNotMergeable,
+            LogSeverity.Error,
+            coordinate,
+            argument,
+            schemaA);
+    }
+
     public static LogEntry InputFieldDefaultMismatch(
         IValueNode defaultValueA,
         IValueNode defaultValueB,
@@ -224,6 +246,24 @@ internal static class LogEntryHelper
             coordinate,
             field,
             schemaA);
+    }
+
+    public static LogEntry InputWithMissingRequiredFields(
+        string requiredFieldName,
+        InputObjectTypeDefinition inputType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_InputWithMissingRequiredFields,
+                inputType.Name,
+                schema.Name,
+                requiredFieldName),
+            LogEntryCodes.InputWithMissingRequiredFields,
+            LogSeverity.Error,
+            new SchemaCoordinate(inputType.Name),
+            inputType,
+            schema);
     }
 
     public static LogEntry KeyDirectiveInFieldsArgument(
@@ -305,6 +345,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry KeyInvalidFieldsType(
+        Directive keyDirective,
+        string entityTypeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(entityTypeName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_KeyInvalidFieldsType, coordinate, schema.Name),
+            LogEntryCodes.KeyInvalidFieldsType,
+            LogSeverity.Error,
+            coordinate,
+            keyDirective,
+            schema);
+    }
+
     public static LogEntry KeyInvalidSyntax(
         string entityTypeName,
         Directive keyDirective,
@@ -322,7 +378,7 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry LookupMustNotReturnList(
+    public static LogEntry LookupReturnsList(
         OutputFieldDefinition field,
         INamedTypeDefinition type,
         SchemaDefinition schema)
@@ -331,17 +387,17 @@ internal static class LogEntryHelper
 
         return new LogEntry(
             string.Format(
-                LogEntryHelper_LookupMustNotReturnList,
+                LogEntryHelper_LookupReturnsList,
                 coordinate,
                 schema.Name),
-            LogEntryCodes.LookupMustNotReturnList,
+            LogEntryCodes.LookupReturnsList,
             LogSeverity.Error,
             coordinate,
             field,
             schema);
     }
 
-    public static LogEntry LookupShouldHaveNullableReturnType(
+    public static LogEntry LookupReturnsNonNullableType(
         OutputFieldDefinition field,
         INamedTypeDefinition type,
         SchemaDefinition schema)
@@ -350,10 +406,10 @@ internal static class LogEntryHelper
 
         return new LogEntry(
             string.Format(
-                LogEntryHelper_LookupShouldHaveNullableReturnType,
+                LogEntryHelper_LookupReturnsNonNullableType,
                 coordinate,
                 schema.Name),
-            LogEntryCodes.LookupShouldHaveNullableReturnType,
+            LogEntryCodes.LookupReturnsNonNullableType,
             LogSeverity.Warning,
             coordinate,
             field,
@@ -379,6 +435,39 @@ internal static class LogEntryHelper
             coordinate,
             field,
             schemaA);
+    }
+
+    public static LogEntry OverrideFromSelf(
+        Directive overrideDirective,
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_OverrideFromSelf, coordinate, schema.Name),
+            LogEntryCodes.OverrideFromSelf,
+            LogSeverity.Error,
+            coordinate,
+            overrideDirective,
+            schema);
+    }
+
+    public static LogEntry OverrideOnInterface(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_OverrideOnInterface, coordinate, schema.Name),
+            LogEntryCodes.OverrideOnInterface,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
     }
 
     public static LogEntry ProvidesDirectiveInFieldsArgument(
@@ -443,6 +532,40 @@ internal static class LogEntryHelper
                 schema.Name,
                 new SchemaCoordinate(providedTypeName, providedFieldName)),
             LogEntryCodes.ProvidesFieldsMissingExternal,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
+    public static LogEntry ProvidesInvalidFieldsType(
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ProvidesInvalidFieldsType, coordinate, schema.Name),
+            LogEntryCodes.ProvidesInvalidFieldsType,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema);
+    }
+
+    public static LogEntry ProvidesInvalidSyntax(
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ProvidesInvalidSyntax, coordinate, schema.Name),
+            LogEntryCodes.ProvidesInvalidSyntax,
             LogSeverity.Error,
             coordinate,
             providesDirective,
