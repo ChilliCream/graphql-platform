@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Filters
 
                 while (operations.Count != 0)
                 {
-                    combined = combine(combined, operations.Dequeue());
+                    combined = combine(operations.Dequeue(), combined);
                 }
 
                 return true;
