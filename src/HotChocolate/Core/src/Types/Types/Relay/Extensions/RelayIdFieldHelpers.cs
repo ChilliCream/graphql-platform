@@ -261,7 +261,7 @@ internal static class RelayIdFieldHelpers
         return new GlobalIdInputValueFormatter(
             completionContext.DescriptorContext.NodeIdSerializerAccessor,
             resultTypeInfo.NamedType,
-            resultType.ElementType?.Type ?? resultTypeInfo.NamedType,
+            resultType.ElementType?.Source ?? resultTypeInfo.NamedType,
             typeName ?? completionContext.Type.Name,
             validateType);
     }
