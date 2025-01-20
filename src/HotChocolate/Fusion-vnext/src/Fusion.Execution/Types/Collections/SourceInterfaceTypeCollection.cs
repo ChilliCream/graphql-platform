@@ -5,8 +5,8 @@ namespace HotChocolate.Fusion.Types.Collections;
 
 public class SourceInterfaceTypeCollection(IEnumerable<SourceInterfaceType> members)
     : SourceMemberCollection<SourceInterfaceType>(members)
-        , ISourceComplexTypeCollection<SourceInterfaceType>
-        , ISourceComplexTypeCollection<ISourceComplexType>
+    , ISourceComplexTypeCollection<SourceInterfaceType>
+    , ISourceComplexTypeCollection<ISourceComplexType>
 {
     ISourceComplexType ISourceMemberCollection<ISourceComplexType>.this[string schemaName]
         => this[schemaName];

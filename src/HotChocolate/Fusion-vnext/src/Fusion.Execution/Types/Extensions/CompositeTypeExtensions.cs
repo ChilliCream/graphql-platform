@@ -20,8 +20,14 @@ public static class CompositeTypeExtensions
         }
     }
 
+    // TODO : Include union types
     public static bool IsEntity(this ICompositeNamedType type)
     {
-        return true;
+        if(type is CompositeComplexType complexType)
+        {
+            return complexType.IsEntity;
+        }
+
+        return false;
     }
 }

@@ -87,7 +87,6 @@ public sealed class CompositeSchema
     /// The specified type does not exist or is not of the
     /// specified type kind.
     /// </exception>
-    [return: NotNull]
     public ICompositeNamedType GetType(string typeName)
         => GetType<ICompositeNamedType>(typeName);
 

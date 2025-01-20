@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Planning;
 // TODO: We need to merge selections
 public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
 {
-    public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
+    public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
     {
         var operation = document.GetOperation(operationName);
         var operationType = schema.GetOperationType(operation.Operation);
@@ -109,7 +109,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         }
         else
         {
-            var field = ((CompositeComplexType)context.Type).Fields[fieldNode.ResponseName()];
+            var field = ((CompositeComplexType)context.Type).Fields[fieldNode.Name.Value];
             var fieldContext = context.Branch(field.Type.NamedType());
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);

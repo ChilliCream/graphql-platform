@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 
 namespace HotChocolate.Fusion.Types;
@@ -13,4 +14,6 @@ public sealed class SourceObjectType(
     public string SchemaName { get; } = schemaName;
 
     public ImmutableArray<Lookup> Lookups { get; } = lookups;
+
+    public IReadOnlySet<string> Implements { get; } = FrozenSet<string>.Empty;
 }
