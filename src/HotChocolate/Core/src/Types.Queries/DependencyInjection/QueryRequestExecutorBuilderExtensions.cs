@@ -3,13 +3,13 @@ using HotChocolate.Execution.Configuration;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Provides global configuration methods for mutation conventions to the
+/// Provides global configuration methods for query conventions to the
 /// <see cref="IRequestExecutorBuilder"/>.
 /// </summary>
 public static class QueryRequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Enables mutation conventions which will simplify creating GraphQL mutations.
+    /// Enables query conventions which will simplify creating GraphQL queries.
     /// </summary>
     /// <param name="builder">
     /// The request executor builder
