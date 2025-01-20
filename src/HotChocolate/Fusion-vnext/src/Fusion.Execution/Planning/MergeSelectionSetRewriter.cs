@@ -7,7 +7,13 @@ public class MergeSelectionSetRewriter(CompositeSchema schema)
 {
     private readonly InlineFragmentOperationRewriter _rewriter = new(schema);
 
-    public SelectionSetNode RewriteSelectionSets(
+    public SelectionSetNode Merge(
+        SelectionSetNode selectionSet1,
+        SelectionSetNode selectionSet2,
+        ICompositeNamedType type)
+        => Merge([selectionSet1, selectionSet2], type);
+
+    public SelectionSetNode Merge(
         IReadOnlyList<SelectionSetNode> selectionSets,
         ICompositeNamedType type)
     {

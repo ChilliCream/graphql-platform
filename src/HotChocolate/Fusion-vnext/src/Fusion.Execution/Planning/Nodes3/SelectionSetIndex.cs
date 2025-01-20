@@ -10,6 +10,9 @@ public sealed class SelectionSetIndex(ImmutableDictionary<SelectionSetNode, int>
     public int GetSelectionSetId(SelectionSetNode selectionSet)
         => _selectionSets[selectionSet];
 
+    public bool TryGetSelectionSetId(SelectionSetNode selectionSet, out int id)
+        => _selectionSets.TryGetValue(selectionSet, out id);
+
     public void RegisterSelectionSet(SelectionSetNode original, SelectionSetNode branch)
     {
         var id = _selectionSets[original];

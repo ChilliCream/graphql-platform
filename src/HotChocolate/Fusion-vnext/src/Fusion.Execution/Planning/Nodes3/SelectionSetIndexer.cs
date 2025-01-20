@@ -6,6 +6,7 @@ namespace HotChocolate.Fusion.Planning.Nodes3;
 
 public sealed class SelectionSetIndexer : SyntaxWalker
 {
+    private static readonly SelectionSetVisitor _selectionSetVisitor = new();
     private int _nextId = 1;
     private readonly Dictionary<SelectionSetNode, int> _selectionSetIds = new();
 
@@ -16,9 +17,32 @@ public sealed class SelectionSetIndexer : SyntaxWalker
         return new SelectionSetIndex(indexer._selectionSetIds.ToImmutableDictionary());
     }
 
+    public static ImmutableHashSet<int> CreateIdSet(SelectionSetNode selectionSet, SelectionSetIndex index)
+    {
+        var context = new SelectionSetVisitor.Context(index);
+        _selectionSetVisitor.Visit(selectionSet, context);
+        return context.SelectionSets.ToImmutable();
+    }
+
     protected override ISyntaxVisitorAction Enter(SelectionSetNode node, object? context)
     {
         _selectionSetIds[node] = _nextId++;
         return base.Enter(node, context);
+    }
+
+    private sealed class SelectionSetVisitor : SyntaxWalker<SelectionSetVisitor.Context>
+    {
+        protected override ISyntaxVisitorAction Enter(SelectionSetNode node, Context context)
+        {
+            context.SelectionSets.Add(context.Index.GetSelectionSetId(node));
+            return base.Enter(node, context);
+        }
+
+        public sealed class Context(SelectionSetIndex index)
+        {
+            public ImmutableHashSet<int>.Builder SelectionSets { get; } = ImmutableHashSet.CreateBuilder<int>();
+
+            public SelectionSetIndex Index { get; } = index;
+        }
     }
 }

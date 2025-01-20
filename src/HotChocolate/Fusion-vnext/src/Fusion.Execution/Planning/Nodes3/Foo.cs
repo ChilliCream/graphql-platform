@@ -3,52 +3,63 @@ using System.ComponentModel.Design;
 using HotChocolate.Fusion.Planning.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Fusion.Planning.Nodes3;
 
-public abstract record PlanNode
+public record PlanNode
 {
-    public required int Id { get; init; }
-
     public PlanNode? Previous { get; init; }
 
-    public abstract ISyntaxNode SyntaxNode { get; }
+    public required PlanNodeKind Kind { get; init; }
 
     public required SelectionPath Path { get; init; }
 
     public required string SchemaName { get; init; }
 
-    public required string NextSchemaName { get; init; }
+    public required SelectionSetIndex SelectionSetIndex { get; init; }
+
+    public required ImmutableStack<BacklogItem> Backlog { get; init; }
+
+    public ImmutableList<PlanStep> Steps { get; init; } = ImmutableList<PlanStep>.Empty;
+
+    public Lookup? Lookup { get; init; }
 
     public double PathCost { get; init; }
 
     public double BacklogCost { get; init; }
 
-    public required ImmutableQueue<BacklogItem> Backlog { get; init; }
-
     public double TotalCost => PathCost + BacklogCost;
-
-    // public required ImmutableDictionary<int, ImmutableList<AvailableField>> Fields { get; init; }
 }
 
-public record OperationPlanNode : PlanNode
+public abstract record PlanStep;
+
+public record OperationPlanStep : PlanStep
 {
-    public required SelectionSetNode SelectionSet { get; init; }
+    public required OperationDefinitionNode Definition { get; init; }
 
     public required ICompositeNamedType Type { get; init; }
 
-    public override ISyntaxNode SyntaxNode => SelectionSet;
+    public required ImmutableHashSet<int> SelectionSets { get; init; }
+
+    public required string SchemaName { get; init; }
+}
+
+public enum PlanNodeKind
+{
+    Root,
+    InlineLookupRequirements,
+    ResolveLookupRequirements,
+    ResolveLookupSelections,
+    Complete
 }
 
 public sealed record BacklogItem(
+    PlanNodeKind Kind,
     SelectionPath Path,
     ISyntaxNode Node,
-    int SelectionSetId,
     SelectionSetNode SelectionSet,
+    int SelectionSetId,
     ICompositeNamedType Type);
 
-public enum BacklogItemKind
-{
-    Selections,
-    Requirements
-}
+

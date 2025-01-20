@@ -11,21 +11,22 @@ public readonly ref struct SelectionSetPartitionerInput
     public required SelectionPath SelectionPath { get; init; }
     public required ICompositeNamedType Type { get; init; }
     public required SelectionSetNode SelectionSetNode { get; init; }
-    public required SelectionSetIndex SelectionSetIndex { get; init; }
     public SelectionSetNode? ProvidedSelectionSetNode { get; init; }
 }
 
 public class SelectionSetPartitioner(CompositeSchema schema)
 {
-    public SelectionSetNode? Partition(
+    public (SelectionSetNode?, SelectionSetNode?) Partition(
         SelectionSetPartitionerInput input,
-        ref ImmutableQueue<BacklogItem> backlog)
+        ref SelectionSetIndex selectionSetIndex,
+        ref ImmutableStack<BacklogItem> backlog)
     {
-        var context = new Context(input.SelectionSetIndex)
+        var context = new Context
         {
             SchemaName = input.SchemaName,
             AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionPath,
+            SelectionSetIndex = selectionSetIndex,
             Backlog = backlog
         };
 
@@ -36,13 +37,9 @@ public class SelectionSetPartitioner(CompositeSchema schema)
                 input.SelectionSetNode,
                 input.ProvidedSelectionSetNode);
 
-        if (unresolvable is not null)
-        {
-            backlog = context.Backlog;
-        }
-
+        selectionSetIndex = context.SelectionSetIndex;
         backlog = context.Backlog;
-        return resolvable;
+        return (resolvable, unresolvable);
     }
 
     private (SelectionSetNode?, SelectionSetNode?) RewriteSelectionSet(
@@ -105,19 +102,23 @@ public class SelectionSetPartitioner(CompositeSchema schema)
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
             context.RegisterSelectionSet(selectionSetNode, unresolvableSelectionSet);
 
-            context.Backlog = context.Backlog.Enqueue(
-                new BacklogItem(
-                    context.BuildPath(),
-                    context.Nodes.Peek(),
-                    context.GetSelectionSetId(selectionSetNode),
-                    unresolvableSelectionSet,
-                    type));
+            var workItem = new BacklogItem(
+                PlanNodeKind.InlineLookupRequirements,
+                context.BuildPath(),
+                context.Nodes.Peek(),
+                unresolvableSelectionSet,
+                context.GetSelectionSetId(selectionSetNode),
+                type);
+
+            context.Backlog = context.Backlog.Push(workItem);
             unresolvableSelections = null;
         }
 
         var result =
         (
-            Resolvable: selectionSetNode.WithSelections(resolvableSelections ?? selectionSetNode.Selections),
+            Resolvable:
+                selectionSetNode.WithSelections(resolvableSelections
+                    ?? selectionSetNode.Selections),
             Unresolvable: unresolvableSelections is not null
                 ? selectionSetNode.WithSelections(unresolvableSelections)
                 : null
@@ -272,33 +273,25 @@ public class SelectionSetPartitioner(CompositeSchema schema)
         );
     }
 
-    private sealed class RootState(SelectionSetIndex selectionSetIndex)
+    private sealed class Context
     {
-        private SelectionSetIndex _selectionSetIndex = selectionSetIndex;
-        private bool _isBranched;
-
-        public SelectionSetIndex SelectionSetIndex => _selectionSetIndex;
-
-        public void EnsureBranched()
-        {
-            if (_isBranched)
-            {
-                return;
-            }
-
-            _selectionSetIndex = _selectionSetIndex.Branch();
-            _isBranched = true;
-        }
-    }
-
-    private sealed class Context(SelectionSetIndex selectionSetIndex)
-    {
-        private readonly RootState _rootState = new(selectionSetIndex);
+        private SelectionSetIndex _selectionSetIndex = null!;
+        private bool _isIndexBranched;
 
         public required string SchemaName { get; init; }
+
         public required bool AllowRequirements { get; init; }
+
         public required SelectionPath RootPath { get; init; }
-        public required ImmutableQueue<BacklogItem> Backlog { get; set; }
+
+        public required SelectionSetIndex SelectionSetIndex
+        {
+            get => _selectionSetIndex;
+            init => _selectionSetIndex = value;
+        }
+
+        public required ImmutableStack<BacklogItem> Backlog { get; set; }
+
         public Stack<ISyntaxNode> Nodes { get; } = new();
 
         public SelectionPath BuildPath()
@@ -323,7 +316,7 @@ public class SelectionSetPartitioner(CompositeSchema schema)
         }
 
         public int GetSelectionSetId(SelectionSetNode selectionSetNode)
-            => _rootState.SelectionSetIndex.GetSelectionSetId(selectionSetNode);
+            => _selectionSetIndex.GetSelectionSetId(selectionSetNode);
 
         public void RegisterSelectionSet(SelectionSetNode original, SelectionSetNode branch)
         {
@@ -332,13 +325,24 @@ public class SelectionSetPartitioner(CompositeSchema schema)
                 return;
             }
 
-            if(_rootState.SelectionSetIndex.IsRegistered(branch))
+            if(_selectionSetIndex.IsRegistered(branch))
             {
                 return;
             }
 
-            _rootState.EnsureBranched();
-            _rootState.SelectionSetIndex.RegisterSelectionSet(original, branch);
+            EnsureBranched();
+            _selectionSetIndex.RegisterSelectionSet(original, branch);
+        }
+
+        private void EnsureBranched()
+        {
+            if (_isIndexBranched)
+            {
+                return;
+            }
+
+            _selectionSetIndex = _selectionSetIndex.Branch();
+            _isIndexBranched = true;
         }
     }
 }

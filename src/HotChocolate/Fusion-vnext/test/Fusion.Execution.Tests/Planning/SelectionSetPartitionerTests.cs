@@ -44,7 +44,7 @@ public class SelectionSetPartitionerTests
 
         var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
         var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
-        var selectionSetIndex = SelectionSetIndexer.Create(operation);
+        var index = SelectionSetIndexer.Create(operation);
 
         // act
         var input = new SelectionSetPartitionerInput
@@ -52,13 +52,12 @@ public class SelectionSetPartitionerTests
             SchemaName = "PRODUCTS",
             Type = compositeSchema.QueryType,
             SelectionSetNode = operation.SelectionSet,
-            SelectionSetIndex = selectionSetIndex,
             SelectionPath = SelectionPath.Root,
             AllowRequirements = false
         };
-        var backlog = ImmutableQueue<BacklogItem>.Empty;
+        var backlog = ImmutableStack<BacklogItem>.Empty;
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var rewritten = rewriter.Partition(input, ref backlog);
+        var rewritten = rewriter.Partition(input, ref index, ref backlog);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -116,7 +115,7 @@ public class SelectionSetPartitionerTests
 
         var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
         var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
-        var selectionSetIndex = SelectionSetIndexer.Create(operation);
+        var index = SelectionSetIndexer.Create(operation);
 
         // act
         var input = new SelectionSetPartitionerInput
@@ -124,13 +123,12 @@ public class SelectionSetPartitionerTests
             SchemaName = "PRODUCTS",
             Type = compositeSchema.QueryType,
             SelectionSetNode = operation.SelectionSet,
-            SelectionSetIndex = selectionSetIndex,
             SelectionPath = SelectionPath.Root,
             AllowRequirements = false
         };
-        var backlog = ImmutableQueue<BacklogItem>.Empty;
+        var backlog = ImmutableStack<BacklogItem>.Empty;
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var rewritten = rewriter.Partition(input, ref backlog);
+        var rewritten = rewriter.Partition(input, ref index, ref backlog);
 
         // assert
         rewritten.MatchInlineSnapshot(

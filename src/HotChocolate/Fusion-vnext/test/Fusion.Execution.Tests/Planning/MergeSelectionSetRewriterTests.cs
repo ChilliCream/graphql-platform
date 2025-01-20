@@ -37,7 +37,7 @@ public class MergeSelectionSetRewriterTests
 
         // act
         var rewriter = new MergeSelectionSetRewriter(compositeSchema);
-        var rewritten = rewriter.RewriteSelectionSets([selectionSet1, selectionSet2], productType);
+        var rewritten = rewriter.Merge([selectionSet1, selectionSet2], productType);
 
         // assert
         rewritten.MatchInlineSnapshot(
