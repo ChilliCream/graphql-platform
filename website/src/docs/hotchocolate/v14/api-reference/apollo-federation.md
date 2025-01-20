@@ -20,7 +20,7 @@ After installing the necessary package, you'll need to register the Apollo Feder
 
 ```csharp
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddApolloFederation();
 ```
 
@@ -295,7 +295,7 @@ _Entity type registration_
 
 ```csharp
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<Product>()
     // other registrations...
@@ -308,7 +308,7 @@ builder.Services
 
 ```csharp
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<ProductType>()
     // other registrations...
@@ -395,7 +395,7 @@ public class Product
 
 // In your Program
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<Product>();
 ```
@@ -423,7 +423,7 @@ public class ProductType : ObjectType<Product>
 
 // In your Program
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<ProductType>();
 ```
@@ -467,7 +467,7 @@ public class Review
 
 // In your Program
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<Product>()
     .AddType<Review>();
@@ -507,7 +507,7 @@ public class ReviewType : ObjectType<Review>
 
 // In your Program
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<ProductType>()
     .AddType<ReviewType>();
