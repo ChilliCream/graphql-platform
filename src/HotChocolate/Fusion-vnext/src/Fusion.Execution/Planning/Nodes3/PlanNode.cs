@@ -7,17 +7,13 @@ public record PlanNode
 {
     public PlanNode? Previous { get; init; }
 
-    public required SelectionPath Path { get; init; }
-
     public required string SchemaName { get; init; }
 
     public required ISelectionSetIndex SelectionSetIndex { get; init; }
 
-    public required ImmutableStack<BacklogItem> Backlog { get; init; }
+    public required ImmutableStack<WorkItem> Backlog { get; init; }
 
     public ImmutableList<PlanStep> Steps { get; init; } = ImmutableList<PlanStep>.Empty;
-
-    public Lookup? Lookup { get; init; }
 
     public double PathCost { get; init; }
 

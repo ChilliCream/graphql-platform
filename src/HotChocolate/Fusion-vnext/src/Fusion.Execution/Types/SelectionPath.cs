@@ -24,6 +24,8 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
 
     public string Name { get; }
 
+    public bool IsRoot => Kind == SelectionPathSegmentKind.Root;
+
     public SelectionPathSegmentKind Kind { get; }
 
     public ImmutableArray<SelectionPath> Segments => _segments;
