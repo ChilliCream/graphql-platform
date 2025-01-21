@@ -169,7 +169,16 @@ public class OperationPlanner(CompositeSchema schema)
                         index,
                         index.GetId(resolvable));
 
-                steps = steps.SetItem(stepIndex, step with { Definition = operation });
+                var updatedStep = step with
+                {
+                    Definition = operation,
+
+                    // we add the new lookup node to the dependants of the current step.
+                    // the new lookup node will be the next index added which is the last index aka Count.
+                    Dependants = step.Dependants.Add(current.Steps.Count)
+                };
+
+                steps = steps.SetItem(stepIndex, updatedStep);
             }
 
             selectionSet = null;
@@ -190,6 +199,20 @@ public class OperationPlanner(CompositeSchema schema)
             {
                 break;
             }
+        }
+
+        // if we have still selections left we need to add them to the backlog.
+        if (selectionSet is not null)
+        {
+            var requirements = workItem with
+            {
+                Kind = WorkItemKind.Lookup,
+                Lookup = null,
+                SelectionSet = workItem.SelectionSet with { Node = selectionSet },
+                Dependants = workItem.Dependants.Add(current.Steps.Count)
+            };
+
+            backlog = backlog.Push(requirements);
         }
 
         return current with { Steps = steps, Backlog = backlog, SelectionSetIndex = index };
