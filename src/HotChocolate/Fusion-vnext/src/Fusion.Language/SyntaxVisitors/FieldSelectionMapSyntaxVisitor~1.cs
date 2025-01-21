@@ -46,68 +46,68 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
 
     protected virtual ISyntaxVisitorAction Enter(
         IFieldSelectionMapSyntaxNode node,
-        TContext writer)
+        TContext context)
     {
         return node.Kind switch
         {
             FieldSelectionMapSyntaxKind.Name
-                => Enter((NameNode)node, writer),
+                => Enter((NameNode)node, context),
             FieldSelectionMapSyntaxKind.Path
-                => Enter((PathNode)node, writer),
+                => Enter((PathNode)node, context),
             FieldSelectionMapSyntaxKind.PathSegment
-                => Enter((PathSegmentNode)node, writer),
+                => Enter((PathSegmentNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedListValue
-                => Enter((SelectedListValueNode)node, writer),
+                => Enter((SelectedListValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
-                => Enter((SelectedObjectFieldNode)node, writer),
+                => Enter((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
-                => Enter((SelectedObjectValueNode)node, writer),
+                => Enter((SelectedObjectValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedValue
-                => Enter((SelectedValueNode)node, writer),
+                => Enter((SelectedValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedValueEntry
-                => Enter((SelectedValueEntryNode)node, writer),
+                => Enter((SelectedValueEntryNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
 
     protected virtual ISyntaxVisitorAction Enter(
         NameNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         PathNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         PathSegmentNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SelectedListValueNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SelectedObjectFieldNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SelectedObjectValueNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SelectedValueNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SelectedValueEntryNode node,
-        TContext writer) =>
+        TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
