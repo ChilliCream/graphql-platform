@@ -11,8 +11,6 @@ public record PlanNode
 {
     public PlanNode? Previous { get; init; }
 
-    public required PlanNodeKind Kind { get; init; }
-
     public required SelectionPath Path { get; init; }
 
     public required string SchemaName { get; init; }

@@ -12,8 +12,6 @@ public class OperationPlanner(CompositeSchema schema)
 
     public ImmutableList<PlanStep> CreatePlan(OperationDefinitionNode operation)
     {
-        var rootType = schema.GetOperationType(operation.Operation);
-        var selections = operation.SelectionSet.Selections;
         var index = SelectionSetIndexer.Create(operation);
         var openSet = new SortedSet<PlanNode>(Comparer<PlanNode>.Create(
             (a, b) => a.TotalCost.CompareTo(b.TotalCost)));
@@ -21,7 +19,7 @@ public class OperationPlanner(CompositeSchema schema)
         var selectionSet = new SelectionSet(
             index.GetId(operation.SelectionSet),
             operation.SelectionSet,
-            rootType,
+            schema.GetOperationType(operation.Operation),
             SelectionPath.Root);
 
         var workItem = new BacklogItem(
@@ -31,7 +29,6 @@ public class OperationPlanner(CompositeSchema schema)
 
         var node = new PlanNode
         {
-            Kind = PlanNodeKind.Root,
             Path = SelectionPath.Root,
             SchemaName = "None",
             SelectionSetIndex = index.ToImmutable(),
@@ -40,14 +37,13 @@ public class OperationPlanner(CompositeSchema schema)
             BacklogCost = 1,
         };
 
-        foreach (var (schemaName, resolutionCost) in GetPossibleSchemas(rootType, selections))
+        foreach (var (schemaName, resolutionCost) in  schema.GetPossibleSchemas(selectionSet))
         {
             openSet.Add(node with { SchemaName = schemaName, BacklogCost = 1 + resolutionCost });
         }
 
         return Plan(openSet);
     }
-
 
     private ImmutableList<PlanStep> Plan(SortedSet<PlanNode> openSet)
     {
@@ -64,7 +60,7 @@ public class OperationPlanner(CompositeSchema schema)
 
             backlog = current.Backlog.Pop(out var workItem);
 
-            switch (current.Kind)
+            switch (workItem.Kind)
             {
                 case PlanNodeKind.Root:
                     PlanRootOperation(openSet, backlog, current, workItem);
@@ -75,6 +71,7 @@ public class OperationPlanner(CompositeSchema schema)
                     break;
 
                 case PlanNodeKind.ResolveLookupSelections:
+                    ResolveLookupSelections(openSet, backlog, current, workItem);
                     break;
             }
         }
@@ -109,7 +106,6 @@ public class OperationPlanner(CompositeSchema schema)
         backlog = backlog.Push(unresolvable);
 
         var nextWorkItem = backlog.IsEmpty ? null : backlog.Peek();
-        var kind = nextWorkItem?.Kind ?? PlanNodeKind.Root;
         var path = nextWorkItem?.SelectionSet.Path ?? SelectionPath.Root;
 
         var step = new OperationPlanStep
@@ -129,7 +125,6 @@ public class OperationPlanner(CompositeSchema schema)
         var next = new PlanNode
         {
             Previous = current,
-            Kind = kind,
             Path = path,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
@@ -139,38 +134,7 @@ public class OperationPlanner(CompositeSchema schema)
             BacklogCost = backlog.Count()
         };
 
-        if (nextWorkItem is null)
-        {
-            openSet.Add(next);
-        }
-        else if (nextWorkItem.Kind == PlanNodeKind.Root)
-        {
-            foreach (var (schemaName, resolutionCost) in GetPossibleSchemas(nextWorkItem))
-            {
-                openSet.Add(next with
-                {
-                    SchemaName = schemaName,
-                    PathCost = next.PathCost + 1,
-                    BacklogCost = next.BacklogCost + resolutionCost
-                });
-            }
-        }
-        else
-        {
-            foreach (var (schemaName, resolutionCost) in GetPossibleSchemas(nextWorkItem))
-            {
-                foreach (var lookup in GetPossibleLookups(nextWorkItem.SelectionSet.Type, schemaName))
-                {
-                    openSet.Add(next with
-                    {
-                        SchemaName = schemaName,
-                        PathCost = next.PathCost + 1,
-                        Lookup = lookup,
-                        BacklogCost = next.BacklogCost + resolutionCost + 1,
-                    });
-                }
-            }
-        }
+        openSet.AddPlanNodes(next, schema);
     }
 
     private void ResolveLookupSelections(
@@ -199,7 +163,6 @@ public class OperationPlanner(CompositeSchema schema)
         backlog = backlog.Push(unresolvable);
 
         var nextWorkItem = backlog.IsEmpty ? null : backlog.Peek();
-        var kind = nextWorkItem?.Kind ?? PlanNodeKind.Root;
         var path = nextWorkItem?.SelectionSet.Path ?? SelectionPath.Root;
 
         var step = new OperationPlanStep
@@ -219,7 +182,6 @@ public class OperationPlanner(CompositeSchema schema)
         var next = new PlanNode
         {
             Previous = current,
-            Kind = kind,
             Path = path,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
@@ -229,38 +191,7 @@ public class OperationPlanner(CompositeSchema schema)
             BacklogCost = backlog.Count()
         };
 
-        if (nextWorkItem is null)
-        {
-            openSet.Add(next);
-        }
-        else if (nextWorkItem.Kind == PlanNodeKind.Root)
-        {
-            foreach (var (schemaName, resolutionCost) in GetPossibleSchemas(nextWorkItem))
-            {
-                openSet.Add(next with
-                {
-                    SchemaName = schemaName,
-                    PathCost = next.PathCost + 1,
-                    BacklogCost = next.BacklogCost + resolutionCost
-                });
-            }
-        }
-        else
-        {
-            foreach (var (schemaName, resolutionCost) in GetPossibleSchemas(nextWorkItem))
-            {
-                foreach (var lookup in GetPossibleLookups(nextWorkItem.SelectionSet.Type, schemaName))
-                {
-                    openSet.Add(next with
-                    {
-                        SchemaName = schemaName,
-                        PathCost = next.PathCost + 1,
-                        Lookup = lookup,
-                        BacklogCost = next.BacklogCost + resolutionCost + 1,
-                    });
-                }
-            }
-        }
+        openSet.AddPlanNodes(next, schema);
     }
 
     private void InlineLookupRequirements(
@@ -272,7 +203,6 @@ public class OperationPlanner(CompositeSchema schema)
     {
         var partitioner = new SelectionSetPartitioner(schema);
         var processed = new HashSet<string>();
-        var next = current;
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var selectionSet = lookup.SelectionSet;
@@ -329,9 +259,8 @@ public class OperationPlanner(CompositeSchema schema)
         }
 
         openSet.Add(
-            next with
+            current with
             {
-                Kind = backlog.Peek().Kind,
                 Steps = steps,
                 Backlog = backlog,
                 SelectionSetIndex = index.ToImmutable()
@@ -388,21 +317,120 @@ public class OperationPlanner(CompositeSchema schema)
             return (OperationDefinitionNode)rewriter.Rewrite(operation, new Stack<ISyntaxNode>())!;
         }
     }
+}
 
-    private IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(
+file static class Extensions
+{
+    public static ImmutableStack<BacklogItem> Push(
+        this ImmutableStack<BacklogItem> backlog,
+        ImmutableStack<SelectionSetPartition> unresolvable)
+    {
+        if(unresolvable.IsEmpty)
+        {
+            return backlog;
+        }
+
+        foreach (var partition in unresolvable.Reverse())
+        {
+            var workItem = new BacklogItem(
+                PlanNodeKind.InlineLookupRequirements,
+                partition.Node,
+                partition.SelectionSet);
+
+            backlog = backlog.Push(workItem);
+            backlog = backlog.Push(
+                workItem with { Kind = PlanNodeKind.ResolveLookupSelections });
+        }
+
+        return backlog;
+    }
+
+    public static ISelectionSetIndex ToImmutable(this ISelectionSetIndex index)
+    {
+        if(index is SelectionSetIndexBuilder builder)
+        {
+            return builder.Build();
+        }
+
+        return index;
+    }
+
+    public static void AddPlanNodes(
+        this SortedSet<PlanNode> openSet,
+        PlanNode planNodeTemplate,
+        CompositeSchema schema)
+    {
+        var nextWorkItem = planNodeTemplate.Backlog.IsEmpty
+            ? null
+            : planNodeTemplate.Backlog.Peek();
+
+        if (nextWorkItem is null)
+        {
+            openSet.Add(planNodeTemplate);
+        }
+        else if (nextWorkItem.Kind == PlanNodeKind.Root)
+        {
+            openSet.AddRootPlanNodes(planNodeTemplate, nextWorkItem, schema);
+        }
+        else
+        {
+            openSet.AddLookupPlanNodes(planNodeTemplate, nextWorkItem, schema);
+        }
+    }
+
+    private static void AddRootPlanNodes(
+        this SortedSet<PlanNode> openSet,
+        PlanNode planNodeTemplate,
+        BacklogItem workItem,
+        CompositeSchema schema)
+    {
+        foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(workItem))
+        {
+            openSet.Add(planNodeTemplate with
+            {
+                SchemaName = schemaName,
+                PathCost = planNodeTemplate.PathCost + 1,
+                BacklogCost = planNodeTemplate.BacklogCost + resolutionCost
+            });
+        }
+    }
+
+    private static void AddLookupPlanNodes(
+        this SortedSet<PlanNode> openSet,
+        PlanNode planNodeTemplate,
+        BacklogItem workItem,
+        CompositeSchema schema)
+    {
+        foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(workItem))
+        {
+            foreach (var lookup in  workItem.SelectionSet.Type.GetPossibleLookups(schemaName))
+            {
+                openSet.Add(planNodeTemplate with
+                {
+                    SchemaName = schemaName,
+                    PathCost = planNodeTemplate.PathCost + 1,
+                    Lookup = lookup,
+                    BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                });
+            }
+        }
+    }
+
+    private static IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(
+        this CompositeSchema schema,
         BacklogItem workItem)
-        => GetPossibleSchemas(workItem.SelectionSet.Type, workItem.SelectionSet.Selections);
+        => GetPossibleSchemas(schema, workItem.SelectionSet);
 
-    private IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(
-        ICompositeNamedType type,
-        IReadOnlyList<ISelectionNode> selections)
+    public static IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(
+        this CompositeSchema schema,
+        SelectionSet selectionSet)
     {
         var possibleSchemas = new Dictionary<string, int>();
         CollectSchemaWeights(
             schema,
             possibleSchemas,
-            type,
-            selections);
+            selectionSet.Type,
+            selectionSet.Selections);
 
         foreach (var (schemaName, resolvableSelections) in possibleSchemas)
         {
@@ -463,7 +491,7 @@ public class OperationPlanner(CompositeSchema schema)
         }
     }
 
-    private IEnumerable<Lookup> GetPossibleLookups(ICompositeNamedType type, string schemaName)
+    private static IEnumerable<Lookup> GetPossibleLookups(this ICompositeNamedType type, string schemaName)
     {
         if (type is CompositeComplexType complexType
             && complexType.Sources.TryGetType(schemaName, out var source))
@@ -472,42 +500,5 @@ public class OperationPlanner(CompositeSchema schema)
         }
 
         return [];
-    }
-}
-
-file static class Extensions
-{
-    public static ImmutableStack<BacklogItem> Push(
-        this ImmutableStack<BacklogItem> backlog,
-        ImmutableStack<SelectionSetPartition> unresolvable)
-    {
-        if(backlog.IsEmpty)
-        {
-            return backlog;
-        }
-
-        foreach (var partition in unresolvable.Reverse())
-        {
-            var workItem = new BacklogItem(
-                PlanNodeKind.InlineLookupRequirements,
-                partition.Node,
-                partition.SelectionSet);
-
-            backlog = backlog.Push(workItem);
-            backlog = backlog.Push(
-                workItem with { Kind = PlanNodeKind.ResolveLookupSelections });
-        }
-
-        return backlog;
-    }
-
-    public static ISelectionSetIndex ToImmutable(this ISelectionSetIndex index)
-    {
-        if(index is SelectionSetIndexBuilder builder)
-        {
-            return builder.Build();
-        }
-
-        return index;
     }
 }

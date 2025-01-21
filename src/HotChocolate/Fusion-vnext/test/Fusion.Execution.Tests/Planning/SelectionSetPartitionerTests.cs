@@ -50,17 +50,18 @@ public class SelectionSetPartitionerTests
         var input = new SelectionSetPartitionerInput
         {
             SchemaName = "PRODUCTS",
-            Type = compositeSchema.QueryType,
-            SelectionSetNode = operation.SelectionSet,
-            SelectionPath = SelectionPath.Root,
-            AllowRequirements = false
+            SelectionSet = new SelectionSet(
+                index.GetId(operation.SelectionSet),
+                operation.SelectionSet,
+                compositeSchema.QueryType,
+                SelectionPath.Root),
+            SelectionSetIndex = index
         };
-        var backlog = ImmutableStack<BacklogItem>.Empty;
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var rewritten = rewriter.Partition(input, ref index, ref backlog);
+        var (resolvable, unresolvable, _) = rewriter.Partition(input);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        resolvable.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: $slug) {
@@ -69,7 +70,7 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        Assert.Single(backlog);
+        Assert.Single(unresolvable);
     }
 
     [Fact]
@@ -121,17 +122,18 @@ public class SelectionSetPartitionerTests
         var input = new SelectionSetPartitionerInput
         {
             SchemaName = "PRODUCTS",
-            Type = compositeSchema.QueryType,
-            SelectionSetNode = operation.SelectionSet,
-            SelectionPath = SelectionPath.Root,
-            AllowRequirements = false
+            SelectionSet = new SelectionSet(
+                index.GetId(operation.SelectionSet),
+                operation.SelectionSet,
+                compositeSchema.QueryType,
+                SelectionPath.Root),
+            SelectionSetIndex = index
         };
-        var backlog = ImmutableStack<BacklogItem>.Empty;
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var rewritten = rewriter.Partition(input, ref index, ref backlog);
+        var (resolvable, unresolvable, _) = rewriter.Partition(input);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        resolvable.MatchInlineSnapshot(
             """
             {
               a: productBySlug(slug: $slug) {
@@ -143,6 +145,6 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        Assert.Equal(2, backlog.Count());
+        Assert.Equal(2, unresolvable.Count());
     }
 }
