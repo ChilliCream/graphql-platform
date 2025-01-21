@@ -23,7 +23,7 @@ public record SelectionSetPartition(
     SelectionSet SelectionSet);
 
 public record SelectionSet(
-    int Id,
+    uint Id,
     SelectionSetNode Node,
     ICompositeNamedType Type,
     SelectionPath Path)
@@ -116,12 +116,12 @@ public class SelectionSetPartitioner(CompositeSchema schema)
         if (unresolvableSelections is not null && type.IsEntity())
         {
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
-            context.RegisterSelectionSet(selectionSetNode, unresolvableSelectionSet);
+            context.Register(selectionSetNode, unresolvableSelectionSet);
 
             var partition = new SelectionSetPartition(
                 context.Nodes.Peek(),
                 new SelectionSet(
-                    context.GetSelectionSetId(selectionSetNode),
+                    context.GetId(selectionSetNode),
                     unresolvableSelectionSet,
                     type,
                     context.BuildPath()));
@@ -139,10 +139,10 @@ public class SelectionSetPartitioner(CompositeSchema schema)
                 : null
         );
 
-        context.RegisterSelectionSet(selectionSetNode, result.Resolvable);
+        context.Register(selectionSetNode, result.Resolvable);
         if(result.Unresolvable is not null)
         {
-            context.RegisterSelectionSet(selectionSetNode, result.Unresolvable);
+            context.Register(selectionSetNode, result.Unresolvable);
         }
 
         return result;
@@ -344,10 +344,10 @@ public class SelectionSetPartitioner(CompositeSchema schema)
             return path;
         }
 
-        public int GetSelectionSetId(SelectionSetNode selectionSetNode)
+        public uint GetId(SelectionSetNode selectionSetNode)
             => _selectionSetIndex.GetId(selectionSetNode);
 
-        public void RegisterSelectionSet(SelectionSetNode original, SelectionSetNode branch)
+        public void Register(SelectionSetNode original, SelectionSetNode branch)
         {
             if (ReferenceEquals(original, branch))
             {

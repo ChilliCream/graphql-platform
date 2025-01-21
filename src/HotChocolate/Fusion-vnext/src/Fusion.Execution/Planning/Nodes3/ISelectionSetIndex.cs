@@ -4,9 +4,9 @@ namespace HotChocolate.Fusion.Planning.Nodes3;
 
 public interface ISelectionSetIndex
 {
-    int GetId(SelectionSetNode selectionSet);
+    uint GetId(SelectionSetNode selectionSet);
 
-    bool TryGetId(SelectionSetNode selectionSet, out int id);
+    bool TryGetId(SelectionSetNode selectionSet, out uint id);
 
     bool IsRegistered(SelectionSetNode selectionSet);
 

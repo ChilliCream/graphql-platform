@@ -5,17 +5,19 @@ namespace HotChocolate.Fusion.Planning.Nodes3;
 
 public sealed class SelectionSetIndexBuilder : ISelectionSetIndex
 {
-    private ImmutableDictionary<SelectionSetNode, int> _selectionSets;
+    private ImmutableDictionary<SelectionSetNode, uint> _selectionSets;
+    private uint _nextId;
 
-    internal SelectionSetIndexBuilder(ImmutableDictionary<SelectionSetNode, int> selectionSets)
+    internal SelectionSetIndexBuilder(ImmutableDictionary<SelectionSetNode, uint> selectionSets, uint nextId)
     {
         _selectionSets = selectionSets;
+        _nextId = nextId;
     }
 
-    public int GetId(SelectionSetNode selectionSet)
+    public uint GetId(SelectionSetNode selectionSet)
         => _selectionSets[selectionSet];
 
-    public bool TryGetId(SelectionSetNode selectionSet, out int id)
+    public bool TryGetId(SelectionSetNode selectionSet, out uint id)
         => _selectionSets.TryGetValue(selectionSet, out id);
 
     public bool IsRegistered(SelectionSetNode selectionSet)
@@ -30,8 +32,11 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex
         _selectionSets = _selectionSets.SetItem(branch, id);
     }
 
+    public void Register(SelectionSetNode original)
+        => _selectionSets = _selectionSets.SetItem(original, _nextId++);
+
     public ISelectionSetIndex Build()
-        => new SelectionSetIndex(_selectionSets);
+        => new SelectionSetIndex(_selectionSets, _nextId);
 
     public SelectionSetIndexBuilder ToBuilder()
         => this;

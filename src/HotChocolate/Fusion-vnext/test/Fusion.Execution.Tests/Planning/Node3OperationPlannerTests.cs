@@ -118,6 +118,7 @@ public class Node3OperationPlannerTests : FusionTestBase
 
     private static void Match(ImmutableList<Nodes3.PlanStep> plan)
     {
+        var i = 0;
         var snapshot = new Snapshot();
 
         foreach (var step in plan)
@@ -127,7 +128,7 @@ public class Node3OperationPlannerTests : FusionTestBase
                 case OperationPlanStep operation:
                     snapshot.Add(
                         operation.Definition.ToString(),
-                        "Operation",
+                        $"{++i} {operation.SchemaName}",
                         markdownLanguage: MarkdownLanguages.GraphQL);
                     break;
             }

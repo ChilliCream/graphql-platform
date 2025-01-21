@@ -63,15 +63,12 @@ public class OperationPlanner(CompositeSchema schema)
             switch (workItem.Kind)
             {
                 case PlanNodeKind.Root:
-                    PlanRootOperation(openSet, backlog, current, workItem);
+                case PlanNodeKind.ResolveLookupSelections:
+                    PlanSelections(openSet, backlog, current, workItem);
                     break;
 
                 case PlanNodeKind.InlineLookupRequirements:
                     InlineLookupRequirements(openSet, backlog, current, workItem, current.Lookup!);
-                    break;
-
-                case PlanNodeKind.ResolveLookupSelections:
-                    ResolveLookupSelections(openSet, backlog, current, workItem);
                     break;
             }
         }
@@ -79,65 +76,7 @@ public class OperationPlanner(CompositeSchema schema)
         return ImmutableList<PlanStep>.Empty;
     }
 
-    private void PlanRootOperation(
-        SortedSet<PlanNode> openSet,
-        ImmutableStack<BacklogItem> backlog,
-        PlanNode current,
-        BacklogItem workItem)
-    {
-        var index = current.SelectionSetIndex;
-        var rootType = (CompositeObjectType)workItem.SelectionSet.Type;
-
-        var input = new SelectionSetPartitionerInput
-        {
-            SchemaName = current.SchemaName,
-            SelectionSet = workItem.SelectionSet,
-            SelectionSetIndex = index,
-        };
-
-        var (resolvable, unresolvable, updatedIndex) = _partitioner.Partition(input);
-
-        if (resolvable is null)
-        {
-            return;
-        }
-
-        index = updatedIndex;
-        backlog = backlog.Push(unresolvable);
-
-        var nextWorkItem = backlog.IsEmpty ? null : backlog.Peek();
-        var path = nextWorkItem?.SelectionSet.Path ?? SelectionPath.Root;
-
-        var step = new OperationPlanStep
-        {
-            Definition = new OperationDefinitionNode(
-                null,
-                null,
-                OperationType.Query,
-                Array.Empty<VariableDefinitionNode>(),
-                Array.Empty<DirectiveNode>(),
-                resolvable),
-            Type = rootType,
-            SchemaName = current.SchemaName,
-            SelectionSets = SelectionSetIndexer.CreateIdSet(resolvable, index)
-        };
-
-        var next = new PlanNode
-        {
-            Previous = current,
-            Path = path,
-            SchemaName = current.SchemaName,
-            SelectionSetIndex = index.ToImmutable(),
-            Backlog = backlog,
-            Steps = current.Steps.Add(step),
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count()
-        };
-
-        openSet.AddPlanNodes(next, schema);
-    }
-
-    private void ResolveLookupSelections(
+    private void PlanSelections(
         SortedSet<PlanNode> openSet,
         ImmutableStack<BacklogItem> backlog,
         PlanNode current,
@@ -152,31 +91,32 @@ public class OperationPlanner(CompositeSchema schema)
             SelectionSetIndex = index,
         };
 
-        var (resolvable, unresolvable, updatedIndex) = _partitioner.Partition(input);
+        (var resolvable, var unresolvable, index) = _partitioner.Partition(input);
 
         if (resolvable is null)
         {
             return;
         }
 
-        index = updatedIndex;
         backlog = backlog.Push(unresolvable);
 
         var nextWorkItem = backlog.IsEmpty ? null : backlog.Peek();
         var path = nextWorkItem?.SelectionSet.Path ?? SelectionPath.Root;
 
+        (var definition, index) =
+            OperationDefinitionBuilder
+                .New()
+                .SetType(OperationType.Query)
+                .SetSelectionSet(resolvable)
+                .SetLookup(current.Lookup)
+                .Build(index);
+
         var step = new OperationPlanStep
         {
-            Definition = new OperationDefinitionNode(
-                null,
-                null,
-                OperationType.Query,
-                Array.Empty<VariableDefinitionNode>(),
-                Array.Empty<DirectiveNode>(),
-                resolvable),
+            Definition = definition,
             Type = workItem.SelectionSet.Type,
             SchemaName = current.SchemaName,
-            SelectionSets = SelectionSetIndexer.CreateIdSet(resolvable, index)
+            SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index)
         };
 
         var next = new PlanNode
@@ -266,7 +206,7 @@ public class OperationPlanner(CompositeSchema schema)
                 SelectionSetIndex = index.ToImmutable()
             });
 
-        static IEnumerable<(OperationPlanStep, int, string)> GetPossibleSteps(PlanNode current, int selectionSetId)
+        static IEnumerable<(OperationPlanStep, int, string)> GetPossibleSteps(PlanNode current, uint selectionSetId)
         {
             for (var i = 0; i < current.Steps.Count; i++)
             {
@@ -284,7 +224,7 @@ public class OperationPlanner(CompositeSchema schema)
             SelectionSetNode requirements,
             MergeSelectionSetRewriter mergeRewriter,
             SelectionSetIndexBuilder index,
-            int targetSelectionSetId)
+            uint targetSelectionSetId)
         {
             var rewriter = SyntaxRewriter.Create<Stack<ISyntaxNode>>(
                 (node, path) =>
@@ -339,7 +279,10 @@ file static class Extensions
 
             backlog = backlog.Push(workItem);
             backlog = backlog.Push(
-                workItem with { Kind = PlanNodeKind.ResolveLookupSelections });
+                workItem with
+                {
+                    Kind = PlanNodeKind.ResolveLookupSelections
+                });
         }
 
         return backlog;
@@ -500,5 +443,73 @@ file static class Extensions
         }
 
         return [];
+    }
+}
+
+file class OperationDefinitionBuilder
+{
+    private OperationType _type = OperationType.Query;
+    private Lookup? _lookup;
+    private SelectionSetNode? _selectionSet;
+
+    private OperationDefinitionBuilder()
+    {
+    }
+
+    public static OperationDefinitionBuilder New()
+        => new();
+
+    public OperationDefinitionBuilder SetType(OperationType type)
+    {
+        _type = type;
+        return this;
+    }
+
+    public OperationDefinitionBuilder SetLookup(Lookup? lookup)
+    {
+        _lookup = lookup;
+        return this;
+    }
+
+    public OperationDefinitionBuilder SetSelectionSet(SelectionSetNode selectionSet)
+    {
+        _selectionSet = selectionSet;
+        return this;
+    }
+
+    public (OperationDefinitionNode, ISelectionSetIndex) Build(ISelectionSetIndex index)
+    {
+        if (_selectionSet is null)
+        {
+            throw new InvalidOperationException("The operation selection set must be specified.");
+        }
+
+        var selectionSet = _selectionSet;
+
+        if (_lookup is not null)
+        {
+            var lookupField = new FieldNode(
+                new NameNode(_lookup.Name),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                selectionSet);
+
+            selectionSet = new SelectionSetNode(null, [lookupField]);
+
+            var indexBuilder = index.ToBuilder();
+            indexBuilder.Register(selectionSet);
+            index = indexBuilder;
+        }
+
+        var definition = new OperationDefinitionNode(
+            null,
+            null,
+            _type,
+            Array.Empty<VariableDefinitionNode>(),
+            Array.Empty<DirectiveNode>(),
+            selectionSet);
+
+        return (definition, index);
     }
 }
