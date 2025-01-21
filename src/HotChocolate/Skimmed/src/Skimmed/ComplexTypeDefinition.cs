@@ -1,6 +1,8 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Types;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -125,4 +127,22 @@ public abstract class ComplexTypeDefinition(string name)
 
     /// <inheritdoc />
     public abstract bool Equals(ITypeDefinition? other, TypeComparison comparison);
+
+    /// <summary>
+    /// Creates a <see cref="ComplexTypeDefinitionNodeBase"/> from a
+    /// <see cref="ComplexTypeDefinition"/>.
+    /// </summary>
+    public ComplexTypeDefinitionNodeBase ToSyntaxNode() => this switch
+    {
+        InterfaceTypeDefinition i => RewriteInterfaceType(i),
+        ObjectTypeDefinition o => RewriteObjectType(o),
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => this switch
+    {
+        InterfaceTypeDefinition i => RewriteInterfaceType(i),
+        ObjectTypeDefinition o => RewriteObjectType(o),
+        _ => throw new ArgumentOutOfRangeException()
+    };
 }

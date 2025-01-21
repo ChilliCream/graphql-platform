@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
@@ -175,6 +176,13 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
     /// </returns>
     public override string ToString()
         => RewriteOutputField(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="FieldDefinitionNode"/> from an <see cref="OutputFieldDefinition"/>.
+    /// </summary>
+    public FieldDefinitionNode ToSyntaxNode() => RewriteOutputField(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteOutputField(this);
 
     /// <summary>
     /// Creates a new output field definition.

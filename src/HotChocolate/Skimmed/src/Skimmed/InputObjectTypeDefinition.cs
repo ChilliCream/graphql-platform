@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
@@ -136,6 +137,14 @@ public class InputObjectTypeDefinition(string name)
     /// </returns>
     public override string ToString()
         => RewriteInputObjectType(this).ToString(true);
+
+    /// <summary>
+    /// Creates an <see cref="InputObjectTypeDefinitionNode"/> from an
+    /// <see cref="InputObjectTypeDefinition"/>.
+    /// </summary>
+    public InputObjectTypeDefinitionNode ToSyntaxNode() => RewriteInputObjectType(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteInputObjectType(this);
 
     /// <summary>
     /// Creates a new input object type definition.
