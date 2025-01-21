@@ -17,7 +17,7 @@ public record PlanNode
 
     public required string SchemaName { get; init; }
 
-    public required SelectionSetIndex SelectionSetIndex { get; init; }
+    public required ISelectionSetIndex SelectionSetIndex { get; init; }
 
     public required ImmutableStack<BacklogItem> Backlog { get; init; }
 
@@ -56,10 +56,7 @@ public enum PlanNodeKind
 
 public sealed record BacklogItem(
     PlanNodeKind Kind,
-    SelectionPath Path,
     ISyntaxNode Node,
-    SelectionSetNode SelectionSet,
-    int SelectionSetId,
-    ICompositeNamedType Type);
+    SelectionSet SelectionSet);
 
 

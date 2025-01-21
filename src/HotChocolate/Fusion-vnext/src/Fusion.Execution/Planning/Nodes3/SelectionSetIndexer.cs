@@ -10,14 +10,14 @@ public sealed class SelectionSetIndexer : SyntaxWalker
     private int _nextId = 1;
     private readonly Dictionary<SelectionSetNode, int> _selectionSetIds = new();
 
-    public static SelectionSetIndex Create(OperationDefinitionNode operation)
+    public static ISelectionSetIndex Create(OperationDefinitionNode operation)
     {
         var indexer = new SelectionSetIndexer();
         indexer.Visit(operation);
         return new SelectionSetIndex(indexer._selectionSetIds.ToImmutableDictionary());
     }
 
-    public static ImmutableHashSet<int> CreateIdSet(SelectionSetNode selectionSet, SelectionSetIndex index)
+    public static ImmutableHashSet<int> CreateIdSet(SelectionSetNode selectionSet, ISelectionSetIndex index)
     {
         var context = new SelectionSetVisitor.Context(index);
         _selectionSetVisitor.Visit(selectionSet, context);
@@ -34,15 +34,15 @@ public sealed class SelectionSetIndexer : SyntaxWalker
     {
         protected override ISyntaxVisitorAction Enter(SelectionSetNode node, Context context)
         {
-            context.SelectionSets.Add(context.Index.GetSelectionSetId(node));
+            context.SelectionSets.Add(context.Index.GetId(node));
             return base.Enter(node, context);
         }
 
-        public sealed class Context(SelectionSetIndex index)
+        public sealed class Context(ISelectionSetIndex index)
         {
             public ImmutableHashSet<int>.Builder SelectionSets { get; } = ImmutableHashSet.CreateBuilder<int>();
 
-            public SelectionSetIndex Index { get; } = index;
+            public ISelectionSetIndex Index { get; } = index;
         }
     }
 }
