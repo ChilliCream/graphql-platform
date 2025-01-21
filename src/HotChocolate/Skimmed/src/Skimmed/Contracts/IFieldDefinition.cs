@@ -11,6 +11,7 @@ public interface IFieldDefinition
     , IDeprecationProvider
     , IDirectivesProvider
     , IFeatureProvider
+    , ISyntaxNodeProvider
 {
     /// <summary>
     /// Gets or sets the name of the field.
