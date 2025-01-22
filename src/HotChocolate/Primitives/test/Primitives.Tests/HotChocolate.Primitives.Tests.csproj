@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Primitives.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Primitives</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Primitives\HotChocolate.Primitives.csproj" />
+  </ItemGroup>
+
+</Project>
