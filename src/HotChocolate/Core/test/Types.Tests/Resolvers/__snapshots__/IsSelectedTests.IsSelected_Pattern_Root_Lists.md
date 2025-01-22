@@ -6,7 +6,7 @@
     "books": []
   },
   "extensions": {
-    "isSelected": false
+    "isSelected": true
   }
 }
 ```
