@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination;
@@ -79,7 +78,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
 
             if (includeTotalCount)
             {
-                if (AllowInlining(executable, allowInlining))
+                if (allowInlining ?? false)
                 {
                     var combinedQuery = slicedQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
                     totalCount = 0;
@@ -122,22 +121,6 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
 
             return new CursorPaginationData<TEntity>(edges.ToImmutable(), totalCount);
         }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool AllowInlining(IQueryableExecutable<TEntity> executable, bool? allowInlining)
-    {
-        if (!allowInlining.HasValue)
-        {
-            if(executable.AllowsInlining.HasValue)
-            {
-                return executable.AllowsInlining.Value;
-            }
-
-            return false;
-        }
-
-        return allowInlining.Value;
     }
 
     public static QueryableCursorPagingHandler<TEntity> Default { get; } =

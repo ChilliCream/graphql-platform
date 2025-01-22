@@ -12,8 +12,6 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
 
     public bool IsInMemory { get; } = source is EnumerableQuery;
 
-    public bool? AllowsInlining => null;
-
     IQueryable<T> IQueryableExecutable<T>.Source => source;
 
     public IQueryableExecutable<T> WithSource(IQueryable<T> src)

@@ -7,13 +7,9 @@ internal sealed class EfQueryableExecutable<T>(IQueryable<T> source)
     : Executable<T>
     , IQueryableExecutable<T>
 {
-    private static readonly bool? _allowsInlining = true;
-
     public override IQueryable<T> Source => source;
 
     public bool IsInMemory => source is EnumerableQuery;
-
-    public bool? AllowsInlining => _allowsInlining;
 
     public IQueryableExecutable<T> WithSource(IQueryable<T> src)
         => new EfQueryableExecutable<T>(src);
