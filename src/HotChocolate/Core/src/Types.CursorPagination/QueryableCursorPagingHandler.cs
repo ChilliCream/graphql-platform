@@ -3,9 +3,19 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination;
 
-internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions options)
-    : CursorPagingHandler<IQueryable<TEntity>, TEntity>(options)
+internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler<IQueryable<TEntity>, TEntity>
 {
+    private readonly bool? _inlineTotalCount;
+
+    public QueryableCursorPagingHandler(PagingOptions options) : this(options, false)
+    {
+    }
+
+    public QueryableCursorPagingHandler(PagingOptions options, bool? inlineTotalCount) : base(options)
+    {
+        _inlineTotalCount = inlineTotalCount;
+    }
+
     private static readonly QueryableCursorPaginationAlgorithm<TEntity> _paginationAlgorithm =
         QueryableCursorPaginationAlgorithm<TEntity>.Instance;
 
@@ -18,7 +28,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions option
             source.Source,
             arguments,
             _paginationAlgorithm,
-            new QueryExecutor(source),
+            new QueryExecutor(source, _inlineTotalCount),
             context.RequestAborted);
 
     protected override ValueTask<Connection> SliceAsync(
@@ -42,11 +52,11 @@ internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions option
                 source.Source,
                 arguments,
                 _paginationAlgorithm,
-                new QueryExecutor(source),
+                new QueryExecutor(source, _inlineTotalCount),
                 context.RequestAborted)
             .ConfigureAwait(false);
 
-    private sealed class QueryExecutor(IQueryableExecutable<TEntity> executable)
+    private sealed class QueryExecutor(IQueryableExecutable<TEntity> executable, bool? allowInlining)
         : ICursorPaginationQueryExecutor<IQueryable<TEntity>, TEntity>
     {
         public ValueTask<int> CountAsync(
@@ -66,17 +76,33 @@ internal sealed class QueryableCursorPagingHandler<TEntity>(PagingOptions option
 
             if (includeTotalCount)
             {
-                var combinedQuery = slicedQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
-                totalCount = 0;
-
-                var index = offset;
-                await foreach (var item in executable
-                    .WithSource(combinedQuery)
-                    .ToAsyncEnumerable(cancellationToken)
-                    .ConfigureAwait(false))
+                if (allowInlining ?? false)
                 {
-                    edges.Add(IndexEdge<TEntity>.Create(item.Item, index++));
-                    totalCount = item.TotalCount;
+                    var combinedQuery = slicedQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+                    totalCount = 0;
+
+                    var index = offset;
+                    await foreach (var item in executable
+                        .WithSource(combinedQuery)
+                        .ToAsyncEnumerable(cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        edges.Add(IndexEdge<TEntity>.Create(item.Item, index++));
+                        totalCount = item.TotalCount;
+                    }
+                }
+                else
+                {
+                    var index = offset;
+                    await foreach (var item in executable
+                        .WithSource(slicedQuery)
+                        .ToAsyncEnumerable(cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        edges.Add(IndexEdge<TEntity>.Create(item, index++));
+                    }
+
+                    totalCount = await executable.CountAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             else
