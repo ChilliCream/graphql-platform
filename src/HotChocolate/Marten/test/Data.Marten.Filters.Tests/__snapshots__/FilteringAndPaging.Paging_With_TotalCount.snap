@@ -1,96 +1,3 @@
----------------
-schema {
-  query: Query
-}
-
-type Foo {
-  id: Int!
-  bar: Boolean!
-}
-
-"Information about pagination in a connection."
-type PageInfo {
-  "Indicates whether more edges exist following the set defined by the clients arguments."
-  hasNextPage: Boolean!
-  "Indicates whether more edges exist prior the set defined by the clients arguments."
-  hasPreviousPage: Boolean!
-  "When paginating backwards, the cursor to continue."
-  startCursor: String
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
-}
-
-type Query {
-  root("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: FooFilterInput): RootConnection
-  rootExecutable("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: FooFilterInput): RootExecutableConnection
-}
-
-"A connection to a list of items."
-type RootConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [RootEdge!]
-  "A flattened list of the nodes."
-  nodes: [Foo]
-}
-
-"An edge in a connection."
-type RootEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: Foo
-}
-
-"A connection to a list of items."
-type RootExecutableConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [RootExecutableEdge!]
-  "A flattened list of the nodes."
-  nodes: [Foo]
-}
-
-"An edge in a connection."
-type RootExecutableEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: Foo
-}
-
-input BooleanOperationFilterInput {
-  eq: Boolean
-  neq: Boolean
-}
-
-input FooFilterInput {
-  and: [FooFilterInput!]
-  or: [FooFilterInput!]
-  id: IntOperationFilterInput
-  bar: BooleanOperationFilterInput
-}
-
-input IntOperationFilterInput {
-  eq: Int
-  neq: Int
-  in: [Int]
-  nin: [Int]
-  gt: Int
-  ngt: Int
-  gte: Int
-  ngte: Int
-  lt: Int
-  nlt: Int
-  lte: Int
-  nlte: Int
-}
----------------
-
-true
----------------
 {
   "data": {
     "root": {
@@ -98,8 +5,8 @@ true
         {
           "bar": true
         }
-      ]
+      ],
+      "totalCount": 1
     }
   }
 }
----------------

@@ -42,14 +42,13 @@ public class FilteringAndPaging(SchemaCache cache)
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { eq: true } }) { nodes { bar } } }")
+                .SetDocument("{ root(where: { bar: { eq: true } }) { nodes { bar } totalCount } }")
                 .Build());
 
         // assert
         await Snapshot
             .Create()
-            .Add(tester.Schema.ToString())
-            .Add(res1, "true")
+            .Add(res1, "Result with TotalCount")
             .MatchAsync();
     }
 
