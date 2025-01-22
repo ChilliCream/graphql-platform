@@ -29,6 +29,7 @@
   </data>
   <data name="NameUtils_EnsureGraphQLName_InvalidName" xml:space="preserve">
     <value>`{0}` is not a valid GraphQL name.
-https://spec.graphql.org/October2021/#sec-Names</value>
+https://spec.graphql.org/October2021/#sec-Names
+</value>
   </data>
 </root>
