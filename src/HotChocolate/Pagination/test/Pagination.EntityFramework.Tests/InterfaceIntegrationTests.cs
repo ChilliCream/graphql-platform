@@ -81,6 +81,61 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Query_Owner_Animals_With_TotalCount()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var queries = new List<QueryInfo>();
+        using var capture = new CapturePagingQueryInterceptor(queries);
+
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new AnimalContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension(typeof(OwnerExtensionsWithTotalCount))
+            .AddDataLoader<AnimalsByOwnerWithCountDataLoader>()
+            .AddObjectType<Cat>()
+            .AddObjectType<Dog>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ModifyPagingOptions(o => o.IncludeTotalCount = true)
+            .ExecuteRequestAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        {
+                            owners(first: 10) {
+                                nodes {
+                                    id
+                                    name
+                                    pets(first: 10) {
+                                        nodes {
+                                            __typename
+                                            id
+                                            name
+                                        }
+                                        totalCount
+                                    }
+                                }
+                            }
+                        }
+                        """)
+                    .Build());
+
+        var operationResult = result.ExpectOperationResult();
+
+#if NET9_0_OR_GREATER
+        await Snapshot.Create("NET_9_0")
+#else
+        await Snapshot.Create()
+#endif
+            .AddQueries(queries)
+            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Query_Owner_Animals_With_Fragments()
     {
         var connectionString = CreateConnectionString();
@@ -329,6 +384,24 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                 .ToConnectionAsync();
     }
 
+    [ExtendObjectType<Owner>]
+    public static class OwnerExtensionsWithTotalCount
+    {
+        [BindMember(nameof(Owner.Pets))]
+        [UsePaging]
+        public static async Task<Connection<Animal>> GetPetsAsync(
+            [Parent("Id")] Owner owner,
+            PagingArguments pagingArgs,
+            AnimalsByOwnerWithCountDataLoader animalsByOwner,
+            ISelection selection,
+            CancellationToken cancellationToken)
+            => await animalsByOwner
+                .WithPagingArguments(pagingArgs)
+                .Select(selection)
+                .LoadAsync(owner.Id, cancellationToken)
+                .ToConnectionAsync();
+    }
+
     public sealed class AnimalsByOwnerDataLoader
         : StatefulBatchDataLoader<int, Page<Animal>>
     {
@@ -364,6 +437,46 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,
+                    cancellationToken);
+        }
+    }
+
+    public sealed class AnimalsByOwnerWithCountDataLoader
+        : StatefulBatchDataLoader<int, Page<Animal>>
+    {
+        private readonly IServiceProvider _services;
+
+        public AnimalsByOwnerWithCountDataLoader(
+            IServiceProvider services,
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions options)
+            : base(batchScheduler, options)
+        {
+            _services = services;
+        }
+
+        protected override async Task<IReadOnlyDictionary<int, Page<Animal>>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            DataLoaderFetchContext<Page<Animal>> context,
+            CancellationToken cancellationToken)
+        {
+            var pagingArgs = context.GetPagingArguments();
+            // var selector = context.GetSelector();
+
+            await using var scope = _services.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
+
+            return await dbContext.Owners
+                .Where(t => keys.Contains(t.Id))
+                .SelectMany(t => t.Pets)
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                // selections do not work when inheritance is used for nested batching.
+                // .Select(selector, t => t.OwnerId)
+                .ToBatchPageAsync(
+                    t => t.OwnerId,
+                    pagingArgs,
+                    includeTotalCount: true,
                     cancellationToken);
         }
     }
