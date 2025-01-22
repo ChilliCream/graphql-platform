@@ -13,27 +13,15 @@ public readonly ref struct SelectionSetPartitionerInput
     public bool AllowRequirements { get; init; }
 }
 
-public record PrimarySelectionSetPartition(
+public record SelectionSetPartitionerResult(
     SelectionSetNode? Resolvable,
-    ImmutableStack<SelectionSetPartition> Unresolvable,
+    ImmutableStack<SelectionSet> Unresolvable,
+    ImmutableStack<FieldSelection> FieldsWithRequirements,
     ISelectionSetIndex SelectionSetIndex);
-
-public record SelectionSetPartition(
-    ISyntaxNode Node,
-    SelectionSet SelectionSet);
-
-public record SelectionSet(
-    uint Id,
-    SelectionSetNode Node,
-    ICompositeNamedType Type,
-    SelectionPath Path)
-{
-    public IReadOnlyList<ISelectionNode> Selections => Node.Selections;
-}
 
 public class SelectionSetPartitioner(CompositeSchema schema)
 {
-    public PrimarySelectionSetPartition Partition(
+    public SelectionSetPartitionerResult Partition(
         SelectionSetPartitionerInput input)
     {
         var context = new Context
@@ -42,7 +30,7 @@ public class SelectionSetPartitioner(CompositeSchema schema)
             AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
             SelectionSetIndex = input.SelectionSetIndex,
-            Unresolvable = ImmutableStack<SelectionSetPartition>.Empty
+            Unresolvable = ImmutableStack<SelectionSet>.Empty
         };
 
         var (resolvable, _) =
@@ -52,7 +40,7 @@ public class SelectionSetPartitioner(CompositeSchema schema)
                 input.SelectionSet.Node,
                 input.ProvidedSelectionSetNode);
 
-        return new PrimarySelectionSetPartition(
+        return new SelectionSetPartitionerResult(
             resolvable,
             context.Unresolvable,
             context.SelectionSetIndex);
@@ -118,14 +106,12 @@ public class SelectionSetPartitioner(CompositeSchema schema)
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
             context.Register(selectionSetNode, unresolvableSelectionSet);
 
-            var partition = new SelectionSetPartition(
-                context.Nodes.Peek(),
-                new SelectionSet(
-                    context.GetId(selectionSetNode),
-                    unresolvableSelectionSet,
-                    type,
-                    context.BuildPath()));
-            context.Unresolvable = context.Unresolvable.Push(partition);
+            var selectionSet = new SelectionSet(
+                context.GetId(selectionSetNode),
+                unresolvableSelectionSet,
+                type,
+                context.BuildPath());
+            context.Unresolvable = context.Unresolvable.Push(selectionSet);
             unresolvableSelections = null;
         }
 
@@ -319,7 +305,7 @@ public class SelectionSetPartitioner(CompositeSchema schema)
             }
         }
 
-        public required ImmutableStack<SelectionSetPartition> Unresolvable { get; set; }
+        public required ImmutableStack<SelectionSet> Unresolvable { get; set; }
 
         public Stack<ISyntaxNode> Nodes { get; } = new();
 

@@ -24,7 +24,6 @@ public class OperationPlanner(CompositeSchema schema)
 
         var workItem = new WorkItem(
             WorkItemKind.Root,
-            operation,
             selectionSet);
 
         var node = new PlanNode
@@ -68,6 +67,10 @@ public class OperationPlanner(CompositeSchema schema)
                 case WorkItemKind.Lookup:
                     current = InlineLookupRequirements(backlog, current, workItem, workItem.Lookup!);
                     PlanSelections(openSet, backlog, current, workItem);
+                    break;
+
+                case WorkItemKind.Requirement:
+                    InlineFieldRequirement(backlog, current, workItem);
                     break;
             }
         }
@@ -161,7 +164,7 @@ public class OperationPlanner(CompositeSchema schema)
             if (resolvable is not null)
             {
                 var operation =
-                    InlineRequirements(
+                    Inline(
                         step.Type,
                         step.Definition,
                         resolvable,
@@ -186,10 +189,10 @@ public class OperationPlanner(CompositeSchema schema)
             if (!unresolvable.IsEmpty)
             {
                 var top = unresolvable.Peek();
-                if (top.SelectionSet.Id == workItem.SelectionSet.Id)
+                if (top.Id == workItem.SelectionSet.Id)
                 {
                     unresolvable = unresolvable.Pop(out top);
-                    selectionSet = top.SelectionSet.Node;
+                    selectionSet = top.Node;
                 }
 
                 backlog = backlog.Push(unresolvable);
@@ -229,7 +232,7 @@ public class OperationPlanner(CompositeSchema schema)
             }
         }
 
-        static OperationDefinitionNode InlineRequirements(
+        static OperationDefinitionNode Inline(
             ICompositeNamedType type,
             OperationDefinitionNode operation,
             SelectionSetNode requirements,
@@ -268,27 +271,43 @@ public class OperationPlanner(CompositeSchema schema)
             return (OperationDefinitionNode)rewriter.Rewrite(operation, new Stack<ISyntaxNode>())!;
         }
     }
+
+    private void InlineFieldRequirement(
+        ImmutableStack<WorkItem> backlog,
+        PlanNode current,
+        WorkItem workItem)
+    {
+
+    }
 }
 
 file static class Extensions
 {
     public static ImmutableStack<WorkItem> Push(
         this ImmutableStack<WorkItem> backlog,
-        ImmutableStack<SelectionSetPartition> unresolvable)
+        ImmutableStack<SelectionSet> unresolvable)
     {
+        //string schemaName = null!;
+        // CompositeSchema schema = null!;
+
         if(unresolvable.IsEmpty)
         {
             return backlog;
         }
 
-        foreach (var partition in unresolvable.Reverse())
+        foreach (var selectionSet in unresolvable.Reverse())
         {
+            if (selectionSet.Selections is [FieldNode fieldNode])
+            {
+
+            }
+
+
             var workItem = new WorkItem(
-                partition.SelectionSet.Path.IsRoot
+                selectionSet.Path.IsRoot
                     ? WorkItemKind.Root
                     : WorkItemKind.Lookup,
-                partition.Node,
-                partition.SelectionSet);
+                selectionSet);
             backlog = backlog.Push(workItem);
         }
 
