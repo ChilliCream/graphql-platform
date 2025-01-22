@@ -93,7 +93,7 @@ public class OperationPlanner(CompositeSchema schema)
             SelectionSetIndex = index,
         };
 
-        (var resolvable, var unresolvable, index) = _partitioner.Partition(input);
+        (var resolvable, var unresolvable, var fields, index) = _partitioner.Partition(input);
 
         if (resolvable is null)
         {
@@ -159,7 +159,7 @@ public class OperationPlanner(CompositeSchema schema)
                 SelectionSetIndex = index
             };
 
-            var (resolvable, unresolvable, _) = partitioner.Partition(input);
+            var (resolvable, unresolvable, fields, _) = partitioner.Partition(input);
 
             if (resolvable is not null)
             {

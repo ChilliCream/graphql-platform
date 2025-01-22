@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -30,7 +31,6 @@ public class SelectionSetPartitioner(CompositeSchema schema)
             AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
             SelectionSetIndex = input.SelectionSetIndex,
-            Unresolvable = ImmutableStack<SelectionSet>.Empty
         };
 
         var (resolvable, _) =
@@ -43,6 +43,7 @@ public class SelectionSetPartitioner(CompositeSchema schema)
         return new SelectionSetPartitionerResult(
             resolvable,
             context.Unresolvable,
+            context.FieldsWithRequirements,
             context.SelectionSetIndex);
     }
 
@@ -202,12 +203,24 @@ public class SelectionSetPartitioner(CompositeSchema schema)
                 return (null, fieldNode);
             }
 
+            if (source.Requirements is null)
+            {
+                context.FieldsWithRequirements =
+                    context.FieldsWithRequirements.Push(
+                        new FieldSelection(
+                            context.GetId((SelectionSetNode)context.Nodes.Peek()),
+                            fieldNode,
+                            field,
+                            context.BuildPath()));
+                return (null, null);
+            }
+
             // if requirements are not allowed we return null
             // which will remove the field from the rewritten selection set.
-            if (!context.AllowRequirements && source.Requirements is not null)
-            {
-                return (null, fieldNode);
-            }
+            // if (!context.AllowRequirements && source.Requirements is not null)
+            // {
+            //    return (null, fieldNode);
+            // }
         }
 
         var selectionSet = fieldNode.SelectionSet;
@@ -277,7 +290,6 @@ public class SelectionSetPartitioner(CompositeSchema schema)
     private sealed class Context
     {
         private ISelectionSetIndex _selectionSetIndex = null!;
-        private SelectionSetIndexBuilder? _selectionSetIndexBuilder;
 
         public required string SchemaName { get; init; }
 
@@ -291,21 +303,26 @@ public class SelectionSetPartitioner(CompositeSchema schema)
             init => _selectionSetIndex = value;
         }
 
+        [field: AllowNull, MaybeNull]
         public SelectionSetIndexBuilder SelectionSetIndexBuilder
         {
             get
             {
-                if (_selectionSetIndexBuilder is null)
+                if (field is null)
                 {
-                    _selectionSetIndexBuilder = _selectionSetIndex.ToBuilder();
-                    _selectionSetIndex = _selectionSetIndexBuilder;
+                    field = _selectionSetIndex.ToBuilder();
+                    _selectionSetIndex = field;
                 }
 
-                return _selectionSetIndexBuilder;
+                return field;
             }
         }
 
-        public required ImmutableStack<SelectionSet> Unresolvable { get; set; }
+        public ImmutableStack<SelectionSet> Unresolvable { get; set; }
+            = ImmutableStack<SelectionSet>.Empty;
+
+        public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; }
+            = ImmutableStack<FieldSelection>.Empty;
 
         public Stack<ISyntaxNode> Nodes { get; } = new();
 

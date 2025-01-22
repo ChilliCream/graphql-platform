@@ -58,7 +58,7 @@ public class SelectionSetPartitionerTests
             SelectionSetIndex = index
         };
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, _) = rewriter.Partition(input);
+        var (resolvable, unresolvable, fields, _) = rewriter.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(
@@ -130,7 +130,7 @@ public class SelectionSetPartitionerTests
             SelectionSetIndex = index
         };
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, _) = rewriter.Partition(input);
+        var (resolvable, unresolvable, fields, _) = rewriter.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(
