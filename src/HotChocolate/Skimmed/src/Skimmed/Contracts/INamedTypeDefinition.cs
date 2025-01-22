@@ -11,6 +11,7 @@ public interface INamedTypeDefinition
     , IDescriptionProvider
     , IDirectivesProvider
     , IFeatureProvider
+    , ISyntaxNodeProvider
 {
     /// <summary>
     /// Gets or sets the name of the type.

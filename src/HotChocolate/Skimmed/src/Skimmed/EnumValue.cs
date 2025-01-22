@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
@@ -14,6 +15,7 @@ public sealed class EnumValue(string name)
     , IDescriptionProvider
     , IDeprecationProvider
     , ISealable
+    , ISyntaxNodeProvider
 {
     private string _name = name.EnsureGraphQLName();
     private string? _description;
@@ -140,6 +142,13 @@ public sealed class EnumValue(string name)
     /// </returns>
     public override string ToString()
         => RewriteEnumValue(this).ToString(true);
+
+    /// <summary>
+    /// Creates an <see cref="EnumValueDefinitionNode"/> from an <see cref="EnumValue"/>.
+    /// </summary>
+    public EnumValueDefinitionNode ToSyntaxNode() => RewriteEnumValue(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteEnumValue(this);
 
     /// <summary>
     /// Creates a new enum value.

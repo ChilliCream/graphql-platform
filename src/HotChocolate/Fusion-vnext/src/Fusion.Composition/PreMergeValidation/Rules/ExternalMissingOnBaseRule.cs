@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
@@ -20,7 +21,7 @@ internal sealed class ExternalMissingOnBaseRule : IEventHandler<OutputFieldGroup
         var fieldGroup = @event.FieldGroup;
 
         var externalFields = fieldGroup
-            .Where(i => ValidationHelper.IsExternal(i.Field))
+            .Where(i => i.Field.HasExternalDirective())
             .ToImmutableArray();
 
         var nonExternalFieldCount = fieldGroup.Length - externalFields.Length;

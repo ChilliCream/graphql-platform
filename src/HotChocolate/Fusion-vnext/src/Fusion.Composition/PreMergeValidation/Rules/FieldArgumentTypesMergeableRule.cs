@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidation.Rules;
@@ -24,10 +25,10 @@ internal sealed class FieldArgumentTypesMergeableRule : IEventHandler<FieldArgum
         var argumentGroupVisible = argumentGroup
             .Where(
                 i =>
-                    ValidationHelper.IsAccessible(i.Type)
-                    && !ValidationHelper.IsInternal(i.Type)
-                    && ValidationHelper.IsAccessible(i.Field)
-                    && !ValidationHelper.IsInternal(i.Field))
+                    !i.Type.HasInaccessibleDirective()
+                    && !i.Type.HasInternalDirective()
+                    && !i.Field.HasInaccessibleDirective()
+                    && !i.Field.HasInternalDirective())
             .ToImmutableArray();
 
         for (var i = 0; i < argumentGroupVisible.Length - 1; i++)

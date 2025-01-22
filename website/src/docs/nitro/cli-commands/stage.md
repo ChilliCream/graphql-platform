@@ -73,11 +73,11 @@ nitro stage edit --api-id abc123 --configuration '[{"Name":"stage1","DisplayName
 ```json
 [
   {
-    "name": "stage1",
-    "displayName": "Stage 1",
-    "conditions": [
+    "Name": "stage1",
+    "DisplayName": "Stage 1",
+    "Conditions": [
       {
-        "afterStage": "stage2"
+        "AfterStage": "stage2"
       }
     ]
   }
