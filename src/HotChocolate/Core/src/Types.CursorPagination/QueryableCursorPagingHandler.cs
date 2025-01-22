@@ -1,17 +1,18 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination;
 
 internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler<IQueryable<TEntity>, TEntity>
 {
-    private readonly bool _inlineTotalCount;
+    private readonly bool? _inlineTotalCount;
 
     public QueryableCursorPagingHandler(PagingOptions options) : this(options, false)
     {
     }
 
-    public QueryableCursorPagingHandler(PagingOptions options, bool inlineTotalCount) : base(options)
+    public QueryableCursorPagingHandler(PagingOptions options, bool? inlineTotalCount) : base(options)
     {
         _inlineTotalCount = inlineTotalCount;
     }
@@ -58,7 +59,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
                 context.RequestAborted)
             .ConfigureAwait(false);
 
-    private sealed class QueryExecutor(IQueryableExecutable<TEntity> executable, bool inlineTotalCount)
+    private sealed class QueryExecutor(IQueryableExecutable<TEntity> executable, bool? allowInlining)
         : ICursorPaginationQueryExecutor<IQueryable<TEntity>, TEntity>
     {
         public ValueTask<int> CountAsync(
@@ -78,7 +79,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
 
             if (includeTotalCount)
             {
-                if (inlineTotalCount)
+                if (AllowInlining(executable, allowInlining))
                 {
                     var combinedQuery = slicedQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
                     totalCount = 0;
@@ -95,11 +96,6 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
                 }
                 else
                 {
-                    // if we cannot inline the total count we will do two queries.
-                    // first we start without awaiting it the count of the original query.
-                    var count = executable.CountAsync(cancellationToken).ConfigureAwait(false);
-
-                    // next we collect the items that the sliced query produces.
                     var index = offset;
                     await foreach (var item in executable
                         .WithSource(slicedQuery)
@@ -109,8 +105,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
                         edges.Add(IndexEdge<TEntity>.Create(item, index++));
                     }
 
-                    // last we await the count on the original query
-                    totalCount = await count;
+                    totalCount = await executable.CountAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             else
@@ -127,6 +122,22 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
 
             return new CursorPaginationData<TEntity>(edges.ToImmutable(), totalCount);
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool AllowInlining(IQueryableExecutable<TEntity> executable, bool? allowInlining)
+    {
+        if (!allowInlining.HasValue)
+        {
+            if(executable.AllowsInlining.HasValue)
+            {
+                return executable.AllowsInlining.Value;
+            }
+
+            return false;
+        }
+
+        return allowInlining.Value;
     }
 
     public static QueryableCursorPagingHandler<TEntity> Default { get; } =

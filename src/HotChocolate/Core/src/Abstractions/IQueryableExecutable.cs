@@ -17,6 +17,11 @@ public interface IQueryableExecutable<T> : IExecutable<T>
     bool IsInMemory { get; }
 
     /// <summary>
+    /// Defines if this executable allows inlining of multiple queries.
+    /// </summary>
+    bool? AllowsInlining { get; }
+
+    /// <summary>
     /// Returns a new executable with the provided source
     /// </summary>
     /// <param name="source">The source that should be set</param>

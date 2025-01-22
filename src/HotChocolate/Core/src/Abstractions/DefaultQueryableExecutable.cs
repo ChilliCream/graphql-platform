@@ -12,6 +12,8 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
 
     public bool IsInMemory { get; } = source is EnumerableQuery;
 
+    public bool? AllowsInlining => null;
+
     IQueryable<T> IQueryableExecutable<T>.Source => source;
 
     public IQueryableExecutable<T> WithSource(IQueryable<T> src)
@@ -38,7 +40,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return await enumerator.MoveNextAsync().ConfigureAwait(false) ? enumerator.Current : default;
         }
 
-        return await Task.Run(() => source.FirstOrDefault<T>(), cancellationToken).WaitAsync(cancellationToken);
+        return await Task.Run(source.FirstOrDefault, cancellationToken).WaitAsync(cancellationToken);
     }
 
     public override ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken = default)
@@ -127,7 +129,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return result;
         }
 
-        return await Task.Run(() => source.ToList(), cancellationToken).WaitAsync(cancellationToken);
+        return await Task.Run(source.ToList, cancellationToken).WaitAsync(cancellationToken);
     }
 
     public override async IAsyncEnumerable<T> ToAsyncEnumerable(

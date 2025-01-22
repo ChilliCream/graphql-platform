@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Pagination;
 public class QueryableCursorPagingProvider : CursorPagingProvider
 {
     private static readonly ConcurrentDictionary<Type, MethodInfo> _factoryCache = new();
-    private readonly bool _inlineTotalCount;
+    private readonly bool? _inlineTotalCount;
 
     private static readonly MethodInfo _createHandler =
         typeof(QueryableCursorPagingProvider).GetMethod(
@@ -19,7 +19,7 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
 
     public QueryableCursorPagingProvider() { }
 
-    public QueryableCursorPagingProvider(bool inlineTotalCount)
+    public QueryableCursorPagingProvider(bool? inlineTotalCount)
     {
         _inlineTotalCount = inlineTotalCount;
     }
@@ -51,6 +51,6 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
     }
 
     private static QueryableCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
-        PagingOptions options, bool inlineTotalCount)
+        PagingOptions options, bool? inlineTotalCount)
         => new(options, inlineTotalCount);
 }

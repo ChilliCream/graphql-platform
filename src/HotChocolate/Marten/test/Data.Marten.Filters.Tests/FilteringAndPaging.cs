@@ -17,12 +17,12 @@ public class FilteringAndPaging(SchemaCache cache)
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
+                .SetDocument("{ root(where: { bar: { eq: true } }){ nodes { bar } } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
+                .SetDocument("{ root(where: { bar: { eq: false } }){ nodes { bar } } }")
                 .Build());
 
         // assert
@@ -30,6 +30,26 @@ public class FilteringAndPaging(SchemaCache cache)
             .Create()
             .Add(res1, "true")
             .Add(res2, "false")
+            .MatchAsync();
+    }
+
+    [Fact]
+    public async Task Paging_With_TotalCount()
+    {
+        // arrange
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities, true);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: true } }) { nodes { bar } } }")
+                .Build());
+
+        // assert
+        await Snapshot
+            .Create()
+            .Add(tester.Schema.ToString())
+            .Add(res1, "true")
             .MatchAsync();
     }
 

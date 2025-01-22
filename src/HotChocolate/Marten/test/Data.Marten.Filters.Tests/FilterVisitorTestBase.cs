@@ -74,6 +74,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                                 .Build();
                     }
                 })
+            .ModifyPagingOptions(o => o.IncludeTotalCount = true)
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .UseDefaultPipeline()
             .Services

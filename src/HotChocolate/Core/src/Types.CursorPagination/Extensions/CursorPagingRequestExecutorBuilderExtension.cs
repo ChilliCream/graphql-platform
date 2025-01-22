@@ -37,7 +37,7 @@ public static class CursorPagingRequestExecutorBuilderExtension
         this IRequestExecutorBuilder builder,
         string? providerName = null,
         bool defaultProvider = false,
-        bool inlineTotalCount = false)
+        bool? inlineTotalCount = null)
         => AddCursorPagingProvider<QueryableCursorPagingProvider>(
             builder,
             _ => new QueryableCursorPagingProvider(inlineTotalCount),
