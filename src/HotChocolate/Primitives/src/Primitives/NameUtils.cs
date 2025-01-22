@@ -34,7 +34,7 @@ public static class NameUtils
             return name!;
         }
 
-        throw new ArgumentException(NameUtils_InvalidGraphQLName, argumentName);
+        throw new ArgumentException(string.Format(NameUtils_EnsureGraphQLName_InvalidName, name), argumentName);
     }
 
     /// <summary>

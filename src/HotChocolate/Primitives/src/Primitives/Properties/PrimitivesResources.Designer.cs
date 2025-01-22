@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Properties {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class PrimitivesResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal PrimitivesResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Properties {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,22 +44,28 @@ namespace HotChocolate.Properties {
                 resourceCulture = value;
             }
         }
-        
-        internal static string NameUtils_InvalidGraphQLName {
-            get {
-                return ResourceManager.GetString("NameUtils_InvalidGraphQLName", resourceCulture);
-            }
-        }
-        
+
         internal static string ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName {
             get {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName", resourceCulture);
             }
         }
-        
+
         internal static string ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate {
             get {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
+            }
+        }
+
+        internal static string DirectiveTypeFactory_LocationNotSupported {
+            get {
+                return ResourceManager.GetString("DirectiveTypeFactory_LocationNotSupported", resourceCulture);
+            }
+        }
+
+        internal static string NameUtils_EnsureGraphQLName_InvalidName {
+            get {
+                return ResourceManager.GetString("NameUtils_EnsureGraphQLName_InvalidName", resourceCulture);
             }
         }
     }
