@@ -1,3 +1,5 @@
 For more details look at the `Errors` property.
 
-1. The specified name is not a valid GraphQL name. (Parameter 'definition.Name') (HotChocolate.Data.Sorting.SortConventionTests.FooSortType)
+1. `` is not a valid GraphQL name.
+https://spec.graphql.org/October2021/#sec-Names
+(Parameter 'definition.Name') (HotChocolate.Data.Sorting.SortConventionTests.FooSortType)
