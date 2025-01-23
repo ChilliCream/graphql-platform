@@ -78,7 +78,7 @@ internal ref struct FieldSelectionMapReader
     /// <returns>
     /// Returns a boolean indicating if the read was successful.
     /// </returns>
-    /// <exception cref="SyntaxException">
+    /// <exception cref="FieldSelectionMapSyntaxException">
     /// The source text contains an invalid syntax token.
     /// </exception>
     public bool Read()
@@ -100,7 +100,7 @@ internal ref struct FieldSelectionMapReader
 
         if (_tokenCount > _maxAllowedTokens)
         {
-            throw new SyntaxException(
+            throw new FieldSelectionMapSyntaxException(
                 this,
                 string.Format(MaxAllowedTokensExceeded, _maxAllowedTokens));
         }
@@ -121,7 +121,7 @@ internal ref struct FieldSelectionMapReader
             return true;
         }
 
-        throw new SyntaxException(this, UnexpectedCharacter, code);
+        throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

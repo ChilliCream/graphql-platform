@@ -1,8 +1,6 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.PreMergeValidation.Rules;
 
-namespace HotChocolate.Composition.PreMergeValidation.Rules;
+namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
 public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
 {
