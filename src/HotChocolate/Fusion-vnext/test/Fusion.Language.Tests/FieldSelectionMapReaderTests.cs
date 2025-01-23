@@ -188,7 +188,7 @@ public sealed class FieldSelectionMapReaderTests
         // assert
         Assert.Equal(
             "Source text contains more than 2 tokens. Parsing aborted.",
-            Assert.Throws<SyntaxException>(Act).Message);
+            Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
 
     [Fact]
@@ -205,6 +205,6 @@ public sealed class FieldSelectionMapReaderTests
         // assert
         Assert.Equal(
             "Unexpected character `*`.",
-            Assert.Throws<SyntaxException>(Act).Message);
+            Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
 }

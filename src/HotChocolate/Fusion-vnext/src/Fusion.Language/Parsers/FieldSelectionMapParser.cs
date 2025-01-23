@@ -109,7 +109,10 @@ internal ref struct FieldSelectionMapParser
                 break;
 
             default:
-                throw new SyntaxException(_reader, UnexpectedToken, _reader.TokenKind);
+                throw new FieldSelectionMapSyntaxException(
+                    _reader,
+                    UnexpectedToken,
+                    _reader.TokenKind);
         }
 
         var location = CreateLocation(in start);
@@ -335,7 +338,7 @@ internal ref struct FieldSelectionMapParser
     {
         if (++_parsedNodes > _options.MaxAllowedNodes)
         {
-            throw new SyntaxException(
+            throw new FieldSelectionMapSyntaxException(
                 _reader,
                 string.Format(MaxAllowedNodesExceeded, _options.MaxAllowedNodes));
         }
@@ -353,7 +356,11 @@ internal ref struct FieldSelectionMapParser
     {
         if (!_reader.Skip(tokenKind))
         {
-            throw new SyntaxException(_reader, InvalidToken, tokenKind, _reader.TokenKind);
+            throw new FieldSelectionMapSyntaxException(
+                _reader,
+                InvalidToken,
+                tokenKind,
+                _reader.TokenKind);
         }
     }
 
@@ -368,7 +375,11 @@ internal ref struct FieldSelectionMapParser
             return name;
         }
 
-        throw new SyntaxException(_reader, InvalidToken, TokenKind.Name, _reader.TokenKind);
+        throw new FieldSelectionMapSyntaxException(
+            _reader,
+            InvalidToken,
+            TokenKind.Name,
+            _reader.TokenKind);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
