@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Composition.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Composition</RootNamespace>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
