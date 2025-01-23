@@ -118,7 +118,7 @@ public abstract class FieldDefinitionCollection<TField>
     }
 
     public IEnumerator<TField> GetEnumerator()
-        => _fields.Values.OrderBy(t => t.Name, StringComparer.Ordinal).GetEnumerator();
+        => _fields.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

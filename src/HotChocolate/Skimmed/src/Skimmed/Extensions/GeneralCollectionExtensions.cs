@@ -2,6 +2,12 @@ namespace HotChocolate.Skimmed;
 
 internal static class GeneralCollectionExtensions
 {
+    public static OrderedDictionary<TKey, TElement> ToOrderedDictionary<TElement, TKey>(
+        this IEnumerable<TElement> values,
+        Func<TElement, TKey> keySelector)
+        where TKey : IEquatable<TKey>
+        => values.ToOrderedDictionary(keySelector, x => x);
+
     public static OrderedDictionary<TKey, TValue> ToOrderedDictionary<TElement, TKey, TValue>(
         this IEnumerable<TElement> values,
         Func<TElement, TKey> keySelector,

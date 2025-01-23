@@ -16,6 +16,22 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
     public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? definition)
         => _types.TryGetValue(name, out definition);
 
+    public void Insert(int index, DirectiveDefinition definition)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        _types.Insert(index, definition.Name, definition);
+    }
+
+    public bool Remove(string name)
+        => _types.Remove(name);
+
+    public void RemoveAt(int index)
+        => _types.RemoveAt(index);
+
     public void Add(DirectiveDefinition item)
     {
         if (item is null)
@@ -47,6 +63,19 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
 
     public bool ContainsName(string name)
         => _types.ContainsKey(name);
+
+    public int IndexOf(DirectiveDefinition definition)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        return IndexOf(definition.Name);
+    }
+
+    public int IndexOf(string name)
+        => _types.IndexOf(name);
 
     public bool Contains(DirectiveDefinition item)
     {

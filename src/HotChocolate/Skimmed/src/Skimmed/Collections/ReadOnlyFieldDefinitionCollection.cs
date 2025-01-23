@@ -25,6 +25,21 @@ public abstract class ReadOnlyFieldDefinitionCollection<TField>
     public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
         => _fields.TryGetValue(name, out field);
 
+    public void Insert(int index, TField field)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Remove(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RemoveAt(int index)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Add(TField item) => ThrowReadOnly();
 
     public bool Remove(TField item)
@@ -41,6 +56,16 @@ public abstract class ReadOnlyFieldDefinitionCollection<TField>
 
     public bool ContainsName(string name)
         => _fields.ContainsKey(name);
+
+    public int IndexOf(TField field)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int IndexOf(string name)
+    {
+        throw new NotImplementedException();
+    }
 
     public bool Contains(TField item)
     {
