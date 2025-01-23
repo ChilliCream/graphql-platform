@@ -7,7 +7,7 @@ public abstract class FieldDefinitionCollection<TField>
     : IFieldDefinitionCollection<TField>
     where TField : IFieldDefinition
 {
-    private readonly Dictionary<string, TField> _fields = new(StringComparer.Ordinal);
+    private readonly OrderedDictionary<string, TField> _fields = new();
 
     public int Count => _fields.Count;
 
@@ -17,6 +17,16 @@ public abstract class FieldDefinitionCollection<TField>
 
     public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
         => _fields.TryGetValue(name, out field);
+
+    public void Insert(int index, TField field)
+    {
+        if (field is null)
+        {
+            throw new ArgumentNullException(nameof(field));
+        }
+
+        _fields.Insert(index, field.Name, field);
+    }
 
     public void Add(TField item)
     {
@@ -45,6 +55,19 @@ public abstract class FieldDefinitionCollection<TField>
         return false;
     }
 
+    public bool Remove(string name)
+        => _fields.Remove(name);
+
+    public void RemoveAt(int index)
+    {
+        if (index < 0 || index >= _fields.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        _fields.RemoveAt(index);
+    }
+
     public void Clear() => _fields.Clear();
 
     public bool ContainsName(string name)
@@ -64,6 +87,26 @@ public abstract class FieldDefinitionCollection<TField>
         }
 
         return false;
+    }
+
+    public int IndexOf(TField field)
+    {
+        if (field is null)
+        {
+            throw new ArgumentNullException(nameof(field));
+        }
+
+        return _fields.IndexOf(field.Name);
+    }
+
+    public int IndexOf(string name)
+    {
+        if (name is null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        return _fields.IndexOf(name);
     }
 
     public void CopyTo(TField[] array, int arrayIndex)

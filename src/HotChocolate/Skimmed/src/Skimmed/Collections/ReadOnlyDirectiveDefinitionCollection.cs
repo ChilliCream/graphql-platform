@@ -20,8 +20,8 @@ public sealed class ReadOnlyDirectiveDefinitionCollection : IDirectiveDefinition
 
     public DirectiveDefinition this[string name] => _types[name];
 
-    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? type)
-        => _types.TryGetValue(name, out type);
+    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? definition)
+        => _types.TryGetValue(name, out definition);
 
     public void Add(DirectiveDefinition item) => ThrowReadOnly();
 

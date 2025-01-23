@@ -5,7 +5,7 @@ namespace HotChocolate.Skimmed;
 
 public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollection
 {
-    private readonly Dictionary<string, DirectiveDefinition> _types = new(StringComparer.Ordinal);
+    private readonly OrderedDictionary<string, DirectiveDefinition> _types = new();
 
     public int Count => _types.Count;
 
@@ -13,8 +13,8 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
 
     public DirectiveDefinition this[string name] => _types[name];
 
-    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? type)
-        => _types.TryGetValue(name, out type);
+    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? definition)
+        => _types.TryGetValue(name, out definition);
 
     public void Add(DirectiveDefinition item)
     {
