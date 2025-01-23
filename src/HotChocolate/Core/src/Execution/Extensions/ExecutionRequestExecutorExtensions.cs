@@ -129,6 +129,7 @@ public static class ExecutionRequestExecutorExtensions
             cancellationToken);
     }
 
+    [Obsolete]
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
         IOperationRequest request)
@@ -150,6 +151,7 @@ public static class ExecutionRequestExecutorExtensions
             .GetResult();
     }
 
+    [Obsolete]
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
         [StringSyntax("graphql")] string query)
@@ -172,6 +174,7 @@ public static class ExecutionRequestExecutorExtensions
                 .Build());
     }
 
+    [Obsolete]
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
         [StringSyntax("graphql")] string query,
