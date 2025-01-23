@@ -63,7 +63,7 @@ public sealed class FieldSelectionMapParserTests
         // assert
         Assert.Equal(
             "Expected a `Period`-token, but found a `EndOfFile`-token.",
-            Assert.Throws<SyntaxException>(Act).Message);
+            Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public sealed class FieldSelectionMapParserTests
         // assert
         Assert.Equal(
             "Expected a `Period`-token, but found a `EndOfFile`-token.",
-            Assert.Throws<SyntaxException>(Act).Message);
+            Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class FieldSelectionMapParserTests
         // assert
         Assert.Equal(
             "Expected a `RightSquareBracket`-token, but found a `Name`-token.",
-            Assert.Throws<SyntaxException>(Act).Message);
+            Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
 
     [Fact]
@@ -268,6 +268,6 @@ public sealed class FieldSelectionMapParserTests
         // assert
         Assert.Equal(
             "Source text contains more than 2 nodes. Parsing aborted.",
-            Assert.Throws<SyntaxException>(Act).Message);
+            Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
 }
