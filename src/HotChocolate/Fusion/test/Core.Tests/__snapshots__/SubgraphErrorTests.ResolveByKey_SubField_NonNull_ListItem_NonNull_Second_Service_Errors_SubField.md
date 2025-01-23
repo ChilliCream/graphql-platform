@@ -15,26 +15,9 @@
       ],
       "path": [
         "products",
-        0,
-        "price"
-      ]
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 5,
-          "column": 5
-        }
-      ],
-      "path": [
-        "products",
         1,
         "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
+      ]
     }
   ],
   "data": {
