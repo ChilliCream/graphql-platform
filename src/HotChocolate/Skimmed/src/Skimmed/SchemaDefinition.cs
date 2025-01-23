@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
@@ -9,9 +11,10 @@ namespace HotChocolate.Skimmed;
 /// </summary>
 public sealed class SchemaDefinition
     : INamedTypeSystemMemberDefinition<SchemaDefinition>
-        , IDirectivesProvider
-        , IFeatureProvider
-        , ISealable
+    , IDirectivesProvider
+    , IFeatureProvider
+    , ISealable
+    , ISyntaxNodeProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
     private ObjectTypeDefinition? _queryType;
@@ -308,5 +311,59 @@ public sealed class SchemaDefinition
         }
     }
 
+    /// <summary>
+    /// Returns a string representation of the schema.
+    /// </summary>
+    /// <returns>
+    /// A string representation of the schema.
+    /// </returns>
+    public override string ToString()
+        => SchemaFormatter.FormatAsString(this);
+
+    /// <summary>
+    /// Returns a string representation of the schema.
+    /// </summary>
+    /// <param name="options">
+    /// The options that control the formatting of the schema document.
+    /// </param>
+    /// <returns>
+    /// A string representation of the schema.
+    /// </returns>
+    public string ToString(SchemaFormatterOptions options)
+        => SchemaFormatter.FormatAsString(this, options);
+
+    /// <summary>
+    /// Returns a syntax node representation of the schema.
+    /// </summary>
+    /// <returns>
+    /// A syntax node representation of the schema.
+    /// </returns>
+    public DocumentNode ToSyntaxNode()
+        => ToSyntaxNode(default);
+
+    /// <summary>
+    /// Returns a syntax node representation of the schema.
+    /// </summary>
+    /// <param name="options">
+    /// The options that control the formatting of the schema document.
+    /// </param>
+    /// <returns>
+    /// A syntax node representation of the schema.
+    /// </returns>
+    public DocumentNode ToSyntaxNode(SchemaFormatterOptions options)
+        => SchemaFormatter.FormatAsDocument(this, options);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
+        => ToSyntaxNode();
+
+    /// <summary>
+    /// Creates a new schema definition.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the schema.
+    /// </param>
+    /// <returns>
+    /// Returns a new schema definition.
+    /// </returns>
     public static SchemaDefinition Create(string name) => new() { Name = name, };
 }
