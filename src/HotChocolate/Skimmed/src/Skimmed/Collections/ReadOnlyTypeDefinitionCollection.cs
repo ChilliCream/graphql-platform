@@ -6,12 +6,16 @@ namespace HotChocolate.Skimmed;
 
 public sealed class ReadOnlyTypeDefinitionCollection : ITypeDefinitionCollection
 {
-    private readonly FrozenDictionary<string, INamedTypeDefinition> _types;
+    private readonly OrderedDictionary<string, INamedTypeDefinition> _types;
 
     private ReadOnlyTypeDefinitionCollection(IEnumerable<INamedTypeDefinition> types)
     {
-        ArgumentNullException.ThrowIfNull(types);
-        _types = types.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+        if (types is null)
+        {
+            throw new ArgumentNullException(nameof(types));
+        }
+
+        _types = types.ToOrderedDictionary(t => t.Name);
     }
 
     public int Count => _types.Count;
@@ -20,8 +24,8 @@ public sealed class ReadOnlyTypeDefinitionCollection : ITypeDefinitionCollection
 
     public INamedTypeDefinition this[string name] => _types[name];
 
-    public bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? type)
-        => _types.TryGetValue(name, out type);
+    public bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? definition)
+        => _types.TryGetValue(name, out definition);
 
     public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedTypeDefinition
     {
@@ -35,7 +39,20 @@ public sealed class ReadOnlyTypeDefinitionCollection : ITypeDefinitionCollection
         return false;
     }
 
-    public void Add(INamedTypeDefinition item) => ThrowReadOnly();
+    public void Insert(int index, INamedTypeDefinition definition)
+        => ThrowReadOnly();
+
+    public bool Remove(string name)
+    {
+        ThrowReadOnly();
+        return false;
+    }
+
+    public void RemoveAt(int index)
+        => ThrowReadOnly();
+
+    public void Add(INamedTypeDefinition item)
+        => ThrowReadOnly();
 
     public bool Remove(INamedTypeDefinition item)
     {
@@ -43,7 +60,8 @@ public sealed class ReadOnlyTypeDefinitionCollection : ITypeDefinitionCollection
         return false;
     }
 
-    public void Clear() => ThrowReadOnly();
+    public void Clear()
+        => ThrowReadOnly();
 
     [DoesNotReturn]
     private static void ThrowReadOnly()
@@ -51,6 +69,19 @@ public sealed class ReadOnlyTypeDefinitionCollection : ITypeDefinitionCollection
 
     public bool ContainsName(string name)
         => _types.ContainsKey(name);
+
+    public int IndexOf(INamedTypeDefinition definition)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        return IndexOf(definition.Name);
+    }
+
+    public int IndexOf(string name)
+        => _types.IndexOf(name);
 
     public bool Contains(INamedTypeDefinition item)
     {
@@ -77,12 +108,7 @@ public sealed class ReadOnlyTypeDefinitionCollection : ITypeDefinitionCollection
     }
 
     public IEnumerator<INamedTypeDefinition> GetEnumerator()
-    {
-        foreach (var entry in _types)
-        {
-            yield return entry.Value;
-        }
-    }
+        => _types.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

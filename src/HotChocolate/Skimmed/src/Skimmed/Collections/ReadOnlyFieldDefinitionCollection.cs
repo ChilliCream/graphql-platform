@@ -8,12 +8,16 @@ public abstract class ReadOnlyFieldDefinitionCollection<TField>
     : IFieldDefinitionCollection<TField>
     where TField : IFieldDefinition
 {
-    private readonly FrozenDictionary<string, TField> _fields;
+    private readonly OrderedDictionary<string, TField> _fields;
 
     protected ReadOnlyFieldDefinitionCollection(IEnumerable<TField> values)
     {
-        ArgumentNullException.ThrowIfNull(values);
-        _fields = values.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+        if(values is null)
+        {
+            throw new ArgumentNullException(nameof(values));
+        }
+
+        _fields = values.ToOrderedDictionary(t => t.Name);
     }
 
     public int Count => _fields.Count;
@@ -25,15 +29,29 @@ public abstract class ReadOnlyFieldDefinitionCollection<TField>
     public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
         => _fields.TryGetValue(name, out field);
 
-    public void Add(TField item) => ThrowReadOnly();
+    public void Insert(int index, TField field)
+        => ThrowReadOnly();
 
-    public bool Remove(TField item)
+    public bool Remove(string name)
     {
         ThrowReadOnly();
         return false;
     }
 
-    public void Clear() => ThrowReadOnly();
+    public void RemoveAt(int index)
+        => ThrowReadOnly();
+
+    public void Add(TField field)
+        => ThrowReadOnly();
+
+    public bool Remove(TField field)
+    {
+        ThrowReadOnly();
+        return false;
+    }
+
+    public void Clear()
+        => ThrowReadOnly();
 
     [DoesNotReturn]
     private static void ThrowReadOnly()
@@ -41,6 +59,19 @@ public abstract class ReadOnlyFieldDefinitionCollection<TField>
 
     public bool ContainsName(string name)
         => _fields.ContainsKey(name);
+
+    public int IndexOf(TField field)
+    {
+        if(field is null)
+        {
+            throw new ArgumentNullException(nameof(field));
+        }
+
+        return IndexOf(field.Name);
+    }
+
+    public int IndexOf(string name)
+        => _fields.IndexOf(name);
 
     public bool Contains(TField item)
     {
@@ -67,7 +98,7 @@ public abstract class ReadOnlyFieldDefinitionCollection<TField>
     }
 
     public IEnumerator<TField> GetEnumerator()
-        => _fields.Values.OrderBy(t => t.Name, StringComparer.Ordinal).GetEnumerator();
+        => _fields.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

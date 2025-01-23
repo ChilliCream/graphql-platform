@@ -306,7 +306,7 @@ public sealed class FusionTypes
 
     public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectTypeDefinition> types)
     {
-        var temp = types.Select(t => new StringValueNode(t.Name)).ToArray();
+        var temp = types.OrderBy(t => t.Name).Select(t => new StringValueNode(t.Name)).ToArray();
 
         return new Directive(
             Node,

@@ -5,7 +5,7 @@ namespace HotChocolate.Skimmed;
 
 public sealed class EnumValueCollection : IEnumValueCollection
 {
-    private readonly Dictionary<string, EnumValue> _fields = new(StringComparer.Ordinal);
+    private readonly OrderedDictionary<string, EnumValue> _fields = new();
 
     public int Count => _fields.Count;
 
@@ -13,23 +13,46 @@ public sealed class EnumValueCollection : IEnumValueCollection
 
     public EnumValue this[string name] => _fields[name];
 
-    public bool TryGetValue(string name, [NotNullWhen(true)] out EnumValue? field)
-        => _fields.TryGetValue(name, out field);
+    public bool TryGetValue(string name, [NotNullWhen(true)] out EnumValue? value)
+        => _fields.TryGetValue(name, out value);
 
-    public void Add(EnumValue item)
+    public void Insert(int index, EnumValue value)
     {
-        ArgumentNullException.ThrowIfNull(item);
-        _fields.Add(item.Name, item);
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        _fields.Insert(index, value.Name, value);
     }
 
-    public bool Remove(EnumValue item)
-    {
-        ArgumentNullException.ThrowIfNull(item);
+    public bool Remove(string name)
+        => _fields.Remove(name);
 
-        if (_fields.TryGetValue(item.Name, out var itemToDelete)
-            && ReferenceEquals(item, itemToDelete))
+    public void RemoveAt(int index)
+        => _fields.RemoveAt(index);
+
+    public void Add(EnumValue value)
+    {
+        if (value is null)
         {
-            _fields.Remove(item.Name);
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        _fields.Add(value.Name, value);
+    }
+
+    public bool Remove(EnumValue value)
+    {
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        if (_fields.TryGetValue(value.Name, out var itemToDelete)
+            && ReferenceEquals(value, itemToDelete))
+        {
+            _fields.Remove(value.Name);
             return true;
         }
 
@@ -41,12 +64,28 @@ public sealed class EnumValueCollection : IEnumValueCollection
     public bool ContainsName(string name)
         => _fields.ContainsKey(name);
 
-    public bool Contains(EnumValue item)
+    public int IndexOf(EnumValue value)
     {
-        ArgumentNullException.ThrowIfNull(item);
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
 
-        if (_fields.TryGetValue(item.Name, out var itemToDelete)
-            && ReferenceEquals(item, itemToDelete))
+        return IndexOf(value.Name);
+    }
+
+    public int IndexOf(string name)
+        => _fields.IndexOf(name);
+
+    public bool Contains(EnumValue value)
+    {
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        if (_fields.TryGetValue(value.Name, out var itemToDelete)
+            && ReferenceEquals(value, itemToDelete))
         {
             return true;
         }
@@ -63,7 +102,7 @@ public sealed class EnumValueCollection : IEnumValueCollection
     }
 
     public IEnumerator<EnumValue> GetEnumerator()
-        => _fields.Values.OrderBy(t => t.Name, StringComparer.Ordinal).GetEnumerator();
+        => _fields.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

@@ -22,9 +22,9 @@ public sealed class ReadOnlyInterfaceTypeDefinitionCollection : IInterfaceTypeDe
         get => _interfaces[index];
     }
 
-    public void Add(InterfaceTypeDefinition item) => ThrowReadOnly();
+    public void Add(InterfaceTypeDefinition definition) => ThrowReadOnly();
 
-    public bool Remove(InterfaceTypeDefinition item)
+    public bool Remove(InterfaceTypeDefinition definition)
     {
         ThrowReadOnly();
         return false;
