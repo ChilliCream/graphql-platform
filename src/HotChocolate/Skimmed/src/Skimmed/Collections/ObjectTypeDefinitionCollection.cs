@@ -21,6 +21,9 @@ public sealed class ObjectTypeDefinitionCollection : IObjectTypeDefinitionCollec
     public bool Remove(ObjectTypeDefinition item)
         => _types.Remove(item);
 
+    public bool ContainsName(string name)
+        => _types.Exists(t => t.Name.Equals(name));
+
     public void RemoveAt(int index)
         => _types.RemoveAt(index);
 

@@ -12,11 +12,11 @@ type Query {
     @variable(subgraph: "A", name: "username", argument: "username")
     @resolver(subgraph: "A", select: "{ userByUsername(username: $username) }", arguments: [ { name: "username", type: "String!" } ])
   users(after: String before: String first: Int last: Int): UsersConnection
-    @variable(subgraph: "A", name: "after", argument: "after")
-    @variable(subgraph: "A", name: "before", argument: "before")
     @variable(subgraph: "A", name: "first", argument: "first")
+    @variable(subgraph: "A", name: "after", argument: "after")
     @variable(subgraph: "A", name: "last", argument: "last")
-    @resolver(subgraph: "A", select: "{ users(after: $after, before: $before, first: $first, last: $last) }", arguments: [ { name: "after", type: "String" }, { name: "before", type: "String" }, { name: "first", type: "Int" }, { name: "last", type: "Int" } ])
+    @variable(subgraph: "A", name: "before", argument: "before")
+    @resolver(subgraph: "A", select: "{ users(first: $first, after: $after, last: $last, before: $before) }", arguments: [ { name: "first", type: "Int" }, { name: "after", type: "String" }, { name: "last", type: "Int" }, { name: "before", type: "String" } ])
 }
 
 type PageInfo {
