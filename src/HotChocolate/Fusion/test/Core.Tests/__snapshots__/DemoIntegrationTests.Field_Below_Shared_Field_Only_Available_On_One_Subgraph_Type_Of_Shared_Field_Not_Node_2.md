@@ -4,61 +4,15 @@
 
 ```json
 {
-  "errors": [
-    {
-      "message": "The field `productById` does not exist on the type `Query`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 29
-        }
-      ],
-      "extensions": {
-        "type": "Query",
-        "field": "productById",
-        "responseName": "productById",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 5,
-          "column": 7
-        }
-      ],
-      "path": [
-        "productById",
-        "availability",
-        "mail"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 6,
-          "column": 9
-        }
-      ],
-      "path": [
-        "productById",
-        "availability",
-        "mail",
-        "canOnlyBeDeliveredToCurb"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    }
-  ],
   "data": {
     "productById": {
-      "availability": null
+      "availability": {
+        "isFutureRelease": true,
+        "mail": {
+          "canOnlyBeDeliveredToCurb": true,
+          "classification": "string"
+        }
+      }
     }
   }
 }
@@ -83,7 +37,7 @@ query($productId: ID!) {
 ## QueryPlan Hash
 
 ```text
-0AB239A55BF1E119982EB36A09571D08B8BA2C3D
+31CD4258CC2DACAA6791D01B537D990C3EB60E68
 ```
 
 ## QueryPlan
@@ -95,29 +49,18 @@ query($productId: ID!) {
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "Resolve",
+        "subgraph": "Subgraph_2",
+        "document": "query fetch_productById_1($productId: ID!) { productById(id: $productId) { availability { __fusion_exports__1: id } } }",
+        "selectionSetId": 0,
+        "provides": [
           {
-            "type": "Resolve",
-            "subgraph": "Subgraph_2",
-            "document": "query fetch_productById_1($productId: ID!) { productById(id: $productId) { availability { mail { classification } __fusion_exports__1: id } } }",
-            "selectionSetId": 0,
-            "provides": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ],
-            "forwardedVariables": [
-              {
-                "variable": "productId"
-              }
-            ]
-          },
+            "variable": "__fusion_exports__1"
+          }
+        ],
+        "forwardedVariables": [
           {
-            "type": "Resolve",
-            "subgraph": "Subgraph_1",
-            "document": "query fetch_productById_2 { productById(id: $productId) { availability { mail { canOnlyBeDeliveredToCurb } } } }",
-            "selectionSetId": 0
+            "variable": "productId"
           }
         ]
       },
@@ -130,7 +73,7 @@ query($productId: ID!) {
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query fetch_productById_3($__fusion_exports__1: ID!) { node(id: $__fusion_exports__1) { ... on ProductAvailability { isFutureRelease } } }",
+        "document": "query fetch_productById_2($__fusion_exports__1: ID!) { node(id: $__fusion_exports__1) { ... on ProductAvailability { isFutureRelease mail { canOnlyBeDeliveredToCurb classification } } } }",
         "selectionSetId": 2,
         "path": [
           "node"

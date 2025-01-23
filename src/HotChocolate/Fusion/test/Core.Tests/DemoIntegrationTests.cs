@@ -2131,6 +2131,96 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
+    [Fact]
+    public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_3()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type ProductAvailability implements Node {
+              mail: ProductAvailabilityMail!
+              isFutureRelease: Boolean!
+              id: ID!
+            }
+
+            type ProductAvailabilityMail {
+              canOnlyBeDeliveredToCurb: Boolean!
+              classification: String!
+            }
+
+            type Query {
+              node("ID of the object." id: ID!): Node
+              availabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              availability: ProductAvailability
+            }
+
+            type ProductAvailability implements Node {
+              id: ID!
+              mail: ProductAvailabilityMail!
+              isPastReleaseDate: Boolean!
+            }
+
+            type ProductAvailabilityMail {
+              classification: String!
+              other: String!
+            }
+
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productById(id: ID!): Product
+              availabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query($productId: ID!) {
+                  productById(id: $productId) {
+                    availability {
+                      isFutureRelease
+                      isPastReleaseDate
+                      mail {
+                        canOnlyBeDeliveredToCurb
+                        classification
+                        other
+                      }
+                    }
+                  }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?>
+            {
+                ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk="
+            })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    // TODO: Test with multiple levels of shared fields
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;
