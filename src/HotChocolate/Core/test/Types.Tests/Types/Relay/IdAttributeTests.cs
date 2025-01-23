@@ -51,25 +51,25 @@ public class IdAttributeTests
                                 nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
                                 optionalIntId(id: $intId)
                                 optionalIntIdGivenNothing: optionalIntId
-                                intIdList(id: [$intId])
-                                nullableIntIdList(id: [$intId, $nullIntId])
-                                optionalIntIdList(id: [$intId])
+                                intIdList(ids: [$intId])
+                                nullableIntIdList(ids: [$intId, $nullIntId])
+                                optionalIntIdList(ids: [$intId])
                                 stringId(id: $stringId)
                                 nullableStringId(id: $stringId)
                                 nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
                                 optionalStringId(id: $stringId)
                                 optionalStringIdGivenNothing: optionalStringId
-                                stringIdList(id: [$stringId])
-                                nullableStringIdList(id: [$stringId, $nullStringId])
-                                optionalStringIdList(id: [$stringId])
+                                stringIdList(ids: [$stringId])
+                                nullableStringIdList(ids: [$stringId, $nullStringId])
+                                optionalStringIdList(ids: [$stringId])
                                 guidId(id: $guidId)
                                 nullableGuidId(id: $guidId)
                                 nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
                                 optionalGuidId(id: $guidId)
                                 optionalGuidIdGivenNothing: optionalGuidId
-                                guidIdList(id: [$guidId $guidId])
-                                nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-                                optionalGuidIdList(id: [$guidId $guidId])
+                                guidIdList(ids: [$guidId $guidId])
+                                nullableGuidIdList(ids: [$guidId $nullGuidId $guidId])
+                                optionalGuidIdList(ids: [$guidId $guidId])
                                 customId(id: $customId)
                                 nullableCustomId(id: $customId)
                                 nullableCustomIdGivenNull: nullableCustomId(id: $nullCustomId)
@@ -106,7 +106,7 @@ public class IdAttributeTests
                     OperationRequestBuilder.New()
                         .SetDocument(@"query foo {
                                 interceptedId(id: 1)
-                                interceptedIds(id: [1, 2])
+                                interceptedIds(ids: [1, 2])
                             }")
                         .Build());
 
@@ -464,56 +464,53 @@ public class IdAttributeTests
     [SuppressMessage("Performance", "CA1822:Mark members as static")]
     public class Query
     {
-        public string IntId([ID] int id) => id.ToString();
-        public string IntIdList([ID] int[] id) =>
-            string.Join(", ", id.Select(t => t.ToString()));
+        public int IntId([ID] int id) => id;
 
-        public string NullableIntId([ID] int? id) => id?.ToString() ?? "null";
-        public string NullableIntIdList([ID] int?[] id) =>
-            string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+        public int[] IntIdList([ID] int[] ids) => ids;
 
-        public string OptionalIntId([DefaultValue("UXVlcnk6MA==")][ID] Optional<int> id) =>
-            id.HasValue ? id.Value.ToString() : "NO VALUE";
-        public string OptionalIntIdList([DefaultValue(new int[] {})][ID] Optional<int[]> id) =>
-            id.HasValue ? string.Join(", ", id.Value.Select(t => t.ToString())) : "NO VALUE";
+        public int? NullableIntId([ID] int? id) => id;
+
+        public int?[] NullableIntIdList([ID] int?[] ids) => ids;
+
+        public int? OptionalIntId([DefaultValue("UXVlcnk6MA==")][ID] Optional<int> id)
+            => id.HasValue ? id.Value : null;
+
+        public int[]? OptionalIntIdList([DefaultValue(new int[] {})][ID] Optional<int[]> ids)
+            => ids.HasValue ? ids.Value : null;
 
         public string StringId([ID] string id) => id;
-        public string StringIdList([ID] string[] id) =>
-            string.Join(", ", id.Select(t => t.ToString()));
 
-        public string NullableStringId([ID] string? id) => id ?? "null";
-        public string NullableStringIdList([ID] string?[] id) =>
-            string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+        public string[] StringIdList([ID] string[] ids) => ids;
 
-        public string OptionalStringId(
-            [DefaultValue("UXVlcnk6")][ID] Optional<string> id) =>
-            id.HasValue ? id.Value : "NO VALUE";
-        public string OptionalStringIdList(
-            [DefaultValue(new string[] {})][ID] Optional<string[]> id) =>
-            id.HasValue ? string.Join(", ", id.Value) : "NO VALUE";
+        public string? NullableStringId([ID] string? id) => id;
 
-        public string GuidId([ID] Guid id) => id.ToString();
-        public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
-            string.Join(", ", id.Select(t => t.ToString()));
+        public string?[] NullableStringIdList([ID] string?[] ids) => ids;
 
-        public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
-        public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
-            string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+        public string? OptionalStringId([DefaultValue("UXVlcnk6")][ID] Optional<string> id)
+            => id.HasValue ? id.Value : null;
 
-        public string OptionalGuidId(
-            [DefaultValue("UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA==")][ID] Optional<Guid> id) =>
-            id.HasValue ? id.Value.ToString() : "NO VALUE";
-        public string OptionalGuidIdList(
-            [DefaultValue(new object[] {})][ID] Optional<Guid[]> id) =>
-            id.HasValue ? string.Join(", ", id.Value.Select(t => t.ToString())) : "NO VALUE";
+        public string[]? OptionalStringIdList([DefaultValue(new string[] { })] [ID] Optional<string[]> ids)
+            => ids.HasValue ? ids.Value : null;
 
-        public string InterceptedId([InterceptedID("Query")] [ID] int id) => id.ToString();
+        public Guid GuidId([ID] Guid id) => id;
 
-        public string InterceptedIds([InterceptedID("Query")] [ID] int[] id) =>
-            string.Join(", ", id.Select(t => t.ToString()));
+        public IReadOnlyList<Guid> GuidIdList([ID] IReadOnlyList<Guid> ids) => ids;
 
-        public string CustomId([ID] StronglyTypedId id) =>
-            id.ToString();
+        public Guid? NullableGuidId([ID] Guid? id) => id;
+
+        public IReadOnlyList<Guid?> NullableGuidIdList([ID] IReadOnlyList<Guid?> ids) => ids;
+
+        public Guid? OptionalGuidId([DefaultValue("UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA==")][ID] Optional<Guid> id)
+            => id.HasValue ? id.Value : null;
+
+        public Guid[]? OptionalGuidIdList([DefaultValue(new object[] { })] [ID] Optional<Guid[]> ids)
+            => ids.HasValue ? ids.Value : null;
+
+        public int InterceptedId([InterceptedID("Query")] [ID] int id) => id;
+
+        public int[] InterceptedIds([InterceptedID("Query")] [ID] int[] ids) => ids;
+
+        public string CustomId([ID] StronglyTypedId id) => id.ToString();
 
         public string NullableCustomId([ID] StronglyTypedId? id) =>
             id?.ToString() ?? "null";

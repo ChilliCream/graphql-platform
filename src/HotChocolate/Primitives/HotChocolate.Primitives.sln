@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{42689032-400
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Primitives", "src\Primitives\HotChocolate.Primitives.csproj", "{F5CEC44C-8AB9-4639-9B38-4F523E3ABF2A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{B598E71D-74BD-4055-A2F7-10B7DB892ECB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Primitives.Tests", "test\Primitives.Tests\HotChocolate.Primitives.Tests.csproj", "{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,13 @@ Global
 		{F5CEC44C-8AB9-4639-9B38-4F523E3ABF2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5CEC44C-8AB9-4639-9B38-4F523E3ABF2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5CEC44C-8AB9-4639-9B38-4F523E3ABF2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F5CEC44C-8AB9-4639-9B38-4F523E3ABF2A} = {42689032-4007-47A4-B045-12D2681BF2CF}
+		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F} = {B598E71D-74BD-4055-A2F7-10B7DB892ECB}
 	EndGlobalSection
 EndGlobal

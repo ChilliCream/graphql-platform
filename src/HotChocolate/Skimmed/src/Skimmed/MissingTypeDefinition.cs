@@ -1,6 +1,8 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -57,4 +59,11 @@ public sealed class MissingTypeDefinition(string name)
         return other is MissingTypeDefinition otherMissing
             && otherMissing.Name.Equals(Name, StringComparison.Ordinal);
     }
+
+    /// <summary>
+    /// Creates a <see cref="NamedTypeNode"/> from a <see cref="MissingTypeDefinition"/>.
+    /// </summary>
+    public NamedTypeNode ToSyntaxNode() => RewriteMissingType(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteMissingType(this);
 }

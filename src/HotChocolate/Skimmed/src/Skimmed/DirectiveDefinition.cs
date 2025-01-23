@@ -1,7 +1,8 @@
 using HotChocolate.Features;
-using HotChocolate.Types;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Skimmed;
 
@@ -13,6 +14,7 @@ public class DirectiveDefinition
     , IDescriptionProvider
     , IFeatureProvider
     , ISealable
+    , ISyntaxNodeProvider
 {
     private string _name;
     private IInputFieldDefinitionCollection? _arguments;
@@ -180,6 +182,13 @@ public class DirectiveDefinition
     /// </returns>
     public override string ToString()
         => RewriteDirectiveType(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="DirectiveDefinitionNode"/> from a <see cref="DirectiveDefinition"/>.
+    /// </summary>
+    public DirectiveDefinitionNode ToSyntaxNode() => RewriteDirectiveType(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteDirectiveType(this);
 
     /// <summary>
     /// Creates a new directive definition.

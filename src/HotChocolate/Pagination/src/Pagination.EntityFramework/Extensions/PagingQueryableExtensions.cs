@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Pagination.Expressions;
 using static HotChocolate.Pagination.Expressions.ExpressionHelpers;
 
@@ -11,6 +13,7 @@ namespace HotChocolate.Pagination;
 public static class PagingQueryableExtensions
 {
     private static readonly AsyncLocal<InterceptorHolder> _interceptor = new();
+    private static readonly ConcurrentDictionary<(Type, Type), Expression> _countExpressionCache = new();
 
     /// <summary>
     /// Executes a query with paging and returns the selected page.
@@ -217,6 +220,49 @@ public static class PagingQueryableExtensions
     /// <param name="keySelector">
     /// A function to select the key of the parent.
     /// </param>
+    /// <param name="arguments">
+    /// The paging arguments.
+    /// </param>
+    /// <param name="includeTotalCount">
+    /// If set to <c>true</c> the total count will be included in the result.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The type of the parent key.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The type of the items in the queryable.
+    /// </typeparam>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">
+    /// If the queryable does not have any keys specified.
+    /// </exception>
+    public static ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue>(
+        this IQueryable<TValue> source,
+        Expression<Func<TValue, TKey>> keySelector,
+        PagingArguments arguments,
+        bool includeTotalCount,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => ToBatchPageAsync<TKey, TValue, TValue>(
+            source,
+            keySelector,
+            t => t,
+            arguments,
+            includeTotalCount: includeTotalCount,
+            cancellationToken);
+
+    /// <summary>
+    /// Executes a batch query with paging and returns the selected pages for each parent.
+    /// </summary>
+    /// <param name="source">
+    /// The queryable to be paged.
+    /// </param>
+    /// <param name="keySelector">
+    /// A function to select the key of the parent.
+    /// </param>
     /// <param name="valueSelector">
     /// A function to select the value of the items in the queryable.
     /// </param>
@@ -239,11 +285,55 @@ public static class PagingQueryableExtensions
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
+    public static ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue, TElement>(
+        this IQueryable<TElement> source,
+        Expression<Func<TElement, TKey>> keySelector,
+        Func<TElement, TValue> valueSelector,
+        PagingArguments arguments,
+        CancellationToken cancellationToken = default)
+        where TKey : notnull
+        => ToBatchPageAsync(source, keySelector, valueSelector, arguments, includeTotalCount: false, cancellationToken);
+
+    /// <summary>
+    /// Executes a batch query with paging and returns the selected pages for each parent.
+    /// </summary>
+    /// <param name="source">
+    /// The queryable to be paged.
+    /// </param>
+    /// <param name="keySelector">
+    /// A function to select the key of the parent.
+    /// </param>
+    /// <param name="valueSelector">
+    /// A function to select the value of the items in the queryable.
+    /// </param>
+    /// <param name="arguments">
+    /// The paging arguments.
+    /// </param>
+    /// <param name="includeTotalCount">
+    /// If set to <c>true</c> the total count will be included in the result.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The type of the parent key.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The type of the items in the queryable.
+    /// </typeparam>
+    /// <typeparam name="TElement">
+    /// The type of the items in the queryable.
+    /// </typeparam>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">
+    /// If the queryable does not have any keys specified.
+    /// </exception>
     public static async ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue, TElement>(
         this IQueryable<TElement> source,
         Expression<Func<TElement, TKey>> keySelector,
         Func<TElement, TValue> valueSelector,
         PagingArguments arguments,
+        bool includeTotalCount,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
@@ -261,6 +351,12 @@ public static class PagingQueryableExtensions
             throw new ArgumentException(
                 "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
                 nameof(arguments));
+        }
+
+        Dictionary<TKey, int>? counts = null;
+        if (includeTotalCount)
+        {
+            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
         }
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
@@ -308,11 +404,65 @@ public static class PagingQueryableExtensions
                 builder.Add(valueSelector(item.Items[i]));
             }
 
-            var page = CreatePage(builder.ToImmutable(), arguments, keys, item.Items.Count);
+            var totalCount = counts?.GetValueOrDefault(item.Key);
+            var page = CreatePage(builder.ToImmutable(), arguments, keys, item.Items.Count, totalCount);
             map.Add(item.Key, page);
         }
 
         return map;
+    }
+
+    private static async Task<Dictionary<TKey, int>> GetBatchCountsAsync<TElement, TKey>(
+        IQueryable<TElement> source,
+        Expression<Func<TElement, TKey>> keySelector,
+        CancellationToken cancellationToken)
+        where TKey : notnull
+    {
+        var query = source
+            .GroupBy(keySelector)
+            .Select(GetOrCreateCountSelector<TElement, TKey>());
+
+        TryGetQueryInterceptor()?.OnBeforeExecute(query);
+
+        return await query.ToDictionaryAsync(t => t.Key, t => t.Count, cancellationToken);
+    }
+
+    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement, TKey>()
+    {
+        return (Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>>)
+            _countExpressionCache.GetOrAdd(
+                (typeof(TKey), typeof(TElement)),
+                static _ =>
+                {
+                    var groupingType = typeof(IGrouping<,>).MakeGenericType(typeof(TKey), typeof(TElement));
+                    var param = Expression.Parameter(groupingType, "g");
+                    var keyProperty = Expression.Property(param, nameof(IGrouping<TKey, TElement>.Key));
+                    var countMethod = typeof(Enumerable)
+                        .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                        .First(m => m.Name == nameof(Enumerable.Count) && m.GetParameters().Length == 1)
+                        .MakeGenericMethod(typeof(TElement));
+                    var countCall = Expression.Call(countMethod, param);
+
+                    var resultCtor = typeof(CountResult<TKey>).GetConstructor(Type.EmptyTypes)!;
+                    var newExpr = Expression.New(resultCtor);
+
+                    var bindings = new List<MemberBinding>
+                    {
+                        Expression.Bind(typeof(CountResult<TKey>).GetProperty(nameof(CountResult<TKey>.Key))!,
+                            keyProperty),
+                        Expression.Bind(typeof(CountResult<TKey>).GetProperty(nameof(CountResult<TKey>.Count))!,
+                            countCall)
+                    };
+
+                    var body = Expression.MemberInit(newExpr, bindings);
+                    return Expression.Lambda<Func<IGrouping<TKey, TElement>, CountResult<TKey>>>(body, param);
+                });
+    }
+
+    private class CountResult<TKey>
+    {
+        public required TKey Key { get; set; }
+        public required int Count { get; set; }
     }
 
     private static Page<T> CreatePage<T>(

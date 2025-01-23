@@ -1,8 +1,7 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Skimmed.Serialization;
 
-namespace HotChocolate.Composition;
+namespace HotChocolate.Fusion;
 
 public abstract class CompositionTestBase
 {

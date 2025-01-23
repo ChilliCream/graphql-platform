@@ -22,8 +22,7 @@ public static class SchemaParser
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
 
-        DiscoverDirectives(schema, document);
-        DiscoverTypes(schema, document);
+        DiscoverTypesAndDirectives(schema, document);
         DiscoverExtensions(schema, document);
 
         BuildTypes(schema, document);
@@ -32,28 +31,7 @@ public static class SchemaParser
         BuildAndExtendSchema(schema, document);
     }
 
-    private static void DiscoverDirectives(SchemaDefinition schema, DocumentNode document)
-    {
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is DirectiveDefinitionNode def)
-            {
-                if (schema.DirectiveDefinitions.ContainsName(def.Name.Value))
-                {
-                    // TODO : parsing error
-                    throw new Exception("duplicate");
-                }
-
-                schema.DirectiveDefinitions.Add(
-                    new DirectiveDefinition(def.Name.Value)
-                    {
-                        IsSpecDirective = BuiltIns.IsBuiltInDirective(def.Name.Value)
-                    });
-            }
-        }
-    }
-
-    private static void DiscoverTypes(SchemaDefinition schema, DocumentNode document)
+    private static void DiscoverTypesAndDirectives(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
@@ -99,6 +77,21 @@ public static class SchemaParser
                         // TODO : parsing error
                         throw new ArgumentOutOfRangeException(nameof(definition));
                 }
+            }
+
+            if (definition is DirectiveDefinitionNode directiveDef)
+            {
+                if (schema.DirectiveDefinitions.ContainsName(directiveDef.Name.Value))
+                {
+                    // TODO : parsing error
+                    throw new Exception("duplicate");
+                }
+
+                schema.DirectiveDefinitions.Add(
+                    new DirectiveDefinition(directiveDef.Name.Value)
+                    {
+                        IsSpecDirective = BuiltIns.IsBuiltInDirective(directiveDef.Name.Value)
+                    });
             }
         }
     }
@@ -434,6 +427,7 @@ public static class SchemaParser
             var field = new InputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.DefaultValue = fieldNode.DefaultValue;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 

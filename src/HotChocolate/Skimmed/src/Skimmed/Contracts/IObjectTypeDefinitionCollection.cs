@@ -4,5 +4,7 @@ public interface IObjectTypeDefinitionCollection : ICollection<ObjectTypeDefinit
 {
     ObjectTypeDefinition this[int index] { get; }
 
+    bool ContainsName(string name);
+
     void RemoveAt(int index);
 }

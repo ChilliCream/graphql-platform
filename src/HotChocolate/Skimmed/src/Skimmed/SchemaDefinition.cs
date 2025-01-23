@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
@@ -12,7 +14,9 @@ public sealed class SchemaDefinition
     , IDirectivesProvider
     , IFeatureProvider
     , ISealable
+    , ISyntaxNodeProvider
 {
+    private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
     private ObjectTypeDefinition? _queryType;
     private ObjectTypeDefinition? _mutationType;
     private ObjectTypeDefinition? _subscriptionType;
@@ -101,13 +105,13 @@ public sealed class SchemaDefinition
     /// Gets the types that are defined in this schema.
     /// </summary>
     public ITypeDefinitionCollection Types
-        => _typeDefinitions ??= new TypeDefinitionCollection();
+        => _typeDefinitions ??= new TypeDefinitionCollection(_allDefinitionCoordinates);
 
     /// <summary>
     /// Gets the directives that are defined in this schema.
     /// </summary>
     public IDirectiveDefinitionCollection DirectiveDefinitions
-        => _directiveDefinitions ??= new DirectiveDefinitionCollection();
+        => _directiveDefinitions ??= new DirectiveDefinitionCollection(_allDefinitionCoordinates);
 
     /// <summary>
     /// Gets the directives that are annotated to this schema.
@@ -132,7 +136,7 @@ public sealed class SchemaDefinition
             return;
         }
 
-        if(_typeDefinitions is null || _typeDefinitions.Count == 0)
+        if (_typeDefinitions is null || _typeDefinitions.Count == 0)
         {
             throw new InvalidOperationException(
                 "A schema must have at least one type.");
@@ -293,5 +297,73 @@ public sealed class SchemaDefinition
         return false;
     }
 
+    /// <summary>
+    /// Gets the type and directive definitions that are defined in this schema in insert order.
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<INameProvider> GetAllDefinitions()
+    {
+        foreach (var definition in _allDefinitionCoordinates)
+        {
+            yield return definition.OfDirective
+                ? DirectiveDefinitions[definition.Name]
+                : Types[definition.Name];
+        }
+    }
+
+    /// <summary>
+    /// Returns a string representation of the schema.
+    /// </summary>
+    /// <returns>
+    /// A string representation of the schema.
+    /// </returns>
+    public override string ToString()
+        => SchemaFormatter.FormatAsString(this);
+
+    /// <summary>
+    /// Returns a string representation of the schema.
+    /// </summary>
+    /// <param name="options">
+    /// The options that control the formatting of the schema document.
+    /// </param>
+    /// <returns>
+    /// A string representation of the schema.
+    /// </returns>
+    public string ToString(SchemaFormatterOptions options)
+        => SchemaFormatter.FormatAsString(this, options);
+
+    /// <summary>
+    /// Returns a syntax node representation of the schema.
+    /// </summary>
+    /// <returns>
+    /// A syntax node representation of the schema.
+    /// </returns>
+    public DocumentNode ToSyntaxNode()
+        => ToSyntaxNode(default);
+
+    /// <summary>
+    /// Returns a syntax node representation of the schema.
+    /// </summary>
+    /// <param name="options">
+    /// The options that control the formatting of the schema document.
+    /// </param>
+    /// <returns>
+    /// A syntax node representation of the schema.
+    /// </returns>
+    public DocumentNode ToSyntaxNode(SchemaFormatterOptions options)
+        => SchemaFormatter.FormatAsDocument(this, options);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
+        => ToSyntaxNode();
+
+    /// <summary>
+    /// Creates a new schema definition.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the schema.
+    /// </param>
+    /// <returns>
+    /// Returns a new schema definition.
+    /// </returns>
     public static SchemaDefinition Create(string name) => new() { Name = name, };
 }
