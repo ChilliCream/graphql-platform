@@ -14,6 +14,7 @@ public sealed class InputParser
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
     private readonly bool _ignoreAdditionalInputFields;
+    private readonly bool _ignoreMissingInputFields;
 
     public InputParser() : this(new DefaultTypeConverter()) { }
 
@@ -22,6 +23,7 @@ public sealed class InputParser
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
         _dictToObjConverter = new DictionaryToObjectConverter(converter);
         _ignoreAdditionalInputFields = false;
+        _ignoreMissingInputFields = false;
     }
 
     public InputParser(ITypeConverter converter, InputParserOptions options)
@@ -29,6 +31,7 @@ public sealed class InputParser
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
         _dictToObjConverter = new DictionaryToObjectConverter(converter);
         _ignoreAdditionalInputFields = options.IgnoreAdditionalInputFields;
+        _ignoreMissingInputFields = options.IgnoreMissingInputFields;
     }
 
     public object? ParseLiteral(IValueNode value, IInputFieldInfo field, Type? targetType = null)
@@ -282,7 +285,7 @@ public sealed class InputParser
                     throw InvalidInputFieldNames(type, invalidFieldNames, path);
                 }
 
-                if (processedCount < type.Fields.Count)
+                if (!_ignoreMissingInputFields && processedCount < type.Fields.Count)
                 {
                     for (var i = 0; i < type.Fields.Count; i++)
                     {

@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
@@ -493,6 +494,34 @@ public class InputParserTests
 
         // assert
         Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_InputObject_IgnoreMissingInputFields()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test3Input>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field2", 123));
+
+        // act
+        var converter = new DefaultTypeConverter();
+
+        var options = new InputParserOptions
+        {
+            IgnoreMissingInputFields = true,
+        };
+
+        var parser = new InputParser(converter, options);
+        // TODO how do we test this?
+        var obj = parser.ParseLiteral(fieldData, null!, typeof(IReadOnlyDictionary<string, object?>));
+
+        // assert
+        var dict = Assert.IsAssignableFrom<IReadOnlyDictionary<string, object?>>(obj);
+        Assert.DoesNotContain("field1", dict.Keys);
     }
 
     public class TestInput
