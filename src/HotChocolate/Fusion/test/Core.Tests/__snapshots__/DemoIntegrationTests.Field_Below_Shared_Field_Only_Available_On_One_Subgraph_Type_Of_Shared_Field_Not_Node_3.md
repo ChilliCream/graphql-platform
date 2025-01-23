@@ -6,15 +6,18 @@
 {
   "errors": [
     {
-      "message": "The following variables were not declared: productId.",
+      "message": "The field `productById` does not exist on the type `Query`.",
       "locations": [
         {
           "line": 1,
-          "column": 1
+          "column": 29
         }
       ],
       "extensions": {
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+        "type": "Query",
+        "field": "productById",
+        "responseName": "productById",
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
       }
     },
     {
@@ -38,7 +41,7 @@
       "message": "Cannot return null for non-nullable field.",
       "locations": [
         {
-          "line": 9,
+          "line": 7,
           "column": 9
         }
       ],
@@ -46,7 +49,7 @@
         "productById",
         "availability",
         "mail",
-        "other"
+        "canOnlyBeDeliveredToCurb"
       ],
       "extensions": {
         "code": "HC0018"
@@ -82,7 +85,7 @@ query($productId: ID!) {
 ## QueryPlan Hash
 
 ```text
-968025A3ACCA82E4E0A454346311F057E257CAEA
+A1C347B860C373003EE1B709489ADE94746E3A5E
 ```
 
 ## QueryPlan
@@ -99,7 +102,7 @@ query($productId: ID!) {
           {
             "type": "Resolve",
             "subgraph": "Subgraph_2",
-            "document": "query fetch_productById_1($productId: ID!) { productById(id: $productId) { availability { isPastReleaseDate __fusion_exports__1: id } } }",
+            "document": "query fetch_productById_1($productId: ID!) { productById(id: $productId) { availability { isPastReleaseDate mail { classification other } __fusion_exports__1: id } } }",
             "selectionSetId": 0,
             "provides": [
               {
@@ -114,8 +117,8 @@ query($productId: ID!) {
           },
           {
             "type": "Resolve",
-            "subgraph": "Subgraph_2",
-            "document": "query fetch_productById_3 { productById(id: $productId) { availability { mail { other } } } }",
+            "subgraph": "Subgraph_1",
+            "document": "query fetch_productById_2 { productById(id: $productId) { availability { mail { canOnlyBeDeliveredToCurb } } } }",
             "selectionSetId": 0
           }
         ]
@@ -129,7 +132,7 @@ query($productId: ID!) {
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query fetch_productById_2($__fusion_exports__1: ID!) { node(id: $__fusion_exports__1) { ... on ProductAvailability { isFutureRelease mail { canOnlyBeDeliveredToCurb classification } } } }",
+        "document": "query fetch_productById_3($__fusion_exports__1: ID!) { node(id: $__fusion_exports__1) { ... on ProductAvailability { isFutureRelease } } }",
         "selectionSetId": 2,
         "path": [
           "node"

@@ -1988,7 +1988,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type Query {
               node("ID of the object." id: ID!): Node
-              availabilityById(id: ID!): ProductAvailability
+              productAvailabilityById(id: ID!): ProductAvailability
             }
             """);
 
@@ -2015,7 +2015,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             type Query {
               node("ID of the object." id: ID!): Node
               productById(id: ID!): Product
-              availabilityById(id: ID!): ProductAvailability
+              productAvailabilityById(id: ID!): ProductAvailability
             }
             """);
 
@@ -2070,7 +2070,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type Query {
               node("ID of the object." id: ID!): Node
-              availabilityById(id: ID!): ProductAvailability
+              productAvailabilityById(id: ID!): ProductAvailability
             }
             """);
 
@@ -2097,7 +2097,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             type Query {
               node("ID of the object." id: ID!): Node
               productById(id: ID!): Product
-              availabilityById(id: ID!): ProductAvailability
+              productAvailabilityById(id: ID!): ProductAvailability
             }
             """);
 
