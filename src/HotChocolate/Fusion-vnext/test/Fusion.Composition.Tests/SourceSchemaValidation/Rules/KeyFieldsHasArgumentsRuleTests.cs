@@ -1,8 +1,6 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.SourceSchemaValidation.Rules;
 
-namespace HotChocolate.Composition.SourceSchemaValidation.Rules;
+namespace HotChocolate.Fusion.SourceSchemaValidation.Rules;
 
 public sealed class KeyFieldsHasArgumentsRuleTests : CompositionTestBase
 {
