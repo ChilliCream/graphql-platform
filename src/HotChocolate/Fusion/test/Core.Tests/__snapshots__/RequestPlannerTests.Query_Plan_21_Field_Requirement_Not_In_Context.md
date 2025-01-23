@@ -69,7 +69,7 @@ query Requires {
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Products",
-            "document": "query Requires_4($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on Product { __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__4: id } } }",
+            "document": "query Requires_4($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on Product { __fusion_exports__1: dimension { weight } __fusion_exports__2: dimension { size } __fusion_exports__4: id } } }",
             "selectionSetId": 3,
             "path": [
               "nodes"
@@ -99,7 +99,7 @@ query Requires {
       {
         "type": "Resolve",
         "subgraph": "Shipping",
-        "document": "query Requires_3($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__4: ID!) { productById(id: $__fusion_exports__4) { deliveryEstimate(size: $__fusion_exports__1, weight: $__fusion_exports__2, zip: \u002212345\u0022) { min max } } }",
+        "document": "query Requires_3($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__4: ID!) { productById(id: $__fusion_exports__4) { deliveryEstimate(weight: $__fusion_exports__1, size: $__fusion_exports__2, zip: \u002212345\u0022) { min max } } }",
         "selectionSetId": 3,
         "path": [
           "productById"
@@ -125,8 +125,8 @@ query Requires {
     ]
   },
   "state": {
-    "__fusion_exports__1": "Product_dimension_size",
-    "__fusion_exports__2": "Product_dimension_weight",
+    "__fusion_exports__1": "Product_dimension_weight",
+    "__fusion_exports__2": "Product_dimension_size",
     "__fusion_exports__3": "User_id",
     "__fusion_exports__4": "Product_id"
   }

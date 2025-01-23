@@ -70,7 +70,7 @@ query TopProducts {
 ## QueryPlan Hash
 
 ```text
-FC03CBC397E93B9EFAE6B51FE7ACC718616299F7
+4AB84DCDE65E48A32B9280B6A7519D9BB425922F
 ```
 
 ## QueryPlan
@@ -85,7 +85,7 @@ FC03CBC397E93B9EFAE6B51FE7ACC718616299F7
       {
         "type": "Resolve",
         "subgraph": "Products",
-        "document": "query TopProducts_1 { topProducts(first: 5) { weight __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__3: id } }",
+        "document": "query TopProducts_1 { topProducts(first: 5) { weight __fusion_exports__1: dimension { weight } __fusion_exports__2: dimension { size } __fusion_exports__3: id } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -111,7 +111,7 @@ FC03CBC397E93B9EFAE6B51FE7ACC718616299F7
           {
             "type": "Resolve",
             "subgraph": "Shipping",
-            "document": "query TopProducts_2($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__3: ID!) { productById(id: $__fusion_exports__3) { deliveryEstimate(size: $__fusion_exports__1, weight: $__fusion_exports__2, zip: \u002212345\u0022) { min max } } }",
+            "document": "query TopProducts_2($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__3: ID!) { productById(id: $__fusion_exports__3) { deliveryEstimate(weight: $__fusion_exports__1, size: $__fusion_exports__2, zip: \u002212345\u0022) { min max } } }",
             "selectionSetId": 1,
             "path": [
               "productById"
@@ -153,8 +153,8 @@ FC03CBC397E93B9EFAE6B51FE7ACC718616299F7
     ]
   },
   "state": {
-    "__fusion_exports__1": "Product_dimension_size",
-    "__fusion_exports__2": "Product_dimension_weight",
+    "__fusion_exports__1": "Product_dimension_weight",
+    "__fusion_exports__2": "Product_dimension_size",
     "__fusion_exports__3": "Product_id"
   }
 }
