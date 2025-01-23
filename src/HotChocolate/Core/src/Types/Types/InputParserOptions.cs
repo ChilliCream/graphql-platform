@@ -15,7 +15,7 @@ public sealed class InputParserOptions
     public bool IgnoreAdditionalInputFields { get; set; }
 
     /// <summary>
-    /// Specifies if missing input object fields should be ignored and populated with default values.
+    /// Specifies if missing input object fields should be ignored and not populated with default values.
     /// The default is <c>false</c>.
     /// </summary>
     public bool IgnoreMissingInputFields { get; set; }
