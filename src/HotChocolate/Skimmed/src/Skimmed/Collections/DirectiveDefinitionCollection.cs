@@ -5,16 +5,23 @@ namespace HotChocolate.Skimmed;
 
 public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollection
 {
-    private readonly OrderedDictionary<string, DirectiveDefinition> _types = new();
+    private readonly List<SchemaCoordinate> _schemaDefinitions;
+    private readonly OrderedDictionary<string, DirectiveDefinition> _definitions = new();
 
-    public int Count => _types.Count;
+    internal DirectiveDefinitionCollection(List<SchemaCoordinate> schemaDefinitions)
+    {
+        _schemaDefinitions = schemaDefinitions
+            ?? throw new ArgumentNullException(nameof(schemaDefinitions));
+    }
+
+    public int Count => _definitions.Count;
 
     public bool IsReadOnly => false;
 
-    public DirectiveDefinition this[string name] => _types[name];
+    public DirectiveDefinition this[string name] => _definitions[name];
 
     public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? definition)
-        => _types.TryGetValue(name, out definition);
+        => _definitions.TryGetValue(name, out definition);
 
     public void Insert(int index, DirectiveDefinition definition)
     {
@@ -23,14 +30,29 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
             throw new ArgumentNullException(nameof(definition));
         }
 
-        _types.Insert(index, definition.Name, definition);
+        var type = _definitions.GetAt(index);
+        var definitionIndex = _schemaDefinitions.IndexOf(new SchemaCoordinate(type.Key, ofDirective: true));
+        _schemaDefinitions.Insert(definitionIndex, new SchemaCoordinate(definition.Name, ofDirective: true));
+        _definitions.Insert(index, definition.Name, definition);
     }
 
     public bool Remove(string name)
-        => _types.Remove(name);
+    {
+        if (_definitions.Remove(name))
+        {
+            _schemaDefinitions.Remove(new SchemaCoordinate(name, ofDirective: true));
+            return true;
+        }
+
+        return false;
+    }
 
     public void RemoveAt(int index)
-        => _types.RemoveAt(index);
+    {
+        var type = _definitions.GetAt(index);
+        _definitions.Remove(type.Key);
+        _schemaDefinitions.Remove(new SchemaCoordinate(type.Key, ofDirective: true));
+    }
 
     public void Add(DirectiveDefinition item)
     {
@@ -39,7 +61,20 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
             throw new ArgumentNullException(nameof(item));
         }
 
-        _types.Add(item.Name, item);
+        if (_definitions.TryGetValue(item.Name, out var existing))
+        {
+            if (ReferenceEquals(existing, item))
+            {
+                return;
+            }
+
+            throw new ArgumentException(
+                $"The directive definition `@{item.Name}` is already defined.",
+                nameof(item));
+        }
+
+        _definitions.Add(item.Name, item);
+        _schemaDefinitions.Add(new SchemaCoordinate(item.Name, ofDirective: true));
     }
 
     public bool Remove(DirectiveDefinition item)
@@ -49,20 +84,27 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
             throw new ArgumentNullException(nameof(item));
         }
 
-        if (_types.TryGetValue(item.Name, out var itemToDelete) &&
-            ReferenceEquals(item, itemToDelete))
+        if (_definitions.TryGetValue(item.Name, out var itemToDelete)
+            && ReferenceEquals(item, itemToDelete))
         {
-            _types.Remove(item.Name);
-            return true;
+            return Remove(item.Name);
         }
 
         return false;
     }
 
-    public void Clear() => _types.Clear();
+    public void Clear()
+    {
+        foreach (var typeName in _definitions.Keys)
+        {
+            _schemaDefinitions.Remove(new SchemaCoordinate(typeName));
+        }
+
+        _definitions.Clear();
+    }
 
     public bool ContainsName(string name)
-        => _types.ContainsKey(name);
+        => _definitions.ContainsKey(name);
 
     public int IndexOf(DirectiveDefinition definition)
     {
@@ -75,7 +117,7 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
     }
 
     public int IndexOf(string name)
-        => _types.IndexOf(name);
+        => _definitions.IndexOf(name);
 
     public bool Contains(DirectiveDefinition item)
     {
@@ -84,8 +126,7 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
             throw new ArgumentNullException(nameof(item));
         }
 
-        if (_types.TryGetValue(item.Name, out var itemToDelete) &&
-            ReferenceEquals(item, itemToDelete))
+        if (_definitions.TryGetValue(item.Name, out var itemToDelete) && ReferenceEquals(item, itemToDelete))
         {
             return true;
         }
@@ -95,14 +136,14 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
 
     public void CopyTo(DirectiveDefinition[] array, int arrayIndex)
     {
-        foreach (var item in _types)
+        foreach (var item in _definitions)
         {
             array[arrayIndex++] = item.Value;
         }
     }
 
     public IEnumerator<DirectiveDefinition> GetEnumerator()
-        => _types.Values.GetEnumerator();
+        => _definitions.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

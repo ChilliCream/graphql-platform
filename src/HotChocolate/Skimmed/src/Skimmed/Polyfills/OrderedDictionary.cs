@@ -1,5 +1,4 @@
 #if NET8_0
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,6 +13,17 @@ public class OrderedDictionary<TKey, TValue>
 {
     private readonly List<TKey> _keys = [];
     private readonly Dictionary<TKey, TValue> _map = new();
+
+    public KeyValuePair<TKey, TValue> GetAt(int index)
+    {
+        if (index < 0 || index >= _keys.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        var key = _keys[index];
+        return new KeyValuePair<TKey, TValue>(key, _map[key]);
+    }
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         => _map.TryGetValue(key, out value);

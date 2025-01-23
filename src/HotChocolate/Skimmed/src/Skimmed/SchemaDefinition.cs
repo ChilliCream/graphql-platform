@@ -9,10 +9,11 @@ namespace HotChocolate.Skimmed;
 /// </summary>
 public sealed class SchemaDefinition
     : INamedTypeSystemMemberDefinition<SchemaDefinition>
-    , IDirectivesProvider
-    , IFeatureProvider
-    , ISealable
+        , IDirectivesProvider
+        , IFeatureProvider
+        , ISealable
 {
+    private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
     private ObjectTypeDefinition? _queryType;
     private ObjectTypeDefinition? _mutationType;
     private ObjectTypeDefinition? _subscriptionType;
@@ -101,13 +102,13 @@ public sealed class SchemaDefinition
     /// Gets the types that are defined in this schema.
     /// </summary>
     public ITypeDefinitionCollection Types
-        => _typeDefinitions ??= new TypeDefinitionCollection();
+        => _typeDefinitions ??= new TypeDefinitionCollection(_allDefinitionCoordinates);
 
     /// <summary>
     /// Gets the directives that are defined in this schema.
     /// </summary>
     public IDirectiveDefinitionCollection DirectiveDefinitions
-        => _directiveDefinitions ??= new DirectiveDefinitionCollection();
+        => _directiveDefinitions ??= new DirectiveDefinitionCollection(_allDefinitionCoordinates);
 
     /// <summary>
     /// Gets the directives that are annotated to this schema.
@@ -132,7 +133,7 @@ public sealed class SchemaDefinition
             return;
         }
 
-        if(_typeDefinitions is null || _typeDefinitions.Count == 0)
+        if (_typeDefinitions is null || _typeDefinitions.Count == 0)
         {
             throw new InvalidOperationException(
                 "A schema must have at least one type.");
@@ -291,6 +292,20 @@ public sealed class SchemaDefinition
 
         member = null;
         return false;
+    }
+
+    /// <summary>
+    /// Gets the type and directive definitions that are defined in this schema in insert order.
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<INameProvider> GetAllDefinitions()
+    {
+        foreach (var definition in _allDefinitionCoordinates)
+        {
+            yield return definition.OfDirective
+                ? DirectiveDefinitions[definition.Name]
+                : Types[definition.Name];
+        }
     }
 
     public static SchemaDefinition Create(string name) => new() { Name = name, };

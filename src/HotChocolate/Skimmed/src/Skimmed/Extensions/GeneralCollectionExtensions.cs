@@ -28,4 +28,11 @@ internal static class GeneralCollectionExtensions
 
         return dictionary;
     }
+
+    public static IEnumerable<T> OrderBy<T, TKey>(
+        this IEnumerable<T> source,
+        Func<T, TKey> keySelector,
+        bool ifTrue)
+        where TKey : IComparable<TKey>
+        => ifTrue ? source.OrderBy(keySelector) : source;
 }

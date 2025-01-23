@@ -7,7 +7,7 @@ public abstract class SchemaVisitor<TContext>
     public virtual void VisitSchema(SchemaDefinition schema, TContext context)
     {
         VisitTypes(schema.Types, context);
-        VisitDirectiveTypes(schema.DirectiveDefinitions, context);
+        VisitDirectiveDefinitions(schema.DirectiveDefinitions, context);
     }
 
     public virtual void VisitTypes(ITypeDefinitionCollection typesDefinition, TContext context)
@@ -56,11 +56,11 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitDirectiveTypes(IDirectiveDefinitionCollection directiveTypes, TContext context)
+    public virtual void VisitDirectiveDefinitions(IDirectiveDefinitionCollection directiveTypes, TContext context)
     {
         foreach (var type in directiveTypes)
         {
-            VisitDirectiveType(type, context);
+            VisitDirectiveDefinition(type, context);
         }
     }
 
@@ -163,7 +163,7 @@ public abstract class SchemaVisitor<TContext>
         VisitInputFields(field.Arguments, context);
     }
 
-    public virtual void VisitDirectiveType(DirectiveDefinition directive, TContext context)
+    public virtual void VisitDirectiveDefinition(DirectiveDefinition directive, TContext context)
     {
         VisitInputFields(directive.Arguments, context);
     }
