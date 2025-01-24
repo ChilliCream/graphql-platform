@@ -1984,7 +1984,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type ProductAvailability implements Node {
               id: ID!
-              shared: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail!
             }
 
             type ProductAvailabilityMail {
@@ -2006,7 +2006,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type ProductAvailability implements Node {
               id: ID!
-              shared: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail!
             }
 
             type ProductAvailabilityMail {
@@ -2027,7 +2027,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                 query($productId: ID!) {
                   productById(id: $productId) {
                     subgraph1Only {
-                      shared {
+                      sharedLinked {
                         subgraph2Only
                       }
                     }
@@ -2064,11 +2064,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type ProductAvailability implements Node {
               id: ID!
-              shared: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail!
             }
 
             type ProductAvailabilityMail {
-              shared: String!
+              sharedScalar: String!
             }
 
             type Query {
@@ -2085,14 +2085,14 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
 
             type ProductAvailability implements Node {
-              shared: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail!
               subgraph2Only: Boolean!
               id: ID!
             }
 
             type ProductAvailabilityMail {
               subgraph2Only: Boolean!
-              shared: String!
+              sharedScalar: String!
             }
 
             type Query {
@@ -2110,9 +2110,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                   productById(id: $productId) {
                     subgraph1Only {
                       subgraph2Only
-                      shared {
+                      sharedLinked {
                         subgraph2Only
-                        shared
+                        sharedScalar
                       }
                     }
                   }
@@ -2148,12 +2148,12 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type ProductAvailability implements Node {
               id: ID!
-              shared: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail!
               subgraph1Only: Boolean!
             }
 
             type ProductAvailabilityMail {
-              shared: String!
+              sharedScalar: String!
               subgraph1Only: String!
             }
 
@@ -2171,14 +2171,14 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
 
             type ProductAvailability implements Node {
-              shared: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail!
               subgraph2Only: Boolean!
               id: ID!
             }
 
             type ProductAvailabilityMail {
               subgraph2Only: Boolean!
-              shared: String!
+              sharedScalar: String!
             }
 
             type Query {
@@ -2197,9 +2197,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                     subgraph1Only {
                       subgraph2Only
                       subgraph1Only
-                      shared {
+                      sharedLinked {
                         subgraph2Only
-                        shared
+                        sharedScalar
                         subgraph1Only
                       }
                     }
