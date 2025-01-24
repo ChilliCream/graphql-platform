@@ -148,7 +148,7 @@ public static class SelectionDataLoaderExtensions
     /// <param name="query">
     ///  The queryable to apply the selector to.
     /// </param>
-    /// <param name="key">
+    /// <param name="keySelector">
     /// The DataLoader key.
     /// </param>
     /// <param name="builder">
@@ -163,8 +163,9 @@ public static class SelectionDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="query"/> is <c>null</c>.
     /// </exception>
-    public static IQueryable<T> Select<T>(this IQueryable<T> query,
-        Expression<Func<T, object?>> key,
+    public static IQueryable<T> Select<T>(
+        this IQueryable<T> query,
+        Expression<Func<T, object?>> keySelector,
         ISelectorBuilder builder)
     {
         if (query is null)
@@ -181,7 +182,43 @@ public static class SelectionDataLoaderExtensions
 
         if (selector is not null)
         {
-            query = query.Select(Combine(selector, Rewrite(key)));
+            query = query.Select(Combine(selector, Rewrite(keySelector)));
+        }
+
+        return query;
+    }
+
+    /// <summary>
+    /// Applies the selector from the DataLoader state to a queryable.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The queryable type.
+    /// </typeparam>
+    /// <param name="query">
+    /// The queryable to apply the selector to.
+    /// </param>
+    /// <param name="keySelector">
+    /// The DataLoader key.
+    /// </param>
+    /// <param name="selector">
+    /// The selector.
+    /// </param>
+    /// <returns>
+    /// Returns the query with the selector applied.
+    /// </returns>
+    public static IQueryable<T> Select<T>(
+        this IQueryable<T> query,
+        Expression<Func<T, object?>> keySelector,
+        Expression<Func<T, T>>? selector)
+    {
+        if (query is null)
+        {
+            throw new ArgumentNullException(nameof(query));
+        }
+
+        if (selector is not null)
+        {
+            query = query.Select(Combine(selector, Rewrite(keySelector)));
         }
 
         return query;
