@@ -56,6 +56,7 @@ public partial class InputObjectType
         base.OnCompleteType(context, definition);
 
         Fields = OnCompleteFields(context, definition);
+        IsOneOf = definition.GetDirectives().Any(t => t.Value is string s && s.Equals(WellKnownDirectives.OneOf));
 
         _createInstance = OnCompleteCreateInstance(context, definition);
         _getFieldValues = OnCompleteGetFieldValues(context, definition);
