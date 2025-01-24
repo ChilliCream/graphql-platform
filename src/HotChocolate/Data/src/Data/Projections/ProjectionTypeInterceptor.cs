@@ -22,7 +22,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnAfterCompleteType(
+    public override void OnAfterMakeExecutable(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {

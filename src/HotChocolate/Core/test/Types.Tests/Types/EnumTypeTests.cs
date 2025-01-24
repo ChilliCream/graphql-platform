@@ -457,21 +457,8 @@ public class EnumTypeTests : TypeTestBase
     public void EnumValue_DefinitionIsNull_ArgumentNullException()
     {
         // arrange
-        var completionContext = new Mock<ITypeCompletionContext>();
-
         // act
-        void Action() => new EnumValue(completionContext.Object, null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void EnumValue_ContextIsNull_ArgumentNullException()
-    {
-        // arrange
-        // act
-        void Action() => new EnumValue(null!, new EnumValueDefinition());
+        void Action() => new EnumValue(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -481,10 +468,8 @@ public class EnumTypeTests : TypeTestBase
     public void EnumValue_DefinitionValueIsNull_ArgumentNullException()
     {
         // arrange
-        var completionContext = new Mock<ITypeCompletionContext>();
-
         // act
-        void Action() => new EnumValue(completionContext.Object, new EnumValueDefinition());
+        void Action() => new EnumValue(new EnumValueDefinition());
 
         // assert
         Assert.Throws<ArgumentException>(Action);

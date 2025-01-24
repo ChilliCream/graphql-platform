@@ -403,6 +403,102 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
+    public override void OnBeforeCompleteMetadata()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeCompleteMetadata();
+        }
+    }
+
+    public override void OnAfterCompleteMetadata()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterCompleteMetadata();
+        }
+    }
+
+    public override void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeCompleteMetadata(context, definition);
+        }
+    }
+
+    public override void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterCompleteMetadata(context, definition);
+        }
+    }
+
+    public override void OnBeforeMakeExecutable()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeMakeExecutable();
+        }
+    }
+
+    public override void OnAfterMakeExecutable()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterMakeExecutable();
+        }
+    }
+
+    public override void OnBeforeMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeMakeExecutable(context, definition);
+        }
+    }
+
+    public override void OnAfterMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterMakeExecutable(context, definition);
+        }
+    }
+
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
         DefinitionBase definition)

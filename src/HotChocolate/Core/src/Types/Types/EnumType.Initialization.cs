@@ -8,6 +8,7 @@ using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 
@@ -151,12 +152,24 @@ public partial class EnumType
 #endif
     }
 
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        EnumTypeDefinition definition)
+    {
+        base.OnCompleteMetadata(context, definition);
+
+        foreach (var value in _values.OfType<IEnumValueCompletion>())
+        {
+            value.CompleteMetadata(context, this);
+        }
+    }
+
     protected virtual bool TryCreateEnumValue(
         ITypeCompletionContext context,
         EnumValueDefinition definition,
         [NotNullWhen(true)] out IEnumValue? enumValue)
     {
-        enumValue = new EnumValue(context, definition);
+        enumValue = new EnumValue(definition);
         return true;
     }
 }

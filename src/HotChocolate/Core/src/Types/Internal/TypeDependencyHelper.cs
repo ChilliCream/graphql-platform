@@ -109,7 +109,7 @@ public static class TypeDependencyHelper
 
             if (field.Type is not null)
             {
-                dependencies.Add(new(field.Type, GetDefaultValueDependencyKind(field)));
+                dependencies.Add(new(field.Type));
             }
 
             CollectDirectiveDependencies(field, dependencies);
@@ -182,9 +182,7 @@ public static class TypeDependencyHelper
 
                 if (argument.Type is not null)
                 {
-                    dependencies.Add(new(
-                        argument.Type,
-                        GetDefaultValueDependencyKind(argument)));
+                    dependencies.Add(new(argument.Type));
                 }
             }
         }
@@ -333,17 +331,5 @@ public static class TypeDependencyHelper
         }
 
         CollectDependencies(definition, context.Dependencies);
-    }
-
-    private static TypeDependencyFulfilled GetDefaultValueDependencyKind(
-        ArgumentDefinition argumentDefinition)
-    {
-        var hasDefaultValue =
-            argumentDefinition.DefaultValue is not null and not NullValueNode ||
-            argumentDefinition.RuntimeDefaultValue is not null;
-
-        return hasDefaultValue
-            ? Completed
-            : Default;
     }
 }

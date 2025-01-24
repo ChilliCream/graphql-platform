@@ -138,6 +138,11 @@ public sealed class DirectiveCollection : IDirectiveCollection
             throw new ArgumentNullException(nameof(definitions));
         }
 
+        if (definitions.Count == 0)
+        {
+            return Empty;
+        }
+
         var directives = new Directive[definitions.Count];
         var directiveNames = TypeMemHelper.RentNameSet();
         var hasErrors = false;
@@ -253,4 +258,6 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
+
+    internal static DirectiveCollection Empty { get; } = new DirectiveCollection(Array.Empty<Directive>());
 }
