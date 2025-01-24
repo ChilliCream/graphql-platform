@@ -365,10 +365,10 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     private void AssertMetadataCompleted()
     {
         Debug.Assert(
-            IsCompleted,
+            IsMetadataCompleted,
             "The type must be initialized.");
 
-        if (!IsCompleted)
+        if (!IsMetadataCompleted)
         {
             throw new InvalidOperationException();
         }
