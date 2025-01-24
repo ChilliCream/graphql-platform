@@ -1,22 +1,18 @@
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
-public sealed class EnumValue : IEnumValue
+public sealed class EnumValue : IEnumValue, IEnumValueCompletion
 {
-    public EnumValue(
-        ITypeCompletionContext completionContext,
-        EnumValueDefinition enumValueDefinition)
-    {
-        if (completionContext == null)
-        {
-            throw new ArgumentNullException(nameof(completionContext));
-        }
+    private EnumValueDefinition? _enumValueDefinition;
 
+    public EnumValue(EnumValueDefinition enumValueDefinition)
+    {
         if (enumValueDefinition is null)
         {
             throw new ArgumentNullException(nameof(enumValueDefinition));
@@ -29,6 +25,8 @@ public sealed class EnumValue : IEnumValue
                 nameof(enumValueDefinition));
         }
 
+        _enumValueDefinition = enumValueDefinition;
+
         Name = string.IsNullOrEmpty(enumValueDefinition.Name)
             ? enumValueDefinition.RuntimeValue.ToString()!
             : enumValueDefinition.Name;
@@ -37,11 +35,6 @@ public sealed class EnumValue : IEnumValue
         IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
         Value = enumValueDefinition.RuntimeValue;
         ContextData = enumValueDefinition.GetContextData();
-
-        Directives = DirectiveCollection.CreateAndComplete(
-            completionContext,
-            this,
-            enumValueDefinition.GetDirectives());
     }
 
     public string Name { get; }
@@ -54,7 +47,17 @@ public sealed class EnumValue : IEnumValue
 
     public object Value { get; }
 
-    public IDirectiveCollection Directives { get; }
+    public IDirectiveCollection Directives { get; private set; } = default!;
 
     public IReadOnlyDictionary<string, object?> ContextData { get; }
+    void IEnumValueCompletion.CompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember)
+    {
+        Directives = DirectiveCollection.CreateAndComplete(
+            context,
+            this,
+            _enumValueDefinition!.GetDirectives());
+        _enumValueDefinition = null;
+    }
 }
