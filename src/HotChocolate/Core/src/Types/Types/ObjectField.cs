@@ -113,7 +113,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        OutputFieldDefinitionBase definition)
     {
         base.OnMakeExecutable(context, declaringMember, definition);
         CompleteResolver(context, (ObjectFieldDefinition)definition);

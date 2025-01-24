@@ -357,7 +357,6 @@ public abstract class TypeInterceptor
     {
     }
 
-
     // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked after schema is fully created and gives access

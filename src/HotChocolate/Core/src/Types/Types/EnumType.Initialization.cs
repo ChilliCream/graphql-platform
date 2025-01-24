@@ -132,12 +132,24 @@ public partial class EnumType
         _valueLookup = valueLookupBuilder.ToFrozenDictionary(definition.ValueComparer);
     }
 
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        EnumTypeDefinition definition)
+    {
+        base.OnCompleteMetadata(context, definition);
+
+        foreach (var value in _values.OfType<IEnumValueCompletion>())
+        {
+            value.CompleteMetadata(context, this);
+        }
+    }
+
     protected virtual bool TryCreateEnumValue(
         ITypeCompletionContext context,
         EnumValueDefinition definition,
         [NotNullWhen(true)] out IEnumValue? enumValue)
     {
-        enumValue = new EnumValue(context, definition);
+        enumValue = new EnumValue(definition);
         return true;
     }
 }

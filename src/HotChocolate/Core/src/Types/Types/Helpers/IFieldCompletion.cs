@@ -2,6 +2,10 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Helpers;
 
+/// <summary>
+/// This interface is explicitly implemented by fields
+/// and is used to trigger the initialization hooks.
+/// </summary>
 internal interface IFieldCompletion
 {
     void CompleteField(

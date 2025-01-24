@@ -1,8 +1,11 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
@@ -56,7 +59,7 @@ public partial class InputObjectType
         base.OnCompleteType(context, definition);
 
         Fields = OnCompleteFields(context, definition);
-        IsOneOf = definition.GetDirectives().Any(t => t.Value is string s && s.Equals(WellKnownDirectives.OneOf));
+        IsOneOf = definition.GetDirectives().Any(static t => t.IsOneOf());
 
         _createInstance = OnCompleteCreateInstance(context, definition);
         _getFieldValues = OnCompleteGetFieldValues(context, definition);
@@ -177,4 +180,13 @@ public partial class InputObjectType
             }
         }
     }
+}
+
+file static class Extensions
+{
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsOneOf(this DirectiveDefinition directiveDef)
+        => directiveDef.Value is DirectiveNode node
+            && node.Name.Value.EqualsOrdinal(WellKnownDirectives.OneOf);
 }
