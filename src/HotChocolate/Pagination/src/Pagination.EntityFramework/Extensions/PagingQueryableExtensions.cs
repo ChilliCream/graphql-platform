@@ -461,8 +461,8 @@ public static class PagingQueryableExtensions
 
     private class CountResult<TKey>
     {
-        public required TKey Key { get; set; }
-        public required int Count { get; set; }
+        public TKey Key { get; set; } = default!;
+        public int Count { get; set; }
     }
 
     private static Page<T> CreatePage<T>(
