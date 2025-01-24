@@ -65,6 +65,7 @@ public class OutputFieldBase : FieldBase, IOutputField
         Arguments = OnCompleteFields(context, definition);
     }
 
+    // TODO: V15: should be renamed to OnCompleteArguments
     protected virtual FieldCollection<Argument> OnCompleteFields(
         ITypeCompletionContext context,
         OutputFieldDefinitionBase definition)
@@ -74,10 +75,16 @@ public class OutputFieldBase : FieldBase, IOutputField
             => new(argDef, index);
     }
 
-    protected override void OnCompleteMetadata(
+    protected sealed override void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         FieldDefinitionBase definition)
+        => OnCompleteMetadata(context, declaringMember, (OutputFieldDefinitionBase)definition);
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldDefinitionBase definition)
     {
         base.OnCompleteMetadata(context, declaringMember, definition);
 
@@ -87,10 +94,16 @@ public class OutputFieldBase : FieldBase, IOutputField
         }
     }
 
-    protected override void OnMakeExecutable(
+    protected sealed override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         FieldDefinitionBase definition)
+        => OnMakeExecutable(context, declaringMember, (OutputFieldDefinitionBase)definition);
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldDefinitionBase definition)
     {
         base.OnMakeExecutable(context, declaringMember, definition);
 
@@ -100,10 +113,16 @@ public class OutputFieldBase : FieldBase, IOutputField
         }
     }
 
-    protected override void OnFinalizeField(
+    protected sealed override void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         FieldDefinitionBase definition)
+        => OnFinalizeField(context, declaringMember, (OutputFieldDefinitionBase)definition);
+
+    protected virtual void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldDefinitionBase definition)
     {
         base.OnFinalizeField(context, declaringMember, definition);
 
