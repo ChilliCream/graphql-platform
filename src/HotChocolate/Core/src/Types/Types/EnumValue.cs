@@ -1,6 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 
@@ -59,11 +60,4 @@ public sealed class EnumValue : IEnumValue, IEnumValueCompletion
             _enumValueDefinition!.GetDirectives());
         _enumValueDefinition = null;
     }
-}
-
-internal interface IEnumValueCompletion
-{
-    void CompleteMetadata(
-        ITypeCompletionContext context,
-        ITypeSystemMember declaringMember);
 }
