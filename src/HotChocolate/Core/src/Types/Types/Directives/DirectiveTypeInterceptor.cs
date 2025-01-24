@@ -11,13 +11,11 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 {
     private readonly HashSet<DirectiveType> _usedDirectives = [];
 
-    public override void OnAfterCompleteType(
-        ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+    public override void OnValidateType(ITypeSystemObjectContext validationContext, DefinitionBase definition)
     {
-        if (!((RegisteredType)completionContext).HasErrors)
+        if (!((RegisteredType)validationContext).HasErrors)
         {
-            InspectType(completionContext.Type);
+            InspectType(validationContext.Type);
         }
     }
 

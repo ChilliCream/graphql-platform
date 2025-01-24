@@ -1,5 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
@@ -31,7 +32,7 @@ public class OutputFieldBase : FieldBase, IOutputField
     IFieldCollection<IInputField> IOutputFieldInfo.Arguments => Arguments;
 
     /// <summary>
-    /// Defines if this field as a introspection field.
+    /// Defines if this field as an introspection field.
     /// </summary>
     public bool IsIntrospectionField
         => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
@@ -71,6 +72,45 @@ public class OutputFieldBase : FieldBase, IOutputField
         return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
         static Argument CreateArgument(ArgumentDefinition argDef, int index)
             => new(argDef, index);
+    }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+    {
+        base.OnCompleteMetadata(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.CompleteMetadata(context, this);
+        }
+    }
+
+    protected override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+    {
+        base.OnMakeExecutable(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.MakeExecutable(context, this);
+        }
+    }
+
+    protected override void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+    {
+        base.OnFinalizeField(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.Finalize(context, this);
+        }
     }
 
     /// <summary>

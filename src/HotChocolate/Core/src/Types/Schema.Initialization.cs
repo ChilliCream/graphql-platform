@@ -76,9 +76,17 @@ public partial class Schema
     {
         base.OnCompleteType(context, definition);
 
-        Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
         Services = context.Services;
         Features = definition.Features.ToReadOnly();
+    }
+
+    protected override void OnFinalizeType(
+        ITypeCompletionContext context,
+        SchemaTypeDefinition definition)
+    {
+        base.OnFinalizeType(context, definition);
+
+        Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
     }
 
     internal void CompleteSchema(SchemaTypesDefinition schemaTypesDefinition)

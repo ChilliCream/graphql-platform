@@ -2,6 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
@@ -58,6 +59,42 @@ public partial class InputObjectType
 
         _createInstance = OnCompleteCreateInstance(context, definition);
         _getFieldValues = OnCompleteGetFieldValues(context, definition);
+    }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        InputObjectTypeDefinition definition)
+    {
+        base.OnCompleteMetadata(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.CompleteMetadata(context, this);
+        }
+    }
+
+    protected override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        InputObjectTypeDefinition definition)
+    {
+        base.OnMakeExecutable(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.MakeExecutable(context, this);
+        }
+    }
+
+    protected override void OnFinalizeType(
+        ITypeCompletionContext context,
+        InputObjectTypeDefinition definition)
+    {
+        base.OnFinalizeType(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.Finalize(context, this);
+        }
     }
 
     protected virtual FieldCollection<InputField> OnCompleteFields(

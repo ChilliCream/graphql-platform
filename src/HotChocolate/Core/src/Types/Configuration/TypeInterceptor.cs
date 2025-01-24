@@ -259,6 +259,8 @@ public abstract class TypeInterceptor
     /// </summary>
     public virtual void OnBeforeCompleteTypes() { }
 
+    public virtual void OnTypesCompleted() { }
+
     /// <summary>
     /// This method is called after the types are completed.
     /// </summary>
@@ -295,6 +297,50 @@ public abstract class TypeInterceptor
     }
 
     /// <summary>
+    /// This method is called before the types are completed.
+    /// </summary>
+    public virtual void OnBeforeCompleteMetadata() { }
+
+    /// <summary>
+    /// This method is called after the metadata of all types are completed.
+    /// </summary>
+    public virtual void OnAfterCompleteMetadata() { }
+
+    public virtual void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    public virtual void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    /// <summary>
+    /// This method is called before the types are executable.
+    /// </summary>
+    public virtual void OnBeforeMakeExecutable() { }
+
+    /// <summary>
+    /// This method is called after the types have been made executable.
+    /// </summary>
+    public virtual void OnAfterMakeExecutable() { }
+
+    public virtual void OnBeforeMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    public virtual void OnAfterMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    /// <summary>
     /// This event is called after the type system member is fully completed and is
     /// intended to add validation logic. If the type is not valid throw a
     /// <see cref="SchemaException"/>.
@@ -311,7 +357,6 @@ public abstract class TypeInterceptor
     {
     }
 
-    public virtual void OnTypesCompleted() { }
 
     // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
