@@ -80,11 +80,11 @@ public partial class Schema
         Features = definition.Features.ToReadOnly();
     }
 
-    protected override void OnFinalizeType(
+    protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
         SchemaTypeDefinition definition)
     {
-        base.OnFinalizeType(context, definition);
+        base.OnCompleteMetadata(context, definition);
 
         Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
     }
