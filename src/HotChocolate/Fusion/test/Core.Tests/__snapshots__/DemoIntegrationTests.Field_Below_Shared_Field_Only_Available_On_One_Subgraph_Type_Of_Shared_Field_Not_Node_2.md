@@ -17,11 +17,11 @@
 ```graphql
 query($productId: ID!) {
   productById(id: $productId) {
-    availability {
-      isFutureRelease
-      mail {
-        canOnlyBeDeliveredToCurb
-        classification
+    subgraph1Only {
+      subgraph2Only
+      shared {
+        subgraph2Only
+        shared
       }
     }
   }

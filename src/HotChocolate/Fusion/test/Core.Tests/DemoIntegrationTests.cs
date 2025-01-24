@@ -1971,28 +1971,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node()
     {
         // arrange
-        var subgraphA = await TestSubgraph.CreateAsync(
-            """
-            interface Node {
-              id: ID!
-            }
-
-            type ProductAvailability implements Node {
-              mail: ProductAvailabilityMail!
-              id: ID!
-            }
-
-            type ProductAvailabilityMail {
-              canOnlyBeDeliveredToCurb: Boolean!
-            }
-
-            type Query {
-              node("ID of the object." id: ID!): Node
-              productAvailabilityById(id: ID!): ProductAvailability
-            }
-            """);
-
-        var subgraphB = await TestSubgraph.CreateAsync(
+        var subgraph1 = await TestSubgraph.CreateAsync(
             """
             interface Node {
               id: ID!
@@ -2000,16 +1979,16 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type Product implements Node {
               id: ID!
-              availability: ProductAvailability
+              subgraph1Only: ProductAvailability
             }
 
             type ProductAvailability implements Node {
               id: ID!
-              mail: ProductAvailabilityMail!
+              shared: ProductAvailabilityMail!
             }
 
             type ProductAvailabilityMail {
-              classification: String!
+              subgraph1Only: String!
             }
 
             type Query {
@@ -2019,16 +1998,37 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var subgraph2 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type ProductAvailability implements Node {
+              id: ID!
+              shared: ProductAvailabilityMail!
+            }
+
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+            }
+
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph1, subgraph2]);
         var executor = await subgraphs.GetExecutorAsync();
         var request = OperationRequestBuilder.New()
             .SetDocument(
                 """
                 query($productId: ID!) {
                   productById(id: $productId) {
-                    availability {
-                      mail {
-                        canOnlyBeDeliveredToCurb
+                    subgraph1Only {
+                      shared {
+                        subgraph2Only
                       }
                     }
                   }
@@ -2051,30 +2051,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_2()
     {
         // arrange
-        var subgraphA = await TestSubgraph.CreateAsync(
-            """
-            interface Node {
-              id: ID!
-            }
-
-            type ProductAvailability implements Node {
-              mail: ProductAvailabilityMail!
-              isFutureRelease: Boolean!
-              id: ID!
-            }
-
-            type ProductAvailabilityMail {
-              canOnlyBeDeliveredToCurb: Boolean!
-              classification: String!
-            }
-
-            type Query {
-              node("ID of the object." id: ID!): Node
-              productAvailabilityById(id: ID!): ProductAvailability
-            }
-            """);
-
-        var subgraphB = await TestSubgraph.CreateAsync(
+        var subgraph1 = await TestSubgraph.CreateAsync(
             """
             interface Node {
               id: ID!
@@ -2082,16 +2059,16 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type Product implements Node {
               id: ID!
-              availability: ProductAvailability
+              subgraph1Only: ProductAvailability
             }
 
             type ProductAvailability implements Node {
               id: ID!
-              mail: ProductAvailabilityMail!
+              shared: ProductAvailabilityMail!
             }
 
             type ProductAvailabilityMail {
-              classification: String!
+              shared: String!
             }
 
             type Query {
@@ -2101,18 +2078,41 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var subgraph2 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type ProductAvailability implements Node {
+              shared: ProductAvailabilityMail!
+              subgraph2Only: Boolean!
+              id: ID!
+            }
+
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+              shared: String!
+            }
+
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph1, subgraph2]);
         var executor = await subgraphs.GetExecutorAsync();
         var request = OperationRequestBuilder.New()
             .SetDocument(
                 """
                 query($productId: ID!) {
                   productById(id: $productId) {
-                    availability {
-                      isFutureRelease
-                      mail {
-                        canOnlyBeDeliveredToCurb
-                        classification
+                    subgraph1Only {
+                      subgraph2Only
+                      shared {
+                        subgraph2Only
+                        shared
                       }
                     }
                   }
@@ -2135,30 +2135,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_3()
     {
         // arrange
-        var subgraphA = await TestSubgraph.CreateAsync(
-            """
-            interface Node {
-              id: ID!
-            }
-
-            type ProductAvailability implements Node {
-              mail: ProductAvailabilityMail!
-              isFutureRelease: Boolean!
-              id: ID!
-            }
-
-            type ProductAvailabilityMail {
-              canOnlyBeDeliveredToCurb: Boolean!
-              classification: String!
-            }
-
-            type Query {
-              node("ID of the object." id: ID!): Node
-              productAvailabilityById(id: ID!): ProductAvailability
-            }
-            """);
-
-        var subgraphB = await TestSubgraph.CreateAsync(
+        var subgraph1 = await TestSubgraph.CreateAsync(
             """
             interface Node {
               id: ID!
@@ -2166,18 +2143,18 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
             type Product implements Node {
               id: ID!
-              availability: ProductAvailability
+              subgraph1Only: ProductAvailability
             }
 
             type ProductAvailability implements Node {
               id: ID!
-              mail: ProductAvailabilityMail!
-              isPastReleaseDate: Boolean!
+              shared: ProductAvailabilityMail!
+              subgraph1Only: Boolean!
             }
 
             type ProductAvailabilityMail {
-              classification: String!
-              other: String!
+              shared: String!
+              subgraph1Only: String!
             }
 
             type Query {
@@ -2187,20 +2164,43 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var subgraph2 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type ProductAvailability implements Node {
+              shared: ProductAvailabilityMail!
+              subgraph2Only: Boolean!
+              id: ID!
+            }
+
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+              shared: String!
+            }
+
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph1, subgraph2]);
         var executor = await subgraphs.GetExecutorAsync();
         var request = OperationRequestBuilder.New()
             .SetDocument(
                 """
                 query($productId: ID!) {
                   productById(id: $productId) {
-                    availability {
-                      isFutureRelease
-                      isPastReleaseDate
-                      mail {
-                        canOnlyBeDeliveredToCurb
-                        classification
-                        other
+                    subgraph1Only {
+                      subgraph2Only
+                      subgraph1Only
+                      shared {
+                        subgraph2Only
+                        shared
+                        subgraph1Only
                       }
                     }
                   }

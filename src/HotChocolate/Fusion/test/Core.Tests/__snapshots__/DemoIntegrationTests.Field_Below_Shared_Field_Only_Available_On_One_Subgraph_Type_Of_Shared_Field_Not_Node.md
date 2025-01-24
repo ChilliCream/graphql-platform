@@ -17,9 +17,9 @@
 ```graphql
 query($productId: ID!) {
   productById(id: $productId) {
-    availability {
-      mail {
-        canOnlyBeDeliveredToCurb
+    subgraph1Only {
+      shared {
+        subgraph2Only
       }
     }
   }
