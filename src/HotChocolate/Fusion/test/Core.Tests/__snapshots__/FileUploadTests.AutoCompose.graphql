@@ -98,9 +98,9 @@ type Product implements Node
   deliveryEstimate(zip: String!): DeliveryEstimate!
     @source(subgraph: "Shipping")
     @variable(subgraph: "Shipping", name: "zip", argument: "zip")
-    @variable(subgraph: "Products", name: "Product_dimension_size", select: "dimension { size }")
     @variable(subgraph: "Products", name: "Product_dimension_weight", select: "dimension { weight }")
-    @resolver(subgraph: "Shipping", select: "{ deliveryEstimate(size: $Product_dimension_size, weight: $Product_dimension_weight, zip: $zip) }", arguments: [ { name: "Product_dimension_size", type: "Int!" }, { name: "Product_dimension_weight", type: "Int!" }, { name: "zip", type: "String!" } ])
+    @variable(subgraph: "Products", name: "Product_dimension_size", select: "dimension { size }")
+    @resolver(subgraph: "Shipping", select: "{ deliveryEstimate(weight: $Product_dimension_weight, size: $Product_dimension_size, zip: $zip) }", arguments: [ { name: "Product_dimension_weight", type: "Int!" }, { name: "Product_dimension_size", type: "Int!" }, { name: "zip", type: "String!" } ])
   dimension: ProductDimension!
     @source(subgraph: "Products")
   id: ID!

@@ -55,7 +55,7 @@ schema @fusion(version: 1) @transport(subgraph: "accounts", group: "Fusion", loc
 type Query {
   userById(id: ID!): User @variable(subgraph: "accounts", name: "id", argument: "id") @resolver(subgraph: "accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   userByName(name: String!): User @variable(subgraph: "accounts", name: "name", argument: "name") @resolver(subgraph: "accounts", select: "{ userByName(name: $name) }", arguments: [ { name: "name", type: "String!" } ])
-  users(after: String before: String first: Int last: Int): UsersConnection @variable(subgraph: "accounts", name: "after", argument: "after") @variable(subgraph: "accounts", name: "before", argument: "before") @variable(subgraph: "accounts", name: "first", argument: "first") @variable(subgraph: "accounts", name: "last", argument: "last") @resolver(subgraph: "accounts", select: "{ users(after: $after, before: $before, first: $first, last: $last) }", arguments: [ { name: "after", type: "String" }, { name: "before", type: "String" }, { name: "first", type: "Int" }, { name: "last", type: "Int" } ])
+  users(after: String before: String first: Int last: Int): UsersConnection @variable(subgraph: "accounts", name: "first", argument: "first") @variable(subgraph: "accounts", name: "after", argument: "after") @variable(subgraph: "accounts", name: "last", argument: "last") @variable(subgraph: "accounts", name: "before", argument: "before") @resolver(subgraph: "accounts", select: "{ users(first: $first, after: $after, last: $last, before: $before) }", arguments: [ { name: "first", type: "Int" }, { name: "after", type: "String" }, { name: "last", type: "Int" }, { name: "before", type: "String" } ])
 }
 
 type PageInfo {

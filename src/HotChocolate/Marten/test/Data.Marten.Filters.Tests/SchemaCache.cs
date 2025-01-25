@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Data;
 
@@ -11,7 +12,7 @@ public class SchemaCache : FilterVisitorTestBase
     public async Task<IRequestExecutor> CreateSchemaAsync<T, TType>(
         T[] entities,
         bool withPaging = false,
-        Action<ISchemaBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null)
         where T : class
         where TType : FilterInputType<T>
     {
