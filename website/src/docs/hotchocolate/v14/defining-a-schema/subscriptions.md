@@ -338,7 +338,7 @@ When working with GraphQL subscriptions over WebSockets, you may want to authent
 
 Instead, the recommended approach is to send your token via the `connection_init` message when the WebSocket connection is first established. Hot Chocolate allows you to intercept this initial message, extract the token, and then authenticate the user in a way similar to standard HTTP requests.
 
-There is an example implementation for this in the [Hot Chocolate Examples repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication)
+An example implementation of this approach can be found in the [Hot Chocolate Examples repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication).
 
 ### Why a Special Approach for WebSockets
 
