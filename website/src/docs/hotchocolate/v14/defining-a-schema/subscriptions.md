@@ -340,13 +340,13 @@ Instead, the recommended approach is to send your token via the `connection_init
 
 An example implementation of this approach can be found in the [Hot Chocolate Examples repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication).
 
-### Why a Special Approach for WebSockets
+## Why a Special Approach for WebSockets
 
 - **Single HTTP Handshake**: A WebSocket connection is established once. After that, you cannot update HTTP headers on the same connection.
 - **`connection_init` Payload**: GraphQL subscription clients send a `connection_init` message when establishing the subscription. This payload can include extra properties (e.g., `authorization`), which Hot Chocolate can use for authentication.
 - **Long-Lived Connections**: Because WebSockets are persistent, tokens might remain valid for the entire duration of the connection. It is advisable to ensure that you handle token expiration appropriately-often by closing the connection if security policies require it.
 
-### Core Concepts
+## Core Concepts
 
 1. **Stub (or "Skip") Authentication Scheme**  
    The initial WebSocket upgrade request is directed to a "stub" authentication scheme that simply indicates "no authentication result" for upgrade requests. This prevents the request from failing before you can intercept and handle the token manually.
@@ -360,7 +360,7 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
 4. **Hot Chocolate Integration**  
    Hot Chocolate's subscription middleware allows you to plug into the subscription lifecycle. By customizing the session interceptor (`OnConnectAsync`), you can decide whether to accept or reject the connection based on successful authentication.
 
-### Testing the Flow
+## Testing the Flow
 
 1. **Open Nitro**  
    Use a local instance of Nitro (e.g., `https://localhost:5095/graphql`) to send GraphQL queries and subscriptions.
@@ -376,6 +376,7 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
 
 4. **Run Your Subscription**  
    Execute the subscription query of your choice. For example:
+
    ```graphql
    subscription {
      onTimedEvent {
@@ -384,4 +385,5 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
      }
    }
    ```
+
    The server-side resolver can check `isAuthenticated` to demonstrate whether the current user is authenticated (based on the token you provided).
