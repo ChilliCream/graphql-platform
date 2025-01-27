@@ -355,7 +355,7 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
    In standard HTTP scenarios, the default scheme (e.g., JWT bearer) is used to authenticate. However, if the request is recognized as a WebSocket upgrade, the framework forwards it to the "stub" scheme first. That way, you don’t attempt to validate a token at the moment of the upgrade handshake.
 
 3. **Intercepting `connection_init`**  
-   Once the WebSocket is established, the client sends `connection_init` containing authentication data. A custom `SocketSessionInterceptor` (or similar) reads the token from `connection_init` (e.g., under a key like `authorization`), stores it in the `HttpContext`, and triggers a fresh authentication attempt-this time using the real JWT bearer scheme.
+   Once the WebSocket is established, the client sends `connection_init` containing authentication data. A custom `SocketSessionInterceptor` (or similar) reads the token from `connection_init` (e.g., under a key like `authorization`), stores it in the `HttpContext`, and triggers a fresh authentication attempt—this time using the real JWT bearer scheme.
 
 4. **Hot Chocolate Integration**  
    Hot Chocolate's subscription middleware allows you to plug into the subscription lifecycle. By customizing the session interceptor (`OnConnectAsync`), you can decide whether to accept or reject the connection based on successful authentication.
