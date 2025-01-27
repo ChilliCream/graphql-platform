@@ -56,7 +56,7 @@ const SupportPage: FC = () => {
             },
             {
               title: "Startup",
-              price: 415,
+              price: 450,
               period: "month",
               description:
                 "For small teams with moderate bandwidth and projects of low to medium complexity.",
@@ -71,7 +71,7 @@ const SupportPage: FC = () => {
             },
             {
               title: "Business",
-              price: 1250,
+              price: 1300,
               period: "month",
               description: "For larger teams with business-critical projects.",
               features: [
