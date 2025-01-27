@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Languag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Language.Tests", "test\Fusion.Language.Tests\HotChocolate.Fusion.Language.Tests.csproj", "{D25AC455-608D-4880-842D-B77E508BEC5D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Utilities", "src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj", "{6AD54577-BC72-4CE6-A77C-FE0D9C89BEA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Utilities.Tests", "test\Fusion.Utilities.Tests\HotChocolate.Fusion.Utilities.Tests.csproj", "{A240F32E-0588-4DD5-B451-2DBB7D47B32D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +56,14 @@ Global
 		{D25AC455-608D-4880-842D-B77E508BEC5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D25AC455-608D-4880-842D-B77E508BEC5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D25AC455-608D-4880-842D-B77E508BEC5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AD54577-BC72-4CE6-A77C-FE0D9C89BEA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AD54577-BC72-4CE6-A77C-FE0D9C89BEA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AD54577-BC72-4CE6-A77C-FE0D9C89BEA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AD54577-BC72-4CE6-A77C-FE0D9C89BEA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A240F32E-0588-4DD5-B451-2DBB7D47B32D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A240F32E-0588-4DD5-B451-2DBB7D47B32D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A240F32E-0588-4DD5-B451-2DBB7D47B32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A240F32E-0588-4DD5-B451-2DBB7D47B32D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1566D098-4146-4ECF-9F45-EA43D88EEAA9} = {1718E238-A6E5-42AE-A2D6-A0580457D486}
@@ -60,5 +72,7 @@ Global
 		{1B0E0209-A99B-4AA4-95DD-30828C9CB5A9} = {F7DA6A87-1AFE-479A-B138-96C32439ABF5}
 		{DF73B7AD-3AE4-4775-9564-D0771B54604B} = {1718E238-A6E5-42AE-A2D6-A0580457D486}
 		{D25AC455-608D-4880-842D-B77E508BEC5D} = {F7DA6A87-1AFE-479A-B138-96C32439ABF5}
+		{6AD54577-BC72-4CE6-A77C-FE0D9C89BEA9} = {1718E238-A6E5-42AE-A2D6-A0580457D486}
+		{A240F32E-0588-4DD5-B451-2DBB7D47B32D} = {F7DA6A87-1AFE-479A-B138-96C32439ABF5}
 	EndGlobalSection
 EndGlobal

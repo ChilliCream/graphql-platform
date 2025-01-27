@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion;
 /// specification by only allowing one <c>SelectedValue</c> as an element.
 /// </para>
 /// </summary>
-internal sealed class SelectedListValueNode : IFieldSelectionMapSyntaxNode
+public sealed class SelectedListValueNode : IFieldSelectionMapSyntaxNode
 {
     public SelectedListValueNode(SelectedValueNode selectedValue)
     {

@@ -1,8 +1,8 @@
 using HotChocolate.Skimmed;
 
-namespace HotChocolate.Fusion.PreMergeValidation.Info;
+namespace HotChocolate.Fusion.Info;
 
 internal record OutputFieldInfo(
     OutputFieldDefinition Field,
-    INamedTypeDefinition Type,
+    ComplexTypeDefinition Type,
     SchemaDefinition Schema);
