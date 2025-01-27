@@ -71,7 +71,7 @@ public static class WellKnownTypes
     public const string PagingArguments = "HotChocolate.Pagination.PagingArguments";
     public const string DataContext = "HotChocolate.Data.DataContext";
     public const string DataContextGeneric = DataContext + "<";
-
+    public const string TypeConfiguration = "HotChocolate.Configuration.TypeConfiguration";
 
     public static HashSet<string> TypeClass { get; } =
     [

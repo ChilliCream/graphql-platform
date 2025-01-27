@@ -1,4 +1,2 @@
-﻿using HotChocolate.Utilities;
-
-namespace HotChocolate.Primitives;
+﻿namespace HotChocolate.Primitives;
 

@@ -59,9 +59,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         generator.WriteBeginRegistrationMethod();
 
         var operations = OperationType.No;
-        var hasObjectTypeExtensions = false;
-        var hasInterfaceTypes = false;
         var hasConfigurations = false;
+        List<string>? _objectTypeExtensions = null;
+        List<string>? _interfaceTypeExtensions = null;
 
         foreach (var syntaxInfo in syntaxInfos.OrderBy(s => s.OrderByKey))
         {
@@ -148,11 +148,12 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && objectTypeExtension.Diagnostics.Length == 0)
                     {
-                        hasObjectTypeExtensions = true;
                         generator.WriteRegisterObjectTypeExtension(
                             objectTypeExtension.RuntimeType.ToFullyQualified(),
                             objectTypeExtension.Type.ToFullyQualified());
                         hasConfigurations = true;
+                        _objectTypeExtensions ??= [];
+                        _objectTypeExtensions.Add(objectTypeExtension.RuntimeType.ToFullyQualified());
                     }
 
                     break;
@@ -161,11 +162,12 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && interfaceType.Diagnostics.Length == 0)
                     {
-                        hasInterfaceTypes = true;
                         generator.WriteRegisterInterfaceTypeExtension(
                             interfaceType.RuntimeType.ToFullyQualified(),
                             interfaceType.Type.ToFullyQualified());
                         hasConfigurations = true;
+                        _interfaceTypeExtensions ??= [];
+                        _interfaceTypeExtensions.Add(interfaceType.RuntimeType.ToFullyQualified());
                     }
 
                     break;
@@ -198,20 +200,23 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
             }
         }
 
+        if (_objectTypeExtensions is not null)
+        {
+            foreach (var type in _objectTypeExtensions)
+            {
+                generator.WriteEnsureObjectTypeExtensionIsRegistered(type);
+            }
+        }
+
+        if (_interfaceTypeExtensions is not null)
+        {
+            foreach (var type in _interfaceTypeExtensions)
+            {
+                generator.WriteEnsureInterfaceTypeExtensionIsRegistered(type);
+            }
+        }
+
         generator.WriteEndRegistrationMethod();
-
-        if (hasObjectTypeExtensions)
-        {
-            generator.WriteRegisterObjectTypeExtensionHelpers();
-            hasConfigurations = true;
-        }
-
-        if (hasInterfaceTypes)
-        {
-            generator.WriteRegisterInterfaceTypeExtensionHelpers();
-            hasConfigurations = true;
-        }
-
         generator.WriteEndClass();
         generator.WriteEndNamespace();
 
