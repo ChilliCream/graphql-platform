@@ -101,4 +101,9 @@ public class SortingContext : ISortingContext
                 throw new InvalidOperationException();
         }
     }
+
+    public SortDefinition<T> AsSortDefinition<T>()
+    {
+        throw new NotImplementedException();
+    }
 }

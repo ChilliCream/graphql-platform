@@ -142,4 +142,31 @@ public class ResolverTests
             internal class Test;
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Inject_DataContext()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Data;
+            using System.Linq;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static IQueryable<Entity> GetTest(HotChocolate.Data.DataContext<Entity> test)
+                {
+                    return default;
+                }
+            }
+
+            internal class Test;
+
+            internal class Entity;
+            """).MatchMarkdownAsync();
+    }
 }

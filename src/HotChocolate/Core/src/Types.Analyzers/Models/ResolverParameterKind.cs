@@ -20,5 +20,6 @@ public enum ResolverParameterKind
     GetLocalState,
     SetLocalState,
     Service,
-    Argument
+    Argument,
+    DataContext
 }

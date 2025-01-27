@@ -38,6 +38,17 @@ public interface ISortingContext
     /// Returns a collection of sorting operations in the order that they are requested
     /// </summary>
     IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields();
+
+    /// <summary>
+    /// Returns a sort definition that can be used to sort a query.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The type of the entity.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a sort definition that can be used to sort a query.
+    /// </returns>
+    SortDefinition<T> AsSortDefinition<T>();
 }
 
 public delegate TQuery PostSortingAction<TQuery>(bool userDefinedSorting, TQuery query);
