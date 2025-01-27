@@ -74,13 +74,16 @@ public sealed class TypeConfigurationContainer
         TDescriptor descriptor)
         where TDescriptor : IDescriptor
     {
-        if (_configurations.TryGetValue(runtimeType, out var list))
+        lock (_sync)
         {
-            foreach (var item in list)
+            if (_configurations.TryGetValue(runtimeType, out var list))
             {
-                if (item is Func<Action<TDescriptor>> factory)
+                foreach (var item in list)
                 {
-                    factory()(descriptor);
+                    if (item is Func<Action<TDescriptor>> factory)
+                    {
+                        factory()(descriptor);
+                    }
                 }
             }
         }
@@ -91,13 +94,16 @@ public sealed class TypeConfigurationContainer
         TDescriptor descriptor)
         where TDescriptor : IDescriptor
     {
-        if (_namedConfigurations.TryGetValue(typeName, out var list))
+        lock (_sync)
         {
-            foreach (var item in list)
+            if (_namedConfigurations.TryGetValue(typeName, out var list))
             {
-                if (item is Func<Action<TDescriptor>> factory)
+                foreach (var item in list)
                 {
-                    factory()(descriptor);
+                    if (item is Func<Action<TDescriptor>> factory)
+                    {
+                        factory()(descriptor);
+                    }
                 }
             }
         }

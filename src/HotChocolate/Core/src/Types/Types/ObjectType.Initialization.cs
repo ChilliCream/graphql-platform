@@ -33,7 +33,7 @@ public partial class ObjectType
 
                 if (!descriptor.Definition.NeedsNameCompletion)
                 {
-                    context.DescriptorContext.TypeConfiguration.Apply(Name, descriptor);
+                    context.DescriptorContext.TypeConfiguration.Apply(descriptor.Definition.Name, descriptor);
                 }
 
                 return descriptor.CreateDefinition();
