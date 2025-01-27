@@ -370,7 +370,7 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
 
 3. **Configure Nitro**
 
-   - In Nitro, open the **Settings** of your document / api.
+   - In Nitro, open the **Settings** of your document / API.
    - Under **Authentication**, choose **Bearer Token** and paste your JWT.
    - Nitro will automatically include the token in the `connection_init` message under an `authorization` parameter when opening a WebSocket connection.
 
