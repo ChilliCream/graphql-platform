@@ -24,19 +24,19 @@ LIMIT @__p_0
     "brands": {
       "edges": [
         {
-          "cursor": "QnJhbmQwOjE=",
+          "cursor": "QnJhbmRcOjA6MQ==",
           "displayName": "BrandDisplay0",
           "node": {
             "id": 1,
-            "name": "Brand0"
+            "name": "Brand:0"
           }
         },
         {
-          "cursor": "QnJhbmQxOjI=",
+          "cursor": "QnJhbmRcOjE6Mg==",
           "displayName": null,
           "node": {
             "id": 2,
-            "name": "Brand1"
+            "name": "Brand:1"
           }
         }
       ]

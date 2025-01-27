@@ -3,7 +3,7 @@
 ## SQL 0
 
 ```sql
--- @__p_0='Brand11'
+-- @__p_0='Brand:11'
 -- @__p_1='12'
 -- @__p_2='3'
 SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
@@ -27,16 +27,16 @@ LIMIT @__p_2
     "brandsNullableFallback": {
       "edges": [
         {
-          "cursor": "QnJhbmQxMzoxNA=="
+          "cursor": "QnJhbmRcOjEzOjE0"
         },
         {
-          "cursor": "QnJhbmQxNToxNg=="
+          "cursor": "QnJhbmRcOjE1OjE2"
         }
       ],
       "nodes": [
         {
           "id": 14,
-          "name": "Brand13",
+          "name": "Brand:13",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -46,7 +46,7 @@ LIMIT @__p_2
         },
         {
           "id": 16,
-          "name": "Brand15",
+          "name": "Brand:15",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -58,8 +58,8 @@ LIMIT @__p_2
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmQxMzoxNA==",
-        "endCursor": "QnJhbmQxNToxNg=="
+        "startCursor": "QnJhbmRcOjEzOjE0",
+        "endCursor": "QnJhbmRcOjE1OjE2"
       }
     }
   }

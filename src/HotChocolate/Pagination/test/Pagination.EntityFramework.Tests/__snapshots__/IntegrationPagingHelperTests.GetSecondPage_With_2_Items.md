@@ -28,18 +28,18 @@ LIMIT @__p_2
       "nodes": [
         {
           "id": 19,
-          "name": "Brand18"
+          "name": "Brand:18"
         },
         {
           "id": 20,
-          "name": "Brand19"
+          "name": "Brand:19"
         }
       ],
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmQxODoxOQ==",
-        "endCursor": "QnJhbmQxOToyMA=="
+        "startCursor": "QnJhbmRcOjE4OjE5",
+        "endCursor": "QnJhbmRcOjE5OjIw"
       }
     }
   }

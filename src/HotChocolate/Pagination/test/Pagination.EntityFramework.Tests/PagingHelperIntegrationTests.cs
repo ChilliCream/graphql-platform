@@ -327,7 +327,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                     .SetDocument(
                         """
                         {
-                            brandsNullableFallback(first: 2, after: "QnJhbmQxMToxMg==") {
+                            brandsNullableFallback(first: 2, after: "QnJhbmRcOjExOjEy") {
                                 edges {
                                     cursor
                                 }
@@ -1052,7 +1052,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         {
             var brand = new Brand
             {
-                Name = "Brand" + i,
+                Name = "Brand:" + i,
                 DisplayName = i % 2 == 0 ? "BrandDisplay" + i : null,
                 BrandDetails = new() { Country = new() { Name = "Country" + i } }
             };

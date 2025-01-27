@@ -24,40 +24,40 @@ LIMIT @__p_0
     "brandsNullableFallback": {
       "edges": [
         {
-          "cursor": "QnJhbmQxOjI="
+          "cursor": "QnJhbmRcOjE6Mg=="
         },
         {
-          "cursor": "QnJhbmQxMToxMg=="
+          "cursor": "QnJhbmRcOjExOjEy"
         },
         {
-          "cursor": "QnJhbmQxMzoxNA=="
+          "cursor": "QnJhbmRcOjEzOjE0"
         },
         {
-          "cursor": "QnJhbmQxNToxNg=="
+          "cursor": "QnJhbmRcOjE1OjE2"
         },
         {
-          "cursor": "QnJhbmQxNzoxOA=="
+          "cursor": "QnJhbmRcOjE3OjE4"
         },
         {
-          "cursor": "QnJhbmQxOToyMA=="
+          "cursor": "QnJhbmRcOjE5OjIw"
         },
         {
-          "cursor": "QnJhbmQyMToyMg=="
+          "cursor": "QnJhbmRcOjIxOjIy"
         },
         {
-          "cursor": "QnJhbmQyMzoyNA=="
+          "cursor": "QnJhbmRcOjIzOjI0"
         },
         {
-          "cursor": "QnJhbmQyNToyNg=="
+          "cursor": "QnJhbmRcOjI1OjI2"
         },
         {
-          "cursor": "QnJhbmQyNzoyOA=="
+          "cursor": "QnJhbmRcOjI3OjI4"
         }
       ],
       "nodes": [
         {
           "id": 2,
-          "name": "Brand1",
+          "name": "Brand:1",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -67,7 +67,7 @@ LIMIT @__p_0
         },
         {
           "id": 12,
-          "name": "Brand11",
+          "name": "Brand:11",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -77,7 +77,7 @@ LIMIT @__p_0
         },
         {
           "id": 14,
-          "name": "Brand13",
+          "name": "Brand:13",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -87,7 +87,7 @@ LIMIT @__p_0
         },
         {
           "id": 16,
-          "name": "Brand15",
+          "name": "Brand:15",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -97,7 +97,7 @@ LIMIT @__p_0
         },
         {
           "id": 18,
-          "name": "Brand17",
+          "name": "Brand:17",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -107,7 +107,7 @@ LIMIT @__p_0
         },
         {
           "id": 20,
-          "name": "Brand19",
+          "name": "Brand:19",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -117,7 +117,7 @@ LIMIT @__p_0
         },
         {
           "id": 22,
-          "name": "Brand21",
+          "name": "Brand:21",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -127,7 +127,7 @@ LIMIT @__p_0
         },
         {
           "id": 24,
-          "name": "Brand23",
+          "name": "Brand:23",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -137,7 +137,7 @@ LIMIT @__p_0
         },
         {
           "id": 26,
-          "name": "Brand25",
+          "name": "Brand:25",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -147,7 +147,7 @@ LIMIT @__p_0
         },
         {
           "id": 28,
-          "name": "Brand27",
+          "name": "Brand:27",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -159,8 +159,8 @@ LIMIT @__p_0
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": false,
-        "startCursor": "QnJhbmQxOjI=",
-        "endCursor": "QnJhbmQyNzoyOA=="
+        "startCursor": "QnJhbmRcOjE6Mg==",
+        "endCursor": "QnJhbmRcOjI3OjI4"
       }
     }
   }
