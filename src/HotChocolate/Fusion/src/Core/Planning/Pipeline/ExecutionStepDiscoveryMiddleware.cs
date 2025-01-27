@@ -399,49 +399,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         if (leftovers is not null)
         {
-            if (leftovers.Count == selectionSet.Selections.Count)
-            {
-                executionStep.AllSelectionSets.Remove(selectionSet);
-                executionStep.AllSelections.Remove(parentSelection);
-            }
-
-            foreach (var leftover in leftovers)
-            {
-                executionStep.AllSelections.Remove(leftover);
-            }
-
-            // TODO: If we already have a matching item in the backlog, we should just amend it
-            if (declaringType.Resolvers.Count < 1)
-            {
-                // iterate over path backwards
-                for (var i = path.Count - 1; i >= 0; i--)
-                {
-                    var parent = path[i];
-                    var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
-
-                    if (parentDeclaringType.Resolvers.Count > 0 && i != 0)
-                    {
-                        backlog.Enqueue(
-                            new BacklogItem(
-                                path[i - 1],
-                                CreateSelectionPath(rootSelectionPath, path.GetRange(0, i)),
-                                parentDeclaringType,
-                                [parent],
-                                preferBatching));
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                backlog.Enqueue(
-                    new BacklogItem(
-                        parentSelection,
-                        CreateSelectionPath(rootSelectionPath, path),
-                        declaringType,
-                        leftovers,
-                        preferBatching));
-            }
+            backlog.Enqueue(
+                new BacklogItem(
+                    parentSelection,
+                    CreateSelectionPath(rootSelectionPath, path),
+                    declaringType,
+                    leftovers,
+                    preferBatching));
         }
     }
 
