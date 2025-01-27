@@ -344,7 +344,7 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
 
 - **Single HTTP Handshake**: A WebSocket connection is established once. After that, you cannot update HTTP headers on the same connection.
 - **`connection_init` Payload**: GraphQL subscription clients send a `connection_init` message when establishing the subscription. This payload can include extra properties (e.g., `authorization`), which Hot Chocolate can use for authentication.
-- **Long-Lived Connections**: Because WebSockets are persistent, tokens might remain valid for the entire duration of the connection. It is advisable to ensure that you handle token expiration appropriately-often by closing the connection if security policies require it.
+- **Long-Lived Connections**: Because WebSockets are persistent, tokens might remain valid for the entire duration of the connection. It is advisable to ensure that you handle token expiration appropriately—often by closing the connection if security policies require it.
 
 ## Core Concepts
 
