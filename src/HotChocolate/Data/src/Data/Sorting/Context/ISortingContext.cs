@@ -48,7 +48,7 @@ public interface ISortingContext
     /// <returns>
     /// Returns a sort definition that can be used to sort a query.
     /// </returns>
-    SortDefinition<T> AsSortDefinition<T>();
+    SortDefinition<T>? AsSortDefinition<T>();
 }
 
 public delegate TQuery PostSortingAction<TQuery>(bool userDefinedSorting, TQuery query);

@@ -16,7 +16,7 @@ public sealed record SortDefinition<T>
     /// <param name="items">
     /// The sort operations.
     /// </param>
-    public SortDefinition(params SortBy<T>[] items)
+    public SortDefinition(params ISortBy<T>[] items)
     {
         Operations = [..items];
     }
@@ -27,7 +27,7 @@ public sealed record SortDefinition<T>
     /// <param name="items">
     /// The sort operations.
     /// </param>
-    public SortDefinition(IEnumerable<SortBy<T>> items)
+    public SortDefinition(IEnumerable<ISortBy<T>> items)
     {
         Operations = [..items];
     }
@@ -35,7 +35,7 @@ public sealed record SortDefinition<T>
     /// <summary>
     /// The sort operations.
     /// </summary>
-    public ImmutableArray<SortBy<T>> Operations { get; init; }
+    public ImmutableArray<ISortBy<T>> Operations { get; init; }
 
     /// <summary>
     /// Deconstructs the sort operations.
@@ -43,6 +43,6 @@ public sealed record SortDefinition<T>
     /// <param name="operations">
     /// The sort operations.
     /// </param>
-    public void Deconstruct(out ImmutableArray<SortBy<T>> operations)
+    public void Deconstruct(out ImmutableArray<ISortBy<T>> operations)
         => operations = Operations;
 }
