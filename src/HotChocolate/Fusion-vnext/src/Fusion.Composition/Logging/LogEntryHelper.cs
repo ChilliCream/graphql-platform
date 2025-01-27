@@ -266,6 +266,14 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry InvalidGraphQL(string exceptionMessage)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_InvalidGraphQL, exceptionMessage),
+            LogEntryCodes.InvalidGraphQL,
+            severity: LogSeverity.Error);
+    }
+
     public static LogEntry KeyDirectiveInFieldsArgument(
         string entityTypeName,
         Directive keyDirective,

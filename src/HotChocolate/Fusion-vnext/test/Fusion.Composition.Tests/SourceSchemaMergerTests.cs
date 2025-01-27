@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
 using static HotChocolate.Fusion.WellKnownTypeNames;
@@ -24,7 +26,7 @@ public sealed class SourceSchemaMergerTests
         ]);
 
         // act
-        var result = merger.MergeSchemas();
+        var result = merger.Merge();
 
         // assert
         Assert.True(result.IsSuccess);
@@ -37,16 +39,19 @@ public sealed class SourceSchemaMergerTests
     public void Merge_FourNamedSchemas_AddsFusionDefinitions()
     {
         // arrange
-        var merger = new SourceSchemaMerger(
+        IEnumerable<SchemaDefinition> schemas =
         [
-            new SchemaDefinition { Name = "ExampleOne" },
-            new SchemaDefinition { Name = "Example_Two" },
-            new SchemaDefinition { Name = "Example__Three" },
-            new SchemaDefinition { Name = "ExampleFourFive" }
-        ]);
+            new() { Name = "ExampleOne" },
+            new() { Name = "Example_Two" },
+            new() { Name = "Example__Three" },
+            new() { Name = "ExampleFourFive" }
+        ];
+
+        var merger =
+            new SourceSchemaMerger(schemas.ToImmutableSortedSet(new SchemaByNameComparer()));
 
         // act
-        var result = merger.MergeSchemas();
+        var result = merger.Merge();
 
         // assert
         Assert.True(result.IsSuccess);

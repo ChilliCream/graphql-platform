@@ -1,25 +1,28 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
 
 namespace HotChocolate.Fusion.SourceSchemaValidation.Rules;
 
 public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
 {
-    private readonly SourceSchemaValidator _sourceSchemaValidator =
-        new([new RequireInvalidSyntaxRule()]);
+    private static readonly object s_rule = new RequireInvalidSyntaxRule();
+    private static readonly ImmutableArray<object> s_rules = [s_rule];
+    private readonly CompositionLog _log = new();
 
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
     public void Examples_Valid(string[] sdl)
     {
         // arrange
-        var context = CreateCompositionContext(sdl);
+        var schemas = CreateSchemaDefinitions(sdl);
+        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
 
         // act
-        var result = _sourceSchemaValidator.Validate(context);
+        var result = validator.Validate();
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.True(context.Log.IsEmpty);
+        Assert.True(_log.IsEmpty);
     }
 
     [Theory]
@@ -27,16 +30,17 @@ public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
     public void Examples_Invalid(string[] sdl, string[] errorMessages)
     {
         // arrange
-        var context = CreateCompositionContext(sdl);
+        var schemas = CreateSchemaDefinitions(sdl);
+        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
 
         // act
-        var result = _sourceSchemaValidator.Validate(context);
+        var result = validator.Validate();
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
-        Assert.True(context.Log.All(e => e.Code == "REQUIRE_INVALID_SYNTAX"));
-        Assert.True(context.Log.All(e => e.Severity == LogSeverity.Error));
+        Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
+        Assert.True(_log.All(e => e.Code == "REQUIRE_INVALID_SYNTAX"));
+        Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
 
     public static TheoryData<string[]> ValidExamplesData()

@@ -23,14 +23,14 @@ namespace HotChocolate.Fusion;
 internal sealed class SourceSchemaMerger
 {
     private static readonly RemoveDirectiveNodesSyntaxRewriter RemoveDirectivesRewriter = new();
-    private readonly ImmutableArray<SchemaDefinition> _schemas;
+    private readonly ImmutableSortedSet<SchemaDefinition> _schemas;
     private readonly FrozenDictionary<SchemaDefinition, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
     private readonly FrozenDictionary<string, INamedTypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, DirectiveDefinition> _fusionDirectiveDefinitions;
 
     public SourceSchemaMerger(
-        ImmutableArray<SchemaDefinition> schemas,
+        ImmutableSortedSet<SchemaDefinition> schemas,
         SourceSchemaMergerOptions? options = null)
     {
         _schemas = schemas;
@@ -40,7 +40,7 @@ internal sealed class SourceSchemaMerger
         _fusionDirectiveDefinitions = CreateFusionDirectiveDefinitions();
     }
 
-    public CompositionResult<SchemaDefinition> MergeSchemas()
+    public CompositionResult<SchemaDefinition> Merge()
     {
         var mergedSchema = new SchemaDefinition();
 

@@ -15,7 +15,7 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
             new SourceSchemaMergerOptions { AddFusionDefinitions = false });
 
         // act
-        var result = merger.MergeSchemas();
+        var result = merger.Merge();
 
         // assert
         Assert.True(result.IsSuccess);
