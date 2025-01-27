@@ -377,7 +377,7 @@ internal sealed partial class RequestExecutorResolver
             .AddServices(schemaServices)
             .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions);
 
-        var descriptorContext = context.SchemaBuilder.CreateContext();
+        var descriptorContext = context.DescriptorContext;
 
         await foreach (var member in
            typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)

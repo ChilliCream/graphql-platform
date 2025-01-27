@@ -24,7 +24,7 @@ public class InterfaceType<T> : InterfaceType
         _configure!(descriptor);
         _configure = null;
 
-        TypeConfiguration.Apply(typeof(T), descriptor);
+        context.DescriptorContext.TypeConfiguration.Apply(typeof(T), descriptor);
 
         return descriptor.CreateDefinition();
     }

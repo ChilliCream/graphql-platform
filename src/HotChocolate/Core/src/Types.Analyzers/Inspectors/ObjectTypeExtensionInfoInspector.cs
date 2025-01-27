@@ -19,7 +19,9 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
 
-        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
+        OperationType? operationType = null;
+        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType)
+            && !IsOperationType(context, out possibleType, out classSymbol, out operationType))
         {
             syntaxInfo = null;
             return false;
@@ -85,10 +87,27 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             Array.Resize(ref resolvers, i);
         }
 
-        syntaxInfo = new ObjectTypeExtensionInfo(
+        if (runtimeType is not null)
+        {
+            syntaxInfo = new ObjectTypeExtensionInfo(
+                classSymbol,
+                runtimeType,
+                nodeResolver,
+                possibleType,
+                i == 0
+                    ? ImmutableArray<Resolver>.Empty
+                    : resolvers.ToImmutableArray());
+
+            if (diagnostics.Length > 0)
+            {
+                syntaxInfo.AddDiagnosticRange(diagnostics);
+            }
+            return true;
+        }
+
+        syntaxInfo = new RootTypeExtensionInfo(
             classSymbol,
-            runtimeType,
-            nodeResolver,
+            operationType!.Value,
             possibleType,
             i == 0
                 ? ImmutableArray<Resolver>.Empty
@@ -98,7 +117,6 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
         {
             syntaxInfo.AddDiagnosticRange(diagnostics);
         }
-
         return true;
     }
 
@@ -143,6 +161,64 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
         resolverTypeSyntax = null;
         resolverTypeSymbol = null;
         runtimeType = null;
+        return false;
+    }
+
+    private static bool IsOperationType(
+        GeneratorSyntaxContext context,
+        [NotNullWhen(true)] out ClassDeclarationSyntax? resolverTypeSyntax,
+        [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
+        [NotNullWhen(true)] out OperationType? operationType)
+    {
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        {
+            foreach (var attributeListSyntax in possibleType.AttributeLists)
+            {
+                foreach (var attributeSyntax in attributeListSyntax.Attributes)
+                {
+                    var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax).Symbol;
+
+                    if (symbol is not IMethodSymbol attributeSymbol)
+                    {
+                        continue;
+                    }
+
+                    var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                    var fullName = attributeContainingTypeSymbol.ToDisplayString();
+
+                    if (fullName.StartsWith(QueryTypeAttribute, Ordinal) &&
+                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsq)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = rtsq;
+                        operationType = OperationType.Query;
+                        return true;
+                    }
+
+                    if (fullName.StartsWith(MutationTypeAttribute, Ordinal) &&
+                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsm)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = rtsm;
+                        operationType = OperationType.Mutation;
+                        return true;
+                    }
+
+                    if (fullName.StartsWith(SubscriptionTypeAttribute, Ordinal) &&
+                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtss)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = rtss;
+                        operationType = OperationType.Subscription;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        resolverTypeSyntax = null;
+        resolverTypeSymbol = null;
+        operationType = null;
         return false;
     }
 

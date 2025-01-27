@@ -5,24 +5,23 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ObjectTypeExtensionInfo(
+public sealed class RootTypeExtensionInfo(
     INamedTypeSymbol type,
-    INamedTypeSymbol runtimeType,
-    Resolver? nodeResolver,
+    OperationType operationType,
     ClassDeclarationSyntax classDeclarationSyntax,
     ImmutableArray<Resolver> resolvers)
     : SyntaxInfo
-    , IOutputTypeInfo
+        , IOutputTypeInfo
 {
     public string Name { get; } = type.ToFullyQualified();
 
-    public bool IsRootType => false;
+    public bool IsRootType => true;
+
+    public OperationType OperationType => operationType;
 
     public INamedTypeSymbol Type { get; } = type;
 
-    public INamedTypeSymbol RuntimeType { get; } = runtimeType;
-
-    public Resolver? NodeResolver { get; } = nodeResolver;
+    public INamedTypeSymbol? RuntimeType => null;
 
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
 

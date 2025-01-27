@@ -1,6 +1,7 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -85,23 +86,27 @@ public sealed class ModuleFileBuilder : IDisposable
     public void WriteEnsureInterfaceTypeExtensionIsRegistered(string runtimeTypeName)
         => _writer.WriteIndentedLine("builder.AddType<InterfaceType<{0}>>();", runtimeTypeName);
 
-    public void WriteRegisterObjectTypeExtension(string runtimeTypeName, string extensionType)
+    public void WriteRegisterTypeExtension(string key, string runtimeTypeName, string extensionType)
     {
-        _writer.WriteIndentedLine("global::{0}.TryAdd<{1}>(", WellKnownTypes.TypeConfiguration, runtimeTypeName);
+        _writer.WriteIndentedLine(
+            "builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<{0}>(",
+            runtimeTypeName);
         using (_writer.IncreaseIndent())
         {
-            _writer.WriteIndentedLine("\"{0}\",", extensionType);
-            _writer.WriteIndentedLine("() => {0}.Initialize);", extensionType);
+            _writer.WriteIndentedLine("\"{0}\",", key);
+            _writer.WriteIndentedLine("() => {0}.Initialize));", extensionType);
         }
     }
 
-    public void WriteRegisterInterfaceTypeExtension(string runtimeTypeName, string extensionType)
+    public void WriteRegisterRootTypeExtension(string key, OperationType operation, string extensionType)
     {
-        _writer.WriteIndentedLine("global::{0}.TryAdd<{1}>(", WellKnownTypes.TypeConfiguration, runtimeTypeName);
+        _writer.WriteIndentedLine("builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd(");
+
         using (_writer.IncreaseIndent())
         {
-            _writer.WriteIndentedLine("\"{0}\",", extensionType);
-            _writer.WriteIndentedLine("() => {0}.Initialize);", extensionType);
+            _writer.WriteIndentedLine("\"{0}\",", key);
+            _writer.WriteIndentedLine("global::HotChocolate.Types.OperationType.{0},", operation);
+            _writer.WriteIndentedLine("() => {0}.Initialize));", extensionType);
         }
     }
 
