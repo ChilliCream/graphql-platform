@@ -1,6 +1,6 @@
 namespace GreenDonut.Data;
 
-public static class SortingDataLoaderExtensions
+public static class GreenDonutSortingDataLoaderExtensions
 {
     public static IDataLoader<TKey, TValue> Order<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,

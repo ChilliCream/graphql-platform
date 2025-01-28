@@ -1,6 +1,6 @@
 namespace GreenDonut.Data;
 
-public static class QueryContextDataLoaderExtensions
+public static class GreenDonutQueryContextDataLoaderExtensions
 {
     public static IDataLoader<TKey, TValue> With<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,

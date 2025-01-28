@@ -1,5 +1,3 @@
-using GreenDonut.Data;
-using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Processing;
@@ -11,7 +9,7 @@ namespace System.Linq;
 /// Provides extension methods to integrate <see cref="IQueryable{T}"/>
 /// with <see cref="ISelection"/> and <see cref="IFilterContext"/>.
 /// </summary>
-public static class QueryableExtensions
+public static class HotChocolateDataQueryableExtensions
 {
     /// <summary>
     /// Applies a selection to the queryable.
@@ -118,81 +116,5 @@ public static class QueryableExtensions
         }
 
         return queryable.Order(sortDefinition);
-    }
-
-    private static IQueryable<T> Order<T>(this IQueryable<T> queryable, SortDefinition<T> sortDefinition)
-    {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
-
-        if (sortDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(sortDefinition));
-        }
-
-        if (sortDefinition.Operations.Length == 0)
-        {
-            return queryable;
-        }
-
-        var first = sortDefinition.Operations[0];
-        var query = first.ApplyOrderBy(queryable);
-
-        for (var i = 1; i < sortDefinition.Operations.Length; i++)
-        {
-            query = sortDefinition.Operations[i].ApplyThenBy(query);
-        }
-
-        return query;
-    }
-
-    /// <summary>
-    /// Applies a data context to the queryable.
-    /// </summary>
-    /// <param name="queryable">
-    /// The queryable that shall be projected, filtered and sorted.
-    /// </param>
-    /// <param name="queryContext">
-    /// The data context that shall be applied to the queryable.
-    /// </param>
-    /// <typeparam name="T">
-    /// The type of the queryable.
-    /// </typeparam>
-    /// <returns>
-    /// Returns a queryable that has the data context applied.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="queryable"/> is <c>null</c> or if <paramref name="queryContext"/> is <c>null</c>.
-    /// </exception>
-    public static IQueryable<T> Apply<T>(this IQueryable<T> queryable, QueryContext<T> queryContext)
-    {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
-
-        if (queryContext is null)
-        {
-            throw new ArgumentNullException(nameof(queryContext));
-        }
-
-        if (queryContext.Selector is not null)
-        {
-            queryable = queryable.Select(queryContext.Selector);
-        }
-
-        if (queryContext.Predicate is not null)
-        {
-            queryable = queryable.Where(queryContext.Predicate);
-        }
-
-        if (queryContext.Sorting is not null)
-        {
-            queryable = queryable.Order(queryContext.Sorting);
-        }
-
-        return queryable;
     }
 }

@@ -1,188 +1,22 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using GreenDonut.Data;
 using static GreenDonut.ExpressionHelpers;
 
-namespace GreenDonut.Data;
+// ReSharper disable once CheckNamespace
+namespace System.Linq;
 
 /// <summary>
-/// Data loader extensions for projections.
+/// Provides extension methods to integrate <see cref="IQueryable{T}"/>
+/// for <see cref="SortDefinition{T}"/> and <see cref="QueryContext{T}"/>.
 /// </summary>
-public static class SelectionDataLoaderExtensions
+public static class GreenDonutQueryableExtensions
 {
     private static readonly MethodInfo _selectMethod =
         typeof(Enumerable)
             .GetMethods()
             .Where(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
             .First(m => m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>));
-
-    /// <summary>
-    /// Branches a DataLoader and applies a selector to load the data.
-    /// </summary>
-    /// <param name="dataLoader">
-    /// The DataLoader to branch.
-    /// </param>
-    /// <param name="selector">
-    /// The data selector.
-    /// </param>
-    /// <typeparam name="TKey">
-    /// The key type.
-    /// </typeparam>
-    /// <typeparam name="TValue">
-    /// The value type.
-    /// </typeparam>
-    /// <returns>
-    /// Returns a branched DataLoader with the selector applied.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
-    /// </exception>
-    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
-        this IDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TValue, TValue>>? selector)
-        where TKey : notnull
-    {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selector is null)
-        {
-            return dataLoader;
-        }
-
-        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
-        {
-            var context = (DefaultSelectorBuilder)value!;
-            context.Add(selector);
-            return dataLoader;
-        }
-
-        var branchKey = selector.ComputeHash();
-        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
-    }
-
-    public static IDataLoader<TKey, TValue[]> Select<TKey, TValue>(
-        this IDataLoader<TKey, TValue[]> dataLoader,
-        Expression<Func<TValue, TValue>>? selector)
-        where TKey : notnull
-    {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selector is null)
-        {
-            return dataLoader;
-        }
-
-        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
-        {
-            var context = (DefaultSelectorBuilder)value!;
-            context.Add(selector);
-            return dataLoader;
-        }
-
-        var branchKey = selector.ComputeHash();
-        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
-    }
-
-    public static IDataLoader<TKey, List<TValue>> Select<TKey, TValue>(
-        this IDataLoader<TKey, List<TValue>> dataLoader,
-        Expression<Func<TValue, TValue>>? selector)
-        where TKey : notnull
-    {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selector is null)
-        {
-            return dataLoader;
-        }
-
-        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
-        {
-            var context = (DefaultSelectorBuilder)value!;
-            context.Add(selector);
-            return dataLoader;
-        }
-
-        var branchKey = selector.ComputeHash();
-        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
-    }
-
-    /// <summary>
-    /// Includes a property in the query.
-    /// </summary>
-    /// <param name="dataLoader">
-    /// The DataLoader to include the property in.
-    /// </param>
-    /// <param name="includeSelector">
-    /// The property selector.
-    /// </param>
-    /// <typeparam name="TKey">
-    /// The key type.
-    /// </typeparam>
-    /// <typeparam name="TValue">
-    /// The value type.
-    /// </typeparam>
-    /// <returns>
-    /// Returns the DataLoader with the property included.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// Throws if the include selector is not a property selector.
-    /// </exception>
-    public static IDataLoader<TKey, TValue> Include<TKey, TValue>(
-        this IDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TValue, object?>> includeSelector)
-        where TKey : notnull
-    {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if(!dataLoader.ContextData.ContainsKey(DataStateKeys.Selector))
-        {
-            throw new InvalidOperationException(
-                "The Include method must be called after the Select method.");
-        }
-
-        if (includeSelector is null)
-        {
-            throw new ArgumentNullException(nameof(includeSelector));
-        }
-
-        if (includeSelector is not LambdaExpression lambda)
-        {
-            throw new ArgumentException(
-                "The include selector must be a lambda expression.",
-                nameof(includeSelector));
-        }
-
-        if (lambda.Body is not MemberExpression member
-            || member.Member.MemberType != MemberTypes.Property)
-        {
-            throw new ArgumentException(
-                "The include selector must be a property selector.",
-                nameof(includeSelector));
-        }
-
-        var context = dataLoader.GetOrSetState(
-            DataStateKeys.Selector,
-            _ => new DefaultSelectorBuilder());
-        context.Add(Rewrite(includeSelector));
-        return dataLoader;
-    }
 
     /// <summary>
     /// Applies the selector from the DataLoader state to a queryable.
@@ -341,6 +175,119 @@ public static class SelectionDataLoaderExtensions
 
         // lastly we apply the selector expression to the queryable.
         return query.Select(keyValueSelectorExpr);
+    }
+
+     /// <summary>
+    /// Applies the predicate from the DataLoader state to a queryable.
+    /// </summary>
+    /// <param name="query">
+    /// The queryable to apply the predicate to.
+    /// </param>
+    /// <param name="builder">
+    /// The predicate builder.
+    /// </param>
+    /// <typeparam name="T">
+    /// The queryable type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a query with the predicate applied, ready to fetch data with the key.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="query"/> is <c>null</c>.
+    /// </exception>
+    public static IQueryable<T> Where<T>(
+        this IQueryable<T> query,
+        IPredicateBuilder builder)
+    {
+        if (query is null)
+        {
+            throw new ArgumentNullException(nameof(query));
+        }
+
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        var predicate = builder.TryCompile<T>();
+
+        if (predicate is not null)
+        {
+            query = query.Where(predicate);
+        }
+
+        return query;
+    }
+
+    public static IQueryable<T> Order<T>(this IQueryable<T> queryable, SortDefinition<T>? sortDefinition)
+    {
+        if (queryable is null)
+        {
+            throw new ArgumentNullException(nameof(queryable));
+        }
+
+        if (sortDefinition is null || sortDefinition.Operations.Length == 0)
+        {
+            return queryable;
+        }
+
+        var first = sortDefinition.Operations[0];
+        var query = first.ApplyOrderBy(queryable);
+
+        for (var i = 1; i < sortDefinition.Operations.Length; i++)
+        {
+            query = sortDefinition.Operations[i].ApplyThenBy(query);
+        }
+
+        return query;
+    }
+
+    /// <summary>
+    /// Applies a data context to the queryable.
+    /// </summary>
+    /// <param name="queryable">
+    /// The queryable that shall be projected, filtered and sorted.
+    /// </param>
+    /// <param name="queryContext">
+    /// The data context that shall be applied to the queryable.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the queryable.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a queryable that has the data context applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="queryable"/> is <c>null</c> or if <paramref name="queryContext"/> is <c>null</c>.
+    /// </exception>
+    public static IQueryable<T> Apply<T>(this IQueryable<T> queryable, QueryContext<T>? queryContext)
+    {
+        if (queryable is null)
+        {
+            throw new ArgumentNullException(nameof(queryable));
+        }
+
+        if (queryContext is null)
+        {
+            return queryable;
+        }
+
+        if (queryContext.Predicate is not null)
+        {
+            queryable = queryable.Where(queryContext.Predicate);
+        }
+
+        if (queryContext.Sorting is not null)
+        {
+            queryable = queryable.Order(queryContext.Sorting);
+        }
+
+        if (queryContext.Selector is not null)
+        {
+            queryable = queryable.Select(queryContext.Selector);
+        }
+
+        return queryable;
     }
 
     private static Expression<T> ReplaceParameter<T>(

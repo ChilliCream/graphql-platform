@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using HotChocolate.Pagination;
-using static GreenDonut.Data.PredicateDataLoaderExtensions;
+using static GreenDonut.Data.GreenDonutPredicateDataLoaderExtensions;
 
 // ReSharper disable once CheckNamespace
 namespace GreenDonut.Data;
