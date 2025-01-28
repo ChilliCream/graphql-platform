@@ -13,7 +13,7 @@ public interface ISortBy<TEntity>
     /// <summary>
     /// Gets the field on which the sort operation is applied.
     /// </summary>
-    Expression KeySelector { get; }
+    LambdaExpression KeySelector { get; }
 
     /// <summary>
     /// Gets the sort direction.

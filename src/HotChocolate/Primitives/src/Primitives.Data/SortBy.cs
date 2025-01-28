@@ -35,7 +35,7 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     /// </summary>
     public Expression<Func<TEntity, TValue>> KeySelector { get; init; }
 
-    Expression ISortBy<TEntity>.KeySelector => KeySelector;
+    LambdaExpression ISortBy<TEntity>.KeySelector => KeySelector;
 
     /// <summary>
     /// Gets the sort direction.
