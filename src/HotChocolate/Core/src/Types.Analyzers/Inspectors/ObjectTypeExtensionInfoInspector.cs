@@ -302,32 +302,34 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
 file static class Extensions
 {
     public static bool IsNodeResolver(this IMethodSymbol methodSymbol)
-        => methodSymbol
-            .GetAttributes()
-            .Any(t => t.AttributeClass?.ToDisplayString().Equals(NodeResolverAttribute, Ordinal) ?? false);
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(NodeResolverAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public static bool Skip(this IMethodSymbol methodSymbol)
-        => methodSymbol
-            .GetAttributes()
-            .Any(t =>
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(
+                DataLoaderAttribute,
+                QueryAttribute,
+                MutationAttribute,
+                SubscriptionAttribute))
             {
-                var name = t.AttributeClass?.ToDisplayString();
+                return true;
+            }
+        }
 
-                if (name is null)
-                {
-                    return false;
-                }
-
-                if (name.Equals(DataLoaderAttribute, Ordinal) ||
-                    name.Equals(QueryAttribute, Ordinal) ||
-                    name.Equals(MutationAttribute, Ordinal) ||
-                    name.Equals(SubscriptionAttribute, Ordinal))
-                {
-                    return true;
-                }
-
-                return false;
-            });
+        return false;
+    }
 
     public static ImmutableArray<MemberBinding> GetMemberBindings(this ISymbol member)
     {

@@ -492,6 +492,26 @@ public static class SymbolExtensions
         return false;
     }
 
+    public static bool IsOrInheritsFrom(this ITypeSymbol? attributeClass, params string[] fullTypeName)
+    {
+        var current = attributeClass;
+
+        while (current != null)
+        {
+            foreach(var typeName in fullTypeName)
+            {
+                if (current.ToDisplayString() == typeName)
+                {
+                    return true;
+                }
+            }
+
+            current = current.BaseType;
+        }
+
+        return false;
+    }
+
     public static bool IsOrInheritsFrom(this ITypeSymbol? attributeClass, string fullTypeName)
     {
         var current = attributeClass;

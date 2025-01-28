@@ -169,4 +169,76 @@ public class ResolverTests
             internal class Entity;
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Ensure_Entity_Becomes_Node()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                public static Task<Test?> GetTestById([ID<Test>] int id)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                [NodeResolver]
+                public static Task<Test?> GetTest(int id)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            internal class Test
+            {
+                public int Id { get; set; }
+
+                public string Name { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Ensure_Entity_Becomes_Node_With_Query_Node_Resolver()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                [NodeResolver]
+                public static Task<Test?> GetTestById(int id)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static Task<Test?> GetTest(int id)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            internal class Test
+            {
+                public int Id { get; set; }
+
+                public string Name { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
 }

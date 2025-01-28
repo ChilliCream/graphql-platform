@@ -80,9 +80,9 @@ public sealed class TypeConfigurationContainer
             {
                 foreach (var item in list)
                 {
-                    if (item is Func<Action<TDescriptor>> factory)
+                    if (item is Action<TDescriptor> configure)
                     {
-                        factory()(descriptor);
+                        configure(descriptor);
                     }
                 }
             }
@@ -100,9 +100,9 @@ public sealed class TypeConfigurationContainer
             {
                 foreach (var item in list)
                 {
-                    if (item is Func<Action<TDescriptor>> factory)
+                    if (item is Action<TDescriptor> configure)
                     {
-                        factory()(descriptor);
+                        configure(descriptor);
                     }
                 }
             }
