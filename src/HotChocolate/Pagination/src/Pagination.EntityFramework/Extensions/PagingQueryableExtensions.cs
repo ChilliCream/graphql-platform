@@ -448,9 +448,11 @@ public static class PagingQueryableExtensions
 
                     var bindings = new List<MemberBinding>
                     {
-                        Expression.Bind(typeof(CountResult<TKey>).GetProperty(nameof(CountResult<TKey>.Key))!,
+                        Expression.Bind(
+                            typeof(CountResult<TKey>).GetProperty(nameof(CountResult<TKey>.Key))!,
                             keyProperty),
-                        Expression.Bind(typeof(CountResult<TKey>).GetProperty(nameof(CountResult<TKey>.Count))!,
+                        Expression.Bind(
+                            typeof(CountResult<TKey>).GetProperty(nameof(CountResult<TKey>.Count))!,
                             countCall)
                     };
 

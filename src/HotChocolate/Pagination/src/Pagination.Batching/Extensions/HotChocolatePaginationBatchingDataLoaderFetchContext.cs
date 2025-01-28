@@ -1,5 +1,6 @@
 using HotChocolate.Pagination;
 
+// ReSharper disable once CheckNamespace
 namespace GreenDonut;
 
 /// <summary>
@@ -21,5 +22,5 @@ public static class HotChocolatePaginationBatchingDataLoaderFetchContext
     /// </returns>
     public static PagingArguments GetPagingArguments<TValue>(
         this DataLoaderFetchContext<TValue> context)
-        => context.GetRequiredState<PagingArguments>();
+        => context.GetRequiredState<PagingArguments>(PagingStateKeys.PagingArgs);
 }

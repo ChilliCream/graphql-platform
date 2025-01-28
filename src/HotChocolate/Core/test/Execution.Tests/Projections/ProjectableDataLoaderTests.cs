@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using CookieCrumble;
 using GreenDonut;
-using GreenDonut.Selectors;
+using GreenDonut.Data;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.TestContext;
 using HotChocolate.Types;

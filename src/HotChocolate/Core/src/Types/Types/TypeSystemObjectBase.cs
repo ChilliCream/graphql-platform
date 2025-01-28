@@ -68,19 +68,34 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
     protected internal bool IsInitialized
-        => _status is TypeStatus.Initialized or TypeStatus.Named or TypeStatus.Completed;
+        => _status is TypeStatus.Initialized
+            or TypeStatus.Named
+            or TypeStatus.Completed
+            or TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
 
     protected internal bool IsNamed
-        => _status is TypeStatus.Named or TypeStatus.Completed;
+        => _status is TypeStatus.Named
+            or TypeStatus.Completed
+            or TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
 
     protected internal bool IsCompleted
-        => _status is TypeStatus.Completed;
+        => _status is TypeStatus.Completed
+            or TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
 
     protected internal bool IsMetadataCompleted
-        => _status is TypeStatus.MetadataCompleted;
+        => _status is TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
 
     protected internal bool IsExecutable
-        => _status is TypeStatus.Executable;
+        => _status is TypeStatus.Executable
+            or TypeStatus.Finalized;
 
     protected internal bool IsSealed
         => _status is TypeStatus.Finalized;

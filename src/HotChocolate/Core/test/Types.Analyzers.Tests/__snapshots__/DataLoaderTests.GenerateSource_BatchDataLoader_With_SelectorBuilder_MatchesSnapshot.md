@@ -42,8 +42,8 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = context.GetState<global::GreenDonut.Selectors.ISelectorBuilder>("GreenDonut.Selectors.ISelectorBuilder")
-                ?? new global::GreenDonut.Selectors.DefaultSelectorBuilder();
+            var p1 = context.GetState<global::GreenDonut.Data.ISelectorBuilder>("GreenDonut.Data.Selector")
+                ?? global::GreenDonut.Data.DefaultSelectorBuilder.Empty;
             var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }

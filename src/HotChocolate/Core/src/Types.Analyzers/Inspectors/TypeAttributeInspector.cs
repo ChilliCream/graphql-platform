@@ -51,6 +51,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                     {
                         if (fullName.Equals(QueryTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
@@ -60,6 +66,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
                         if (fullName.Equals(MutationTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
@@ -69,6 +81,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
                         if (fullName.Equals(SubscriptionTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),

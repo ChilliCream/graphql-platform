@@ -1,11 +1,5 @@
 using System.Collections.Immutable;
-#if NET8_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
-#if NET6_0_OR_GREATER
-using GreenDonut.Selectors;
-using GreenDonut.Predicates;
-#endif
+using GreenDonut.Data;
 
 namespace GreenDonut;
 
@@ -147,12 +141,9 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the selector builder if it exists.
     /// </returns>
-#if NET8_0_OR_GREATER
-    [Experimental(Experiments.Selectors)]
-#endif
     public ISelectorBuilder GetSelector()
     {
-        if (ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value)
             && value is ISelectorBuilder casted)
         {
             return casted;
@@ -170,20 +161,86 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// <returns>
     /// Returns the predicate builder if it exists.
     /// </returns>
-#if NET8_0_OR_GREATER
-    [Experimental(Experiments.Predicates)]
-#endif
     public IPredicateBuilder GetPredicate()
     {
-        if (ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value)
-            && value is DefaultPredicateBuilder casted)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Predicate, out var value)
+            && value is IPredicateBuilder casted)
         {
             return casted;
         }
 
         // if no predicate was found we will just return
         // a new default predicate builder.
-        return new DefaultPredicateBuilder();
+        return DefaultPredicateBuilder.Empty;
+    }
+
+    /// <summary>
+    /// Gets the sorting definition from the DataLoader state snapshot.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The entity type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the sorting definition if it exists.
+    /// </returns>
+    public SortDefinition<T> GetSorting<T>()
+    {
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Sorting, out var value)
+            && value is SortDefinition<T> casted)
+        {
+            return casted;
+        }
+
+        return SortDefinition<T>.Empty;
+    }
+
+    /// <summary>
+    /// Gets the query context from the DataLoader state snapshot.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The entity type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the query context if it exists, otherwise am empty query context.
+    /// </returns>
+    public QueryContext<T> GetQueryContext<T>()
+    {
+        ISelectorBuilder? selector = null;
+        IPredicateBuilder? predicate = null;
+        SortDefinition<T>? sorting = null;
+
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value)
+            && value is ISelectorBuilder casted1)
+        {
+            selector = casted1;
+        }
+
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Predicate, out value)
+            && value is IPredicateBuilder casted2)
+        {
+            predicate = casted2;
+        }
+
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Sorting, out value)
+            && value is SortDefinition<T> casted3)
+        {
+            sorting = casted3;
+        }
+
+        var selectorExpression = selector?.TryCompile<T>();
+        var predicateExpression = predicate?.TryCompile<T>();
+
+        if (selectorExpression is null
+            && predicateExpression is null
+            && sorting is null)
+        {
+            return QueryContext<T>.Empty;
+        }
+
+        return new QueryContext<T>(
+            selectorExpression,
+            predicateExpression,
+            sorting);
     }
 #endif
 }

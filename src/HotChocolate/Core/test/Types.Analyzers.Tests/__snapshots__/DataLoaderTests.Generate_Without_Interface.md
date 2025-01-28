@@ -36,8 +36,8 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = context.GetState<global::GreenDonut.Predicates.IPredicateBuilder>("GreenDonut.Predicates.IPredicateBuilder")
-                ?? new global::GreenDonut.Predicates.DefaultPredicateBuilder();
+            var p1 = context.GetState<global::GreenDonut.Data.IPredicateBuilder>("GreenDonut.Data.Predicate")
+                ?? global::GreenDonut.Data.DefaultPredicateBuilder.Empty;
             var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }

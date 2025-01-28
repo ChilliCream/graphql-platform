@@ -4,7 +4,7 @@ using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Data.Projections;
 
-public static class TestExtensions
+public static class TestBufferHelper
 {
     public static void AddSqlFrom(
         this Snapshot snapshot,
