@@ -1,12 +1,11 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 
-namespace GreenDonut.Predicates;
+namespace GreenDonut.Data;
 
 /// <summary>
 /// Data loader extensions for predicates.
 /// </summary>
-[Experimental(Experiments.Predicates)]
 public static class PredicateDataLoaderExtensions
 {
     /// <summary>
@@ -45,30 +44,48 @@ public static class PredicateDataLoaderExtensions
             return dataLoader;
         }
 
-        if (dataLoader.ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value))
+        var branchKey = predicate.ComputeHash();
+        var state = new QueryState(DataStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+    }
+
+    public static IDataLoader<TKey, TValue[]> Where<TKey, TValue>(
+        this IDataLoader<TKey, TValue[]> dataLoader,
+        Expression<Func<TValue, bool>>? predicate)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
         {
-            var context = (DefaultPredicateBuilder)value!;
-            context.Add(predicate);
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (predicate is null)
+        {
             return dataLoader;
         }
 
-        var branchKey = predicate.ToString();
-        return (IDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, CreateBranch, predicate);
+        var branchKey = predicate.ComputeHash();
+        var state = new QueryState(DataStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+    }
 
-        static IDataLoader CreateBranch(
-            string key,
-            IDataLoader<TKey, TValue> dataLoader,
-            Expression<Func<TValue, bool>> predicate)
+    public static IDataLoader<TKey, List<TValue>> Where<TKey, TValue>(
+        this IDataLoader<TKey, List<TValue>> dataLoader,
+        Expression<Func<TValue, bool>>? predicate)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
         {
-            var branch = new PredicateDataLoader<TKey, TValue>(
-                (DataLoaderBase<TKey, TValue>)dataLoader,
-                key);
-            var context = new DefaultPredicateBuilder();
-            branch.ContextData =
-                branch.ContextData.SetItem(typeof(IPredicateBuilder).FullName!, context);
-            context.Add(predicate);
-            return branch;
+            throw new ArgumentNullException(nameof(dataLoader));
         }
+
+        if (predicate is null)
+        {
+            return dataLoader;
+        }
+        var branchKey = predicate.ComputeHash();
+        var state = new QueryState(DataStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
     }
 
     /// <summary>
@@ -111,5 +128,24 @@ public static class PredicateDataLoaderExtensions
         }
 
         return query;
+    }
+
+    internal static DefaultPredicateBuilder GetOrCreateBuilder<TValue>(
+        IImmutableDictionary<string, object?> contextData,
+        Expression<Func<TValue, bool>> predicate)
+    {
+        DefaultPredicateBuilder? builder;
+        if (contextData.TryGetValue(DataStateKeys.Predicate, out var value))
+        {
+            builder = (DefaultPredicateBuilder)value!;
+            builder = builder.Branch();
+            builder.Add(predicate);
+        }
+        else
+        {
+            builder = new DefaultPredicateBuilder(predicate);
+        }
+
+        return builder;
     }
 }

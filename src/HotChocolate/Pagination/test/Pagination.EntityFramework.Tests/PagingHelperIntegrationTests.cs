@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Data.TestContext;
 using GreenDonut;
-using GreenDonut.Selectors;
+using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
@@ -1297,7 +1297,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             IResolverContext context,
             CancellationToken cancellationToken)
             => await dataLoader
-                .WithPagingArguments(arguments)
+                .With(arguments)
                 .LoadAsync(brand.Id, cancellationToken)
                 .ToConnectionAsync();
     }
@@ -1313,7 +1313,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             PagingArguments arguments,
             CancellationToken cancellationToken)
             => await dataLoader
-                .WithPagingArguments(arguments)
+                .With(arguments)
                 .Select(selection)
                 .LoadAsync(brand.Id, cancellationToken)
                 .ToConnectionAsync();

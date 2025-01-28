@@ -1,13 +1,13 @@
-namespace GreenDonut.Predicates;
+namespace GreenDonut.Data;
 
-internal sealed class PredicateDataLoader<TKey, TValue>
+internal sealed class QueryDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
-    , IPredicateDataLoader<TKey, TValue>
+    , IQueryDataLoader<TKey, TValue>
     where TKey : notnull
 {
     private readonly DataLoaderBase<TKey, TValue> _root;
 
-    public PredicateDataLoader(
+    public QueryDataLoader(
         DataLoaderBase<TKey, TValue> root,
         string predicateKey)
         : base(root.BatchScheduler, root.Options)

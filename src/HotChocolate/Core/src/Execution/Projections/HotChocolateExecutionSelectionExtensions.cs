@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Text;
 using System.Runtime.CompilerServices;
-using GreenDonut.Selectors;
+using GreenDonut.Data;
 using HotChocolate.Execution.Projections;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -32,7 +32,6 @@ public static class HotChocolateExecutionSelectionExtensions
     /// <returns>
     /// Returns a selector expression that can be used for data projections.
     /// </returns>
-    [Experimental(Experiments.Selectors)]
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this ISelection selection)
     {
@@ -90,7 +89,6 @@ public static class HotChocolateExecutionSelectionExtensions
             static (_, ctx) => ctx._builder.BuildExpression<TValue>(ctx.selection),
             (_builder, selection));
 
-    [Experimental(Experiments.Selectors)]
     private static Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(
         ISelection selection,
         ISelectorBuilder builder)

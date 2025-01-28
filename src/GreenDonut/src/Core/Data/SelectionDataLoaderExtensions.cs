@@ -1,14 +1,12 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using static GreenDonut.ExpressionHelpers;
 
-namespace GreenDonut.Selectors;
+namespace GreenDonut.Data;
 
 /// <summary>
 /// Data loader extensions for projections.
 /// </summary>
-[Experimental(Experiments.Selectors)]
 public static class SelectionDataLoaderExtensions
 {
     private static readonly MethodInfo _selectMethod =
@@ -32,18 +30,15 @@ public static class SelectionDataLoaderExtensions
     /// <typeparam name="TValue">
     /// The value type.
     /// </typeparam>
-    /// <typeparam name="TElement">
-    /// The element type.
-    /// </typeparam>
     /// <returns>
     /// Returns a branched DataLoader with the selector applied.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, TValue> Select<TKey, TValue, TElement>(
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TElement, TElement>>? selector)
+        Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -56,29 +51,70 @@ public static class SelectionDataLoaderExtensions
             return dataLoader;
         }
 
-        if (dataLoader.ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value))
+        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
         {
             var context = (DefaultSelectorBuilder)value!;
             context.Add(selector);
             return dataLoader;
         }
 
-        var branchKey = selector.ToString();
-        return (ISelectionDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, CreateBranch, selector);
+        var branchKey = selector.ComputeHash();
+        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
+        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+    }
 
-        static IDataLoader CreateBranch(
-            string key,
-            IDataLoader<TKey, TValue> dataLoader,
-            Expression<Func<TElement, TElement>> selector)
+    public static IDataLoader<TKey, TValue[]> Select<TKey, TValue>(
+        this IDataLoader<TKey, TValue[]> dataLoader,
+        Expression<Func<TValue, TValue>>? selector)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
         {
-            var branch = new SelectionDataLoader<TKey, TValue>(
-                (DataLoaderBase<TKey, TValue>)dataLoader,
-                key);
-            var context = new DefaultSelectorBuilder();
-            branch.ContextData = branch.ContextData.SetItem(typeof(ISelectorBuilder).FullName!, context);
-            context.Add(selector);
-            return branch;
+            throw new ArgumentNullException(nameof(dataLoader));
         }
+
+        if (selector is null)
+        {
+            return dataLoader;
+        }
+
+        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
+        {
+            var context = (DefaultSelectorBuilder)value!;
+            context.Add(selector);
+            return dataLoader;
+        }
+
+        var branchKey = selector.ComputeHash();
+        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
+        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+    }
+
+    public static IDataLoader<TKey, List<TValue>> Select<TKey, TValue>(
+        this IDataLoader<TKey, List<TValue>> dataLoader,
+        Expression<Func<TValue, TValue>>? selector)
+        where TKey : notnull
+    {
+        if (dataLoader is null)
+        {
+            throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if (selector is null)
+        {
+            return dataLoader;
+        }
+
+        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
+        {
+            var context = (DefaultSelectorBuilder)value!;
+            context.Add(selector);
+            return dataLoader;
+        }
+
+        var branchKey = selector.ComputeHash();
+        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
+        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
     }
 
     /// <summary>
@@ -113,6 +149,12 @@ public static class SelectionDataLoaderExtensions
         if (dataLoader is null)
         {
             throw new ArgumentNullException(nameof(dataLoader));
+        }
+
+        if(!dataLoader.ContextData.ContainsKey(DataStateKeys.Selector))
+        {
+            throw new InvalidOperationException(
+                "The Include method must be called after the Select method.");
         }
 
         if (includeSelector is null)
@@ -269,7 +311,7 @@ public static class SelectionDataLoaderExtensions
         // next we try to compile an element selector expression.
         var elementSelectorExpr = elementSelector.TryCompile<TValue>();
 
-        // if we have a element selector to project properties on the list expression
+        // if we have an element selector to project properties on the list expression
         // we will need to combine this into the list expression.
         if (elementSelectorExpr is not null)
         {

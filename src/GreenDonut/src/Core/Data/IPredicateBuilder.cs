@@ -1,13 +1,11 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace GreenDonut.Predicates;
+namespace GreenDonut.Data;
 
 /// <summary>
 /// The predicate builder helps you create a combined predicate expression
 /// by adding multiple expressions together.
 /// </summary>
-[Experimental(Experiments.Predicates)]
 public interface IPredicateBuilder
 {
     /// <summary>

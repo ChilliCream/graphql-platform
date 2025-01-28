@@ -1,5 +1,6 @@
 using HotChocolate.Pagination;
 
+// ReSharper disable once CheckNamespace
 namespace GreenDonut;
 
 /// <summary>

@@ -1,10 +1,8 @@
-namespace GreenDonut.Predicates;
+namespace GreenDonut.Data;
 
 /// <summary>
-/// A predicate DataLoader is a specialized version of a DataLoader that
-/// selects a subset of data based on a given predicate from the original DataLoader.
-/// The data retrieved by this DataLoader is not shared with other DataLoaders and
-/// remains isolated within this instance.
+/// A query DataLoader is a specialized version of a DataLoader that has query context which
+/// allows to manipulate the database request.
 /// </summary>
 /// <typeparam name="TKey">
 /// The type of the key.
@@ -12,7 +10,7 @@ namespace GreenDonut.Predicates;
 /// <typeparam name="TValue">
 /// The type of the value.
 /// </typeparam>
-public interface IPredicateDataLoader<in TKey, TValue>
+public interface IQueryDataLoader<in TKey, TValue>
     : IDataLoader<TKey, TValue>
     where TKey : notnull
 {

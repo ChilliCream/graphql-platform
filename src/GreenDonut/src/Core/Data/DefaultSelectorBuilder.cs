@@ -1,40 +1,51 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 
-namespace GreenDonut.Selectors;
+namespace GreenDonut.Data;
 
 /// <summary>
 /// A default implementation of the <see cref="ISelectorBuilder"/>.
 /// </summary>
-[Experimental(Experiments.Selectors)]
 public sealed class DefaultSelectorBuilder : ISelectorBuilder
 {
-    private List<LambdaExpression>? _selectors;
+    private ImmutableArray<LambdaExpression> _selectors = ImmutableArray<LambdaExpression>.Empty;
+
+    public DefaultSelectorBuilder(LambdaExpression? initialSelector = null)
+    {
+        if (initialSelector is not null)
+        {
+            _selectors = _selectors.Add(initialSelector);
+        }
+    }
+
+    private DefaultSelectorBuilder(ImmutableArray<LambdaExpression> selectors)
+    {
+        _selectors = selectors;
+    }
 
     /// <inheritdoc />
     public void Add<T>(Expression<Func<T, T>> selector)
     {
-        _selectors ??= new List<LambdaExpression>();
         if (!_selectors.Contains(selector))
         {
-            _selectors.Add(selector);
+            _selectors = _selectors.Add(selector);
         }
     }
 
     /// <inheritdoc />
     public Expression<Func<T, T>>? TryCompile<T>()
     {
-        if (_selectors is null)
+        if (_selectors.Length == 0)
         {
             return null;
         }
 
-        if (_selectors.Count == 1)
+        if (_selectors.Length == 1)
         {
             return (Expression<Func<T, T>>)_selectors[0];
         }
 
-        if (_selectors.Count == 2)
+        if (_selectors.Length == 2)
         {
             return ExpressionHelpers.Combine(
                 (Expression<Func<T, T>>)_selectors[0],
@@ -42,7 +53,7 @@ public sealed class DefaultSelectorBuilder : ISelectorBuilder
         }
 
         var expression = (Expression<Func<T, T>>)_selectors[0];
-        for (var i = 1; i < _selectors.Count; i++)
+        for (var i = 1; i < _selectors.Length; i++)
         {
             expression = ExpressionHelpers.Combine(
                 expression,
@@ -51,4 +62,9 @@ public sealed class DefaultSelectorBuilder : ISelectorBuilder
 
         return expression;
     }
+
+    public DefaultSelectorBuilder Branch()
+        => new(_selectors);
+
+    public static DefaultSelectorBuilder Empty { get; } = new(ImmutableArray<LambdaExpression>.Empty);
 }

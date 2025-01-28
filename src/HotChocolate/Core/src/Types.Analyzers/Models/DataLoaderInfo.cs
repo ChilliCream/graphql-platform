@@ -179,7 +179,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
                         $"p{i}",
                         parameter,
                         DataLoaderParameterKind.SelectorBuilder,
-                        WellKnownTypes.SelectorBuilder));
+                        Selector));
                 continue;
             }
 
@@ -191,7 +191,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
                         $"p{i}",
                         parameter,
                         DataLoaderParameterKind.PredicateBuilder,
-                        WellKnownTypes.PredicateBuilder));
+                        Predicate));
                 continue;
             }
 
@@ -202,7 +202,28 @@ public sealed class DataLoaderInfo : SyntaxInfo
                         $"p{i}",
                         parameter,
                         DataLoaderParameterKind.PagingArguments,
-                        WellKnownTypes.PagingArguments));
+                        PagingArgs));
+                continue;
+            }
+
+            if (IsSortDefinition(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.SortDefinition,
+                        Sorting));
+                continue;
+            }
+
+            if (IsQueryContext(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.QueryContext));
                 continue;
             }
 
@@ -255,6 +276,18 @@ public sealed class DataLoaderInfo : SyntaxInfo
         return string.Equals(typeName, WellKnownTypes.PagingArguments, StringComparison.Ordinal);
     }
 
+    private static bool IsSortDefinition(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return typeName.StartsWith(WellKnownTypes.SortDefinitionGeneric, StringComparison.Ordinal);
+    }
+
+    private static bool IsQueryContext(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return typeName.StartsWith(WellKnownTypes.SortDefinitionGeneric, StringComparison.Ordinal);
+    }
+
     public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)
     {
         if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol
@@ -305,4 +338,9 @@ public sealed class DataLoaderInfo : SyntaxInfo
             ? name.Substring(0, name.Length - 10)
             : name;
     }
+
+    public const string Selector = "GreenDonut.Data.Selector";
+    public const string Predicate = "GreenDonut.Data.Predicate";
+    public const string Sorting = "GreenDonut.Data.Sorting";
+    public const string PagingArgs = "HotChocolate.Pagination.PagingArgs";
 }

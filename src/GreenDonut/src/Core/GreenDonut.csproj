@@ -26,4 +26,13 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Data.Primitives\GreenDonut.Data.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Predicates\" />
+    <Folder Include="Selectors\" />
+  </ItemGroup>
+
 </Project>
