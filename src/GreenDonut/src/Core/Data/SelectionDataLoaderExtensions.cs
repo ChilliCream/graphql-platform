@@ -178,7 +178,7 @@ public static class SelectionDataLoaderExtensions
         }
 
         var context = dataLoader.GetOrSetState(
-            typeof(ISelectorBuilder).FullName!,
+            DataStateKeys.Selector,
             _ => new DefaultSelectorBuilder());
         context.Add(Rewrite(includeSelector));
         return dataLoader;
