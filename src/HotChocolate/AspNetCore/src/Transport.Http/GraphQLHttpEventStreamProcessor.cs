@@ -19,7 +19,7 @@ internal static class GraphQLHttpEventStreamProcessor
         var reader = pipe.Reader;
         var writer = pipe.Writer;
 
-        Task.Run(async () => await ReadFromTransportAsync(stream, writer, ct).ConfigureAwait(false), ct);
+        ReadFromTransportAsync(stream, writer, ct).FireAndForget();
         return ReadMessagesPipeAsync(reader, ct);
     }
 
