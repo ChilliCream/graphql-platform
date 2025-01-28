@@ -468,7 +468,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Selectors.ISelectorBuilder selector,
+                    GreenDonut.Data.ISelectorBuilder selector,
                     CancellationToken cancellationToken)
                     => default!;
             }
@@ -493,7 +493,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Predicates.IPredicateBuilder predicate,
+                    GreenDonut.Data.IPredicateBuilder predicate,
                     CancellationToken cancellationToken)
                     => default!;
             }
@@ -520,7 +520,59 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Predicates.IPredicateBuilder predicate,
+                    GreenDonut.Data.IPredicateBuilder predicate,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_With_QueryContext()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+            using GreenDonut.Data;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    QueryContext<string> queryContext,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_With_SortDefinition()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+            using GreenDonut.Data;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    SortDefinition<string> queryContext,
                     CancellationToken cancellationToken)
                     => default!;
             }

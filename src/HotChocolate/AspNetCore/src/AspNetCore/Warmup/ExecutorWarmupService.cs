@@ -1,3 +1,4 @@
+using HotChocolate.Utilities;
 using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.Warmup;
@@ -46,7 +47,7 @@ internal class ExecutorWarmupService : BackgroundService
     {
         if (_tasks.TryGetValue(schemaName, out var value) && value.Any(t => t.KeepWarm))
         {
-            Task.Factory.StartNew(() => WarmupAsync(schemaName, value, _stopping), _stopping);
+            WarmupAsync(schemaName, value, _stopping).FireAndForget();
         }
     }
 

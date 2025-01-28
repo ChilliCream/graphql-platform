@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -268,7 +267,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         parameter.StateKey);
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
-                        "?? new global::GreenDonut.Selectors.DefaultSelectorBuilder();");
+                        "?? global::GreenDonut.Data.DefaultSelectorBuilder.Empty;");
                     _writer.DecreaseIndent();
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.PredicateBuilder)
@@ -280,8 +279,61 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         parameter.StateKey);
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
-                        "?? new global::GreenDonut.Predicates.DefaultPredicateBuilder();");
+                        "?? global::GreenDonut.Data.DefaultPredicateBuilder.Empty;");
                     _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.SortDefinition)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? {0}.Empty;",
+                        parameter.Type.ToFullyQualified());
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.QueryContext)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0}_selector = context.GetState<global::{1}>(\"{2}\")?.TryCompile<{3}>();",
+                        parameter.VariableName,
+                        WellKnownTypes.SelectorBuilder,
+                        DataLoaderInfo.Selector,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.WriteIndentedLine(
+                        "var {0}_predicate = context.GetState<global::{1}>(\"{2}\")?.TryCompile<{3}>();",
+                        parameter.VariableName,
+                        WellKnownTypes.PredicateBuilder,
+                        DataLoaderInfo.Predicate,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.WriteIndentedLine(
+                        "var {0}_sortDefinition = context.GetState<global::{1}<{2}>>(\"{3}\");",
+                        parameter.VariableName,
+                        WellKnownTypes.SortDefinition,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
+                        DataLoaderInfo.Sorting);
+                    _writer.WriteLine();
+                    _writer.WriteIndentedLine(
+                        "if({0}_selector is null && {0}_predicate is null && {0}_sortDefinition is null)");
+                    _writer.WriteIndentedLine("{");
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "var {0} = global::{1}<{2}>.Empty;",
+                        parameter.VariableName,
+                        WellKnownTypes.QueryContext,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.DecreaseIndent();
+                    _writer.WriteIndentedLine("}");
+                    _writer.WriteLine();
+                    _writer.WriteIndentedLine(
+                        "var {0} = new global::{1}<{2}>({0}_selector?, " +
+                        "{0}_predicate, {0}_sortDefinition);",
+                        parameter.VariableName,
+                        WellKnownTypes.QueryContext,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.PagingArguments)
                 {

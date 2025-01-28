@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

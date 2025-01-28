@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using GreenDonut;
-using GreenDonut.Selectors;
+using GreenDonut.Data;
 using HotChocolate.Data.TestContext;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -363,7 +363,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             ISelection selection,
             CancellationToken cancellationToken)
             => await animalsByOwner
-                .WithPagingArguments(pagingArgs)
+                .With(pagingArgs)
                 .Select(selection)
                 .LoadAsync(owner.Id, cancellationToken)
                 .ToConnectionAsync();
@@ -381,7 +381,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             ISelection selection,
             CancellationToken cancellationToken)
             => await animalsByOwner
-                .WithPagingArguments(pagingArgs)
+                .With(pagingArgs)
                 .Select(selection)
                 .LoadAsync(owner.Id, cancellationToken)
                 .ToConnectionAsync();
