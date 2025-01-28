@@ -468,7 +468,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Selectors.ISelectorBuilder selector,
+                    GreenDonut.Data.ISelectorBuilder selector,
                     CancellationToken cancellationToken)
                     => default!;
             }
@@ -493,7 +493,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Predicates.IPredicateBuilder predicate,
+                    GreenDonut.Data.IPredicateBuilder predicate,
                     CancellationToken cancellationToken)
                     => default!;
             }
@@ -520,7 +520,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Predicates.IPredicateBuilder predicate,
+                    GreenDonut.Data.IPredicateBuilder predicate,
                     CancellationToken cancellationToken)
                     => default!;
             }

@@ -36,8 +36,8 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = context.GetState<global::GreenDonut.Predicates.IPredicateBuilder>("GreenDonut.Predicates.IPredicateBuilder")
-                ?? new global::GreenDonut.Predicates.DefaultPredicateBuilder();
+            var p1 = context.GetState<global::GreenDonut.Data.IPredicateBuilder>("GreenDonut.Data.Predicate")
+                ?? global::GreenDonut.Data.DefaultPredicateBuilder.Empty;
             var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
@@ -92,28 +92,5 @@ namespace Microsoft.Extensions.DependencyInjection
     }
 }
 
-```
-
-## Compilation Diagnostics
-
-```json
-[
-  {
-    "Id": "GD0002",
-    "Title": "Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (15,8)-(15,47)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS9204)",
-    "MessageFormat": "'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Message": "'GreenDonut.Predicates.IPredicateBuilder' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "CustomObsolete"
-    ]
-  }
-]
 ```
 
