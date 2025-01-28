@@ -285,7 +285,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
     private static bool IsQueryContext(IParameterSymbol parameter)
     {
         var typeName = parameter.Type.ToDisplayString();
-        return typeName.StartsWith(WellKnownTypes.SortDefinitionGeneric, StringComparison.Ordinal);
+        return typeName.StartsWith(WellKnownTypes.QueryContextGeneric, StringComparison.Ordinal);
     }
 
     public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)
