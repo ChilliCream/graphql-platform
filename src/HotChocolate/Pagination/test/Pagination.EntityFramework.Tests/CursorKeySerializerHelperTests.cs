@@ -139,4 +139,20 @@ public static class CursorKeySerializerHelperTests
         Assert.False(success);
         Assert.Equal(0, written);
     }
+
+    [Fact]
+    public static void String_With_Colon_Format_And_Parse()
+    {
+        // arrange
+        object key = "part1:part2";
+        Span<byte> buffer = new byte[1024];
+
+        // act
+        CursorKeySerializerHelper.TryFormat(key, _serializer, buffer, out var written);
+        var parsedString =CursorKeySerializerHelper.Parse(buffer.Slice(0, written), _serializer);
+
+
+        // assert
+        Assert.Equal(key, parsedString);
+    }
 }
