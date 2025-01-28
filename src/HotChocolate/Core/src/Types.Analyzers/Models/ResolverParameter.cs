@@ -140,9 +140,9 @@ public sealed class ResolverParameter
             return ResolverParameterKind.Argument;
         }
 
-        if (parameter.IsDataContext())
+        if (parameter.IsQueryContext())
         {
-            return ResolverParameterKind.DataContext;
+            return ResolverParameterKind.QueryContext;
         }
 
         return ResolverParameterKind.Unknown;

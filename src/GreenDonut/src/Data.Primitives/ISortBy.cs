@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace HotChocolate.Data;
+namespace GreenDonut.Data;
 
 /// <summary>
 /// Represents a sort operation on a field.

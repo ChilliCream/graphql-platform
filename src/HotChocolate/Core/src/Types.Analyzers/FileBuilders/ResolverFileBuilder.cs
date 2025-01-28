@@ -715,7 +715,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
                     break;
 
-                case ResolverParameterKind.DataContext:
+                case ResolverParameterKind.QueryContext:
                     var entityType = parameter.TypeParameters[0].ToFullyQualified();
                     _writer.WriteIndentedLine("var args{0}_selection = context.Selection;", i);
                     _writer.WriteIndentedLine("var args{0}_filter = context.GetFilterContext();", i);
@@ -723,7 +723,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     _writer.WriteIndentedLine(
                         "var args{0} = new global::{1}<{2}>(",
                         i,
-                        WellKnownTypes.DataContext,
+                        WellKnownTypes.QueryContext,
                         entityType);
                     using (_writer.IncreaseIndent())
                     {

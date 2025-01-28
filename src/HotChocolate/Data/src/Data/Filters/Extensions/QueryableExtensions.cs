@@ -1,3 +1,4 @@
+using GreenDonut.Data;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
@@ -153,7 +154,7 @@ public static class QueryableExtensions
     /// <param name="queryable">
     /// The queryable that shall be projected, filtered and sorted.
     /// </param>
-    /// <param name="dataContext">
+    /// <param name="queryContext">
     /// The data context that shall be applied to the queryable.
     /// </param>
     /// <typeparam name="T">
@@ -163,33 +164,33 @@ public static class QueryableExtensions
     /// Returns a queryable that has the data context applied.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// Throws if <paramref name="queryable"/> is <c>null</c> or if <paramref name="dataContext"/> is <c>null</c>.
+    /// Throws if <paramref name="queryable"/> is <c>null</c> or if <paramref name="queryContext"/> is <c>null</c>.
     /// </exception>
-    public static IQueryable<T> Apply<T>(this IQueryable<T> queryable, DataContext<T> dataContext)
+    public static IQueryable<T> Apply<T>(this IQueryable<T> queryable, QueryContext<T> queryContext)
     {
         if (queryable is null)
         {
             throw new ArgumentNullException(nameof(queryable));
         }
 
-        if (dataContext is null)
+        if (queryContext is null)
         {
-            throw new ArgumentNullException(nameof(dataContext));
+            throw new ArgumentNullException(nameof(queryContext));
         }
 
-        if (dataContext.Selector is not null)
+        if (queryContext.Selector is not null)
         {
-            queryable = queryable.Select(dataContext.Selector);
+            queryable = queryable.Select(queryContext.Selector);
         }
 
-        if (dataContext.Predicate is not null)
+        if (queryContext.Predicate is not null)
         {
-            queryable = queryable.Where(dataContext.Predicate);
+            queryable = queryable.Where(queryContext.Predicate);
         }
 
-        if (dataContext.Sorting is not null)
+        if (queryContext.Sorting is not null)
         {
-            queryable = queryable.Order(dataContext.Sorting);
+            queryable = queryable.Order(queryContext.Sorting);
         }
 
         return queryable;

@@ -4,6 +4,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
+using GreenDonut.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
@@ -907,7 +908,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
-    public async Task AsSortDefinition_Descending_DataContext()
+    public async Task AsSortDefinition_Descending_QueryContext()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -1154,7 +1155,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 .Order(sorting);
 
         [UseSorting]
-        public IQueryable<Author> GetAuthorsData(DataContext<Author> context)
+        public IQueryable<Author> GetAuthorsData(QueryContext<Author> context)
             => new[]
                 {
                     new Author

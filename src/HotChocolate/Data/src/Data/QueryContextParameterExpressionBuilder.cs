@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
+using GreenDonut.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Processing;
@@ -9,14 +10,14 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data;
 
-internal sealed class DataContextParameterExpressionBuilder()
+internal sealed class QueryContextParameterExpressionBuilder()
     : IParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private static readonly MethodInfo _createDataContext =
-        typeof(DataContextParameterExpressionBuilder)
-            .GetMethod(nameof(CreateDataContext), BindingFlags.Static | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo _createQueryContext =
+        typeof(QueryContextParameterExpressionBuilder)
+            .GetMethod(nameof(CreateQueryContext), BindingFlags.Static | BindingFlags.NonPublic)!;
     private static readonly ConcurrentDictionary<Type, FactoryCacheEntry> _expressionCache = new();
 
     public ArgumentKind Kind => ArgumentKind.Custom;
@@ -27,7 +28,7 @@ internal sealed class DataContextParameterExpressionBuilder()
 
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType.IsGenericType &&
-           parameter.ParameterType.GetGenericTypeDefinition() == typeof(DataContext<>);
+           parameter.ParameterType.GetGenericTypeDefinition() == typeof(QueryContext<>);
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -40,7 +41,7 @@ internal sealed class DataContextParameterExpressionBuilder()
                 type =>
                 {
                     var entityType = type.GetGenericArguments()[0];
-                    var factoryMethod = _createDataContext.MakeGenericMethod(entityType);
+                    var factoryMethod = _createQueryContext.MakeGenericMethod(entityType);
                     var factory = Expression.Call(factoryMethod, resolverContext);
                     return new FactoryCacheEntry(factoryMethod, factory);
                 });
@@ -66,19 +67,19 @@ internal sealed class DataContextParameterExpressionBuilder()
                 type =>
                 {
                     var entityType = type.GetGenericArguments()[0];
-                    var factoryMethod = _createDataContext.MakeGenericMethod(entityType);
+                    var factoryMethod = _createQueryContext.MakeGenericMethod(entityType);
                     return new FactoryCacheEntry(factoryMethod);
                 });
         return (T)factoryCacheEntry.FactoryMethod.Invoke(null, [context])!;
     }
 
-    private static DataContext<T> CreateDataContext<T>(IResolverContext context)
+    private static QueryContext<T> CreateQueryContext<T>(IResolverContext context)
     {
         var selection = context.Selection;
         var filterContext = context.GetFilterContext();
         var sortContext = context.GetSortingContext();
 
-        return new DataContext<T>(
+        return new QueryContext<T>(
             selection.AsSelector<T>(),
             filterContext?.AsPredicate<T>(),
             sortContext?.AsSortDefinition<T>());

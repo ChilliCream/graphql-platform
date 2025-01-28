@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
 using GreenDonut;
+using GreenDonut.Data;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Pagination;
@@ -47,7 +48,7 @@ internal static partial class TestHelper
             MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location),
 
             // HotChocolate.Data
-            MetadataReference.CreateFromFile(typeof(DataContext<>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(QueryContext<>).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location)
         ];
 

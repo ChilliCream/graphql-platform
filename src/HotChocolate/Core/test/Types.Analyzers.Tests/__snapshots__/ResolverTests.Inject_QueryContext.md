@@ -1,4 +1,4 @@
-# Inject_DataContext
+# Inject_QueryContext
 
 ## HotChocolateResolvers.735550c.g.cs
 
@@ -47,7 +47,7 @@ namespace TestNamespace
                             bindingFlags,
                             new global::System.Type[]
                             {
-                                typeof(global::HotChocolate.Data.DataContext<global::TestNamespace.Entity>)
+                                typeof(global::GreenDonut.Data.QueryContext<global::TestNamespace.Entity>)
                             })!;
                         parameters = resolver.GetParameters();
                         _args_TestType_GetTest[0] = bindingResolver.GetBinding(parameters[0]);
@@ -71,7 +71,7 @@ namespace TestNamespace
             var args0_selection = context.Selection;
             var args0_filter = context.GetFilterContext();
             var args0_sorting = context.GetSortingContext();
-            var args0 = new global::HotChocolate.Data.DataContext<global::TestNamespace.Entity>(
+            var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Entity>(
                 args0_selection.AsSelector<global::TestNamespace.Entity>(),
                 args0_filter?.AsPredicate<global::TestNamespace.Entity>(),
                 args0_sorting?.AsSortDefinition<global::TestNamespace.Entity>());

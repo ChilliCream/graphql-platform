@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace HotChocolate.Data;
+namespace GreenDonut.Data;
 
 /// <summary>
 /// Represents all sort operations applied to an entity type.

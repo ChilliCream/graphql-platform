@@ -144,13 +144,13 @@ public class ResolverTests
     }
 
     [Fact]
-    public async Task Inject_DataContext()
+    public async Task Inject_QueryContext()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """
             using HotChocolate;
             using HotChocolate.Types;
-            using HotChocolate.Data;
+            using GreenDonut.Data;
             using System.Linq;
 
             namespace TestNamespace;
@@ -158,7 +158,7 @@ public class ResolverTests
             [ObjectType<Test>]
             internal static partial class TestType
             {
-                public static IQueryable<Entity> GetTest(HotChocolate.Data.DataContext<Entity> test)
+                public static IQueryable<Entity> GetTest(QueryContext<Entity> test)
                 {
                     return default;
                 }

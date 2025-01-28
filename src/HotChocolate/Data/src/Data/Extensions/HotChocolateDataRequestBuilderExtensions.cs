@@ -32,8 +32,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         string? name = null,
         bool compatibilityMode = false)
     {
-        builder.Services.AddParameterExpressionBuilder(_ => new FilterContextParameterExpressionBuilder());
-        builder.AddDataContext();
+        builder.Services.TryAddParameterExpressionBuilder<FilterContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddFiltering(name, compatibilityMode));
     }
 
@@ -57,8 +57,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         Action<IFilterConventionDescriptor> configure,
         string? name = null)
     {
-        builder.Services.AddParameterExpressionBuilder(_ => new FilterContextParameterExpressionBuilder());
-        builder.AddDataContext();
+        builder.Services.TryAddParameterExpressionBuilder<FilterContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddFiltering(configure, name));
     }
 
@@ -82,8 +82,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         string? name = null)
         where TConvention : class, IFilterConvention
     {
-        builder.Services.AddParameterExpressionBuilder(_ => new FilterContextParameterExpressionBuilder());
-        builder.AddDataContext();
+        builder.Services.TryAddParameterExpressionBuilder<FilterContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
     }
 
@@ -103,8 +103,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         this IRequestExecutorBuilder builder,
         string? name = null)
     {
-        builder.Services.AddParameterExpressionBuilder(_ => new SortingContextParameterExpressionBuilder());
-        builder.AddDataContext();
+        builder.Services.TryAddParameterExpressionBuilder<SortingContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddSorting(name));
     }
 
@@ -128,8 +128,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         Action<ISortConventionDescriptor> configure,
         string? name = null)
     {
-        builder.Services.AddParameterExpressionBuilder(_ => new SortingContextParameterExpressionBuilder());
-        builder.AddDataContext();
+        builder.Services.TryAddParameterExpressionBuilder<SortingContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddSorting(configure, name));
     }
 
@@ -153,8 +153,8 @@ public static class HotChocolateDataRequestBuilderExtensions
         string? name = null)
         where TConvention : class, ISortConvention
     {
-        builder.Services.AddParameterExpressionBuilder(_ => new SortingContextParameterExpressionBuilder());
-        builder.AddDataContext();
+        builder.Services.TryAddParameterExpressionBuilder<SortingContextParameterExpressionBuilder>();
+        builder.AddQueryContext();
         return builder.ConfigureSchema(s => s.AddSorting<TConvention>(name));
     }
 
@@ -232,10 +232,10 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
-    public static IRequestExecutorBuilder AddDataContext(
+    public static IRequestExecutorBuilder AddQueryContext(
         this IRequestExecutorBuilder builder)
     {
-        builder.Services.AddParameterExpressionBuilder(_ => new DataContextParameterExpressionBuilder());
+        builder.Services.TryAddParameterExpressionBuilder<QueryContextParameterExpressionBuilder>();
         return builder;
     }
 }

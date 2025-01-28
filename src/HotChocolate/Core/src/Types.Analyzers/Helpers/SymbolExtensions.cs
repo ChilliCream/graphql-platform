@@ -110,11 +110,11 @@ public static class SymbolExtensions
         return false;
     }
 
-    public static bool IsDataContext(this IParameterSymbol parameter)
+    public static bool IsQueryContext(this IParameterSymbol parameter)
     {
         if (parameter.Type is INamedTypeSymbol namedTypeSymbol
             && namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 }
-            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.DataContextGeneric))
+            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.QueryContextGeneric))
         {
             return true;
         }
@@ -130,7 +130,7 @@ public static class SymbolExtensions
 
         foreach (var attributeData in parameter.GetAttributes())
         {
-            if (IsOrInheritsFromAttribute(attributeData.AttributeClass, "HotChocolate.GlobalStateAttribute"))
+            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.GlobalStateAttribute"))
             {
                 if (attributeData.ConstructorArguments.Length == 1 &&
                     attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
@@ -165,7 +165,7 @@ public static class SymbolExtensions
 
         foreach (var attributeData in parameter.GetAttributes())
         {
-            if (IsOrInheritsFromAttribute(attributeData.AttributeClass, "HotChocolate.ScopedStateAttribute"))
+            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.ScopedStateAttribute"))
             {
                 if (attributeData.ConstructorArguments.Length == 1 &&
                     attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
@@ -200,7 +200,7 @@ public static class SymbolExtensions
 
         foreach (var attributeData in parameter.GetAttributes())
         {
-            if (IsOrInheritsFromAttribute(attributeData.AttributeClass, "HotChocolate.LocalStateAttribute"))
+            if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.LocalStateAttribute"))
             {
                 if (attributeData.ConstructorArguments.Length == 1 &&
                     attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
@@ -492,7 +492,7 @@ public static class SymbolExtensions
         return false;
     }
 
-    private static bool IsOrInheritsFromAttribute(ITypeSymbol? attributeClass, string fullTypeName)
+    public static bool IsOrInheritsFrom(this ITypeSymbol? attributeClass, string fullTypeName)
     {
         var current = attributeClass;
 

@@ -21,5 +21,5 @@ public enum ResolverParameterKind
     SetLocalState,
     Service,
     Argument,
-    DataContext
+    QueryContext
 }

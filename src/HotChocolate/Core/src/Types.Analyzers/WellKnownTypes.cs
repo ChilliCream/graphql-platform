@@ -69,8 +69,8 @@ public static class WellKnownTypes
     public const string SelectorBuilder = "GreenDonut.Selectors.ISelectorBuilder";
     public const string PredicateBuilder = "GreenDonut.Predicates.IPredicateBuilder";
     public const string PagingArguments = "HotChocolate.Pagination.PagingArguments";
-    public const string DataContext = "HotChocolate.Data.DataContext";
-    public const string DataContextGeneric = DataContext + "<";
+    public const string QueryContext = "GreenDonut.Data.QueryContext";
+    public const string QueryContextGeneric = QueryContext + "<";
 
     public static HashSet<string> TypeClass { get; } =
     [
