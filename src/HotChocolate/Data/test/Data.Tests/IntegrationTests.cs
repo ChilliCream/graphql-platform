@@ -4,7 +4,9 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
+using GreenDonut.Data;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -879,6 +881,58 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AsSortDefinition_Descending()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsSorted(order: { name: DESC }) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Descending_QueryContext()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsData(order: { name: DESC }) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
@@ -1082,5 +1136,39 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     },
                 }.AsQueryable()
                 .Where(filter);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsSorted(ISortingContext sorting)
+            => new[]
+                {
+                    new Author
+                    {
+                        Name = "Author1",
+                        Books = new List<Book>(),
+                    },
+                    new Author
+                    {
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    },
+                }.AsQueryable()
+                .Order(sorting);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsData(QueryContext<Author> context)
+            => new[]
+                {
+                    new Author
+                    {
+                        Name = "Author1",
+                        Books = new List<Book>(),
+                    },
+                    new Author
+                    {
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    },
+                }.AsQueryable()
+                .Apply(context);
     }
 }

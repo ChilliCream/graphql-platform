@@ -2,6 +2,7 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
@@ -116,6 +117,30 @@ public static partial class RequestExecutorBuilderExtensions
             options => options.OnConfigureSchemaBuilderHooks.Add(
                 new OnConfigureSchemaBuilderAction(
                     (ctx, sp) => configureSchema(sp, ctx.SchemaBuilder))));
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to configure the descriptor context.
+    /// </summary>
+    public static IRequestExecutorBuilder ConfigureDescriptorContext(
+        this IRequestExecutorBuilder builder,
+        Action<IDescriptorContext> configure)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        return Configure(
+            builder,
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _) => configure(ctx.DescriptorContext))));
     }
 
     /// <summary>

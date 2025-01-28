@@ -1,5 +1,5 @@
 using GreenDonut;
-using GreenDonut.Selectors;
+using GreenDonut.Data;
 using HotChocolate.Pagination;
 
 namespace HotChocolate.Types;

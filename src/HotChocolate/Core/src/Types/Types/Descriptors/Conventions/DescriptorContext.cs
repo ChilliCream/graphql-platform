@@ -131,6 +131,9 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
+    public TypeConfigurationContainer TypeConfiguration { get; } = new();
+
+    /// <inheritdoc />
     public ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers()
         => _typeDiscoveryHandlers ??= CreateTypeDiscoveryHandlers(this);
 
