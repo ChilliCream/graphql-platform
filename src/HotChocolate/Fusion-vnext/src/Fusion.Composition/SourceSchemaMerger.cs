@@ -465,7 +465,10 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => i.Field.Arguments,
                 (i, a) => new FieldArgumentInfo(a, i.Field, i.Type, i.Schema))
+            .Where(i => !i.Argument.HasRequireDirective())
             .GroupBy(i => i.Argument.Name)
+            // Intersection: Argument definition count matches field definition count.
+            .Where(g => g.Count() == fieldGroup.Length)
             .ToImmutableArray();
 
         foreach (var grouping in argumentGroupByName)

@@ -59,6 +59,92 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                 }
                 """
             },
+            // If the argument is missing in one of the schemas, the composed field will not include
+            // that argument.
+            {
+                [
+                    """
+                    # Schema A
+                    type Product {
+                        discountPercentage(percent: Int): Int
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Product {
+                        discountPercentage: Int
+                    }
+                    """
+                ],
+                """
+                type Product
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    discountPercentage: Int
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+                """
+            },
+            // In case one argument is marked with @inaccessible, the composed field will not
+            // include that argument. Note: The argument will be included as inaccessible in the
+            // execution schema.
+            {
+                [
+                    """
+                    # Schema A
+                    type Product {
+                        discountPercentage(percent: Int): Int
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Product {
+                        discountPercentage(percent: Int @inaccessible): Int
+                    }
+                    """
+                ],
+                """
+                type Product
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    discountPercentage(percent: Int
+                        @inaccessible
+                        @fusion__inputField(schema: A)
+                        @fusion__inputField(schema: B)): Int
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+                """
+            },
+            // In case a schema defines a requirement through the @require directive, the composed
+            // field will not include that argument.
+            {
+                [
+                    """
+                    # Schema A
+                    type Product {
+                        discountPercentage(percent: Int): Int
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Product {
+                        discountPercentage(percent: Int @require(field: "percent")): Int
+                    }
+                    """
+                ],
+                """
+                type Product
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    discountPercentage: Int
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                        @fusion__requires(schema: B, field: "discountPercentage(percent: Int): Int", map: [ "percent" ])
+                }
+                """
+            },
             // Any field marked with @internal is removed from consideration before merging begins.
             // This ensures that internal fields do not appear in the final composed schema and also
             // do not affect the merging process. Internal fields are intended for internal use only
