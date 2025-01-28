@@ -1294,7 +1294,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             [Parent] Brand brand,
             ProductsByBrandDataLoader dataLoader,
             PagingArguments arguments,
-            IResolverContext context,
             CancellationToken cancellationToken)
             => await dataLoader
                 .With(arguments)

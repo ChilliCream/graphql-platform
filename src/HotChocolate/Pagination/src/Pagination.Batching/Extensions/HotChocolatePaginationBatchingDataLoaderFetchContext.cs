@@ -22,5 +22,5 @@ public static class HotChocolatePaginationBatchingDataLoaderFetchContext
     /// </returns>
     public static PagingArguments GetPagingArguments<TValue>(
         this DataLoaderFetchContext<TValue> context)
-        => context.GetRequiredState<PagingArguments>();
+        => context.GetRequiredState<PagingArguments>(PagingStateKeys.PagingArgs);
 }
