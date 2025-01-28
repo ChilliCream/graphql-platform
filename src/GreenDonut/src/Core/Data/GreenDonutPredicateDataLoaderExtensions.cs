@@ -45,8 +45,8 @@ public static class GreenDonutPredicateDataLoaderExtensions
         }
 
         var branchKey = predicate.ComputeHash();
-        var state = new QueryState(DataStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
-        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     public static IDataLoader<TKey, TValue[]> Where<TKey, TValue>(
@@ -65,8 +65,8 @@ public static class GreenDonutPredicateDataLoaderExtensions
         }
 
         var branchKey = predicate.ComputeHash();
-        var state = new QueryState(DataStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
-        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     public static IDataLoader<TKey, List<TValue>> Where<TKey, TValue>(
@@ -84,8 +84,8 @@ public static class GreenDonutPredicateDataLoaderExtensions
             return dataLoader;
         }
         var branchKey = predicate.ComputeHash();
-        var state = new QueryState(DataStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
-        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     internal static DefaultPredicateBuilder GetOrCreateBuilder<TValue>(
@@ -93,7 +93,7 @@ public static class GreenDonutPredicateDataLoaderExtensions
         Expression<Func<TValue, bool>> predicate)
     {
         DefaultPredicateBuilder? builder;
-        if (contextData.TryGetValue(DataStateKeys.Predicate, out var value))
+        if (contextData.TryGetValue(DataLoaderStateKeys.Predicate, out var value))
         {
             builder = (DefaultPredicateBuilder)value!;
             builder = builder.Branch();

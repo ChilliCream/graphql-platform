@@ -1,6 +1,6 @@
 namespace GreenDonut.Data;
 
-public static class DataStateKeys
+internal static class DataLoaderStateKeys
 {
     public const string Selector = "GreenDonut.Data.Selector";
     public const string Predicate = "GreenDonut.Data.Predicate";

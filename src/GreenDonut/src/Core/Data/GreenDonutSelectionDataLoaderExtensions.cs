@@ -45,7 +45,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
             return dataLoader;
         }
 
-        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
+        if (dataLoader.ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value))
         {
             var context = (DefaultSelectorBuilder)value!;
             context.Add(selector);
@@ -53,8 +53,8 @@ public static class GreenDonutSelectionDataLoaderExtensions
         }
 
         var branchKey = selector.ComputeHash();
-        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Selector, new DefaultSelectorBuilder(selector));
+        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     public static IDataLoader<TKey, TValue[]> Select<TKey, TValue>(
@@ -72,7 +72,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
             return dataLoader;
         }
 
-        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
+        if (dataLoader.ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value))
         {
             var context = (DefaultSelectorBuilder)value!;
             context.Add(selector);
@@ -80,8 +80,8 @@ public static class GreenDonutSelectionDataLoaderExtensions
         }
 
         var branchKey = selector.ComputeHash();
-        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Selector, new DefaultSelectorBuilder(selector));
+        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     public static IDataLoader<TKey, List<TValue>> Select<TKey, TValue>(
@@ -99,7 +99,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
             return dataLoader;
         }
 
-        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
+        if (dataLoader.ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value))
         {
             var context = (DefaultSelectorBuilder)value!;
             context.Add(selector);
@@ -107,8 +107,8 @@ public static class GreenDonutSelectionDataLoaderExtensions
         }
 
         var branchKey = selector.ComputeHash();
-        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Selector, new DefaultSelectorBuilder(selector));
+        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
             throw new ArgumentNullException(nameof(dataLoader));
         }
 
-        if(!dataLoader.ContextData.ContainsKey(DataStateKeys.Selector))
+        if(!dataLoader.ContextData.ContainsKey(DataLoaderStateKeys.Selector))
         {
             throw new InvalidOperationException(
                 "The Include method must be called after the Select method.");
@@ -172,7 +172,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
         }
 
         var context = dataLoader.GetOrSetState(
-            DataStateKeys.Selector,
+            DataLoaderStateKeys.Selector,
             _ => new DefaultSelectorBuilder());
         context.Add(Rewrite(includeSelector));
         return dataLoader;

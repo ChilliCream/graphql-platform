@@ -94,17 +94,17 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             {
                 if (state.Context.Selector is not null)
                 {
-                    branch.SetState(DataStateKeys.Selector, state.Context.Selector);
+                    branch.SetState(DataLoaderStateKeys.Selector, state.Context.Selector);
                 }
 
                 if (state.Context.Predicate is not null)
                 {
-                    branch.SetState(DataStateKeys.Predicate, state.Context.Predicate);
+                    branch.SetState(DataLoaderStateKeys.Predicate, state.Context.Predicate);
                 }
 
                 if (state.Context.Sorting is not null)
                 {
-                    branch.SetState(DataStateKeys.Sorting, state.Context.Sorting);
+                    branch.SetState(DataLoaderStateKeys.Sorting, state.Context.Sorting);
                 }
             }
 
@@ -151,7 +151,7 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
             return dataLoader;
         }
 
-        if (dataLoader.ContextData.TryGetValue(DataStateKeys.Selector, out var value))
+        if (dataLoader.ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value))
         {
             var context = (DefaultSelectorBuilder)value!;
             context.Add(selector);
@@ -159,8 +159,8 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
 
         var branchKey = selector.ComputeHash();
-        var state = new QueryState(DataStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Selector, new DefaultSelectorBuilder(selector));
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     /// <summary>
@@ -200,8 +200,8 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
 
         var branchKey = predicate.ComputeHash();
-        var state = new QueryState(DataStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     public static IDataLoader<TKey, Page<TValue>> Order<TKey, TValue>(
@@ -220,8 +220,8 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         }
 
         var branchKey = sortDefinition.ComputeHash();
-        var state = new QueryState(DataStateKeys.Sorting, sortDefinition);
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Sorting, sortDefinition);
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     private static string ComputeHash<T>(this PagingArguments arguments, QueryContext<T>? context = null)

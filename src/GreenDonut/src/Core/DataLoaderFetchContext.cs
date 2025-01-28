@@ -142,7 +142,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// </returns>
     public ISelectorBuilder GetSelector()
     {
-        if (ContextData.TryGetValue(DataStateKeys.Selector, out var value)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value)
             && value is ISelectorBuilder casted)
         {
             return casted;
@@ -162,7 +162,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// </returns>
     public IPredicateBuilder GetPredicate()
     {
-        if (ContextData.TryGetValue(DataStateKeys.Predicate, out var value)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Predicate, out var value)
             && value is IPredicateBuilder casted)
         {
             return casted;
@@ -175,7 +175,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
 
     public SortDefinition<T> GetSorting<T>()
     {
-        if (ContextData.TryGetValue(DataStateKeys.Sorting, out var value)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Sorting, out var value)
             && value is SortDefinition<T> casted)
         {
             return casted;
@@ -190,19 +190,19 @@ public readonly struct DataLoaderFetchContext<TValue>(
         IPredicateBuilder? predicate = null;
         SortDefinition<T>? sorting = null;
 
-        if (ContextData.TryGetValue(DataStateKeys.Selector, out var value)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Selector, out var value)
             && value is ISelectorBuilder casted1)
         {
             selector = casted1;
         }
 
-        if (ContextData.TryGetValue(DataStateKeys.Predicate, out value)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Predicate, out value)
             && value is IPredicateBuilder casted2)
         {
             predicate = casted2;
         }
 
-        if (ContextData.TryGetValue(DataStateKeys.Sorting, out value)
+        if (ContextData.TryGetValue(DataLoaderStateKeys.Sorting, out value)
             && value is SortDefinition<T> casted3)
         {
             sorting = casted3;

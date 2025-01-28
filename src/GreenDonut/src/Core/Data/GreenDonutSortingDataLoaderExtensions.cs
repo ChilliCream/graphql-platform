@@ -18,8 +18,8 @@ public static class GreenDonutSortingDataLoaderExtensions
         }
 
         var branchKey = sortDefinition.ComputeHash();
-        var state = new QueryState(DataStateKeys.Sorting, sortDefinition);
-        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Sorting, sortDefinition);
+        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     public static IDataLoader<TKey, TValue[]> Order<TKey, TValue>(
@@ -38,8 +38,8 @@ public static class GreenDonutSortingDataLoaderExtensions
         }
 
         var branchKey = sortDefinition.ComputeHash();
-        var state = new QueryState(DataStateKeys.Sorting, sortDefinition);
-        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Sorting, sortDefinition);
+        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
     public static IDataLoader<TKey, List<TValue>> Order<TKey, TValue>(
@@ -58,7 +58,7 @@ public static class GreenDonutSortingDataLoaderExtensions
         }
 
         var branchKey = sortDefinition.ComputeHash();
-        var state = new QueryState(DataStateKeys.Sorting, sortDefinition);
-        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Sorting, sortDefinition);
+        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 }

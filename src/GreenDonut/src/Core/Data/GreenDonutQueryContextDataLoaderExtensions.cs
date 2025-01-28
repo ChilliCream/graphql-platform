@@ -21,7 +21,7 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         }
 
         var branchKey = context.ComputeHash();
-        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, context);
+        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, context);
     }
 
     public static IDataLoader<TKey, TValue[]> With<TKey, TValue>(
@@ -43,7 +43,7 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         }
 
         var branchKey = context.ComputeHash();
-        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, context);
+        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, context);
     }
 
     public static IDataLoader<TKey, List<TValue>> With<TKey, TValue>(
@@ -65,6 +65,6 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         }
 
         var branchKey = context.ComputeHash();
-        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataStateHelper.CreateBranch, context);
+        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, context);
     }
 }

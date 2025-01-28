@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace GreenDonut.Data;
 
-internal static class DataStateHelper
+internal static class DataLoaderStateHelper
 {
     internal static IDataLoader CreateBranch<TKey, TValue>(
         string branchKey,
@@ -29,17 +29,17 @@ internal static class DataStateHelper
 
         if (state.Selector is not null)
         {
-            branch.SetState(DataStateKeys.Selector, state.Selector);
+            branch.SetState(DataLoaderStateKeys.Selector, state.Selector);
         }
 
         if (state.Predicate is not null)
         {
-            branch.SetState(DataStateKeys.Predicate, state.Predicate);
+            branch.SetState(DataLoaderStateKeys.Predicate, state.Predicate);
         }
 
         if (state.Sorting is not null)
         {
-            branch.SetState(DataStateKeys.Sorting, state.Sorting);
+            branch.SetState(DataLoaderStateKeys.Sorting, state.Sorting);
         }
 
         return branch;
