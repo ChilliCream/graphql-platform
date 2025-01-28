@@ -22,4 +22,10 @@ namespace GreenDonut.Data;
 public record QueryContext<TEntity>(
     Expression<Func<TEntity, TEntity>>? Selector = null,
     Expression<Func<TEntity, bool>>? Predicate = null,
-    SortDefinition<TEntity>? Sorting = null);
+    SortDefinition<TEntity>? Sorting = null)
+{
+    /// <summary>
+    /// An empty query context.
+    /// </summary>
+    public static QueryContext<TEntity> Empty { get; } = new();
+}

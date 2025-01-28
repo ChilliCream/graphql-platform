@@ -173,6 +173,15 @@ public readonly struct DataLoaderFetchContext<TValue>(
         return DefaultPredicateBuilder.Empty;
     }
 
+    /// <summary>
+    /// Gets the sorting definition from the DataLoader state snapshot.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The entity type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the sorting definition if it exists.
+    /// </returns>
     public SortDefinition<T> GetSorting<T>()
     {
         if (ContextData.TryGetValue(DataLoaderStateKeys.Sorting, out var value)
@@ -184,6 +193,15 @@ public readonly struct DataLoaderFetchContext<TValue>(
         return SortDefinition<T>.Empty;
     }
 
+    /// <summary>
+    /// Gets the query context from the DataLoader state snapshot.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The entity type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the query context if it exists, otherwise am empty query context.
+    /// </returns>
     public QueryContext<T> GetQueryContext<T>()
     {
         ISelectorBuilder? selector = null;
@@ -208,9 +226,19 @@ public readonly struct DataLoaderFetchContext<TValue>(
             sorting = casted3;
         }
 
+        var selectorExpression = selector?.TryCompile<T>();
+        var predicateExpression = predicate?.TryCompile<T>();
+
+        if (selectorExpression is null
+            && predicateExpression is null
+            && sorting is null)
+        {
+            return QueryContext<T>.Empty;
+        }
+
         return new QueryContext<T>(
-            selector?.TryCompile<T>(),
-            predicate?.TryCompile<T>(),
+            selectorExpression,
+            predicateExpression,
             sorting);
     }
 }
