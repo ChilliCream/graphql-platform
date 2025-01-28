@@ -9,7 +9,7 @@ namespace HotChocolate.Pagination.Expressions;
 /// </summary>
 public static class CursorParser
 {
-    private const byte _escape = (byte)':';
+    private const byte _escape = (byte)'\\';
     private const byte _separator = (byte)':';
 
     /// <summary>

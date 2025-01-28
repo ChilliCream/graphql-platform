@@ -57,7 +57,7 @@ LIMIT @__p_0
       "nodes": [
         {
           "id": 1,
-          "name": "Brand0",
+          "name": "Brand:0",
           "displayName": "BrandDisplay0",
           "brandDetails": {
             "country": {
@@ -67,7 +67,7 @@ LIMIT @__p_0
         },
         {
           "id": 2,
-          "name": "Brand1",
+          "name": "Brand:1",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -77,7 +77,7 @@ LIMIT @__p_0
         },
         {
           "id": 11,
-          "name": "Brand10",
+          "name": "Brand:10",
           "displayName": "BrandDisplay10",
           "brandDetails": {
             "country": {
@@ -87,7 +87,7 @@ LIMIT @__p_0
         },
         {
           "id": 12,
-          "name": "Brand11",
+          "name": "Brand:11",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -97,7 +97,7 @@ LIMIT @__p_0
         },
         {
           "id": 13,
-          "name": "Brand12",
+          "name": "Brand:12",
           "displayName": "BrandDisplay12",
           "brandDetails": {
             "country": {
@@ -107,7 +107,7 @@ LIMIT @__p_0
         },
         {
           "id": 14,
-          "name": "Brand13",
+          "name": "Brand:13",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -117,7 +117,7 @@ LIMIT @__p_0
         },
         {
           "id": 15,
-          "name": "Brand14",
+          "name": "Brand:14",
           "displayName": "BrandDisplay14",
           "brandDetails": {
             "country": {
@@ -127,7 +127,7 @@ LIMIT @__p_0
         },
         {
           "id": 16,
-          "name": "Brand15",
+          "name": "Brand:15",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -137,7 +137,7 @@ LIMIT @__p_0
         },
         {
           "id": 17,
-          "name": "Brand16",
+          "name": "Brand:16",
           "displayName": "BrandDisplay16",
           "brandDetails": {
             "country": {
@@ -147,7 +147,7 @@ LIMIT @__p_0
         },
         {
           "id": 18,
-          "name": "Brand17",
+          "name": "Brand:17",
           "displayName": null,
           "brandDetails": {
             "country": {

@@ -266,7 +266,7 @@ file static class Extensions
 {
     public static Snapshot AddSql(this Snapshot snapshot, List<string> queries)
     {
-        snapshot.Add(string.Join("\n", queries), "SQL");
+        snapshot.Add(string.Join("\n", queries).Replace("@__p_1_startswith", "@__p_1_rewritten"), "SQL");
         return snapshot;
     }
 

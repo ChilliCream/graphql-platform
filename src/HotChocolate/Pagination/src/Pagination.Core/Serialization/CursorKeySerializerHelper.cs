@@ -73,7 +73,7 @@ public static class CursorKeySerializerHelper
 
     public static bool TryFormat(object? key, ICursorKeySerializer serializer, Span<byte> buffer, out int written)
     {
-        var success = false;
+        bool success;
 
         if (key is null)
         {

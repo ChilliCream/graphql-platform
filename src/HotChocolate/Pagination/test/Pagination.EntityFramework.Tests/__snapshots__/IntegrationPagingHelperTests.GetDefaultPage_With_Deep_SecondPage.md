@@ -36,7 +36,7 @@ LIMIT @__p_2
       "nodes": [
         {
           "id": 11,
-          "name": "Brand10",
+          "name": "Brand:10",
           "displayName": "BrandDisplay10",
           "brandDetails": {
             "country": {
@@ -46,7 +46,7 @@ LIMIT @__p_2
         },
         {
           "id": 12,
-          "name": "Brand11",
+          "name": "Brand:11",
           "displayName": null,
           "brandDetails": {
             "country": {
