@@ -142,7 +142,7 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// </returns>
     public ISelectorBuilder GetSelector()
     {
-        if (ContextData.TryGetValue(typeof(ISelectorBuilder).FullName!, out var value)
+        if (ContextData.TryGetValue(DataStateKeys.Selector, out var value)
             && value is ISelectorBuilder casted)
         {
             return casted;
@@ -162,8 +162,8 @@ public readonly struct DataLoaderFetchContext<TValue>(
     /// </returns>
     public IPredicateBuilder GetPredicate()
     {
-        if (ContextData.TryGetValue(typeof(IPredicateBuilder).FullName!, out var value)
-            && value is DefaultPredicateBuilder casted)
+        if (ContextData.TryGetValue(DataStateKeys.Predicate, out var value)
+            && value is IPredicateBuilder casted)
         {
             return casted;
         }
@@ -171,5 +171,46 @@ public readonly struct DataLoaderFetchContext<TValue>(
         // if no predicate was found we will just return
         // a new default predicate builder.
         return DefaultPredicateBuilder.Empty;
+    }
+
+    public SortDefinition<T> GetSorting<T>()
+    {
+        if (ContextData.TryGetValue(DataStateKeys.Sorting, out var value)
+            && value is SortDefinition<T> casted)
+        {
+            return casted;
+        }
+
+        return SortDefinition<T>.Empty;
+    }
+
+    public QueryContext<T> GetQueryContext<T>()
+    {
+        ISelectorBuilder? selector = null;
+        IPredicateBuilder? predicate = null;
+        SortDefinition<T>? sorting = null;
+
+        if (ContextData.TryGetValue(DataStateKeys.Selector, out var value)
+            && value is ISelectorBuilder casted1)
+        {
+            selector = casted1;
+        }
+
+        if (ContextData.TryGetValue(DataStateKeys.Predicate, out value)
+            && value is IPredicateBuilder casted2)
+        {
+            predicate = casted2;
+        }
+
+        if (ContextData.TryGetValue(DataStateKeys.Sorting, out value)
+            && value is SortDefinition<T> casted3)
+        {
+            sorting = casted3;
+        }
+
+        return new QueryContext<T>(
+            selector?.TryCompile<T>(),
+            predicate?.TryCompile<T>(),
+            sorting);
     }
 }
