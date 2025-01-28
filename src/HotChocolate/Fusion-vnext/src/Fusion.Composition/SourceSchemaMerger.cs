@@ -196,8 +196,7 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => ((EnumTypeDefinition)i.Type).Values,
                 (i, v) => new EnumValueInfo(v, (EnumTypeDefinition)i.Type, i.Schema))
-            .GroupBy(i => i.EnumValue.Name)
-            .ToImmutableArray();
+            .GroupBy(i => i.EnumValue.Name);
 
         foreach (var grouping in enumValueGroupByName)
         {
@@ -252,8 +251,7 @@ internal sealed class SourceSchemaMerger
                 (i, f) => new InputFieldInfo(f, (InputObjectTypeDefinition)i.Type, i.Schema))
             .GroupBy(i => i.Field.Name)
             // Intersection: Field definition count matches type definition count.
-            .Where(g => g.Count() == typeGroup.Length)
-            .ToImmutableArray();
+            .Where(g => g.Count() == typeGroup.Length);
 
         foreach (var grouping in fieldGroupByName)
         {
@@ -341,8 +339,7 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => ((InterfaceTypeDefinition)i.Type).Fields,
                 (i, f) => new OutputFieldInfo(f, (ComplexTypeDefinition)i.Type, i.Schema))
-            .GroupBy(i => i.Field.Name)
-            .ToImmutableArray();
+            .GroupBy(i => i.Field.Name);
 
         foreach (var grouping in fieldGroupByName)
         {
@@ -404,8 +401,7 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => ((ObjectTypeDefinition)i.Type).Fields,
                 (i, f) => new OutputFieldInfo(f, (ComplexTypeDefinition)i.Type, i.Schema))
-            .GroupBy(i => i.Field.Name)
-            .ToImmutableArray();
+            .GroupBy(i => i.Field.Name);
 
         foreach (var grouping in fieldGroupByName)
         {
@@ -470,8 +466,7 @@ internal sealed class SourceSchemaMerger
             .Where(i => !i.Argument.HasRequireDirective())
             .GroupBy(i => i.Argument.Name)
             // Intersection: Argument definition count matches field definition count.
-            .Where(g => g.Count() == fieldGroup.Length)
-            .ToImmutableArray();
+            .Where(g => g.Count() == fieldGroup.Length);
 
         foreach (var grouping in argumentGroupByName)
         {

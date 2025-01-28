@@ -96,10 +96,7 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
         SchemaDefinition schema,
         CompositionContext context)
     {
-        var keyDirectives =
-            entityType.Directives
-                .Where(d => d.Name == DirectiveNames.Key)
-                .ToArray();
+        var keyDirectives = entityType.Directives.Where(d => d.Name == DirectiveNames.Key);
 
         foreach (var keyDirective in keyDirectives)
         {

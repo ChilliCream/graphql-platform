@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Skimmed;
@@ -25,8 +24,7 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
                 schema.Types
                     .OfType<ComplexTypeDefinition>()
                     .SelectMany(t => t.Fields)
-                    .Where(f => f.Type == type)
-                    .ToImmutableArray();
+                    .Where(f => f.Type == type);
 
             var isReferenced =
                 referencingFields.Any(f => ValidationHelper.ProvidesFieldName(f, field.Name));
