@@ -57,6 +57,27 @@ public static class GreenDonutSelectionDataLoaderExtensions
         return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
+    /// <summary>
+    /// Branches a DataLoader and applies a selector to load the data.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to branch.
+    /// </param>
+    /// <param name="selector">
+    /// The data selector.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a branched DataLoader with the selector applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
     public static IDataLoader<TKey, TValue[]> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue[]> dataLoader,
         Expression<Func<TValue, TValue>>? selector)
@@ -84,6 +105,27 @@ public static class GreenDonutSelectionDataLoaderExtensions
         return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
+    /// <summary>
+    /// Branches a DataLoader and applies a selector to load the data.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to branch.
+    /// </param>
+    /// <param name="selector">
+    /// The data selector.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a branched DataLoader with the selector applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
     public static IDataLoader<TKey, List<TValue>> Select<TKey, TValue>(
         this IDataLoader<TKey, List<TValue>> dataLoader,
         Expression<Func<TValue, TValue>>? selector)

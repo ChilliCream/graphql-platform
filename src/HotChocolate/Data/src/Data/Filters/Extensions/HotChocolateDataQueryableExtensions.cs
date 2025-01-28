@@ -115,6 +115,6 @@ public static class HotChocolateDataQueryableExtensions
             return queryable;
         }
 
-        return queryable.Order(sortDefinition);
+        return queryable.OrderBy(sortDefinition);
     }
 }

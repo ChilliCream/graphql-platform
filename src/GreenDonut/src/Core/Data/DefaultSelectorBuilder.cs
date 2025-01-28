@@ -10,6 +10,12 @@ public sealed class DefaultSelectorBuilder : ISelectorBuilder
 {
     private ImmutableArray<LambdaExpression> _selectors = ImmutableArray<LambdaExpression>.Empty;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DefaultSelectorBuilder"/>.
+    /// </summary>
+    /// <param name="initialSelector">
+    /// The initial selector to add.
+    /// </param>
     public DefaultSelectorBuilder(LambdaExpression? initialSelector = null)
     {
         if (initialSelector is not null)
@@ -63,8 +69,17 @@ public sealed class DefaultSelectorBuilder : ISelectorBuilder
         return expression;
     }
 
+    /// <summary>
+    /// Creates a new <see cref="DefaultSelectorBuilder"/> that branches off the current builder.
+    /// </summary>
+    /// <returns>
+    /// Returns a new <see cref="DefaultSelectorBuilder"/>.
+    /// </returns>
     public DefaultSelectorBuilder Branch()
         => new(_selectors);
 
+    /// <summary>
+    /// Gets an empty <see cref="DefaultSelectorBuilder"/>.
+    /// </summary>
     public static DefaultSelectorBuilder Empty { get; } = new(ImmutableArray<LambdaExpression>.Empty);
 }

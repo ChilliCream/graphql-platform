@@ -219,7 +219,26 @@ public static class GreenDonutQueryableExtensions
         return query;
     }
 
-    public static IQueryable<T> Order<T>(this IQueryable<T> queryable, SortDefinition<T>? sortDefinition)
+     /// <summary>
+     /// Applies the <paramref name="sortDefinition"/> to the queryable (if its not null)
+     /// and returns an ordered queryable.
+     /// </summary>
+     /// <param name="queryable">
+     /// The queryable that shall be ordered.
+     /// </param>
+     /// <param name="sortDefinition">
+     /// The sort definition that shall be applied to the queryable.
+     /// </param>
+     /// <typeparam name="T">
+     /// The type of the queryable.
+     /// </typeparam>
+     /// <returns>
+     /// Returns an ordered queryable.
+     /// </returns>
+     /// <exception cref="ArgumentNullException">
+     /// Throws if <paramref name="queryable"/> is <c>null</c>.
+     /// </exception>
+    public static IQueryable<T> OrderBy<T>(this IQueryable<T> queryable, SortDefinition<T>? sortDefinition)
     {
         if (queryable is null)
         {
@@ -240,6 +259,45 @@ public static class GreenDonutQueryableExtensions
         }
 
         return query;
+    }
+
+    /// <summary>
+    /// Applies the <paramref name="sortDefinition"/> to the queryable (if its not null)
+    /// and returns an ordered queryable.
+    /// </summary>
+    /// <param name="queryable">
+    /// The queryable that shall be ordered.
+    /// </param>
+    /// <param name="sortDefinition">
+    /// The sort definition that shall be applied to the queryable.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the queryable.
+    /// </typeparam>
+    /// <returns>
+    /// Returns an ordered queryable.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="queryable"/> is <c>null</c>.
+    /// </exception>
+    public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> queryable, SortDefinition<T>? sortDefinition)
+    {
+        if (queryable is null)
+        {
+            throw new ArgumentNullException(nameof(queryable));
+        }
+
+        if (sortDefinition is null || sortDefinition.Operations.Length == 0)
+        {
+            return queryable;
+        }
+
+        for (var i = 0; i < sortDefinition.Operations.Length; i++)
+        {
+            queryable = sortDefinition.Operations[i].ApplyThenBy(queryable);
+        }
+
+        return queryable;
     }
 
     /// <summary>
@@ -279,7 +337,7 @@ public static class GreenDonutQueryableExtensions
 
         if (queryContext.Sorting is not null)
         {
-            queryable = queryable.Order(queryContext.Sorting);
+            queryable = queryable.OrderBy(queryContext.Sorting);
         }
 
         if (queryContext.Selector is not null)

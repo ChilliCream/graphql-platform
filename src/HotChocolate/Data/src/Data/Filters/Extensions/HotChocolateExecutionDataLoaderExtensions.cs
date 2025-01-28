@@ -124,7 +124,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
     {
         var definition = context.AsSortDefinition<TValue>();
-        return dataLoader.Order(definition);
+        return dataLoader.OrderBy(definition);
     }
 
     public static IDataLoader<TKey, TValue[]> Order<TKey, TValue>(
@@ -133,7 +133,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
     {
         var definition = context.AsSortDefinition<TValue>();
-        return dataLoader.Order(definition);
+        return dataLoader.OrderBy(definition);
     }
 
     public static IDataLoader<TKey, List<TValue>> Order<TKey, TValue>(
@@ -142,7 +142,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
     {
         var definition = context.AsSortDefinition<TValue>();
-        return dataLoader.Order(definition);
+        return dataLoader.OrderBy(definition);
     }
 
     public static IDataLoader<TKey, Page<TValue>> Order<TKey, TValue>(

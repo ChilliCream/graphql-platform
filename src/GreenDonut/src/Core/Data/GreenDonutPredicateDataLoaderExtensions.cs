@@ -49,6 +49,27 @@ public static class GreenDonutPredicateDataLoaderExtensions
         return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
+    /// <summary>
+    /// Branches a DataLoader and applies a predicate to filter the data.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to branch.
+    /// </param>
+    /// <param name="predicate">
+    /// The data predicate.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a branched DataLoader with the predicate applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
     public static IDataLoader<TKey, TValue[]> Where<TKey, TValue>(
         this IDataLoader<TKey, TValue[]> dataLoader,
         Expression<Func<TValue, bool>>? predicate)
@@ -69,6 +90,27 @@ public static class GreenDonutPredicateDataLoaderExtensions
         return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
+    /// <summary>
+    /// Branches a DataLoader and applies a predicate to filter the data.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to branch.
+    /// </param>
+    /// <param name="predicate">
+    /// The data predicate.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a branched DataLoader with the predicate applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
     public static IDataLoader<TKey, List<TValue>> Where<TKey, TValue>(
         this IDataLoader<TKey, List<TValue>> dataLoader,
         Expression<Func<TValue, bool>>? predicate)

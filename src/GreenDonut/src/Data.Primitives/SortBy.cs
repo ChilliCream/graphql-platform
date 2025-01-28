@@ -21,12 +21,7 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     /// </exception>
     public SortBy(Expression<Func<TEntity, TValue>> keySelector, bool ascending = true)
     {
-        if (keySelector is null)
-        {
-            throw new ArgumentNullException(nameof(keySelector));
-        }
-
-        KeySelector = keySelector;
+        KeySelector = keySelector ?? throw new ArgumentNullException(nameof(keySelector));
         Ascending = ascending;
     }
 

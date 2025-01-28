@@ -69,8 +69,17 @@ public sealed class DefaultPredicateBuilder : IPredicateBuilder
         return expression;
     }
 
+    /// <summary>
+    /// Creates a new <see cref="DefaultPredicateBuilder"/> that branches off the current builder.
+    /// </summary>
+    /// <returns>
+    /// Returns a new <see cref="DefaultPredicateBuilder"/>.
+    /// </returns>
     public DefaultPredicateBuilder Branch()
         => new(_predicates);
 
+    /// <summary>
+    /// Gets an empty <see cref="DefaultPredicateBuilder"/>.
+    /// </summary>
     public static DefaultPredicateBuilder Empty { get; } = new(ImmutableArray<LambdaExpression>.Empty);
 }
