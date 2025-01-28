@@ -65,6 +65,42 @@ public partial class ObjectType
         }
     }
 
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ObjectTypeDefinition definition)
+    {
+        base.OnCompleteMetadata(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.CompleteMetadata(context, this);
+        }
+    }
+
+    protected override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ObjectTypeDefinition definition)
+    {
+        base.OnMakeExecutable(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.MakeExecutable(context, this);
+        }
+    }
+
+    protected override void OnFinalizeType(
+        ITypeCompletionContext context,
+        ObjectTypeDefinition definition)
+    {
+        base.OnFinalizeType(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.Finalize(context, this);
+        }
+    }
+
     protected virtual FieldCollection<ObjectField> OnCompleteFields(
         ITypeCompletionContext context,
         ObjectTypeDefinition definition)

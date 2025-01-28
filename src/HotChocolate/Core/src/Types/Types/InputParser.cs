@@ -218,7 +218,7 @@ public sealed class InputParser
             try
             {
                 var fields = ((ObjectValueNode)resultValue).Fields;
-                var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+                var oneOf = type.IsOneOf;
 
                 if (oneOf && fields.Count is 0)
                 {
@@ -532,7 +532,7 @@ public sealed class InputParser
     {
         if (resultValue is IReadOnlyDictionary<string, object?> map)
         {
-            var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+            var oneOf = type.IsOneOf;
 
             if (oneOf && map.Count is 0)
             {
