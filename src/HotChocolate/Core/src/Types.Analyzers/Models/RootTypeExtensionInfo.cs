@@ -11,7 +11,7 @@ public sealed class RootTypeExtensionInfo(
     ClassDeclarationSyntax classDeclarationSyntax,
     ImmutableArray<Resolver> resolvers)
     : SyntaxInfo
-        , IOutputTypeInfo
+    , IOutputTypeInfo
 {
     public string Name { get; } = type.ToFullyQualified();
 
