@@ -251,6 +251,8 @@ internal sealed class SourceSchemaMerger
                 i => ((InputObjectTypeDefinition)i.Type).Fields,
                 (i, f) => new InputFieldInfo(f, (InputObjectTypeDefinition)i.Type, i.Schema))
             .GroupBy(i => i.Field.Name)
+            // Intersection: Field definition count matches type definition count.
+            .Where(g => g.Count() == typeGroup.Length)
             .ToImmutableArray();
 
         foreach (var grouping in fieldGroupByName)

@@ -26,9 +26,10 @@ public sealed class SourceSchemaMergerInputObjectTests : CompositionTestBase
     {
         return new TheoryData<string[], string>
         {
-            // In this example, the "OrderInput" type from two schemas is merged. The "id" field is
-            // shared across both schemas, while "description" and "total" fields are contributed by
-            // the individual source schemas. The resulting composed type includes all fields.
+            // Here, two "OrderInput" input types from different schemas are merged into a single
+            // composed "OrderInput" type. Notice that only the fields present in both schemas are
+            // included. Although "description" appears in Schema A and "total" appears in Schema B,
+            // neither field is defined in both schemas; therefore, only "id" remains.
             {
                 [
                     """
@@ -50,12 +51,8 @@ public sealed class SourceSchemaMergerInputObjectTests : CompositionTestBase
                 input OrderInput
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
-                    description: String
-                        @fusion__inputField(schema: A)
                     id: ID!
                         @fusion__inputField(schema: A)
-                        @fusion__inputField(schema: B)
-                    total: Float
                         @fusion__inputField(schema: B)
                 }
                 """
