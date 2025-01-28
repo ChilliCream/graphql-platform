@@ -25,10 +25,10 @@ LIMIT @__p_2
 {
   "HasNextPage": true,
   "HasPreviousPage": true,
-  "First": 91,
-  "FirstCursor": "QnJhbmQ5MDo5MQ==",
-  "Last": 95,
-  "LastCursor": "QnJhbmQ5NDo5NQ=="
+  "First": 92,
+  "FirstCursor": "QnJhbmRcOjkxOjky",
+  "Last": 96,
+  "LastCursor": "QnJhbmRcOjk1Ojk2"
 }
 ```
 
@@ -37,20 +37,8 @@ LIMIT @__p_2
 ```json
 [
   {
-    "Id": 91,
-    "Name": "Brand90",
-    "DisplayName": "BrandDisplay90",
-    "AlwaysNull": null,
-    "Products": [],
-    "BrandDetails": {
-      "Country": {
-        "Name": "Country90"
-      }
-    }
-  },
-  {
     "Id": 92,
-    "Name": "Brand91",
+    "Name": "Brand:91",
     "DisplayName": null,
     "AlwaysNull": null,
     "Products": [],
@@ -62,7 +50,7 @@ LIMIT @__p_2
   },
   {
     "Id": 93,
-    "Name": "Brand92",
+    "Name": "Brand:92",
     "DisplayName": "BrandDisplay92",
     "AlwaysNull": null,
     "Products": [],
@@ -74,7 +62,7 @@ LIMIT @__p_2
   },
   {
     "Id": 94,
-    "Name": "Brand93",
+    "Name": "Brand:93",
     "DisplayName": null,
     "AlwaysNull": null,
     "Products": [],
@@ -86,13 +74,25 @@ LIMIT @__p_2
   },
   {
     "Id": 95,
-    "Name": "Brand94",
+    "Name": "Brand:94",
     "DisplayName": "BrandDisplay94",
     "AlwaysNull": null,
     "Products": [],
     "BrandDetails": {
       "Country": {
         "Name": "Country94"
+      }
+    }
+  },
+  {
+    "Id": 96,
+    "Name": "Brand:95",
+    "DisplayName": null,
+    "AlwaysNull": null,
+    "Products": [],
+    "BrandDetails": {
+      "Country": {
+        "Name": "Country95"
       }
     }
   }

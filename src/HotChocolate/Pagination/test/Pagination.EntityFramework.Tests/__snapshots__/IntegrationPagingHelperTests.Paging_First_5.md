@@ -23,9 +23,9 @@ LIMIT @__p_0
   "HasNextPage": true,
   "HasPreviousPage": false,
   "First": 1,
-  "FirstCursor": "QnJhbmQwOjE=",
+  "FirstCursor": "QnJhbmRcOjA6MQ==",
   "Last": 13,
-  "LastCursor": "QnJhbmQxMjoxMw=="
+  "LastCursor": "QnJhbmRcOjEyOjEz"
 }
 ```
 
@@ -35,7 +35,7 @@ LIMIT @__p_0
 [
   {
     "Id": 1,
-    "Name": "Brand0",
+    "Name": "Brand:0",
     "DisplayName": "BrandDisplay0",
     "AlwaysNull": null,
     "Products": [],
@@ -47,7 +47,7 @@ LIMIT @__p_0
   },
   {
     "Id": 2,
-    "Name": "Brand1",
+    "Name": "Brand:1",
     "DisplayName": null,
     "AlwaysNull": null,
     "Products": [],
@@ -59,7 +59,7 @@ LIMIT @__p_0
   },
   {
     "Id": 11,
-    "Name": "Brand10",
+    "Name": "Brand:10",
     "DisplayName": "BrandDisplay10",
     "AlwaysNull": null,
     "Products": [],
@@ -71,7 +71,7 @@ LIMIT @__p_0
   },
   {
     "Id": 12,
-    "Name": "Brand11",
+    "Name": "Brand:11",
     "DisplayName": null,
     "AlwaysNull": null,
     "Products": [],
@@ -83,7 +83,7 @@ LIMIT @__p_0
   },
   {
     "Id": 13,
-    "Name": "Brand12",
+    "Name": "Brand:12",
     "DisplayName": "BrandDisplay12",
     "AlwaysNull": null,
     "Products": [],

@@ -53,10 +53,10 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
     "brands": {
       "edges": [
         {
-          "cursor": "QnJhbmQwOjE="
+          "cursor": "QnJhbmRcOjA6MQ=="
         },
         {
-          "cursor": "QnJhbmQxOjI="
+          "cursor": "QnJhbmRcOjE6Mg=="
         }
       ],
       "nodes": [

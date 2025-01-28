@@ -25,50 +25,50 @@ LIMIT @__p_0
       "nodes": [
         {
           "id": 1,
-          "name": "Brand0"
+          "name": "Brand:0"
         },
         {
           "id": 2,
-          "name": "Brand1"
+          "name": "Brand:1"
         },
         {
           "id": 11,
-          "name": "Brand10"
+          "name": "Brand:10"
         },
         {
           "id": 12,
-          "name": "Brand11"
+          "name": "Brand:11"
         },
         {
           "id": 13,
-          "name": "Brand12"
+          "name": "Brand:12"
         },
         {
           "id": 14,
-          "name": "Brand13"
+          "name": "Brand:13"
         },
         {
           "id": 15,
-          "name": "Brand14"
+          "name": "Brand:14"
         },
         {
           "id": 16,
-          "name": "Brand15"
+          "name": "Brand:15"
         },
         {
           "id": 17,
-          "name": "Brand16"
+          "name": "Brand:16"
         },
         {
           "id": 18,
-          "name": "Brand17"
+          "name": "Brand:17"
         }
       ],
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": false,
-        "startCursor": "QnJhbmQwOjE=",
-        "endCursor": "QnJhbmQxNzoxOA=="
+        "startCursor": "QnJhbmRcOjA6MQ==",
+        "endCursor": "QnJhbmRcOjE3OjE4"
       }
     }
   }

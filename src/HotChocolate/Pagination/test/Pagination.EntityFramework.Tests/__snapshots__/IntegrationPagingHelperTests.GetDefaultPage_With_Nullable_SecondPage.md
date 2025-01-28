@@ -27,16 +27,16 @@ LIMIT @__p_3
     "brandsNullable": {
       "edges": [
         {
-          "cursor": "QnJhbmQxMTpcbnVsbDoxMg=="
+          "cursor": "QnJhbmRcOjExOlxudWxsOjEy"
         },
         {
-          "cursor": "QnJhbmQxMjpcbnVsbDoxMw=="
+          "cursor": "QnJhbmRcOjEyOlxudWxsOjEz"
         }
       ],
       "nodes": [
         {
           "id": 12,
-          "name": "Brand11",
+          "name": "Brand:11",
           "displayName": null,
           "brandDetails": {
             "country": {
@@ -46,7 +46,7 @@ LIMIT @__p_3
         },
         {
           "id": 13,
-          "name": "Brand12",
+          "name": "Brand:12",
           "displayName": "BrandDisplay12",
           "brandDetails": {
             "country": {
@@ -58,8 +58,8 @@ LIMIT @__p_3
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmQxMTpcbnVsbDoxMg==",
-        "endCursor": "QnJhbmQxMjpcbnVsbDoxMw=="
+        "startCursor": "QnJhbmRcOjExOlxudWxsOjEy",
+        "endCursor": "QnJhbmRcOjEyOlxudWxsOjEz"
       }
     }
   }
