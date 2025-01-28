@@ -23,7 +23,7 @@ internal sealed class QueryDataLoader<TKey, TValue>
 
     protected override bool AllowCachePropagation => false;
 
-    protected override bool AllowBranching => false;
+    protected override bool AllowBranching => true;
 
     protected internal override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,
