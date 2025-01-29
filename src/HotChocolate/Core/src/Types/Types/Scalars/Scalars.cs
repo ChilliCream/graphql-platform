@@ -31,8 +31,8 @@ public static class Scalars
         { typeof(byte[]), typeof(ByteArrayType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
-        { typeof(DateOnly), typeof(DateType) },
-        { typeof(TimeOnly), typeof(TimeSpanType) },
+        { typeof(DateOnly), typeof(LocalDateType) },
+        { typeof(TimeOnly), typeof(LocalTimeType) },
         { typeof(JsonElement), typeof(JsonType) },
     };
 
@@ -55,6 +55,9 @@ public static class Scalars
         { ScalarNames.Date, typeof(DateType) },
         { ScalarNames.TimeSpan, typeof(TimeSpanType) },
         { ScalarNames.Any, typeof(AnyType) },
+        { ScalarNames.LocalDate, typeof(LocalDateType) },
+        { ScalarNames.LocalDateTime, typeof(LocalDateTimeType) },
+        { ScalarNames.LocalTime, typeof(LocalTimeType) },
 
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
         { ScalarNames.JSON, typeof(JsonType) }

@@ -10,9 +10,7 @@ internal static class WellKnownScalarTypes
     public const string IPv6 = nameof(IPv6);
     public const string Isbn = nameof(Isbn);
     public const string Latitude = nameof(Latitude);
-    public const string LocalDate = nameof(LocalDate);
     public const string LocalCurrency = nameof(LocalCurrency);
-    public const string LocalTime = nameof(LocalTime);
     public const string Longitude = nameof(Longitude);
     public const string MacAddress = nameof(MacAddress);
     public const string NegativeFloat = nameof(NegativeFloat);
