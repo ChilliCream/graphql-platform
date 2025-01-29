@@ -1,4 +1,4 @@
-namespace HotChocolate.Data.TestContext;
+namespace HotChocolate.Data.TestContext2;
 
 public class Test
 {

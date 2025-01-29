@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace HotChocolate.Data.TestContext;
+namespace HotChocolate.Data.TestContext2;
 
 public class ProductType
 {

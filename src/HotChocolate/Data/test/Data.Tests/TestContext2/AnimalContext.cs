@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 
-namespace HotChocolate.Data.TestContext;
+namespace HotChocolate.Data.TestContext2;
 
 public class AnimalContext(string connectionString) : DbContext
 {

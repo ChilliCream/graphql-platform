@@ -1,7 +1,7 @@
-using HotChocolate.Data.TestContext.EntityConfigurations;
+using HotChocolate.Data.TestContext1.EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
 
-namespace HotChocolate.Data.TestContext;
+namespace HotChocolate.Data.TestContext1;
 
 public class CatalogContext(string connectionString) : DbContext
 {

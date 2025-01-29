@@ -21,8 +21,9 @@ public static class HotChocolatePaginationResultExtensions
     /// Returns a relay connection.
     /// </returns>
 #nullable disable
+
     public static async Task<Connection<T>> ToConnectionAsync<T>(
-        this Task<IPage<T>> resultPromise)
+        this Task<Page<T>> resultPromise)
         where T : class
     {
         var result = await resultPromise;
@@ -48,7 +49,7 @@ public static class HotChocolatePaginationResultExtensions
     ///  Returns a relay connection.
     /// </returns>
     public static async Task<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
-        this Task<IPage<TSource>> resultPromise,
+        this Task<Page<TSource>> resultPromise,
         Func<TSource, string, Edge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
@@ -76,8 +77,8 @@ public static class HotChocolatePaginationResultExtensions
     ///  Returns a relay connection.
     /// </returns>
     public static async Task<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
-        this Task<IPage<TSource>> resultPromise,
-        Func<TSource, IPage<TSource>, Edge<TTarget>> createEdge)
+        this Task<Page<TSource>> resultPromise,
+        Func<TSource, Page<TSource>, Edge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
     {
@@ -98,7 +99,7 @@ public static class HotChocolatePaginationResultExtensions
     /// Returns a relay connection.
     /// </returns>
     public static async ValueTask<Connection<T>> ToConnectionAsync<T>(
-        this ValueTask<IPage<T>> resultPromise)
+        this ValueTask<Page<T>> resultPromise)
         where T : class
     {
         var result = await resultPromise;
@@ -124,7 +125,7 @@ public static class HotChocolatePaginationResultExtensions
     ///  Returns a relay connection.
     /// </returns>
     public static async ValueTask<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
-        this ValueTask<IPage<TSource>> resultPromise,
+        this ValueTask<Page<TSource>> resultPromise,
         Func<TSource, string, Edge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
@@ -152,8 +153,8 @@ public static class HotChocolatePaginationResultExtensions
     ///  Returns a relay connection.
     /// </returns>
     public static async ValueTask<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
-        this ValueTask<IPage<TSource>> resultPromise,
-        Func<TSource, IPage<TSource>, Edge<TTarget>> createEdge)
+        this ValueTask<Page<TSource>> resultPromise,
+        Func<TSource, Page<TSource>, Edge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
     {
@@ -179,7 +180,7 @@ public static class HotChocolatePaginationResultExtensions
         where T : class
         => CreateConnection(result);
 
-    private static Connection<T> CreateConnection<T>(IPage<T>? page) where T : class
+    private static Connection<T> CreateConnection<T>(Page<T>? page) where T : class
     {
         page ??= Page<T>.Empty;
 
@@ -194,7 +195,7 @@ public static class HotChocolatePaginationResultExtensions
     }
 
     private static Connection<TTarget> CreateConnection<TSource, TTarget>(
-        IPage<TSource>? page,
+        Page<TSource>? page,
         Func<TSource, string, Edge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
@@ -212,8 +213,8 @@ public static class HotChocolatePaginationResultExtensions
     }
 
     private static Connection<TTarget> CreateConnection<TSource, TTarget>(
-        IPage<TSource>? page,
-        Func<TSource, IPage<TSource>, Edge<TTarget>> createEdge)
+        Page<TSource>? page,
+        Func<TSource, Page<TSource>, Edge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
     {

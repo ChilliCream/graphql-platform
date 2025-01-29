@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace HotChocolate.Data.TestContext;
+namespace HotChocolate.Data.TestContext2;
 
 public class Brand
 {
@@ -11,12 +11,13 @@ public class Brand
     [Required]
     public string Name { get; set; } = default!;
 
-    [MaxLength(100)]
-    public string? DisplayName { get; set; }
+    public string? DisplayName { get; set; } = default!;
+
+    public string? AlwaysNull { get; set; }
 
     public ICollection<Product> Products { get; } = new List<Product>();
 
-    public BrandDetails Details { get; set; } = default!;
+    public BrandDetails BrandDetails { get; set; } = default!;
 }
 
 public class BrandDetails

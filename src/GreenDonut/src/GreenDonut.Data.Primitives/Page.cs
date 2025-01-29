@@ -30,7 +30,7 @@ public sealed class Page<T>(
     bool hasPreviousPage,
     Func<T, string> createCursor,
     int? totalCount = null)
-    : IPage<T>
+    : IEnumerable<T>
 {
     /// <summary>
     /// Gets the items of this page.

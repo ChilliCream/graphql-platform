@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace HotChocolate.Data.TestContext.EntityConfigurations;
+namespace HotChocolate.Data.TestContext1.EntityConfigurations;
 
 internal sealed class BrandEntityTypeConfiguration : IEntityTypeConfiguration<Brand>
 {
@@ -14,7 +14,7 @@ internal sealed class BrandEntityTypeConfiguration : IEntityTypeConfiguration<Br
             .Property(cb => cb.Name)
             .HasMaxLength(100);
 
-        builder.OwnsOne(x => x.BrandDetails,
+        builder.OwnsOne(x => x.Details,
             bd => bd.OwnsOne(x => x.Country, c => c.Property(x => x.Name).HasMaxLength(100)));
     }
 }

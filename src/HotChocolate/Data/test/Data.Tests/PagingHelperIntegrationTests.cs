@@ -1,12 +1,11 @@
 using System.Collections.Immutable;
-using HotChocolate.Data.TestContext;
 using GreenDonut;
 using GreenDonut.Data;
+using HotChocolate.Data.TestContext2;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using HotChocolate.Pagination;
 using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -1097,7 +1096,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             });
 
         context.Foos.Add(
-            new Foo
+            new TestContext2.Foo
             {
                 Id = 1,
                 Name = "Foo 1",
@@ -1105,7 +1104,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             });
 
         context.Foos.Add(
-            new Foo
+            new TestContext2.Foo
             {
                 Id = 2,
                 Name = "Foo 2",
@@ -1220,7 +1219,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
     public class QueryNullable
     {
         [UsePaging]
-        public async Task<Connection<Foo>> GetFoosAsync(
+        public async Task<Connection<TestContext2.Foo>> GetFoosAsync(
             FooBarContext context,
             PagingArguments arguments,
             ISelection selection,
@@ -1230,7 +1229,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             return await context.Foos
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
-                .Select(selection.AsSelector<Foo>())
+                .Select(selection.AsSelector<TestContext2.Foo>())
                 .ToPageAsync(arguments, cancellationToken: ct)
                 .ToConnectionAsync();
         }

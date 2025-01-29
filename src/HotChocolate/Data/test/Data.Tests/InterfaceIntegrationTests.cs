@@ -1,10 +1,9 @@
 using System.Collections.Immutable;
 using GreenDonut;
 using GreenDonut.Data;
-using HotChocolate.Data.TestContext;
+using HotChocolate.Data.TestContext2;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Pagination;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;

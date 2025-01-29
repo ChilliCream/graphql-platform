@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace HotChocolate.Data.TestContext.EntityConfigurations;
+namespace HotChocolate.Data.TestContext1.EntityConfigurations;
 
 internal sealed class ProductEntityTypeConfiguration : IEntityTypeConfiguration<Product>
 {
