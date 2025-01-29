@@ -1,9 +1,13 @@
-﻿schema {
-  query: Query
+schema {
+  query: QueryDateTime2
 }
 
-type Query {
-  scalar: LocalDate
+type Bar {
+  date: LocalDate!
+}
+
+type QueryDateTime2 {
+  bar: Bar
 }
 
 "The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339"

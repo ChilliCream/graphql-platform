@@ -3,12 +3,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data;
 
-public class DateOperationFilterInputType
-    : ComparableOperationFilterInputType<DateType>
+public class LocalDateOperationFilterInputType
+    : ComparableOperationFilterInputType<LocalDateType>
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
-        descriptor.Name("DateOperationFilterInput");
+        descriptor.Name("LocalDateOperationFilterInput");
         base.Configure(descriptor);
     }
 }
