@@ -112,7 +112,8 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
-        new OutputFieldTypesMergeableRule()
+        new OutputFieldTypesMergeableRule(),
+        new TypeKindMismatchRule()
     ];
 
     private static readonly ImmutableArray<object> s_postMergeValidationRules = [];
