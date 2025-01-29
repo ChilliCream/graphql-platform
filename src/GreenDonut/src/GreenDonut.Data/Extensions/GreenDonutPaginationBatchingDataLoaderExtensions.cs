@@ -38,7 +38,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         this IDataLoader<TKey, Page<TValue>> dataLoader,
         PagingArguments pagingArguments)
         where TKey : notnull
-        => With(dataLoader, pagingArguments);
+        => WithInternal(dataLoader, pagingArguments, null);
 
     /// <summary>
     /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
@@ -46,11 +46,11 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// <param name="dataLoader">
     /// The DataLoader that shall be branched.
     /// </param>
-    /// <param name="pagingArguments">
-    /// The paging arguments that shall exist as state in the branched DataLoader.
-    /// </param>
     /// <param name="context">
     /// The query context that shall exist as state in the branched DataLoader.
+    /// </param>
+    /// <param name="pagingArguments">
+    /// The paging arguments that shall exist as state in the branched DataLoader.
     /// </param>
     /// <typeparam name="TKey">
     /// The key type of the DataLoader.
@@ -66,8 +66,15 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// </exception>
     public static IDataLoader<TKey, Page<TValue>> With<TKey, TValue>(
         this IDataLoader<TKey, Page<TValue>> dataLoader,
+        QueryContext<TValue> context,
+        PagingArguments pagingArguments)
+        where TKey : notnull
+        => WithInternal(dataLoader, pagingArguments, context);
+
+    private static IDataLoader<TKey, Page<TValue>> WithInternal<TKey, TValue>(
+        this IDataLoader<TKey, Page<TValue>> dataLoader,
         PagingArguments pagingArguments,
-        QueryContext<TValue>? context = null)
+        QueryContext<TValue>? context)
         where TKey : notnull
     {
         if (dataLoader is null)
@@ -160,7 +167,8 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         var branchKey = selector.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch,
+            state);
     }
 
     /// <summary>
@@ -200,8 +208,10 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         }
 
         var branchKey = predicate.ComputeHash();
-        var state = new QueryState(DataLoaderStateKeys.Predicate, GetOrCreateBuilder(dataLoader.ContextData, predicate));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
+        var state = new QueryState(DataLoaderStateKeys.Predicate,
+            GetOrCreateBuilder(dataLoader.ContextData, predicate));
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch,
+            state);
     }
 
     /// <summary>
@@ -242,10 +252,11 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         var branchKey = sortDefinition.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Sorting, sortDefinition);
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch,
+            state);
     }
 
-    private static string ComputeHash<T>(this PagingArguments arguments, QueryContext<T>? context = null)
+    private static string ComputeHash<T>(this PagingArguments arguments, QueryContext<T>? context)
     {
         var hasher = ExpressionHasherPool.Shared.Get();
 
