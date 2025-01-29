@@ -16,7 +16,7 @@ public static class ExpressionHasherTests
         var hash = hasher.Add(selector).Compute();
 
         // assert
-        Assert.Equal("3bbe9acfc37825818d75547df2802080", hash);
+        Assert.Equal("93e89ad314d381f1d8e566eb9b83bae0", hash);
     }
 
     [Fact]
@@ -34,8 +34,8 @@ public static class ExpressionHasherTests
         var hash2 = hasher.Add(selector2).Compute();
 
         // assert
-        Assert.Equal("dbf2f60aa7fa00fe4856894cb4ebe8fc", hash1);
-        Assert.Equal("3662ca2896134511f1dc130120d5005f", hash2);
+        Assert.Equal("6f51ab2bb55cc321158bd34a61deabb0", hash1);
+        Assert.Equal("56243d626d68ebacdb97e4321bf745a4", hash2);
         Assert.NotEqual(hash1, hash2);
     }
 
@@ -55,9 +55,9 @@ public static class ExpressionHasherTests
         var hash3 = hasher.Add(selector1).Add(selector2).Compute();
 
         // assert
-        Assert.Equal("dbf2f60aa7fa00fe4856894cb4ebe8fc", hash1);
-        Assert.Equal("3662ca2896134511f1dc130120d5005f", hash2);
-        Assert.Equal("3dc320227bb0fe57f35be799bad69975", hash3);
+        Assert.Equal("6f51ab2bb55cc321158bd34a61deabb0", hash1);
+        Assert.Equal("56243d626d68ebacdb97e4321bf745a4", hash2);
+        Assert.Equal("5d06d84fa29de84f9901cbfefa2e0ac0", hash3);
         Assert.NotEqual(hash1, hash2);
         Assert.NotEqual(hash1, hash3);
     }
@@ -80,7 +80,7 @@ public static class ExpressionHasherTests
         var hash = hasher.Add(selector).Compute();
 
         // assert
-        Assert.Equal("bcee7ce84e8e24974afa2d4e121c2116", hash);
+        Assert.Equal("78155299ff3ce114f4f60f97b02a00b9", hash);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public static class ExpressionHasherTests
         var hash = hasher.Add(selector).Compute();
 
         // assert
-        Assert.Equal("4ca93a1aed69ddc7269106fd807109b1", hash);
+        Assert.Equal("76892c282824bfdfe59e135a298c926e", hash);
     }
 
     public class Entity1
