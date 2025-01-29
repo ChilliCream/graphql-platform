@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="GreenDonut.Data.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\GreenDonut.Data.Abstractions\GreenDonut.Data.Abstractions.csproj" />
     <ProjectReference Include="..\GreenDonut\GreenDonut.csproj" />
   </ItemGroup>

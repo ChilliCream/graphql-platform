@@ -18,6 +18,7 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Projections" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
@@ -215,6 +216,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Projections\" />
   </ItemGroup>
 
 </Project>

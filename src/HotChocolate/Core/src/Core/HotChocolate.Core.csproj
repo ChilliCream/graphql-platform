@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\CostAnalysis\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Pagination\src\Pagination.Mappings\HotChocolate.Pagination.Mappings.csproj" />
+    <ProjectReference Include="..\Execution.Projections\HotChocolate.Execution.Projections.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Authorization\HotChocolate.Authorization.csproj" />
     <ProjectReference Include="..\Types.Mutations\HotChocolate.Types.Mutations.csproj" />
