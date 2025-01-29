@@ -6,7 +6,7 @@ namespace GreenDonut.Data;
 /// <summary>
 /// Provides extension method to the <see cref="DataLoaderFetchContext{TValue}"/> for pagination.
 /// </summary>
-public static class HotChocolatePaginationBatchingDataLoaderFetchContext
+public static class GreenDonutDataLoaderFetchContext
 {
     /// <summary>
     /// Gets the <see cref="PagingArguments"/> from the DataLoader fetch context.

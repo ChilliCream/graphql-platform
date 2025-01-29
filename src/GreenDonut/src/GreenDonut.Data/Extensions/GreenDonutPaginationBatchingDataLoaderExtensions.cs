@@ -10,7 +10,7 @@ namespace GreenDonut.Data;
 /// <summary>
 /// Provides extension methods to pass a pagination context to a DataLoader.
 /// </summary>
-public static class HotChocolatePaginationBatchingDataLoaderExtensions
+public static class GreenDonutPaginationBatchingDataLoaderExtensions
 {
     /// <summary>
     /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
@@ -361,5 +361,5 @@ public static class HotChocolatePaginationBatchingDataLoaderExtensions
         return length + 2;
     }
 
-    internal readonly record struct PagingState<T>(PagingArguments PagingArgs, QueryContext<T>? Context = null);
+    private readonly record struct PagingState<T>(PagingArguments PagingArgs, QueryContext<T>? Context = null);
 }

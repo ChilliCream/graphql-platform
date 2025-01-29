@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Mappings\HotChocolate.Pagination.Mappings.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
