@@ -1,6 +1,5 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Pagination;
 
 // ReSharper disable once CheckNamespace
 namespace GreenDonut.Data;

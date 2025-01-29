@@ -933,6 +933,33 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AsSortDefinition_Descending_QueryContext_2()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsData2(order: { name: DESC }) {
+                    id
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
@@ -1170,5 +1197,30 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     },
                 }.AsQueryable()
                 .Apply(context);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsData2(QueryContext<Author> context)
+            => new[]
+                {
+                    new Author
+                    {
+                        Id = 1,
+                        Name = "Author1",
+                        Books = new List<Book>(),
+                    },
+                    new Author
+                    {
+                        Id = 8,
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    },
+                    new Author
+                    {
+                        Id = 5,
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    }
+                }.AsQueryable()
+                .Apply(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
     }
 }

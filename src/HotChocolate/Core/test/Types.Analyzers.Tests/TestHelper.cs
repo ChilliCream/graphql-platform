@@ -7,9 +7,7 @@ using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
 using GreenDonut;
 using GreenDonut.Data;
-using HotChocolate.Data;
 using HotChocolate.Data.Filters;
-using HotChocolate.Pagination;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -41,14 +39,15 @@ internal static partial class TestHelper
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
 
-            // HotChocolate.Pagination.Primitives
-            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
-
             // GreenDonut
-            MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
+
+            // GreenDonut.Data
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
 
             // HotChocolate.Data
-            MetadataReference.CreateFromFile(typeof(QueryContext<>).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location)
         ];
 

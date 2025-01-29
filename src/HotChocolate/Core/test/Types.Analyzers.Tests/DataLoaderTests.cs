@@ -435,6 +435,7 @@ public class DataLoaderTests
             using System.Threading.Tasks;
             using HotChocolate;
             using GreenDonut;
+            using GreenDonut.Data;
 
             namespace TestNamespace;
 
@@ -443,7 +444,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    HotChocolate.Pagination.PagingArguments pagingArgs,
+                    PagingArguments pagingArgs,
                     CancellationToken cancellationToken)
                     => default!;
             }
