@@ -10,11 +10,13 @@ public sealed class CompositeObjectType(
     CompositeOutputFieldCollection fields)
     : CompositeComplexType(name, description, fields)
 {
+    private bool _isEntity;
+
     public override TypeKind Kind => TypeKind.Object;
 
-    public new ISourceComplexTypeCollection<SourceObjectType> Sources { get; private set; } = default!;
+    public override bool IsEntity => _isEntity;
 
-    public bool IsEntity { get; private set; }
+    public new ISourceComplexTypeCollection<SourceObjectType> Sources { get; private set; } = default!;
 
     internal void Complete(CompositeObjectTypeCompletionContext context)
     {
@@ -22,7 +24,7 @@ public sealed class CompositeObjectType(
         Implements = context.Interfaces;
         Sources = context.Sources;
         base.Sources = context.Sources;
-        IsEntity = Sources.Any(t => t.Lookups.Length > 0);
+        _isEntity = Sources.Any(t => t.Lookups.Length > 0);
 
         base.Complete();
     }

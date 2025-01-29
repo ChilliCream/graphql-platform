@@ -1,54 +1,49 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.PreMergeValidation;
-using HotChocolate.Fusion.PreMergeValidation.Rules;
-using HotChocolate.Skimmed.Serialization;
 
-namespace HotChocolate.Composition.PreMergeValidation.Rules;
+namespace HotChocolate.Fusion.PreMergeValidation.Rules;
 
-public sealed class ExternalMissingOnBaseRuleTests
+public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
 {
+    private readonly PreMergeValidator _preMergeValidator =
+        new([new ExternalMissingOnBaseRule()]);
+
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
     public void Examples_Valid(string[] sdl)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new ExternalMissingOnBaseRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.True(log.IsEmpty);
+        Assert.True(context.Log.IsEmpty);
     }
 
     [Theory]
     [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl)
+    public void Examples_Invalid(string[] sdl, string[] errorMessages)
     {
         // arrange
-        var log = new CompositionLog();
-        var context = new CompositionContext([.. sdl.Select(SchemaParser.Parse)], log);
-        var preMergeValidator = new PreMergeValidator([new ExternalMissingOnBaseRule()]);
+        var context = CreateCompositionContext(sdl);
 
         // act
-        var result = preMergeValidator.Validate(context);
+        var result = _preMergeValidator.Validate(context);
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Single(log);
-        Assert.Equal("EXTERNAL_MISSING_ON_BASE", log.First().Code);
-        Assert.Equal(LogSeverity.Error, log.First().Severity);
+        Assert.Equal(errorMessages, context.Log.Select(e => e.Message).ToArray());
+        Assert.True(context.Log.All(e => e.Code == "EXTERNAL_MISSING_ON_BASE"));
+        Assert.True(context.Log.All(e => e.Severity == LogSeverity.Error));
     }
 
     public static TheoryData<string[]> ValidExamplesData()
     {
         return new TheoryData<string[]>
         {
-            // Here, the `name` field on Product is defined in source schema A and marked as
+            // Here, the "name" field on "Product" is defined in source schema A and marked as
             // @external in source schema B, which is valid because there is a base definition in
             // source schema A.
             {
@@ -72,13 +67,13 @@ public sealed class ExternalMissingOnBaseRuleTests
         };
     }
 
-    public static TheoryData<string[]> InvalidExamplesData()
+    public static TheoryData<string[], string[]> InvalidExamplesData()
     {
-        return new TheoryData<string[]>
+        return new TheoryData<string[], string[]>
         {
-            // In this example, the `name` field on Product is marked as @external in source schema
-            // B but has no non-@external declaration in any other source schema, violating the
-            // rule.
+            // In this example, the "name" field on "Product" is marked as @external in source
+            // schema B but has no non-@external declaration in any other source schema, violating
+            // the rule.
             {
                 [
                     """
@@ -94,9 +89,13 @@ public sealed class ExternalMissingOnBaseRuleTests
                         name: String @external
                     }
                     """
+                ],
+                [
+                    "The external field 'Product.name' in schema 'B' is not defined " +
+                    "(non-external) in any other schema."
                 ]
             },
-            // The `name` field is external in both source schemas.
+            // The "name" field is marked as @external in both source schemas.
             {
                 [
                     """
@@ -113,6 +112,13 @@ public sealed class ExternalMissingOnBaseRuleTests
                         name: String @external
                     }
                     """
+                ],
+                [
+                    "The external field 'Product.name' in schema 'A' is not defined " +
+                    "(non-external) in any other schema.",
+
+                    "The external field 'Product.name' in schema 'B' is not defined " +
+                    "(non-external) in any other schema."
                 ]
             }
         };

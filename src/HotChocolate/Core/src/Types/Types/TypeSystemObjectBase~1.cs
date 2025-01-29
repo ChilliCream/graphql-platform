@@ -118,14 +118,58 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         OnAfterCompleteType(context, definition);
         ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterCompletion);
 
-        OnValidateType(context, definition);
-
         MarkCompleted();
     }
 
+    protected virtual void OnCompleteType(
+        ITypeCompletionContext context,
+        TDefinition definition) { }
+
+    internal sealed override void CompleteMetadata(ITypeCompletionContext context)
+    {
+        AssertTypeCompleted();
+
+        var definition = _definition!;
+
+        OnBeforeCompleteMetadata(context, definition);
+        OnCompleteMetadata(context, definition);
+        OnAfterCompleteMetadata(context, definition);
+
+        MarkMetadataCompleted();
+    }
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        TDefinition definition) { }
+
+    internal sealed override void MakeExecutable(ITypeCompletionContext context)
+    {
+        AssertMetadataCompleted();
+
+        var definition = _definition!;
+
+        OnBeforeMakeExecutable(context, definition);
+        OnMakeExecutable(context, definition);
+        OnAfterMakeExecutable(context, definition);
+
+        MarkExecutable();
+    }
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        TDefinition definition) { }
+
+    protected virtual void OnFinalizeType(
+        ITypeCompletionContext context,
+        TDefinition definition) { }
+
     internal sealed override void FinalizeType(ITypeCompletionContext context)
     {
-        // we will release the definition here so that it can be collected by the GC.
+        // first we will call the OnFinalizeType hook.
+        OnFinalizeType(context, _definition!);
+        var definition = _definition!;
+
+        // next we will release the definition here so that it can be collected by the GC.
         _definition = null;
 
         // if the ExtensionData object has no data we will release it so it can be
@@ -143,12 +187,10 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
             _contextData = dictionary;
         }
 
+        OnValidateType(context, definition);
+
         MarkFinalized();
     }
-
-    protected virtual void OnCompleteType(
-        ITypeCompletionContext context,
-        TDefinition definition) { }
 
     private void RegisterConfigurationDependencies(
         ITypeDiscoveryContext context,
@@ -221,6 +263,26 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         DefinitionBase definition)
         => context.TypeInterceptor.OnAfterCompleteType(context, definition);
 
+    protected virtual void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnBeforeCompleteMetadata(context, definition);
+
+    protected virtual void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnAfterCompleteMetadata(context, definition);
+
+    protected virtual void OnBeforeMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnBeforeMakeExecutable(context, definition);
+
+    protected virtual void OnAfterMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnAfterMakeExecutable(context, definition);
+
     protected virtual void OnValidateType(
         ITypeSystemObjectContext context,
         DefinitionBase definition)
@@ -282,13 +344,49 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         }
     }
 
+    private void AssertTypeCompleted()
+    {
+        Debug.Assert(
+            IsCompleted,
+            "The type must be initialized.");
+
+        if (!IsCompleted)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (_definition is null)
+        {
+            throw new InvalidOperationException(
+                TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+        }
+    }
+
+    private void AssertMetadataCompleted()
+    {
+        Debug.Assert(
+            IsMetadataCompleted,
+            "The type must be initialized.");
+
+        if (!IsMetadataCompleted)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (_definition is null)
+        {
+            throw new InvalidOperationException(
+                TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+        }
+    }
+
     protected internal void AssertMutable()
     {
         Debug.Assert(
-            !IsCompleted,
+            !IsExecutable,
             "The type os no longer mutable.");
 
-        if (IsCompleted)
+        if (IsExecutable)
         {
             throw new InvalidOperationException("The type is no longer mutable.");
         }

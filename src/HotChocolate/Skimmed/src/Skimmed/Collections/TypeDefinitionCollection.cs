@@ -5,7 +5,14 @@ namespace HotChocolate.Skimmed;
 
 public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 {
-    private readonly Dictionary<string, INamedTypeDefinition> _types = new(StringComparer.Ordinal);
+    private readonly List<SchemaCoordinate> _schemaDefinitions;
+    private readonly OrderedDictionary<string, INamedTypeDefinition> _types = new();
+
+    internal TypeDefinitionCollection(List<SchemaCoordinate> schemaDefinitions)
+    {
+        _schemaDefinitions = schemaDefinitions
+            ?? throw new ArgumentNullException(nameof(schemaDefinitions));
+    }
 
     public int Count => _types.Count;
 
@@ -13,8 +20,8 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 
     public INamedTypeDefinition this[string name] => _types[name];
 
-    public bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? type)
-        => _types.TryGetValue(name, out type);
+    public bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? definition)
+        => _types.TryGetValue(name, out definition);
 
     public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedTypeDefinition
     {
@@ -29,49 +36,107 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
         return false;
     }
 
-    public void Add(INamedTypeDefinition item)
+    public void Insert(int index, INamedTypeDefinition definition)
     {
-        if (item is null)
+        if(_types.Count <= index)
         {
-            throw new ArgumentNullException(nameof(item));
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        if(_types.TryGetValue(item.Name, out var existing))
-        {
-            if (ReferenceEquals(existing, item))
-            {
-                return;
-            }
-
-            throw new ArgumentException(
-                $"The type `{item.Name}` is already defined.",
-                nameof(item));
-        }
-
-        _types.Add(item.Name, item);
+        var type = _types.GetAt(index);
+        var definitionIndex = _schemaDefinitions.IndexOf(new SchemaCoordinate(type.Key));
+        _schemaDefinitions.Insert(definitionIndex, new SchemaCoordinate(definition.Name));
+        _types.Insert(index, definition.Name, definition);
     }
 
-    public bool Remove(INamedTypeDefinition item)
+    public bool Remove(string name)
     {
-        if (item is null)
+        if (_types.Remove(name))
         {
-            throw new ArgumentNullException(nameof(item));
-        }
-
-        if (_types.TryGetValue(item.Name, out var itemToDelete)
-            && ReferenceEquals(item, itemToDelete))
-        {
-            _types.Remove(item.Name);
+            _schemaDefinitions.Remove(new SchemaCoordinate(name));
             return true;
         }
 
         return false;
     }
 
-    public void Clear() => _types.Clear();
+    public void RemoveAt(int index)
+    {
+        if(_types.Count <= index)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        var type = _types.GetAt(index);
+        _schemaDefinitions.Remove(new SchemaCoordinate(type.Key));
+        _types.RemoveAt(index);
+    }
+
+    public void Add(INamedTypeDefinition definition)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        if(_types.TryGetValue(definition.Name, out var existing))
+        {
+            if (ReferenceEquals(existing, definition))
+            {
+                return;
+            }
+
+            throw new ArgumentException(
+                $"The type `{definition.Name}` is already defined.",
+                nameof(definition));
+        }
+
+        _types.Add(definition.Name, definition);
+        _schemaDefinitions.Add(new SchemaCoordinate(definition.Name));
+    }
+
+    public bool Remove(INamedTypeDefinition definition)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        if (_types.TryGetValue(definition.Name, out var itemToDelete)
+            && ReferenceEquals(definition, itemToDelete))
+        {
+            Remove(definition.Name);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Clear()
+    {
+        foreach (var typeName in _types.Keys)
+        {
+            _schemaDefinitions.Remove(new SchemaCoordinate(typeName));
+        }
+
+        _types.Clear();
+    }
 
     public bool ContainsName(string name)
         => _types.ContainsKey(name);
+
+    public int IndexOf(INamedTypeDefinition definition)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        return IndexOf(definition.Name);
+    }
+
+    public int IndexOf(string name)
+        => _types.IndexOf(name);
 
     public bool Contains(INamedTypeDefinition item)
     {

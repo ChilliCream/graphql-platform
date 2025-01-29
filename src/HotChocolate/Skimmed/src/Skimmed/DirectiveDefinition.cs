@@ -1,20 +1,22 @@
 using HotChocolate.Features;
-using HotChocolate.Types;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Skimmed;
 
 /// <summary>
 /// Represents a GraphQL directive definition.
 /// </summary>
-public class DirectiveDefinition(string name)
+public class DirectiveDefinition
     : INamedTypeSystemMemberDefinition<DirectiveDefinition>
     , IDescriptionProvider
     , IFeatureProvider
     , ISealable
+    , ISyntaxNodeProvider
 {
-    private string _name = name.EnsureGraphQLName();
+    private string _name;
     private IInputFieldDefinitionCollection? _arguments;
     private IFeatureCollection? _features;
     private string? _description;
@@ -22,6 +24,14 @@ public class DirectiveDefinition(string name)
     private bool _isRepeatable;
     private DirectiveLocation _locations;
     private bool _isReadOnly;
+
+    /// <summary>
+    /// Represents a GraphQL directive definition.
+    /// </summary>
+    public DirectiveDefinition(string name)
+    {
+        _name = name.EnsureGraphQLName();
+    }
 
     /// <summary>
     /// Gets or sets the name of the directive.
@@ -172,6 +182,13 @@ public class DirectiveDefinition(string name)
     /// </returns>
     public override string ToString()
         => RewriteDirectiveType(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="DirectiveDefinitionNode"/> from a <see cref="DirectiveDefinition"/>.
+    /// </summary>
+    public DirectiveDefinitionNode ToSyntaxNode() => RewriteDirectiveType(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteDirectiveType(this);
 
     /// <summary>
     /// Creates a new directive definition.

@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
@@ -115,6 +116,13 @@ public class ScalarTypeDefinition(string name)
     /// </returns>
     public override string ToString()
         => RewriteScalarType(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="ScalarTypeDefinitionNode"/> from a <see cref="ScalarTypeDefinition"/>.
+    /// </summary>
+    public ScalarTypeDefinitionNode ToSyntaxNode() => RewriteScalarType(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteScalarType(this);
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other)

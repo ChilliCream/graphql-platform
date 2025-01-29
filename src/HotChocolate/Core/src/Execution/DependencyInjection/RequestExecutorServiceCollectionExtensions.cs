@@ -6,7 +6,7 @@ using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Projections;
+using HotChocolate.Execution.Requirements;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;

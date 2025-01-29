@@ -110,7 +110,7 @@ query Large {
 ## QueryPlan Hash
 
 ```text
-B3E0703565E9626DBFAFDCB4CBD1DE815EBE4DB0
+966D64660B741935F24C518FD274024E08D8111F
 ```
 
 ## QueryPlan
@@ -187,7 +187,7 @@ B3E0703565E9626DBFAFDCB4CBD1DE815EBE4DB0
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Products",
-            "document": "query Large_5($__fusion_exports__6: [ID!]!) { nodes(ids: $__fusion_exports__6) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id __fusion_exports__6: id } } }",
+            "document": "query Large_5($__fusion_exports__6: [ID!]!) { nodes(ids: $__fusion_exports__6) { ... on Product { name __fusion_exports__1: dimension { weight } __fusion_exports__2: dimension { size } __fusion_exports__5: id __fusion_exports__6: id } } }",
             "selectionSetId": 4,
             "path": [
               "nodes"
@@ -220,7 +220,7 @@ B3E0703565E9626DBFAFDCB4CBD1DE815EBE4DB0
       {
         "type": "Resolve",
         "subgraph": "Shipping",
-        "document": "query Large_4($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__5: ID!) { productById(id: $__fusion_exports__5) { deliveryEstimate(size: $__fusion_exports__1, weight: $__fusion_exports__2, zip: \u0022abc\u0022) { max } } }",
+        "document": "query Large_4($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__5: ID!) { productById(id: $__fusion_exports__5) { deliveryEstimate(weight: $__fusion_exports__1, size: $__fusion_exports__2, zip: \u0022abc\u0022) { max } } }",
         "selectionSetId": 4,
         "path": [
           "productById"
@@ -246,8 +246,8 @@ B3E0703565E9626DBFAFDCB4CBD1DE815EBE4DB0
     ]
   },
   "state": {
-    "__fusion_exports__1": "Product_dimension_size",
-    "__fusion_exports__2": "Product_dimension_weight",
+    "__fusion_exports__1": "Product_dimension_weight",
+    "__fusion_exports__2": "Product_dimension_size",
     "__fusion_exports__3": "User_id",
     "__fusion_exports__4": "User_id",
     "__fusion_exports__5": "Product_id",

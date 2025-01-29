@@ -1,34 +1,30 @@
-using System.Collections.Immutable;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class ValidationHelper
 {
-    public static bool FieldsAreMergeable(ImmutableArray<OutputFieldDefinition> fields)
+    /// <summary>
+    /// Returns <c>true</c> if the specified <paramref name="field"/> has a <c>@provides</c>
+    /// directive that references the specified <paramref name="fieldName"/>.
+    /// </summary>
+    public static bool ProvidesFieldName(OutputFieldDefinition field, string fieldName)
     {
-        for (var i = 0; i < fields.Length - 1; i++)
-        {
-            var typeA = fields[i].Type;
-            var typeB = fields[i + 1].Type;
+        var providesDirective = field.Directives.FirstOrDefault(WellKnownDirectiveNames.Provides);
 
-            if (!SameTypeShape(typeA, typeB))
-            {
-                return false;
-            }
+        var fieldsArgumentValueNode =
+            providesDirective?.Arguments.GetValueOrDefault(WellKnownArgumentNames.Fields);
+
+        if (fieldsArgumentValueNode is not StringValueNode fieldsArgumentStringNode)
+        {
+            return false;
         }
 
-        return true;
-    }
+        var selectionSet =
+            Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{fieldsArgumentStringNode.Value}}}");
 
-    public static bool IsAccessible(IDirectivesProvider type)
-    {
-        return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
-    }
-
-    public static bool IsExternal(IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.External);
+        return selectionSet.Selections.OfType<FieldNode>().Any(f => f.Name.Value == fieldName);
     }
 
     public static bool SameTypeShape(ITypeDefinition typeA, ITypeDefinition typeB)

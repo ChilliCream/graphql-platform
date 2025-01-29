@@ -7,10 +7,10 @@ public sealed class ReadOnlyObjectTypeDefinitionCollection : IObjectTypeDefiniti
 {
     private readonly ObjectTypeDefinition[] _types;
 
-    private ReadOnlyObjectTypeDefinitionCollection(IEnumerable<ObjectTypeDefinition> types)
+    private ReadOnlyObjectTypeDefinitionCollection(IEnumerable<ObjectTypeDefinition> definitions)
     {
-        ArgumentNullException.ThrowIfNull(types);
-        _types = types.ToArray();
+        ArgumentNullException.ThrowIfNull(definitions);
+        _types = definitions.ToArray();
     }
 
     public ObjectTypeDefinition this[int index] => _types[index];
@@ -19,15 +19,27 @@ public sealed class ReadOnlyObjectTypeDefinitionCollection : IObjectTypeDefiniti
 
     public bool IsReadOnly => true;
 
-    public bool Contains(ObjectTypeDefinition item)
-        => _types.Contains(item);
+    public bool Contains(ObjectTypeDefinition definition)
+        => _types.Contains(definition);
 
-    public void Add(ObjectTypeDefinition item)
+    public void Add(ObjectTypeDefinition definition)
         => ThrowReadOnly();
 
-    public bool Remove(ObjectTypeDefinition item)
+    public bool Remove(ObjectTypeDefinition definition)
     {
         ThrowReadOnly();
+        return false;
+    }
+
+    public bool ContainsName(string name)
+    {
+        foreach (var item in _types)
+        {
+            if (item.Name.Equals(name))
+            {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -45,12 +57,7 @@ public sealed class ReadOnlyObjectTypeDefinitionCollection : IObjectTypeDefiniti
         => _types.CopyTo(array, arrayIndex);
 
     public IEnumerator<ObjectTypeDefinition> GetEnumerator()
-    {
-        foreach (var item in _types)
-        {
-            yield return item;
-        }
-    }
+        => ((IEnumerable<ObjectTypeDefinition>)_types).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

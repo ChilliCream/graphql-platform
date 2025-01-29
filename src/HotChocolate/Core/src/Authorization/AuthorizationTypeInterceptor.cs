@@ -124,7 +124,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnAfterCompleteTypes()
+    public override void OnAfterMakeExecutable()
     {
         foreach (var type in _objectTypes)
         {

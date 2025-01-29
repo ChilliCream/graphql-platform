@@ -662,12 +662,12 @@ public static class ResolverContextExtensions
                 nameof(fieldName));
         }
 
-        if (!context.Selection.Type.IsCompositeType())
+        var namedType = context.Selection.Type.NamedType();
+
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {
@@ -741,12 +741,12 @@ public static class ResolverContextExtensions
                 nameof(fieldName2));
         }
 
-        if (!context.Selection.Type.IsCompositeType())
+        var namedType = context.Selection.Type.NamedType();
+
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {
@@ -839,12 +839,12 @@ public static class ResolverContextExtensions
                 nameof(fieldName3));
         }
 
-        if (!context.Selection.Type.IsCompositeType())
+        var namedType = context.Selection.Type.NamedType();
+
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {
@@ -913,12 +913,12 @@ public static class ResolverContextExtensions
             throw new ArgumentNullException(nameof(fieldNames));
         }
 
-        if (!context.Selection.Type.IsCompositeType())
+        var namedType = context.Selection.Type.NamedType();
+
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {

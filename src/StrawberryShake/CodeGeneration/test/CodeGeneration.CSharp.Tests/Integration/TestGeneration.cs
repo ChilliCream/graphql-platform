@@ -16,6 +16,37 @@ public class TestGeneration
                 }
             }");
 
+
+    [Fact]
+    public void StarWarsGetHeroWithFragmentIncludeAndSkipDirective() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+                hero(episode: NEW_HOPE) {
+                    ...HeroFragment
+                }
+            }
+
+            fragment HeroFragment on Character {
+                id
+                friends {
+                    ...FriendsFragment
+                }
+            }
+
+            fragment FriendsFragment on FriendsConnection {
+                includedPageInfo: pageInfo @include(if: $includePageInfo) {
+                    ...PageInfoFragment
+                }
+                skippedPageInfo: pageInfo @skip(if: $skipPageInfo) {
+                    ...PageInfoFragment
+                }
+            }
+
+            fragment PageInfoFragment on PageInfo {
+                hasNextPage
+            }");
+
     [Fact]
     public void StarWarsGetFriendsNoStore() =>
         AssertStarWarsResult(

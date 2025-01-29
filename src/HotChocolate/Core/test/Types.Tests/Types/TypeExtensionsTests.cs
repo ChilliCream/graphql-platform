@@ -104,6 +104,35 @@ public class TypeExtensionsTests
     }
 
     [Fact]
+    public static void NamedType_Of_T()
+    {
+        // arrange
+        var type = new NonNullType(
+            new ListType(
+                new NonNullType(
+                    new StringType())));
+
+        // act
+        var stringType = type.NamedType<StringType>();
+
+        // assert
+        Assert.NotNull(stringType);
+    }
+
+    [Fact]
+    public static void NamedType_Of_T_Is_Not_Of_T()
+    {
+        // arrange
+        var type = new NonNullType(
+            new ListType(
+                new NonNullType(
+                    new StringType())));
+
+        // act & assert
+        Assert.Throws<ArgumentException>(() => type.NamedType<ObjectType>());
+    }
+
+    [Fact]
     public static void NamedType_Type_Is_Null()
     {
         // act

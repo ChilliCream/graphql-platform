@@ -1,23 +1,12 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
-using HotChocolate.Skimmed;
+using HotChocolate.Fusion.PreMergeValidation.Info;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
 
-internal record DirectiveArgumentEvent(
-    InputFieldDefinition Argument,
-    DirectiveDefinition Directive,
-    SchemaDefinition Schema) : IEvent;
-
-internal record DirectiveEvent(
-    DirectiveDefinition Directive,
-    SchemaDefinition Schema) : IEvent;
-
-internal record FieldArgumentEvent(
-    InputFieldDefinition Argument,
-    OutputFieldDefinition Field,
-    INamedTypeDefinition Type,
-    SchemaDefinition Schema) : IEvent;
+internal record EnumTypeGroupEvent(
+    string TypeName,
+    ImmutableArray<EnumTypeInfo> TypeGroup) : IEvent;
 
 internal record FieldArgumentGroupEvent(
     string ArgumentName,
@@ -25,19 +14,19 @@ internal record FieldArgumentGroupEvent(
     string FieldName,
     string TypeName) : IEvent;
 
-internal record OutputFieldEvent(
-    OutputFieldDefinition Field,
-    INamedTypeDefinition Type,
-    SchemaDefinition Schema) : IEvent;
+internal record InputFieldGroupEvent(
+    string FieldName,
+    ImmutableArray<InputFieldInfo> FieldGroup,
+    string TypeName) : IEvent;
+
+internal record InputTypeGroupEvent(
+    string InputTypeName,
+    ImmutableArray<InputTypeInfo> InputTypeGroup) : IEvent;
 
 internal record OutputFieldGroupEvent(
     string FieldName,
     ImmutableArray<OutputFieldInfo> FieldGroup,
     string TypeName) : IEvent;
-
-internal record TypeEvent(
-    INamedTypeDefinition Type,
-    SchemaDefinition Schema) : IEvent;
 
 internal record TypeGroupEvent(
     string TypeName,

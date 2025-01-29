@@ -30,6 +30,12 @@ public partial class ObjectType
                     context.DescriptorContext,
                     GetType());
                 _configure!.Invoke(descriptor);
+
+                if (!descriptor.Definition.NeedsNameCompletion)
+                {
+                    context.DescriptorContext.TypeConfiguration.Apply(descriptor.Definition.Name, descriptor);
+                }
+
                 return descriptor.CreateDefinition();
             }
 
@@ -62,6 +68,42 @@ public partial class ObjectType
             _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
             Fields = OnCompleteFields(context, definition);
             CompleteTypeResolver(context);
+        }
+    }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ObjectTypeDefinition definition)
+    {
+        base.OnCompleteMetadata(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.CompleteMetadata(context, this);
+        }
+    }
+
+    protected override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ObjectTypeDefinition definition)
+    {
+        base.OnMakeExecutable(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.MakeExecutable(context, this);
+        }
+    }
+
+    protected override void OnFinalizeType(
+        ITypeCompletionContext context,
+        ObjectTypeDefinition definition)
+    {
+        base.OnFinalizeType(context, definition);
+
+        foreach (IFieldCompletion field in Fields)
+        {
+            field.Finalize(context, this);
         }
     }
 
