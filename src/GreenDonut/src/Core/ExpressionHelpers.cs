@@ -1,4 +1,3 @@
-#if NET6_0_OR_GREATER
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -240,4 +239,3 @@ internal static class ExpressionHelpers
             => node == toReplace ? replacement : base.VisitParameter(node);
     }
 }
-#endif

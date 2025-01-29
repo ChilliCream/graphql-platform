@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 using HotChocolate.Execution.Processing;
 using HotChocolate.Pagination;
 
@@ -139,3 +140,4 @@ public static class HotChocolateExecutionDataLoaderExtensions
         return dataLoader.Select(expression);
     }
 }
+#endif

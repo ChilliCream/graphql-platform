@@ -29,10 +29,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly IBatchScheduler _batchScheduler;
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
-#if NET6_0_OR_GREATER
     private ImmutableDictionary<string, IDataLoader> _branches =
         ImmutableDictionary<string, IDataLoader>.Empty;
-#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>
@@ -228,7 +226,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 ct);
         }
     }
-    
+
     /// <inheritdoc />
     public void Remove(TKey key)
     {
@@ -263,7 +261,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             Cache.TryAdd(cacheKey, new Promise<TValue?>(value));
         }
     }
-#if NET6_0_OR_GREATER
 
     /// <inheritdoc />
     public IDataLoader Branch<TState>(
@@ -302,7 +299,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         return branch;
     }
-#endif
 
     private void BatchOperationFailed(
         Batch<TKey> batch,

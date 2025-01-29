@@ -72,8 +72,14 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     public string Compute()
     {
+#if NET8_0_OR_GREATER
         var hashBytes = MD5.HashData(_buffer.AsSpan().Slice(0, _start));
         var hashString = Convert.ToHexString(hashBytes).ToLowerInvariant();
+#else
+        var md5 = MD5.Create();
+        var hashBytes = md5.ComputeHash(_buffer, 0, _start);
+        var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+#endif
 
         _buffer.AsSpan().Slice(0, _start).Clear();
 
@@ -281,6 +287,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         _buffer[_start++] = (byte)b;
     }
 
+#if NET8_0_OR_GREATER
     private void Append(string s)
     {
         var span = _buffer.AsSpan().Slice(_start);
@@ -315,6 +322,47 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
         _start += written;
     }
+
+#else
+    private void Append(string s)
+    {
+        byte[]? utf8Bytes = null;
+
+        try
+        {
+            utf8Bytes = Encoding.UTF8.GetBytes(s);
+            EnsureBufferCapacity(utf8Bytes.Length);
+
+            Buffer.BlockCopy(utf8Bytes, 0, _buffer, _start, utf8Bytes.Length);
+            _start += utf8Bytes.Length;
+        }
+        finally
+        {
+            if (utf8Bytes != null)
+            {
+                ArrayPool<byte>.Shared.Return(utf8Bytes);
+            }
+        }
+    }
+
+    private void Append(ReadOnlySpan<char> s)
+    {
+        // Converting ReadOnlySpan<char> to string for .NET Standard 2.0 compatibility
+        var str = new string(s.ToArray());
+        Append(str);
+    }
+
+    private void EnsureBufferCapacity(int requiredCapacity)
+    {
+        while (_buffer.Length - _start < requiredCapacity)
+        {
+            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
+            Buffer.BlockCopy(_buffer, 0, newBuffer, 0, _start);
+            ArrayPool<byte>.Shared.Return(_buffer);
+            _buffer = newBuffer;
+        }
+    }
+#endif
 
     private void Append(byte b)
     {

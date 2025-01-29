@@ -7,4 +7,8 @@
     <Description>This package contains the basic building blocks of the DataLoader linq query integration.</Description>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
+    <PackageReference Include="System.Collections.Immutable" />
+  </ItemGroup>
+
 </Project>

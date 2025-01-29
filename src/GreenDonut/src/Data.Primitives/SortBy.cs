@@ -28,14 +28,14 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     /// <summary>
     /// Gets the field on which the sort operation is applied.
     /// </summary>
-    public Expression<Func<TEntity, TValue>> KeySelector { get; init; }
+    public Expression<Func<TEntity, TValue>> KeySelector { get; }
 
     LambdaExpression ISortBy<TEntity>.KeySelector => KeySelector;
 
     /// <summary>
     /// Gets the sort direction.
     /// </summary>
-    public bool Ascending { get => field; init; }
+    public bool Ascending { get; }
 
     /// <summary>
     /// Applies the sort operation to the queryable.

@@ -9,7 +9,7 @@ namespace GreenDonut.Data;
 /// <typeparam name="T">
 /// The entity type on which the sort operations are applied.
 /// </typeparam>
-public sealed record SortDefinition<T>
+public sealed class SortDefinition<T>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="SortDefinition{T}"/>.
@@ -19,7 +19,7 @@ public sealed record SortDefinition<T>
     /// </param>
     public SortDefinition(params ISortBy<T>[] operations)
     {
-        Operations = [..operations];
+        Operations = ImmutableArray.Create(operations);
     }
 
     /// <summary>
@@ -30,13 +30,13 @@ public sealed record SortDefinition<T>
     /// </param>
     public SortDefinition(IEnumerable<ISortBy<T>> operations)
     {
-        Operations = [..operations];
+        Operations = ImmutableArray.CreateRange(operations);
     }
 
     /// <summary>
     /// The sort operations.
     /// </summary>
-    public ImmutableArray<ISortBy<T>> Operations { get; init; }
+    public ImmutableArray<ISortBy<T>> Operations { get; }
 
     /// <summary>
     /// Deconstructs the sort operations.
