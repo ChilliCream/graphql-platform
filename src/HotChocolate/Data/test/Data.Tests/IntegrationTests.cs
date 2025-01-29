@@ -1196,7 +1196,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         Books = new List<Book>()
                     },
                 }.AsQueryable()
-                .Apply(context);
+                .With(context);
 
         [UseSorting]
         public IQueryable<Author> GetAuthorsData2(QueryContext<Author> context)
@@ -1221,6 +1221,6 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         Books = new List<Book>()
                     }
                 }.AsQueryable()
-                .Apply(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
+                .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
     }
 }

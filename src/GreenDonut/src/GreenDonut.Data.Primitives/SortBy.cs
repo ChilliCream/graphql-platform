@@ -81,8 +81,29 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     }
 }
 
+/// <summary>
+/// Provides factory methods for creating sort operations.
+/// </summary>
+/// <typeparam name="TEntity">
+/// The entity type associated with the sort operation.
+/// </typeparam>
 public static class SortBy<TEntity>
 {
+    /// <summary>
+    /// Creates a sort operation that sorts in ascending order.
+    /// </summary>
+    /// <param name="keySelector">
+    /// The field on which the sort operation is applied.
+    /// </param>
+    /// <typeparam name="TValue">
+    /// The type of the field on which the sort operation is applied.
+    /// </typeparam>
+    /// <returns>
+    /// A sort operation that sorts in ascending order.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="keySelector"/> is <c>null</c>.
+    /// </exception>
     public static SortBy<TEntity, TValue> Ascending<TValue>(
         Expression<Func<TEntity, TValue>> keySelector)
     {
@@ -94,6 +115,21 @@ public static class SortBy<TEntity>
         return new SortBy<TEntity, TValue>(keySelector, true);
     }
 
+    /// <summary>
+    /// Creates a sort operation that sorts in descending order.
+    /// </summary>
+    /// <param name="keySelector">
+    /// The field on which the sort operation is applied.
+    /// </param>
+    /// <typeparam name="TValue">
+    /// The type of the field on which the sort operation is applied.
+    /// </typeparam>
+    /// <returns>
+    /// A sort operation that sorts in descending order.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="keySelector"/> is <c>null</c>.
+    /// </exception>
     public static SortBy<TEntity, TValue> Descending<TValue>(
         Expression<Func<TEntity, TValue>> keySelector)
     {
