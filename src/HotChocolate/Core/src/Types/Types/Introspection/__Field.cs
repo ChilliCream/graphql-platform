@@ -18,11 +18,14 @@ internal sealed class __Field : ObjectType<IOutputField>
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
         var nonNullTypeType = Parse($"{nameof(__Type)}!");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var booleanType = Parse($"{ScalarNames.Boolean}");
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+
+        var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
 
         var def = new ObjectTypeDefinition(
             Names.__Field,
@@ -33,7 +36,12 @@ internal sealed class __Field : ObjectType<IOutputField>
             {
                 new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
                 new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments)
+                new(
+                    Names.Args,
+                    type: argumentListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.ArgumentsWithOptIn
+                        : Resolvers.Arguments)
                 {
                     Arguments =
                     {
@@ -61,6 +69,17 @@ internal sealed class __Field : ObjectType<IOutputField>
                 pureResolver: Resolvers.AppliedDirectives));
         }
 
+        if (optInFeaturesEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.Args)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Add(new(Names.RequiresOptIn,
+                type: nonNullStringListType,
+                pureResolver: Resolvers.RequiresOptIn));
+        }
+
         return def;
     }
 
@@ -72,7 +91,21 @@ internal sealed class __Field : ObjectType<IOutputField>
         public static string? Description(IResolverContext context)
             => context.Parent<IOutputField>().Description;
 
-        public static object Arguments(IResolverContext context)
+        public static object ArgumentsWithOptIn(IResolverContext context)
+        {
+            var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+            // If an argument requires opting into features "f1" and "f2", then `includeOptIn`
+            // must list at least one of the features in order for the argument to be included.
+            return Arguments(context).Where(
+                a => a
+                    .Directives
+                    .Where(d => d.Type is RequiresOptInDirectiveType)
+                    .Select(d => d.AsValue<RequiresOptInDirective>().Feature)
+                    .Any(feature => includeOptIn.Contains(feature)));
+        }
+
+        public static IEnumerable<IInputField> Arguments(IResolverContext context)
         {
             var field = context.Parent<IOutputField>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
@@ -94,6 +127,12 @@ internal sealed class __Field : ObjectType<IOutputField>
                 .Directives
                 .Where(t => t.Type.IsPublic)
                 .Select(d => d.AsSyntaxNode());
+
+        public static object RequiresOptIn(IResolverContext context) =>
+            context.Parent<IOutputField>()
+                .Directives
+                .Where(t => t.Type is RequiresOptInDirectiveType)
+                .Select(d => d.AsValue<RequiresOptInDirective>().Feature);
     }
 
     public static class Names
@@ -108,6 +147,8 @@ internal sealed class __Field : ObjectType<IOutputField>
         public const string IncludeDeprecated = "includeDeprecated";
         public const string DeprecationReason = "deprecationReason";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string RequiresOptIn = "requiresOptIn";
+        public const string IncludeOptIn = "includeOptIn";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles
