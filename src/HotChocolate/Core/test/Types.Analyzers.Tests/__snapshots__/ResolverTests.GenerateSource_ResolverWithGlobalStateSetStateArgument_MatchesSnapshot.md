@@ -31,7 +31,6 @@ namespace TestNamespace
                 {
                     if (!_bindingsInitialized)
                     {
-
                         const global::System.Reflection.BindingFlags bindingFlags =
                             global::System.Reflection.BindingFlags.Public
                                 | global::System.Reflection.BindingFlags.NonPublic

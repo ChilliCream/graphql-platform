@@ -31,7 +31,6 @@ namespace TestNamespace
                 {
                     if (!_bindingsInitialized)
                     {
-
                         const global::System.Reflection.BindingFlags bindingFlags =
                             global::System.Reflection.BindingFlags.Public
                                 | global::System.Reflection.BindingFlags.NonPublic
@@ -68,10 +67,10 @@ namespace TestNamespace
         private static global::System.Object? Query_GetTest_Resolver(global::HotChocolate.Resolvers.IResolverContext context)
         {
             var args0_selection = context.Selection;
-            var args0_filter = context.GetFilterContext();
-            var args0_sorting = context.GetSortingContext();
+            var args0_filter = HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
+            var args0_sorting = HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetSortingContext(context);
             var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Foo>(
-                args0_selection.AsSelector<global::TestNamespace.Foo>(),
+                HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Foo>(args0_selection),
                 args0_filter?.AsPredicate<global::TestNamespace.Foo>(),
                 args0_sorting?.AsSortDefinition<global::TestNamespace.Foo>());
             var result = global::TestNamespace.Query.GetTest(args0);
