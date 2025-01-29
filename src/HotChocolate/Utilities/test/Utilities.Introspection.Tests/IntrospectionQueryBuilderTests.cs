@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language.Utilities;
 using Xunit;
 

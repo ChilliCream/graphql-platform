@@ -92,7 +92,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
     /// <inheritdoc />
     public IEnumerator<Directive> GetEnumerator()
-        => ((IEnumerable<Directive>)_directives).GetEnumerator();
+        => _directives.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

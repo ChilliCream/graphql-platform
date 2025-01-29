@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -34,11 +35,7 @@ internal sealed class OperationSession : IOperationSession
     public bool IsCompleted { get; private set; }
 
     public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
-        => Task.Factory.StartNew(
-            () => SendResultsAsync(request, cancellationToken),
-            default,
-            TaskCreationOptions.None,
-            TaskScheduler.Default);
+        => SendResultsAsync(request, cancellationToken).FireAndForget();
 
     private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
@@ -74,7 +71,8 @@ internal sealed class OperationSession : IOperationSession
                     {
                         try
                         {
-                            await SendResultMessageAsync(item, ct);
+                            // use original cancellation token here to keep the websocket open for other streams.
+                            await SendResultMessageAsync(item, cancellationToken);
                         }
                         finally
                         {

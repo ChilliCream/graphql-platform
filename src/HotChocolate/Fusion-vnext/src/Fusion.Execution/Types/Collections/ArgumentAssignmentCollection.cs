@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
@@ -157,13 +158,13 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
 
     public IReadOnlyList<ArgumentNode> ToSyntaxNodes()
     {
-        var nodes = new List<ArgumentNode>();
+        var nodes = ImmutableArray.CreateBuilder<ArgumentNode>(arguments.Count);
 
         foreach (var argument in arguments)
         {
-            nodes.Add(new ArgumentNode(argument.Name, argument.Value));
+            nodes.Add(argument.ToSyntaxNode());
         }
 
-        return nodes;
+        return nodes.ToImmutableArray();
     }
 }

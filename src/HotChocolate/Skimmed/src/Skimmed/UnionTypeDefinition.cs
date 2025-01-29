@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
@@ -107,6 +108,13 @@ public class UnionTypeDefinition(string name)
     /// </returns>
     public override string ToString()
         => RewriteUnionType(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="UnionTypeDefinitionNode"/> from a <see cref="UnionTypeDefinition"/>.
+    /// </summary>
+    public UnionTypeDefinitionNode ToSyntaxNode() => RewriteUnionType(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteUnionType(this);
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other)

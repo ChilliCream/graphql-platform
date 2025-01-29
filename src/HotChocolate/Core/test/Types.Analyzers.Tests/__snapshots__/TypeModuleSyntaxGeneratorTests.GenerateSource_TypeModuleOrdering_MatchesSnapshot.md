@@ -140,6 +140,7 @@ namespace TestNamespace
 {
     internal static class ATestBAttrTypeResolvers
     {
+        private static readonly object _sync = new object();
         private static bool _bindingsInitialized;
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
@@ -148,6 +149,7 @@ namespace TestNamespace
 
     internal static class ATestAAttrTypeResolvers
     {
+        private static readonly object _sync = new object();
         private static bool _bindingsInitialized;
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
@@ -178,8 +180,12 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
-            AddObjectTypeExtension_8734371<global::TestNamespace.ATestAAttr>(builder, global::TestNamespace.ATestAAttrType.Initialize);
-            AddObjectTypeExtension_8734371<global::TestNamespace.ATestBAttr>(builder, global::TestNamespace.ATestBAttrType.Initialize);
+            builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.ATestAAttr>(
+                "Tests::TestNamespace.ATestAAttrType",
+                () => global::TestNamespace.ATestAAttrType.Initialize));
+            builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.ATestBAttr>(
+                "Tests::TestNamespace.ATestBAttrType",
+                () => global::TestNamespace.ATestBAttrType.Initialize));
             builder.AddTypeExtension<global::TestNamespace.ATestAExtAttrType>();
             builder.AddTypeExtension<global::TestNamespace.ATestAExtType>();
             builder.AddType<global::TestNamespace.ATestAType>();
@@ -190,41 +196,9 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddDataLoader<global::TestNamespace.IObjectByIdBDataLoader, global::TestNamespace.ObjectByIdBDataLoader>();
             builder.AddDataLoader<global::TestNamespace.TestADataLoader>();
             builder.AddDataLoader<global::TestNamespace.TestBDataLoader>();
+            builder.AddType<ObjectType<global::TestNamespace.ATestAAttr>>();
+            builder.AddType<ObjectType<global::TestNamespace.ATestBAttr>>();
             return builder;
-        }
-
-        private static void AddObjectTypeExtension_8734371<T>(
-            global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder,
-            Action<IObjectTypeDescriptor<T>> initialize)
-        {
-            builder.ConfigureSchema(sb =>
-            {
-                string typeName = typeof(T).FullName!;
-                string typeKey = $"8734371_Type_ObjectType<{typeName}>";
-                string hooksKey = $"8734371_Hooks_ObjectType<{typeName}>";
-
-                if (!sb.ContextData.ContainsKey(typeKey))
-                {
-                    sb.AddObjectType<T>(
-                        descriptor =>
-                        {
-                            var hooks = (global::System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)descriptor.Extend().Context.ContextData[hooksKey]!;
-                            foreach (var configure in hooks)
-                            {
-                                configure(descriptor);
-                            };
-                        });
-                    sb.ContextData.Add(typeKey, null);
-                }
-
-                if (!sb.ContextData.TryGetValue(hooksKey, out var value))
-                {
-                    value = new System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>();
-                    sb.ContextData.Add(hooksKey, value);
-                }
-
-                ((System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)value!).Add(initialize);
-            });
         }
     }
 }

@@ -1,3 +1,4 @@
+using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 

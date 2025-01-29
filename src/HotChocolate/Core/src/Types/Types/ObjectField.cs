@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -109,12 +110,12 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     /// </summary>
     public Expression? ResolverExpression { get; }
 
-    protected override void OnCompleteField(
+    protected override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         OutputFieldDefinitionBase definition)
     {
-        base.OnCompleteField(context, declaringMember, definition);
+        base.OnMakeExecutable(context, declaringMember, definition);
         CompleteResolver(context, (ObjectFieldDefinition)definition);
     }
 
@@ -218,8 +219,6 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
                     GetResultType(definition, RuntimeType));
         }
 
-        return;
-
         bool IsPureContext()
         {
             return skipMiddleware || (context.GlobalComponents.Count == 0 && fieldMiddlewareDefinitions.Count == 0);
@@ -240,6 +239,8 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 
 file static class ResolverHelpers
 {
+    private static readonly ConcurrentDictionary<Type, MethodInfo> _methodCache = new();
+
     private static readonly MethodInfo _createListPostProcessor =
         typeof(ResolverHelpers).GetMethod(
             nameof(CreateListPostProcessor),
@@ -252,12 +253,15 @@ file static class ResolverHelpers
         if (extendedType.IsArrayOrList)
         {
             var elementType = extendedType.ElementType!.Type;
-            var generic = _createListPostProcessor.MakeGenericMethod(elementType);
+            var generic = GetFactoryMethod(elementType);
             return (IResolverResultPostProcessor?)generic.Invoke(null, []);
         }
 
         return null;
     }
+
+    private static MethodInfo GetFactoryMethod(Type elementType)
+        => _methodCache.GetOrAdd(elementType, static type => _createListPostProcessor.MakeGenericMethod(type));
 
     private static IResolverResultPostProcessor CreateListPostProcessor<T>()
         => new ListPostProcessor<T>();

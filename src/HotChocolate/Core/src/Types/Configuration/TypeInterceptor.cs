@@ -74,6 +74,9 @@ public abstract class TypeInterceptor
     /// </summary>
     public virtual void OnAfterDiscoverTypes() { }
 
+    internal virtual bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+        => false;
+
     /// <summary>
     /// This event is triggered after the type instance was created but before
     /// any type definition was initialized.
@@ -223,6 +226,9 @@ public abstract class TypeInterceptor
     {
     }
 
+    /// <summary>
+    /// This event is called after the type name is assigned.
+    /// </summary>
     public virtual void OnTypesCompletedName() { }
 
     /// <summary>
@@ -255,6 +261,11 @@ public abstract class TypeInterceptor
     /// This method is called before the types are completed.
     /// </summary>
     public virtual void OnBeforeCompleteTypes() { }
+
+    /// <summary>
+    /// This method is called after the types are completed.
+    /// </summary>
+    public virtual void OnTypesCompleted() { }
 
     /// <summary>
     /// This method is called after the types are completed.
@@ -292,6 +303,86 @@ public abstract class TypeInterceptor
     }
 
     /// <summary>
+    /// This method is called before the metadata of all types are completed.
+    /// </summary>
+    public virtual void OnBeforeCompleteMetadata() { }
+
+    /// <summary>
+    /// This method is called after the metadata of all types are completed.
+    /// </summary>
+    public virtual void OnAfterCompleteMetadata() { }
+
+    /// <summary>
+    /// This event is called before the metadata of the type system member is fully completed.
+    /// </summary>
+    /// <param name="context">
+    /// The type completion context.
+    /// </param>
+    /// <param name="definition">
+    /// The type definition of the type system member.
+    /// </param>
+    public virtual void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    /// <summary>
+    /// This event is called after the metadata of the type system member was fully completed.
+    /// </summary>
+    /// <param name="context">
+    /// The type completion context.
+    /// </param>
+    /// <param name="definition">
+    /// The type definition of the type system member.
+    /// </param>
+    public virtual void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    /// <summary>
+    /// This method is called before the types are made executable.
+    /// </summary>
+    public virtual void OnBeforeMakeExecutable() { }
+
+    /// <summary>
+    /// This method is called after the types are made executable.
+    /// </summary>
+    public virtual void OnAfterMakeExecutable() { }
+
+    /// <summary>
+    /// This event is called before the type system member is made executable.
+    /// </summary>
+    /// <param name="context">
+    /// The type completion context.
+    /// </param>
+    /// <param name="definition">
+    /// The type definition of the type system member.
+    /// </param>
+    public virtual void OnBeforeMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    /// <summary>
+    /// This event is called after the type system member is made executable.
+    /// </summary>
+    /// <param name="context">
+    /// The type completion context.
+    /// </param>
+    /// <param name="definition">
+    /// The type definition of the type system member.
+    /// </param>
+    public virtual void OnAfterMakeExecutable(
+        ITypeCompletionContext context,
+        DefinitionBase definition)
+    {
+    }
+
+    /// <summary>
     /// This event is called after the type system member is fully completed and is
     /// intended to add validation logic. If the type is not valid throw a
     /// <see cref="SchemaException"/>.
@@ -307,8 +398,6 @@ public abstract class TypeInterceptor
         DefinitionBase definition)
     {
     }
-
-    public virtual void OnTypesCompleted() { }
 
     // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>

@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
@@ -120,6 +121,13 @@ public class EnumTypeDefinition(string name)
     /// </returns>
     public override string ToString()
         => RewriteEnumType(this).ToString(true);
+
+    /// <summary>
+    /// Creates an <see cref="EnumTypeDefinitionNode"/> from an <see cref="EnumTypeDefinition"/>.
+    /// </summary>
+    public EnumTypeDefinitionNode ToSyntaxNode() => RewriteEnumType(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteEnumType(this);
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other) => Equals(other, TypeComparison.Reference);

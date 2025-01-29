@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - main-version-*
 
 concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
@@ -69,8 +70,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "yarn"
-          cache-dependency-path: "website/yarn.lock"
 
       - name: Install cspell
         run: npm install -g cspell
@@ -149,9 +148,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.x
-            9.x
+          dotnet-version: 9.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix

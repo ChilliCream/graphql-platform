@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
-using HotChocolate.Pagination.Expressions;
+using GreenDonut.Data.Cursors;
+using GreenDonut.Data.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
@@ -45,13 +46,13 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, forward));
+            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, true));
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, forward));
+            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, false));
         }
 
         if (arguments.First is not null)

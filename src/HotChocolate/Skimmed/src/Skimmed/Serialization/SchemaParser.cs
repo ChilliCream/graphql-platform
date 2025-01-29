@@ -22,8 +22,7 @@ public static class SchemaParser
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
 
-        DiscoverDirectives(schema, document);
-        DiscoverTypes(schema, document);
+        DiscoverTypesAndDirectives(schema, document);
         DiscoverExtensions(schema, document);
 
         BuildTypes(schema, document);
@@ -32,40 +31,12 @@ public static class SchemaParser
         BuildAndExtendSchema(schema, document);
     }
 
-    private static void DiscoverDirectives(SchemaDefinition schema, DocumentNode document)
-    {
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is DirectiveDefinitionNode def)
-            {
-                if (BuiltIns.IsBuiltInDirective(def.Name.Value))
-                {
-                    // If a built-in directive is redefined in the schema, we just ignore it.
-                    continue;
-                }
-
-                if (schema.DirectiveDefinitions.ContainsName(def.Name.Value))
-                {
-                    // TODO : parsing error
-                    throw new Exception("duplicate");
-                }
-
-                schema.DirectiveDefinitions.Add(new DirectiveDefinition(def.Name.Value));
-            }
-        }
-    }
-
-    private static void DiscoverTypes(SchemaDefinition schema, DocumentNode document)
+    private static void DiscoverTypesAndDirectives(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
             if (definition is ITypeDefinitionNode typeDef)
             {
-                if (BuiltIns.IsBuiltInScalar(typeDef.Name.Value))
-                {
-                    continue;
-                }
-
                 if (schema.Types.ContainsName(typeDef.Name.Value))
                 {
                     // TODO : parsing error
@@ -91,7 +62,11 @@ public static class SchemaParser
                         break;
 
                     case ScalarTypeDefinitionNode:
-                        schema.Types.Add(new ScalarTypeDefinition(typeDef.Name.Value));
+                        schema.Types.Add(
+                            new ScalarTypeDefinition(typeDef.Name.Value)
+                            {
+                                IsSpecScalar = BuiltIns.IsBuiltInScalar(typeDef.Name.Value)
+                            });
                         break;
 
                     case UnionTypeDefinitionNode:
@@ -102,6 +77,21 @@ public static class SchemaParser
                         // TODO : parsing error
                         throw new ArgumentOutOfRangeException(nameof(definition));
                 }
+            }
+
+            if (definition is DirectiveDefinitionNode directiveDef)
+            {
+                if (schema.DirectiveDefinitions.ContainsName(directiveDef.Name.Value))
+                {
+                    // TODO : parsing error
+                    throw new Exception("duplicate");
+                }
+
+                schema.DirectiveDefinitions.Add(
+                    new DirectiveDefinition(directiveDef.Name.Value)
+                    {
+                        IsSpecDirective = BuiltIns.IsBuiltInDirective(directiveDef.Name.Value)
+                    });
             }
         }
     }
@@ -196,11 +186,6 @@ public static class SchemaParser
                         break;
 
                     case ScalarTypeDefinitionNode typeDef:
-                        if (BuiltIns.IsBuiltInScalar(typeDef.Name.Value))
-                        {
-                            continue;
-                        }
-
                         BuildScalarType(
                             schema,
                             (ScalarTypeDefinition)schema.Types[typeDef.Name.Value],
@@ -442,6 +427,7 @@ public static class SchemaParser
             var field = new InputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.DefaultValue = fieldNode.DefaultValue;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -545,11 +531,6 @@ public static class SchemaParser
         {
             if (definition is DirectiveDefinitionNode directiveDef)
             {
-                if (BuiltIns.IsBuiltInDirective(directiveDef.Name.Value))
-                {
-                    continue;
-                }
-
                 BuildDirectiveType(
                     schema,
                     schema.DirectiveDefinitions[directiveDef.Name.Value],

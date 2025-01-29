@@ -45,12 +45,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string NameUtils_InvalidGraphQLName {
-            get {
-                return ResourceManager.GetString("NameUtils_InvalidGraphQLName", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName {
             get {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName", resourceCulture);
@@ -60,6 +54,18 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate {
             get {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
+            }
+        }
+        
+        internal static string DirectiveTypeFactory_LocationNotSupported {
+            get {
+                return ResourceManager.GetString("DirectiveTypeFactory_LocationNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string NameUtils_EnsureGraphQLName_InvalidName {
+            get {
+                return ResourceManager.GetString("NameUtils_EnsureGraphQLName_InvalidName", resourceCulture);
             }
         }
     }

@@ -10,15 +10,21 @@ public static class SchemaFormatter
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0,
+            MaxDirectivesPerLine = 0
         };
 
-    public static string FormatAsString(SchemaDefinition schema, bool indented = true)
+    public static string FormatAsString(SchemaDefinition schema, SchemaFormatterOptions options = default)
     {
-        var context = new VisitorContext();
+        var context = new VisitorContext
+        {
+            Schema = schema,
+            OrderByName = options.OrderByName ?? true,
+            PrintSpecScalars = options.PrintSpecScalars ?? false,
+            PrintSpecDirectives = options.PrintSpecDirectives ?? false
+        };
         _visitor.VisitSchema(schema, context);
 
-        if (!indented)
+        if (!options.Indented ?? true)
         {
             ((DocumentNode)context.Result!).ToString(false);
         }
@@ -26,9 +32,15 @@ public static class SchemaFormatter
         return ((DocumentNode)context.Result!).ToString(_options);
     }
 
-    public static DocumentNode FormatAsDocument(SchemaDefinition schema)
+    public static DocumentNode FormatAsDocument(SchemaDefinition schema, SchemaFormatterOptions options = default)
     {
-        var context = new VisitorContext();
+        var context = new VisitorContext
+        {
+            Schema = schema,
+            OrderByName = options.OrderByName ?? true,
+            PrintSpecScalars = options.PrintSpecScalars ?? false,
+            PrintSpecDirectives = options.PrintSpecDirectives ?? false
+        };
         _visitor.VisitSchema(schema, context);
         return (DocumentNode)context.Result!;
     }
@@ -37,9 +49,12 @@ public static class SchemaFormatter
     {
         public override void VisitSchema(SchemaDefinition schema, VisitorContext context)
         {
-            var definitions = new List<IDefinitionNode>();
+            if (!ReferenceEquals(context.Schema, schema))
+            {
+                throw new InvalidOperationException("The schema must be the same as the schema on the context.");
+            }
 
-            context.Schema = schema;
+            var definitions = new List<IDefinitionNode>();
 
             if (schema.QueryType is not null ||
                 schema.MutationType is not null ||
@@ -84,32 +99,76 @@ public static class SchemaFormatter
                 definitions.Add(schemaDefinition);
             }
 
-            VisitTypes(schema.Types, context);
-            definitions.AddRange((List<IDefinitionNode>)context.Result!);
+            if (context.OrderByName)
+            {
+                VisitTypes(schema.Types, context);
+                definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
-            VisitDirectiveTypes(schema.DirectiveDefinitions, context);
-            definitions.AddRange((List<IDefinitionNode>)context.Result!);
+                VisitDirectiveDefinitions(schema.DirectiveDefinitions, context);
+                definitions.AddRange((List<IDefinitionNode>)context.Result!);
+            }
+            else
+            {
+                VisitTypesAndDirectives(schema, context);
+                definitions.AddRange((List<IDefinitionNode>)context.Result!);
+            }
 
             context.Result = new DocumentNode(definitions);
+        }
+
+        private void VisitTypesAndDirectives(SchemaDefinition schema, VisitorContext context)
+        {
+            var definitionNodes = new List<IDefinitionNode>();
+
+            foreach (var definition in schema.GetAllDefinitions())
+            {
+                if (definition is DirectiveDefinition directiveDefinition)
+                {
+                    if (!context.PrintSpecDirectives
+                        && BuiltIns.IsBuiltInDirective(directiveDefinition.Name))
+                    {
+                        continue;
+                    }
+
+                    VisitDirectiveDefinition(directiveDefinition, context);
+                    definitionNodes.Add((IDefinitionNode)context.Result!);
+                }
+
+                if (definition is INamedTypeDefinition namedTypeDefinition)
+                {
+                    if (!context.PrintSpecScalars
+                        && namedTypeDefinition is ScalarTypeDefinition scalarType
+                        && (scalarType is { IsSpecScalar: true }
+                            || BuiltIns.IsBuiltInScalar(scalarType.Name)))
+                    {
+                        continue;
+                    }
+
+                    VisitType(namedTypeDefinition, context);
+                    definitionNodes.Add((IDefinitionNode)context.Result!);
+                }
+            }
+
+            context.Result = definitionNodes;
         }
 
         public override void VisitTypes(ITypeDefinitionCollection typesDefinition, VisitorContext context)
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            if (context.Schema?.QueryType is not null)
+            if (context.Schema.QueryType is not null)
             {
                 VisitType(context.Schema.QueryType, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            if (context.Schema?.MutationType is not null)
+            if (context.Schema.MutationType is not null)
             {
                 VisitType(context.Schema.MutationType, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            if (context.Schema?.SubscriptionType is not null)
+            if (context.Schema.SubscriptionType is not null)
             {
                 VisitType(context.Schema.SubscriptionType, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -154,9 +213,10 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition.OfType<ScalarTypeDefinition>().OrderBy(t => t.Name))
             {
-                if (type is { IsSpecScalar: true, } || BuiltIns.IsBuiltInScalar(type.Name))
+                if (!context.PrintSpecScalars
+                    && (type is { IsSpecScalar: true }
+                        || BuiltIns.IsBuiltInScalar(type.Name)))
                 {
-                    type.IsSpecScalar = true;
                     continue;
                 }
 
@@ -167,20 +227,20 @@ public static class SchemaFormatter
             context.Result = definitionNodes;
         }
 
-        public override void VisitDirectiveTypes(
+        public override void VisitDirectiveDefinitions(
             IDirectiveDefinitionCollection directiveTypes,
             VisitorContext context)
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            foreach (var type in directiveTypes.OrderBy(t => t.Name))
+            foreach (var type in directiveTypes.OrderBy(t => t.Name, context.OrderByName))
             {
                 if (BuiltIns.IsBuiltInDirective(type.Name))
                 {
                     continue;
                 }
 
-                VisitDirectiveType(type, context);
+                VisitDirectiveDefinition(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
@@ -305,7 +365,7 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<EnumValueDefinitionNode>();
 
-            foreach (var value in values.OrderBy(t => t.Name))
+            foreach (var value in values.OrderBy(t => t.Name, context.OrderByName))
             {
                 VisitEnumValue(value, context);
                 definitionNodes.Add((EnumValueDefinitionNode)context.Result!);
@@ -348,7 +408,7 @@ public static class SchemaFormatter
                         type.Types.Select(t => new NamedTypeNode(t.Name)).ToList());
         }
 
-        public override void VisitDirectiveType(
+        public override void VisitDirectiveDefinition(
             DirectiveDefinition directive,
             VisitorContext context)
         {
@@ -371,7 +431,7 @@ public static class SchemaFormatter
         {
             var fieldNodes = new List<FieldDefinitionNode>();
 
-            foreach (var field in fields.OrderBy(t => t.Name))
+            foreach (var field in fields.OrderBy(t => t.Name, context.OrderByName))
             {
                 VisitOutputField(field, context);
                 fieldNodes.Add((FieldDefinitionNode)context.Result!);
@@ -405,7 +465,7 @@ public static class SchemaFormatter
         {
             var inputNodes = new List<InputValueDefinitionNode>();
 
-            foreach (var field in fields.OrderBy(t => t.Name))
+            foreach (var field in fields.OrderBy(t => t.Name, context.OrderByName))
             {
                 VisitInputField(field, context);
                 inputNodes.Add((InputValueDefinitionNode)context.Result!);
@@ -482,7 +542,7 @@ public static class SchemaFormatter
 
                 if (directives.Count == 0)
                 {
-                    directives = [deprecateDirective,];
+                    directives = [deprecateDirective];
                 }
                 else
                 {
@@ -525,9 +585,15 @@ public static class SchemaFormatter
         }
     }
 
-    private sealed class VisitorContext
+    private sealed record VisitorContext
     {
-        public SchemaDefinition? Schema { get; set; }
+        public required SchemaDefinition Schema { get; init; }
+
+        public required bool OrderByName { get; init; }
+
+        public required bool PrintSpecScalars { get; init; }
+
+        public required bool PrintSpecDirectives { get; init; }
 
         public object? Result { get; set; }
     }

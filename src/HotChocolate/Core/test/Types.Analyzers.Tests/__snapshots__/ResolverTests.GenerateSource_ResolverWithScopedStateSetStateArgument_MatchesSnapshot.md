@@ -19,35 +19,41 @@ namespace TestNamespace
 {
     internal static class TestTypeResolvers
     {
+        private static readonly object _sync = new object();
         private static bool _bindingsInitialized;
         private readonly static global::HotChocolate.Internal.IParameterBinding[] _args_TestType_GetTest = new global::HotChocolate.Internal.IParameterBinding[1];
 
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
-            if (_bindingsInitialized)
+            if (!_bindingsInitialized)
             {
-                return;
-            }
-            _bindingsInitialized = true;
-
-            const global::System.Reflection.BindingFlags bindingFlags =
-                global::System.Reflection.BindingFlags.Public
-                    | global::System.Reflection.BindingFlags.NonPublic
-                    | global::System.Reflection.BindingFlags.Static;
-
-            var type = typeof(global::TestNamespace.TestType);
-            global::System.Reflection.MethodInfo resolver = default!;
-            global::System.Reflection.ParameterInfo[] parameters = default!;
-
-            resolver = type.GetMethod(
-                "GetTest",
-                bindingFlags,
-                new global::System.Type[]
+                lock (_sync)
                 {
-                    typeof(global::HotChocolate.SetState<int>)
-                })!;
-            parameters = resolver.GetParameters();
-            _args_TestType_GetTest[0] = bindingResolver.GetBinding(parameters[0]);
+                    if (!_bindingsInitialized)
+                    {
+
+                        const global::System.Reflection.BindingFlags bindingFlags =
+                            global::System.Reflection.BindingFlags.Public
+                                | global::System.Reflection.BindingFlags.NonPublic
+                                | global::System.Reflection.BindingFlags.Static;
+
+                        var type = typeof(global::TestNamespace.TestType);
+                        global::System.Reflection.MethodInfo resolver = default!;
+                        global::System.Reflection.ParameterInfo[] parameters = default!;
+                        _bindingsInitialized = true;
+
+                        resolver = type.GetMethod(
+                            "GetTest",
+                            bindingFlags,
+                            new global::System.Type[]
+                            {
+                                typeof(global::HotChocolate.SetState<int>)
+                            })!;
+                        parameters = resolver.GetParameters();
+                        _args_TestType_GetTest[0] = bindingResolver.GetBinding(parameters[0]);
+                    }
+                }
+            }
         }
 
         public static HotChocolate.Resolvers.FieldResolverDelegates TestType_GetTest()
@@ -91,42 +97,11 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
-            AddObjectTypeExtension_8734371<global::TestNamespace.Test>(builder, global::TestNamespace.TestType.Initialize);
+            builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.Test>(
+                "Tests::TestNamespace.TestType",
+                () => global::TestNamespace.TestType.Initialize));
+            builder.AddType<ObjectType<global::TestNamespace.Test>>();
             return builder;
-        }
-
-        private static void AddObjectTypeExtension_8734371<T>(
-            global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder,
-            Action<IObjectTypeDescriptor<T>> initialize)
-        {
-            builder.ConfigureSchema(sb =>
-            {
-                string typeName = typeof(T).FullName!;
-                string typeKey = $"8734371_Type_ObjectType<{typeName}>";
-                string hooksKey = $"8734371_Hooks_ObjectType<{typeName}>";
-
-                if (!sb.ContextData.ContainsKey(typeKey))
-                {
-                    sb.AddObjectType<T>(
-                        descriptor =>
-                        {
-                            var hooks = (global::System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)descriptor.Extend().Context.ContextData[hooksKey]!;
-                            foreach (var configure in hooks)
-                            {
-                                configure(descriptor);
-                            };
-                        });
-                    sb.ContextData.Add(typeKey, null);
-                }
-
-                if (!sb.ContextData.TryGetValue(hooksKey, out var value))
-                {
-                    value = new System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>();
-                    sb.ContextData.Add(hooksKey, value);
-                }
-
-                ((System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)value!).Add(initialize);
-            });
         }
     }
 }

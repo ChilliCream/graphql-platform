@@ -5,9 +5,9 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
-using CookieCrumble;
 using GreenDonut;
-using HotChocolate.Pagination;
+using GreenDonut.Data;
+using HotChocolate.Data.Filters;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -23,7 +23,7 @@ internal static partial class TestHelper
         return GetGeneratedSourceSnapshot([sourceText]);
     }
 
-    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts)
+    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts, string? assemblyName = "Tests")
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -39,16 +39,21 @@ internal static partial class TestHelper
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
 
-            // HotChocolate.Pagination.Primitives
-            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
-
             // GreenDonut
-            MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
+
+            // GreenDonut.Data
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
+
+            // HotChocolate.Data
+            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location)
         ];
 
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
-            assemblyName: "Tests",
+            assemblyName: assemblyName,
             syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
             references);
 

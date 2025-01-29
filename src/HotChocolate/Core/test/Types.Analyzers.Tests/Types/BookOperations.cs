@@ -1,3 +1,6 @@
+using HotChocolate.Execution.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace HotChocolate.Types;
 
 public static class BookOperations

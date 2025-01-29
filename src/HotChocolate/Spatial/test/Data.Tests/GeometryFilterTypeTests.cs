@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters.Spatial;
 using HotChocolate.Data.Filters.Spatial.Tests;
 using HotChocolate.Types;

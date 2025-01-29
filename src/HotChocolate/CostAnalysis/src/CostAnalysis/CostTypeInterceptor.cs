@@ -32,15 +32,16 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     internal override uint Position => int.MaxValue;
 
+    internal override bool IsEnabled(IDescriptorContext context)
+        => context.Services.GetRequiredService<CostOptions>().ApplyCostDefaults;
+
     internal override void InitializeContext(
         IDescriptorContext context,
         TypeInitializer typeInitializer,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
-    {
-        _options = context.Services.GetRequiredService<CostOptions>();
-    }
+        => _options = context.Services.GetRequiredService<CostOptions>();
 
     public override void OnAfterCompleteName(ITypeCompletionContext completionContext, DefinitionBase definition)
     {
@@ -79,12 +80,19 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                         slicingArgs.Length > 0
                             && (options.RequirePagingBoundaries ?? false);
 
+                    int? slicingArgumentDefaultValue = null;
+                    if (_options.ApplySlicingArgumentDefaultValue)
+                    {
+                        slicingArgumentDefaultValue = options.DefaultPageSize ?? DefaultPageSize;
+                    }
+
                     fieldDef.AddDirective(
                         new ListSizeDirective(
                             assumedSize,
                             slicingArgs,
                             sizeFields,
-                            requirePagingBoundaries),
+                            requirePagingBoundaries,
+                            slicingArgumentDefaultValue),
                         completionContext.DescriptorContext.TypeInspector);
                 }
 
@@ -161,6 +169,13 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
             }
         }
     }
+}
+
+internal sealed class CostDirectiveTypeInterceptor : TypeInterceptor
+{
+    internal override bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+        => node.Name.Value.Equals("cost", StringComparison.Ordinal)
+            || node.Name.Value.Equals("listSize", StringComparison.Ordinal);
 }
 
 file static class Extensions

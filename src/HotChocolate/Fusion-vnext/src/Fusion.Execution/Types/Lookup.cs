@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -7,12 +8,10 @@ public sealed class Lookup
     public Lookup(
         string schemaName,
         string name,
-        LookupKind kind,
         ImmutableArray<LookupArgument> arguments,
         ImmutableArray<FieldPath> fields)
     {
         SchemaName = schemaName;
-        Kind = kind;
         Arguments = arguments;
         Fields = fields;
         Name = name;
@@ -28,8 +27,6 @@ public sealed class Lookup
     /// </summary>
     public string Name { get; }
 
-    public LookupKind Kind { get; }
-
     /// <summary>
     /// Gets the arguments that represent field requirements.
     /// </summary>
@@ -39,4 +36,9 @@ public sealed class Lookup
     /// Gets the paths to the field that are required.
     /// </summary>
     public ImmutableArray<FieldPath> Fields { get; }
+
+    /// <summary>
+    /// Gets the complexity score of fulfilling the requirements.
+    /// </summary>
+    public int RequirementsCost { get; set; }
 }

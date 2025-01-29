@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>GreenDonut.Data.Primitives</PackageId>
+    <AssemblyName>GreenDonut.Data.Primitives</AssemblyName>
+    <RootNamespace>GreenDonut.Data</RootNamespace>
+    <Description>This package contains the basic building blocks of the DataLoader linq query integration.</Description>
+  </PropertyGroup>
+
+</Project>

@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
@@ -30,6 +31,9 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="graphName">
     /// The name of the fusion graph.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// If set to <c>true</c> the default security policy is disabled.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
@@ -38,7 +42,8 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </exception>
     public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        string? graphName = null)
+        string? graphName = null,
+        bool disableDefaultSecurity = false)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -53,11 +58,12 @@ public static class FusionRequestExecutorBuilderExtensions
                 sp.GetRequiredService<IWebSocketConnectionFactory>()));
 
         var builder = services
-            .AddGraphQLServer(graphName, disableDefaultSecurity: true)
+            .AddGraphQLServer(graphName, disableDefaultSecurity: disableDefaultSecurity)
             .UseField(next => next)
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
             .AddConvention<INamingConventions>(_ => new DefaultNamingConventions())
+            .ModifyCostOptions(o => o.ApplyCostDefaults = false)
             .Configure(
                 c =>
                 {
@@ -562,8 +568,10 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentCache()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseCostAnalyzer()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
@@ -588,6 +596,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
@@ -612,6 +621,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
+            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
     }
@@ -635,6 +645,7 @@ public static class FusionRequestExecutorBuilderExtensions
         pipeline.Add(DocumentCacheMiddleware.Create());
         pipeline.Add(DocumentParserMiddleware.Create());
         pipeline.Add(DocumentValidationMiddleware.Create());
+        pipeline.Add(CostAnalyzerMiddleware.Create());
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
         pipeline.Add(OperationVariableCoercionMiddleware.Create());

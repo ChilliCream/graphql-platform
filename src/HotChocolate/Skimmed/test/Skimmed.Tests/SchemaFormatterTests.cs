@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Skimmed;
@@ -255,6 +254,43 @@ public class SchemaFormatterTests
             }
 
             directive @foo(a: String! b: [Foo] c: [Int!]) on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public void Format_Natural_Order()
+    {
+        // arrange
+        var sdl =
+            """
+            directive @foo(b: [Foo] c: [Int!] a: String!) on FIELD_DEFINITION
+
+            input Foo {
+                a: Boolean
+            }
+
+            input Bar {
+                a: Boolean
+            }
+            """;
+
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema, new SchemaFormatterOptions { OrderByName = false });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            directive @foo(b: [Foo] c: [Int!] a: String!) on FIELD_DEFINITION
+
+            input Foo {
+                a: Boolean
+            }
+
+            input Bar {
+                a: Boolean
+            }
             """);
     }
 }

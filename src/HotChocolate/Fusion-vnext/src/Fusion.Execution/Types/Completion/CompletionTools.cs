@@ -23,9 +23,9 @@ internal static class CompletionTools
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];
-            var definition = context.GetDirectiveDefinition(directive.Name.Value);
+            var directiveType = context.GetDirectiveType(directive.Name.Value);
             var arguments = CreateArgumentAssignments(directive.Arguments);
-            temp[i] = new CompositeDirective(definition, arguments);
+            temp[i] = new CompositeDirective(directiveType, arguments);
         }
 
         return new DirectiveCollection(temp);
@@ -92,6 +92,26 @@ internal static class CompletionTools
         return new SourceObjectTypeCollection(temp);
     }
 
+    public static SourceInterfaceTypeCollection CreateSourceInterfaceTypeCollection(
+        InterfaceTypeDefinitionNode typeDef,
+        CompositeSchemaContext context)
+    {
+        var types = TypeDirectiveParser.Parse(typeDef.Directives);
+        var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
+        var temp = new SourceInterfaceType[types.Length];
+
+        for (var i = 0; i < types.Length; i++)
+        {
+            var type = types[i];
+            temp[i] = new SourceInterfaceType(
+                typeDef.Name.Value,
+                type.SchemaName,
+                GetLookupBySchema(lookups, type.SchemaName));
+        }
+
+        return new SourceInterfaceTypeCollection(temp);
+    }
+
     private static ImmutableArray<Lookup> GetLookupBySchema(
         ImmutableArray<LookupDirective> allLookups,
         string schemaName)
@@ -120,7 +140,6 @@ internal static class CompletionTools
                     new Lookup(
                         lookup.SchemaName,
                         lookup.Field.Name.Value,
-                        LookupKind.Default,
                         arguments.ToImmutable(),
                         fields.ToImmutable()));
             }

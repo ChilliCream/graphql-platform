@@ -150,9 +150,8 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
                         arguments[0],
                         arguments[1].Name,
                         arguments[1]),
-                _ => arguments.ToFrozenDictionary(
+                _ => arguments.ToOrderedDictionary(
                         t => t.Name,
-                        t => t,
-                        StringComparer.Ordinal),
+                        t => t)
             };
 }

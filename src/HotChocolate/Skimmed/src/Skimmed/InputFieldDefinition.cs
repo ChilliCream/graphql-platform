@@ -182,6 +182,14 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
         => RewriteInputField(this).ToString(true);
 
     /// <summary>
+    /// Creates an <see cref="InputValueDefinitionNode"/> from an
+    /// <see cref="InputFieldDefinition"/>.
+    /// </summary>
+    public InputValueDefinitionNode ToSyntaxNode() => RewriteInputField(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteInputField(this);
+
+    /// <summary>
     /// Creates a new instance of <see cref="InputFieldDefinition"/>.
     /// </summary>
     /// <param name="name">
