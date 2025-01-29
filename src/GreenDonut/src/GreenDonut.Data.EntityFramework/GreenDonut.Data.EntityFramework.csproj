@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>GreenDonut.Data.EntityFramework</PackageId>
+    <AssemblyName>GreenDonut.Data.EntityFramework</AssemblyName>
+    <RootNamespace>GreenDonut.Data</RootNamespace>
+    <Description>This package provides data integrations like pagination, projections, filtering and sorting.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GreenDonut.Data\GreenDonut.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+  </ItemGroup>
+
+</Project>
