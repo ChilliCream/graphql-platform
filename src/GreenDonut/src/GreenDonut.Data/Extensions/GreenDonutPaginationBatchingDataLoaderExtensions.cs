@@ -204,7 +204,28 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, state);
     }
 
-    public static IDataLoader<TKey, Page<TValue>> Order<TKey, TValue>(
+    /// <summary>
+    /// Adds a sorting definition as state to the DataLoader.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader.
+    /// </param>
+    /// <param name="sortDefinition">
+    /// The sorting definition that shall be added as state to the DataLoader.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type of the DataLoader.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type of the DataLoader.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the DataLoader with the added projection.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    public static IDataLoader<TKey, Page<TValue>> OrderBy<TKey, TValue>(
         this IDataLoader<TKey, Page<TValue>> dataLoader,
         SortDefinition<TValue>? sortDefinition)
         where TKey : notnull
