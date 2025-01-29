@@ -1,15 +1,16 @@
 using System.Linq.Expressions;
 using GreenDonut;
 using GreenDonut.Data;
+using HotChocolate.Data.TestContext;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.TestContext;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
-namespace HotChocolate.Execution.Projections;
+namespace HotChocolate.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class ProjectableDataLoaderTests(PostgreSqlResource resource)

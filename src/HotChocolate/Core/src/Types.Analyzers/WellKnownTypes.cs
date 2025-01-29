@@ -68,7 +68,7 @@ public static class WellKnownTypes
     public const string EnumerableExtensions = "System.Linq.Enumerable";
     public const string SelectorBuilder = "GreenDonut.Data.ISelectorBuilder";
     public const string PredicateBuilder = "GreenDonut.Data.IPredicateBuilder";
-    public const string PagingArguments = "HotChocolate.Pagination.PagingArguments";
+    public const string PagingArguments = "GreenDonut.Data.PagingArguments";
     public const string QueryContext = "GreenDonut.Data.QueryContext";
     public const string QueryContextGeneric = QueryContext + "<";
     public const string SortDefinition = "GreenDonut.Data.SortDefinition";

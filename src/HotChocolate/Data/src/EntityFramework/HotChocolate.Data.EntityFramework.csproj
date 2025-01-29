@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Abstractions\GreenDonut.Data.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data\GreenDonut.Data.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />

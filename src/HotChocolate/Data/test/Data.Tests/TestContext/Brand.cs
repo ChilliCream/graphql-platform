@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace HotChocolate.Execution.TestContext;
+namespace HotChocolate.Data.TestContext;
 
 public class Brand
 {
