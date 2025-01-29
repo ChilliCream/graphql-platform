@@ -44,13 +44,13 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
     /// </summary>
     /// <param name="dataLoader">
-    /// The DataLoader that shall be branched.
-    /// </param>
-    /// <param name="context">
-    /// The query context that shall exist as state in the branched DataLoader.
+    ///     The DataLoader that shall be branched.
     /// </param>
     /// <param name="pagingArguments">
-    /// The paging arguments that shall exist as state in the branched DataLoader.
+    ///     The paging arguments that shall exist as state in the branched DataLoader.
+    /// </param>
+    /// <param name="context">
+    ///     The query context that shall exist as state in the branched DataLoader.
     /// </param>
     /// <typeparam name="TKey">
     /// The key type of the DataLoader.
@@ -64,10 +64,9 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, Page<TValue>> With<TKey, TValue>(
-        this IDataLoader<TKey, Page<TValue>> dataLoader,
-        QueryContext<TValue> context,
-        PagingArguments pagingArguments)
+    public static IDataLoader<TKey, Page<TValue>> With<TKey, TValue>(this IDataLoader<TKey, Page<TValue>> dataLoader,
+        PagingArguments pagingArguments,
+        QueryContext<TValue>? context = null)
         where TKey : notnull
         => WithInternal(dataLoader, pagingArguments, context);
 
