@@ -236,7 +236,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         {
             if (DateTime.UtcNow - _lastWriteTime >= _keepAlivePeriod)
             {
-                Task.Run(WriteKeepAliveAsync);
+                WriteKeepAliveAsync().FireAndForget();
             }
 
             return;
