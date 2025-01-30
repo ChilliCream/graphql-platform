@@ -1,4 +1,5 @@
 using GreenDonut.Data.Internal;
+using static GreenDonut.Data.Internal.DataLoaderStateHelper;
 
 // ReSharper disable once CheckNamespace
 namespace GreenDonut.Data;
@@ -48,7 +49,7 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         }
 
         var branchKey = context.ComputeHash();
-        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, context);
+        return (IQueryDataLoader<TKey, TValue>)dataLoader.Branch(branchKey, CreateBranch, context);
     }
 
     /// <summary>
@@ -91,7 +92,7 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         }
 
         var branchKey = context.ComputeHash();
-        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, context);
+        return (IQueryDataLoader<TKey, TValue[]>)dataLoader.Branch(branchKey, CreateBranch, context);
     }
 
     /// <summary>
@@ -134,6 +135,6 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         }
 
         var branchKey = context.ComputeHash();
-        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch, context);
+        return (IQueryDataLoader<TKey, List<TValue>>)dataLoader.Branch(branchKey, CreateBranch, context);
     }
 }

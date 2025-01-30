@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using GreenDonut.Data.Internal;
 using static GreenDonut.Data.GreenDonutPredicateDataLoaderExtensions;
+using static GreenDonut.Data.Internal.DataLoaderStateHelper;
 
 // ReSharper disable once CheckNamespace
 namespace GreenDonut.Data;
@@ -44,13 +45,13 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
     /// </summary>
     /// <param name="dataLoader">
-    ///     The DataLoader that shall be branched.
+    /// The DataLoader that shall be branched.
     /// </param>
     /// <param name="pagingArguments">
-    ///     The paging arguments that shall exist as state in the branched DataLoader.
+    /// The paging arguments that shall exist as state in the branched DataLoader.
     /// </param>
     /// <param name="context">
-    ///     The query context that shall exist as state in the branched DataLoader.
+    /// The query context that shall exist as state in the branched DataLoader.
     /// </param>
     /// <typeparam name="TKey">
     /// The key type of the DataLoader.
@@ -84,38 +85,6 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         var branchKey = pagingArguments.ComputeHash(context);
         var state = new PagingState<TValue>(pagingArguments, context);
         return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch, state);
-
-        static IDataLoader CreateBranch(
-            string branchKey,
-            IDataLoader<TKey, Page<TValue>> dataLoader,
-            PagingState<TValue> state)
-        {
-            var branch = new QueryDataLoader<TKey, Page<TValue>>(
-                (DataLoaderBase<TKey, Page<TValue>>)dataLoader,
-                branchKey);
-
-            branch.SetState(DataLoaderStateKeys.PagingArgs, state.PagingArgs);
-
-            if (state.Context is not null)
-            {
-                if (state.Context.Selector is not null)
-                {
-                    branch.SetState(DataLoaderStateKeys.Selector, state.Context.Selector);
-                }
-
-                if (state.Context.Predicate is not null)
-                {
-                    branch.SetState(DataLoaderStateKeys.Predicate, state.Context.Predicate);
-                }
-
-                if (state.Context.Sorting is not null)
-                {
-                    branch.SetState(DataLoaderStateKeys.Sorting, state.Context.Sorting);
-                }
-            }
-
-            return branch;
-        }
     }
 
     /// <summary>
@@ -166,7 +135,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         var branchKey = selector.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch,
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
             state);
     }
 
@@ -209,7 +178,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         var branchKey = predicate.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Predicate,
             GetOrCreateBuilder(dataLoader.ContextData, predicate));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch,
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
             state);
     }
 
@@ -251,7 +220,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         var branchKey = sortDefinition.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Sorting, sortDefinition);
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, DataLoaderStateHelper.CreateBranch,
+        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
             state);
     }
 
@@ -391,6 +360,4 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         return length + 2;
     }
-
-    private readonly record struct PagingState<T>(PagingArguments PagingArgs, QueryContext<T>? Context = null);
 }

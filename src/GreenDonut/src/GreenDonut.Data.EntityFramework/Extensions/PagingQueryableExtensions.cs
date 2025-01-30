@@ -363,6 +363,7 @@ public static class PagingQueryableExtensions
         }
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+        source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
         // we need to move the ordering into the select expression we are constructing
         // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
