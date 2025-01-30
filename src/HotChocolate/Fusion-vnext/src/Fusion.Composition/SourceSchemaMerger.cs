@@ -60,6 +60,8 @@ internal sealed class SourceSchemaMerger
             }
         }
 
+        SetOperationTypes(mergedSchema);
+
         // Add lookup directives.
         foreach (var schema in _schemas)
         {
@@ -668,6 +670,24 @@ internal sealed class SourceSchemaMerger
         Assert(typeA.Equals(typeB, TypeComparison.Structural));
 
         return isNullable ? typeA : new NonNullTypeDefinition(typeA);
+    }
+
+    private static void SetOperationTypes(SchemaDefinition mergedSchema)
+    {
+        if (mergedSchema.Types.TryGetType(TypeNames.Query, out var queryType))
+        {
+            mergedSchema.QueryType = (ObjectTypeDefinition?)queryType;
+        }
+
+        if (mergedSchema.Types.TryGetType(TypeNames.Mutation, out var mutationType))
+        {
+            mergedSchema.MutationType = (ObjectTypeDefinition?)mutationType;
+        }
+
+        if (mergedSchema.Types.TryGetType(TypeNames.Subscription, out var subscriptionType))
+        {
+            mergedSchema.SubscriptionType = (ObjectTypeDefinition?)subscriptionType;
+        }
     }
 
     private void AddFusionEnumValueDirectives(
