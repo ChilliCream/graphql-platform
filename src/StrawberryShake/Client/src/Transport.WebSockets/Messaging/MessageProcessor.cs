@@ -41,11 +41,7 @@ internal static class MessageProcessor
         PipeReader reader,
         ProcessAsync process,
         CancellationToken cancellationToken)
-        => Task.Factory.StartNew(
-            () => ProcessMessagesAsync(reader, process, cancellationToken),
-            cancellationToken,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        => ProcessMessagesAsync(reader, process, cancellationToken);
 
     private static async Task ProcessMessagesAsync(
         PipeReader reader,

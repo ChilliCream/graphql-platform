@@ -69,7 +69,7 @@ public static class DataLoaderAttributeHelper
     {
         foreach (var attributeData in parameter.GetAttributes())
         {
-            if (!IsTypeName(attributeData.AttributeClass, "GreenDonut", "DataLoaderStateAttribute"))
+            if (!attributeData.AttributeClass.IsOrInheritsFrom("GreenDonut.DataLoaderStateAttribute"))
             {
                 continue;
             }

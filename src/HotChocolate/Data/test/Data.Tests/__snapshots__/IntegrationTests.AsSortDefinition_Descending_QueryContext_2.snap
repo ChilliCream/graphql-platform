@@ -1,0 +1,18 @@
+{
+  "data": {
+    "authorsData2": [
+      {
+        "id": 5,
+        "name": "Author2"
+      },
+      {
+        "id": 8,
+        "name": "Author2"
+      },
+      {
+        "id": 1,
+        "name": "Author1"
+      }
+    ]
+  }
+}

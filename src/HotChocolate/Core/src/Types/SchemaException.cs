@@ -5,6 +5,7 @@ using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate;
 
+#pragma warning disable RCS1194
 public sealed class SchemaException : Exception
 {
     public SchemaException(params ISchemaError[] errors)
@@ -52,3 +53,4 @@ public sealed class SchemaException : Exception
         return message.ToString();
     }
 }
+#pragma warning restore RCS1194
