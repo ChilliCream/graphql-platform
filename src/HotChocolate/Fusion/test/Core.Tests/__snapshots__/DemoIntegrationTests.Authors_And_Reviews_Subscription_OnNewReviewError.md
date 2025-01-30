@@ -1,21 +1,6 @@
-# Authors_And_Reviews_Subscription_OnError_SSE
+# Authors_And_Reviews_Subscription_OnNewReviewError
 
 ## Result 1
-
-```text
-{
-  "data": {
-    "onError": {
-      "body": "Love it!",
-      "author": {
-        "name": "@ada"
-      }
-    }
-  }
-}
-```
-
-## Result 2
 
 ```text
 {
@@ -31,8 +16,8 @@
 ## Request
 
 ```graphql
-subscription OnError {
-  onError {
+subscription OnNewReview {
+  onNewReviewError {
     body
     author {
       name
@@ -44,19 +29,19 @@ subscription OnError {
 ## QueryPlan Hash
 
 ```text
-916BEE3A8BA7909469686D90E617234974CC01F3
+0A82A531BB6C8D6C44B690B4509A1667A89A3C2C
 ```
 
 ## QueryPlan
 
 ```json
 {
-  "document": "subscription OnError { onError { body author { name } } }",
-  "operation": "OnError",
+  "document": "subscription OnNewReview { onNewReviewError { body author { name } } }",
+  "operation": "OnNewReview",
   "rootNode": {
     "type": "Subscribe",
-    "subgraph": "Reviews",
-    "document": "subscription OnError_1 { onError { body author { name } } }",
+    "subgraph": "Reviews2",
+    "document": "subscription OnNewReview_1 { onNewReviewError { body author { name } } }",
     "selectionSetId": 0,
     "nodes": [
       {
