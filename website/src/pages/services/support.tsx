@@ -60,11 +60,7 @@ const SupportPage: FC = () => {
               period: "month",
               description:
                 "For small teams with moderate bandwidth and projects of low to medium complexity.",
-              features: [
-                "Private Slack Channel",
-                "5 critical incidents",
-                "2 non-critical incidents",
-              ],
+              features: ["Private Slack Channel", "2 critical incidents"],
               ctaText: "Contact Sales",
               ctaLink:
                 "mailto:contact@chillicream.com?subject=Startup Support Plan",
@@ -76,8 +72,8 @@ const SupportPage: FC = () => {
               description: "For larger teams with business-critical projects.",
               features: [
                 "Private Slack Channel",
-                "Unlimited critical incidents",
-                "4 non-critical incidents",
+                "5 critical incidents",
+                "2 non-critical incidents",
                 "Email support",
               ],
               ctaText: "Contact Sales",
@@ -91,6 +87,7 @@ const SupportPage: FC = () => {
                 "For the whole organization, all your teams and business units, and with tailor made SLAs.",
               features: [
                 "Private Slack Channel",
+                "Unlimited critical incidents",
                 "10 non-critical incidents",
                 "Phone support",
                 "Dedicated account manager",
@@ -118,17 +115,17 @@ const SupportPage: FC = () => {
                   title: "Critical Incidents",
                   values: [
                     false,
+                    "2 (next business day)",
                     "5 (next business day)",
-                    "∞ (next business day)",
-                    "∞ (12 hours)",
+                    "∞ (24 hours)",
                   ],
                 },
                 {
                   title: "Non-critical Incidents",
                   values: [
                     false,
-                    "2 (5 business days)",
-                    "4 (3 business days)",
+                    false,
+                    "5 (3 business days)",
                     "10 (next business day)",
                   ],
                 },
