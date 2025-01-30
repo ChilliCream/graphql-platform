@@ -23,8 +23,5 @@ public class CatalogContext(string connectionString) : DbContext
         builder.ApplyConfiguration(new BrandEntityTypeConfiguration());
         builder.ApplyConfiguration(new ProductTypeEntityTypeConfiguration());
         builder.ApplyConfiguration(new ProductEntityTypeConfiguration());
-
-        // Add the outbox table to this context
-        // builder.UseIntegrationEventLogs();
     }
 }

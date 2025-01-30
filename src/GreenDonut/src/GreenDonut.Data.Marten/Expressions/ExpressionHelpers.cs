@@ -117,7 +117,7 @@ internal static class ExpressionHelpers
                 : Expression.OrElse(expression, current);
             handled.Add(key);
         }
-
+        
         return Expression.Lambda<Func<T, bool>>(expression!, parameter);
     }
 
@@ -378,9 +378,9 @@ internal static class ExpressionHelpers
         return converter(value);
     }
 
-    private static Expression CreateAndConvertParameter<T>(object value)
+    private static Expression CreateAndConvertParameter<T>(T value)
     {
-        Expression<Func<T>> lambda = () => (T)value;
+        Expression<Func<T>> lambda = () => value;
         return lambda.Body;
     }
 
