@@ -257,7 +257,11 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         IExecutionResult result,
         TestQueryInterceptor queryInterceptor)
     {
+#if NET9_0_OR_GREATER
         var snapshot = Snapshot.Create();
+#else
+        var snapshot = Snapshot.Create(postFix: "_net_8_0");
+#endif
 
         snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);
 
