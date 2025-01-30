@@ -29,7 +29,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await CreateSnapshot()
             .AddQueries(queries)
             .Add(
                 new
@@ -61,7 +61,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await CreateSnapshot()
             .AddQueries(queries)
             .Add(
                 new
@@ -97,7 +97,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await CreateSnapshot()
             .AddQueries(queries)
             .Add(
                 new
@@ -129,7 +129,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await CreateSnapshot()
             .AddQueries(queries)
             .Add(
                 new
@@ -165,7 +165,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
 
         // Assert
-        await Snapshot.Create()
+        await CreateSnapshot()
             .AddQueries(queries)
             .Add(
                 new
@@ -186,7 +186,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
     {
         // Arrange
 #if NET8_0
-        var snapshot = Snapshot.Create();
+        var snapshot = CreateSnapshot();
 #else
         var snapshot = Snapshot.Create("NET9_0");
 #endif
@@ -229,7 +229,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
     {
         // Arrange
 #if NET8_0
-        var snapshot = Snapshot.Create();
+        var snapshot = CreateSnapshot();
 #else
         var snapshot = Snapshot.Create("NET9_0");
 #endif
@@ -387,6 +387,15 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 .OrderBy(t => t.Name).ThenBy(t => t.Id)
                 .ToBatchPageAsync(t => t.BrandId, pagingArgs, cancellationToken);
         }
+    }
+
+    private static Snapshot CreateSnapshot()
+    {
+#if NET9_0_OR_GREATER
+        return Snapshot.Create();
+#else
+        return Snapshot.Create("NET8_0");
+#endif
     }
 }
 
