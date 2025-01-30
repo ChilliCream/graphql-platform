@@ -5,27 +5,37 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class RootTypeExtensionInfo(
-    INamedTypeSymbol type,
-    OperationType operationType,
-    ClassDeclarationSyntax classDeclarationSyntax,
-    ImmutableArray<Resolver> resolvers)
+public sealed class RootTypeExtensionInfo
     : SyntaxInfo
     , IOutputTypeInfo
 {
-    public string Name { get; } = type.ToFullyQualified();
+    private readonly OperationType _operationType;
+
+    public RootTypeExtensionInfo(INamedTypeSymbol type,
+        OperationType operationType,
+        ClassDeclarationSyntax classDeclarationSyntax,
+        ImmutableArray<Resolver> resolvers)
+    {
+        _operationType = operationType;
+        Name = type.ToFullyQualified();
+        Type = type;
+        ClassDeclarationSyntax = classDeclarationSyntax;
+        Resolvers = resolvers;
+    }
+
+    public string Name { get; }
 
     public bool IsRootType => true;
 
-    public OperationType OperationType => operationType;
+    public OperationType OperationType => _operationType;
 
-    public INamedTypeSymbol Type { get; } = type;
+    public INamedTypeSymbol Type { get; }
 
     public INamedTypeSymbol? RuntimeType => null;
 
-    public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
+    public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
 
-    public ImmutableArray<Resolver> Resolvers { get; } = resolvers;
+    public ImmutableArray<Resolver> Resolvers { get; }
 
     public override string OrderByKey => Name;
 

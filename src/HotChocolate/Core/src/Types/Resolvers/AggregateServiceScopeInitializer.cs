@@ -17,7 +17,10 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
         _initializers = serviceScopeInitializers.ToArray();
     }
 
-    public void Initialize(IServiceProvider requestScope, IServiceProvider resolverScope)
+    public void Initialize(
+        IMiddlewareContext context,
+        IServiceProvider requestScope,
+        IServiceProvider resolverScope)
     {
         switch (_initializers.Length)
         {
@@ -25,18 +28,18 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
                 return;
 
             case 1:
-                _initializers[0].Initialize(requestScope, resolverScope);
+                _initializers[0].Initialize(context, requestScope, resolverScope);
                 break;
 
             case 2:
-                _initializers[0].Initialize(requestScope, resolverScope);
-                _initializers[1].Initialize(requestScope, resolverScope);
+                _initializers[0].Initialize(context, requestScope, resolverScope);
+                _initializers[1].Initialize(context, requestScope, resolverScope);
                 break;
 
             case 3:
-                _initializers[0].Initialize(requestScope, resolverScope);
-                _initializers[1].Initialize(requestScope, resolverScope);
-                _initializers[2].Initialize(requestScope, resolverScope);
+                _initializers[0].Initialize(context, requestScope, resolverScope);
+                _initializers[1].Initialize(context, requestScope, resolverScope);
+                _initializers[2].Initialize(context, requestScope, resolverScope);
                 break;
 
             default:
@@ -46,7 +49,7 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
 
                 while (Unsafe.IsAddressLessThan(ref start, ref end))
                 {
-                    start!.Initialize(requestScope, resolverScope);
+                    start!.Initialize(context, requestScope, resolverScope);
                     start = ref Unsafe.Add(ref start, 1);
                 }
                 break;

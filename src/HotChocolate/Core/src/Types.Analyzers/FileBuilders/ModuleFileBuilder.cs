@@ -105,7 +105,7 @@ public sealed class ModuleFileBuilder : IDisposable
         using (_writer.IncreaseIndent())
         {
             _writer.WriteIndentedLine("\"{0}\",", key);
-            _writer.WriteIndentedLine("global::HotChocolate.Types.OperationType.{0},", operation);
+            _writer.WriteIndentedLine("global::HotChocolate.Types.OperationTypeNames.{0},", operation);
             _writer.WriteIndentedLine("() => {0}.Initialize));", extensionType);
         }
     }

@@ -31,7 +31,6 @@ namespace TestNamespace
                 {
                     if (!_bindingsInitialized)
                     {
-
                         const global::System.Reflection.BindingFlags bindingFlags =
                             global::System.Reflection.BindingFlags.Public
                                 | global::System.Reflection.BindingFlags.NonPublic
@@ -104,7 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd(
                 "Tests::TestNamespace.Query",
-                global::HotChocolate.Types.OperationType.Query,
+                global::HotChocolate.Types.OperationTypeNames.Query,
                 () => global::TestNamespace.Query.Initialize));
             builder.ConfigureSchema(
                 b => b.TryAddRootType(

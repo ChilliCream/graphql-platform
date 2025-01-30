@@ -46,12 +46,11 @@ namespace TestNamespace
             var p1_predicate = context.GetState<global::GreenDonut.Data.IPredicateBuilder>("GreenDonut.Data.Predicate")?.TryCompile<string>();
             var p1_sortDefinition = context.GetState<global::GreenDonut.Data.SortDefinition<string>>("GreenDonut.Data.Sorting");
 
-            if({0}_selector is null && {0}_predicate is null && {0}_sortDefinition is null)
+            var p1 = global::GreenDonut.Data.QueryContext<string>.Empty;
+            if(p1_selector is not null || p1_predicate is not null || p1_sortDefinition is not null)
             {
-                var p1 = global::GreenDonut.Data.QueryContext<string>.Empty;
+                p1 = new global::GreenDonut.Data.QueryContext<string>(p1_selector, p1_predicate, p1_sortDefinition);
             }
-
-            var p1 = new global::GreenDonut.Data.QueryContext<string>(p1_selector?, p1_predicate, p1_sortDefinition);
             var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
