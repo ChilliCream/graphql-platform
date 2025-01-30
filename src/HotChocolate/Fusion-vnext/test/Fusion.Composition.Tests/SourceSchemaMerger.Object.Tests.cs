@@ -173,14 +173,8 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     """
                 ],
                 """
-                type Product
-                    @fusion__type(schema: A)
-                    @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null)
-                    @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: [ "name" ], path: null) {
-                    id: ID!
-                        @fusion__field(schema: A)
-                    name: String!
-                        @fusion__field(schema: A)
+                schema {
+                    query: Query
                 }
 
                 type Query
@@ -192,6 +186,16 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                         @fusion__inputField(schema: A)): Product
                         @fusion__field(schema: A)
                     version: Int
+                        @fusion__field(schema: A)
+                }
+
+                type Product
+                    @fusion__type(schema: A)
+                    @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null)
+                    @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: [ "name" ], path: null) {
+                    id: ID!
+                        @fusion__field(schema: A)
+                    name: String!
                         @fusion__field(schema: A)
                 }
                 """
@@ -219,6 +223,20 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    productById(id: ID!
+                        @fusion__inputField(schema: A)): Product
+                        @fusion__field(schema: A)
+                    productBySku(sku: String!
+                        @fusion__inputField(schema: A)): Product
+                        @fusion__field(schema: A)
+                }
+
                 type Product
                     @fusion__type(schema: A)
                     @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null)
@@ -239,16 +257,6 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     regionName: String!
                         @fusion__field(schema: A)
                     value: Float!
-                        @fusion__field(schema: A)
-                }
-
-                type Query
-                    @fusion__type(schema: A) {
-                    productById(id: ID!
-                        @fusion__inputField(schema: A)): Product
-                        @fusion__field(schema: A)
-                    productBySku(sku: String!
-                        @fusion__inputField(schema: A)): Product
                         @fusion__field(schema: A)
                 }
                 """
@@ -278,6 +286,19 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    lookups1: Lookups1!
+                        @fusion__field(schema: A)
+                    productById(id: ID!
+                        @fusion__inputField(schema: A)): Product
+                        @fusion__field(schema: A)
+                }
+
                 type Lookups1
                     @fusion__type(schema: A) {
                     lookups2: Lookups2!
@@ -302,15 +323,6 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     id: ID!
                         @fusion__field(schema: A)
                 }
-
-                type Query
-                    @fusion__type(schema: A) {
-                    lookups1: Lookups1!
-                        @fusion__field(schema: A)
-                    productById(id: ID!
-                        @fusion__inputField(schema: A)): Product
-                        @fusion__field(schema: A)
-                }
                 """
             },
             // @lookup with @is
@@ -333,6 +345,17 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    personByAddressId(id: ID!
+                        @fusion__inputField(schema: A)): Person
+                        @fusion__field(schema: A)
+                }
+
                 type Address
                     @fusion__type(schema: A) {
                     id: ID!
@@ -345,13 +368,6 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     address: Address
                         @fusion__field(schema: A)
                     id: ID!
-                        @fusion__field(schema: A)
-                }
-
-                type Query
-                    @fusion__type(schema: A) {
-                    personByAddressId(id: ID!
-                        @fusion__inputField(schema: A)): Person
                         @fusion__field(schema: A)
                 }
                 """
@@ -381,15 +397,8 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                     """
                 ],
                 """
-                type Person
-                    @fusion__type(schema: A)
-                    @fusion__type(schema: B)
-                    @fusion__lookup(schema: A, key: "id", field: "personById(id: ID!): Person", map: [ "id" ], path: null)
-                    @fusion__lookup(schema: B, key: "sku", field: "personBySku(sku: String!): Person", map: [ "sku" ], path: null) {
-                    id: ID!
-                        @fusion__field(schema: A)
-                    sku: String!
-                        @fusion__field(schema: B)
+                schema {
+                    query: Query
                 }
 
                 type Query
@@ -400,6 +409,17 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                         @fusion__field(schema: A)
                     personBySku(sku: String!
                         @fusion__inputField(schema: B)): Person
+                        @fusion__field(schema: B)
+                }
+
+                type Person
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__lookup(schema: A, key: "id", field: "personById(id: ID!): Person", map: [ "id" ], path: null)
+                    @fusion__lookup(schema: B, key: "sku", field: "personBySku(sku: String!): Person", map: [ "sku" ], path: null) {
+                    id: ID!
+                        @fusion__field(schema: A)
+                    sku: String!
                         @fusion__field(schema: B)
                 }
                 """

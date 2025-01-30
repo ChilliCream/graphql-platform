@@ -244,6 +244,17 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    animalById(id: ID!
+                        @fusion__inputField(schema: A)): Animal
+                        @fusion__field(schema: A)
+                }
+
                 type Cat
                     @fusion__type(schema: A) {
                     id: ID!
@@ -253,13 +264,6 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                 type Dog
                     @fusion__type(schema: A) {
                     id: ID!
-                        @fusion__field(schema: A)
-                }
-
-                type Query
-                    @fusion__type(schema: A) {
-                    animalById(id: ID!
-                        @fusion__inputField(schema: A)): Animal
                         @fusion__field(schema: A)
                 }
 
@@ -291,6 +295,17 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    animalById(id: ID!
+                        @fusion__inputField(schema: A)): Animal
+                        @fusion__field(schema: A)
+                }
+
                 type Cat
                     @fusion__type(schema: A)
                     @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById") {
@@ -304,13 +319,6 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById") {
                     dogById(id: ID!
                         @fusion__inputField(schema: A)): Dog
-                        @fusion__field(schema: A)
-                }
-
-                type Query
-                    @fusion__type(schema: A) {
-                    animalById(id: ID!
-                        @fusion__inputField(schema: A)): Animal
                         @fusion__field(schema: A)
                 }
 

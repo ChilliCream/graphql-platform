@@ -140,6 +140,10 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
                 type Query
                     @fusion__type(schema: A) {
                     productById(id: ID!
@@ -186,6 +190,17 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    animalById(id: ID!
+                        @fusion__inputField(schema: A)): Animal
+                        @fusion__field(schema: A)
+                }
+
                 type Cat
                     @fusion__type(schema: A)
                     @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById") {
@@ -203,13 +218,6 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                         @fusion__inputField(schema: A)): Dog
                         @fusion__field(schema: A)
                     id: ID!
-                        @fusion__field(schema: A)
-                }
-
-                type Query
-                    @fusion__type(schema: A) {
-                    animalById(id: ID!
-                        @fusion__inputField(schema: A)): Animal
                         @fusion__field(schema: A)
                 }
 

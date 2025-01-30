@@ -251,6 +251,10 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
                 type Query
                     @fusion__type(schema: A) {
                     reviews: [Review!]

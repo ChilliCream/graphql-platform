@@ -56,6 +56,10 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
                     """"
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
                 type Query
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
@@ -93,6 +97,10 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
                     """
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
                 type Query
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
@@ -127,6 +135,10 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
                     """"
                 ],
                 """
+                schema {
+                    query: Query
+                }
+
                 type Query
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
