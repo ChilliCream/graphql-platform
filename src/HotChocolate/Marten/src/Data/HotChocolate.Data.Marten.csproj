@@ -23,10 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Directory.Build.props" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Marten" />
   </ItemGroup>
 
