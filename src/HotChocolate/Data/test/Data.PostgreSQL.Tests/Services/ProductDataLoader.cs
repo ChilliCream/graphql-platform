@@ -16,10 +16,11 @@ internal static class ProductDataLoader
         CatalogContext context,
         CancellationToken cancellationToken)
     {
-        return await context.Products
+        var queryable = context.Products
             .Where(t => ids.Contains(t.Id))
-            .With(query)
-            .ToDictionaryAsync(t => t.Id, cancellationToken);
+            .With(query);
+        PagingQueryInterceptor.Publish(queryable);
+        return await queryable.ToDictionaryAsync(t => t.Id, cancellationToken);
     }
 
     [DataLoader]

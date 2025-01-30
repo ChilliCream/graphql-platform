@@ -528,7 +528,7 @@ public static class PagingQueryableExtensions
         public PagingQueryInterceptor? Interceptor { get; set; }
     }
 
-    private static PagingQueryInterceptor? TryGetQueryInterceptor()
+    internal static PagingQueryInterceptor? TryGetQueryInterceptor()
         => _interceptor.Value?.Interceptor;
 
     internal static void SetQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)

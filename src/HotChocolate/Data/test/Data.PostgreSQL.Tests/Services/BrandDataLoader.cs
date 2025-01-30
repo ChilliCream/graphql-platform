@@ -15,9 +15,10 @@ internal static class BrandDataLoader
         CatalogContext context,
         CancellationToken cancellationToken)
     {
-        return await context.Brands
+        var queryable = context.Brands
             .Where(t => ids.Contains(t.Id))
-            .With(query)
-            .ToDictionaryAsync(t => t.Id, cancellationToken);
+            .With(query);
+        PagingQueryInterceptor.Publish(queryable);
+        return await queryable.ToDictionaryAsync(t => t.Id, cancellationToken);
     }
 }

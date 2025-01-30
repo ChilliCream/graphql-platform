@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Types;
 public static partial class ProductNode
 {
     public static async Task<Brand?> GetBrandAsync(
-        [Parent] Product product,
+        [Parent(requires: nameof(Product.BrandId))]  Product product,
         BrandService brandService,
         QueryContext<Brand> query,
         CancellationToken cancellationToken)
@@ -19,8 +19,8 @@ public static partial class ProductNode
     [NodeResolver]
     public static async Task<Product?> GetProductAsync(
         int id,
-        IProductByIdDataLoader productById,
+        ProductService productService,
         QueryContext<Product> query,
         CancellationToken cancellationToken)
-        => await productById.With(query).LoadAsync(id, cancellationToken);
+        => await productService.GetProductByIdAsync(id, query, cancellationToken);
 }

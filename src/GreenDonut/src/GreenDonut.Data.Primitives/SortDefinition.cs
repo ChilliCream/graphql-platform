@@ -97,6 +97,34 @@ public sealed record SortDefinition<T>
     }
 
     /// <summary>
+    /// Applies the sort definition if the definition is empty.
+    /// </summary>
+    /// <param name="applyIfEmpty">
+    /// The sort definition to apply if the current definition is empty.
+    /// </param>
+    /// <returns>
+    /// The updated sort definition.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when the <paramref name="applyIfEmpty"/> is <see langword="null"/>.
+    /// </exception>
+    public SortDefinition<T> IfEmpty(
+        Func<SortDefinition<T>, SortDefinition<T>> applyIfEmpty)
+    {
+        if (applyIfEmpty == null)
+        {
+            throw new ArgumentNullException(nameof(applyIfEmpty));
+        }
+
+        if (Operations.Length == 0)
+        {
+            return applyIfEmpty(this);
+        }
+
+        return this;
+    }
+
+    /// <summary>
     /// Returns a string representation of the sort definition.
     /// </summary>
     /// <returns>

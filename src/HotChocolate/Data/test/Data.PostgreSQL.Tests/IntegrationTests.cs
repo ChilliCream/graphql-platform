@@ -131,6 +131,86 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         MatchSnapshot(result, interceptor);
     }
 
+    [Fact]
+    public async Task Query_Brands_First_2_And_Products_First_2_Name_Desc_Brand_Name()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 2) {
+                    nodes {
+                        id
+                        products(first: 2, order: { name: DESC }) {
+                            nodes {
+                                id
+                                name
+                                brand {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Query_Node_Product()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                product: node(id: "UHJvZHVjdDox") {
+                    ... on Product {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Query_Node_Brand()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brand: node(id: "QnJhbmQ6MQ==") {
+                    ... on Brand {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();
@@ -179,11 +259,12 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     {
         var snapshot = Snapshot.Create();
 
-        snapshot.AddResult(result);
+        snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);
 
-        foreach (var sql in queryInterceptor.Queries)
+        for (var i = 0; i < queryInterceptor.Queries.Count; i++)
         {
-            snapshot.Add(sql);
+            var sql = queryInterceptor.Queries[i];
+            snapshot.Add(sql, $"Query {i + 1}", MarkdownLanguages.Sql);
         }
 
         snapshot.MatchMarkdown();

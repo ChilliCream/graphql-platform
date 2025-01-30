@@ -14,20 +14,16 @@ public static class BrandQueries
     [UseFiltering]
     public static async Task<Connection<Brand>> GetBrandsAsync(
         PagingArguments pagingArgs,
-        QueryContext<Brand> queryContext,
+        QueryContext<Brand> query,
         BrandService brandService,
         CancellationToken cancellationToken)
-        => await brandService
-            .GetBrandsAsync(
-                pagingArgs,
-                queryContext,
-                cancellationToken)
-            .ToConnectionAsync();
+        => await brandService.GetBrandsAsync(pagingArgs, query, cancellationToken).ToConnectionAsync();
 
     [NodeResolver]
     public static async Task<Brand?> GetBrandAsync(
         int id,
+        QueryContext<Brand> query,
         BrandService brandService,
         CancellationToken cancellationToken)
-        => await brandService.GetBrandByIdAsync(id, cancellationToken);
+        => await brandService.GetBrandByIdAsync(id, query, cancellationToken);
 }
