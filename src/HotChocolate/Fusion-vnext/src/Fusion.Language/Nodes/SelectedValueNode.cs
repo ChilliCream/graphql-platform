@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// TODO: Add summary.
 /// </summary>
-internal sealed class SelectedValueNode(
+public sealed class SelectedValueNode(
     SelectedValueEntryNode selectedValueEntry,
     SelectedValueNode? selectedValue = null)
     : IFieldSelectionMapSyntaxNode

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Utilities.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>

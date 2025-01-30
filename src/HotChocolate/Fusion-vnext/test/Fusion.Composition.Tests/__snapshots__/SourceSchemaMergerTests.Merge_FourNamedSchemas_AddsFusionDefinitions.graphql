@@ -1,0 +1,30 @@
+enum fusion__Schema {
+  EXAMPLE_FOUR_FIVE
+  EXAMPLE_ONE
+  EXAMPLE_THREE
+  EXAMPLE_TWO
+}
+
+scalar fusion__FieldDefinition
+
+scalar fusion__FieldSelectionMap
+
+scalar fusion__FieldSelectionPath
+
+scalar fusion__FieldSelectionSet
+
+directive @fusion__enumValue(schema: fusion__Schema!) repeatable on ENUM_VALUE
+
+directive @fusion__field(external: Boolean! = false provides: fusion__FieldSelectionSet schema: fusion__Schema! sourceType: String) repeatable on FIELD_DEFINITION
+
+directive @fusion__implements(interface: String! schema: fusion__Schema!) repeatable on OBJECT | INTERFACE
+
+directive @fusion__inputField(schema: fusion__Schema! sourceType: String) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @fusion__lookup(field: fusion__FieldDefinition! key: fusion__FieldSelectionSet! map: [fusion__FieldSelectionMap!]! path: fusion__FieldSelectionPath schema: fusion__Schema!) repeatable on OBJECT | INTERFACE | UNION
+
+directive @fusion__requires(field: fusion__FieldDefinition! map: [fusion__FieldSelectionMap]! schema: fusion__Schema!) repeatable on FIELD_DEFINITION
+
+directive @fusion__type(schema: fusion__Schema!) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+
+directive @fusion__unionMember(member: String! schema: fusion__Schema!) repeatable on UNION

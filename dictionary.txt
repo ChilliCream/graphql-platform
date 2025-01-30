@@ -132,6 +132,7 @@ resheader
 resmimetype
 resx
 Retval
+Rewriters
 Rgba
 Rhai
 Roslynator

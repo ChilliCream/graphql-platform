@@ -20,11 +20,7 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
     {
         var (fieldName, fieldGroup, typeName) = @event;
 
-        var externalFields = fieldGroup
-            .Where(i => i.Field.HasExternalDirective())
-            .ToImmutableArray();
-
-        if (externalFields.Length == 0)
+        if (!fieldGroup.Any(i => i.Field.HasExternalDirective()))
         {
             return;
         }
