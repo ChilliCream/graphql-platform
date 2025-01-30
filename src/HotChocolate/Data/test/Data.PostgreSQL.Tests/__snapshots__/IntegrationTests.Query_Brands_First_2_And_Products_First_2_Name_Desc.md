@@ -59,22 +59,22 @@ LIMIT @__p_0
 
 ```sql
 -- @__brandIds_0={ '5', '9' } (DbType = Object)
-SELECT t."BrandId", t0."Id", t0."Name", t0."BrandId"
+SELECT p1."BrandId", p3."Id", p3."Name", p3."BrandId"
 FROM (
     SELECT p."BrandId"
     FROM "Products" AS p
     WHERE p."BrandId" = ANY (@__brandIds_0)
     GROUP BY p."BrandId"
-) AS t
+) AS p1
 LEFT JOIN (
-    SELECT t1."Id", t1."Name", t1."BrandId"
+    SELECT p2."Id", p2."Name", p2."BrandId"
     FROM (
         SELECT p0."Id", p0."Name", p0."BrandId", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Id") AS row
         FROM "Products" AS p0
         WHERE p0."BrandId" = ANY (@__brandIds_0)
-    ) AS t1
-    WHERE t1.row <= 3
-) AS t0 ON t."BrandId" = t0."BrandId"
-ORDER BY t."BrandId"
+    ) AS p2
+    WHERE p2.row <= 3
+) AS p3 ON p1."BrandId" = p3."BrandId"
+ORDER BY p1."BrandId"
 ```
 
