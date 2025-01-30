@@ -1,32 +1,27 @@
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
+using static HotChocolate.Fusion.WellKnownTypeNames;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerTests : CompositionTestBase
+public sealed class SourceSchemaMergerTests
 {
     [Fact]
     public void Merge_WithOperationTypes_SetsOperationTypes()
     {
         // arrange
-        var schemas = CreateSchemaDefinitions(
-            [
-                """
-                type Query {
-                    foo: String
+        var merger = new SourceSchemaMerger(
+        [
+            new SchemaDefinition
+            {
+                Types =
+                {
+                    new ObjectTypeDefinition(Query),
+                    new ObjectTypeDefinition(Mutation),
+                    new ObjectTypeDefinition(Subscription)
                 }
-
-                type Mutation {
-                    bar: String
-                }
-
-                type Subscription {
-                    baz: String
-                }
-                """
-            ]);
-
-        var merger = new SourceSchemaMerger(schemas);
+            }
+        ]);
 
         // act
         var result = merger.MergeSchemas();
@@ -39,16 +34,16 @@ public sealed class SourceSchemaMergerTests : CompositionTestBase
     }
 
     [Fact]
-    public void AddFusionDefinitions_FourNamedSchemas_MatchesSnapshot()
+    public void Merge_FourNamedSchemas_AddsFusionDefinitions()
     {
         // arrange
         var merger = new SourceSchemaMerger(
-            [
-                new SchemaDefinition { Name = "ExampleOne" },
-                new SchemaDefinition { Name = "Example_Two" },
-                new SchemaDefinition { Name = "Example__Three" },
-                new SchemaDefinition { Name = "ExampleFourFive" }
-            ]);
+        [
+            new SchemaDefinition { Name = "ExampleOne" },
+            new SchemaDefinition { Name = "Example_Two" },
+            new SchemaDefinition { Name = "Example__Three" },
+            new SchemaDefinition { Name = "ExampleFourFive" }
+        ]);
 
         // act
         var result = merger.MergeSchemas();
