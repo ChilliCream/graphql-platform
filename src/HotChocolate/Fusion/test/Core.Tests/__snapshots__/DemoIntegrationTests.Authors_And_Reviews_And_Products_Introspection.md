@@ -458,6 +458,13 @@
                 "name": null,
                 "kind": "NON_NULL"
               }
+            },
+            {
+              "name": "onNewReviewError",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
             }
           ]
         },

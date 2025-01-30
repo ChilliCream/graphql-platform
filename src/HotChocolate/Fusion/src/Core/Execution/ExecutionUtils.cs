@@ -543,6 +543,27 @@ internal static class ExecutionUtils
         }
     }
 
+    public static void ExtractErrors(
+        DocumentNode document,
+        OperationDefinitionNode operation,
+        ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
+        JsonElement errors,
+        Path parentPath,
+        int pathDepth,
+        bool addDebugInfo)
+    {
+        if (errors.ValueKind is not JsonValueKind.Array)
+        {
+            return;
+        }
+
+        foreach (var error in errors.EnumerateArray())
+        {
+            ExtractError(document, operation, resultBuilder, errorHandler, error, parentPath, pathDepth, addDebugInfo);
+        }
+    }
+
     private static void ExtractError(
         DocumentNode document,
         OperationDefinitionNode operation,
