@@ -5,9 +5,9 @@ using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.SourceSchemaValidation;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using static HotChocolate.Fusion.WellKnownArgumentNames;
-using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using static HotChocolate.Language.Utf8GraphQLParser;
+using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion;
 
@@ -36,7 +36,7 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
 
                 if (type is ComplexTypeDefinition complexType)
                 {
-                    if (complexType.Directives.ContainsName(Key))
+                    if (complexType.Directives.ContainsName(DirectiveNames.Key))
                     {
                         PublishEntityEvents(complexType, schema, context);
                     }
@@ -45,7 +45,7 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
                     {
                         PublishEvent(new OutputFieldEvent(field, type, schema), context);
 
-                        if (field.Directives.ContainsName(Provides))
+                        if (field.Directives.ContainsName(DirectiveNames.Provides))
                         {
                             PublishProvidesEvents(field, complexType, schema, context);
                         }
@@ -55,7 +55,7 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
                             PublishEvent(
                                 new FieldArgumentEvent(argument, field, type, schema), context);
 
-                            if (argument.Directives.ContainsName(Require))
+                            if (argument.Directives.ContainsName(DirectiveNames.Require))
                             {
                                 PublishRequireEvents(
                                     argument,
@@ -96,14 +96,11 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
         SchemaDefinition schema,
         CompositionContext context)
     {
-        var keyDirectives =
-            entityType.Directives
-                .Where(d => d.Name == Key)
-                .ToArray();
+        var keyDirectives = entityType.Directives.Where(d => d.Name == DirectiveNames.Key);
 
         foreach (var keyDirective in keyDirectives)
         {
-            if (!keyDirective.Arguments.TryGetValue(Fields, out var f)
+            if (!keyDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
                 || f is not StringValueNode fields)
             {
                 PublishEvent(
@@ -217,9 +214,9 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
         SchemaDefinition schema,
         CompositionContext context)
     {
-        var providesDirective = field.Directives.First(d => d.Name == Provides);
+        var providesDirective = field.Directives.First(d => d.Name == DirectiveNames.Provides);
 
-        if (!providesDirective.Arguments.TryGetValue(Fields, out var f)
+        if (!providesDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)
         {
             PublishEvent(
@@ -331,9 +328,9 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
         SchemaDefinition schema,
         CompositionContext context)
     {
-        var requireDirective = argument.Directives.First(d => d.Name == Require);
+        var requireDirective = argument.Directives.First(d => d.Name == DirectiveNames.Require);
 
-        if (!requireDirective.Arguments.TryGetValue(Fields, out var f)
+        if (!requireDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)
         {
             PublishEvent(

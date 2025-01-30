@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion;
 
-internal sealed class FieldSelectionMapParserOptions(
+public sealed class FieldSelectionMapParserOptions(
     bool noLocations = false,
     int maxAllowedNodes = int.MaxValue,
     int maxAllowedTokens = int.MaxValue)

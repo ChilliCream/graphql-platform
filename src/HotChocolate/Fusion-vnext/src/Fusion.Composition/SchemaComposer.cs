@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.PreMergeValidation.Rules;
 using HotChocolate.Fusion.Results;
@@ -15,7 +16,8 @@ public sealed class SchemaComposer
         ArgumentNullException.ThrowIfNull(schemaDefinitions);
         ArgumentNullException.ThrowIfNull(compositionLog);
 
-        var context = new CompositionContext([.. schemaDefinitions], compositionLog);
+        var schemas = schemaDefinitions.ToImmutableArray();
+        var context = new CompositionContext(schemas, compositionLog);
 
         // Validate Source Schemas
         var validationResult =
@@ -36,7 +38,7 @@ public sealed class SchemaComposer
         }
 
         // Merge Source Schemas
-        var mergeResult = new SourceSchemaMerger().Merge(context);
+        var mergeResult = new SourceSchemaMerger(schemas).MergeSchemas();
 
         if (mergeResult.IsFailure)
         {

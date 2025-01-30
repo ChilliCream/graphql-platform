@@ -107,7 +107,6 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     _writer.WriteIndentedLine("{");
                     _writer.IncreaseIndent();
 
-                    _writer.WriteLine();
                     _writer.WriteIndentedLine(
                         "const global::{0} bindingFlags =",
                         WellKnownTypes.BindingFlags);
@@ -240,7 +239,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         IMethodSymbol resolverMethod,
         ILocalTypeLookup typeLookup)
     {
-        if (type.TypeKind is TypeKind.Error && typeLookup.TryGetTypeName(type, resolverMethod, out var typeDisplayName))
+        if (type.TypeKind is TypeKind.Error
+            && typeLookup.TryGetTypeName(type, resolverMethod, out var typeDisplayName))
         {
             return typeDisplayName;
         }
@@ -528,15 +528,18 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 case ResolverParameterKind.CancellationToken:
                     _writer.WriteIndentedLine("var args{0} = context.RequestAborted;", i);
                     break;
+
                 case ResolverParameterKind.ClaimsPrincipal:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<{1}>(\"ClaimsPrincipal\");",
                         i,
                         WellKnownTypes.ClaimsPrincipal);
                     break;
+
                 case ResolverParameterKind.DocumentNode:
                     _writer.WriteIndentedLine("var args{0} = context.Operation.Document;", i);
                     break;
+
                 case ResolverParameterKind.EventMessage:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetScopedState<{1}>("
@@ -544,68 +547,73 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         i,
                         parameter.Type.ToFullyQualified());
                     break;
+
                 case ResolverParameterKind.FieldNode:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.Selection.SyntaxNode",
                         i,
                         parameter.Type.ToFullyQualified());
                     break;
+
                 case ResolverParameterKind.OutputField:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.Selection.Field",
                         i,
                         parameter.Type.ToFullyQualified());
                     break;
+
                 case ResolverParameterKind.HttpContext:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))!;",
                         i,
                         WellKnownTypes.HttpContext);
                     break;
+
                 case ResolverParameterKind.HttpRequest:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))?.Request!;",
                         i,
                         WellKnownTypes.HttpContext);
                     break;
+
                 case ResolverParameterKind.HttpResponse:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))?.Response!;",
                         i,
                         WellKnownTypes.HttpContext);
                     break;
-                case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
-                {
-                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                    _writer.WriteIndentedLine(
-                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                        parameter.Key,
-                        defaultValueString);
-                    break;
-                }
+                case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
+                    {
+                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+
+                        _writer.WriteIndentedLine(
+                            "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                            parameter.Key,
+                            defaultValueString);
+                        break;
+                    }
+
                 case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
-                {
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetGlobalState<{1}>(\"{2}\");",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Key);
+                            "var args{0} = context.GetGlobalState<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
                     break;
-                }
+
                 case ResolverParameterKind.GetGlobalState:
-                {
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\");",
                         i,
                         parameter.Type.ToFullyQualified(),
                         parameter.Key);
                     break;
-                }
+
                 case ResolverParameterKind.SetGlobalState:
                     _writer.WriteIndentedLine(
                         "var args{0} = new HotChocolate.SetState<{1}>("
@@ -614,38 +622,38 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
                         parameter.Key);
                     break;
-                case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
-                {
-                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                    _writer.WriteIndentedLine(
-                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                        parameter.Key,
-                        defaultValueString);
-                    break;
-                }
+                case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
+                    {
+                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+
+                        _writer.WriteIndentedLine(
+                            "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                            parameter.Key,
+                            defaultValueString);
+                        break;
+                    }
+
                 case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
-                {
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetScopedState<{1}>(\"{2}\");",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Key);
+                            "var args{0} = context.GetScopedState<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
                     break;
-                }
+
                 case ResolverParameterKind.GetScopedState:
-                {
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\");",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Key);
+                            "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
                     break;
-                }
+
                 case ResolverParameterKind.SetScopedState:
                     _writer.WriteIndentedLine(
                         "var args{0} = new HotChocolate.SetState<{1}>("
@@ -654,38 +662,38 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
                         parameter.Key);
                     break;
-                case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
-                {
-                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                    _writer.WriteIndentedLine(
-                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                        parameter.Key,
-                        defaultValueString);
-                    break;
-                }
+                case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
+                    {
+                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+
+                        _writer.WriteIndentedLine(
+                            "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                            parameter.Key,
+                            defaultValueString);
+                        break;
+                    }
+
                 case ResolverParameterKind.GetLocalState when !parameter.IsNullable:
-                {
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetLocalState<{1}>(\"{2}\");",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Key);
+                            "var args{0} = context.GetLocalState<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
                     break;
-                }
+
                 case ResolverParameterKind.GetLocalState:
-                {
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\");",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Key);
+                            "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\");",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Key);
                     break;
-                }
+
                 case ResolverParameterKind.SetLocalState:
                     _writer.WriteIndentedLine(
                         "var args{0} = new HotChocolate.SetState<{1}>("
@@ -705,6 +713,34 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         resolver.Member.Name,
                         ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
                     break;
+
+                case ResolverParameterKind.QueryContext:
+                    var entityType = parameter.TypeParameters[0].ToFullyQualified();
+                    _writer.WriteIndentedLine("var args{0}_selection = context.Selection;", i);
+                    _writer.WriteIndentedLine("var args{0}_filter = {1}.GetFilterContext(context);",
+                        i,
+                        WellKnownTypes.FilterContextResolverContextExtensions);
+                    _writer.WriteIndentedLine("var args{0}_sorting = {1}.GetSortingContext(context);",
+                        i,
+                        WellKnownTypes.SortingContextResolverContextExtensions);
+                    _writer.WriteIndentedLine(
+                        "var args{0} = new global::{1}<{2}>(",
+                        i,
+                        WellKnownTypes.QueryContext,
+                        entityType);
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine(
+                            "{0}.AsSelector<{1}>(args{2}_selection),",
+                            WellKnownTypes.HotChocolateExecutionSelectionExtensions,
+                            entityType,
+                            i);
+                        _writer.WriteIndentedLine("args{0}_filter?.AsPredicate<{1}>(),", i, entityType);
+                        _writer.WriteIndentedLine("args{0}_sorting?.AsSortDefinition<{1}>());", i, entityType);
+                    }
+
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }

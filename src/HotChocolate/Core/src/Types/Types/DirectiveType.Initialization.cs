@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
@@ -12,13 +13,6 @@ using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 namespace HotChocolate.Types;
 
-/// <summary>
-/// A GraphQL schema describes directives which are used to annotate various parts of a
-/// GraphQL document as an indicator that they should be evaluated differently by a
-/// validator, executor, or client tool such as a code generator.
-///
-/// https://spec.graphql.org/draft/#sec-Type-System.Directives
-/// </summary>
 public partial class DirectiveType
 {
     protected override DirectiveTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -89,6 +83,42 @@ public partial class DirectiveType
 
         IsExecutableDirective = (Locations & DirectiveLocation.Executable) != 0;
         IsTypeSystemDirective = (Locations & DirectiveLocation.TypeSystem) != 0;
+    }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
+    {
+        base.OnCompleteMetadata(context, definition);
+
+        foreach (IFieldCompletion field in Arguments)
+        {
+            field.CompleteMetadata(context, this);
+        }
+    }
+
+    protected override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
+    {
+        base.OnMakeExecutable(context, definition);
+
+        foreach (IFieldCompletion field in Arguments)
+        {
+            field.MakeExecutable(context, this);
+        }
+    }
+
+    protected override void OnFinalizeType(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
+    {
+        base.OnFinalizeType(context, definition);
+
+        foreach (IFieldCompletion field in Arguments)
+        {
+            field.Finalize(context, this);
+        }
     }
 
     protected virtual FieldCollection<DirectiveArgument> OnCompleteFields(
