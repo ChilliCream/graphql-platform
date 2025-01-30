@@ -528,4 +528,32 @@ public static class SymbolExtensions
 
         return false;
     }
+
+    public static ITypeSymbol? GetReturnType(this ISymbol member)
+    {
+        ITypeSymbol? returnType;
+        if (member is IMethodSymbol method)
+        {
+            returnType = method.ReturnType;
+        }
+        else if(member is IPropertySymbol property)
+        {
+            returnType = property.Type;
+        }
+        else
+        {
+            return null;
+        }
+
+        if (returnType is INamedTypeSymbol namedTypeSymbol)
+        {
+            if (namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.Task<T>" ||
+                namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.ValueTask<T>")
+            {
+                return namedTypeSymbol.TypeArguments.FirstOrDefault();
+            }
+        }
+
+        return returnType;
+    }
 }
