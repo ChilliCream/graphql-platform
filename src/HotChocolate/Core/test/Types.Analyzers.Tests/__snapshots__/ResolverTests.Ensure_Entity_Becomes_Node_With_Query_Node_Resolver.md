@@ -108,7 +108,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd(
                 "Tests::TestNamespace.Query",
-                global::HotChocolate.Types.OperationType.Query,
+                global::HotChocolate.Types.OperationTypeNames.Query,
                 () => global::TestNamespace.Query.Initialize));
             builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.Test>(
                 "Tests::TestNamespace.TestType",

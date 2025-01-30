@@ -16,6 +16,7 @@ internal static class ProductDataLoader
         CatalogContext context,
         CancellationToken cancellationToken)
     {
+        ids = ids.EnsureOrdered();
         var queryable = context.Products
             .Where(t => ids.Contains(t.Id))
             .With(query);
@@ -31,6 +32,7 @@ internal static class ProductDataLoader
         CatalogContext context,
         CancellationToken cancellationToken)
     {
+        brandIds = brandIds.EnsureOrdered();
         return await context.Products
             .Where(t => brandIds.Contains(t.BrandId))
             .With(query, s => s.AddAscending(t => t.Id))

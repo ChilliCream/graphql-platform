@@ -68,7 +68,7 @@ namespace TestNamespace
         {
             var args0_selection = context.Selection;
             var args0_filter = HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
-            var args0_sorting = HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetSortingContext(context);
+            var args0_sorting = HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
             var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Foo>(
                 HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Foo>(args0_selection),
                 args0_filter?.AsPredicate<global::TestNamespace.Foo>(),
@@ -104,7 +104,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd(
                 "Tests::TestNamespace.Query",
-                global::HotChocolate.Types.OperationType.Query,
+                global::HotChocolate.Types.OperationTypeNames.Query,
                 () => global::TestNamespace.Query.Initialize));
             builder.ConfigureSchema(
                 b => b.TryAddRootType(

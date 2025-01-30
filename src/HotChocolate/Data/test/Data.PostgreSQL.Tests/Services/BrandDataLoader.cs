@@ -15,6 +15,7 @@ internal static class BrandDataLoader
         CatalogContext context,
         CancellationToken cancellationToken)
     {
+        ids = ids.EnsureOrdered();
         var queryable = context.Brands
             .Where(t => ids.Contains(t.Id))
             .With(query);
