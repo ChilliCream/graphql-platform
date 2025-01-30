@@ -21,19 +21,7 @@
 {
   "errors": [
     {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 5
-        }
-      ],
-      "path": [
-        "onError"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
+      "message": "Unexpected Execution Error"
     }
   ],
   "data": null

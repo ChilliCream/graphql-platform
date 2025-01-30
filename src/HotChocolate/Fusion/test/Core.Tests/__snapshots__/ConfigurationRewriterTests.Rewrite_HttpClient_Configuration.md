@@ -28,6 +28,7 @@ type Mutation {
 
 type Subscription {
   onNewReview: Review! @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIBE")
+  onNewReviewError: Review! @resolver(subgraph: "Reviews2", select: "{ onNewReviewError }", kind: "SUBSCRIBE")
 }
 
 type AddReviewPayload {
@@ -123,6 +124,7 @@ type Mutation {
 
 type Subscription {
   onNewReview: Review! @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIBE")
+  onNewReviewError: Review! @resolver(subgraph: "Reviews2", select: "{ onNewReviewError }", kind: "SUBSCRIBE")
 }
 
 type AddReviewPayload {
