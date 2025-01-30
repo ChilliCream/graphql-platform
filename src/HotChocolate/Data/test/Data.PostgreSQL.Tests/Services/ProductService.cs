@@ -1,7 +1,7 @@
-using eShop.Catalog.Models;
 using GreenDonut.Data;
+using HotChocolate.Data.Models;
 
-namespace eShop.Catalog.Services;
+namespace HotChocolate.Data.Services;
 
 public class ProductService(IProductsByBrandDataLoader productsByBrand)
 {

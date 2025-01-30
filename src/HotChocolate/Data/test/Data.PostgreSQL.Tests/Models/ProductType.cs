@@ -1,7 +1,8 @@
 ﻿// ReSharper disable CollectionNeverUpdated.Global
+
 using System.ComponentModel.DataAnnotations;
 
-namespace eShop.Catalog.Models;
+namespace HotChocolate.Data.Models;
 
 public sealed class ProductType
 {

@@ -19,4 +19,10 @@
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="__resources__\catalog.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

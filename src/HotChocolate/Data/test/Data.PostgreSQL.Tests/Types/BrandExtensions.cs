@@ -1,12 +1,11 @@
-using eShop.Catalog.Models;
-using eShop.Catalog.Services;
 using GreenDonut.Data;
-using HotChocolate;
-using HotChocolate.Data;
+using HotChocolate.Data.Models;
+using HotChocolate.Data.Services;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
+using HotChocolate.Types.Relay;
 
-namespace eShop.Catalog.Types;
+namespace HotChocolate.Data.Types;
 
 [ObjectType<Brand>]
 public static partial class BrandExtensions

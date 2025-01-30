@@ -1,14 +1,14 @@
-using eShop.Catalog.Models;
-using eShop.Catalog.Services;
 using GreenDonut.Data;
-using HotChocolate.Data;
+using HotChocolate.Data.Models;
+using HotChocolate.Data.Services;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
+using HotChocolate.Types.Relay;
 
-namespace eShop.Catalog.Types;
+namespace HotChocolate.Data.Types;
 
 [QueryType]
-public static partial class BrandQueries
+public static class BrandQueries
 {
     [UsePaging]
     [UseFiltering]
@@ -23,4 +23,11 @@ public static partial class BrandQueries
                 queryContext,
                 cancellationToken)
             .ToConnectionAsync();
+
+    [NodeResolver]
+    public static async Task<Brand?> GetBrandAsync(
+        int id,
+        BrandService brandService,
+        CancellationToken cancellationToken)
+        => await brandService.GetBrandByIdAsync(id, cancellationToken);
 }

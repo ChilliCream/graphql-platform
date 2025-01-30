@@ -722,7 +722,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         WellKnownTypes.FilterContextResolverContextExtensions);
                     _writer.WriteIndentedLine("var args{0}_sorting = {1}.GetSortingContext(context);",
                         i,
-                        WellKnownTypes.FilterContextResolverContextExtensions);
+                        WellKnownTypes.SortingContextResolverContextExtensions);
                     _writer.WriteIndentedLine(
                         "var args{0} = new global::{1}<{2}>(",
                         i,

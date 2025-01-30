@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace eShop.Catalog.Migrations;
+namespace HotChocolate.Data.Migrations;
 
 public interface IDbSeeder<in TContext> where TContext : DbContext
 {

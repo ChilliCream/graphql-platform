@@ -1,9 +1,9 @@
-using eShop.Catalog.Data;
-using eShop.Catalog.Models;
 using GreenDonut;
 using GreenDonut.Data;
+using HotChocolate.Data.Data;
+using HotChocolate.Data.Models;
 
-namespace eShop.Catalog.Services;
+namespace HotChocolate.Data.Services;
 
 internal static class ProductDataLoader
 {

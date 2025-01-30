@@ -1,8 +1,8 @@
-using eShop.Catalog.Data;
-using eShop.Catalog.Models;
 using GreenDonut.Data;
+using HotChocolate.Data.Data;
+using HotChocolate.Data.Models;
 
-namespace eShop.Catalog.Services;
+namespace HotChocolate.Data.Services;
 
 public class BrandService(CatalogContext context)
 {
@@ -13,4 +13,9 @@ public class BrandService(CatalogContext context)
         => await context.Brands
             .With(queryContext, s => s.AddAscending(t => t.Id).AddDescending(t => t.Name))
             .ToPageAsync(pagingArgs, cancellationToken);
+
+    public async Task<Brand?> GetBrandByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+        => await context.Brands.FindAsync([id], cancellationToken);
 }

@@ -1,8 +1,8 @@
-﻿using eShop.Catalog.Data.EntityConfigurations;
-using eShop.Catalog.Models;
+﻿using HotChocolate.Data.Data.EntityConfigurations;
+using HotChocolate.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace eShop.Catalog.Data;
+namespace HotChocolate.Data.Data;
 
 public class CatalogContext(DbContextOptions<CatalogContext> options) : DbContext(options)
 {

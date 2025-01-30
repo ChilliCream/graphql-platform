@@ -1,32 +1,25 @@
 using System.Text.Json;
-using eShop.Catalog.Data;
-using eShop.Catalog.Models;
-using Microsoft.AspNetCore.Hosting;
+using HotChocolate.Data.Data;
+using HotChocolate.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Path = System.IO.Path;
 
-namespace eShop.Catalog.Migrations;
+namespace HotChocolate.Data.Migrations;
 
 public sealed class CatalogContextSeed(
-    IWebHostEnvironment env,
     ILogger<CatalogContextSeed> logger)
     : IDbSeeder<CatalogContext>
 {
     public async Task SeedAsync(CatalogContext context)
     {
-        var contentRootPath = env.ContentRootPath;
-        var picturePath = env.WebRootPath;
-
         // Workaround from https://github.com/npgsql/efcore.pg/issues/292#issuecomment-388608426
         await context.Database.OpenConnectionAsync();
         await ((NpgsqlConnection)context.Database.GetDbConnection()).ReloadTypesAsync();
 
         if (!context.Products.Any())
         {
-            var sourcePath = Path.Combine(contentRootPath, "Migrations", "catalog.json");
-            var sourceJson = await File.ReadAllTextAsync(sourcePath);
+            var sourceJson = FileResource.Open("catalog.json");
             var sourceItems = JsonSerializer.Deserialize<ProductEntry[]>(sourceJson)!;
 
             context.Brands.RemoveRange(context.Brands);

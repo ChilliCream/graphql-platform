@@ -1,8 +1,8 @@
-﻿using eShop.Catalog.Models;
+﻿using HotChocolate.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace eShop.Catalog.Data.EntityConfigurations;
+namespace HotChocolate.Data.Data.EntityConfigurations;
 
 internal sealed class ProductEntityTypeConfiguration : IEntityTypeConfiguration<Product>
 {
