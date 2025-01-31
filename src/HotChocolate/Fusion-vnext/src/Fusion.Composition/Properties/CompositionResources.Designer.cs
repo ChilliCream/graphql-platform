@@ -69,6 +69,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Source schema parsing failed. View the composition log for details..
+        /// </summary>
+        internal static string ErrorHelper_SourceSchemaParsingFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SourceSchemaParsingFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source schema validation failed. View the composition log for details..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaValidationFailed {
@@ -200,6 +209,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_InputWithMissingRequiredFields {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InputWithMissingRequiredFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidGraphQL {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidGraphQL", resourceCulture);
             }
         }
         

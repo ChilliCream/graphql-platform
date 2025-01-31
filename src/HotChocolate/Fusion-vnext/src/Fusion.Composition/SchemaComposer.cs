@@ -7,21 +7,28 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer
+public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositionLog log)
 {
-    public CompositionResult<SchemaDefinition> Compose(
-        IEnumerable<SchemaDefinition> schemaDefinitions,
-        ICompositionLog compositionLog)
-    {
-        ArgumentNullException.ThrowIfNull(schemaDefinitions);
-        ArgumentNullException.ThrowIfNull(compositionLog);
+    private readonly IEnumerable<string> _sourceSchemas = sourceSchemas
+        ?? throw new ArgumentNullException(nameof(sourceSchemas));
 
-        var schemas = schemaDefinitions.ToImmutableArray();
-        var context = new CompositionContext(schemas, compositionLog);
+    private readonly ICompositionLog _log = log
+        ?? throw new ArgumentNullException(nameof(log));
+
+    public CompositionResult<SchemaDefinition> Compose()
+    {
+        // Parse Source Schemas
+        var (_, isParseFailure, schemas, parseErrors) =
+            new SourceSchemaParser(_sourceSchemas, _log).Parse();
+
+        if (isParseFailure)
+        {
+            return parseErrors;
+        }
 
         // Validate Source Schemas
         var validationResult =
-            new SourceSchemaValidator(_sourceSchemaValidationRules).Validate(context);
+            new SourceSchemaValidator(schemas, s_sourceSchemaValidationRules, _log).Validate();
 
         if (validationResult.IsFailure)
         {
@@ -30,7 +37,7 @@ public sealed class SchemaComposer
 
         // Pre Merge Validation
         var preMergeValidationResult =
-            new PreMergeValidator(_preMergeValidationRules).Validate(context);
+            new PreMergeValidator(schemas, s_preMergeValidationRules, _log).Validate();
 
         if (preMergeValidationResult.IsFailure)
         {
@@ -38,16 +45,17 @@ public sealed class SchemaComposer
         }
 
         // Merge Source Schemas
-        var mergeResult = new SourceSchemaMerger(schemas).MergeSchemas();
+        var (_, isMergeFailure, mergedSchema, mergeErrors) =
+            new SourceSchemaMerger(schemas).Merge();
 
-        if (mergeResult.IsFailure)
+        if (isMergeFailure)
         {
-            return mergeResult;
+            return mergeErrors;
         }
 
         // Post Merge Validation
         var postMergeValidationResult =
-            new PostMergeValidator(_postMergeValidationRules).Validate(mergeResult.Value);
+            new PostMergeValidator(mergedSchema, s_postMergeValidationRules).Validate();
 
         if (postMergeValidationResult.IsFailure)
         {
@@ -55,17 +63,17 @@ public sealed class SchemaComposer
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator().Validate(mergeResult.Value);
+        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
             return satisfiabilityResult;
         }
 
-        return mergeResult;
+        return mergedSchema;
     }
 
-    private static readonly List<object> _sourceSchemaValidationRules =
+    private static readonly ImmutableArray<object> s_sourceSchemaValidationRules =
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
@@ -95,7 +103,7 @@ public sealed class SchemaComposer
         new RootSubscriptionUsedRule()
     ];
 
-    private static readonly List<object> _preMergeValidationRules =
+    private static readonly ImmutableArray<object> s_preMergeValidationRules =
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
@@ -107,5 +115,5 @@ public sealed class SchemaComposer
         new OutputFieldTypesMergeableRule()
     ];
 
-    private static readonly List<object> _postMergeValidationRules = [];
+    private static readonly ImmutableArray<object> s_postMergeValidationRules = [];
 }

@@ -76,4 +76,16 @@ public readonly record struct CompositionResult<TValue>
     {
         return new CompositionResult<TValue>(result.Errors);
     }
+
+    public void Deconstruct(
+        out bool isSuccess,
+        out bool isFailure,
+        out TValue value,
+        out ImmutableArray<CompositionError> errors)
+    {
+        isSuccess = IsSuccess;
+        isFailure = IsFailure;
+        value = Value;
+        errors = Errors;
+    }
 }

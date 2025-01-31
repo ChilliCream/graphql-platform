@@ -21,6 +21,9 @@
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed. View the composition log for details.</value>
   </data>
+  <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
+    <value>Source schema parsing failed. View the composition log for details.</value>
+  </data>
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
     <value>Source schema validation failed. View the composition log for details.</value>
   </data>
@@ -65,6 +68,9 @@
   </data>
   <data name="LogEntryHelper_InputWithMissingRequiredFields" xml:space="preserve">
     <value>The input type '{0}' in schema '{1}' must define the required field '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
+    <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>
   <data name="LogEntryHelper_KeyDirectiveInFieldsArgument" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>

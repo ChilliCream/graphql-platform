@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.SourceSchemaValidation;
 using HotChocolate.Language;
@@ -11,22 +12,25 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
+internal sealed class SourceSchemaValidator(
+    ImmutableSortedSet<SchemaDefinition> schemas,
+    ImmutableArray<object> rules,
+    ICompositionLog log)
 {
-    private readonly ImmutableArray<object> _rules = [.. rules];
-
-    public CompositionResult Validate(CompositionContext context)
+    public CompositionResult Validate()
     {
-        PublishEvents(context);
+        PublishEvents();
 
-        return context.Log.HasErrors
+        return log.HasErrors
             ? ErrorHelper.SourceSchemaValidationFailed()
             : CompositionResult.Success();
     }
 
-    private void PublishEvents(CompositionContext context)
+    private void PublishEvents()
     {
-        foreach (var schema in context.SchemaDefinitions)
+        var context = new CompositionContext(schemas, log);
+
+        foreach (var schema in schemas)
         {
             PublishEvent(new SchemaEvent(schema), context);
 
@@ -82,7 +86,7 @@ internal sealed class SourceSchemaValidator(IEnumerable<object> rules)
     private void PublishEvent<TEvent>(TEvent @event, CompositionContext context)
         where TEvent : IEvent
     {
-        foreach (var rule in _rules)
+        foreach (var rule in rules)
         {
             if (rule is IEventHandler<TEvent> handler)
             {

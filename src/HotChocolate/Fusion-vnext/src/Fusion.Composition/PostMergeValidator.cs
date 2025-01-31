@@ -4,11 +4,13 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class PostMergeValidator(IEnumerable<object> rules)
+#pragma warning disable CS9113 // Parameter is unread.
+internal sealed class PostMergeValidator(
+    SchemaDefinition mergedSchema,
+    ImmutableArray<object> rules)
+#pragma warning restore CS9113 // Parameter is unread.
 {
-    private readonly ImmutableArray<object> _rules = [.. rules];
-
-    public CompositionResult Validate(SchemaDefinition _)
+    public CompositionResult Validate()
     {
         // FIXME: Implement.
         return CompositionResult.Success();
