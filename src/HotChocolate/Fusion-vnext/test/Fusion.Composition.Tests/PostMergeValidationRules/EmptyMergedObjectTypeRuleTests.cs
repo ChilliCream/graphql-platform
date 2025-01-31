@@ -91,6 +91,25 @@ public sealed class EmptyMergedObjectTypeRuleTests : CompositionTestBase
                     }
                     """
                 ]
+            },
+            // The rule does not apply to root operation types.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        field: Int @inaccessible
+                    }
+
+                    type Mutation {
+                        field: Int @inaccessible
+                    }
+
+                    type Subscription {
+                        field: Int @inaccessible
+                    }
+                    """
+                ]
             }
         };
     }

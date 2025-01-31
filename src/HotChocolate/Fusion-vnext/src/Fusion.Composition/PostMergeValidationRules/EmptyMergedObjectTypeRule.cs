@@ -21,7 +21,7 @@ internal sealed class EmptyMergedObjectTypeRule : IEventHandler<ObjectTypeEvent>
     {
         var (objectType, schema) = @event;
 
-        if (objectType.HasInaccessibleDirective())
+        if (schema.IsRootOperationType(objectType) || objectType.HasInaccessibleDirective())
         {
             return;
         }
