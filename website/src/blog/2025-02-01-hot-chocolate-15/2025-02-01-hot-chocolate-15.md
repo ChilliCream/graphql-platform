@@ -448,6 +448,4 @@ I will follow up the blog post with a couple of more detailed YouTube episodes o
 
 In the meantime, we’re hard at work on the next major Fusion update, which is going to be huge. I’d love to share some tidbits with you, but I don’t want to spoil the surprise! 😃
 
-Join our community on Slack or follow us on Twitter — we’re always happy to help and chat with you!
-
-https://slack.chillicream.com
+Join our community on [Slack](https://slack.chillicream.com) or follow us on Twitter — we’re always happy to help and chat with you!
