@@ -66,4 +66,9 @@ internal static class DirectivesProviderExtensions
     {
         return type.Directives.ContainsName(DirectiveNames.Require);
     }
+
+    public static bool HasShareableDirective(this IDirectivesProvider type)
+    {
+        return type.Directives.ContainsName(DirectiveNames.Shareable);
+    }
 }

@@ -222,6 +222,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidShareableUsage {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidShareableUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {

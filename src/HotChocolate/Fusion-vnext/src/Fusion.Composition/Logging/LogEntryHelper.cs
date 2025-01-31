@@ -274,6 +274,22 @@ internal static class LogEntryHelper
             severity: LogSeverity.Error);
     }
 
+    public static LogEntry InvalidShareableUsage(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_InvalidShareableUsage, coordinate, schema.Name),
+            LogEntryCodes.InvalidShareableUsage,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry KeyDirectiveInFieldsArgument(
         string entityTypeName,
         Directive keyDirective,
