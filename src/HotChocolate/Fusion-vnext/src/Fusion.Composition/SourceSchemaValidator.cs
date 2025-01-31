@@ -1,9 +1,9 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Fusion.SourceSchemaValidation;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Language.Utf8GraphQLParser;

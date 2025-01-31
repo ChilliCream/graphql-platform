@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
-using HotChocolate.Fusion.PreMergeValidation.Rules;
+using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Fusion.SourceSchemaValidation.Rules;
+using HotChocolate.Fusion.SourceSchemaValidationRules;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
@@ -28,7 +28,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
 
         // Validate Source Schemas
         var validationResult =
-            new SourceSchemaValidator(schemas, s_sourceSchemaValidationRules, _log).Validate();
+            new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
 
         if (validationResult.IsFailure)
         {
@@ -37,7 +37,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
 
         // Pre Merge Validation
         var preMergeValidationResult =
-            new PreMergeValidator(schemas, s_preMergeValidationRules, _log).Validate();
+            new PreMergeValidator(schemas, s_preMergeRules, _log).Validate();
 
         if (preMergeValidationResult.IsFailure)
         {
@@ -55,7 +55,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
 
         // Post Merge Validation
         var postMergeValidationResult =
-            new PostMergeValidator(mergedSchema, s_postMergeValidationRules).Validate();
+            new PostMergeValidator(mergedSchema, s_postMergeRules, schemas, _log).Validate();
 
         if (postMergeValidationResult.IsFailure)
         {
@@ -73,7 +73,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         return mergedSchema;
     }
 
-    private static readonly ImmutableArray<object> s_sourceSchemaValidationRules =
+    private static readonly ImmutableArray<object> s_sourceSchemaRules =
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
@@ -104,7 +104,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new RootSubscriptionUsedRule()
     ];
 
-    private static readonly ImmutableArray<object> s_preMergeValidationRules =
+    private static readonly ImmutableArray<object> s_preMergeRules =
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
@@ -117,5 +117,5 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new TypeKindMismatchRule()
     ];
 
-    private static readonly ImmutableArray<object> s_postMergeValidationRules = [];
+    private static readonly ImmutableArray<object> s_postMergeRules = [];
 }
