@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace GreenDonut.Data;
@@ -47,6 +48,88 @@ public sealed record SortDefinition<T>
     public void Deconstruct(out ImmutableArray<ISortBy<T>> operations)
         => operations = Operations;
 
+    /// <summary>
+    /// Adds a sort operation to the definition.
+    /// </summary>
+    /// <param name="keySelector">
+    /// The field on which the sort operation is applied.
+    /// </param>
+    /// <typeparam name="TResult">
+    /// The type of the field on which the sort operation is applied.
+    /// </typeparam>
+    /// <returns>
+    /// The updated sort definition.
+    /// </returns>
+    public SortDefinition<T> AddAscending<TResult>(
+        Expression<Func<T, TResult>> keySelector)
+    {
+        if (keySelector == null)
+        {
+            throw new ArgumentNullException(nameof(keySelector));
+        }
+
+        var operations = Operations.Add(SortBy<T>.Ascending(keySelector));
+        return new SortDefinition<T>(operations);
+    }
+
+    /// <summary>
+    /// Adds a descending sort operation to the definition.
+    /// </summary>
+    /// <param name="keySelector">
+    /// The field on which the sort operation is applied.
+    /// </param>
+    /// <typeparam name="TResult">
+    /// The type of the field on which the sort operation is applied.
+    /// </typeparam>
+    /// <returns>
+    /// The updated sort definition.
+    /// </returns>
+    public SortDefinition<T> AddDescending<TResult>(
+        Expression<Func<T, TResult>> keySelector)
+    {
+        if (keySelector == null)
+        {
+            throw new ArgumentNullException(nameof(keySelector));
+        }
+
+        var operations = Operations.Add(SortBy<T>.Ascending(keySelector));
+        return new SortDefinition<T>(operations);
+    }
+
+    /// <summary>
+    /// Applies the sort definition if the definition is empty.
+    /// </summary>
+    /// <param name="applyIfEmpty">
+    /// The sort definition to apply if the current definition is empty.
+    /// </param>
+    /// <returns>
+    /// The updated sort definition.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when the <paramref name="applyIfEmpty"/> is <see langword="null"/>.
+    /// </exception>
+    public SortDefinition<T> IfEmpty(
+        Func<SortDefinition<T>, SortDefinition<T>> applyIfEmpty)
+    {
+        if (applyIfEmpty == null)
+        {
+            throw new ArgumentNullException(nameof(applyIfEmpty));
+        }
+
+        if (Operations.Length == 0)
+        {
+            return applyIfEmpty(this);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Returns a string representation of the sort definition.
+    /// </summary>
+    /// <returns>
+    /// A string representation of the sort definition.
+    /// </returns>
     public override string ToString()
     {
         if (Operations.Length == 0)

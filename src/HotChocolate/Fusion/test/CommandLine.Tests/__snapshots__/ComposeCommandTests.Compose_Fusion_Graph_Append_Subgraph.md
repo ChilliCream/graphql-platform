@@ -28,6 +28,7 @@ type Mutation {
 
 type Subscription {
   onNewReview: Review!
+  onNewReviewError: Review!
 }
 
 type AddReviewPayload {
@@ -123,6 +124,7 @@ type Mutation {
 
 type Subscription {
   onNewReview: Review! @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIBE")
+  onNewReviewError: Review! @resolver(subgraph: "Reviews2", select: "{ onNewReviewError }", kind: "SUBSCRIBE")
 }
 
 type AddReviewPayload {
@@ -218,7 +220,7 @@ scalar Date
 ```json
 {
   "Name": "Reviews2",
-  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n  subscription: Subscription\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  reviews: [Review!]!\n  reviewById(id: ID!): Review\n  authorById(id: ID!): User\n  productById(id: ID!): Product\n  reviewOrAuthor: ReviewOrAuthor!\n  viewer: Viewer!\n}\n\ntype Mutation {\n  addReview(input: AddReviewInput!): AddReviewPayload!\n}\n\ntype Subscription {\n  onNewReview: Review!\n}\n\ntype Product {\n  reviews: [Review!]!\n  id: ID!\n}\n\n\"The user who wrote the review.\"\ntype User implements Node {\n  reviews: [Review!]!\n  id: ID!\n  name: String!\n}\n\ntype Review implements Node {\n  errorField: String\n  id: ID!\n  author: User!\n  product: Product!\n  body: String!\n}\n\nunion ReviewOrAuthor = User | Review\n\ntype Viewer {\n  latestReview: Review\n  data: SomeData!\n}\n\ntype SomeData {\n  reviewsValue: String!\n}\n\ninput AddReviewInput {\n  body: String!\n  authorId: Int!\n  upc: Int!\n}\n\ntype AddReviewPayload {\n  review: Review\n}",
+  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n  subscription: Subscription\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  reviews: [Review!]!\n  reviewById(id: ID!): Review\n  authorById(id: ID!): User\n  productById(id: ID!): Product\n  reviewOrAuthor: ReviewOrAuthor!\n  viewer: Viewer!\n}\n\ntype Mutation {\n  addReview(input: AddReviewInput!): AddReviewPayload!\n}\n\ntype Subscription {\n  onNewReview: Review!\n  onNewReviewError: Review!\n}\n\ntype Product {\n  reviews: [Review!]!\n  id: ID!\n}\n\n\"The user who wrote the review.\"\ntype User implements Node {\n  reviews: [Review!]!\n  id: ID!\n  name: String!\n}\n\ntype Review implements Node {\n  errorField: String\n  id: ID!\n  author: User!\n  product: Product!\n  body: String!\n}\n\nunion ReviewOrAuthor = User | Review\n\ntype Viewer {\n  latestReview: Review\n  data: SomeData!\n}\n\ntype SomeData {\n  reviewsValue: String!\n}\n\ninput AddReviewInput {\n  body: String!\n  authorId: Int!\n  upc: Int!\n}\n\ntype AddReviewPayload {\n  review: Review\n}",
   "Extensions": [
     "extend type Query {\n  authorById(id: ID!\n    @is(field: \"id\")): User\n  productById(id: ID!\n    @is(field: \"id\")): Product\n}\n\nschema\n  @rename(coordinate: \"Query.authorById\", newName: \"userById\") {\n\n}"
   ],

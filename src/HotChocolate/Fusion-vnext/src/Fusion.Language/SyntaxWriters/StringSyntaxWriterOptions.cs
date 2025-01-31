@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Options used when writing syntax.
 /// </summary>
-internal sealed class StringSyntaxWriterOptions
+public sealed class StringSyntaxWriterOptions
 {
     /// <summary>
     /// Gets or sets the number of spaces to use for indentation.

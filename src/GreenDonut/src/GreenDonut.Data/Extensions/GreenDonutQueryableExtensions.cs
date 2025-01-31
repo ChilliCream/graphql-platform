@@ -321,7 +321,7 @@ public static class GreenDonutQueryableExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="queryable"/> is <c>null</c> or if <paramref name="queryContext"/> is <c>null</c>.
     /// </exception>
-    public static IQueryable<T> Apply<T>(
+    public static IQueryable<T> With<T>(
         this IQueryable<T> queryable,
         QueryContext<T>? queryContext,
         Func<SortDefinition<T>, SortDefinition<T>>? modifySortDefinition = null)

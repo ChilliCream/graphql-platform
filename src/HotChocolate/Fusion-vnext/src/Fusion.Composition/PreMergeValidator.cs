@@ -2,8 +2,8 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.PreMergeValidation;
-using HotChocolate.Fusion.PreMergeValidation.Info;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Skimmed;
 
@@ -56,7 +56,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         {
                             inputFieldGroupByName.Add(
                                 field.Name,
-                                new InputFieldInfo(field, type, schema));
+                                new InputFieldInfo(field, inputType, schema));
                         }
 
                         break;
@@ -66,7 +66,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         {
                             outputFieldGroupByName.Add(
                                 field.Name,
-                                new OutputFieldInfo(field, type, schema));
+                                new OutputFieldInfo(field, complexType, schema));
                         }
 
                         break;

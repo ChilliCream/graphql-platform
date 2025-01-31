@@ -150,6 +150,6 @@ public static class HotChocolateExecutionDataLoaderExtensions
         where TKey : notnull
     {
         var definition = context.AsSortDefinition<TValue>();
-        return dataLoader.Order(definition);
+        return dataLoader.OrderBy(definition);
     }
 }

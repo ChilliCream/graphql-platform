@@ -37,4 +37,16 @@ public abstract class PagingQueryInterceptor : IDisposable
             _disposed = true;
         }
     }
+
+    /// <summary>
+    /// This method allows to publish a query to the current interceptor.
+    /// </summary>
+    /// <param name="query">
+    /// The query that is about to be executed.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the items in the query.
+    /// </typeparam>
+    public static void Publish<T>(IQueryable<T> query)
+        => PagingQueryableExtensions.TryGetQueryInterceptor()?.OnBeforeExecute(query);
 }

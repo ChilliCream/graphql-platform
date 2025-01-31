@@ -362,12 +362,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
+            [
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-            },
-            default,
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            ],
+            null,
             cts.Token);
 
         var executor = await new ServiceCollection()
@@ -381,6 +380,55 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             """
             subscription OnNewReview {
                 onNewReview {
+                    body
+                    author {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build(),
+            cts.Token);
+
+        // assert
+        var snapshot = new Snapshot();
+        await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Subscription_OnNewReviewError()
+    {
+        // arrange
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
+        using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            [
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            ],
+            null,
+            cts.Token);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+        var request = Parse(
+            """
+            subscription OnNewReview {
+                onNewReviewError {
                     body
                     author {
                         name
@@ -1911,60 +1959,6 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectOperationResult().Errors);
-    }
-
-    // TODO : FIX THIS TEST
-    [Fact(Skip = "This test does not work anymore as it uses CCN which we removed ... ")]
-    public async Task ResolveByKey_Handles_Null_Item_Correctly()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        // act
-        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
-                demoProject.Products.ToConfiguration(),
-                demoProject.Resale.ToConfiguration(),
-            }, new FusionFeatureCollection(FusionFeatures.NodeField));
-
-        var executor = await new ServiceCollection()
-            .AddSingleton(demoProject.HttpClientFactory)
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .BuildRequestExecutorAsync();
-
-        var request = Parse(
-            """
-            {
-              viewer {
-                # The second product does not exist in the products subgraph
-                recommendedResalableProducts {
-                  edges {
-                    node {
-                      product? {
-                        id
-                        name
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """);
-
-        // act
-        await using var result = await executor.ExecuteAsync(
-            OperationRequestBuilder
-                .New()
-                .SetDocument(request)
-                .Build());
-
-        // assert
-        var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result);
-        await snapshot.MatchMarkdownAsync();
     }
 
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>

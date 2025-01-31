@@ -316,24 +316,25 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
                         DataLoaderInfo.Sorting);
                     _writer.WriteLine();
-                    _writer.WriteIndentedLine(
-                        "if({0}_selector is null && {0}_predicate is null && {0}_sortDefinition is null)");
-                    _writer.WriteIndentedLine("{");
-                    _writer.IncreaseIndent();
+
                     _writer.WriteIndentedLine(
                         "var {0} = global::{1}<{2}>.Empty;",
                         parameter.VariableName,
                         WellKnownTypes.QueryContext,
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
-                    _writer.DecreaseIndent();
-                    _writer.WriteIndentedLine("}");
-                    _writer.WriteLine();
                     _writer.WriteIndentedLine(
-                        "var {0} = new global::{1}<{2}>({0}_selector?, " +
+                        "if({0}_selector is not null || {0}_predicate is not null || {0}_sortDefinition is not null)",
+                        parameter.VariableName);
+                    _writer.WriteIndentedLine("{");
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "{0} = new global::{1}<{2}>({0}_selector, " +
                         "{0}_predicate, {0}_sortDefinition);",
                         parameter.VariableName,
                         WellKnownTypes.QueryContext,
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.DecreaseIndent();
+                    _writer.WriteIndentedLine("}");
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.PagingArguments)
                 {

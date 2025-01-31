@@ -107,7 +107,6 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     _writer.WriteIndentedLine("{");
                     _writer.IncreaseIndent();
 
-                    _writer.WriteLine();
                     _writer.WriteIndentedLine(
                         "const global::{0} bindingFlags =",
                         WellKnownTypes.BindingFlags);
@@ -718,8 +717,12 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 case ResolverParameterKind.QueryContext:
                     var entityType = parameter.TypeParameters[0].ToFullyQualified();
                     _writer.WriteIndentedLine("var args{0}_selection = context.Selection;", i);
-                    _writer.WriteIndentedLine("var args{0}_filter = context.GetFilterContext();", i);
-                    _writer.WriteIndentedLine("var args{0}_sorting = context.GetSortingContext();", i);
+                    _writer.WriteIndentedLine("var args{0}_filter = {1}.GetFilterContext(context);",
+                        i,
+                        WellKnownTypes.FilterContextResolverContextExtensions);
+                    _writer.WriteIndentedLine("var args{0}_sorting = {1}.GetSortingContext(context);",
+                        i,
+                        WellKnownTypes.SortingContextResolverContextExtensions);
                     _writer.WriteIndentedLine(
                         "var args{0} = new global::{1}<{2}>(",
                         i,
@@ -727,7 +730,11 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         entityType);
                     using (_writer.IncreaseIndent())
                     {
-                        _writer.WriteIndentedLine("args{0}_selection.AsSelector<{1}>(),", i, entityType);
+                        _writer.WriteIndentedLine(
+                            "{0}.AsSelector<{1}>(args{2}_selection),",
+                            WellKnownTypes.HotChocolateExecutionSelectionExtensions,
+                            entityType,
+                            i);
                         _writer.WriteIndentedLine("args{0}_filter?.AsPredicate<{1}>(),", i, entityType);
                         _writer.WriteIndentedLine("args{0}_sorting?.AsSortDefinition<{1}>());", i, entityType);
                     }

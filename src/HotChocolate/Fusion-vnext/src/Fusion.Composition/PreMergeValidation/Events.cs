@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
-using HotChocolate.Fusion.PreMergeValidation.Info;
+using HotChocolate.Fusion.Info;
 
 namespace HotChocolate.Fusion.PreMergeValidation;
 

@@ -342,5 +342,5 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public const string Selector = "GreenDonut.Data.Selector";
     public const string Predicate = "GreenDonut.Data.Predicate";
     public const string Sorting = "GreenDonut.Data.Sorting";
-    public const string PagingArgs = "HotChocolate.Pagination.PagingArgs";
+    public const string PagingArgs = "GreenDonut.Data.PagingArgs";
 }

@@ -23,6 +23,39 @@ internal static class QueryHelpers
         return ReplaceSelector(query, updatedSelector);
     }
 
+    public static IQueryable<T> EnsureGroupPropsAreSelected<T, TKey>(
+        IQueryable<T> query,
+        Expression<Func<T, TKey>> keySelector)
+    {
+        var selector = ExtractCurrentSelector(query);
+        if (selector is null)
+        {
+            return query;
+        }
+
+        var body = GetMemberExpression(keySelector);
+        if (body is null)
+        {
+            return query;
+        }
+
+        var updatedSelector = AddPropertiesInSelector(selector, [body]);
+        return ReplaceSelector(query, updatedSelector);
+
+        static MemberExpression? GetMemberExpression(Expression<Func<T, TKey>> keySelector)
+        {
+            var body = keySelector.Body;
+
+            if (body is UnaryExpression unaryExpr)
+            {
+                body = unaryExpr.Operand;
+            }
+
+            return body as MemberExpression;
+        }
+
+    }
+
     private static Expression<Func<T, T>>? ExtractCurrentSelector<T>(
         IQueryable<T> query)
     {
