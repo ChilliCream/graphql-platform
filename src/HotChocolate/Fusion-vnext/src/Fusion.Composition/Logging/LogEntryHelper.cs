@@ -700,4 +700,26 @@ internal static class LogEntryHelper
             member: schema,
             schema: schema);
     }
+
+    public static LogEntry TypeKindMismatch(
+        INamedTypeDefinition type,
+        SchemaDefinition schemaA,
+        string typeKindA,
+        SchemaDefinition schemaB,
+        string typeKindB)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_TypeKindMismatch,
+                type.Name,
+                schemaA.Name,
+                typeKindA,
+                schemaB.Name,
+                typeKindB),
+            LogEntryCodes.TypeKindMismatch,
+            LogSeverity.Error,
+            new SchemaCoordinate(type.Name),
+            type,
+            schemaA);
+    }
 }

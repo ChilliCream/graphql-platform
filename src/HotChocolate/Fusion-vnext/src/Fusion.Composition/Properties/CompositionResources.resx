@@ -144,4 +144,7 @@
   <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
     <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
   </data>
+  <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
+    <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
+  </data>
 </root>
