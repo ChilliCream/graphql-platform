@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.PostMergeValidationRules;
 using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -117,5 +118,8 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new TypeKindMismatchRule()
     ];
 
-    private static readonly ImmutableArray<object> s_postMergeRules = [];
+    private static readonly ImmutableArray<object> s_postMergeRules =
+    [
+        new EmptyMergedObjectTypeRule()
+    ];
 }
