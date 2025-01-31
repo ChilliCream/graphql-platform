@@ -18,6 +18,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
+    <value>Post-merge validation failed. View the composition log for details.</value>
+  </data>
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed. View the composition log for details.</value>
   </data>

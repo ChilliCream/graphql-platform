@@ -2,9 +2,9 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
+using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Logging.Contracts;
-using HotChocolate.Fusion.PreMergeValidation;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Skimmed;
 
