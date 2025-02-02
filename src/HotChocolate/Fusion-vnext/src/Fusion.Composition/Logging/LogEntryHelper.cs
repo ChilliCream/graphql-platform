@@ -100,6 +100,19 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EmptyMergedInterfaceType(
+        InterfaceTypeDefinition interfaceType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedInterfaceType, interfaceType.Name),
+            LogEntryCodes.EmptyMergedInterfaceType,
+            LogSeverity.Error,
+            new SchemaCoordinate(interfaceType.Name),
+            interfaceType,
+            schema);
+    }
+
     public static LogEntry EmptyMergedObjectType(
         ObjectTypeDefinition objectType,
         SchemaDefinition schema)

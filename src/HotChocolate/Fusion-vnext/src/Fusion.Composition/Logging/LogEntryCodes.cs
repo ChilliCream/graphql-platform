@@ -3,6 +3,7 @@ namespace HotChocolate.Fusion.Logging;
 public static class LogEntryCodes
 {
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
+    public const string EmptyMergedInterfaceType = "EMPTY_MERGED_INTERFACE_TYPE";
     public const string EmptyMergedObjectType = "EMPTY_MERGED_OBJECT_TYPE";
     public const string EnumValuesMismatch = "ENUM_VALUES_MISMATCH";
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
