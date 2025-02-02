@@ -113,6 +113,19 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EmptyMergedUnionType(
+        UnionTypeDefinition unionType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedUnionType, unionType.Name),
+            LogEntryCodes.EmptyMergedUnionType,
+            LogSeverity.Error,
+            new SchemaCoordinate(unionType.Name),
+            unionType,
+            schema);
+    }
+
     public static LogEntry EnumValuesMismatch(
         EnumTypeDefinition enumType,
         string enumValue,
