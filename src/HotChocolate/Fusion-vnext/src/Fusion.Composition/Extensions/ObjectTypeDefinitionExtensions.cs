@@ -3,7 +3,7 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
-public static class ObjectTypeDefinitionExtensions
+internal static class ObjectTypeDefinitionExtensions
 {
     public static void ApplyShareableDirective(this ObjectTypeDefinition type)
     {
