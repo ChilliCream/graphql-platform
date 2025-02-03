@@ -71,8 +71,8 @@ public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
                 ]
             },
             // TODO: Check spec text
-            // If the @inaccessible directive is applied to an object type itself, the entire merged
-            // object type is excluded from the composite execution schema, and it is not required
+            // If the @inaccessible directive is applied to an interface type itself, the entire
+            // merged interface type is excluded from the composite schema, and it is not required
             // to contain any fields.
             {
                 [
@@ -100,7 +100,7 @@ public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
         {
             // This example demonstrates an invalid merged interface type. In this case, "Author" is
             // defined in two source schemas, but all fields are marked as @inaccessible in at least
-            // one of the source schemas, resulting in an empty merged object type.
+            // one of the source schemas, resulting in an empty merged interface type.
             {
                 [
                     """
