@@ -2,13 +2,13 @@ using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaPreProcessorTests
+public sealed class SourceSchemaPreprocessorTests
 {
     [Fact]
     public void Node_Field_Should_Be_Turned_Into_A_Lookup()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schema = SchemaParser.Parse(
             """
             type Query {
               node(id: ID!): Node
@@ -28,7 +28,7 @@ public sealed class SourceSchemaPreProcessorTests
               title: String!
             }
             """);
-        var preprocessor = new SourceSchemaPreProcessor(schemaDefinition);
+        var preprocessor = new SourceSchemaPreprocessor(schema);
 
         // act
         var result = preprocessor.Process();
@@ -71,7 +71,7 @@ public sealed class SourceSchemaPreProcessorTests
     public void ById_Field_Should_Be_Turned_Into_Lookup()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schema = SchemaParser.Parse(
             """
             type Query {
               productById(id: ID!): Product
@@ -82,7 +82,7 @@ public sealed class SourceSchemaPreProcessorTests
               other: String
             }
             """);
-        var preprocessor = new SourceSchemaPreProcessor(schemaDefinition);
+        var preprocessor = new SourceSchemaPreprocessor(schema);
 
         // act
         var result = preprocessor.Process();
@@ -113,7 +113,7 @@ public sealed class SourceSchemaPreProcessorTests
     public void Multiple_By_Fields_Should_Be_Turned_Into_Lookups()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schema = SchemaParser.Parse(
             """
             type Query {
               productById(id: ID!): Product
@@ -126,7 +126,7 @@ public sealed class SourceSchemaPreProcessorTests
               name: String!
             }
             """);
-        var preprocessor = new SourceSchemaPreProcessor(schemaDefinition);
+        var preprocessor = new SourceSchemaPreprocessor(schema);
 
         // act
         var result = preprocessor.Process();
@@ -161,7 +161,7 @@ public sealed class SourceSchemaPreProcessorTests
     public void By_Field_Should_Not_Be_Turned_Into_Lookup_If_Field_Does_Not_Exist_On_Result_Type()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schema = SchemaParser.Parse(
             """
             type Query {
               productByGtin(gtin: String!): Product
@@ -172,7 +172,7 @@ public sealed class SourceSchemaPreProcessorTests
               other: String
             }
             """);
-        var preprocessor = new SourceSchemaPreProcessor(schemaDefinition);
+        var preprocessor = new SourceSchemaPreprocessor(schema);
 
         // act
         var result = preprocessor.Process();
@@ -201,7 +201,7 @@ public sealed class SourceSchemaPreProcessorTests
     public void By_Field_With_Non_Null_Result_Type_Should_Not_Be_Turned_Into_Lookup()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schema = SchemaParser.Parse(
             """
             type Query {
               productById(id: ID!): Product!
@@ -212,7 +212,7 @@ public sealed class SourceSchemaPreProcessorTests
               other: String
             }
             """);
-        var preprocessor = new SourceSchemaPreProcessor(schemaDefinition);
+        var preprocessor = new SourceSchemaPreprocessor(schema);
 
         // act
         var result = preprocessor.Process();
@@ -241,7 +241,7 @@ public sealed class SourceSchemaPreProcessorTests
     public void By_Field_With_Multiple_Arguments_Should_Not_Be_Turned_Into_Lookup()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schema = SchemaParser.Parse(
             """
             type Query {
               productById(id: ID! other: String): Product
@@ -252,7 +252,7 @@ public sealed class SourceSchemaPreProcessorTests
               other: String
             }
             """);
-        var preprocessor = new SourceSchemaPreProcessor(schemaDefinition);
+        var preprocessor = new SourceSchemaPreprocessor(schema);
 
         // act
         var result = preprocessor.Process();
@@ -281,7 +281,7 @@ public sealed class SourceSchemaPreProcessorTests
     public void By_Field_With_List_Result_Type_Should_Not_Be_Turned_Into_Lookup()
     {
         // arrange
-        var schemaDefinition = SchemaParser.Parse(
+        var schema = SchemaParser.Parse(
             """
             type Query {
               productById(ids: [ID!]!): [Product]
@@ -291,7 +291,7 @@ public sealed class SourceSchemaPreProcessorTests
               id: ID!
             }
             """);
-        var preprocessor = new SourceSchemaPreProcessor(schemaDefinition);
+        var preprocessor = new SourceSchemaPreprocessor(schema);
 
         // act
         var result = preprocessor.Process();

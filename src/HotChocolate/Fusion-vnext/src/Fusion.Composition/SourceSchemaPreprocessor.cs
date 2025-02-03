@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
 
@@ -8,12 +9,12 @@ namespace HotChocolate.Fusion;
 /// Applies @lookup, @key, and optionally @shareable to a source schema to make it equivalent to a Fusion v1 source schema.
 /// </summary>
 internal sealed class SourceSchemaPreprocessor(
-    SchemaDefinition schemaDefinition,
+    SchemaDefinition schema,
     SourceSchemaPreprocessorOptions? options = null)
 {
     public SchemaDefinition Process()
     {
-        var context = new SourceSchemaPreprocessorContext(schemaDefinition, options ?? new());
+        var context = new SourceSchemaPreprocessorContext(schema, options ?? new());
 
         ApplyLookups(context);
 
@@ -22,10 +23,10 @@ internal sealed class SourceSchemaPreprocessor(
             ApplyShareableToAllTypes(context);
         }
 
-        return schemaDefinition;
+        return schema;
     }
 
-    private static void ApplyLookups(SourceSchemaPreProcessorContext context)
+    private static void ApplyLookups(SourceSchemaPreprocessorContext context)
     {
         if (context.Schema.QueryType is not { } queryType)
         {
@@ -92,15 +93,10 @@ internal sealed class SourceSchemaPreprocessor(
 }
 
 internal sealed class SourceSchemaPreprocessorContext(
-    SchemaDefinition schemaDefinition,
+    SchemaDefinition schema,
     SourceSchemaPreprocessorOptions options)
 {
-    public SchemaDefinition Schema => schemaDefinition;
+    public SchemaDefinition Schema => schema;
 
-    public SourceSchemaPreProcessorOptions Options => options;
-}
-
-internal sealed class SourceSchemaPreProcessorOptions
-{
-    public bool ApplyShareableToAllTypes { get; set; } = true;
+    public SourceSchemaPreprocessorOptions Options => options;
 }
