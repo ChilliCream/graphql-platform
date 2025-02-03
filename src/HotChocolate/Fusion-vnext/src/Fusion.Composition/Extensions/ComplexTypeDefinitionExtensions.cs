@@ -4,7 +4,7 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
-public static class ComplexTypeDefinitionExtensions
+internal static class ComplexTypeDefinitionExtensions
 {
     public static void ApplyKeyDirective(this ComplexTypeDefinition type, string[] fields)
     {
