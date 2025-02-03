@@ -5,7 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// Applies @lookup, @key and optionally @shareable to a source schema to make it equivalent to a Fusion v1 source schema.
+/// Applies @lookup, @key, and optionally @shareable to a source schema to make it equivalent to a Fusion v1 source schema.
 /// </summary>
 internal class SourceSchemaPreProcessor(SchemaDefinition schemaDefinition, SourceSchemaPreProcessorOptions? options = null)
 {
