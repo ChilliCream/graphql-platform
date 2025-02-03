@@ -13,7 +13,7 @@ internal sealed class SourceSchemaPreprocessor(
 {
     public SchemaDefinition Process()
     {
-        var context = new SourceSchemaPreProcessorContext(schemaDefinition, options ?? new());
+        var context = new SourceSchemaPreprocessorContext(schemaDefinition, options ?? new());
 
         ApplyLookups(context);
 
