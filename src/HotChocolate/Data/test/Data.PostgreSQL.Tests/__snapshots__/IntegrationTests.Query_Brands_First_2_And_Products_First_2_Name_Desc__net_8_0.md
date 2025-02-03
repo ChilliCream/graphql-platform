@@ -8,33 +8,33 @@
     "brands": {
       "nodes": [
         {
-          "id": "QnJhbmQ6OQ==",
-          "name": "AirStrider",
+          "id": "QnJhbmQ6MTE=",
+          "name": "Zephyr",
           "products": {
             "nodes": [
               {
-                "id": "UHJvZHVjdDo5",
-                "name": "VenturePro GPS Watch"
+                "id": "UHJvZHVjdDoxMg==",
+                "name": "Powder Pro Snowboard"
               },
               {
-                "id": "UHJvZHVjdDozNA==",
-                "name": "Velocity Red Bike Helmet"
+                "id": "UHJvZHVjdDoyMw==",
+                "name": "Summit Pro Climbing Harness"
               }
             ]
           }
         },
         {
-          "id": "QnJhbmQ6NQ==",
-          "name": "B&R",
+          "id": "QnJhbmQ6MTM=",
+          "name": "XE",
           "products": {
             "nodes": [
               {
-                "id": "UHJvZHVjdDo1",
-                "name": "Blizzard Rider Snowboard"
+                "id": "UHJvZHVjdDo3Nw==",
+                "name": "Survivor 2-Person Tent"
               },
               {
-                "id": "UHJvZHVjdDoyMA==",
-                "name": "Explorer Biking Computer"
+                "id": "UHJvZHVjdDo4MA==",
+                "name": "Pathfinder GPS Watch"
               }
             ]
           }
@@ -51,14 +51,14 @@
 -- @__p_0='3'
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
-ORDER BY b."Name", b."Id"
+ORDER BY b."Name" DESC, b."Id"
 LIMIT @__p_0
 ```
 
 ## Query 2
 
 ```sql
--- @__brandIds_0={ '5', '9' } (DbType = Object)
+-- @__brandIds_0={ '11', '13' } (DbType = Object)
 SELECT t."BrandId", t0."Id", t0."Name", t0."BrandId"
 FROM (
     SELECT p."BrandId"
