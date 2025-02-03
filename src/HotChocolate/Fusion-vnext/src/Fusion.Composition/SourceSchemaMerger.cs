@@ -560,13 +560,7 @@ internal sealed class SourceSchemaMerger
             .Where(i => !i.MemberType.HasInternalDirective())
             .GroupBy(i => i.MemberType.Name)
             // Intersection: Member type definition count matches union type definition count.
-            .Where(g => g.Count() == typeGroup.Length)
-            .ToImmutableArray();
-
-        if (unionMemberGroupByName.Length == 0)
-        {
-            return null;
-        }
+            .Where(g => g.Count() == typeGroup.Length);
 
         var unionType = new UnionTypeDefinition(name) { Description = description };
 
