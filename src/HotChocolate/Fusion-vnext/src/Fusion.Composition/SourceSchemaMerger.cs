@@ -539,7 +539,7 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Union-Types">
     /// Specification
     /// </seealso>
-    private UnionTypeDefinition? MergeUnionTypes(
+    private UnionTypeDefinition MergeUnionTypes(
         ImmutableArray<TypeInfo> typeGroup,
         SchemaDefinition mergedSchema)
     {
