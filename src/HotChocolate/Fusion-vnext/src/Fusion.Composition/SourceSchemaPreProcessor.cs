@@ -7,7 +7,9 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Applies @lookup, @key, and optionally @shareable to a source schema to make it equivalent to a Fusion v1 source schema.
 /// </summary>
-internal class SourceSchemaPreProcessor(SchemaDefinition schemaDefinition, SourceSchemaPreProcessorOptions? options = null)
+internal sealed class SourceSchemaPreprocessor(
+    SchemaDefinition schemaDefinition,
+    SourceSchemaPreprocessorOptions? options = null)
 {
     public SchemaDefinition Process()
     {
