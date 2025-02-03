@@ -33,6 +33,10 @@ internal sealed class PostMergeValidator(
         {
             switch (type)
             {
+                case EnumTypeDefinition enumType:
+                    PublishEvent(new EnumTypeEvent(enumType, mergedSchema), context);
+                    break;
+
                 case InputObjectTypeDefinition inputType:
                     PublishEvent(new InputTypeEvent(inputType, mergedSchema), context);
 

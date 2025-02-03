@@ -100,6 +100,19 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EmptyMergedEnumType(
+        EnumTypeDefinition enumType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedEnumType, enumType.Name),
+            LogEntryCodes.EmptyMergedEnumType,
+            LogSeverity.Error,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
+    }
+
     public static LogEntry EmptyMergedObjectType(
         ObjectTypeDefinition objectType,
         SchemaDefinition schema)
