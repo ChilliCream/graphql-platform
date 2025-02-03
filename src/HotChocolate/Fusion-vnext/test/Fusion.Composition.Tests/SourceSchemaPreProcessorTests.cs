@@ -2,7 +2,7 @@ using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Fusion;
 
-public class SourceSchemaPreProcessorTests
+public sealed class SourceSchemaPreProcessorTests
 {
     [Fact]
     public void Node_Field_Should_Be_Turned_Into_A_Lookup()
