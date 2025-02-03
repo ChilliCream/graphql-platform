@@ -34,10 +34,10 @@ internal sealed class SourceSchemaPreprocessor(
 
         foreach (var queryField in queryType.Fields)
         {
-            if (queryField.HasLookupDirective() ||
-                queryField.Type.IsListType() ||
-                queryField.Type.Kind == TypeKind.NonNull ||
-                queryField.Arguments.Count != 1)
+            if (queryField.HasLookupDirective()
+                || queryField.Type.IsListType()
+                || queryField.Type.Kind == TypeKind.NonNull
+                || queryField.Arguments.Count != 1)
             {
                 continue;
             }
