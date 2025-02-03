@@ -18,7 +18,38 @@ public sealed class SourceSchemaMergerTests
             {
                 Types =
                 {
-                    new ObjectTypeDefinition(Query),
+                    new ObjectTypeDefinition(Query)
+                        { Fields = { new OutputFieldDefinition("field") } },
+                    new ObjectTypeDefinition(Mutation)
+                        { Fields = { new OutputFieldDefinition("field") } },
+                    new ObjectTypeDefinition(Subscription)
+                        { Fields = { new OutputFieldDefinition("field") } }
+                }
+            }
+        ]);
+
+        // act
+        var (isSuccess, _, mergedSchema, _) = merger.Merge();
+
+        // assert
+        Assert.True(isSuccess);
+        Assert.NotNull(mergedSchema.QueryType);
+        Assert.NotNull(mergedSchema.MutationType);
+        Assert.NotNull(mergedSchema.SubscriptionType);
+    }
+
+    [Fact]
+    public void Merge_WithEmptyMutationAndSubscriptionType_RemovesEmptyOperationTypes()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+        [
+            new SchemaDefinition
+            {
+                Types =
+                {
+                    new ObjectTypeDefinition(Query)
+                        { Fields = { new OutputFieldDefinition("field") } },
                     new ObjectTypeDefinition(Mutation),
                     new ObjectTypeDefinition(Subscription)
                 }
@@ -26,13 +57,15 @@ public sealed class SourceSchemaMergerTests
         ]);
 
         // act
-        var result = merger.Merge();
+        var (isSuccess, _, mergedSchema, _) = merger.Merge();
 
         // assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value.QueryType);
-        Assert.NotNull(result.Value.MutationType);
-        Assert.NotNull(result.Value.SubscriptionType);
+        Assert.True(isSuccess);
+        Assert.NotNull(mergedSchema.QueryType);
+        Assert.False(mergedSchema.Types.ContainsName(Mutation));
+        Assert.Null(mergedSchema.MutationType);
+        Assert.False(mergedSchema.Types.ContainsName(Subscription));
+        Assert.Null(mergedSchema.SubscriptionType);
     }
 
     [Fact]
