@@ -8,12 +8,12 @@
     "brands": {
       "nodes": [
         {
-          "id": "QnJhbmQ6OQ==",
-          "name": "AirStrider"
+          "id": "QnJhbmQ6MTE=",
+          "name": "Zephyr"
         },
         {
-          "id": "QnJhbmQ6NQ==",
-          "name": "B&R"
+          "id": "QnJhbmQ6MTM=",
+          "name": "XE"
         }
       ]
     }
@@ -27,7 +27,7 @@
 -- @__p_0='3'
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
-ORDER BY b."Name", b."Id"
+ORDER BY b."Name" DESC, b."Id"
 LIMIT @__p_0
 ```
 
