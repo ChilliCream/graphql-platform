@@ -8,42 +8,42 @@
     "brands": {
       "nodes": [
         {
-          "id": "QnJhbmQ6OQ==",
+          "id": "QnJhbmQ6MTE=",
           "products": {
             "nodes": [
               {
-                "id": "UHJvZHVjdDo5",
-                "name": "VenturePro GPS Watch",
+                "id": "UHJvZHVjdDoxMg==",
+                "name": "Powder Pro Snowboard",
                 "brand": {
-                  "name": "AirStrider"
+                  "name": "Zephyr"
                 }
               },
               {
-                "id": "UHJvZHVjdDozNA==",
-                "name": "Velocity Red Bike Helmet",
+                "id": "UHJvZHVjdDoyMw==",
+                "name": "Summit Pro Climbing Harness",
                 "brand": {
-                  "name": "AirStrider"
+                  "name": "Zephyr"
                 }
               }
             ]
           }
         },
         {
-          "id": "QnJhbmQ6NQ==",
+          "id": "QnJhbmQ6MTM=",
           "products": {
             "nodes": [
               {
-                "id": "UHJvZHVjdDo1",
-                "name": "Blizzard Rider Snowboard",
+                "id": "UHJvZHVjdDo3Nw==",
+                "name": "Survivor 2-Person Tent",
                 "brand": {
-                  "name": "B&R"
+                  "name": "XE"
                 }
               },
               {
-                "id": "UHJvZHVjdDoyMA==",
-                "name": "Explorer Biking Computer",
+                "id": "UHJvZHVjdDo4MA==",
+                "name": "Pathfinder GPS Watch",
                 "brand": {
-                  "name": "B&R"
+                  "name": "XE"
                 }
               }
             ]
@@ -61,14 +61,14 @@
 -- @__p_0='3'
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
-ORDER BY b."Name", b."Id"
+ORDER BY b."Name" DESC, b."Id"
 LIMIT @__p_0
 ```
 
 ## Query 2
 
 ```sql
--- @__brandIds_0={ '5', '9' } (DbType = Object)
+-- @__brandIds_0={ '11', '13' } (DbType = Object)
 SELECT p1."BrandId", p3."Id", p3."Name", p3."BrandId"
 FROM (
     SELECT p."BrandId"
@@ -91,7 +91,7 @@ ORDER BY p1."BrandId"
 ## Query 3
 
 ```sql
--- @__ids_0={ '5', '9' } (DbType = Object)
+-- @__ids_0={ '11', '13' } (DbType = Object)
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@__ids_0)

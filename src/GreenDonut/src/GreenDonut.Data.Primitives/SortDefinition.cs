@@ -92,7 +92,7 @@ public sealed record SortDefinition<T>
             throw new ArgumentNullException(nameof(keySelector));
         }
 
-        var operations = Operations.Add(SortBy<T>.Ascending(keySelector));
+        var operations = Operations.Add(SortBy<T>.Descending(keySelector));
         return new SortDefinition<T>(operations);
     }
 

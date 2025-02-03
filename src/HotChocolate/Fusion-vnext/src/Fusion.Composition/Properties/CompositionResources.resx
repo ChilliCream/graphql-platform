@@ -45,11 +45,17 @@
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The built-in directive argument '{0}' in schema '{1}' is not accessible.</value>
   </data>
+  <data name="LogEntryHelper_EmptyMergedEnumType" xml:space="preserve">
+    <value>The merged enum type '{0}' is empty.</value>
+  </data>
   <data name="LogEntryHelper_EmptyMergedInterfaceType" xml:space="preserve">
     <value>The merged interface type '{0}' is empty.</value>
   </data>
   <data name="LogEntryHelper_EmptyMergedObjectType" xml:space="preserve">
     <value>The merged object type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedUnionType" xml:space="preserve">
+    <value>The merged union type '{0}' is empty.</value>
   </data>
   <data name="LogEntryHelper_EnumValuesMismatch" xml:space="preserve">
     <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>

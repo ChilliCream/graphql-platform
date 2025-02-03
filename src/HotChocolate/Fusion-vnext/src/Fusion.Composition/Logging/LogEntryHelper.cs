@@ -100,6 +100,19 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EmptyMergedEnumType(
+        EnumTypeDefinition enumType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedEnumType, enumType.Name),
+            LogEntryCodes.EmptyMergedEnumType,
+            LogSeverity.Error,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
+    }
+
     public static LogEntry EmptyMergedInterfaceType(
         InterfaceTypeDefinition interfaceType,
         SchemaDefinition schema)
@@ -123,6 +136,19 @@ internal static class LogEntryHelper
             LogSeverity.Error,
             new SchemaCoordinate(objectType.Name),
             objectType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedUnionType(
+        UnionTypeDefinition unionType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedUnionType, unionType.Name),
+            LogEntryCodes.EmptyMergedUnionType,
+            LogSeverity.Error,
+            new SchemaCoordinate(unionType.Name),
+            unionType,
             schema);
     }
 

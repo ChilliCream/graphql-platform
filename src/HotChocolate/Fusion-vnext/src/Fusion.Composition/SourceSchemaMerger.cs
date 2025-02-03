@@ -47,12 +47,13 @@ internal sealed class SourceSchemaMerger
         // [TypeName: [{Type, Schema}, ...], ...].
         var typeGroupByName = _schemas
             .SelectMany(s => s.Types, (schema, type) => new TypeInfo(type, schema))
+            .OrderBy(i => i.Type.Kind) // Ensure that object types are merged before union types.
             .GroupBy(i => i.Type.Name);
 
         // Merge types.
         foreach (var grouping in typeGroupByName)
         {
-            var mergedType = MergeTypes([.. grouping]);
+            var mergedType = MergeTypes([.. grouping], mergedSchema);
 
             if (mergedType is not null)
             {
@@ -88,7 +89,9 @@ internal sealed class SourceSchemaMerger
         return mergedSchema;
     }
 
-    private INamedTypeDefinition? MergeTypes(ImmutableArray<TypeInfo> typeGroup)
+    private INamedTypeDefinition? MergeTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var kind = typeGroup[0].Type.Kind;
 
@@ -102,7 +105,7 @@ internal sealed class SourceSchemaMerger
             TypeKind.Interface => MergeInterfaceTypes(typeGroup),
             TypeKind.Object => MergeObjectTypes(typeGroup),
             TypeKind.Scalar => MergeScalarTypes(typeGroup),
-            TypeKind.Union => MergeUnionTypes(typeGroup),
+            TypeKind.Union => MergeUnionTypes(typeGroup, mergedSchema),
             _ => throw new InvalidOperationException()
         };
     }
@@ -536,7 +539,9 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Union-Types">
     /// Specification
     /// </seealso>
-    private UnionTypeDefinition? MergeUnionTypes(ImmutableArray<TypeInfo> typeGroup)
+    private UnionTypeDefinition? MergeUnionTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var firstUnion = typeGroup[0].Type;
         var name = firstUnion.Name;
@@ -574,11 +579,9 @@ internal sealed class SourceSchemaMerger
 
         foreach (var grouping in unionMemberGroupByName)
         {
-            var memberType = new ObjectTypeDefinition(grouping.Key);
-
             AddFusionUnionMemberDirectives(unionType, [.. grouping]);
 
-            unionType.Types.Add(memberType);
+            unionType.Types.Add((ObjectTypeDefinition)mergedSchema.Types[grouping.Key]);
         }
 
         return unionType;

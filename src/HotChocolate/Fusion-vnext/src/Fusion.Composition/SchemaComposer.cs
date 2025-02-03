@@ -120,7 +120,9 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
 
     private static readonly ImmutableArray<object> s_postMergeRules =
     [
+        new EmptyMergedEnumTypeRule(),
         new EmptyMergedInterfaceTypeRule(),
-        new EmptyMergedObjectTypeRule()
+        new EmptyMergedObjectTypeRule(),
+        new EmptyMergedUnionTypeRule()
     ];
 }
