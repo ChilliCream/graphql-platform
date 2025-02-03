@@ -91,7 +91,9 @@ internal sealed class SourceSchemaPreprocessor(
     }
 }
 
-internal sealed class SourceSchemaPreProcessorContext(SchemaDefinition schemaDefinition, SourceSchemaPreProcessorOptions options)
+internal sealed class SourceSchemaPreprocessorContext(
+    SchemaDefinition schemaDefinition,
+    SourceSchemaPreprocessorOptions options)
 {
     public SchemaDefinition Schema => schemaDefinition;
 
