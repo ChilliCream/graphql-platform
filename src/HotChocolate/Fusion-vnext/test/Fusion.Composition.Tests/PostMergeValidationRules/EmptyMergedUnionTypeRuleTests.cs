@@ -59,9 +59,11 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
                     type A {
                         name: String
                     }
+
                     type B {
                         id: Int!
                     }
+
                     union C = A | B
                     """,
                     """
@@ -69,13 +71,14 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
                     type A {
                         name: String
                     }
+
                     union C = A
                     """
                 ]
             },
-            // If the @inaccessible directive is applied to an object type itself, the entire merged
-            // object type is excluded from the composite execution schema, and it is not required
-            // to contain any fields.
+            // If the @inaccessible directive is applied to a union type itself, the entire merged
+            // union type is excluded from the composite schema, and it is not required to contain
+            // any types.
             {
                 [
                     """
@@ -83,9 +86,11 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
                     type A {
                         name: String
                     }
+
                     type B {
                         id: Int!
                     }
+
                     union C @inaccessible = A | B
                     """,
                     """
@@ -93,6 +98,7 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
                     type A {
                         name: String
                     }
+
                     union C = A
                     """
                 ]
@@ -104,9 +110,9 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // This example demonstrates an invalid merged object type. In this case, "Author" is
-            // defined in two source schemas, but all fields are marked as @inaccessible in at least
-            // one of the source schemas, resulting in an empty merged object type.
+            // This example demonstrates an invalid merged union type. In this case, "C" is defined
+            // in two source schemas, but all member types are marked as @inaccessible in at least
+            // one of the source schemas, resulting in an empty merged union type.
             {
                 [
                     """
@@ -114,9 +120,11 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
                     type A {
                         name: String
                     }
+
                     type B @inaccessible {
                         id: Int!
                     }
+
                     union C = A | B
                     """,
                     """
@@ -124,6 +132,7 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
                     type A @inaccessible {
                         name: String
                     }
+
                     union C = A
                     """
                 ],

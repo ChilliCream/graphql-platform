@@ -6,9 +6,9 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 /// <summary>
-/// TODO: Summary and spec link
+/// TODO: Summary
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Empty-Merged-Object-Type">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Empty-Merged-Union-Type">
 /// Specification
 /// </seealso>
 internal sealed class EmptyMergedUnionTypeRule : IEventHandler<UnionTypeEvent>
@@ -22,7 +22,7 @@ internal sealed class EmptyMergedUnionTypeRule : IEventHandler<UnionTypeEvent>
             return;
         }
 
-        var accessibleTypes = unionType.Types.Where(f => !f.HasInaccessibleDirective());
+        var accessibleTypes = unionType.Types.Where(t => !t.HasInaccessibleDirective());
 
         if (!accessibleTypes.Any())
         {
