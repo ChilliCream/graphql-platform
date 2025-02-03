@@ -6,9 +6,9 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 /// <summary>
-/// TODO: Summary and spec link
+/// TODO: Summary
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Empty-Merged-Object-Type">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Empty-Merged-Enum-Type">
 /// Specification
 /// </seealso>
 internal sealed class EmptyMergedEnumTypeRule : IEventHandler<EnumTypeEvent>
@@ -22,7 +22,7 @@ internal sealed class EmptyMergedEnumTypeRule : IEventHandler<EnumTypeEvent>
             return;
         }
 
-        var accessibleValues = enumType.Values.Where(f => !f.HasInaccessibleDirective());
+        var accessibleValues = enumType.Values.Where(v => !v.HasInaccessibleDirective());
 
         if (!accessibleValues.Any())
         {

@@ -71,8 +71,8 @@ public sealed class EmptyMergedEnumTypeRuleTests : CompositionTestBase
             },
             // TODO: Check spec text
             // If the @inaccessible directive is applied to an enum type itself, the entire merged
-            // object type is excluded from the composite execution schema, and it is not required
-            // to contain any fields.
+            // enum type is excluded from the composite schema, and it is not required to contain
+            // any values.
             {
                 [
                     """
@@ -97,8 +97,8 @@ public sealed class EmptyMergedEnumTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // This example demonstrates an invalid merged object type. In this case, "Genre" is
-            // defined in two source schemas, but all fields are marked as @inaccessible in at least
+            // This example demonstrates an invalid merged enum type. In this case, "Genre" is
+            // defined in two source schemas, but all values are marked as @inaccessible in at least
             // one of the source schemas, resulting in an empty merged enum type.
             {
                 [
