@@ -129,3 +129,7 @@ internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
 internal record TypeEvent(
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
+
+internal record UnionTypeEvent(
+    UnionTypeDefinition UnionType,
+    SchemaDefinition Schema) : IEvent;

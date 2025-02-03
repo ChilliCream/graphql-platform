@@ -159,6 +159,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged union type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedUnionType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedUnionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_EnumValuesMismatch {

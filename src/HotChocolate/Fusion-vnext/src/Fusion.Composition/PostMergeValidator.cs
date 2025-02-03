@@ -54,6 +54,10 @@ internal sealed class PostMergeValidator(
                 case ObjectTypeDefinition objectType:
                     PublishEvent(new ObjectTypeEvent(objectType, mergedSchema), context);
                     break;
+
+                case UnionTypeDefinition unionType:
+                    PublishEvent(new UnionTypeEvent(unionType, mergedSchema), context);
+                    break;
             }
 
             if (type is ComplexTypeDefinition complexType)
