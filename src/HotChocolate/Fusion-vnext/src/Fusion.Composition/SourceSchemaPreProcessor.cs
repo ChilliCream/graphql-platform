@@ -82,7 +82,7 @@ internal sealed class SourceSchemaPreprocessor(
         }
     }
 
-    private void ApplyShareableToAllTypes(SourceSchemaPreProcessorContext context)
+    private static void ApplyShareableToAllTypes(SourceSchemaPreprocessorContext context)
     {
         foreach (var objectType in context.Schema.Types.OfType<ObjectTypeDefinition>())
         {
