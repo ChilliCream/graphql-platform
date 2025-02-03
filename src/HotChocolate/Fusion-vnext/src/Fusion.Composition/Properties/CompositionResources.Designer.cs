@@ -141,6 +141,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged enum type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedEnumType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedEnumType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The merged object type &apos;{0}&apos; is empty..
         /// </summary>
         internal static string LogEntryHelper_EmptyMergedObjectType {
