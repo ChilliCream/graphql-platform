@@ -676,14 +676,30 @@ internal sealed class SourceSchemaMerger
             mergedSchema.QueryType = (ObjectTypeDefinition?)queryType;
         }
 
-        if (mergedSchema.Types.TryGetType(TypeNames.Mutation, out var mutationType))
+        if (mergedSchema.Types.TryGetType(TypeNames.Mutation, out var mutationType)
+            && mutationType is ObjectTypeDefinition mutationObjectType)
         {
-            mergedSchema.MutationType = (ObjectTypeDefinition?)mutationType;
+            if (mutationObjectType.Fields.Count == 0)
+            {
+                mergedSchema.Types.Remove(mutationObjectType);
+            }
+            else
+            {
+                mergedSchema.MutationType = mutationObjectType;
+            }
         }
 
-        if (mergedSchema.Types.TryGetType(TypeNames.Subscription, out var subscriptionType))
+        if (mergedSchema.Types.TryGetType(TypeNames.Subscription, out var subscriptionType)
+            && subscriptionType is ObjectTypeDefinition subscriptionObjectType)
         {
-            mergedSchema.SubscriptionType = (ObjectTypeDefinition?)subscriptionType;
+            if (subscriptionObjectType.Fields.Count == 0)
+            {
+                mergedSchema.Types.Remove(subscriptionObjectType);
+            }
+            else
+            {
+                mergedSchema.SubscriptionType = subscriptionObjectType;
+            }
         }
     }
 
