@@ -150,6 +150,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged interface type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedInterfaceType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedInterfaceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The merged object type &apos;{0}&apos; is empty..
         /// </summary>
         internal static string LogEntryHelper_EmptyMergedObjectType {
