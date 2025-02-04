@@ -15,7 +15,7 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
             new SourceSchemaMergerOptions { AddFusionDefinitions = false });
 
         // act
-        var result = merger.MergeSchemas();
+        var result = merger.Merge();
 
         // assert
         Assert.True(result.IsSuccess);
@@ -143,10 +143,9 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                 """
             },
             // Each union's possible types are considered in turn. Only those that are not marked
-            // @internal are included in the final composed union. This preserves the valid types
-            // from all sources while systematically filtering out anything intended for internal
-            // use only. In case there are no possible types left after filtering, the merged union
-            // is considered @internal and cannot appear in the final schema.
+            // @internal or @inaccessible are included in the final composed union. This preserves
+            // the valid types from all sources while systematically filtering out anything
+            // inaccessible or intended for internal use only.
             {
                 [
                     """
@@ -162,7 +161,11 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     type User @internal { id: ID! }
                     """
                 ],
-                ""
+                """
+                union SearchResult
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) =
+                """
             },
             // Union member type "User" internal in one of two schemas. No remaining member types.
             {
@@ -186,6 +189,10 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     id: ID!
                         @fusion__field(schema: A)
                 }
+
+                union SearchResult
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) =
                 """
             },
             // Union member type "Order" internal in one of two schemas, "Product" visible in both.

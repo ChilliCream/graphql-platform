@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
 using static HotChocolate.Fusion.WellKnownTypeNames;
@@ -16,7 +18,38 @@ public sealed class SourceSchemaMergerTests
             {
                 Types =
                 {
-                    new ObjectTypeDefinition(Query),
+                    new ObjectTypeDefinition(Query)
+                        { Fields = { new OutputFieldDefinition("field") } },
+                    new ObjectTypeDefinition(Mutation)
+                        { Fields = { new OutputFieldDefinition("field") } },
+                    new ObjectTypeDefinition(Subscription)
+                        { Fields = { new OutputFieldDefinition("field") } }
+                }
+            }
+        ]);
+
+        // act
+        var (isSuccess, _, mergedSchema, _) = merger.Merge();
+
+        // assert
+        Assert.True(isSuccess);
+        Assert.NotNull(mergedSchema.QueryType);
+        Assert.NotNull(mergedSchema.MutationType);
+        Assert.NotNull(mergedSchema.SubscriptionType);
+    }
+
+    [Fact]
+    public void Merge_WithEmptyMutationAndSubscriptionType_RemovesEmptyOperationTypes()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+        [
+            new SchemaDefinition
+            {
+                Types =
+                {
+                    new ObjectTypeDefinition(Query)
+                        { Fields = { new OutputFieldDefinition("field") } },
                     new ObjectTypeDefinition(Mutation),
                     new ObjectTypeDefinition(Subscription)
                 }
@@ -24,29 +57,34 @@ public sealed class SourceSchemaMergerTests
         ]);
 
         // act
-        var result = merger.MergeSchemas();
+        var (isSuccess, _, mergedSchema, _) = merger.Merge();
 
         // assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value.QueryType);
-        Assert.NotNull(result.Value.MutationType);
-        Assert.NotNull(result.Value.SubscriptionType);
+        Assert.True(isSuccess);
+        Assert.NotNull(mergedSchema.QueryType);
+        Assert.False(mergedSchema.Types.ContainsName(Mutation));
+        Assert.Null(mergedSchema.MutationType);
+        Assert.False(mergedSchema.Types.ContainsName(Subscription));
+        Assert.Null(mergedSchema.SubscriptionType);
     }
 
     [Fact]
     public void Merge_FourNamedSchemas_AddsFusionDefinitions()
     {
         // arrange
-        var merger = new SourceSchemaMerger(
+        IEnumerable<SchemaDefinition> schemas =
         [
-            new SchemaDefinition { Name = "ExampleOne" },
-            new SchemaDefinition { Name = "Example_Two" },
-            new SchemaDefinition { Name = "Example__Three" },
-            new SchemaDefinition { Name = "ExampleFourFive" }
-        ]);
+            new() { Name = "ExampleOne" },
+            new() { Name = "Example_Two" },
+            new() { Name = "Example__Three" },
+            new() { Name = "ExampleFourFive" }
+        ];
+
+        var merger =
+            new SourceSchemaMerger(schemas.ToImmutableSortedSet(new SchemaByNameComparer()));
 
         // act
-        var result = merger.MergeSchemas();
+        var result = merger.Merge();
 
         // assert
         Assert.True(result.IsSuccess);

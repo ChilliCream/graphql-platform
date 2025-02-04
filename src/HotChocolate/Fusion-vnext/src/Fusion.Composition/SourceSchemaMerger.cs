@@ -23,14 +23,14 @@ namespace HotChocolate.Fusion;
 internal sealed class SourceSchemaMerger
 {
     private static readonly RemoveDirectiveNodesSyntaxRewriter RemoveDirectivesRewriter = new();
-    private readonly ImmutableArray<SchemaDefinition> _schemas;
+    private readonly ImmutableSortedSet<SchemaDefinition> _schemas;
     private readonly FrozenDictionary<SchemaDefinition, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
     private readonly FrozenDictionary<string, INamedTypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, DirectiveDefinition> _fusionDirectiveDefinitions;
 
     public SourceSchemaMerger(
-        ImmutableArray<SchemaDefinition> schemas,
+        ImmutableSortedSet<SchemaDefinition> schemas,
         SourceSchemaMergerOptions? options = null)
     {
         _schemas = schemas;
@@ -40,19 +40,20 @@ internal sealed class SourceSchemaMerger
         _fusionDirectiveDefinitions = CreateFusionDirectiveDefinitions();
     }
 
-    public CompositionResult<SchemaDefinition> MergeSchemas()
+    public CompositionResult<SchemaDefinition> Merge()
     {
         var mergedSchema = new SchemaDefinition();
 
         // [TypeName: [{Type, Schema}, ...], ...].
         var typeGroupByName = _schemas
             .SelectMany(s => s.Types, (schema, type) => new TypeInfo(type, schema))
+            .OrderBy(i => i.Type.Kind) // Ensure that object types are merged before union types.
             .GroupBy(i => i.Type.Name);
 
         // Merge types.
         foreach (var grouping in typeGroupByName)
         {
-            var mergedType = MergeTypes([.. grouping]);
+            var mergedType = MergeTypes([.. grouping], mergedSchema);
 
             if (mergedType is not null)
             {
@@ -88,7 +89,9 @@ internal sealed class SourceSchemaMerger
         return mergedSchema;
     }
 
-    private INamedTypeDefinition? MergeTypes(ImmutableArray<TypeInfo> typeGroup)
+    private INamedTypeDefinition? MergeTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var kind = typeGroup[0].Type.Kind;
 
@@ -102,7 +105,7 @@ internal sealed class SourceSchemaMerger
             TypeKind.Interface => MergeInterfaceTypes(typeGroup),
             TypeKind.Object => MergeObjectTypes(typeGroup),
             TypeKind.Scalar => MergeScalarTypes(typeGroup),
-            TypeKind.Union => MergeUnionTypes(typeGroup),
+            TypeKind.Union => MergeUnionTypes(typeGroup, mergedSchema),
             _ => throw new InvalidOperationException()
         };
     }
@@ -536,7 +539,9 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Union-Types">
     /// Specification
     /// </seealso>
-    private UnionTypeDefinition? MergeUnionTypes(ImmutableArray<TypeInfo> typeGroup)
+    private UnionTypeDefinition MergeUnionTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var firstUnion = typeGroup[0].Type;
         var name = firstUnion.Name;
@@ -555,13 +560,7 @@ internal sealed class SourceSchemaMerger
             .Where(i => !i.MemberType.HasInternalDirective())
             .GroupBy(i => i.MemberType.Name)
             // Intersection: Member type definition count matches union type definition count.
-            .Where(g => g.Count() == typeGroup.Length)
-            .ToImmutableArray();
-
-        if (unionMemberGroupByName.Length == 0)
-        {
-            return null;
-        }
+            .Where(g => g.Count() == typeGroup.Length);
 
         var unionType = new UnionTypeDefinition(name) { Description = description };
 
@@ -574,11 +573,9 @@ internal sealed class SourceSchemaMerger
 
         foreach (var grouping in unionMemberGroupByName)
         {
-            var memberType = new ObjectTypeDefinition(grouping.Key);
-
             AddFusionUnionMemberDirectives(unionType, [.. grouping]);
 
-            unionType.Types.Add(memberType);
+            unionType.Types.Add((ObjectTypeDefinition)mergedSchema.Types[grouping.Key]);
         }
 
         return unionType;
@@ -679,14 +676,30 @@ internal sealed class SourceSchemaMerger
             mergedSchema.QueryType = (ObjectTypeDefinition?)queryType;
         }
 
-        if (mergedSchema.Types.TryGetType(TypeNames.Mutation, out var mutationType))
+        if (mergedSchema.Types.TryGetType(TypeNames.Mutation, out var mutationType)
+            && mutationType is ObjectTypeDefinition mutationObjectType)
         {
-            mergedSchema.MutationType = (ObjectTypeDefinition?)mutationType;
+            if (mutationObjectType.Fields.Count == 0)
+            {
+                mergedSchema.Types.Remove(mutationObjectType);
+            }
+            else
+            {
+                mergedSchema.MutationType = mutationObjectType;
+            }
         }
 
-        if (mergedSchema.Types.TryGetType(TypeNames.Subscription, out var subscriptionType))
+        if (mergedSchema.Types.TryGetType(TypeNames.Subscription, out var subscriptionType)
+            && subscriptionType is ObjectTypeDefinition subscriptionObjectType)
         {
-            mergedSchema.SubscriptionType = (ObjectTypeDefinition?)subscriptionType;
+            if (subscriptionObjectType.Fields.Count == 0)
+            {
+                mergedSchema.Types.Remove(subscriptionObjectType);
+            }
+            else
+            {
+                mergedSchema.SubscriptionType = subscriptionObjectType;
+            }
         }
     }
 

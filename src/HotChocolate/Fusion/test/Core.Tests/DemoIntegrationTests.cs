@@ -1961,6 +1961,223 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
+    [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              displayName: String!
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl: String!
+              id: ID!
+            }
+            """);
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
+
+        var request = Parse(
+            """
+            query {
+              userBySlug(slug: "me") {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          relativeUrl
+                          displayName
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              displayName(arg: String): String!
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl(arg: String): String!
+              id: ID!
+            }
+            """);
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
+
+        var request = Parse(
+            """
+            query($arg1: String, $arg2: String) {
+              userBySlug(slug: "me") {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          relativeUrl(arg: $arg1)
+                          displayName(arg: $arg2)
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { ["arg1"] = "abc", ["arg2"] = "def" })
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;
