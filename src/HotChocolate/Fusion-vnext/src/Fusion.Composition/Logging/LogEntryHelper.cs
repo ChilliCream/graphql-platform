@@ -100,6 +100,32 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EmptyMergedEnumType(
+        EnumTypeDefinition enumType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedEnumType, enumType.Name),
+            LogEntryCodes.EmptyMergedEnumType,
+            LogSeverity.Error,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedInterfaceType(
+        InterfaceTypeDefinition interfaceType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedInterfaceType, interfaceType.Name),
+            LogEntryCodes.EmptyMergedInterfaceType,
+            LogSeverity.Error,
+            new SchemaCoordinate(interfaceType.Name),
+            interfaceType,
+            schema);
+    }
+
     public static LogEntry EmptyMergedObjectType(
         ObjectTypeDefinition objectType,
         SchemaDefinition schema)
@@ -110,6 +136,19 @@ internal static class LogEntryHelper
             LogSeverity.Error,
             new SchemaCoordinate(objectType.Name),
             objectType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedUnionType(
+        UnionTypeDefinition unionType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedUnionType, unionType.Name),
+            LogEntryCodes.EmptyMergedUnionType,
+            LogSeverity.Error,
+            new SchemaCoordinate(unionType.Name),
+            unionType,
             schema);
     }
 
@@ -450,6 +489,17 @@ internal static class LogEntryHelper
             LogSeverity.Warning,
             coordinate,
             field,
+            schema);
+    }
+
+    public static LogEntry NoQueries(ObjectTypeDefinition queryType, SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_NoQueries),
+            LogEntryCodes.NoQueries,
+            LogSeverity.Error,
+            new SchemaCoordinate(queryType.Name),
+            queryType,
             schema);
     }
 

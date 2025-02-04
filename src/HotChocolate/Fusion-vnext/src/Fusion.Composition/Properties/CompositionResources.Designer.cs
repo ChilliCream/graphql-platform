@@ -141,11 +141,38 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged enum type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedEnumType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedEnumType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged interface type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedInterfaceType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedInterfaceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The merged object type &apos;{0}&apos; is empty..
         /// </summary>
         internal static string LogEntryHelper_EmptyMergedObjectType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_EmptyMergedObjectType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged union type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedUnionType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedUnionType", resourceCulture);
             }
         }
         
@@ -317,6 +344,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_LookupReturnsNonNullableType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_LookupReturnsNonNullableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged query type has no accessible fields..
+        /// </summary>
+        internal static string LogEntryHelper_NoQueries {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_NoQueries", resourceCulture);
             }
         }
         

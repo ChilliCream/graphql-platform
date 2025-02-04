@@ -45,8 +45,17 @@
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The built-in directive argument '{0}' in schema '{1}' is not accessible.</value>
   </data>
+  <data name="LogEntryHelper_EmptyMergedEnumType" xml:space="preserve">
+    <value>The merged enum type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedInterfaceType" xml:space="preserve">
+    <value>The merged interface type '{0}' is empty.</value>
+  </data>
   <data name="LogEntryHelper_EmptyMergedObjectType" xml:space="preserve">
     <value>The merged object type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedUnionType" xml:space="preserve">
+    <value>The merged union type '{0}' is empty.</value>
   </data>
   <data name="LogEntryHelper_EnumValuesMismatch" xml:space="preserve">
     <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>
@@ -104,6 +113,9 @@
   </data>
   <data name="LogEntryHelper_LookupReturnsNonNullableType" xml:space="preserve">
     <value>The lookup field '{0}' in schema '{1}' should return a nullable type.</value>
+  </data>
+  <data name="LogEntryHelper_NoQueries" xml:space="preserve">
+    <value>The merged query type has no accessible fields.</value>
   </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>The output field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>

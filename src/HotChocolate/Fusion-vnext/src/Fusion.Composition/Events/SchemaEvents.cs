@@ -10,6 +10,10 @@ internal record DirectiveArgumentEvent(
     DirectiveDefinition Directive,
     SchemaDefinition Schema) : IEvent;
 
+internal record EnumTypeEvent(
+    EnumTypeDefinition EnumType,
+    SchemaDefinition Schema) : IEvent;
+
 internal record FieldArgumentEvent(
     InputFieldDefinition Argument,
     OutputFieldDefinition Field,
@@ -124,4 +128,8 @@ internal record SchemaEvent(SchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(
     INamedTypeDefinition Type,
+    SchemaDefinition Schema) : IEvent;
+
+internal record UnionTypeEvent(
+    UnionTypeDefinition UnionType,
     SchemaDefinition Schema) : IEvent;
