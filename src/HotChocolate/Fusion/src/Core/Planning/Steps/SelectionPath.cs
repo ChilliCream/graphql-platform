@@ -35,8 +35,8 @@ internal sealed class SelectionPath
 
         while (current is not null)
         {
-            sb.Insert(0, '/');
-            sb.Insert(1, current.Selection.ResponseName);
+            sb.Append('/');
+            sb.Append(Selection.ResponseName);
             current = current.Parent;
         }
 
