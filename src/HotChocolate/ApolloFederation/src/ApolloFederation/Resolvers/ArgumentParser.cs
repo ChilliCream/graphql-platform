@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -62,6 +64,45 @@ internal static class ArgumentParser
                 value = default;
                 return true;
             }
+            case SyntaxKind.ListValue:
+            {
+                if (type is not ListType listType)
+                {
+                    break;
+                }
+
+                var list = CreateList(listType);
+                var items = ((ListValueNode)valueNode).Items;
+                var flatList = !listType.ElementType.IsListType();
+                var elementType = type.ElementType();
+                var elementClrType = typeof(T).GetGenericArguments().Single()!;
+
+                var innerTryGetValueMethod = typeof(ArgumentParser)
+                    .GetMethod(nameof(TryGetValue), BindingFlags.NonPublic | BindingFlags.Static)!
+                    .MakeGenericMethod(elementClrType);
+
+                if (flatList)
+                {
+                    for (var j = 0; j < items.Count; j++)
+                    {
+                        var parameters = new object?[] { items[j], elementType, path, i + 1, null };
+                        var succeeded = (bool) innerTryGetValueMethod.Invoke(null, parameters)!;
+                        if (!succeeded)
+                        {
+                            throw new NotImplementedException();
+                        }
+                        var innerValue = parameters[4]!;
+                        list.Add(innerValue);
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                value = (T)list;
+                return true;
+            }
             case SyntaxKind.StringValue:
             case SyntaxKind.IntValue:
             case SyntaxKind.FloatValue:
@@ -98,6 +139,9 @@ internal static class ArgumentParser
         value = default;
         return false;
     }
+
+    private static IList CreateList(ListType type)
+        => (IList)Activator.CreateInstance(type.ToRuntimeType())!;
 
     public static bool Matches(IValueNode valueNode, IReadOnlyList<string[]> required)
     {
