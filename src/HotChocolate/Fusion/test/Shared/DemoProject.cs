@@ -86,7 +86,6 @@ public sealed class DemoProject : IDisposable
         CancellationToken ct = default)
         => await CreateAsync(false, ct).ConfigureAwait(false);
 
-
     public static async Task<DemoProject> CreateAsync(
         bool enableCost,
         CancellationToken ct = default)

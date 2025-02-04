@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 
@@ -19,6 +20,9 @@ public sealed class ResolverParameter
     public string? Key { get; }
 
     public ITypeSymbol Type => Parameter.Type;
+
+    public ImmutableArray<ITypeSymbol> TypeParameters
+        => GetGenericTypeArgument(Type);
 
     public IParameterSymbol Parameter { get; }
 
@@ -136,6 +140,22 @@ public sealed class ResolverParameter
             return ResolverParameterKind.Argument;
         }
 
+        if (parameter.IsQueryContext())
+        {
+            return ResolverParameterKind.QueryContext;
+        }
+
         return ResolverParameterKind.Unknown;
+    }
+
+    private static ImmutableArray<ITypeSymbol> GetGenericTypeArgument(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+        {
+            return namedTypeSymbol.TypeArguments;
+        }
+
+        // Return null if it's not a generic type or index is out of bounds
+        return ImmutableArray<ITypeSymbol>.Empty;
     }
 }

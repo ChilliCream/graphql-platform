@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 /// <c>SelectedValue</c>, thus extending the traditional <c>ObjectValue</c> capabilities to support
 /// direct path selections.
 /// </summary>
-internal sealed class SelectedObjectValueNode(IReadOnlyList<SelectedObjectFieldNode> fields)
+public sealed class SelectedObjectValueNode(IReadOnlyList<SelectedObjectFieldNode> fields)
     : IFieldSelectionMapSyntaxNode
 {
     public SelectedObjectValueNode(

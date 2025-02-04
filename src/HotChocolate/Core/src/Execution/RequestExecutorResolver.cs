@@ -181,24 +181,22 @@ internal sealed partial class RequestExecutorResolver
     }
 
     private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
-        => Task.Factory.StartNew(
-            async () =>
-            {
-                try
-                {
-                    await OnRequestExecutorEvictedAsync(registeredExecutor);
-                }
-                finally
-                {
-                    // we will give the request executor some grace period to finish all request
-                    // in the pipeline
-                    await Task.Delay(TimeSpan.FromMinutes(5));
-                    registeredExecutor.Dispose();
-                }
-            },
-            default,
-            TaskCreationOptions.DenyChildAttach,
-            TaskScheduler.Default);
+        => RunEvictionEvents(registeredExecutor).FireAndForget();
+
+    private static async Task RunEvictionEvents(RegisteredExecutor registeredExecutor)
+    {
+        try
+        {
+            await OnRequestExecutorEvictedAsync(registeredExecutor);
+        }
+        finally
+        {
+            // we will give the request executor some grace period to finish all request
+            // in the pipeline
+            await Task.Delay(TimeSpan.FromMinutes(5));
+            registeredExecutor.Dispose();
+        }
+    }
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
         ConfigurationContext context,
@@ -377,7 +375,7 @@ internal sealed partial class RequestExecutorResolver
             .AddServices(schemaServices)
             .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions);
 
-        var descriptorContext = context.SchemaBuilder.CreateContext();
+        var descriptorContext = context.DescriptorContext;
 
         await foreach (var member in
            typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)

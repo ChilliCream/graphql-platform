@@ -3,6 +3,10 @@ namespace HotChocolate.Fusion.Logging;
 public static class LogEntryCodes
 {
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
+    public const string EmptyMergedEnumType = "EMPTY_MERGED_ENUM_TYPE";
+    public const string EmptyMergedInterfaceType = "EMPTY_MERGED_INTERFACE_TYPE";
+    public const string EmptyMergedObjectType = "EMPTY_MERGED_OBJECT_TYPE";
+    public const string EmptyMergedUnionType = "EMPTY_MERGED_UNION_TYPE";
     public const string EnumValuesMismatch = "ENUM_VALUES_MISMATCH";
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
@@ -12,6 +16,8 @@ public static class LogEntryCodes
     public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
     public const string InputFieldTypesNotMergeable = "INPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string InputWithMissingRequiredFields = "INPUT_WITH_MISSING_REQUIRED_FIELDS";
+    public const string InvalidGraphQL = "INVALID_GRAPHQL";
+    public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
     public const string KeyDirectiveInFieldsArg = "KEY_DIRECTIVE_IN_FIELDS_ARG";
     public const string KeyFieldsHasArgs = "KEY_FIELDS_HAS_ARGS";
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";
@@ -20,6 +26,7 @@ public static class LogEntryCodes
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
+    public const string NoQueries = "NO_QUERIES";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";
@@ -36,4 +43,5 @@ public static class LogEntryCodes
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
+    public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
 }

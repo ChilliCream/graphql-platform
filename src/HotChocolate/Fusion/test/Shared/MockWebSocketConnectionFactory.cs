@@ -34,5 +34,14 @@ public sealed class MockWebSocketConnection : IWebSocketConnection
         => WebSocket = await _client.ConnectAsync(uri, cancellationToken).ConfigureAwait(false);
 
     public void Dispose()
-        => WebSocket?.Dispose();
+    {
+        try
+        {
+            WebSocket?.Dispose();
+        }
+        catch
+        {
+            // ignore
+        }
+    }
 }

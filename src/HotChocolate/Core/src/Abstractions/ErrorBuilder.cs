@@ -61,7 +61,8 @@ public class ErrorBuilder : IErrorBuilder
     {
         if (string.IsNullOrEmpty(code))
         {
-            return RemoveCode();
+            _code = null;
+            return this;
         }
 
         _code = code;
@@ -69,17 +70,12 @@ public class ErrorBuilder : IErrorBuilder
         return this;
     }
 
-    public IErrorBuilder RemoveCode()
-    {
-        _code = null;
-        return this;
-    }
-
     public IErrorBuilder SetPath(Path? path)
     {
         if (path is null)
         {
-            return RemovePath();
+            _path = null;
+            return this;
         }
 
         _path = path;
@@ -88,12 +84,6 @@ public class ErrorBuilder : IErrorBuilder
 
     public IErrorBuilder SetPath(IReadOnlyList<object>? path) =>
         SetPath(path is null ? null : Path.FromList(path));
-
-    public IErrorBuilder RemovePath()
-    {
-        _path = null;
-        return this;
-    }
 
     public IErrorBuilder AddLocation(Location location)
     {
@@ -194,16 +184,11 @@ public class ErrorBuilder : IErrorBuilder
     {
         if (exception is null)
         {
-            return RemoveException();
+            _exception = null;
+            return this;
         }
 
         _exception = exception;
-        return this;
-    }
-
-    public IErrorBuilder RemoveException()
-    {
-        _exception = null;
         return this;
     }
 

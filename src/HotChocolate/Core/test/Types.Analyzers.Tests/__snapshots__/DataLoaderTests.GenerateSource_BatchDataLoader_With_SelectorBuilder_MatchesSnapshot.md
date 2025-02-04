@@ -42,8 +42,8 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = context.GetState<global::GreenDonut.Selectors.ISelectorBuilder>("GreenDonut.Selectors.ISelectorBuilder")
-                ?? new global::GreenDonut.Selectors.DefaultSelectorBuilder();
+            var p1 = context.GetState<global::GreenDonut.Data.ISelectorBuilder>("GreenDonut.Data.Selector")
+                ?? global::GreenDonut.Data.DefaultSelectorBuilder.Empty;
             var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
@@ -98,28 +98,5 @@ namespace Microsoft.Extensions.DependencyInjection
     }
 }
 
-```
-
-## Compilation Diagnostics
-
-```json
-[
-  {
-    "Id": "GD0001",
-    "Title": "Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (13,8)-(13,45)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS9204)",
-    "MessageFormat": "'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Message": "'GreenDonut.Selectors.ISelectorBuilder' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "CustomObsolete"
-    ]
-  }
-]
 ```
 

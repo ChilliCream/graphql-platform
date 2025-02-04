@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Represents a non-terminal node in the <c>FieldSelectionMap</c> syntax tree.
 /// </summary>
-internal interface IFieldSelectionMapSyntaxNode
+public interface IFieldSelectionMapSyntaxNode
 {
     /// <summary>
     /// Returns the <see cref="FieldSelectionMapSyntaxKind"/> of the node.

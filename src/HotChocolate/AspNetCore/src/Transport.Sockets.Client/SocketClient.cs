@@ -76,7 +76,7 @@ public sealed class SocketClient : ISocket
     }
 
     private void BeginRunPipeline()
-        => Task.Factory.StartNew(() => _pipeline.RunAsync(_ct), _ct);
+        => _pipeline.RunAsync(_ct).FireAndForget();
 
     public ValueTask<SocketResult> ExecuteAsync(
         OperationRequest request,

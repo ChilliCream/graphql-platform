@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
-using HotChocolate.Pagination.Expressions;
+using GreenDonut.Data.Cursors;
+using GreenDonut.Data.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;

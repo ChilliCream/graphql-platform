@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Primitives.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Primitives</RootNamespace>
+    <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{B598E71D-7
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Primitives.Tests", "test\Primitives.Tests\HotChocolate.Primitives.Tests.csproj", "{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Primitives", "src\Primitives.Data\HotChocolate.Data.Primitives.csproj", "{A4522BC2-46E0-4242-A57B-CB4474B3F7C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,14 @@ Global
 		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4522BC2-46E0-4242-A57B-CB4474B3F7C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4522BC2-46E0-4242-A57B-CB4474B3F7C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4522BC2-46E0-4242-A57B-CB4474B3F7C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4522BC2-46E0-4242-A57B-CB4474B3F7C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F5CEC44C-8AB9-4639-9B38-4F523E3ABF2A} = {42689032-4007-47A4-B045-12D2681BF2CF}
 		{F7643027-2CEF-4F06-8DFA-46FFA8C17C4F} = {B598E71D-74BD-4055-A2F7-10B7DB892ECB}
+		{A4522BC2-46E0-4242-A57B-CB4474B3F7C6} = {42689032-4007-47A4-B045-12D2681BF2CF}
 	EndGlobalSection
 EndGlobal

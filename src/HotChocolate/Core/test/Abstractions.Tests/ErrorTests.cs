@@ -22,7 +22,7 @@ public class ErrorTests
         IError error = new Error("123", code: "foo");
 
         // act
-        error = error.RemoveCode();
+        error = error.WithCode(null);
 
         // assert
         Assert.Null(error.Code);
@@ -59,7 +59,7 @@ public class ErrorTests
         Assert.NotNull(error.Exception);
 
         // act
-        error = error.RemoveException();
+        error = error.WithException(null);
 
         // assert
         Assert.Null(error.Exception);

@@ -16,11 +16,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Properties\PrimitivesResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitivesResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>

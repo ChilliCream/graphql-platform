@@ -136,7 +136,8 @@ internal static class StreamHelper
                     () => _enumerator.ToList(),
                     _cancellationToken,
                     TaskCreationOptions.None,
-                    TaskScheduler.Default);
+                    TaskScheduler.Default)
+                    .ConfigureAwait(false);
 
                 if (_index >= _list.Count)
                 {

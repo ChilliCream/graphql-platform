@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// TODO: Add summary.
 /// </summary>
-internal sealed class SelectedValueEntryNode(
+public sealed class SelectedValueEntryNode(
     Location? location = null,
     PathNode? path = null,
     SelectedObjectValueNode? selectedObjectValue = null,

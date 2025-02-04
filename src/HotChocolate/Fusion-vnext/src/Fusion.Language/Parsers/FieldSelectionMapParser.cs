@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Parses nodes from source text representing a field selection map.
 /// </summary>
-internal ref struct FieldSelectionMapParser
+public ref struct FieldSelectionMapParser
 {
     private readonly FieldSelectionMapParserOptions _options;
 

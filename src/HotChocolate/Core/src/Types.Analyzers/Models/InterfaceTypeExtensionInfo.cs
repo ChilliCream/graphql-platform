@@ -15,6 +15,8 @@ public sealed class InterfaceTypeExtensionInfo(
 {
     public string Name { get; } = type.ToFullyQualified();
 
+    public bool IsRootType => false;
+
     public INamedTypeSymbol Type { get; } = type;
 
     public INamedTypeSymbol RuntimeType { get; } = runtimeType;

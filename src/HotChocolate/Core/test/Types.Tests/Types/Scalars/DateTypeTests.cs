@@ -419,89 +419,88 @@ public class DateTypeTests
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_Argument_Schema()
+    public async Task DateOnly_As_Argument_Schema()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime1>()
+            .AddQueryType<QueryDate1>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_Argument()
+    public async Task DateOnly_As_Argument()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime1>()
+            .AddQueryType<QueryDate1>()
             .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
             .ExecuteRequestAsync(
-                @"{
-                        foo {
-                            time(time: ""11:22"")
-                            date(date: ""2017-12-30"")
-                        }
-                    }")
+                """
+                {
+                    foo {
+                        date(date: "2017-12-30")
+                    }
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_ReturnValue_Schema()
+    public async Task DateOnly_As_ReturnValue_Schema()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime2>()
+            .AddQueryType<QueryDate2>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_ReturnValue()
+    public async Task DateOnly_As_ReturnValue()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime2>()
+            .AddQueryType<QueryDate2>()
             .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
             .ExecuteRequestAsync(
-                @"{
-                        bar {
-                            time
-                            date
-                        }
-                    }")
+                """
+                {
+                    bar {
+                        date
+                    }
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     public class Query
     {
         [GraphQLType(typeof(DateType))]
-        public DateTime? DateField => DateTime.UtcNow;
+        public DateOnly? DateField => new();
 
         public DateTime? DateTimeField => DateTime.UtcNow;
     }
 
-    public class QueryDateTime1
+    public class QueryDate1
     {
         public Foo Foo => new();
     }
 
     public class Foo
     {
-        public TimeSpan GetTime(TimeOnly time) => time.ToTimeSpan();
-
-        public DateTime GetDate(DateOnly date)
-            => date.ToDateTime(new TimeOnly(15, 0), DateTimeKind.Utc);
+        [GraphQLType(typeof(DateType))]
+        public DateOnly GetDate([GraphQLType(typeof(DateType))] DateOnly date) => date;
     }
 
-    public class QueryDateTime2
+    public class QueryDate2
     {
         public Bar Bar => new();
     }
 
     public class Bar
     {
-        public TimeOnly GetTime() => TimeOnly.MaxValue;
-
+        [GraphQLType(typeof(DateType))]
         public DateOnly GetDate() => DateOnly.MaxValue;
     }
 }
