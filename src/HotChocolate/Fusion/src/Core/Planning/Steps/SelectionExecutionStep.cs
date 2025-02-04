@@ -22,7 +22,7 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// <param name="subgraphName">
     /// The name of the subgraph from which this execution step will fetch data.
     /// </param>
-    /// <param name="selectionSet">
+    /// <param name="selectionSetType">
     /// The selection set that is part of this execution step.
     /// </param>
     /// <param name="selectionSetTypeMetadata">
@@ -31,9 +31,9 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     public SelectionExecutionStep(
         int id,
         string subgraphName,
-        IObjectType selectionSet,
+        IObjectType selectionSetType,
         ObjectTypeMetadata selectionSetTypeMetadata)
-        : this(id, subgraphName, null, null, selectionSet, selectionSetTypeMetadata)
+        : this(id, subgraphName, null, null, selectionSetType, selectionSetTypeMetadata)
     {
     }
 
@@ -52,7 +52,7 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// <param name="parentSelectionPath">
     /// The selection path from which this execution step was spawned.
     /// </param>
-    /// <param name="selectionSet">
+    /// <param name="selectionSetType">
     /// The selection set that is part of this execution step.
     /// </param>
     /// <param name="selectionSetTypeMetadata">
@@ -63,9 +63,9 @@ internal sealed class SelectionExecutionStep : ExecutionStep
         string subgraphName,
         ISelection? parentSelection,
         SelectionPath? parentSelectionPath,
-        IObjectType selectionSet,
+        IObjectType selectionSetType,
         ObjectTypeMetadata selectionSetTypeMetadata)
-        : base(id, parentSelection, selectionSet, selectionSetTypeMetadata)
+        : base(id, parentSelection, selectionSetType, selectionSetTypeMetadata)
     {
         SubgraphName = subgraphName;
         ParentSelectionPath = parentSelectionPath;
