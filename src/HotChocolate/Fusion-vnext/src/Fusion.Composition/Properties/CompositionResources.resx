@@ -78,6 +78,9 @@
   <data name="LogEntryHelper_InputFieldDefaultMismatch" xml:space="preserve">
     <value>The default value '{0}' of input field '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
+  <data name="LogEntryHelper_InputFieldReferencesInaccessibleType" xml:space="preserve">
+    <value>The merged input field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_InputFieldTypesNotMergeable" xml:space="preserve">
     <value>The input field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>

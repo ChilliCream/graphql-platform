@@ -279,6 +279,27 @@ internal static class LogEntryHelper
             schemaA);
     }
 
+    public static LogEntry InputFieldReferencesInaccessibleType(
+        InputFieldDefinition field,
+        string typeName,
+        string referenceTypeName,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_InputFieldReferencesInaccessibleType,
+                field.Name,
+                typeName,
+                referenceTypeName),
+            LogEntryCodes.InputFieldReferencesInaccessibleType,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry InputFieldTypesNotMergeable(
         InputFieldDefinition field,
         string typeName,
