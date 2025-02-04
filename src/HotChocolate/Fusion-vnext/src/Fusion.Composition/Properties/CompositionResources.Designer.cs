@@ -348,6 +348,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged query type has no accessible fields..
+        /// </summary>
+        internal static string LogEntryHelper_NoQueries {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_NoQueries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The output field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_OutputFieldTypesNotMergeable {

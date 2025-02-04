@@ -114,6 +114,9 @@
   <data name="LogEntryHelper_LookupReturnsNonNullableType" xml:space="preserve">
     <value>The lookup field '{0}' in schema '{1}' should return a nullable type.</value>
   </data>
+  <data name="LogEntryHelper_NoQueries" xml:space="preserve">
+    <value>The merged query type has no accessible fields.</value>
+  </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>The output field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>

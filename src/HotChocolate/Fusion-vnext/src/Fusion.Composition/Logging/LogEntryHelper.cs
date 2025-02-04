@@ -492,6 +492,17 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry NoQueries(ObjectTypeDefinition queryType, SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_NoQueries),
+            LogEntryCodes.NoQueries,
+            LogSeverity.Error,
+            new SchemaCoordinate(queryType.Name),
+            queryType,
+            schema);
+    }
+
     public static LogEntry OutputFieldTypesNotMergeable(
         OutputFieldDefinition field,
         string typeName,

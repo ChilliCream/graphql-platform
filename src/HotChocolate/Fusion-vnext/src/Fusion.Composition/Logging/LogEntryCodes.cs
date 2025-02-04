@@ -26,6 +26,7 @@ public static class LogEntryCodes
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
+    public const string NoQueries = "NO_QUERIES";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";
