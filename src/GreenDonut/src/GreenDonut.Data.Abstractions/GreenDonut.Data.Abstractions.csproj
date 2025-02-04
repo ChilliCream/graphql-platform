@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>GreenDonut.Data.Abstractions</PackageId>
+    <AssemblyName>GreenDonut.Data.Abstractions</AssemblyName>
+    <RootNamespace>GreenDonut.Data</RootNamespace>
+    <Description>This package provides data integrations like pagination, projections, filtering and sorting.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GreenDonut.Abstractions\GreenDonut.Abstractions.csproj" />
+    <ProjectReference Include="..\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
+  </ItemGroup>
+
+</Project>

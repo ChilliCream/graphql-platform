@@ -78,19 +78,20 @@ internal sealed class GatewayConfigurationFileObserver : IObservable<GatewayConf
         }
 
         private void BeginLoadConfig()
-            => Task.Run(
-                async () =>
-                {
-                    try
-                    {
-                        var document = await GatewayConfigurationFileUtils.LoadDocumentAsync(_fileName, default);
-                        _observer.OnNext(new GatewayConfiguration(document));
-                    }
-                    catch(Exception ex)
-                    {
-                        _observer.OnError(ex);
-                    }
-                });
+            => LoadConfig().FireAndForget();
+
+        private async Task LoadConfig()
+        {
+            try
+            {
+                var document = await GatewayConfigurationFileUtils.LoadDocumentAsync(_fileName, CancellationToken.None);
+                _observer.OnNext(new GatewayConfiguration(document));
+            }
+            catch(Exception ex)
+            {
+                _observer.OnError(ex);
+            }
+        }
 
         public void Dispose()
             => _watcher.Dispose();

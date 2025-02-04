@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion;
 
-internal enum FieldSelectionMapSyntaxKind
+public enum FieldSelectionMapSyntaxKind
 {
     Name,
     Path,

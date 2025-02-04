@@ -1,8 +1,7 @@
-using HotChocolate.Fusion;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
 
-namespace HotChocolate.Composition;
+namespace HotChocolate.Fusion;
 
 public sealed class ValidationHelperTests
 {

@@ -8,13 +8,9 @@ public interface IErrorBuilder
 
     IErrorBuilder SetCode(string? code);
 
-    IErrorBuilder RemoveCode();
-
     IErrorBuilder SetPath(IReadOnlyList<object>? path);
 
     IErrorBuilder SetPath(Path? path);
-
-    IErrorBuilder RemovePath();
 
     IErrorBuilder AddLocation(Location location);
 
@@ -27,8 +23,6 @@ public interface IErrorBuilder
     IErrorBuilder ClearLocations();
 
     IErrorBuilder SetException(Exception? exception);
-
-    IErrorBuilder RemoveException();
 
     IErrorBuilder SetExtension(string key, object? value);
 

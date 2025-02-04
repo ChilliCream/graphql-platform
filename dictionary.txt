@@ -132,6 +132,7 @@ resheader
 resmimetype
 resx
 Retval
+Rewriters
 Rgba
 Rhai
 Roslynator
@@ -177,3 +178,6 @@ websockets
 Wilhuff
 Wunder
 xunit
+preparables
+MediatR
+overfetching

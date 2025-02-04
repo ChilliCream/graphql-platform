@@ -1,3 +1,4 @@
+using HotChocolate.Utilities;
 using static Microsoft.Extensions.DependencyInjection.GatewayConfigurationFileUtils;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -25,20 +26,23 @@ internal sealed class StaticGatewayConfigurationFileObserver : IObservable<Gatew
     {
         public FileConfigurationSession(IObserver<GatewayConfiguration> observer, string filename)
         {
-            Task.Run(
-                async () =>
-                {
-                    try
-                    {
-                        var document = await LoadDocumentAsync(filename, default);
-                        observer.OnNext(new GatewayConfiguration(document));
-                    }
-                    catch(Exception ex)
-                    {
-                        observer.OnError(ex);
-                        observer.OnCompleted();
-                    }
-                });
+            ObserveFileChangesAsync(filename, observer).FireAndForget();
+        }
+
+        private static async Task ObserveFileChangesAsync(
+            string filename,
+            IObserver<GatewayConfiguration> observer)
+        {
+            try
+            {
+                var document = await LoadDocumentAsync(filename, CancellationToken.None);
+                observer.OnNext(new GatewayConfiguration(document));
+            }
+            catch(Exception ex)
+            {
+                observer.OnError(ex);
+                observer.OnCompleted();
+            }
         }
 
         public void Dispose()

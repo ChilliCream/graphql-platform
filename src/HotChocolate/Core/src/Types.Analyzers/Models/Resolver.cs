@@ -28,15 +28,3 @@ public sealed class Resolver(
 
     public ImmutableArray<MemberBinding> Bindings => bindings;
 }
-
-public enum MemberBindingKind {
-    Field,
-    Property
-}
-
-public readonly struct MemberBinding(string name, MemberBindingKind kind)
-{
-    public string Name => name;
-
-    public MemberBindingKind Kind => kind;
-}

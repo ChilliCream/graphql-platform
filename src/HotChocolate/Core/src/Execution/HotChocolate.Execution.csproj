@@ -18,6 +18,7 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Projections" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
@@ -26,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Pagination\src\Pagination.Batching\HotChocolate.Pagination.Batching.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
@@ -215,6 +215,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Projections\" />
   </ItemGroup>
 
 </Project>

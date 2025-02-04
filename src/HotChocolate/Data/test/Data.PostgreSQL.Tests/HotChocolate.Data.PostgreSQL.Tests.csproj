@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Squadron.PostgreSql" />
+    <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="__resources__\catalog.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

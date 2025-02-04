@@ -47,7 +47,7 @@ public sealed class InterfaceTypeExtensionFileBuilder(StringBuilder sb, string n
     {
         _writer.WriteIndentedLine(
             "internal static void Initialize(global::HotChocolate.Types.IInterfaceTypeDescriptor<{0}> descriptor)",
-            typeInfo.RuntimeType.ToFullyQualified());
+            typeInfo.RuntimeType!.ToFullyQualified());
         _writer.WriteIndentedLine("{");
 
         using (_writer.IncreaseIndent())
@@ -127,6 +127,6 @@ public sealed class InterfaceTypeExtensionFileBuilder(StringBuilder sb, string n
     {
         _writer.WriteIndentedLine(
             "static partial void Configure(global::HotChocolate.Types.IInterfaceTypeDescriptor<{0}> descriptor);",
-            typeInfo.RuntimeType.ToFullyQualified());
+            typeInfo.RuntimeType!.ToFullyQualified());
     }
 }

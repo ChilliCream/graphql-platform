@@ -362,12 +362,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
+            [
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-            },
-            default,
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            ],
+            null,
             cts.Token);
 
         var executor = await new ServiceCollection()
@@ -381,6 +380,55 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             """
             subscription OnNewReview {
                 onNewReview {
+                    body
+                    author {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build(),
+            cts.Token);
+
+        // assert
+        var snapshot = new Snapshot();
+        await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Subscription_OnNewReviewError()
+    {
+        // arrange
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
+        using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            [
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            ],
+            null,
+            cts.Token);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+        var request = Parse(
+            """
+            subscription OnNewReview {
+                onNewReviewError {
                     body
                     author {
                         name
@@ -1913,45 +1961,99 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
-    // TODO : FIX THIS TEST
-    [Fact(Skip = "This test does not work anymore as it uses CCN which we removed ... ")]
-    public async Task ResolveByKey_Handles_Null_Item_Correctly()
+    [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values()
     {
         // arrange
-        using var demoProject = await DemoProject.CreateAsync();
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
 
-        // act
-        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
-                demoProject.Products.ToConfiguration(),
-                demoProject.Resale.ToConfiguration(),
-            }, new FusionFeatureCollection(FusionFeatures.NodeField));
+            interface Node {
+              id: ID!
+            }
 
-        var executor = await new ServiceCollection()
-            .AddSingleton(demoProject.HttpClientFactory)
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .BuildRequestExecutorAsync();
+            type User implements Node {
+              id: ID!
+              displayName: String!
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl: String!
+              id: ID!
+            }
+            """);
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
 
         var request = Parse(
             """
-            {
-              viewer {
-                # The second product does not exist in the products subgraph
-                recommendedResalableProducts {
+            query {
+              userBySlug(slug: "me") {
+                feedbacks {
                   edges {
                     node {
-                      product? {
-                        id
-                        name
+                      feedback {
+                        buyer {
+                          relativeUrl
+                          displayName
+                        }
                       }
                     }
                   }
                 }
               }
             }
+
             """);
 
         // act
@@ -1959,6 +2061,115 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .New()
                 .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              displayName(arg: String): String!
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl(arg: String): String!
+              id: ID!
+            }
+            """);
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
+
+        var request = Parse(
+            """
+            query($arg1: String, $arg2: String) {
+              userBySlug(slug: "me") {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          relativeUrl(arg: $arg1)
+                          displayName(arg: $arg2)
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { ["arg1"] = "abc", ["arg2"] = "def" })
                 .Build());
 
         // assert
@@ -1976,21 +2187,17 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             interface Node {
               id: ID!
             }
-
             type Product implements Node {
               id: ID!
               subgraph1Only: ProductAvailability
             }
-
             type ProductAvailability implements Node {
               id: ID!
               sharedLinked: ProductAvailabilityMail!
             }
-
             type ProductAvailabilityMail {
               subgraph1Only: String!
             }
-
             type Query {
               node("ID of the object." id: ID!): Node
               productById(id: ID!): Product
@@ -2003,16 +2210,13 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             interface Node {
               id: ID!
             }
-
             type ProductAvailability implements Node {
               id: ID!
               sharedLinked: ProductAvailabilityMail!
             }
-
             type ProductAvailabilityMail {
               subgraph2Only: Boolean!
             }
-
             type Query {
               node("ID of the object." id: ID!): Node
               productAvailabilityById(id: ID!): ProductAvailability
@@ -2056,21 +2260,17 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             interface Node {
               id: ID!
             }
-
             type Product implements Node {
               id: ID!
               subgraph1Only: ProductAvailability
             }
-
             type ProductAvailability implements Node {
               id: ID!
               sharedLinked: ProductAvailabilityMail!
             }
-
             type ProductAvailabilityMail {
               sharedScalar: String!
             }
-
             type Query {
               node("ID of the object." id: ID!): Node
               productById(id: ID!): Product
@@ -2083,18 +2283,15 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             interface Node {
               id: ID!
             }
-
             type ProductAvailability implements Node {
               sharedLinked: ProductAvailabilityMail!
               subgraph2Only: Boolean!
               id: ID!
             }
-
             type ProductAvailabilityMail {
               subgraph2Only: Boolean!
               sharedScalar: String!
             }
-
             type Query {
               node("ID of the object." id: ID!): Node
               productAvailabilityById(id: ID!): ProductAvailability
@@ -2140,23 +2337,19 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             interface Node {
               id: ID!
             }
-
             type Product implements Node {
               id: ID!
               subgraph1Only: ProductAvailability
             }
-
             type ProductAvailability implements Node {
               id: ID!
               sharedLinked: ProductAvailabilityMail!
               subgraph1Only: Boolean!
             }
-
             type ProductAvailabilityMail {
               sharedScalar: String!
               subgraph1Only: String!
             }
-
             type Query {
               node("ID of the object." id: ID!): Node
               productById(id: ID!): Product
@@ -2169,18 +2362,15 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             interface Node {
               id: ID!
             }
-
             type ProductAvailability implements Node {
               sharedLinked: ProductAvailabilityMail!
               subgraph2Only: Boolean!
               id: ID!
             }
-
             type ProductAvailabilityMail {
               subgraph2Only: Boolean!
               sharedScalar: String!
             }
-
             type Query {
               node("ID of the object." id: ID!): Node
               productAvailabilityById(id: ID!): ProductAvailability

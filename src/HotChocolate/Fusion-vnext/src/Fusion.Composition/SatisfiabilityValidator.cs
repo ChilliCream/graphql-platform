@@ -3,9 +3,11 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SatisfiabilityValidator
+#pragma warning disable CS9113 // Parameter is unread.
+internal sealed class SatisfiabilityValidator(SchemaDefinition mergedSchema)
+#pragma warning restore CS9113 // Parameter is unread.
 {
-    public CompositionResult Validate(SchemaDefinition _)
+    public CompositionResult Validate()
     {
         // FIXME: Implement.
         return CompositionResult.Success();

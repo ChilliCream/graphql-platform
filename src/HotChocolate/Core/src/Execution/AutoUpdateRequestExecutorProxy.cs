@@ -1,3 +1,5 @@
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -143,7 +145,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         => _executor.ExecuteBatchAsync(requestBatch, cancellationToken);
 
     private void BeginUpdateExecutor()
-        => Task.Run(UpdateExecutorAsync);
+        => UpdateExecutorAsync().FireAndForget();
 
     private async ValueTask UpdateExecutorAsync()
     {
@@ -152,7 +154,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         try
         {
             var executor = await _executorProxy
-                .GetRequestExecutorAsync(default)
+                .GetRequestExecutorAsync(CancellationToken.None)
                 .ConfigureAwait(false);
             _executor = executor;
         }

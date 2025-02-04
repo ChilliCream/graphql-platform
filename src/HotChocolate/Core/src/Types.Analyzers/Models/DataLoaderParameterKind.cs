@@ -8,5 +8,7 @@ public enum DataLoaderParameterKind
     CancellationToken = 3,
     SelectorBuilder = 4,
     PagingArguments = 5,
-    PredicateBuilder = 6
+    PredicateBuilder = 6,
+    SortDefinition = 7,
+    QueryContext = 8
 }
