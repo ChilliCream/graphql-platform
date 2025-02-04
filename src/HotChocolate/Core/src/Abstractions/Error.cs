@@ -84,30 +84,26 @@ public class Error : IError
     /// <inheritdoc />
     public IError WithCode(string? code)
     {
+        IReadOnlyDictionary<string, object?>? extensions;
+
         if (string.IsNullOrEmpty(code))
         {
-            return RemoveCode();
+            extensions = Extensions;
+
+            if (Extensions?.ContainsKey(_code) == true)
+            {
+                var temp = new OrderedDictionary<string, object?>(Extensions);
+                temp.Remove(_code);
+                extensions = temp;
+            }
+
+            return new Error(Message, null, Path, Locations, extensions, Exception);
         }
 
-        var extensions = Extensions is null
+        extensions = Extensions is null
             ? new OrderedDictionary<string, object?> { [_code] = code, }
             : new OrderedDictionary<string, object?>(Extensions) { [_code] = code, };
         return new Error(Message, code, Path, Locations, extensions, Exception);
-    }
-
-    /// <inheritdoc />
-    public IError RemoveCode()
-    {
-        var extensions = Extensions;
-
-        if (Extensions is { })
-        {
-            var temp = new OrderedDictionary<string, object?>(Extensions);
-            temp.Remove(_code);
-            extensions = temp;
-        }
-
-        return new Error(Message, null, Path, Locations, extensions, Exception);
     }
 
     /// <inheritdoc />
@@ -123,19 +119,10 @@ public class Error : IError
         => new Error(Message, Code, Path, locations, Extensions, Exception);
 
     /// <inheritdoc />
-    public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
-    {
-        if (extensions is null)
-        {
-            throw new ArgumentNullException(nameof(extensions));
-        }
-
-        return new Error(Message, Code, Path, Locations, extensions, Exception);
-    }
-
-    /// <inheritdoc />
-    public IError RemoveExtensions()
-        => new Error(Message, Code, Path, Locations, null, Exception);
+    public IError WithExtensions(IReadOnlyDictionary<string, object?>? extensions)
+        => extensions is null
+            ? new Error(Message, Code, Path, Locations, null, Exception)
+            : new Error(Message, Code, Path, Locations, extensions, Exception);
 
     /// <inheritdoc />
     public IError SetExtension(string key, object? value)
@@ -164,7 +151,7 @@ public class Error : IError
                 nameof(key));
         }
 
-        if (Extensions is null)
+        if (Extensions is null || !Extensions.ContainsKey(key))
         {
             return this;
         }
@@ -180,10 +167,6 @@ public class Error : IError
     /// <inheritdoc />
     public IError WithException(Exception? exception)
         => exception is null
-            ? RemoveException()
+            ? new Error(Message, Code, Path, Locations, Extensions)
             : new Error(Message, Code, Path, Locations, Extensions, exception);
-
-    /// <inheritdoc />
-    public IError RemoveException()
-        => new Error(Message, Code, Path, Locations, Extensions);
 }
