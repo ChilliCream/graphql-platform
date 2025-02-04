@@ -123,6 +123,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new EmptyMergedEnumTypeRule(),
         new EmptyMergedInterfaceTypeRule(),
         new EmptyMergedObjectTypeRule(),
-        new EmptyMergedUnionTypeRule()
+        new EmptyMergedUnionTypeRule(),
+        new NoQueriesRule()
     ];
 }
