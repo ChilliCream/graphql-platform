@@ -12,8 +12,8 @@
           "products": {
             "nodes": [
               {
-                "id": "UHJvZHVjdDoxMg==",
-                "name": "Powder Pro Snowboard",
+                "id": "UHJvZHVjdDo0OA==",
+                "name": "Trailblazer 45L Backpack",
                 "brand": {
                   "name": "Zephyr"
                 }
@@ -79,13 +79,13 @@ FROM (
 LEFT JOIN (
     SELECT p2."Id", p2."Name", p2."BrandId"
     FROM (
-        SELECT p0."Id", p0."Name", p0."BrandId", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Id") AS row
+        SELECT p0."Id", p0."Name", p0."BrandId", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Name" DESC, p0."Id") AS row
         FROM "Products" AS p0
         WHERE p0."BrandId" = ANY (@__brandIds_0)
     ) AS p2
     WHERE p2.row <= 3
 ) AS p3 ON p1."BrandId" = p3."BrandId"
-ORDER BY p1."BrandId"
+ORDER BY p1."BrandId", p3."BrandId", p3."Name" DESC, p3."Id"
 ```
 
 ## Query 3

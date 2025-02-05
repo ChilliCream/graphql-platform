@@ -1,7 +1,7 @@
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Sorting;
 
-namespace HotChocolate.Data.Types;
+namespace HotChocolate.Data.Types.Brands;
 
 public sealed class BrandSortInputType : SortInputType<Brand>
 {
