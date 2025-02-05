@@ -211,6 +211,34 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         MatchSnapshot(result, interceptor);
     }
 
+    [Fact]
+    public async Task Query_Products_First_2_And_Brand()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                products(first: 2) {
+                    nodes {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                }
+            }
+
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();

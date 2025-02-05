@@ -5,7 +5,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 
-namespace HotChocolate.Data.Types;
+namespace HotChocolate.Data.Types.Brands;
 
 [QueryType]
 public static class BrandQueries
@@ -20,7 +20,7 @@ public static class BrandQueries
         => await brandService.GetBrandsAsync(pagingArgs, query, cancellationToken).ToConnectionAsync();
 
     [NodeResolver]
-    public static async Task<Brand?> GetBrandAsync(
+    public static async Task<Brand?> GetBrandByIdAsync(
         int id,
         QueryContext<Brand> query,
         BrandService brandService,

@@ -75,6 +75,6 @@ LEFT JOIN (
     ) AS t1
     WHERE t1.row <= 3
 ) AS t0 ON t."BrandId" = t0."BrandId"
-ORDER BY t."BrandId"
+ORDER BY t."BrandId", t0."BrandId", t0."Id"
 ```
 
