@@ -51,7 +51,7 @@ public sealed class EmptyMergedInputObjectTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In the following example, the merged input object type BookFilter is valid.
+            // In the following example, the merged input object type "BookFilter" is valid.
             {
                 [
                     """
@@ -69,8 +69,8 @@ public sealed class EmptyMergedInputObjectTypeRuleTests : CompositionTestBase
                 ]
             },
             // If the @inaccessible directive is applied to an input object type itself, the entire
-            // merged input object type is excluded from the composite execution schema, and it is
-            // not required to contain any fields.
+            // merged input object type is excluded from the composite schema, and it is not
+            // required to contain any fields.
             {
                 [
                     """
@@ -83,7 +83,7 @@ public sealed class EmptyMergedInputObjectTypeRuleTests : CompositionTestBase
                     """
                     # Schema B
                     input BookFilter {
-                        name: Boolean
+                        name: String
                     }
                     """
                 ]
