@@ -129,7 +129,11 @@ export const GlobalStyle = createGlobalStyle`
     text-rendering: optimizeLegibility;
     word-break: break-word;
     color: ${THEME_COLORS.heading};
-    scroll-margin-top: 4.5rem;
+    scroll-margin-top: 8rem;
+
+    @media only screen and (min-width: 1280px) {
+      scroll-margin-top: 4.5rem;
+    }
   }
 
   p {
