@@ -4,6 +4,7 @@ import { IsSmallDesktop, THEME_COLORS } from "@/style";
 
 export const ArticleHeader = styled.header`
   position: relative;
+  padding-left: 40px;
 
   > .gatsby-image-wrapper {
     margin-bottom: 36px;
@@ -75,10 +76,12 @@ export const ArticleTitle = styled.h1`
 `;
 
 export const ArticleContent = styled.div`
+  padding: 20px 40px 0;
+
   > * {
     font-size: 1.125rem;
     line-height: 1.6em;
-  }
+    }
 
   > h1,
   > h2,
@@ -112,17 +115,6 @@ export const ArticleContent = styled.div`
 
   > h5 {
     font-size: 1.375rem;
-  }
-
-  > h1 > a.anchor.before,
-  > h2 > a.anchor.before,
-  > h3 > a.anchor.before,
-  > h4 > a.anchor.before,
-  > h5 > a.anchor.before,
-  > h6 > a.anchor.before {
-    display: none;
-    padding-right: 4px;
-    transform: translateX(0px);
   }
 
   > blockquote {
@@ -165,15 +157,6 @@ export const ArticleContent = styled.div`
       line-height: 1.12em;
       margin-right: 0;
       margin-left: 0;
-    }
-
-    > h1 > a.anchor.before,
-    > h2 > a.anchor.before,
-    > h3 > a.anchor.before,
-    > h4 > a.anchor.before,
-    > h5 > a.anchor.before,
-    > h6 > a.anchor.before {
-      transform: translateX(30px);
     }
 
     > blockquote {

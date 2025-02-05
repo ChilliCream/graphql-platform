@@ -129,6 +129,7 @@ export const GlobalStyle = createGlobalStyle`
     text-rendering: optimizeLegibility;
     word-break: break-word;
     color: ${THEME_COLORS.heading};
+    scroll-margin-top: 4.5rem;
   }
 
   p {
@@ -313,7 +314,7 @@ export const GlobalStyle = createGlobalStyle`
 
   a.anchor {
     position: absolute;
-    left: 0;
+    left: -1rem;
     visibility: hidden;
   }
 
