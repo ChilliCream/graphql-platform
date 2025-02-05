@@ -104,6 +104,7 @@ export const ArticleWrapper = styled.div`
 `;
 
 export const ArticleContainer = styled.div`
+  padding-top: 20px;
   overflow: visible;
 
   ${IsPhablet(`

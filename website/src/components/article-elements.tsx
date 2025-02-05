@@ -76,7 +76,8 @@ export const ArticleTitle = styled.h1`
 `;
 
 export const ArticleContent = styled.div`
-  padding: 20px 40px 0;
+  padding-left: 40px;
+  margin-right: -40px;
 
   > * {
     font-size: 1.125rem;
