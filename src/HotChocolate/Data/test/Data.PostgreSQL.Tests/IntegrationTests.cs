@@ -1,4 +1,3 @@
-using GreenDonut.Data;
 using HotChocolate.Data.Data;
 using HotChocolate.Data.Migrations;
 using HotChocolate.Data.Services;
@@ -300,18 +299,5 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         }
 
         snapshot.MatchMarkdown();
-    }
-
-    private class TestQueryInterceptor : PagingQueryInterceptor
-    {
-        public List<string> Queries { get; } = new();
-
-        public override void OnBeforeExecute<T>(IQueryable<T> query)
-        {
-            lock(Queries)
-            {
-                Queries.Add(query.ToQueryString());
-            }
-        }
     }
 }
