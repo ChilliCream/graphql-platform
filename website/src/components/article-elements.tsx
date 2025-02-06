@@ -148,16 +148,17 @@ export const ArticleContent = styled.div`
   @media only screen and (min-width: 700px) {
     padding-left: 20px;
     margin-right: -20px;
-  > h1,
-  > h2,
-  > h3,
-  > h4,
-  > h5,
-  > h6 {
-    line-height: 1.12em;
-    margin-right: 0;
-    margin-left: 0;
-    }
+
+    > h1,
+    > h2,
+    > h3,
+    > h4,
+    > h5,
+    > h6 {
+      line-height: 1.12em;
+      margin-right: 0;
+      margin-left: 0;
+      }
 
     > blockquote {
       padding: 20px;
