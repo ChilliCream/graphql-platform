@@ -47,7 +47,6 @@ internal sealed class SourceSchemaMerger
         // [TypeName: [{Type, Schema}, ...], ...].
         var typeGroupByName = _schemas
             .SelectMany(s => s.Types, (schema, type) => new TypeInfo(type, schema))
-            .OrderBy(i => i.Type.Kind) // Ensure that object types are merged before union types.
             .GroupBy(i => i.Type.Name);
 
         // Merge types.
@@ -100,11 +99,11 @@ internal sealed class SourceSchemaMerger
         // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
         return kind switch
         {
-            TypeKind.Enum => MergeEnumTypes(typeGroup),
-            TypeKind.InputObject => MergeInputTypes(typeGroup),
-            TypeKind.Interface => MergeInterfaceTypes(typeGroup),
-            TypeKind.Object => MergeObjectTypes(typeGroup),
-            TypeKind.Scalar => MergeScalarTypes(typeGroup),
+            TypeKind.Enum => MergeEnumTypes(typeGroup, mergedSchema),
+            TypeKind.InputObject => MergeInputTypes(typeGroup, mergedSchema),
+            TypeKind.Interface => MergeInterfaceTypes(typeGroup, mergedSchema),
+            TypeKind.Object => MergeObjectTypes(typeGroup, mergedSchema),
+            TypeKind.Scalar => MergeScalarTypes(typeGroup, mergedSchema),
             TypeKind.Union => MergeUnionTypes(typeGroup, mergedSchema),
             _ => throw new InvalidOperationException()
         };
@@ -142,7 +141,8 @@ internal sealed class SourceSchemaMerger
     /// Specification
     /// </seealso>
     private InputFieldDefinition? MergeArgumentDefinitions(
-        ImmutableArray<FieldArgumentInfo> argumentGroup)
+        ImmutableArray<FieldArgumentInfo> argumentGroup,
+        SchemaDefinition mergedSchema)
     {
         // Remove all arguments marked with @require.
         argumentGroup = [.. argumentGroup.Where(i => !i.Argument.HasRequireDirective())];
@@ -158,6 +158,9 @@ internal sealed class SourceSchemaMerger
         {
             mergedArgument = MergeArguments(mergedArgument, argumentInfo.Argument);
         }
+
+        mergedArgument.Type = mergedArgument.Type.ReplaceNameType(
+            _ => GetOrCreateType(mergedSchema, mergedArgument.Type));
 
         if (argumentGroup.Any(i => i.Argument.HasInaccessibleDirective()))
         {
@@ -176,18 +179,21 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Enum-Types">
     /// Specification
     /// </seealso>
-    private EnumTypeDefinition MergeEnumTypes(ImmutableArray<TypeInfo> typeGroup)
+    private EnumTypeDefinition MergeEnumTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var firstEnum = typeGroup[0].Type;
         var typeName = firstEnum.Name;
         var description = firstEnum.Description;
+        var enumType = GetOrCreateType<EnumTypeDefinition>(mergedSchema, typeName);
 
-        foreach (var typeInfo in typeGroup.Skip(1))
+        for (var i = 1; i < typeGroup.Length; i++)
         {
-            description ??= typeInfo.Type.Description;
+            description ??= typeGroup[i].Type.Description;
         }
 
-        var enumType = new EnumTypeDefinition(typeName) { Description = description };
+        enumType.Description = description;
 
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
@@ -203,21 +209,40 @@ internal sealed class SourceSchemaMerger
                 (i, v) => new EnumValueInfo(v, (EnumTypeDefinition)i.Type, i.Schema))
             .GroupBy(i => i.EnumValue.Name);
 
-        foreach (var grouping in enumValueGroupByName)
+        foreach (var enumValueGroup in enumValueGroupByName)
         {
-            var enumValue = new EnumValue(grouping.Key);
-
-            if (grouping.Any(i => i.EnumValue.HasInaccessibleDirective()))
-            {
-                enumValue.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
-            }
-
-            AddFusionEnumValueDirectives(enumValue, [.. grouping]);
-
-            enumType.Values.Add(enumValue);
+            enumType.Values.Add(MergeEnumValues([.. enumValueGroup]));
         }
 
         return enumType;
+    }
+
+    /// <summary>
+    /// Merges multiple enum value definitions, all sharing the same name, into a single composed
+    /// enum value. This ensures the final enum value in a composed schema maintains a consistent
+    /// description.
+    /// </summary>
+    private EnumValue MergeEnumValues(ImmutableArray<EnumValueInfo> enumValueGroup)
+    {
+        var firstValue = enumValueGroup[0].EnumValue;
+        var valueName = firstValue.Name;
+        var description = firstValue.Description;
+
+        for (var i = 1; i < enumValueGroup.Length; i++)
+        {
+            description ??= enumValueGroup[i].EnumValue.Description;
+        }
+
+        var enumValue = new EnumValue(valueName) { Description = description };
+
+        if (enumValueGroup.Any(i => i.EnumValue.HasInaccessibleDirective()))
+        {
+            enumValue.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+        }
+
+        AddFusionEnumValueDirectives(enumValue, enumValueGroup);
+
+        return enumValue;
     }
 
     /// <summary>
@@ -228,19 +253,21 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Input-Types">
     /// Specification
     /// </seealso>
-    private InputObjectTypeDefinition MergeInputTypes(ImmutableArray<TypeInfo> typeGroup)
+    private InputObjectTypeDefinition MergeInputTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var firstType = typeGroup[0].Type;
         var typeName = firstType.Name;
         var description = firstType.Description;
-        var mergedFields = new HashSet<InputFieldDefinition>();
+        var inputObjectType = GetOrCreateType<InputObjectTypeDefinition>(mergedSchema, typeName);
 
-        foreach (var typeInfo in typeGroup.Skip(1))
+        for (var i = 1; i < typeGroup.Length; i++)
         {
-            description ??= typeInfo.Type.Description;
+            description ??= typeGroup[i].Type.Description;
         }
 
-        var inputObjectType = new InputObjectTypeDefinition(typeName) { Description = description };
+        inputObjectType.Description = description;
 
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
@@ -258,14 +285,9 @@ internal sealed class SourceSchemaMerger
             // Intersection: Field definition count matches type definition count.
             .Where(g => g.Count() == typeGroup.Length);
 
-        foreach (var grouping in fieldGroupByName)
+        foreach (var fieldGroup in fieldGroupByName)
         {
-            mergedFields.Add(MergeInputFields([.. grouping]));
-        }
-
-        foreach (var mergedField in mergedFields)
-        {
-            inputObjectType.Fields.Add(mergedField);
+            inputObjectType.Fields.Add(MergeInputFields([.. fieldGroup], mergedSchema));
         }
 
         return inputObjectType;
@@ -279,7 +301,9 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Input-Field">
     /// Specification
     /// </seealso>
-    private InputFieldDefinition MergeInputFields(ImmutableArray<InputFieldInfo> inputFieldGroup)
+    private InputFieldDefinition MergeInputFields(
+        ImmutableArray<InputFieldInfo> inputFieldGroup,
+        SchemaDefinition mergedSchema)
     {
         var firstField = inputFieldGroup[0].Field;
         var fieldName = firstField.Name;
@@ -287,8 +311,9 @@ internal sealed class SourceSchemaMerger
         var description = firstField.Description;
         var defaultValue = firstField.DefaultValue;
 
-        foreach (var inputFieldInfo in inputFieldGroup.Skip(1))
+        for (var i = 1; i < inputFieldGroup.Length; i++)
         {
+            var inputFieldInfo = inputFieldGroup[i];
             fieldType = MostRestrictiveType(fieldType, inputFieldInfo.Field.Type);
             description ??= inputFieldInfo.Field.Description;
             defaultValue ??= inputFieldInfo.Field.DefaultValue;
@@ -298,7 +323,7 @@ internal sealed class SourceSchemaMerger
         {
             DefaultValue = defaultValue,
             Description = description,
-            Type = fieldType
+            Type = fieldType.ReplaceNameType(_ => GetOrCreateType(mergedSchema, fieldType))
         };
 
         if (inputFieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
@@ -318,19 +343,21 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Interface-Types">
     /// Specification
     /// </seealso>
-    private InterfaceTypeDefinition MergeInterfaceTypes(ImmutableArray<TypeInfo> typeGroup)
+    private InterfaceTypeDefinition MergeInterfaceTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var firstType = typeGroup[0].Type;
         var typeName = firstType.Name;
         var description = firstType.Description;
-        var mergedFields = new HashSet<OutputFieldDefinition>();
+        var interfaceType = GetOrCreateType<InterfaceTypeDefinition>(mergedSchema, typeName);
 
-        foreach (var typeInfo in typeGroup.Skip(1))
+        for (var i = 1; i < typeGroup.Length; i++)
         {
-            description ??= typeInfo.Type.Description;
+            description ??= typeGroup[i].Type.Description;
         }
 
-        var interfaceType = new InterfaceTypeDefinition(typeName) { Description = description };
+        interfaceType.Description = description;
 
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
@@ -346,19 +373,14 @@ internal sealed class SourceSchemaMerger
                 (i, f) => new OutputFieldInfo(f, (ComplexTypeDefinition)i.Type, i.Schema))
             .GroupBy(i => i.Field.Name);
 
-        foreach (var grouping in fieldGroupByName)
+        foreach (var fieldGroup in fieldGroupByName)
         {
-            var mergedField = MergeOutputFields([.. grouping]);
+            var mergedField = MergeOutputFields([.. fieldGroup], mergedSchema);
 
             if (mergedField is not null)
             {
-                mergedFields.Add(mergedField);
+                interfaceType.Fields.Add(mergedField);
             }
-        }
-
-        foreach (var mergedField in mergedFields)
-        {
-            interfaceType.Fields.Add(mergedField);
         }
 
         return interfaceType;
@@ -366,13 +388,15 @@ internal sealed class SourceSchemaMerger
 
     /// <summary>
     /// Combines multiple object type definitions (all sharing the <i>same name</i>) into a single
-    /// composed type. It processes each candidate type, discarding any that are inaccessible or
-    /// internal, and then unifies their descriptions and fields.
+    /// composed type. It processes each candidate type, discarding any that are internal, and then
+    /// unifies their descriptions and fields.
     /// </summary>
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Object-Types">
     /// Specification
     /// </seealso>
-    private ObjectTypeDefinition? MergeObjectTypes(ImmutableArray<TypeInfo> typeGroup)
+    private ObjectTypeDefinition? MergeObjectTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         // Filter out all types marked with @internal.
         typeGroup = [.. typeGroup.Where(i => !i.Type.HasInternalDirective())];
@@ -385,14 +409,14 @@ internal sealed class SourceSchemaMerger
         var firstType = typeGroup[0].Type;
         var typeName = firstType.Name;
         var description = firstType.Description;
-        var mergedFields = new HashSet<OutputFieldDefinition>();
+        var objectType = GetOrCreateType<ObjectTypeDefinition>(mergedSchema, typeName);
 
-        foreach (var typeInfo in typeGroup.Skip(1))
+        for (var i = 1; i < typeGroup.Length; i++)
         {
-            description ??= typeInfo.Type.Description;
+            description ??= typeGroup[i].Type.Description;
         }
 
-        var objectType = new ObjectTypeDefinition(typeName) { Description = description };
+        objectType.Description = description;
 
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
@@ -408,19 +432,14 @@ internal sealed class SourceSchemaMerger
                 (i, f) => new OutputFieldInfo(f, (ComplexTypeDefinition)i.Type, i.Schema))
             .GroupBy(i => i.Field.Name);
 
-        foreach (var grouping in fieldGroupByName)
+        foreach (var fieldGroup in fieldGroupByName)
         {
-            var mergedField = MergeOutputFields([.. grouping]);
+            var mergedField = MergeOutputFields([.. fieldGroup], mergedSchema);
 
             if (mergedField is not null)
             {
-                mergedFields.Add(mergedField);
+                objectType.Fields.Add(mergedField);
             }
-        }
-
-        foreach (var mergedField in mergedFields)
-        {
-            objectType.Fields.Add(mergedField);
         }
 
         return objectType;
@@ -435,7 +454,9 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Output-Field">
     /// Specification
     /// </seealso>
-    private OutputFieldDefinition? MergeOutputFields(ImmutableArray<OutputFieldInfo> fieldGroup)
+    private OutputFieldDefinition? MergeOutputFields(
+        ImmutableArray<OutputFieldInfo> fieldGroup,
+        SchemaDefinition mergedSchema)
     {
         // Filter out all fields marked with @internal.
         fieldGroup = [.. fieldGroup.Where(i => !i.Field.HasInternalDirective())];
@@ -449,10 +470,10 @@ internal sealed class SourceSchemaMerger
         var fieldName = firstField.Name;
         var fieldType = firstField.Type;
         var description = firstField.Description;
-        var mergedArguments = new HashSet<InputFieldDefinition>();
 
-        foreach (var fieldInfo in fieldGroup.Skip(1))
+        for (var i = 1; i < fieldGroup.Length; i++)
         {
+            var fieldInfo = fieldGroup[i];
             fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type);
             description ??= fieldInfo.Field.Description;
         }
@@ -460,7 +481,7 @@ internal sealed class SourceSchemaMerger
         var outputField = new OutputFieldDefinition(fieldName)
         {
             Description = description,
-            Type = fieldType
+            Type = fieldType.ReplaceNameType(_ => GetOrCreateType(mergedSchema, fieldType))
         };
 
         // [ArgumentName: [{Argument, Field, Type, Schema}, ...], ...].
@@ -473,19 +494,14 @@ internal sealed class SourceSchemaMerger
             // Intersection: Argument definition count matches field definition count.
             .Where(g => g.Count() == fieldGroup.Length);
 
-        foreach (var grouping in argumentGroupByName)
+        foreach (var argumentGroup in argumentGroupByName)
         {
-            var mergedArgument = MergeArgumentDefinitions([.. grouping]);
+            var mergedArgument = MergeArgumentDefinitions([.. argumentGroup], mergedSchema);
 
             if (mergedArgument is not null)
             {
-                mergedArguments.Add(mergedArgument);
+                outputField.Arguments.Add(mergedArgument);
             }
-        }
-
-        foreach (var mergedArgument in mergedArguments)
-        {
-            outputField.Arguments.Add(mergedArgument);
         }
 
         if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
@@ -507,20 +523,21 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Scalar-Types">
     /// Specification
     /// </seealso>
-    private ScalarTypeDefinition MergeScalarTypes(ImmutableArray<TypeInfo> typeGroup)
+    private ScalarTypeDefinition MergeScalarTypes(
+        ImmutableArray<TypeInfo> typeGroup,
+        SchemaDefinition mergedSchema)
     {
         var firstScalar = typeGroup[0].Type;
+        var typeName = firstScalar.Name;
         var description = firstScalar.Description;
+        var scalarType = GetOrCreateType<ScalarTypeDefinition>(mergedSchema, typeName);
 
-        foreach (var typeInfo in typeGroup.Skip(1))
+        for (var i = 1; i < typeGroup.Length; i++)
         {
-            description ??= typeInfo.Type.Description;
+            description ??= typeGroup[i].Type.Description;
         }
 
-        var scalarType = new ScalarTypeDefinition(firstScalar.Name)
-        {
-            Description = description
-        };
+        scalarType.Description = description;
 
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
@@ -546,11 +563,21 @@ internal sealed class SourceSchemaMerger
         var firstUnion = typeGroup[0].Type;
         var name = firstUnion.Name;
         var description = firstUnion.Description;
+        var unionType = GetOrCreateType<UnionTypeDefinition>(mergedSchema, name);
 
-        foreach (var typeInfo in typeGroup.Skip(1))
+        for (var i = 1; i < typeGroup.Length; i++)
         {
-            description ??= typeInfo.Type.Description;
+            description ??= typeGroup[i].Type.Description;
         }
+
+        unionType.Description = description;
+
+        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+        {
+            unionType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+        }
+
+        AddFusionTypeDirectives(unionType, typeGroup);
 
         // [UnionMemberName: [{MemberType, UnionType, Schema}, ...], ...].
         var unionMemberGroupByName = typeGroup
@@ -562,20 +589,11 @@ internal sealed class SourceSchemaMerger
             // Intersection: Member type definition count matches union type definition count.
             .Where(g => g.Count() == typeGroup.Length);
 
-        var unionType = new UnionTypeDefinition(name) { Description = description };
-
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+        foreach (var (memberName, memberGroup) in unionMemberGroupByName)
         {
-            unionType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
-        }
+            AddFusionUnionMemberDirectives(unionType, [.. memberGroup]);
 
-        AddFusionTypeDirectives(unionType, typeGroup);
-
-        foreach (var grouping in unionMemberGroupByName)
-        {
-            AddFusionUnionMemberDirectives(unionType, [.. grouping]);
-
-            unionType.Types.Add((ObjectTypeDefinition)mergedSchema.Types[grouping.Key]);
+            unionType.Types.Add(GetOrCreateType<ObjectTypeDefinition>(mergedSchema, memberName));
         }
 
         return unionType;
@@ -701,6 +719,50 @@ internal sealed class SourceSchemaMerger
                 mergedSchema.SubscriptionType = subscriptionObjectType;
             }
         }
+    }
+
+    private static T GetOrCreateType<T>(SchemaDefinition mergedSchema, string typeName)
+        where T : class, INamedTypeSystemMemberDefinition<T>
+    {
+        if (mergedSchema.Types.TryGetType(typeName, out var existingType))
+        {
+            return (T)existingType;
+        }
+
+        var newType = T.Create(typeName);
+
+        mergedSchema.Types.Add((INamedTypeDefinition)newType);
+
+        return newType;
+    }
+
+    private static INamedTypeDefinition GetOrCreateType(
+        SchemaDefinition mergedSchema,
+        ITypeDefinition sourceType)
+    {
+        return sourceType switch
+        {
+            EnumTypeDefinition e
+                => GetOrCreateType<EnumTypeDefinition>(mergedSchema, e.Name),
+            InputObjectTypeDefinition i
+                => GetOrCreateType<InputObjectTypeDefinition>(mergedSchema, i.Name),
+            InterfaceTypeDefinition i
+                => GetOrCreateType<InterfaceTypeDefinition>(mergedSchema, i.Name),
+            ListTypeDefinition l
+                => GetOrCreateType(mergedSchema, l.ElementType),
+            MissingTypeDefinition m
+                => new MissingTypeDefinition(m.Name),
+            NonNullTypeDefinition n
+                => GetOrCreateType(mergedSchema, n.NullableType),
+            ObjectTypeDefinition o
+                => GetOrCreateType<ObjectTypeDefinition>(mergedSchema, o.Name),
+            ScalarTypeDefinition s
+                => GetOrCreateType<ScalarTypeDefinition>(mergedSchema, s.Name),
+            UnionTypeDefinition u
+                => GetOrCreateType<UnionTypeDefinition>(mergedSchema, u.Name),
+            _
+                => throw new ArgumentOutOfRangeException(nameof(sourceType))
+        };
     }
 
     private void AddFusionEnumValueDirectives(
