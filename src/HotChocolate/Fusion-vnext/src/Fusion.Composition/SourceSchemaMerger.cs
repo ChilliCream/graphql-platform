@@ -359,12 +359,28 @@ internal sealed class SourceSchemaMerger
 
         interfaceType.Description = description;
 
+        // [InterfaceName: [{InterfaceType, Schema}, ...], ...].
+        var interfaceGroupByName = typeGroup
+            .SelectMany(
+                i => ((InterfaceTypeDefinition)i.Type).Implements,
+                (i, it) => new InterfaceInfo(it, i.Schema))
+            .GroupBy(i => i.InterfaceType.Name)
+            .Where(g => !g.Any(i => i.InterfaceType.HasInaccessibleDirective()))
+            .ToArray();
+
+        foreach (var (interfaceName, _) in interfaceGroupByName)
+        {
+            interfaceType.Implements.Add(
+                GetOrCreateType<InterfaceTypeDefinition>(mergedSchema, interfaceName));
+        }
+
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
             interfaceType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
         }
 
         AddFusionTypeDirectives(interfaceType, typeGroup);
+        AddFusionImplementsDirectives(interfaceType, [.. interfaceGroupByName.SelectMany(g => g)]);
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -418,12 +434,28 @@ internal sealed class SourceSchemaMerger
 
         objectType.Description = description;
 
+        // [InterfaceName: [{InterfaceType, Schema}, ...], ...].
+        var interfaceGroupByName = typeGroup
+            .SelectMany(
+                i => ((ObjectTypeDefinition)i.Type).Implements,
+                (i, it) => new InterfaceInfo(it, i.Schema))
+            .GroupBy(i => i.InterfaceType.Name)
+            .Where(g => !g.Any(i => i.InterfaceType.HasInaccessibleDirective()))
+            .ToArray();
+
+        foreach (var (interfaceName, _) in interfaceGroupByName)
+        {
+            objectType.Implements.Add(
+                GetOrCreateType<InterfaceTypeDefinition>(mergedSchema, interfaceName));
+        }
+
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
             objectType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
         }
 
         AddFusionTypeDirectives(objectType, typeGroup);
+        AddFusionImplementsDirectives(objectType, [.. interfaceGroupByName.SelectMany(g => g)]);
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -809,6 +841,22 @@ internal sealed class SourceSchemaMerger
 
             field.Directives.Add(
                 new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionField], arguments));
+        }
+    }
+
+    private void AddFusionImplementsDirectives(
+        ComplexTypeDefinition complexType,
+        ImmutableArray<InterfaceInfo> interfaceGroup)
+    {
+        foreach (var (sourceInterface, sourceSchema) in interfaceGroup)
+        {
+            complexType.Directives.Add(
+                new Directive(
+                    _fusionDirectiveDefinitions[DirectiveNames.FusionImplements],
+                    new ArgumentAssignment(
+                        ArgumentNames.Schema,
+                        new EnumValueNode(_schemaConstantNames[sourceSchema])),
+                    new ArgumentAssignment(ArgumentNames.Interface, sourceInterface.Name)));
         }
     }
 
