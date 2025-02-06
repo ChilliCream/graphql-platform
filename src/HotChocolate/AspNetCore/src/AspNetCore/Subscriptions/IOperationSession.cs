@@ -10,11 +10,6 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 public interface IOperationSession : IDisposable
 {
     /// <summary>
-    /// An event that indicates that the underlying subscription has completed.
-    /// </summary>
-    event EventHandler? Completed;
-
-    /// <summary>
     /// Gets the subscription id that the client has provided.
     /// </summary>
     string Id { get; }
@@ -27,7 +22,22 @@ public interface IOperationSession : IDisposable
     /// <summary>
     /// Starts executing the operation.
     /// </summary>
-    /// <param name="request">The graphql request.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken);
+    /// <param name="request">
+    /// The graphql request.
+    /// </param>
+    /// <param name="completion">
+    /// The completion handler that will be called when the operation is completed.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    void BeginExecute(
+        GraphQLRequest request,
+        IOperationSessionCompletionHandler completion,
+        CancellationToken cancellationToken);
+}
+
+public interface IOperationSessionCompletionHandler
+{
+    void Complete(IOperationSession session);
 }

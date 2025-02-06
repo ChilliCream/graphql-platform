@@ -25,7 +25,7 @@ public class OperationManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Enqueue(null!, new GraphQLRequest(null, queryId: "123"));
+        void Action() => subscriptions.Start(null!, new GraphQLRequest(null, queryId: "123"));
 
         // assert
         Assert.Equal(
@@ -48,7 +48,7 @@ public class OperationManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Enqueue("", new GraphQLRequest(null, queryId: "123"));
+        void Action() => subscriptions.Start("", new GraphQLRequest(null, queryId: "123"));
 
         // assert
         Assert.Equal(
@@ -71,7 +71,7 @@ public class OperationManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Enqueue("abc", null!);
+        void Action() => subscriptions.Start("abc", null!);
 
         // assert
         Assert.Equal(
@@ -106,7 +106,7 @@ public class OperationManagerTests
         subscriptions.Dispose();
 
         // act
-        void Fail() => subscriptions.Enqueue("abc", request);
+        void Fail() => subscriptions.Start("abc", request);
 
         // assert
         Assert.Throws<ObjectDisposedException>(Fail);
@@ -138,7 +138,7 @@ public class OperationManagerTests
         var request = new GraphQLRequest(query);
 
         // act
-        var success = subscriptions.Enqueue("abc", request);
+        var success = subscriptions.Start("abc", request);
         var registered = subscriptions.ToArray();
 
         // assert
@@ -170,11 +170,11 @@ public class OperationManagerTests
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        var success1 = subscriptions.Enqueue("abc", request);
+        var success1 = subscriptions.Start("abc", request);
         var registered1 = subscriptions.ToArray();
 
         // act
-        var success2 = subscriptions.Enqueue("abc", request);
+        var success2 = subscriptions.Start("abc", request);
         var registered2 = subscriptions.ToArray();
 
         // assert
@@ -208,7 +208,7 @@ public class OperationManagerTests
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        var success1 = subscriptions.Enqueue("abc", request);
+        var success1 = subscriptions.Start("abc", request);
         var registered1 = subscriptions.ToArray();
 
         // act
@@ -322,7 +322,7 @@ public class OperationManagerTests
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        var success = subscriptions.Enqueue("abc", request);
+        var success = subscriptions.Start("abc", request);
         Assert.True(success);
 
         // act

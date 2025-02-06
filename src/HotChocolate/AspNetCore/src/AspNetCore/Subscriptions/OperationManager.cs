@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
@@ -12,8 +13,8 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 /// </summary>
 public sealed class OperationManager : IOperationManager
 {
-    private readonly ReaderWriterLockSlim _lock = new();
-    private readonly Dictionary<string, IOperationSession> _subs = new();
+    private readonly ConcurrentDictionary<string, IOperationSession> _subs = new();
+    private readonly OperationSessionCompletionHandler _completion;
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _cancellationToken;
     private readonly ISocketSession _socketSession;
@@ -35,6 +36,7 @@ public sealed class OperationManager : IOperationManager
         _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
         _cts = new CancellationTokenSource();
         _cancellationToken = _cts.Token;
+        _completion = new OperationSessionCompletionHandler(_subs);
     }
 
     internal OperationManager(
@@ -50,10 +52,11 @@ public sealed class OperationManager : IOperationManager
         _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
         _cts = new CancellationTokenSource();
         _cancellationToken = _cts.Token;
+        _completion = new OperationSessionCompletionHandler(_subs);
     }
 
     /// <inheritdoc />
-    public bool Enqueue(string sessionId, GraphQLRequest request)
+    public bool Start(string sessionId, GraphQLRequest request)
     {
         if (string.IsNullOrEmpty(sessionId))
         {
@@ -72,30 +75,18 @@ public sealed class OperationManager : IOperationManager
             throw new ObjectDisposedException(nameof(OperationManager));
         }
 
-        IOperationSession? session = null;
-        _lock.EnterWriteLock();
+        var context = new StartSessionContext(
+            _createSession,
+            _completion,
+            request,
+            _cancellationToken);
 
-        try
-        {
-            if(!_subs.ContainsKey(sessionId))
-            {
-                session = _createSession(sessionId);
-                _subs.Add(sessionId, session);
-            }
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
+        _subs.GetOrAdd(
+            sessionId,
+            static (key, ctx) => ctx.CreateSession(key),
+            context);
 
-        if (session is not null)
-        {
-            session.Completed += (_, _) => Complete(sessionId);
-            session.BeginExecute(request, _cancellationToken);
-            return true;
-        }
-
-        return false;
+        return context.IsNewSession;
     }
 
     /// <inheritdoc />
@@ -113,20 +104,10 @@ public sealed class OperationManager : IOperationManager
             throw new ObjectDisposedException(nameof(OperationManager));
         }
 
-        _lock.EnterWriteLock();
-
-        try
+        if(_subs.TryRemove(sessionId, out var session))
         {
-            if (_subs.TryGetValue(sessionId, out var session))
-            {
-                _subs.Remove(sessionId);
-                session.Dispose();
-                return true;
-            }
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
+            session.Dispose();
+            return true;
         }
 
         return false;
@@ -149,24 +130,37 @@ public sealed class OperationManager : IOperationManager
 
     /// <inheritdoc />
     public IEnumerator<IOperationSession> GetEnumerator()
+        => _subs.Values.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private sealed class StartSessionContext(
+        Func<string, IOperationSession> createSession,
+        IOperationSessionCompletionHandler completion,
+        GraphQLRequest request,
+        CancellationToken cancellationToken)
     {
-        _lock.EnterReadLock();
-        IOperationSession[] items;
+        public bool IsNewSession { get; private set; }
 
-        try
+        public IOperationSession CreateSession(string sessionId)
         {
-            items = _subs.Values.ToArray();
-        }
-        finally
-        {
-            _lock.ExitReadLock();
-        }
-
-        foreach (var session in items)
-        {
-            yield return session;
+            IsNewSession = true;
+            var session = createSession(sessionId);
+            session.BeginExecute(request, completion, cancellationToken);
+            return session;
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    private sealed class OperationSessionCompletionHandler(
+        ConcurrentDictionary<string, IOperationSession> subs)
+        : IOperationSessionCompletionHandler
+    {
+        public void Complete(IOperationSession session)
+        {
+            if (subs.TryRemove(session.Id, out _))
+            {
+                session.Dispose();
+            }
+        }
+    }
 }

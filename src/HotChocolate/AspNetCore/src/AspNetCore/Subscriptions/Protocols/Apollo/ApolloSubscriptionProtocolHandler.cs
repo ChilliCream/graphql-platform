@@ -141,7 +141,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     return;
                 }
 
-                if (!session.Operations.Enqueue(dataStartMessage.Id, dataStartMessage.Payload))
+                if (!session.Operations.Start(dataStartMessage.Id, dataStartMessage.Payload))
                 {
                     await connection.CloseAsync(
                         Apollo_OnReceive_SubscriptionIdNotUnique,

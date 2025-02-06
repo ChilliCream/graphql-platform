@@ -142,7 +142,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     return;
                 }
 
-                if (!session.Operations.Enqueue(subscribeMessage.Id, subscribeMessage.Payload))
+                if (!session.Operations.Start(subscribeMessage.Id, subscribeMessage.Payload))
                 {
                     await connection.CloseSubscriptionIdNotUniqueAsync(cancellationToken);
                     return;

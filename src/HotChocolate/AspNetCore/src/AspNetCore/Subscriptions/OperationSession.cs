@@ -13,8 +13,6 @@ internal sealed class OperationSession : IOperationSession
     private readonly IRequestExecutor _executor;
     private bool _disposed;
 
-    public event EventHandler? Completed;
-
     public OperationSession(
         ISocketSession session,
         ISocketSessionInterceptor interceptor,
@@ -34,10 +32,16 @@ internal sealed class OperationSession : IOperationSession
 
     public bool IsCompleted { get; private set; }
 
-    public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
-        => SendResultsAsync(request, cancellationToken).FireAndForget();
+    public void BeginExecute(
+        GraphQLRequest request,
+        IOperationSessionCompletionHandler completion,
+        CancellationToken cancellationToken)
+        => SendResultsAsync(request, completion, cancellationToken).FireAndForget();
 
-    private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
+    private async Task SendResultsAsync(
+        GraphQLRequest request,
+        IOperationSessionCompletionHandler completion,
+        CancellationToken cancellationToken)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
         var ct = cts.Token;
@@ -51,32 +55,28 @@ internal sealed class OperationSession : IOperationSession
 
             switch (result)
             {
-                case IOperationResult queryResult:
-                    if (queryResult.Data is null && queryResult.Errors is { Count: > 0, })
+                case IOperationResult singleResult:
+                    if (singleResult.Data is null && singleResult.Errors is { Count: > 0, })
                     {
-                        await _session.Protocol.SendErrorMessageAsync(
-                            _session,
-                            Id,
-                            queryResult.Errors,
-                            ct);
+                        await _session.Protocol.SendErrorMessageAsync(_session, Id, singleResult.Errors, ct).ConfigureAwait(false);
                     }
                     else
                     {
-                        await SendResultMessageAsync(queryResult, ct);
+                        await SendResultMessageAsync(singleResult, ct).ConfigureAwait(false);
                     }
                     break;
 
                 case IResponseStream responseStream:
-                    await foreach (var item in responseStream.ReadResultsAsync().WithCancellation(ct))
+                    await foreach (var item in responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
                     {
                         try
                         {
                             // use original cancellation token here to keep the websocket open for other streams.
-                            await SendResultMessageAsync(item, cancellationToken);
+                            await SendResultMessageAsync(item, cancellationToken).ConfigureAwait(false);
                         }
                         finally
                         {
-                            await item.DisposeAsync();
+                            await item.DisposeAsync().ConfigureAwait(false);
                         }
                     }
                     break;
@@ -94,7 +94,7 @@ internal sealed class OperationSession : IOperationSession
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            // the operation was cancelled so we do nothings
+            // the operation was cancelled so we do nothing
         }
         catch (Exception ex)
         {
@@ -121,7 +121,8 @@ internal sealed class OperationSession : IOperationSession
             }
 
             // signal that the subscription is completed.
-            Complete();
+            completion.Complete(this);
+            IsCompleted = true;
         }
     }
 
@@ -180,7 +181,7 @@ internal sealed class OperationSession : IOperationSession
                 var errors =
                     error is AggregateError aggregateError
                         ? aggregateError.Errors
-                        : new[] { error, };
+                        : [error];
 
                 await _session.Protocol.SendErrorMessageAsync(_session, Id, errors, ct);
             }
@@ -189,19 +190,6 @@ internal sealed class OperationSession : IOperationSession
         {
             // if we cannot send the complete message we just go on. This mostly will happen
             // if the client is already disconnected or the operation was cancelled.
-        }
-    }
-
-    private void Complete()
-    {
-        try
-        {
-            IsCompleted = true;
-            Completed?.Invoke(this, EventArgs.Empty);
-        }
-        catch
-        {
-            // we ignore any error that might happen on invoking complete.
         }
     }
 

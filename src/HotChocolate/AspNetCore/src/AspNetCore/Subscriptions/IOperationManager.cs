@@ -25,7 +25,7 @@ public interface IOperationManager
     /// Returns <c>true</c> if the <paramref name="request"/>
     /// was accepted and registered for execution.
     /// </returns>
-    bool Enqueue(string sessionId, GraphQLRequest request);
+    bool Start(string sessionId, GraphQLRequest request);
 
     /// <summary>
     /// Completes a request that was previously enqueued with the operation manager.
