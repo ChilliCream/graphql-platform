@@ -13,10 +13,8 @@ internal sealed class NodeMiddleware : IMergeMiddleware
 
         if (fusionGraph.QueryType is not null &&
             context.Features.IsNodeFieldSupported() &&
-            fusionGraph.QueryType.Fields.TryGetField("node", out var nodeField))
+            fusionGraph.QueryType.Fields.ContainsName("node"))
         {
-            fusionGraph.QueryType.Fields.TryGetField("nodes", out var nodesField);
-
             var nodes = new HashSet<ObjectTypeDefinition>();
 
             foreach (var schema in context.Subgraphs)
