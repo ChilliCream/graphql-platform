@@ -4,6 +4,7 @@ public static class LogEntryCodes
 {
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
     public const string EmptyMergedEnumType = "EMPTY_MERGED_ENUM_TYPE";
+    public const string EmptyMergedInputObjectType = "EMPTY_MERGED_INPUT_OBJECT_TYPE";
     public const string EmptyMergedInterfaceType = "EMPTY_MERGED_INTERFACE_TYPE";
     public const string EmptyMergedObjectType = "EMPTY_MERGED_OBJECT_TYPE";
     public const string EmptyMergedUnionType = "EMPTY_MERGED_UNION_TYPE";

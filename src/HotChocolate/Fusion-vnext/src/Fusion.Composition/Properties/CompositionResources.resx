@@ -48,6 +48,9 @@
   <data name="LogEntryHelper_EmptyMergedEnumType" xml:space="preserve">
     <value>The merged enum type '{0}' is empty.</value>
   </data>
+  <data name="LogEntryHelper_EmptyMergedInputObjectType" xml:space="preserve">
+    <value>The merged input object type '{0}' is empty.</value>
+  </data>
   <data name="LogEntryHelper_EmptyMergedInterfaceType" xml:space="preserve">
     <value>The merged interface type '{0}' is empty.</value>
   </data>

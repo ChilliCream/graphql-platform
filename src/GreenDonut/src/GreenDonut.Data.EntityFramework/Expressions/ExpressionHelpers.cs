@@ -441,11 +441,16 @@ internal static class ExpressionHelpers
             // we are not interested in nested order by calls
             if (node.Method.DeclaringType == typeof(Queryable) && node.Method.Name == nameof(Queryable.Select))
             {
+                // We first visit our parent. When we visit an expression
+                // like "OrderBy().Select()", we want to visit the OrderBy first.
+                var source = Visit(node.Arguments[0]);
+
                 var previousState = _insideSelectProjection;
                 _insideSelectProjection = true;
-                var result = base.VisitMethodCall(node);
+                var projection = Visit(node.Arguments[1]);
                 _insideSelectProjection = previousState;
-                return result;
+
+                return node.Update(null, [source, projection]);
             }
 
             if (node.Method.DeclaringType == typeof(Queryable)
