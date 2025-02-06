@@ -1,10 +1,11 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Skimmed.Properties.SkimmedResources;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class NonNullTypeDefinition : ITypeDefinition
+public sealed class NonNullTypeDefinition : ITypeDefinition, IReadOnlyWrapperType
 {
     public NonNullTypeDefinition(ITypeDefinition nullableType)
     {
@@ -24,8 +25,13 @@ public sealed class NonNullTypeDefinition : ITypeDefinition
 
     public ITypeDefinition NullableType { get; }
 
+    IReadOnlyTypeDefinition IReadOnlyWrapperType.Type => NullableType;
+
     public override string ToString()
         => RewriteTypeRef(this).ToString(true);
+
+    public ISyntaxNode ToSyntaxNode()
+        => RewriteTypeRef(this);
 
     public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);

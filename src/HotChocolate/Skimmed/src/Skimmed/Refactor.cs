@@ -213,7 +213,7 @@ public static class Refactor
         {
             foreach (var directive in directives)
             {
-                if (ReferenceEquals(directiveType, directive.Type))
+                if (ReferenceEquals(directiveType, directive.Definition))
                 {
                     _remove.Add(directive);
                 }
@@ -239,7 +239,7 @@ public static class Refactor
         {
             foreach (var directive in directives)
             {
-                if (ReferenceEquals(context.Type, directive.Type))
+                if (ReferenceEquals(context.Type, directive.Definition))
                 {
                     var arguments = new List<ArgumentAssignment>();
 

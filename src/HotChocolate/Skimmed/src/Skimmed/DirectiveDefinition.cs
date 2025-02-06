@@ -1,7 +1,8 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Skimmed;
@@ -13,8 +14,9 @@ public class DirectiveDefinition
     : INamedTypeSystemMemberDefinition<DirectiveDefinition>
     , IDescriptionProvider
     , IFeatureProvider
-    , ISealable
+    , IReadOnlyDirectiveDefinition
     , ISyntaxNodeProvider
+    , ISealable
 {
     private string _name;
     private IInputFieldDefinitionCollection? _arguments;
@@ -117,6 +119,10 @@ public class DirectiveDefinition
     public IInputFieldDefinitionCollection Arguments
         => _arguments ??= new InputFieldDefinitionCollection();
 
+    IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition> IReadOnlyDirectiveDefinition.Arguments
+        => _arguments as IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+            ?? ReadOnlyInputFieldDefinitionCollection.Empty;
+
     /// <summary>
     /// Gets the locations where this directive can be applied.
     /// </summary>
@@ -149,7 +155,7 @@ public class DirectiveDefinition
     /// Seals this value and makes it read-only.
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    internal void Seal()
+    private void Seal()
     {
         if (_isReadOnly)
         {

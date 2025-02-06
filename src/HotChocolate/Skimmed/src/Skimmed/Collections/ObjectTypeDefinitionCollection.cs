@@ -1,8 +1,11 @@
 using System.Collections;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ObjectTypeDefinitionCollection : IObjectTypeDefinitionCollection
+public sealed class ObjectTypeDefinitionCollection
+    : IObjectTypeDefinitionCollection
+    , IReadOnlyObjectTypeDefinitionCollection
 {
     private readonly List<ObjectTypeDefinition> _types = [];
 
@@ -37,5 +40,8 @@ public sealed class ObjectTypeDefinitionCollection : IObjectTypeDefinitionCollec
         => _types.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    IEnumerator<IReadOnlyObjectTypeDefinition> IEnumerable<IReadOnlyObjectTypeDefinition>.GetEnumerator()
         => GetEnumerator();
 }

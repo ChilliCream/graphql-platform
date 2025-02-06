@@ -1,5 +1,5 @@
 using HotChocolate.Types;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -9,6 +9,7 @@ namespace HotChocolate.Skimmed;
 public class ObjectTypeDefinition(string name)
     : ComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<ObjectTypeDefinition>
+    , IReadOnlyObjectTypeDefinition
 {
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;

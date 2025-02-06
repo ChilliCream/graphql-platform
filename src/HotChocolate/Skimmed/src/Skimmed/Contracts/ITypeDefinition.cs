@@ -5,13 +5,8 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a GraphQL type definition.
 /// </summary>
-public interface ITypeDefinition : IEquatable<ITypeDefinition>
+public interface ITypeDefinition : IReadOnlyTypeDefinition, IEquatable<ITypeDefinition>
 {
-    /// <summary>
-    /// Gets the type kind.
-    /// </summary>
-    TypeKind Kind { get; }
-
     /// <summary>
     /// Gets a value indicating whether the type is an introspection type.
     /// </summary>

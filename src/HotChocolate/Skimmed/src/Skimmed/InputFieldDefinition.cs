@@ -1,7 +1,8 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -11,6 +12,7 @@ namespace HotChocolate.Skimmed;
 public sealed class InputFieldDefinition(string name, ITypeDefinition? type = null)
     : IFieldDefinition
     , INamedTypeSystemMemberDefinition<InputFieldDefinition>
+    , IReadOnlyInputValueDefinition
     , ISealable
 {
     private ITypeDefinition _type = type ?? NotSetTypeDefinition.Default;
@@ -54,6 +56,8 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
             _description = value;
         }
     }
+
+    IReadOnlyTypeDefinition IReadOnlyFieldDefinition.Type => _type;
 
     /// <summary>
     /// Gets or sets the default value for this input field.
@@ -119,6 +123,10 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
     /// <inheritdoc />
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
+
+    IReadOnlyDirectiveCollection IReadOnlyFieldDefinition.Directives
+        => _directives as IReadOnlyDirectiveCollection
+            ?? ReadOnlyDirectiveCollection.Empty;
 
     public ITypeDefinition Type
     {

@@ -1,8 +1,9 @@
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using HotChocolate.Types;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Directive : ITypeSystemMemberDefinition
+public sealed class Directive : ITypeSystemMemberDefinition, IReadOnlyDirective
 {
     public Directive(DirectiveDefinition type, params ArgumentAssignment[] arguments)
         : this(type, (IReadOnlyList<ArgumentAssignment>)arguments)
@@ -11,15 +12,19 @@ public sealed class Directive : ITypeSystemMemberDefinition
 
     public Directive(DirectiveDefinition type, IReadOnlyList<ArgumentAssignment> arguments)
     {
-        Type = type;
+        Definition = type;
         Arguments = new(arguments);
     }
 
-    public string Name => Type.Name;
+    public string Name => Definition.Name;
 
-    public DirectiveDefinition Type { get; }
+    public DirectiveDefinition Definition { get; }
+
+    IReadOnlyDirectiveDefinition IReadOnlyDirective.Definition => Definition;
 
     public ArgumentAssignmentCollection Arguments { get; }
+
+    IReadOnlyArgumentAssignmentCollection IReadOnlyDirective.Arguments => Arguments;
 
     public override string ToString()
         => RewriteDirective(this).ToString(true);

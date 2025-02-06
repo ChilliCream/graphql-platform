@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed.Serialization;
 

@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-public interface IReadOnlyTypeDefinition
+public interface IReadOnlyTypeDefinition : ISyntaxNodeProvider
 {
     TypeKind Kind { get; }
 }

@@ -1,8 +1,8 @@
 using System.Collections;
-using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Utilities;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
@@ -10,7 +10,7 @@ namespace HotChocolate.Skimmed;
 /// Represents a collection of argument value assignments.
 /// </summary>
 public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignment> arguments)
-    : IReadOnlyList<ArgumentAssignment>
+    : IReadOnlyArgumentAssignmentCollection
 {
     private readonly IReadOnlyDictionary<string, ArgumentAssignment> _arguments =
         ToDictionary(arguments);

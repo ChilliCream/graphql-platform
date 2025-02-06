@@ -2,7 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -12,6 +12,7 @@ namespace HotChocolate.Skimmed;
 public class InputObjectTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<InputObjectTypeDefinition>
+    , IReadOnlyInputObjectTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -60,6 +61,9 @@ public class InputObjectTypeDefinition(string name)
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
 
+    IReadOnlyDirectiveCollection IReadOnlyNamedTypeDefinition.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? ReadOnlyDirectiveCollection.Empty;
+
     /// <summary>
     /// Gets the fields of this input object type definition.
     /// </summary>
@@ -68,6 +72,10 @@ public class InputObjectTypeDefinition(string name)
     /// </value>
     public IInputFieldDefinitionCollection Fields
         => _fields;
+
+    IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition> IReadOnlyInputObjectTypeDefinition.Fields
+        => _fields as IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+            ?? ReadOnlyInputFieldDefinitionCollection.Empty;
 
     /// <inheritdoc />
     public IFeatureCollection Features
@@ -80,7 +88,7 @@ public class InputObjectTypeDefinition(string name)
     /// Seals this type and makes it read-only.
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    protected internal void Seal()
+    private void Seal()
     {
         if (_isReadOnly)
         {

@@ -2,7 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -12,6 +12,7 @@ namespace HotChocolate.Skimmed;
 public class ScalarTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<ScalarTypeDefinition>
+    , IReadOnlyScalarTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -77,6 +78,9 @@ public class ScalarTypeDefinition(string name)
     /// <inheritdoc />
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
+
+    IReadOnlyDirectiveCollection IReadOnlyNamedTypeDefinition.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? ReadOnlyDirectiveCollection.Empty;
 
     /// <inheritdoc />
     public IFeatureCollection Features

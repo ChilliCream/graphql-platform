@@ -2,7 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -12,6 +12,7 @@ namespace HotChocolate.Skimmed;
 public class EnumTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<EnumTypeDefinition>
+    , IReadOnlyEnumTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -60,6 +61,9 @@ public class EnumTypeDefinition(string name)
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
 
+    IReadOnlyDirectiveCollection IReadOnlyNamedTypeDefinition.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? ReadOnlyDirectiveCollection.Empty;
+
     /// <summary>
     /// Gets the values of this enum type.
     /// </summary>
@@ -68,6 +72,9 @@ public class EnumTypeDefinition(string name)
     /// </value>
     public IEnumValueCollection Values
         => _values;
+
+    IReadOnlyEnumValueCollection IReadOnlyEnumTypeDefinition.Values
+        => _values as IReadOnlyEnumValueCollection ?? ReadOnlyEnumValueCollection.Empty;
 
     /// <inheritdoc />
     public IFeatureCollection Features
@@ -80,7 +87,7 @@ public class EnumTypeDefinition(string name)
     /// Seals this type and makes it read-only.
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    protected internal void Seal()
+    private void Seal()
     {
         if (_isReadOnly)
         {
@@ -103,7 +110,7 @@ public class EnumTypeDefinition(string name)
             ? EmptyFeatureCollection.Default
             : _features.ToReadOnly();
 
-        foreach (var value in _values)
+        foreach (ISealable value in _values)
         {
             value.Seal();
         }

@@ -1,6 +1,7 @@
 namespace HotChocolate.Types;
 
-public interface IReadOnlyDirectiveCollection : ICollection<IReadOnlyDirective>
+public interface IReadOnlyDirectiveCollection
+    : IEnumerable<IReadOnlyDirective>
 {
     /// <summary>
     /// Gets a directive by its name.

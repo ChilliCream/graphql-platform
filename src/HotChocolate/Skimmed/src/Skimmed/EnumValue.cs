@@ -1,7 +1,8 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -14,8 +15,8 @@ public sealed class EnumValue(string name)
     , IFeatureProvider
     , IDescriptionProvider
     , IDeprecationProvider
+    , IReadOnlyEnumValue
     , ISealable
-    , ISyntaxNodeProvider
 {
     private string _name = name.EnsureGraphQLName();
     private string? _description;
@@ -25,7 +26,7 @@ public sealed class EnumValue(string name)
     private IFeatureCollection? _features;
     private bool _isReadOnly;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="INameProvider.Name" />
     public string Name
     {
         get => _name;
@@ -41,7 +42,7 @@ public sealed class EnumValue(string name)
         }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IDescriptionProvider.Description" />
     public string? Description
     {
         get => _description;
@@ -57,7 +58,7 @@ public sealed class EnumValue(string name)
         }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
     public bool IsDeprecated
     {
         get => _isDeprecated;
@@ -78,7 +79,7 @@ public sealed class EnumValue(string name)
         }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IDeprecationProvider.DeprecationReason" />
     public string? DeprecationReason
     {
         get => _deprecationReason;
@@ -103,6 +104,9 @@ public sealed class EnumValue(string name)
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
 
+    IReadOnlyDirectiveCollection IReadOnlyEnumValue.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? ReadOnlyDirectiveCollection.Empty;
+
     /// <inheritdoc />
     public IFeatureCollection Features
         => _features ??= new FeatureCollection();
@@ -114,7 +118,7 @@ public sealed class EnumValue(string name)
     /// Seals this value and makes it read-only.
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    internal void Seal()
+    private void Seal()
     {
         if (_isReadOnly)
         {

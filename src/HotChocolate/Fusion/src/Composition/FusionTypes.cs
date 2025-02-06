@@ -1,7 +1,7 @@
-using System.Collections.Frozen;
 using HotChocolate.Fusion.Composition.Properties;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 

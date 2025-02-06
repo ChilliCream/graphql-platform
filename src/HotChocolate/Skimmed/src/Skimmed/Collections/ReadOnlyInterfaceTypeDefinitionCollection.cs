@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ReadOnlyInterfaceTypeDefinitionCollection : IInterfaceTypeDefinitionCollection
+public sealed class ReadOnlyInterfaceTypeDefinitionCollection
+    : IInterfaceTypeDefinitionCollection
+    , IReadOnlyInterfaceTypeDefinitionCollection
 {
     private readonly InterfaceTypeDefinition[] _interfaces;
 
@@ -18,11 +21,10 @@ public sealed class ReadOnlyInterfaceTypeDefinitionCollection : IInterfaceTypeDe
     public bool IsReadOnly => true;
 
     public InterfaceTypeDefinition this[int index]
-    {
-        get => _interfaces[index];
-    }
+        => _interfaces[index];
 
-    public void Add(InterfaceTypeDefinition definition) => ThrowReadOnly();
+    public void Add(InterfaceTypeDefinition definition)
+        => ThrowReadOnly();
 
     public bool Remove(InterfaceTypeDefinition definition)
     {
@@ -48,14 +50,12 @@ public sealed class ReadOnlyInterfaceTypeDefinitionCollection : IInterfaceTypeDe
         => _interfaces.CopyTo(array, arrayIndex);
 
     public IEnumerator<InterfaceTypeDefinition> GetEnumerator()
-    {
-        foreach (var item in _interfaces)
-        {
-            yield return item;
-        }
-    }
+        => ((IEnumerable<InterfaceTypeDefinition>)_interfaces).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    IEnumerator<IReadOnlyInterfaceTypeDefinition> IEnumerable<IReadOnlyInterfaceTypeDefinition>.GetEnumerator()
+        => GetEnumerator();
 
     public static ReadOnlyInterfaceTypeDefinitionCollection Empty { get; } = new([]);
 

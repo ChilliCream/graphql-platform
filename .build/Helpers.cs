@@ -30,6 +30,7 @@ static class Helpers
         Path.Combine("HotChocolate", "Raven"),
         Path.Combine("HotChocolate", "Skimmed"),
         Path.Combine("HotChocolate", "Fusion"),
+        Path.Combine("HotChocolate", "Fusion-vnext"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),

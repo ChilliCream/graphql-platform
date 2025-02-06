@@ -1,5 +1,5 @@
 using HotChocolate.Types;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -9,6 +9,7 @@ namespace HotChocolate.Skimmed;
 public  class InterfaceTypeDefinition(string name)
     : ComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<InterfaceTypeDefinition>
+    , IReadOnlyInterfaceTypeDefinition
 {
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;

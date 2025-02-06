@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;

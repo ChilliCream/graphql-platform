@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ReadOnlyObjectTypeDefinitionCollection : IObjectTypeDefinitionCollection
+public sealed class ReadOnlyObjectTypeDefinitionCollection
+    : IObjectTypeDefinitionCollection
+    , IReadOnlyObjectTypeDefinitionCollection
 {
     private readonly ObjectTypeDefinition[] _types;
 
@@ -60,6 +63,9 @@ public sealed class ReadOnlyObjectTypeDefinitionCollection : IObjectTypeDefiniti
         => ((IEnumerable<ObjectTypeDefinition>)_types).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    IEnumerator<IReadOnlyObjectTypeDefinition> IEnumerable<IReadOnlyObjectTypeDefinition>.GetEnumerator()
         => GetEnumerator();
 
     public static ReadOnlyObjectTypeDefinitionCollection Empty { get; } = new([]);

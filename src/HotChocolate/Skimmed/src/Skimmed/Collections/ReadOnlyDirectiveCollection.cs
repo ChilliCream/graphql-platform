@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ReadOnlyDirectiveCollection(Directive[] directives) : IDirectiveCollection
+public sealed class ReadOnlyDirectiveCollection(Directive[] directives)
+    : IDirectiveCollection
+    , IReadOnlyDirectiveCollection
 {
     public int Count => directives.Length;
 
@@ -18,6 +21,9 @@ public sealed class ReadOnlyDirectiveCollection(Directive[] directives) : IDirec
                 : [];
         }
     }
+
+    IEnumerable<IReadOnlyDirective> IReadOnlyDirectiveCollection.this[string directiveName]
+        => this[directiveName];
 
     private static IEnumerable<Directive> FindDirectives(Directive[] directives, string name)
     {
@@ -48,6 +54,9 @@ public sealed class ReadOnlyDirectiveCollection(Directive[] directives) : IDirec
 
         return null;
     }
+
+    IReadOnlyDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
+        => FirstOrDefault(directiveName);
 
     public bool ContainsName(string directiveName)
         => FirstOrDefault(directiveName) is not null;
@@ -90,6 +99,9 @@ public sealed class ReadOnlyDirectiveCollection(Directive[] directives) : IDirec
         => ((IEnumerable<Directive>)directives).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    IEnumerator<IReadOnlyDirective> IEnumerable<IReadOnlyDirective>.GetEnumerator()
         => GetEnumerator();
 
     public static ReadOnlyDirectiveCollection Empty { get; } = new([]);

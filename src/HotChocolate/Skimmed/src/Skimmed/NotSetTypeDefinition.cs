@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
@@ -14,6 +15,12 @@ public sealed class NotSetTypeDefinition : ITypeDefinition
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Scalar;
+
+    public override string ToString()
+        => "__NotSet";
+
+    public ISyntaxNode ToSyntaxNode()
+        => new NamedTypeNode("__NotSet");
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other)

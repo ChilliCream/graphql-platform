@@ -1,7 +1,8 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -11,6 +12,7 @@ namespace HotChocolate.Skimmed;
 public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = null)
     : IFieldDefinition
     , INamedTypeSystemMemberDefinition<OutputFieldDefinition>
+    , IReadOnlyOutputFieldDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -101,11 +103,19 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
 
+    IReadOnlyDirectiveCollection IReadOnlyFieldDefinition.Directives
+        => _directives as IReadOnlyDirectiveCollection
+            ?? ReadOnlyDirectiveCollection.Empty;
+
     /// <summary>
     /// Gets the arguments that are accepted by this field.
     /// </summary>
     public IInputFieldDefinitionCollection Arguments
         => _arguments ??= new InputFieldDefinitionCollection();
+
+    IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition> IReadOnlyOutputFieldDefinition.Arguments
+        => _arguments as IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+            ?? ReadOnlyInputFieldDefinitionCollection.Empty;
 
     /// <summary>
     /// Gets the type of the field.
@@ -128,6 +138,8 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
         }
     }
 
+    IReadOnlyTypeDefinition IReadOnlyFieldDefinition.Type => Type;
+
     /// <inheritdoc />
     public IFeatureCollection Features
         => _features ??= new FeatureCollection();
@@ -139,7 +151,7 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
     /// Seals this value and makes it read-only.
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    internal void Seal()
+    private void Seal()
     {
         if (_isReadOnly)
         {

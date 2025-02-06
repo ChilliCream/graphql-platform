@@ -2,7 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Types;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -11,6 +11,7 @@ namespace HotChocolate.Skimmed;
 /// </summary>
 public abstract class ComplexTypeDefinition(string name)
     : INamedTypeDefinition
+    , IReadOnlyComplexType
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -60,11 +61,18 @@ public abstract class ComplexTypeDefinition(string name)
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
 
+    IReadOnlyDirectiveCollection IReadOnlyNamedTypeDefinition.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? ReadOnlyDirectiveCollection.Empty;
+
+
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>
     public IInterfaceTypeDefinitionCollection Implements
         => _implements ??= new InterfaceTypeDefinitionCollection();
+
+    IReadOnlyInterfaceTypeDefinitionCollection IReadOnlyComplexType.Implements
+        => _implements as IReadOnlyInterfaceTypeDefinitionCollection ?? ReadOnlyInterfaceTypeDefinitionCollection.Empty;
 
     /// <summary>
     /// Gets the fields of this type.
@@ -74,6 +82,10 @@ public abstract class ComplexTypeDefinition(string name)
     /// </value>
     public IOutputFieldDefinitionCollection Fields
         => _fields;
+
+    IReadOnlyFieldDefinitionCollection<IReadOnlyOutputFieldDefinition> IReadOnlyComplexType.Fields
+        => _fields as IReadOnlyFieldDefinitionCollection<IReadOnlyOutputFieldDefinition>
+            ?? ReadOnlyOutputFieldDefinitionCollection.Empty;
 
     /// <inheritdoc />
     public IFeatureCollection Features
@@ -85,7 +97,7 @@ public abstract class ComplexTypeDefinition(string name)
     /// Seals this type and makes it read-only.
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    protected internal void Seal()
+    private void Seal()
     {
         if (_isReadOnly)
         {
@@ -112,7 +124,7 @@ public abstract class ComplexTypeDefinition(string name)
             ? EmptyFeatureCollection.Default
             : _features.ToReadOnly();
 
-        foreach (var field in _fields)
+        foreach (ISealable field in _fields)
         {
             field.Seal();
         }

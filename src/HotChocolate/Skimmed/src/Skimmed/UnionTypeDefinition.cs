@@ -2,7 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -12,6 +12,7 @@ namespace HotChocolate.Skimmed;
 public class UnionTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<UnionTypeDefinition>
+    , IReadOnlyUnionTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -60,11 +61,18 @@ public class UnionTypeDefinition(string name)
     public IDirectiveCollection Directives
         => _directives ??= new DirectiveCollection();
 
+    IReadOnlyDirectiveCollection IReadOnlyNamedTypeDefinition.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? ReadOnlyDirectiveCollection.Empty;
+
     /// <summary>
     /// Gets the types that are part of this union.
     /// </summary>
     public IObjectTypeDefinitionCollection Types
         => _types ??= new ObjectTypeDefinitionCollection();
+
+    IReadOnlyObjectTypeDefinitionCollection IReadOnlyUnionTypeDefinition.Types
+        => _types as IReadOnlyObjectTypeDefinitionCollection
+            ?? ReadOnlyObjectTypeDefinitionCollection.Empty;
 
     /// <inheritdoc />
     public IFeatureCollection Features
