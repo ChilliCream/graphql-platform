@@ -118,6 +118,9 @@ internal sealed partial class SubscriptionExecutor
         /// <inheritdoc />
         public IOperation Operation => _requestContext.Operation!;
 
+        /// <inheritdoc />
+        public IDictionary<string, object?> ContextData => _requestContext.ContextData;
+
         public async ValueTask DisposeAsync()
         {
             if (!_disposed)

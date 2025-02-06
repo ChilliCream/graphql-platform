@@ -11,7 +11,12 @@ public interface ISubscription
     ulong Id { get; }
 
     /// <summary>
-    /// The compiled subscription operation.
+    /// Gets the compiled subscription operation.
     /// </summary>
     IOperation Operation { get; }
+
+    /// <summary>
+    /// Gets the global request state.
+    /// </summary>
+    IDictionary<string, object?> ContextData { get; }
 }
