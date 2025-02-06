@@ -124,7 +124,8 @@ public sealed class InputFieldReferencesInaccessibleTypeRuleTests : CompositionT
                     """
                 ],
                 [
-                    "The merged input field 'field2' in type 'Input1' cannot reference the inaccessible type 'Input2'."
+                    "The merged input field 'field2' in type 'Input1' cannot reference the " +
+                    "inaccessible type 'Input2'."
                 ]
             }
         };
