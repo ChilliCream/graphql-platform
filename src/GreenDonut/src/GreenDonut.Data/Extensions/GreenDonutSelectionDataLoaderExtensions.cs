@@ -170,6 +170,9 @@ public static class GreenDonutSelectionDataLoaderExtensions
     /// <typeparam name="TValue">
     /// The value type.
     /// </typeparam>
+    /// <typeparam name="TResult">
+    /// The selector result type.
+    /// </typeparam>
     /// <returns>
     /// Returns the DataLoader with the property included.
     /// </returns>
@@ -179,10 +182,144 @@ public static class GreenDonutSelectionDataLoaderExtensions
     /// <exception cref="ArgumentException">
     /// Throws if the include selector is not a property selector.
     /// </exception>
-    public static IDataLoader<TKey, TValue> Include<TKey, TValue>(
+    public static IDataLoader<TKey, TValue> Include<TKey, TValue, TResult>(
         this IDataLoader<TKey, TValue> dataLoader,
-        Expression<Func<TValue, object?>> includeSelector)
+        Expression<Func<TValue, TResult>> includeSelector)
         where TKey : notnull
+    {
+        AssertIncludePossible(dataLoader, includeSelector);
+
+        var context = dataLoader.GetOrSetState(
+            DataLoaderStateKeys.Selector,
+            _ => new DefaultSelectorBuilder());
+        context.Add(Rewrite(includeSelector));
+        return dataLoader;
+    }
+
+    /// <summary>
+    /// Includes a property in the query.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to include the property in.
+    /// </param>
+    /// <param name="includeSelector">
+    /// The property selector.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <typeparam name="TResult">
+    /// The selector result type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the DataLoader with the property included.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Throws if the include selector is not a property selector.
+    /// </exception>
+    public static IDataLoader<TKey, Page<TValue>> Include<TKey, TValue, TResult>(
+        this IDataLoader<TKey, Page<TValue>> dataLoader,
+        Expression<Func<TValue, TResult>> includeSelector)
+        where TKey : notnull
+    {
+        AssertIncludePossible(dataLoader, includeSelector);
+
+        var context = dataLoader.GetOrSetState(
+            DataLoaderStateKeys.Selector,
+            _ => new DefaultSelectorBuilder());
+        context.Add(Rewrite(includeSelector));
+        return dataLoader;
+    }
+
+    /// <summary>
+    /// Includes a property in the query.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to include the property in.
+    /// </param>
+    /// <param name="includeSelector">
+    /// The property selector.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <typeparam name="TResult">
+    /// The selector result type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the DataLoader with the property included.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Throws if the include selector is not a property selector.
+    /// </exception>
+    public static IDataLoader<TKey, List<TValue>> Include<TKey, TValue, TResult>(
+        this IDataLoader<TKey, List<TValue>> dataLoader,
+        Expression<Func<TValue, TResult>> includeSelector)
+        where TKey : notnull
+    {
+        AssertIncludePossible(dataLoader, includeSelector);
+
+        var context = dataLoader.GetOrSetState(
+            DataLoaderStateKeys.Selector,
+            _ => new DefaultSelectorBuilder());
+        context.Add(Rewrite(includeSelector));
+        return dataLoader;
+    }
+
+    /// <summary>
+    /// Includes a property in the query.
+    /// </summary>
+    /// <param name="dataLoader">
+    /// The DataLoader to include the property in.
+    /// </param>
+    /// <param name="includeSelector">
+    /// The property selector.
+    /// </param>
+    /// <typeparam name="TKey">
+    /// The key type.
+    /// </typeparam>
+    /// <typeparam name="TValue">
+    /// The value type.
+    /// </typeparam>
+    /// <typeparam name="TResult">
+    /// The selector result type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the DataLoader with the property included.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Throws if the include selector is not a property selector.
+    /// </exception>
+    public static IDataLoader<TKey, TValue[]> Include<TKey, TValue, TResult>(
+        this IDataLoader<TKey, TValue[]> dataLoader,
+        Expression<Func<TValue, TResult>> includeSelector)
+        where TKey : notnull
+    {
+        AssertIncludePossible(dataLoader, includeSelector);
+
+        var context = dataLoader.GetOrSetState(
+            DataLoaderStateKeys.Selector,
+            _ => new DefaultSelectorBuilder());
+        context.Add(Rewrite(includeSelector));
+        return dataLoader;
+    }
+
+    private static void AssertIncludePossible(IDataLoader dataLoader, Expression includeSelector)
     {
         if (dataLoader is null)
         {
@@ -214,11 +351,5 @@ public static class GreenDonutSelectionDataLoaderExtensions
                 "The include selector must be a property selector.",
                 nameof(includeSelector));
         }
-
-        var context = dataLoader.GetOrSetState(
-            DataLoaderStateKeys.Selector,
-            _ => new DefaultSelectorBuilder());
-        context.Add(Rewrite(includeSelector));
-        return dataLoader;
     }
 }
