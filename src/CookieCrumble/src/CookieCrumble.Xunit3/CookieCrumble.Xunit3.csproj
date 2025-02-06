@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.Xunit3</AssemblyName>
+    <RootNamespace>CookieCrumble.Xunit3</RootNamespace>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
