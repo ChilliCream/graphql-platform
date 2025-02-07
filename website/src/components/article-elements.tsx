@@ -15,6 +15,7 @@ export const ArticleHeader = styled.header`
 
   @media only screen and (min-width: 700px) {
     padding-left: 20px;
+    margin-right: -20px;
     > .gatsby-image-wrapper {
       border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
@@ -158,7 +159,7 @@ export const ArticleContent = styled.div`
       line-height: 1.12em;
       margin-right: 0;
       margin-left: 0;
-      }
+    }
 
     > blockquote {
       padding: 20px;
