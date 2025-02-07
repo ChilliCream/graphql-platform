@@ -113,6 +113,19 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EmptyMergedInputObjectType(
+        InputObjectTypeDefinition inputObjectType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedInputObjectType, inputObjectType.Name),
+            LogEntryCodes.EmptyMergedInputObjectType,
+            LogSeverity.Error,
+            new SchemaCoordinate(inputObjectType.Name),
+            inputObjectType,
+            schema);
+    }
+
     public static LogEntry EmptyMergedInterfaceType(
         InterfaceTypeDefinition interfaceType,
         SchemaDefinition schema)
@@ -489,6 +502,17 @@ internal static class LogEntryHelper
             LogSeverity.Warning,
             coordinate,
             field,
+            schema);
+    }
+
+    public static LogEntry NoQueries(ObjectTypeDefinition queryType, SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_NoQueries),
+            LogEntryCodes.NoQueries,
+            LogSeverity.Error,
+            new SchemaCoordinate(queryType.Name),
+            queryType,
             schema);
     }
 

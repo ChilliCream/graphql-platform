@@ -75,7 +75,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             var batchExecutionState = CreateBatchBatchState(executionState, Requires);
 
             // Create the batch subgraph request.
-            var variableValues = BuildVariables(batchExecutionState, _argumentTypes);
+            var variableValues = BuildVariables(batchExecutionState, Requires, _argumentTypes);
             var request = CreateRequest(context.OperationContext.Variables, variableValues);
 
             // Once we have the batch request, we will enqueue it for execution with
@@ -194,6 +194,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
     private static Dictionary<string, IValueNode> BuildVariables(
         BatchExecutionState[] batchExecutionState,
+        string[] requires,
         Dictionary<string, ITypeNode> argumentTypes)
     {
         var first = batchExecutionState[0];
@@ -220,7 +221,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             batchState = ref Unsafe.Add(ref batchState, 1)!;
         }
 
-        foreach (var key in first.VariableValues.Keys)
+        foreach (var key in requires)
         {
             var expectedType = argumentTypes[key];
 
@@ -240,7 +241,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             }
             else
             {
-                if (batchExecutionState[0].VariableValues.TryGetValue(key, out var variableValue))
+                if (first.VariableValues.TryGetValue(key, out var variableValue))
                 {
                     variableValues.Add(key, variableValue);
                 }

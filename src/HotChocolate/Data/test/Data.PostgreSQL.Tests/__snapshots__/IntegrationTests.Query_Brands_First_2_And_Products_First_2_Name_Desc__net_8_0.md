@@ -13,8 +13,8 @@
           "products": {
             "nodes": [
               {
-                "id": "UHJvZHVjdDoxMg==",
-                "name": "Powder Pro Snowboard"
+                "id": "UHJvZHVjdDo0OA==",
+                "name": "Trailblazer 45L Backpack"
               },
               {
                 "id": "UHJvZHVjdDoyMw==",
@@ -69,12 +69,12 @@ FROM (
 LEFT JOIN (
     SELECT t1."Id", t1."Name", t1."BrandId"
     FROM (
-        SELECT p0."Id", p0."Name", p0."BrandId", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Id") AS row
+        SELECT p0."Id", p0."Name", p0."BrandId", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Name" DESC, p0."Id") AS row
         FROM "Products" AS p0
         WHERE p0."BrandId" = ANY (@__brandIds_0)
     ) AS t1
     WHERE t1.row <= 3
 ) AS t0 ON t."BrandId" = t0."BrandId"
-ORDER BY t."BrandId"
+ORDER BY t."BrandId", t0."BrandId", t0."Name" DESC, t0."Id"
 ```
 

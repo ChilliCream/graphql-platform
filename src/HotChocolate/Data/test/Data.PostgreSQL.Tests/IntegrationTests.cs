@@ -1,4 +1,3 @@
-using GreenDonut.Data;
 using HotChocolate.Data.Data;
 using HotChocolate.Data.Migrations;
 using HotChocolate.Data.Services;
@@ -211,6 +210,34 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         MatchSnapshot(result, interceptor);
     }
 
+    [Fact]
+    public async Task Query_Products_First_2_And_Brand()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                products(first: 2) {
+                    nodes {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                }
+            }
+
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();
@@ -272,18 +299,5 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         }
 
         snapshot.MatchMarkdown();
-    }
-
-    private class TestQueryInterceptor : PagingQueryInterceptor
-    {
-        public List<string> Queries { get; } = new();
-
-        public override void OnBeforeExecute<T>(IQueryable<T> query)
-        {
-            lock(Queries)
-            {
-                Queries.Add(query.ToQueryString());
-            }
-        }
     }
 }
