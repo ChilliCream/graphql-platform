@@ -67,8 +67,8 @@ const ResponsiveMenuWrapper = styled.div`
 const ResponsiveMenu = styled.div`
   position: fixed;
   top: 71px;
-  right: 16px;
-  left: 16px;
+  right: 10px;
+  left: 0px;
   z-index: 3;
   display: flex;
   flex-direction: row;
@@ -89,6 +89,7 @@ const ResponsiveMenu = styled.div`
     right: unset;
     left: unset;
     width: 660px;
+    margin-left: 20px;
   }
 
   ${IsDesktop(`
