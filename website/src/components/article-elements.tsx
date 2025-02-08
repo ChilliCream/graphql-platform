@@ -14,8 +14,6 @@ export const ArticleHeader = styled.header`
   `)}
 
   @media only screen and (min-width: 700px) {
-    padding-left: 20px;
-    margin-right: -20px;
     > .gatsby-image-wrapper {
       border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
@@ -77,6 +75,8 @@ export const ArticleTitle = styled.h1`
 `;
 
 export const ArticleContent = styled.div`
+  overflow: visible !important;
+
   > * {
     font-size: 1.125rem;
     line-height: 1.6em;
@@ -147,9 +147,6 @@ export const ArticleContent = styled.div`
   }
 
   @media only screen and (min-width: 700px) {
-    padding-left: 20px;
-    margin-right: -20px;
-
     > h1,
     > h2,
     > h3,

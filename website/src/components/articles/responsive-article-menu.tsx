@@ -89,7 +89,6 @@ const ResponsiveMenu = styled.div`
     right: unset;
     left: unset;
     width: 660px;
-    margin-left: 20px;
   }
 
   ${IsDesktop(`
