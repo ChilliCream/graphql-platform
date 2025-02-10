@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>GreenDonut.Data.Tests</AssemblyName>
+    <AssemblyName>GreenDonut.Data.EntityFramework.Tests</AssemblyName>
     <RootNamespace>GreenDonut.Data</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />
   </ItemGroup>
-
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
