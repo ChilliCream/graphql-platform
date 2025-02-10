@@ -1,15 +1,15 @@
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public class MergeSelectionSetRewriter(CompositeSchema schema)
+public class MergeSelectionSetRewriter(IReadOnlySchemaDefinition schema)
 {
     private readonly InlineFragmentOperationRewriter _rewriter = new(schema);
 
     public SelectionSetNode RewriteSelectionSets(
         IReadOnlyList<SelectionSetNode> selectionSets,
-        ICompositeNamedType type)
+        IReadOnlyNamedTypeDefinition type)
     {
         var context = new InlineFragmentOperationRewriter.Context(
             type,

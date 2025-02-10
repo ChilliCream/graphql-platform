@@ -1,13 +1,10 @@
-using System.Collections;
-using System.Diagnostics.CodeAnalysis;
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-// TODO: We need to merge selections
-public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
+public sealed class InlineFragmentOperationRewriter(IReadOnlySchemaDefinition schema)
 {
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
     {
@@ -109,7 +106,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         }
         else
         {
-            var field = ((CompositeComplexType)context.Type).Fields[fieldNode.ResponseName()];
+            var field = ((IReadOnlyComplexType)context.Type).Fields[fieldNode.ResponseName()];
             var fieldContext = context.Branch(field.Type.NamedType());
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);
@@ -151,7 +148,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
     {
         var typeCondition = inlineFragment.TypeCondition is null
             ? context.Type
-            : schema.GetType(inlineFragment.TypeCondition.Name.Value);
+            : schema.Types[inlineFragment.TypeCondition.Name.Value];
 
         var inlineFragmentContext = context.Branch(typeCondition);
 
@@ -176,7 +173,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         Context context)
     {
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.GetType(fragmentDefinition.TypeCondition.Name.Value);
+        var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
 
         if (fragmentSpread.Directives.Count == 0
             && typeCondition.IsAssignableFrom(context.Type))
@@ -193,7 +190,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
         Context context)
     {
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.GetType(fragmentDefinition.TypeCondition.Name.Value);
+        var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
         var fragmentContext = context.Branch(typeCondition);
 
         CollectSelections(fragmentDefinition.SelectionSet, fragmentContext);
@@ -276,10 +273,10 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
     }
 
     public readonly ref struct Context(
-        ICompositeNamedType type,
+        IReadOnlyNamedTypeDefinition type,
         Dictionary<string, FragmentDefinitionNode> fragments)
     {
-        public ICompositeNamedType Type { get; } = type;
+        public IReadOnlyNamedTypeDefinition Type { get; } = type;
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
@@ -314,7 +311,7 @@ public sealed class InlineFragmentOperationRewriter(CompositeSchema schema)
             Selections.Add(fragmentSpread);
         }
 
-        public Context Branch(ICompositeNamedType type)
+        public Context Branch(IReadOnlyNamedTypeDefinition type)
             => new(type, fragments);
     }
 
