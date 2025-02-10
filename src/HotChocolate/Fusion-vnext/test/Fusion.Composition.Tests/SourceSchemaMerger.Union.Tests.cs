@@ -100,11 +100,11 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                 }
 
                 union SearchResult
-                    @inaccessible
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
                     @fusion__unionMember(schema: A, member: "User")
-                    @fusion__unionMember(schema: B, member: "User") = User
+                    @fusion__unionMember(schema: B, member: "User")
+                    @fusion__inaccessible = User
                 """
             },
             // The first non-empty description that is found is used as the description for the

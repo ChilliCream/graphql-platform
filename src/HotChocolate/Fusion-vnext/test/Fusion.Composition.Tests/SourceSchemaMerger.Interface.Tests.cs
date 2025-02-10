@@ -114,9 +114,9 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                 ],
                 """
                 interface Product
-                    @inaccessible
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) {
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
                     id: ID!
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
@@ -168,9 +168,9 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                 }
 
                 interface I2
-                    @inaccessible
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) {
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
                     id: ID!
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)

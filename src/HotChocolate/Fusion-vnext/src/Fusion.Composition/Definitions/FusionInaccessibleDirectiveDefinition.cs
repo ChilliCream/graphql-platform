@@ -4,9 +4,9 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Definitions;
 
-internal sealed class InaccessibleDirectiveDefinition : DirectiveDefinition
+internal sealed class FusionInaccessibleDirectiveDefinition : DirectiveDefinition
 {
-    public InaccessibleDirectiveDefinition() : base(Inaccessible)
+    public FusionInaccessibleDirectiveDefinition() : base(FusionInaccessible)
     {
         Locations =
             DirectiveLocation.ArgumentDefinition

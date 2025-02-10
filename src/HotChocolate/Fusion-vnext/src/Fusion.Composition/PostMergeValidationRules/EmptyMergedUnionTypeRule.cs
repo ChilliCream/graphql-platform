@@ -17,12 +17,12 @@ internal sealed class EmptyMergedUnionTypeRule : IEventHandler<UnionTypeEvent>
     {
         var (unionType, schema) = @event;
 
-        if (unionType.HasInaccessibleDirective())
+        if (unionType.HasFusionInaccessibleDirective())
         {
             return;
         }
 
-        var accessibleTypes = unionType.Types.Where(t => !t.HasInaccessibleDirective());
+        var accessibleTypes = unionType.Types.Where(t => !t.HasFusionInaccessibleDirective());
 
         if (!accessibleTypes.Any())
         {

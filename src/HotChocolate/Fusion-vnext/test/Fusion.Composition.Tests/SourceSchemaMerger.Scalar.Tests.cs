@@ -62,9 +62,9 @@ public sealed class SourceSchemaMergerScalarTests : CompositionTestBase
                 ],
                 """
                 scalar Date
-                    @inaccessible
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
+                    @fusion__inaccessible
                 """
             },
             // The final description is determined by the first non-null description found in the

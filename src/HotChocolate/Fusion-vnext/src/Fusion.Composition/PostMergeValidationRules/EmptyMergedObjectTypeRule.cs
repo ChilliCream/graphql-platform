@@ -21,12 +21,12 @@ internal sealed class EmptyMergedObjectTypeRule : IEventHandler<ObjectTypeEvent>
     {
         var (objectType, schema) = @event;
 
-        if (schema.IsRootOperationType(objectType) || objectType.HasInaccessibleDirective())
+        if (schema.IsRootOperationType(objectType) || objectType.HasFusionInaccessibleDirective())
         {
             return;
         }
 
-        var accessibleFields = objectType.Fields.Where(f => !f.HasInaccessibleDirective());
+        var accessibleFields = objectType.Fields.Where(f => !f.HasFusionInaccessibleDirective());
 
         if (!accessibleFields.Any())
         {
