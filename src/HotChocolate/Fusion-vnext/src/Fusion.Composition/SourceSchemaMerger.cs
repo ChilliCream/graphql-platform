@@ -162,12 +162,13 @@ internal sealed class SourceSchemaMerger
         mergedArgument.Type = mergedArgument.Type.ReplaceNameType(
             _ => GetOrCreateType(mergedSchema, mergedArgument.Type));
 
+        AddFusionInputFieldDirectives(mergedArgument, argumentGroup);
+
         if (argumentGroup.Any(i => i.Argument.HasInaccessibleDirective()))
         {
-            mergedArgument.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+            mergedArgument.Directives.Add(
+                new Directive(new FusionInaccessibleDirectiveDefinition()));
         }
-
-        AddFusionInputFieldDirectives(mergedArgument, argumentGroup);
 
         return mergedArgument;
     }
@@ -195,12 +196,12 @@ internal sealed class SourceSchemaMerger
 
         enumType.Description = description;
 
+        AddFusionTypeDirectives(enumType, typeGroup);
+
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
-            enumType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+            enumType.Directives.Add(new Directive(new FusionInaccessibleDirectiveDefinition()));
         }
-
-        AddFusionTypeDirectives(enumType, typeGroup);
 
         // [EnumValueName: [{EnumValue, EnumType, Schema}, ...], ...].
         var enumValueGroupByName = typeGroup
@@ -235,12 +236,12 @@ internal sealed class SourceSchemaMerger
 
         var enumValue = new EnumValue(valueName) { Description = description };
 
+        AddFusionEnumValueDirectives(enumValue, enumValueGroup);
+
         if (enumValueGroup.Any(i => i.EnumValue.HasInaccessibleDirective()))
         {
-            enumValue.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+            enumValue.Directives.Add(new Directive(new FusionInaccessibleDirectiveDefinition()));
         }
-
-        AddFusionEnumValueDirectives(enumValue, enumValueGroup);
 
         return enumValue;
     }
@@ -269,12 +270,13 @@ internal sealed class SourceSchemaMerger
 
         inputObjectType.Description = description;
 
+        AddFusionTypeDirectives(inputObjectType, typeGroup);
+
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
-            inputObjectType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+            inputObjectType.Directives.Add(
+                new Directive(new FusionInaccessibleDirectiveDefinition()));
         }
-
-        AddFusionTypeDirectives(inputObjectType, typeGroup);
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -326,12 +328,12 @@ internal sealed class SourceSchemaMerger
             Type = fieldType.ReplaceNameType(_ => GetOrCreateType(mergedSchema, fieldType))
         };
 
+        AddFusionInputFieldDirectives(inputField, inputFieldGroup);
+
         if (inputFieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
         {
-            inputField.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+            inputField.Directives.Add(new Directive(new FusionInaccessibleDirectiveDefinition()));
         }
-
-        AddFusionInputFieldDirectives(inputField, inputFieldGroup);
 
         return inputField;
     }
@@ -374,13 +376,14 @@ internal sealed class SourceSchemaMerger
                 GetOrCreateType<InterfaceTypeDefinition>(mergedSchema, interfaceName));
         }
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            interfaceType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
-        }
-
         AddFusionTypeDirectives(interfaceType, typeGroup);
         AddFusionImplementsDirectives(interfaceType, [.. interfaceGroupByName.SelectMany(g => g)]);
+
+        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+        {
+            interfaceType.Directives.Add(
+                new Directive(new FusionInaccessibleDirectiveDefinition()));
+        }
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -449,13 +452,13 @@ internal sealed class SourceSchemaMerger
                 GetOrCreateType<InterfaceTypeDefinition>(mergedSchema, interfaceName));
         }
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            objectType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
-        }
-
         AddFusionTypeDirectives(objectType, typeGroup);
         AddFusionImplementsDirectives(objectType, [.. interfaceGroupByName.SelectMany(g => g)]);
+
+        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+        {
+            objectType.Directives.Add(new Directive(new FusionInaccessibleDirectiveDefinition()));
+        }
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -536,13 +539,13 @@ internal sealed class SourceSchemaMerger
             }
         }
 
-        if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
-        {
-            outputField.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
-        }
-
         AddFusionFieldDirectives(outputField, fieldGroup);
         AddFusionRequiresDirectives(outputField, fieldGroup);
+
+        if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
+        {
+            outputField.Directives.Add(new Directive(new FusionInaccessibleDirectiveDefinition()));
+        }
 
         return outputField;
     }
@@ -571,12 +574,12 @@ internal sealed class SourceSchemaMerger
 
         scalarType.Description = description;
 
+        AddFusionTypeDirectives(scalarType, typeGroup);
+
         if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
         {
-            scalarType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
+            scalarType.Directives.Add(new Directive(new FusionInaccessibleDirectiveDefinition()));
         }
-
-        AddFusionTypeDirectives(scalarType, typeGroup);
 
         return scalarType;
     }
@@ -604,11 +607,6 @@ internal sealed class SourceSchemaMerger
 
         unionType.Description = description;
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            unionType.Directives.Add(new Directive(new InaccessibleDirectiveDefinition()));
-        }
-
         AddFusionTypeDirectives(unionType, typeGroup);
 
         // [UnionMemberName: [{MemberType, UnionType, Schema}, ...], ...].
@@ -626,6 +624,11 @@ internal sealed class SourceSchemaMerger
             AddFusionUnionMemberDirectives(unionType, [.. memberGroup]);
 
             unionType.Types.Add(GetOrCreateType<ObjectTypeDefinition>(mergedSchema, memberName));
+        }
+
+        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+        {
+            unionType.Directives.Add(new Directive(new FusionInaccessibleDirectiveDefinition()));
         }
 
         return unionType;

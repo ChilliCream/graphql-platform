@@ -17,12 +17,12 @@ internal sealed class EmptyMergedInterfaceTypeRule : IEventHandler<InterfaceType
     {
         var (interfaceType, schema) = @event;
 
-        if (interfaceType.HasInaccessibleDirective())
+        if (interfaceType.HasFusionInaccessibleDirective())
         {
             return;
         }
 
-        var accessibleFields = interfaceType.Fields.Where(f => !f.HasInaccessibleDirective());
+        var accessibleFields = interfaceType.Fields.Where(f => !f.HasFusionInaccessibleDirective());
 
         if (!accessibleFields.Any())
         {
