@@ -80,8 +80,9 @@ public sealed class SourceSchemaMergerTests
             new() { Name = "ExampleFourFive" }
         ];
 
-        var merger =
-            new SourceSchemaMerger(schemas.ToImmutableSortedSet(new SchemaByNameComparer()));
+        var merger = new SourceSchemaMerger(
+            schemas.ToImmutableSortedSet(
+                new SchemaByNameComparer<MutableSchemaDefinition>()));
 
         // act
         var result = merger.Merge();

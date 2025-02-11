@@ -24,7 +24,7 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
             var referencingFields =
                 schema.Types
                     .OfType<MutableComplexTypeDefinition>()
-                    .SelectMany(t => t.Fields)
+                    .SelectMany(t => t.Fields.AsEnumerable())
                     .Where(f => f.Type == type);
 
             var isReferenced =

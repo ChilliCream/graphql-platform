@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -24,7 +25,7 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
 
         if (field.HasProvidesDirective())
         {
-            var fieldType = field.Type.NamedType();
+            var fieldType = field.Type.AsTypeDefinition();
 
             if (fieldType is not MutableComplexTypeDefinition)
             {

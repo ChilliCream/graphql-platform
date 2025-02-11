@@ -11,6 +11,11 @@ public interface ITypeDefinition
     , ISyntaxNodeProvider
 {
     /// <summary>
+    /// Specifies if this type is an introspection type.
+    /// </summary>
+    bool IsIntrospectionType => Name.StartsWith("__");
+
+    /// <summary>
     /// Determines whether an instance of a specified type <paramref name="type" />
     /// can be assigned to a variable of the current type.
     /// </summary>

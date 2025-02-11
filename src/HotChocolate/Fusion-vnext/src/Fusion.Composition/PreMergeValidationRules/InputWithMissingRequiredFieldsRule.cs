@@ -24,7 +24,7 @@ internal sealed class InputWithMissingRequiredFieldsRule : IEventHandler<InputTy
         var requiredFieldNames =
             inputTypeGroup
                 .Where(i => !i.InputType.HasInaccessibleDirective())
-                .SelectMany(i => i.InputType.Fields)
+                .SelectMany(i => i.InputType.Fields.AsEnumerable())
                 .Where(f => !f.HasInaccessibleDirective() && f.Type is NonNullType)
                 .Select(f => f.Name)
                 .ToImmutableHashSet();

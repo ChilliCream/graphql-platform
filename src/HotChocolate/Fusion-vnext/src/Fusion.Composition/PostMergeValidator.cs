@@ -37,7 +37,7 @@ internal sealed class PostMergeValidator(
                     PublishEvent(new EnumTypeEvent(enumType, mergedSchema), context);
                     break;
 
-                case InputObjectTypeDefinition inputType:
+                case MutableInputObjectTypeDefinition inputType:
                     PublishEvent(new InputTypeEvent(inputType, mergedSchema), context);
 
                     foreach (var field in inputType.Fields)

@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.SchemaVisitors;
@@ -28,7 +29,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schem
                 foreach (var lookupFieldInfo in context.LookupFieldGroup)
                 {
                     lookupFieldGroupByTypeName.Add(
-                        lookupFieldInfo.LookupField.Type.NamedType().Name,
+                        lookupFieldInfo.LookupField.Type.AsTypeDefinition().Name,
                         lookupFieldInfo);
                 }
             }
@@ -63,7 +64,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schem
                     context.Path.Count == 0 ? null : string.Join(".", context.Path),
                     schema));
 
-            switch (field.Type.NamedType())
+            switch (field.Type.AsTypeDefinition())
             {
                 case MutableInterfaceTypeDefinition i:
                     objectTypesToVisit.AddRange(GetImplementingTypes(i));
@@ -79,7 +80,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schem
             }
         }
         // Lookup object.
-        else if (field.Arguments.Count == 0 && field.Type.NamedType() is MutableObjectTypeDefinition o)
+        else if (field.Arguments.Count == 0 && field.Type.AsTypeDefinition() is MutableObjectTypeDefinition o)
         {
             objectTypesToVisit.Add(o);
         }

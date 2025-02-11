@@ -18,6 +18,6 @@ public abstract class CompositionTestBase
                 return schemaDefinition;
             });
 
-        return schemaDefinitions.ToImmutableSortedSet(new SchemaByNameComparer());
+        return schemaDefinitions.ToImmutableSortedSet(new SchemaByNameComparer<MutableSchemaDefinition>());
     }
 }
