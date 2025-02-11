@@ -319,7 +319,12 @@ export const GlobalStyle = createGlobalStyle`
   a.anchor {
     position: absolute;
     left: -1rem;
-    visibility: hidden;
+    width: 1rem;
+    opacity: 0;
+  }
+
+  a.anchor:hover {
+    opacity: 1;
   }
 
   h1:hover a.anchor,
@@ -328,7 +333,7 @@ export const GlobalStyle = createGlobalStyle`
   h4:hover a.anchor,
   h5:hover a.anchor,
   h6:hover a.anchor {
-    visibility: visible;
+    opacity: 1;
   }
 
   ::-webkit-scrollbar

@@ -75,7 +75,7 @@ export const ArticleTitle = styled.h1`
 `;
 
 export const ArticleContent = styled.div`
-  overflow: visible !important;
+  overflow: visible;
 
   > * {
     font-size: 1.125rem;
@@ -156,6 +156,10 @@ export const ArticleContent = styled.div`
       line-height: 1.12em;
       margin-right: 0;
       margin-left: 0;
+      a.anchor {
+        left: -1.5rem;
+        width: 1.5rem;
+      }
     }
 
     > blockquote {
