@@ -181,9 +181,9 @@ internal sealed class OpenApiMutableSchemaBuilder
             unionName: GraphQLNamingHelper.CreateOperationResultName(operationName));
 
         var successTypeName = JsonNamingPolicy.CamelCase.ConvertName(
-            TypeExtensions.NamedType(successType).Name);
+            successType.AsTypeDefinition().Name);
 
-        var field = new OutputFieldDefinition(successTypeName, successType);
+        var field = new MutableOutputFieldDefinition(successTypeName, successType);
         field.SetUseParentResult(true);
         payloadType.Fields.Add(field);
 
@@ -273,7 +273,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         // Other types need to be wrapped in an object type.
         objectType = new MutableObjectTypeDefinition(objectTypeName);
 
-        var field = new OutputFieldDefinition(WellKnownFieldNames.Value, type);
+        var field = new MutableOutputFieldDefinition(WellKnownFieldNames.Value, type);
         field.SetUseParentResult(true);
         objectType.Fields.Add(field);
 
@@ -339,7 +339,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
             var inputFieldName = _mutationConventionsEnabled
                 ? inputArgumentName
-                : TypeExtensions.NamedType(inputType).Name.FirstCharacterToLower();
+                : inputType.AsTypeDefinition().Name.FirstCharacterToLower();
 
             var inputField = new MutableInputFieldDefinition(inputFieldName)
             {
@@ -357,7 +357,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         => field.SetResolver(OpenApiResolverFactory.CreateResolver(_httpClientName, operationWrapper));
 
     private static void AddTagDirectives(
-        IDirectivesProvider outputField,
+        IMutableFieldDefinition outputField,
         IEnumerable<OpenApiTag> tags)
     {
         foreach (var tag in tags)
@@ -366,7 +366,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
             outputField.Directives.Add(new Directive(
                 new MutableDirectiveDefinition(WellKnownDirectives.Tag),
-                [new ArgumentAssignment(WellKnownDirectives.Name, tagName)]));
+                new ArgumentAssignment(WellKnownDirectives.Name, tagName)));
         }
     }
 
@@ -466,7 +466,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                 break;
 
             case JsonSchemaTypes.Object when isInput:
-                var inputObjectType = new InputObjectTypeDefinition(typeName)
+                var inputObjectType = new MutableInputObjectTypeDefinition(typeName)
                 {
                     Description = openApiSchema.Description,
                 };

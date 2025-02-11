@@ -28,6 +28,11 @@ public interface IMutableFieldDefinition : IFieldDefinition
     new IType Type { get; set; }
 
     /// <summary>
+    /// Gets the directives that are annotated to this field as mutable collection.
+    /// </summary>
+    new DirectiveCollection Directives { get; }
+
+    /// <summary>
     /// Defines if this <see cref="ITypeSystemMember"/> is deprecated.
     /// </summary>
     new bool IsDeprecated { get; set; }

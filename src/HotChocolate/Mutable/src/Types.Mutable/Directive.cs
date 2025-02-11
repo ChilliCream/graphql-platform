@@ -4,15 +4,9 @@ using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types.Mutable;
 
-public sealed class Directive : ITypeSystemMember, IDirective
+public sealed class Directive : IDirective
 {
-    public Directive(MutableDirectiveDefinition type, params ArgumentAssignment[] arguments)
-    {
-        Definition = type;
-        Arguments = new ArgumentAssignmentCollection(ImmutableCollectionsMarshal.AsImmutableArray(arguments));
-    }
-
-    public Directive(MutableDirectiveDefinition type, ImmutableArray<ArgumentAssignment> arguments)
+    public Directive(MutableDirectiveDefinition type, params ImmutableArray<ArgumentAssignment> arguments)
     {
         Definition = type;
         Arguments = new ArgumentAssignmentCollection(arguments);

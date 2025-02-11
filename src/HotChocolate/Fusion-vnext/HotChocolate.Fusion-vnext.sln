@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Utiliti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Utilities.Tests", "test\Fusion.Utilities.Tests\HotChocolate.Fusion.Utilities.Tests.csproj", "{A240F32E-0588-4DD5-B451-2DBB7D47B32D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Execution.Types", "src\Fusion.Execution.Types\HotChocolate.Fusion.Execution.Types.csproj", "{2D33DA8F-C258-4B82-B9AF-C3F65AA2CA79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{A240F32E-0588-4DD5-B451-2DBB7D47B32D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A240F32E-0588-4DD5-B451-2DBB7D47B32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A240F32E-0588-4DD5-B451-2DBB7D47B32D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D33DA8F-C258-4B82-B9AF-C3F65AA2CA79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D33DA8F-C258-4B82-B9AF-C3F65AA2CA79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D33DA8F-C258-4B82-B9AF-C3F65AA2CA79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D33DA8F-C258-4B82-B9AF-C3F65AA2CA79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1566D098-4146-4ECF-9F45-EA43D88EEAA9} = {1718E238-A6E5-42AE-A2D6-A0580457D486}
@@ -74,5 +80,6 @@ Global
 		{D25AC455-608D-4880-842D-B77E508BEC5D} = {F7DA6A87-1AFE-479A-B138-96C32439ABF5}
 		{6AD54577-BC72-4CE6-A77C-FE0D9C89BEA9} = {1718E238-A6E5-42AE-A2D6-A0580457D486}
 		{A240F32E-0588-4DD5-B451-2DBB7D47B32D} = {F7DA6A87-1AFE-479A-B138-96C32439ABF5}
+		{2D33DA8F-C258-4B82-B9AF-C3F65AA2CA79} = {1718E238-A6E5-42AE-A2D6-A0580457D486}
 	EndGlobalSection
 EndGlobal
