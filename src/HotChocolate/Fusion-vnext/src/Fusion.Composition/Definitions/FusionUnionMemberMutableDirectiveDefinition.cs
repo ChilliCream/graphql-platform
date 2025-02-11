@@ -8,18 +8,18 @@ internal sealed class FusionUnionMemberMutableDirectiveDefinition : MutableDirec
 {
     public FusionUnionMemberMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
-        ScalarTypeDefinition stringType)
+        MutableScalarTypeDefinition stringType)
         : base(FusionUnionMember)
     {
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Schema,
-                new NonNullTypeDefinition(schemaMutableEnumType)));
+                new NonNullType(schemaMutableEnumType)));
 
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Member,
-                new NonNullTypeDefinition(stringType)));
+                new NonNullType(stringType)));
 
         IsRepeatable = true;
         Locations = DirectiveLocation.Union;

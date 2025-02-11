@@ -11,7 +11,7 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion;
 
 internal sealed class PreMergeValidator(
-    ImmutableSortedSet<SchemaDefinition> schemas,
+    ImmutableSortedSet<MutableSchemaDefinition> schemas,
     ImmutableArray<object> rules,
     ICompositionLog log)
 {

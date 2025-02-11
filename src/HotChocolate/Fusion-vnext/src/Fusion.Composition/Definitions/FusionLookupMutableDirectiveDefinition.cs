@@ -9,32 +9,32 @@ internal sealed class FusionLookupMutableDirectiveDefinition : MutableDirectiveD
 {
     public FusionLookupMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
-        ScalarTypeDefinition fieldSelectionSetType,
-        ScalarTypeDefinition fieldDefinitionType,
-        ScalarTypeDefinition fieldSelectionMapType,
-        ScalarTypeDefinition fieldSelectionPathType)
+        MutableScalarTypeDefinition fieldSelectionSetType,
+        MutableScalarTypeDefinition fieldDefinitionType,
+        MutableScalarTypeDefinition fieldSelectionMapType,
+        MutableScalarTypeDefinition fieldSelectionPathType)
         : base(FusionLookup)
     {
         Arguments.Add(
             new MutableInputFieldDefinition(
                 ArgumentNames.Schema,
-                new NonNullTypeDefinition(schemaMutableEnumType)));
+                new NonNullType(schemaMutableEnumType)));
 
         Arguments.Add(
             new MutableInputFieldDefinition(
                 ArgumentNames.Key,
-                new NonNullTypeDefinition(fieldSelectionSetType)));
+                new NonNullType(fieldSelectionSetType)));
 
         Arguments.Add(
             new MutableInputFieldDefinition(
                 ArgumentNames.Field,
-                new NonNullTypeDefinition(fieldDefinitionType)));
+                new NonNullType(fieldDefinitionType)));
 
         Arguments.Add(
             new MutableInputFieldDefinition(
                 ArgumentNames.Map,
-                new NonNullTypeDefinition(
-                    new ListTypeDefinition(new NonNullTypeDefinition(fieldSelectionMapType)))));
+                new NonNullType(
+                    new ListType(new NonNullType(fieldSelectionMapType)))));
 
         Arguments.Add(new MutableInputFieldDefinition(ArgumentNames.Path, fieldSelectionPathType));
 

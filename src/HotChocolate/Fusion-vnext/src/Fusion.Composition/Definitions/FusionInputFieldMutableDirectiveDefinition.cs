@@ -8,13 +8,13 @@ internal sealed class FusionInputFieldMutableDirectiveDefinition : MutableDirect
 {
     public FusionInputFieldMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
-        ScalarTypeDefinition stringType)
+        MutableScalarTypeDefinition stringType)
         : base(FusionInputField)
     {
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Schema,
-                new NonNullTypeDefinition(schemaMutableEnumType)));
+                new NonNullType(schemaMutableEnumType)));
 
         Arguments.Add(new MutableInputFieldDefinition(WellKnownArgumentNames.SourceType, stringType));
 

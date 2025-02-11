@@ -5,10 +5,10 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.SchemaVisitors;
 
-internal sealed class DiscoverLookupsSchemaVisitor(SchemaDefinition schema)
+internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schema)
     : SchemaVisitor<DiscoverLookupsContext>
 {
-    private readonly MultiValueDictionary<string, ObjectTypeDefinition>
+    private readonly MultiValueDictionary<string, MutableObjectTypeDefinition>
         _implementingTypesByInterfaceName = [];
 
     public MultiValueDictionary<string, LookupFieldInfo> Discover()
@@ -38,13 +38,13 @@ internal sealed class DiscoverLookupsSchemaVisitor(SchemaDefinition schema)
     }
 
     // Overridden to avoid unnecessarily visiting directives.
-    public override void VisitObjectType(ObjectTypeDefinition type, DiscoverLookupsContext context)
+    public override void VisitObjectType(MutableObjectTypeDefinition type, DiscoverLookupsContext context)
     {
         VisitOutputFields(type.Fields, context);
     }
 
     public override void VisitOutputField(
-        OutputFieldDefinition field,
+        MutableOutputFieldDefinition field,
         DiscoverLookupsContext context)
     {
         if (field.Type.IsListType())
@@ -52,7 +52,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(SchemaDefinition schema)
             return;
         }
 
-        List<ObjectTypeDefinition> objectTypesToVisit = [];
+        List<MutableObjectTypeDefinition> objectTypesToVisit = [];
 
         // Lookup field.
         if (field.HasLookupDirective())
@@ -65,21 +65,21 @@ internal sealed class DiscoverLookupsSchemaVisitor(SchemaDefinition schema)
 
             switch (field.Type.NamedType())
             {
-                case InterfaceTypeDefinition i:
+                case MutableInterfaceTypeDefinition i:
                     objectTypesToVisit.AddRange(GetImplementingTypes(i));
                     break;
 
-                case ObjectTypeDefinition o:
+                case MutableObjectTypeDefinition o:
                     objectTypesToVisit.Add(o);
                     break;
 
-                case UnionTypeDefinition u:
+                case MutableUnionTypeDefinition u:
                     objectTypesToVisit.AddRange(u.Types);
                     break;
             }
         }
         // Lookup object.
-        else if (field.Arguments.Count == 0 && field.Type.NamedType() is ObjectTypeDefinition o)
+        else if (field.Arguments.Count == 0 && field.Type.NamedType() is MutableObjectTypeDefinition o)
         {
             objectTypesToVisit.Add(o);
         }
@@ -106,7 +106,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(SchemaDefinition schema)
     {
         foreach (var type in schema.Types)
         {
-            if (type is ObjectTypeDefinition objectType)
+            if (type is MutableObjectTypeDefinition objectType)
             {
                 foreach (var implementedInterface in objectType.Implements)
                 {
@@ -116,7 +116,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(SchemaDefinition schema)
         }
     }
 
-    private List<ObjectTypeDefinition> GetImplementingTypes(InterfaceTypeDefinition interfaceType)
+    private List<MutableObjectTypeDefinition> GetImplementingTypes(MutableInterfaceTypeDefinition interfaceType)
     {
         if (_implementingTypesByInterfaceName.TryGetValue(
             interfaceType.Name,
@@ -133,7 +133,7 @@ internal class DiscoverLookupsContext
 {
     public List<string> Path { get; } = [];
 
-    public HashSet<ObjectTypeDefinition> VisitedObjectTypes { get; } = [];
+    public HashSet<MutableObjectTypeDefinition> VisitedObjectTypes { get; } = [];
 
     public List<LookupFieldInfo> LookupFieldGroup { get; } = [];
 }

@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-public interface IComplexTypeDefinition : INamedTypeDefinition
+public interface IComplexTypeDefinition : ITypeDefinition
 {
     IReadOnlyInterfaceTypeDefinitionCollection Implements { get; }
 

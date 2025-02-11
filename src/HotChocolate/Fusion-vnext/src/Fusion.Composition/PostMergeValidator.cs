@@ -9,9 +9,9 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion;
 
 internal sealed class PostMergeValidator(
-    SchemaDefinition mergedSchema,
+    MutableSchemaDefinition mergedSchema,
     ImmutableArray<object> rules,
-    ImmutableSortedSet<SchemaDefinition> sourceSchemas,
+    ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas,
     ICompositionLog log)
 {
     public CompositionResult Validate()
@@ -47,15 +47,15 @@ internal sealed class PostMergeValidator(
 
                     break;
 
-                case InterfaceTypeDefinition interfaceType:
+                case MutableInterfaceTypeDefinition interfaceType:
                     PublishEvent(new InterfaceTypeEvent(interfaceType, mergedSchema), context);
                     break;
 
-                case ObjectTypeDefinition objectType:
+                case MutableObjectTypeDefinition objectType:
                     PublishEvent(new ObjectTypeEvent(objectType, mergedSchema), context);
                     break;
 
-                case UnionTypeDefinition unionType:
+                case MutableUnionTypeDefinition unionType:
                     PublishEvent(new UnionTypeEvent(unionType, mergedSchema), context);
                     break;
             }

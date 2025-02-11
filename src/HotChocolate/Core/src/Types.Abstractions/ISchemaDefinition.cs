@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate;
 
-public interface ISchemaDefinition
+public interface ISchemaDefinition : INameProvider, IDescriptionProvider, ISyntaxNodeProvider
 {
     public IObjectTypeDefinition? QueryType { get; }
 

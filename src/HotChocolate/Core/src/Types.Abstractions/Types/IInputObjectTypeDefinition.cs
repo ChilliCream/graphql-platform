@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-public interface IInputObjectTypeDefinition : INamedTypeDefinition
+public interface IInputObjectTypeDefinition : ITypeDefinition
 {
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Fields { get; }
 }

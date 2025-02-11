@@ -5,4 +5,4 @@ public interface IEnumValue
     , IDirectivesProvider
     , IDescriptionProvider
     , IDeprecationProvider
-    , ISyntaxNodeProvider
+    , ISyntaxNodeProvider;

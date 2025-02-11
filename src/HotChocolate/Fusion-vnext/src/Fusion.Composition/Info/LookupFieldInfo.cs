@@ -3,6 +3,6 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.Info;
 
 internal record LookupFieldInfo(
-    OutputFieldDefinition LookupField,
+    MutableOutputFieldDefinition LookupField,
     string? Path,
-    SchemaDefinition Schema);
+    MutableSchemaDefinition Schema);

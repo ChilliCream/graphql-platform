@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Extensions;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -106,7 +107,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         }
         else
         {
-            var field = ((IComplexType)context.Type).Fields[fieldNode.ResponseName()];
+            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.ResponseName()];
             var fieldContext = context.Branch(field.Type.NamedType());
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);
@@ -273,10 +274,10 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
     }
 
     public readonly ref struct Context(
-        IReadOnlyNamedTypeDefinition type,
+        ITypeDefinition type,
         Dictionary<string, FragmentDefinitionNode> fragments)
     {
-        public IReadOnlyNamedTypeDefinition Type { get; } = type;
+        public ITypeDefinition Type { get; } = type;
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
@@ -311,7 +312,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
             Selections.Add(fragmentSpread);
         }
 
-        public Context Branch(IReadOnlyNamedTypeDefinition type)
+        public Context Branch(ITypeDefinition type)
             => new(type, fragments);
     }
 

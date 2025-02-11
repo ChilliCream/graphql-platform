@@ -13,7 +13,7 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaValidator(
-    ImmutableSortedSet<SchemaDefinition> schemas,
+    ImmutableSortedSet<MutableSchemaDefinition> schemas,
     ImmutableArray<object> rules,
     ICompositionLog log)
 {
@@ -97,7 +97,7 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishEntityEvents(
         MutableComplexTypeDefinition entityType,
-        SchemaDefinition schema,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
         var keyDirectives = entityType.Directives.Where(d => d.Name == DirectiveNames.Key);
@@ -142,7 +142,7 @@ internal sealed class SourceSchemaValidator(
         Directive keyDirective,
         List<string> fieldNamePath,
         MutableComplexTypeDefinition? parentType,
-        SchemaDefinition schema,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
         MutableComplexTypeDefinition? nextParentType = null;
@@ -213,9 +213,9 @@ internal sealed class SourceSchemaValidator(
     }
 
     private void PublishProvidesEvents(
-        OutputFieldDefinition field,
+        MutableOutputFieldDefinition field,
         MutableComplexTypeDefinition type,
-        SchemaDefinition schema,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
         var providesDirective = field.Directives.First(d => d.Name == DirectiveNames.Provides);
@@ -254,12 +254,12 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishProvidesFieldEvents(
         SelectionSetNode selectionSet,
-        OutputFieldDefinition field,
+        MutableOutputFieldDefinition field,
         MutableComplexTypeDefinition type,
         Directive providesDirective,
         List<string> fieldNamePath,
         ITypeDefinition? parentType,
-        SchemaDefinition schema,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
         MutableComplexTypeDefinition? nextParentType = null;
@@ -327,9 +327,9 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishRequireEvents(
         MutableInputFieldDefinition argument,
-        OutputFieldDefinition field,
+        MutableOutputFieldDefinition field,
         MutableComplexTypeDefinition type,
-        SchemaDefinition schema,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
         var requireDirective = argument.Directives.First(d => d.Name == DirectiveNames.Require);
@@ -374,11 +374,11 @@ internal sealed class SourceSchemaValidator(
     private void PublishRequireFieldEvents(
         SelectionSetNode selectionSet,
         MutableInputFieldDefinition argument,
-        OutputFieldDefinition field,
+        MutableOutputFieldDefinition field,
         MutableComplexTypeDefinition type,
         Directive requireDirective,
         List<string> fieldNamePath,
-        SchemaDefinition schema,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
         foreach (var selection in selectionSet.Selections)

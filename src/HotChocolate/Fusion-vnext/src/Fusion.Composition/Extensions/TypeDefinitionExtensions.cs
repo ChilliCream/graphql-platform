@@ -8,8 +8,8 @@ internal static class TypeDefinitionExtensions
     {
         return type switch
         {
-            ListTypeDefinition listType => listType.ElementType.NullableType(),
-            NonNullTypeDefinition nonNullType => nonNullType.NullableType,
+            ListType listType => listType.ElementType.NullableType(),
+            NonNullType nonNullType => nonNullType.NullableType,
             _ => type
         };
     }

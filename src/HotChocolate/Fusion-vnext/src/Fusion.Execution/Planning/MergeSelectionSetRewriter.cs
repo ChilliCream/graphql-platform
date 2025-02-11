@@ -9,7 +9,7 @@ public class MergeSelectionSetRewriter(ISchemaDefinition schema)
 
     public SelectionSetNode RewriteSelectionSets(
         IReadOnlyList<SelectionSetNode> selectionSets,
-        IReadOnlyNamedTypeDefinition type)
+        ITypeDefinition type)
     {
         var context = new InlineFragmentOperationRewriter.Context(
             type,

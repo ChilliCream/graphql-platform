@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class ObjectTypeDefinitionExtensions
 {
-    public static void ApplyShareableDirective(this ObjectTypeDefinition type)
+    public static void ApplyShareableDirective(this MutableObjectTypeDefinition type)
     {
         type.Directives.Add(new Directive(new MutableDirectiveDefinition(DirectiveNames.Shareable)));
     }

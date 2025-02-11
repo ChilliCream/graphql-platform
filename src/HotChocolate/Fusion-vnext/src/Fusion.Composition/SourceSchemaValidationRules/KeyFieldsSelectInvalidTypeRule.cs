@@ -23,7 +23,7 @@ internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<KeyFieldEve
 
         var fieldType = field.Type.NullableType();
 
-        if (fieldType is InterfaceTypeDefinition or ListTypeDefinition or UnionTypeDefinition)
+        if (fieldType is MutableInterfaceTypeDefinition or ListType or MutableUnionTypeDefinition)
         {
             context.Log.Write(
                 KeyFieldsSelectInvalidType(

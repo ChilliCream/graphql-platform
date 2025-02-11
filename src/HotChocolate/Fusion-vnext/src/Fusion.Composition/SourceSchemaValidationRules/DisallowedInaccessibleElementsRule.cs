@@ -26,7 +26,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         var (type, schema) = @event;
 
         // Built-in scalar types must be accessible.
-        if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
+        if (type is MutableScalarTypeDefinition { IsSpecScalar: true } scalar
             && scalar.HasInaccessibleDirective())
         {
             context.Log.Write(DisallowedInaccessibleBuiltInScalar(scalar, schema));

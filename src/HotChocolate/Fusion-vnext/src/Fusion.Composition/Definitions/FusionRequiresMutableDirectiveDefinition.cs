@@ -9,19 +9,19 @@ internal sealed class FusionRequiresMutableDirectiveDefinition : MutableDirectiv
 {
     public FusionRequiresMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
-        ScalarTypeDefinition fieldDefinitionType,
-        ScalarTypeDefinition fieldSelectionMapType)
+        MutableScalarTypeDefinition fieldDefinitionType,
+        MutableScalarTypeDefinition fieldSelectionMapType)
         : base(FusionRequires)
     {
-        Arguments.Add(new MutableInputFieldDefinition(Schema, new NonNullTypeDefinition(schemaMutableEnumType)));
+        Arguments.Add(new MutableInputFieldDefinition(Schema, new NonNullType(schemaMutableEnumType)));
 
         Arguments.Add(
-            new MutableInputFieldDefinition(Field, new NonNullTypeDefinition(fieldDefinitionType)));
+            new MutableInputFieldDefinition(Field, new NonNullType(fieldDefinitionType)));
 
         Arguments.Add(
             new MutableInputFieldDefinition(
                 Map,
-                new NonNullTypeDefinition(new ListTypeDefinition(fieldSelectionMapType))));
+                new NonNullType(new ListType(fieldSelectionMapType))));
 
         IsRepeatable = true;
         Locations = DirectiveLocation.FieldDefinition;

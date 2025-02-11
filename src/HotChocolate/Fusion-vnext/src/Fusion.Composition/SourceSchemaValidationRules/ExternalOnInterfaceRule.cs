@@ -23,7 +23,7 @@ internal sealed class ExternalOnInterfaceRule : IEventHandler<OutputFieldEvent>
     {
         var (field, type, schema) = @event;
 
-        if (type is InterfaceTypeDefinition && field.HasExternalDirective())
+        if (type is MutableInterfaceTypeDefinition && field.HasExternalDirective())
         {
             context.Log.Write(ExternalOnInterface(field, type, schema));
         }

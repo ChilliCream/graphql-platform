@@ -9,7 +9,7 @@ internal sealed class FusionTypeMutableDirectiveDefinition : MutableDirectiveDef
 {
     public FusionTypeMutableDirectiveDefinition(MutableEnumTypeDefinition schemaMutableEnumType) : base(FusionType)
     {
-        Arguments.Add(new MutableInputFieldDefinition(Schema, new NonNullTypeDefinition(schemaMutableEnumType)));
+        Arguments.Add(new MutableInputFieldDefinition(Schema, new NonNullType(schemaMutableEnumType)));
 
         IsRepeatable = true;
 

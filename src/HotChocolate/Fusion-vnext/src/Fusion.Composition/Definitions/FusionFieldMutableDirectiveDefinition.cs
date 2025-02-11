@@ -9,14 +9,14 @@ internal sealed class FusionFieldMutableDirectiveDefinition : MutableDirectiveDe
 {
     public FusionFieldMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
-        ScalarTypeDefinition stringType,
-        ScalarTypeDefinition fieldSelectionSetType,
-        ScalarTypeDefinition booleanType) : base(FusionField)
+        MutableScalarTypeDefinition stringType,
+        MutableScalarTypeDefinition fieldSelectionSetType,
+        MutableScalarTypeDefinition booleanType) : base(FusionField)
     {
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Schema,
-                new NonNullTypeDefinition(schemaMutableEnumType)));
+                new NonNullType(schemaMutableEnumType)));
 
         Arguments.Add(new MutableInputFieldDefinition(WellKnownArgumentNames.SourceType, stringType));
 
@@ -26,7 +26,7 @@ internal sealed class FusionFieldMutableDirectiveDefinition : MutableDirectiveDe
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.External,
-                new NonNullTypeDefinition(booleanType))
+                new NonNullType(booleanType))
                     { DefaultValue = new BooleanValueNode(false) });
 
         IsRepeatable = true;

@@ -120,20 +120,20 @@ public static class SchemaDebugFormatter
     private static NameNode Format(Types.DirectiveLocation location)
         => new NameNode(location.Format().ToString());
 
-    public static ITypeNode FormatTypeRef(ITypeDefinition type)
+    public static ITypeNode FormatTypeRef(IType type)
     {
         switch (type.Kind)
         {
             case TypeKind.List:
-                return new ListTypeNode(FormatTypeRef(((IListTypeDefinition)type).ElementType));
+                return new ListTypeNode(FormatTypeRef(((IListType)type).ElementType));
 
             case TypeKind.NonNull:
                 return new NonNullTypeNode(
                     (INullableTypeNode)FormatTypeRef(
-                        ((INonNullTypeDefinition)type).NullableType));
+                        ((INonNullType)type).NullableType));
 
             default:
-                return new NamedTypeNode(((INamedTypeDefinition)type).Name);
+                return new NamedTypeNode(((ITypeDefinition)type).Name);
         }
     }
 }

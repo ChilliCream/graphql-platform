@@ -14,5 +14,5 @@ public interface IFieldDefinition
     /// Gets or sets the type of the field.
     /// </summary>
     /// <value></value>
-    ITypeDefinition Type { get; }
+    IType Type { get; }
 }

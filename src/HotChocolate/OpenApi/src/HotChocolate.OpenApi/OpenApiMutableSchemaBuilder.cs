@@ -10,6 +10,8 @@ using HotChocolate.Types.Mutable;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Directive = HotChocolate.Types.Mutable.Directive;
+using ListType = HotChocolate.Types.Mutable.ListType;
+using NonNullType = HotChocolate.Types.Mutable.NonNullType;
 using OperationType = Microsoft.OpenApi.Models.OperationType;
 using TypeExtensions = HotChocolate.Types.Mutable.TypeExtensions;
 
@@ -20,9 +22,9 @@ internal sealed class OpenApiMutableSchemaBuilder
     private const string DateFormat = "yyyy-MM-dd";
     private const string DateTimeFormat = @"yyyy-MM-ddTHH\:mm\:ss.fffzzz";
 
-    private static readonly ScalarTypeDefinition _jsonType = new(ScalarNames.JSON);
+    private static readonly MutableScalarTypeDefinition _jsonType = new(ScalarNames.JSON);
 
-    private readonly SchemaDefinition _skimmedSchema = new();
+    private readonly MutableSchemaDefinition _skimmedSchema = new();
     private readonly Dictionary<string, OpenApiOperationWrapper> _wrappedOperations = [];
 
     private readonly OpenApiDocument _openApiDocument;
@@ -52,7 +54,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         return this;
     }
 
-    public SchemaDefinition Build()
+    public MutableSchemaDefinition Build()
     {
         WrapOperations();
 
@@ -75,9 +77,9 @@ internal sealed class OpenApiMutableSchemaBuilder
         }
     }
 
-    private ObjectTypeDefinition? CreateQueryType()
+    private MutableObjectTypeDefinition? CreateQueryType()
     {
-        ObjectTypeDefinition? queryType = null;
+        MutableObjectTypeDefinition? queryType = null;
 
         foreach (var (operationId, operationWrapper) in _wrappedOperations)
         {
@@ -89,9 +91,9 @@ internal sealed class OpenApiMutableSchemaBuilder
             var operation = operationWrapper.Operation;
             var operationName = GraphQLNamingHelper.CreateName(operationId);
 
-            queryType ??= new ObjectTypeDefinition(OperationTypeNames.Query);
+            queryType ??= new MutableObjectTypeDefinition(OperationTypeNames.Query);
 
-            var queryField = new OutputFieldDefinition(operationName.FirstCharacterToLower())
+            var queryField = new MutableOutputFieldDefinition(operationName.FirstCharacterToLower())
             {
                 Description = operation.Description ?? operation.Summary,
                 IsDeprecated = operation.Deprecated,
@@ -108,7 +110,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         return queryType;
     }
 
-    private ITypeDefinition CreateGraphQLTypeFromOpenApiOperation(
+    private IType CreateGraphQLTypeFromOpenApiOperation(
         OpenApiOperationWrapper operationWrapper,
         string? operationName = null)
     {
@@ -121,9 +123,9 @@ internal sealed class OpenApiMutableSchemaBuilder
             unionName: GraphQLNamingHelper.CreateOperationResultName(operationName));
     }
 
-    private ObjectTypeDefinition? CreateMutationType()
+    private MutableObjectTypeDefinition? CreateMutationType()
     {
-        ObjectTypeDefinition? mutationType = null;
+        MutableObjectTypeDefinition? mutationType = null;
 
         foreach (var (operationId, operationWrapper) in _wrappedOperations)
         {
@@ -135,9 +137,9 @@ internal sealed class OpenApiMutableSchemaBuilder
             var operation = operationWrapper.Operation;
             var operationName = GraphQLNamingHelper.CreateName(operationId);
 
-            mutationType ??= new ObjectTypeDefinition(OperationTypeNames.Mutation);
+            mutationType ??= new MutableObjectTypeDefinition(OperationTypeNames.Mutation);
 
-            var mutationField = new OutputFieldDefinition(operationName.FirstCharacterToLower())
+            var mutationField = new MutableOutputFieldDefinition(operationName.FirstCharacterToLower())
             {
                 Description = operation.Description ?? operation.Summary,
                 IsDeprecated = operation.Deprecated,
@@ -154,7 +156,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         return mutationType;
     }
 
-    private ITypeDefinition CreateMutationFieldType(
+    private IType CreateMutationFieldType(
         OpenApiOperationWrapper operationWrapper,
         string operationName)
     {
@@ -167,11 +169,11 @@ internal sealed class OpenApiMutableSchemaBuilder
                 unionName: GraphQLNamingHelper.CreateOperationResultName(operationName));
     }
 
-    private NonNullTypeDefinition CreatePayloadType(
+    private NonNullType CreatePayloadType(
         string operationName,
-        Dictionary<string, ITypeDefinition> typeMap)
+        Dictionary<string, IType> typeMap)
     {
-        var payloadType = new ObjectTypeDefinition(
+        var payloadType = new MutableObjectTypeDefinition(
             GraphQLNamingHelper.CreatePayloadTypeName(operationName, _mutationConventionOptions));
 
         var successType = GetSingleType(
@@ -200,10 +202,10 @@ internal sealed class OpenApiMutableSchemaBuilder
                 MutationConventionOptionDefaults.PayloadErrorsFieldName;
 
             var payloadErrorsField =
-                new OutputFieldDefinition(payloadErrorsFieldName)
+                new MutableOutputFieldDefinition(payloadErrorsFieldName)
                 {
-                    Type = new ListTypeDefinition(
-                        new NonNullTypeDefinition(
+                    Type = new ListType(
+                        new NonNullType(
                             GetUnionType(nonSuccessTypes, name: errorTypeName))),
                 };
             payloadErrorsField.Features.Set(new OpenApiFieldMetadata { IsErrorsField = true });
@@ -213,32 +215,32 @@ internal sealed class OpenApiMutableSchemaBuilder
 
         _skimmedSchema.Types.Add(payloadType);
 
-        return new NonNullTypeDefinition(payloadType);
+        return new NonNullType(payloadType);
     }
 
-    private ITypeDefinition GetSingleType(
-        Dictionary<string, ITypeDefinition> typeMap,
+    private IType GetSingleType(
+        Dictionary<string, IType> typeMap,
         string unionName)
     {
         return typeMap.Count is 1
             ? typeMap.First().Value
-            : new NonNullTypeDefinition(GetUnionType(typeMap, unionName));
+            : new NonNullType(GetUnionType(typeMap, unionName));
     }
 
-    private UnionTypeDefinition GetUnionType(
-        Dictionary<string, ITypeDefinition> typeMap,
+    private MutableUnionTypeDefinition GetUnionType(
+        Dictionary<string, IType> typeMap,
         string name)
     {
         // Return existing union type when available.
         if (_skimmedSchema.Types.TryGetType(name, out var existingType) &&
-            existingType is UnionTypeDefinition existingUnionType)
+            existingType is MutableUnionTypeDefinition existingUnionType)
         {
             return existingUnionType;
         }
 
         var memberTypesMap = typeMap.ToDictionary(kv => kv.Key, kv => CreateUnionMember(kv.Value));
 
-        var unionType = new UnionTypeDefinition(name);
+        var unionType = new MutableUnionTypeDefinition(name);
 
         foreach (var objectType in memberTypesMap.Values)
         {
@@ -252,9 +254,9 @@ internal sealed class OpenApiMutableSchemaBuilder
         return unionType;
     }
 
-    private ObjectTypeDefinition CreateUnionMember(ITypeDefinition type)
+    private MutableObjectTypeDefinition CreateUnionMember(IType type)
     {
-        if (TypeExtensions.InnerType(type) is ObjectTypeDefinition objectType)
+        if (TypeExtensions.InnerType(type) is MutableObjectTypeDefinition objectType)
         {
             return objectType;
         }
@@ -263,13 +265,13 @@ internal sealed class OpenApiMutableSchemaBuilder
 
         // Return existing object type when available.
         if (_skimmedSchema.Types.TryGetType(objectTypeName, out var existingType) &&
-            existingType is ObjectTypeDefinition existingObjectType)
+            existingType is MutableObjectTypeDefinition existingObjectType)
         {
             return existingObjectType;
         }
 
         // Other types need to be wrapped in an object type.
-        objectType = new ObjectTypeDefinition(objectTypeName);
+        objectType = new MutableObjectTypeDefinition(objectTypeName);
 
         var field = new OutputFieldDefinition(WellKnownFieldNames.Value, type);
         field.SetUseParentResult(true);
@@ -281,7 +283,7 @@ internal sealed class OpenApiMutableSchemaBuilder
     }
 
     private void AddArguments(
-        OutputFieldDefinition outputField,
+        MutableOutputFieldDefinition outputField,
         OpenApiOperationWrapper operationWrapper)
     {
         var operation = operationWrapper.Operation;
@@ -384,10 +386,10 @@ internal sealed class OpenApiMutableSchemaBuilder
         };
     }
 
-    private Dictionary<string, ITypeDefinition> GetGraphQLTypesFromOpenApiOperation(
+    private Dictionary<string, IType> GetGraphQLTypesFromOpenApiOperation(
         OpenApiOperationWrapper operationWrapper)
     {
-        var typeMap = new Dictionary<string, ITypeDefinition>();
+        var typeMap = new Dictionary<string, IType>();
 
         foreach (var (httpStatusCode, response) in operationWrapper.Operation.Responses)
         {
@@ -418,7 +420,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         return typeMap;
     }
 
-    private ITypeDefinition CreateGraphQLTypeFromOpenApiSchema(
+    private IType CreateGraphQLTypeFromOpenApiSchema(
         OpenApiSchema openApiSchema,
         string schemaTitle,
         string? typeName = null,
@@ -435,10 +437,10 @@ internal sealed class OpenApiMutableSchemaBuilder
         // Return existing type when available.
         if (_skimmedSchema.Types.TryGetType(typeName, out var existingType))
         {
-            return openApiSchema.Nullable ? existingType : new NonNullTypeDefinition(existingType);
+            return openApiSchema.Nullable ? existingType : new NonNullType(existingType);
         }
 
-        ITypeDefinition type;
+        IType type;
 
         switch (openApiSchema.Type)
         {
@@ -448,14 +450,14 @@ internal sealed class OpenApiMutableSchemaBuilder
                     openApiSchema.Items.Title ?? $"{schemaTitle} item",
                     required: true);
 
-                type = new ListTypeDefinition(elementType);
+                type = new ListType(elementType);
                 break;
 
             case JsonSchemaTypes.Boolean:
             case JsonSchemaTypes.Integer:
             case JsonSchemaTypes.Number:
             case JsonSchemaTypes.String:
-                var scalarType = new ScalarTypeDefinition(typeName)
+                var scalarType = new MutableScalarTypeDefinition(typeName)
                 {
                     Description = openApiSchema.Description,
                 };
@@ -485,7 +487,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                 break;
 
             case JsonSchemaTypes.Object when !isInput:
-                var objectType = new ObjectTypeDefinition(typeName)
+                var objectType = new MutableObjectTypeDefinition(typeName)
                 {
                     Description = openApiSchema.Description,
                 };
@@ -510,7 +512,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         }
 
         return required && !openApiSchema.Nullable
-            ? new NonNullTypeDefinition(type)
+            ? new NonNullType(type)
             : type;
     }
 
@@ -577,13 +579,13 @@ internal sealed class OpenApiMutableSchemaBuilder
         return field;
     }
 
-    private OutputFieldDefinition CreateOutputField(
+    private MutableOutputFieldDefinition CreateOutputField(
         string schemaTitle,
         string propertyName,
         OpenApiSchema propertySchema,
         bool required = false)
     {
-        var field = new OutputFieldDefinition(GraphQLNamingHelper.CreateName(propertyName))
+        var field = new MutableOutputFieldDefinition(GraphQLNamingHelper.CreateName(propertyName))
         {
             Description = propertySchema.Description,
             IsDeprecated = propertySchema.Deprecated,
@@ -598,7 +600,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         return field;
     }
 
-    private void AddLinks(OpenApiResponse response, Dictionary<string, ITypeDefinition> typeMap)
+    private void AddLinks(OpenApiResponse response, Dictionary<string, IType> typeMap)
     {
         foreach (var (linkName, openApiLink) in response.Links)
         {
@@ -616,17 +618,17 @@ internal sealed class OpenApiMutableSchemaBuilder
             {
                 var innerType = TypeExtensions.InnerType(type);
 
-                List<ObjectTypeDefinition> objectTypes = [];
+                List<MutableObjectTypeDefinition> objectTypes = [];
 
                 switch (innerType)
                 {
-                    case ObjectTypeDefinition objectType:
+                    case MutableObjectTypeDefinition objectType:
                         objectTypes.Add(objectType);
                         break;
 
-                    case ListTypeDefinition listType
+                    case ListType listType
                         when TypeExtensions.InnerType(listType.ElementType) is
-                            ObjectTypeDefinition objectType:
+                            MutableObjectTypeDefinition objectType:
 
                         objectTypes.Add(objectType);
                         break;
@@ -634,7 +636,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
                 foreach (var objectType in objectTypes)
                 {
-                    var linkField = new OutputFieldDefinition(linkName)
+                    var linkField = new MutableOutputFieldDefinition(linkName)
                     {
                         Description = openApiLink.Description,
                         Type = graphQLType,

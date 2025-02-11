@@ -12,7 +12,7 @@ internal sealed class FusionEnumValueMutableDirectiveDefinition : MutableDirecti
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Schema,
-                new NonNullTypeDefinition(schemaMutableEnumType)));
+                new NonNullType(schemaMutableEnumType)));
 
         IsRepeatable = true;
         Locations = DirectiveLocation.EnumValue;

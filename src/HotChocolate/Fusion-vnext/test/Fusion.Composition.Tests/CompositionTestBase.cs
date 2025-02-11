@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 
 public abstract class CompositionTestBase
 {
-    internal static ImmutableSortedSet<SchemaDefinition> CreateSchemaDefinitions(string[] sdl)
+    internal static ImmutableSortedSet<MutableSchemaDefinition> CreateSchemaDefinitions(string[] sdl)
     {
         var schemaDefinitions =
             sdl.Select((s, i) =>

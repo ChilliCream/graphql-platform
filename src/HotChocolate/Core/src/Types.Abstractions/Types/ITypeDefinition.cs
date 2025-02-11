@@ -3,31 +3,16 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a GraphQL type definition.
 /// </summary>
-public interface ITypeDefinition : IEquatable<ITypeDefinition>
+public interface ITypeDefinition
+    : IType
+    , INameProvider
+    , IDescriptionProvider
+    , IDirectivesProvider
+    , ISyntaxNodeProvider
 {
     /// <summary>
-    /// Gets the type kind.
+    /// Determines whether an instance of a specified type <paramref name="type" />
+    /// can be assigned to a variable of the current type.
     /// </summary>
-    TypeKind Kind { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether the type is an introspection type.
-    /// </summary>
-    bool IsIntrospectionType => this is INamedTypeDefinition type && type.Name.StartsWith("__");
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <param name="comparison">
-    /// Specifies the comparison type.
-    /// </param>
-    /// <returns>
-    /// <see langword="true" /> if the current object is equal to the
-    /// <paramref name="other" /> parameter;
-    /// otherwise, <see langword="false" />.
-    /// </returns>
-    bool Equals(ITypeDefinition? other, TypeComparison comparison);
+    bool IsAssignableFrom(ITypeDefinition type);
 }

@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-public interface IUnionTypeDefinition : INamedTypeDefinition
+public interface IUnionTypeDefinition : ITypeDefinition
 {
     IReadOnlyObjectTypeDefinitionCollection Types { get; }
 }

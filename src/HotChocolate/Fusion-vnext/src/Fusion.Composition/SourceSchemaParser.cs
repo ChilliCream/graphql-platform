@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaParser(IEnumerable<string> sourceSchemas, ICompositionLog log)
 {
-    public CompositionResult<ImmutableSortedSet<SchemaDefinition>> Parse()
+    public CompositionResult<ImmutableSortedSet<MutableSchemaDefinition>> Parse()
     {
         var sortedSetBuilder = ImmutableSortedSet.CreateBuilder(new SchemaByNameComparer());
 

@@ -1,9 +1,7 @@
 ﻿namespace HotChocolate.Types;
 
-public interface IDirective
+public interface IDirective : INameProvider
 {
-    string Name { get; }
-
     IDirectiveDefinition Definition { get; }
 
     IReadOnlyArgumentAssignmentCollection Arguments { get; }

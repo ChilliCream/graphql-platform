@@ -13,7 +13,7 @@ namespace HotChocolate.OpenApi.TypeInterceptors;
 /// <summary>
 /// Copies OpenAPI-related context data from the skimmed schema to the type definitions.
 /// </summary>
-public sealed class ContextDataTypeInterceptor(SchemaDefinition schema) : TypeInterceptor
+public sealed class ContextDataTypeInterceptor(MutableSchemaDefinition schema) : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,

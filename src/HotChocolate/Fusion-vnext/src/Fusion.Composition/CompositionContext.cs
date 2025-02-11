@@ -5,13 +5,13 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion;
 
 internal sealed class CompositionContext(
-    ImmutableSortedSet<SchemaDefinition> schemaDefinitions,
+    ImmutableSortedSet<MutableSchemaDefinition> schemaDefinitions,
     ICompositionLog compositionLog)
 {
     /// <summary>
     /// Gets the schema definitions.
     /// </summary>
-    public ImmutableSortedSet<SchemaDefinition> SchemaDefinitions { get; } = schemaDefinitions;
+    public ImmutableSortedSet<MutableSchemaDefinition> SchemaDefinitions { get; } = schemaDefinitions;
 
     /// <summary>
     /// Gets the composition log.

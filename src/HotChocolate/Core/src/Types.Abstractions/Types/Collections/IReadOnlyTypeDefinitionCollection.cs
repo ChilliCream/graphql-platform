@@ -2,13 +2,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types;
 
-public interface IReadOnlyTypeDefinitionCollection : IEnumerable<INamedTypeDefinition>
+public interface IReadOnlyTypeDefinitionCollection : IEnumerable<ITypeDefinition>
 {
-    INamedTypeDefinition this[string name] { get; }
+    ITypeDefinition this[string name] { get; }
 
-    bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? definition);
+    bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? definition);
 
-    bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedTypeDefinition;
+    bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : ITypeDefinition;
 
     bool ContainsName(string name);
 }

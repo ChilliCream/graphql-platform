@@ -14,16 +14,16 @@ public sealed class SourceSchemaMergerTests
         // arrange
         var merger = new SourceSchemaMerger(
         [
-            new SchemaDefinition
+            new MutableSchemaDefinition
             {
                 Types =
                 {
-                    new ObjectTypeDefinition(Query)
-                        { Fields = { new OutputFieldDefinition("field") } },
-                    new ObjectTypeDefinition(Mutation)
-                        { Fields = { new OutputFieldDefinition("field") } },
-                    new ObjectTypeDefinition(Subscription)
-                        { Fields = { new OutputFieldDefinition("field") } }
+                    new MutableObjectTypeDefinition(Query)
+                        { Fields = { new MutableOutputFieldDefinition("field") } },
+                    new MutableObjectTypeDefinition(Mutation)
+                        { Fields = { new MutableOutputFieldDefinition("field") } },
+                    new MutableObjectTypeDefinition(Subscription)
+                        { Fields = { new MutableOutputFieldDefinition("field") } }
                 }
             }
         ]);
@@ -44,14 +44,14 @@ public sealed class SourceSchemaMergerTests
         // arrange
         var merger = new SourceSchemaMerger(
         [
-            new SchemaDefinition
+            new MutableSchemaDefinition
             {
                 Types =
                 {
-                    new ObjectTypeDefinition(Query)
-                        { Fields = { new OutputFieldDefinition("field") } },
-                    new ObjectTypeDefinition(Mutation),
-                    new ObjectTypeDefinition(Subscription)
+                    new MutableObjectTypeDefinition(Query)
+                        { Fields = { new MutableOutputFieldDefinition("field") } },
+                    new MutableObjectTypeDefinition(Mutation),
+                    new MutableObjectTypeDefinition(Subscription)
                 }
             }
         ]);
@@ -72,7 +72,7 @@ public sealed class SourceSchemaMergerTests
     public void Merge_FourNamedSchemas_AddsFusionDefinitions()
     {
         // arrange
-        IEnumerable<SchemaDefinition> schemas =
+        IEnumerable<MutableSchemaDefinition> schemas =
         [
             new() { Name = "ExampleOne" },
             new() { Name = "Example_Two" },

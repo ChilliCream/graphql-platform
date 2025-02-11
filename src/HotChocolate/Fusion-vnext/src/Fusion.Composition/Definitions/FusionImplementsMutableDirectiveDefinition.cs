@@ -9,11 +9,11 @@ internal sealed class FusionImplementsMutableDirectiveDefinition : MutableDirect
 {
     public FusionImplementsMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
-        ScalarTypeDefinition stringType)
+        MutableScalarTypeDefinition stringType)
         : base(FusionImplements)
     {
-        Arguments.Add(new MutableInputFieldDefinition(Schema, new NonNullTypeDefinition(schemaMutableEnumType)));
-        Arguments.Add(new MutableInputFieldDefinition(Interface, new NonNullTypeDefinition(stringType)));
+        Arguments.Add(new MutableInputFieldDefinition(Schema, new NonNullType(schemaMutableEnumType)));
+        Arguments.Add(new MutableInputFieldDefinition(Interface, new NonNullType(stringType)));
 
         IsRepeatable = true;
         Locations = DirectiveLocation.Object | DirectiveLocation.Interface;

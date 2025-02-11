@@ -16,7 +16,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
     private readonly ICompositionLog _log = log
         ?? throw new ArgumentNullException(nameof(log));
 
-    public CompositionResult<SchemaDefinition> Compose()
+    public CompositionResult<MutableSchemaDefinition> Compose()
     {
         // Parse Source Schemas
         var (_, isParseFailure, schemas, parseErrors) =
