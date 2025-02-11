@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Extensions;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -108,7 +107,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         else
         {
             var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.ResponseName()];
-            var fieldContext = context.Branch(field.Type.NamedType());
+            var fieldContext = context.Branch(field.Type.AsTypeDefinition());
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);
             RewriteSelections(fieldContext);

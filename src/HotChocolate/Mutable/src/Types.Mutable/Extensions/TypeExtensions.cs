@@ -56,29 +56,6 @@ public static class TypeExtensions
             : type;
     }
 
-    public static ITypeDefinition NamedType(this IType type)
-    {
-        while (true)
-        {
-            switch (type)
-            {
-                case ITypeDefinition namedType:
-                    return namedType;
-
-                case ListType listType:
-                    type = listType.ElementType;
-                    continue;
-
-                case NonNullType nonNullType:
-                    type = nonNullType.NullableType;
-                    continue;
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-    }
-
     public static ITypeNode ToTypeNode(this IType type)
         => type switch
         {

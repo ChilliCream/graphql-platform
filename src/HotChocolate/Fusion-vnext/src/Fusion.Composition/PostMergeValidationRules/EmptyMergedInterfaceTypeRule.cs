@@ -22,7 +22,7 @@ internal sealed class EmptyMergedInterfaceTypeRule : IEventHandler<InterfaceType
             return;
         }
 
-        var accessibleFields = interfaceType.Fields.Where(f => !f.HasInaccessibleDirective());
+        var accessibleFields = interfaceType.Fields.AsEnumerable().Where(f => !f.HasInaccessibleDirective());
 
         if (!accessibleFields.Any())
         {

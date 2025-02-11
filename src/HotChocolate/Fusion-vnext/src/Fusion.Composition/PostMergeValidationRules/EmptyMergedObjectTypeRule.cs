@@ -26,7 +26,7 @@ internal sealed class EmptyMergedObjectTypeRule : IEventHandler<ObjectTypeEvent>
             return;
         }
 
-        var accessibleFields = objectType.Fields.Where(f => !f.HasInaccessibleDirective());
+        var accessibleFields = objectType.Fields.AsEnumerable().Where(f => !f.HasInaccessibleDirective());
 
         if (!accessibleFields.Any())
         {

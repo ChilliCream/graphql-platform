@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL output field definition.
 /// </summary>
-public sealed class MutableOutputFieldDefinition
+public class MutableOutputFieldDefinition
     : INamedTypeSystemMemberDefinition<MutableOutputFieldDefinition>
     , IOutputFieldDefinition
     , IMutableFieldDefinition

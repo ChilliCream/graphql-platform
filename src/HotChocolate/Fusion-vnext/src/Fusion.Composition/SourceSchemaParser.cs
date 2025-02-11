@@ -13,7 +13,8 @@ internal sealed class SourceSchemaParser(IEnumerable<string> sourceSchemas, ICom
 {
     public CompositionResult<ImmutableSortedSet<MutableSchemaDefinition>> Parse()
     {
-        var sortedSetBuilder = ImmutableSortedSet.CreateBuilder(new SchemaByNameComparer());
+        var sortedSetBuilder = ImmutableSortedSet.CreateBuilder(
+            new SchemaByNameComparer<MutableSchemaDefinition>());
 
         foreach (var sourceSchema in sourceSchemas)
         {

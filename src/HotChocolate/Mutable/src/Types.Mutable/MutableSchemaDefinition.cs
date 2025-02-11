@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL schema definition.
 /// </summary>
-public sealed class MutableSchemaDefinition
+public class MutableSchemaDefinition
     : INamedTypeSystemMemberDefinition<MutableSchemaDefinition>
     , ISchemaDefinition
     , IFeatureProvider

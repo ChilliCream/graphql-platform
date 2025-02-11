@@ -43,10 +43,10 @@ internal sealed class SourceSchemaPreprocessor(
                 continue;
             }
 
-            var keyArgument = queryField.Arguments.First();
+            var keyArgument = queryField.Arguments.AsEnumerable().First();
             var @is = keyArgument.GetIsFieldSelectionMap();
 
-            var queryFieldType = queryField.Type.NamedType();
+            var queryFieldType = queryField.Type.AsTypeDefinition();
             var keyOutputFieldName = @is ?? keyArgument.Name;
 
             if (!context.Schema.Types.TryGetType(queryFieldType.Name, out var resultType))

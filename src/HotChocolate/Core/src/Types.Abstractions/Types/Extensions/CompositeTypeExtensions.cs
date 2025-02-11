@@ -6,11 +6,11 @@ namespace HotChocolate.Types;
 
 public static class HotChocolateBaseTypeExtensions
 {
-    public static ITypeDefinition NamedType(this IType type)
+    public static ITypeDefinition AsTypeDefinition(this IType type)
         => type.Kind switch
         {
-            TypeKind.NonNull => NamedType(((INonNullType)type).NullableType),
-            TypeKind.List => NamedType(((IListType)type).ElementType),
+            TypeKind.NonNull => AsTypeDefinition(((INonNullType)type).NullableType),
+            TypeKind.List => AsTypeDefinition(((IListType)type).ElementType),
             TypeKind.Object or
                 TypeKind.Interface or
                 TypeKind.Union or

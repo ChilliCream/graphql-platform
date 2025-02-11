@@ -1,32 +1,33 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Events;
 
 internal record DirectiveArgumentEvent(
     MutableInputFieldDefinition Argument,
-    MutableDirectiveDefinition MutableDirective,
+    MutableDirectiveDefinition Directive,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record EnumTypeEvent(
-    MutableEnumTypeDefinition MutableEnumType,
+    MutableEnumTypeDefinition EnumType,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record FieldArgumentEvent(
     MutableInputFieldDefinition Argument,
     MutableOutputFieldDefinition Field,
-    INamedTypeDefinition Type,
+    ITypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record InputFieldEvent(
-    MutableInputFieldDefinition MutableInputField,
-    InputObjectTypeDefinition InputType,
+    MutableInputFieldDefinition InputField,
+    MutableInputObjectTypeDefinition InputType,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record InputTypeEvent(
-    InputObjectTypeDefinition InputType,
+    MutableInputObjectTypeDefinition InputType,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record InterfaceTypeEvent(
@@ -70,7 +71,7 @@ internal record ObjectTypeEvent(
 
 internal record OutputFieldEvent(
     MutableOutputFieldDefinition Field,
-    INamedTypeDefinition Type,
+    ITypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record ProvidesFieldEvent(
@@ -127,7 +128,7 @@ internal record RequireFieldsInvalidTypeEvent(
 internal record SchemaEvent(MutableSchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(
-    INamedTypeDefinition Type,
+    ITypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record UnionTypeEvent(

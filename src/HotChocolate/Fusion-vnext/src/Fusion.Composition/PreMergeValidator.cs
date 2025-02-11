@@ -50,7 +50,7 @@ internal sealed class PreMergeValidator(
             {
                 switch (type)
                 {
-                    case InputObjectTypeDefinition inputType:
+                    case MutableInputObjectTypeDefinition inputType:
                         inputTypeGroupByName.Add(
                             inputType.Name,
                             new InputTypeInfo(inputType, schema));

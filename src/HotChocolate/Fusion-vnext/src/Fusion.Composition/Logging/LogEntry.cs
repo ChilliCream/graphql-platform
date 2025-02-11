@@ -1,3 +1,4 @@
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Logging;
@@ -16,7 +17,7 @@ public sealed record LogEntry
         string code,
         LogSeverity severity = LogSeverity.Error,
         SchemaCoordinate? coordinate = null,
-        ITypeSystemMemberDefinition? member = null,
+        ITypeSystemMember? member = null,
         MutableSchemaDefinition? schema = null,
         object? extension = null)
     {
@@ -55,7 +56,7 @@ public sealed record LogEntry
     /// <summary>
     /// Gets the type system member associated with this log entry.
     /// </summary>
-    public ITypeSystemMemberDefinition? Member { get; }
+    public ITypeSystemMember? Member { get; }
 
     /// <summary>
     /// Gets the schema associated with this log entry.

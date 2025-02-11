@@ -156,7 +156,7 @@ public class SchemaParserTests
         // assert
         Assert.Equal("Custom description", directive.Description);
         Assert.Equal("Custom argument description", argument.Description);
-        Assert.Equal("String", argument.Type.NamedType().Name);
+        Assert.Equal("String", argument.Type.AsTypeDefinition().Name);
         Assert.True(argument.Directives.ContainsName("custom"));
         Assert.Equal(DirectiveLocation.EnumValue, directive.Locations);
     }

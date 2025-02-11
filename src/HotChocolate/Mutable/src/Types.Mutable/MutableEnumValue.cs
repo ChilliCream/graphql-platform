@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL enum value.
 /// </summary>
-public sealed class MutableEnumValue
+public class MutableEnumValue
     : INamedTypeSystemMemberDefinition<MutableEnumValue>
     , IEnumValue
     , IFeatureProvider

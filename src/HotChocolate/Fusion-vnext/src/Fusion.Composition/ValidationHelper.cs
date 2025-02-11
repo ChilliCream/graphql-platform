@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
@@ -27,7 +28,7 @@ internal sealed class ValidationHelper
         return selectionSet.Selections.OfType<FieldNode>().Any(f => f.Name.Value == fieldName);
     }
 
-    public static bool SameTypeShape(ITypeDefinition typeA, ITypeDefinition typeB)
+    public static bool SameTypeShape(IType typeA, IType typeB)
     {
         while (true)
         {
@@ -58,12 +59,13 @@ internal sealed class ValidationHelper
                 continue;
             }
 
-            if (typeA.Kind != typeB.Kind)
-            {
-                return false;
-            }
+            // note the structural equals ensures that the types are the same kind and have the same name.
+            // if (typeA.Kind != typeB.Kind)
+            // {
+            //    return false;
+            // }
 
-            if (typeA.NamedType().Name != typeB.NamedType().Name)
+            if (typeA.Equals(typeB, TypeComparison.Structural))
             {
                 return false;
             }

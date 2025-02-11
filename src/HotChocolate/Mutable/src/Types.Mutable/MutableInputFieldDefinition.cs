@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL input field definition.
 /// </summary>
-public sealed class MutableInputFieldDefinition
+public class MutableInputFieldDefinition
     : INamedTypeSystemMemberDefinition<MutableInputFieldDefinition>
     , IInputValueDefinition
     , IMutableFieldDefinition

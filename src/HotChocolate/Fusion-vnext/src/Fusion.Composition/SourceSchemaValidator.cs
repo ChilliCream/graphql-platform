@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
@@ -100,7 +101,7 @@ internal sealed class SourceSchemaValidator(
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var keyDirectives = entityType.Directives.Where(d => d.Name == DirectiveNames.Key);
+        var keyDirectives = entityType.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key);
 
         foreach (var keyDirective in keyDirectives)
         {
@@ -218,7 +219,7 @@ internal sealed class SourceSchemaValidator(
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var providesDirective = field.Directives.First(d => d.Name == DirectiveNames.Provides);
+        var providesDirective = field.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Provides);
 
         if (!providesDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)
@@ -258,7 +259,7 @@ internal sealed class SourceSchemaValidator(
         MutableComplexTypeDefinition type,
         Directive providesDirective,
         List<string> fieldNamePath,
-        ITypeDefinition? parentType,
+        IType? parentType,
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
@@ -332,7 +333,7 @@ internal sealed class SourceSchemaValidator(
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var requireDirective = argument.Directives.First(d => d.Name == DirectiveNames.Require);
+        var requireDirective = argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Require);
 
         if (!requireDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
             || f is not StringValueNode fields)

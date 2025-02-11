@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 
@@ -24,7 +25,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry DisallowedInaccessibleIntrospectionType(
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
@@ -186,7 +187,7 @@ internal static class LogEntryHelper
 
     public static LogEntry ExternalMissingOnBase(
         MutableOutputFieldDefinition externalField,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
@@ -202,7 +203,7 @@ internal static class LogEntryHelper
 
     public static LogEntry ExternalOnInterface(
         MutableOutputFieldDefinition externalField,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
@@ -218,7 +219,7 @@ internal static class LogEntryHelper
 
     public static LogEntry ExternalUnused(
         MutableOutputFieldDefinition externalField,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
@@ -302,7 +303,7 @@ internal static class LogEntryHelper
 
     public static LogEntry InputWithMissingRequiredFields(
         string requiredFieldName,
-        InputObjectTypeDefinition inputType,
+        MutableInputObjectTypeDefinition inputType,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
@@ -328,7 +329,7 @@ internal static class LogEntryHelper
 
     public static LogEntry InvalidShareableUsage(
         MutableOutputFieldDefinition field,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, field.Name);
@@ -456,7 +457,7 @@ internal static class LogEntryHelper
 
     public static LogEntry LookupReturnsList(
         MutableOutputFieldDefinition field,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, field.Name);
@@ -475,7 +476,7 @@ internal static class LogEntryHelper
 
     public static LogEntry LookupReturnsNonNullableType(
         MutableOutputFieldDefinition field,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, field.Name);
@@ -527,7 +528,7 @@ internal static class LogEntryHelper
     public static LogEntry OverrideFromSelf(
         Directive overrideDirective,
         MutableOutputFieldDefinition field,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, field.Name);
@@ -543,7 +544,7 @@ internal static class LogEntryHelper
 
     public static LogEntry OverrideOnInterface(
         MutableOutputFieldDefinition field,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, field.Name);
@@ -661,7 +662,7 @@ internal static class LogEntryHelper
 
     public static LogEntry ProvidesOnNonCompositeField(
         MutableOutputFieldDefinition field,
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(type.Name, field.Name);
@@ -679,7 +680,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry QueryRootTypeInaccessible(
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
@@ -781,7 +782,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry TypeKindMismatch(
-        INamedTypeDefinition type,
+        ITypeDefinition type,
         MutableSchemaDefinition schemaA,
         string typeKindA,
         MutableSchemaDefinition schemaB,
