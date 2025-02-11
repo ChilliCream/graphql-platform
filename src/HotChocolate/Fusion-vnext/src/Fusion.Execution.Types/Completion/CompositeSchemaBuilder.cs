@@ -23,7 +23,7 @@ public static class CompositeSchemaBuilder
         IReadOnlyList<DirectiveNode> directives = Array.Empty<DirectiveNode>();
         var types = ImmutableArray.CreateBuilder<ICompositeNamedType>();
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
-        var directiveTypes = ImmutableArray.CreateBuilder<CompositeDirectiveType>();
+        var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
 
         foreach (var definition in schema.Definitions)
@@ -93,19 +93,19 @@ public static class CompositeSchemaBuilder
             directiveDefinitions.ToImmutable());
     }
 
-    private static CompositeObjectType CreateObjectType(
+    private static FusionObjectType CreateObjectType(
         ObjectTypeDefinitionNode definition)
     {
-        return new CompositeObjectType(
+        return new FusionObjectType(
             definition.Name.Value,
             definition.Description?.Value,
             CreateOutputFields(definition.Fields));
     }
 
-    private static CompositeInterfaceType CreateInterfaceType(
+    private static FusionInterfaceType CreateInterfaceType(
         InterfaceTypeDefinitionNode definition)
     {
-        return new CompositeInterfaceType(
+        return new FusionInterfaceType(
             definition.Name.Value,
             definition.Description?.Value,
             CreateOutputFields(definition.Fields));
@@ -165,10 +165,10 @@ public static class CompositeSchemaBuilder
             definition.Description?.Value);
     }
 
-    private static CompositeDirectiveType CreateDirectiveType(
+    private static FusionDirectiveDefinition CreateDirectiveType(
         DirectiveDefinitionNode definition)
     {
-        return new CompositeDirectiveType(
+        return new FusionDirectiveDefinition(
             definition.Name.Value,
             definition.Description?.Value,
             definition.IsRepeatable,
@@ -208,14 +208,14 @@ public static class CompositeSchemaBuilder
         {
             switch (type)
             {
-                case CompositeObjectType objectType:
+                case FusionObjectType objectType:
                     CompleteObjectType(
                         objectType,
                         schemaContext.GetTypeDefinition<ObjectTypeDefinitionNode>(objectType.Name),
                         schemaContext);
                     break;
 
-                case CompositeInterfaceType interfaceType:
+                case FusionInterfaceType interfaceType:
                     CompleteInterfaceType(
                         interfaceType,
                         schemaContext.GetTypeDefinition<InterfaceTypeDefinitionNode>(interfaceType.Name),
@@ -243,12 +243,12 @@ public static class CompositeSchemaBuilder
 
         return new CompositeSchema(
             null,
-            schemaContext.GetType<CompositeObjectType>(schemaContext.QueryType),
+            schemaContext.GetType<FusionObjectType>(schemaContext.QueryType),
             schemaContext.MutationType is not null
-                ? schemaContext.GetType<CompositeObjectType>(schemaContext.MutationType)
+                ? schemaContext.GetType<FusionObjectType>(schemaContext.MutationType)
                 : null,
             schemaContext.SubscriptionType is not null
-                ? schemaContext.GetType<CompositeObjectType>(schemaContext.SubscriptionType)
+                ? schemaContext.GetType<FusionObjectType>(schemaContext.SubscriptionType)
                 : null,
             schemaContext.Types.ToFrozenDictionary(t => t.Name),
             directives,
@@ -256,7 +256,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteObjectType(
-        CompositeObjectType type,
+        FusionObjectType type,
         ObjectTypeDefinitionNode typeDef,
         CompositeSchemaContext schemaContext)
     {
@@ -272,7 +272,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteInterfaceType(
-        CompositeInterfaceType type,
+        FusionInterfaceType type,
         InterfaceTypeDefinitionNode typeDef,
         CompositeSchemaContext schemaContext)
     {
@@ -288,7 +288,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteOutputField(
-        CompositeComplexType declaringType,
+        FusionComplexType declaringType,
         CompositeOutputField field,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext schemaContext)
@@ -388,13 +388,13 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteDirectiveType(
-        CompositeDirectiveType type,
+        FusionDirectiveDefinition definition,
         DirectiveDefinitionNode typeDef,
         CompositeSchemaContext schemaContext)
     {
         foreach (var argumentDef in typeDef.Arguments)
         {
-            CompleteInputField(type.Arguments[argumentDef.Name.Value], argumentDef, schemaContext);
+            CompleteInputField(definition.Arguments[argumentDef.Name.Value], argumentDef, schemaContext);
         }
     }
 }

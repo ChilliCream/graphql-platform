@@ -1,4 +1,5 @@
 ﻿using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
@@ -6,14 +7,17 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents the base class for a GraphQL object type definition or an interface type definition.
 /// </summary>
-public abstract class CompositeComplexType : ICompositeNamedType
+public abstract class FusionComplexType : IComplexTypeDefinition
 {
     private DirectiveCollection _directives = default!;
     private CompositeInterfaceTypeCollection _implements = default!;
     private ISourceComplexTypeCollection<ISourceComplexType> _sources = default!;
     private bool _completed;
+    private IReadOnlyDirectiveCollection _directives1;
+    private IReadOnlyInterfaceTypeDefinitionCollection _implements1;
+    private IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> _fields;
 
-    protected CompositeComplexType(
+    protected FusionComplexType(
         string name,
         string? description,
         CompositeOutputFieldCollection fields)
@@ -46,6 +50,12 @@ public abstract class CompositeComplexType : ICompositeNamedType
         }
     }
 
+        IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+    {
+        get => _directives1;
+    }
+
+
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>
@@ -62,6 +72,16 @@ public abstract class CompositeComplexType : ICompositeNamedType
 
             _implements = value;
         }
+    }
+
+    IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> IComplexTypeDefinition.Fields
+    {
+        get => _fields;
+    }
+
+    IReadOnlyInterfaceTypeDefinitionCollection IComplexTypeDefinition.Implements
+    {
+        get => _implements1;
     }
 
     /// <summary>
@@ -102,5 +122,21 @@ public abstract class CompositeComplexType : ICompositeNamedType
         }
 
         _completed = true;
+    }
+
+    public bool Equals(IType? other)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public ISyntaxNode ToSyntaxNode()
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool IsAssignableFrom(ITypeDefinition type)
+    {
+        throw new NotImplementedException();
     }
 }

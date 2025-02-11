@@ -4,11 +4,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class CompositeInterfaceType(
+public sealed class FusionInterfaceType(
     string name,
     string? description,
     CompositeOutputFieldCollection fields)
-    : CompositeComplexType(name, description, fields)
+    : FusionComplexType(name, description, fields)
 {
     private bool _isEntity;
 
@@ -23,10 +23,10 @@ public sealed class CompositeInterfaceType(
         switch (type.Kind)
         {
             case TypeKind.Interface:
-                return ReferenceEquals(type, this) || ((CompositeInterfaceType)type).Implements.ContainsName(Name);
+                return ReferenceEquals(type, this) || ((FusionInterfaceType)type).Implements.ContainsName(Name);
 
             case TypeKind.Object:
-                return ((CompositeObjectType)type).Implements.ContainsName(Name);
+                return ((FusionObjectType)type).Implements.ContainsName(Name);
 
             default:
                 return false;

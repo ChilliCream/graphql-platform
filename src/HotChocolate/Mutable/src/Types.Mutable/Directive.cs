@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types.Mutable;
@@ -25,8 +24,6 @@ public sealed class Directive : IDirective
     IDirectiveDefinition IDirective.Definition => Definition;
 
     public ArgumentAssignmentCollection Arguments { get; }
-
-    IReadOnlyArgumentAssignmentCollection IDirective.Arguments => Arguments;
 
     public override string ToString()
         => Format(this).ToString(true);

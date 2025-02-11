@@ -1,15 +1,15 @@
 using System.Collections;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Types.Mutable.Utilities;
 
-namespace HotChocolate.Types.Mutable;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Represents a collection of argument value assignments.
 /// </summary>
-public sealed class ArgumentAssignmentCollection : IReadOnlyArgumentAssignmentCollection
+public sealed class ArgumentAssignmentCollection : IReadOnlyList<ArgumentAssignment>
 {
     private readonly IReadOnlyDictionary<string, ArgumentAssignment> _argumentMap;
 
@@ -21,7 +21,7 @@ public sealed class ArgumentAssignmentCollection : IReadOnlyArgumentAssignmentCo
     public ArgumentAssignmentCollection(ImmutableArray<ArgumentAssignment> arguments)
     {
         _arguments = arguments;
-        _argumentMap = ToDictionary(arguments);
+        _argumentMap = arguments.ToFrozenDictionary(t => t.Name, t => t);
     }
 
     /// <summary>
@@ -50,8 +50,6 @@ public sealed class ArgumentAssignmentCollection : IReadOnlyArgumentAssignmentCo
     /// Gets the argument assignment at the specified <paramref name="index"/>.
     /// </summary>
     public ArgumentAssignment this[int index] => _arguments[index];
-
-    IArgumentAssignment IReadOnlyList<IArgumentAssignment>.this[int index] => _arguments[index];
 
     /// <summary>
     /// Tries to get the argument assignment with the specified <paramref name="argumentName"/>.
@@ -149,32 +147,7 @@ public sealed class ArgumentAssignmentCollection : IReadOnlyArgumentAssignmentCo
         return ((IEnumerable<ArgumentAssignment>)_arguments).GetEnumerator();
     }
 
-    IEnumerator<IArgumentAssignment> IEnumerable<IArgumentAssignment>.GetEnumerator()
-    {
-        foreach (var argument in _arguments)
-        {
-            yield return argument;
-        }
-    }
-
     /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
-
-    private static IReadOnlyDictionary<string, ArgumentAssignment> ToDictionary(
-        IReadOnlyList<ArgumentAssignment> arguments)
-        => arguments.Count switch
-            {
-                1 => new OneItemDictionary<string, ArgumentAssignment>(
-                        arguments[0].Name,
-                        arguments[0]),
-                2 => new TwoItemDictionary<string, ArgumentAssignment>(
-                        arguments[0].Name,
-                        arguments[0],
-                        arguments[1].Name,
-                        arguments[1]),
-                _ => arguments.ToOrderedDictionary(
-                        t => t.Name,
-                        t => t)
-            };
 }

@@ -6,20 +6,31 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a GraphQL directive definition.
 /// </summary>
-public sealed class CompositeDirectiveType(
-    string name,
-    string? description,
-    bool isRepeatable,
-    CompositeInputFieldCollection arguments,
-    DirectiveLocation locations)
+public sealed class FusionDirectiveDefinition
 {
+    /// <summary>
+    /// Represents a GraphQL directive definition.
+    /// </summary>
+    public FusionDirectiveDefinition(string name,
+        string? description,
+        bool isRepeatable,
+        CompositeInputFieldCollection arguments,
+        DirectiveLocation locations)
+    {
+        Name = name;
+        Description = description;
+        IsRepeatable = isRepeatable;
+        Arguments = arguments;
+        Locations = locations;
+    }
+
     /// <summary>
     /// Gets the name of the directive.
     /// </summary>
     /// <value>
     /// The name of the directive.
     /// </value>
-    public string Name { get; } = name;
+    public string Name { get; }
 
     /// <summary>
     /// Gets the description of the directive.
@@ -27,17 +38,17 @@ public sealed class CompositeDirectiveType(
     /// <value>
     /// The description of the directive.
     /// </value>
-    public string? Description { get; } = description;
+    public string? Description { get; }
 
     /// <summary>
     /// Defines if this directive is repeatable and can be applied multiple times.
     /// </summary>
-    public bool IsRepeatable { get; } = isRepeatable;
+    public bool IsRepeatable { get; }
 
     /// <summary>
     /// Gets the arguments that are defined on this directive.
     /// </summary>
-    public CompositeInputFieldCollection Arguments { get; } = arguments;
+    public CompositeInputFieldCollection Arguments { get; }
 
     /// <summary>
     /// Gets the locations where this directive can be applied.
@@ -45,7 +56,7 @@ public sealed class CompositeDirectiveType(
     /// <value>
     /// The locations where this directive can be applied.
     /// </value>
-    public DirectiveLocation Locations { get; } = locations;
+    public DirectiveLocation Locations { get; }
 
     /// <summary>
     /// Returns the name of the directive.

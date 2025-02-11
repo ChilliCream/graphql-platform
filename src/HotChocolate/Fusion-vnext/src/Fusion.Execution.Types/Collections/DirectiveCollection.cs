@@ -3,13 +3,16 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
-public sealed class DirectiveCollection(CompositeDirective[] directives) : IEnumerable<CompositeDirective>
+public sealed class DirectiveCollection(FusionDirective[] directives)
+    : IreadOnly
+        , IEnumerable<FusionDirective>
+
 {
     public int Count => directives.Length;
 
     public bool IsReadOnly => false;
 
-    public IEnumerable<CompositeDirective> this[string directiveName]
+    public IEnumerable<FusionDirective> this[string directiveName]
     {
         get
         {
@@ -19,7 +22,7 @@ public sealed class DirectiveCollection(CompositeDirective[] directives) : IEnum
         }
     }
 
-    private static IEnumerable<CompositeDirective> FindDirectives(CompositeDirective[] directives, string name)
+    private static IEnumerable<FusionDirective> FindDirectives(FusionDirective[] directives, string name)
     {
         for (var i = 0; i < directives.Length; i++)
         {
@@ -32,7 +35,7 @@ public sealed class DirectiveCollection(CompositeDirective[] directives) : IEnum
         }
     }
 
-    public CompositeDirective? FirstOrDefault(string directiveName)
+    public FusionDirective? FirstOrDefault(string directiveName)
     {
         var directives1 = directives;
 
@@ -52,10 +55,10 @@ public sealed class DirectiveCollection(CompositeDirective[] directives) : IEnum
     public bool ContainsName(string directiveName)
         => FirstOrDefault(directiveName) is not null;
 
-    public bool Contains(CompositeDirective item)
+    public bool Contains(FusionDirective item)
         => directives.Contains(item);
 
-    public void CopyTo(CompositeDirective[] array, int arrayIndex)
+    public void CopyTo(FusionDirective[] array, int arrayIndex)
     {
         foreach (var directive in directives)
         {
@@ -64,8 +67,8 @@ public sealed class DirectiveCollection(CompositeDirective[] directives) : IEnum
     }
 
     /// <inheritdoc />
-    public IEnumerator<CompositeDirective> GetEnumerator()
-        => ((IEnumerable<CompositeDirective>)directives).GetEnumerator();
+    public IEnumerator<FusionDirective> GetEnumerator()
+        => ((IEnumerable<FusionDirective>)directives).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
@@ -82,5 +85,5 @@ public sealed class DirectiveCollection(CompositeDirective[] directives) : IEnum
         return nodes;
     }
 
-    public static DirectiveCollection Empty { get; } = new([]);
+    public static DirectiveCollection Empty { get; } = new([]);–
 }

@@ -10,7 +10,7 @@ public sealed class CompositeSchemaContext
     private readonly Dictionary<ITypeNode, ICompositeType> _compositeTypes = new(SyntaxComparer.BySyntax);
     private readonly Dictionary<string, ICompositeNamedType> _typeNameLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitions;
-    private readonly Dictionary<string, CompositeDirectiveType> _directiveTypeNameLookup;
+    private readonly Dictionary<string, FusionDirectiveDefinition> _directiveTypeNameLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitions;
 
     public CompositeSchemaContext(
@@ -20,7 +20,7 @@ public sealed class CompositeSchemaContext
         IReadOnlyList<DirectiveNode> directives,
         ImmutableArray<ICompositeNamedType> types,
         ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitions,
-        ImmutableArray<CompositeDirectiveType> directiveTypes,
+        ImmutableArray<FusionDirectiveDefinition> directiveTypes,
         ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitions)
     {
         _typeNameLookup = types.ToDictionary(t => t.Name);
@@ -48,7 +48,7 @@ public sealed class CompositeSchemaContext
 
     public IReadOnlyList<DirectiveNode> Directives { get; }
 
-    public ImmutableArray<CompositeDirectiveType> DirectiveTypes { get; private set; }
+    public ImmutableArray<FusionDirectiveDefinition> DirectiveTypes { get; private set; }
 
     public T GetTypeDefinition<T>(string typeName)
         where T : ITypeDefinitionNode
@@ -139,7 +139,7 @@ public sealed class CompositeSchemaContext
         return compositeNamedType;
     }
 
-    public CompositeDirectiveType GetDirectiveType(string name)
+    public FusionDirectiveDefinition GetDirectiveType(string name)
     {
         if (_directiveTypeNameLookup.TryGetValue(name, out var type))
         {
@@ -160,7 +160,7 @@ public sealed class CompositeSchemaContext
         DirectiveTypes = DirectiveTypes.Add(directive);
     }
 
-    private CompositeDirectiveType CreateSkipDirective()
+    private FusionDirectiveDefinition CreateSkipDirective()
     {
         var ifField = new CompositeInputField(
             "if",
@@ -169,7 +169,7 @@ public sealed class CompositeSchemaContext
             isDeprecated: false,
             deprecationReason: null);
 
-        var skipDirective = new CompositeDirectiveType(
+        var skipDirective = new FusionDirectiveDefinition(
             "skip",
             "Directs the executor to skip this field or fragment when the `if` argument is true.",
             isRepeatable: false,
@@ -201,7 +201,7 @@ public sealed class CompositeSchemaContext
         return skipDirective;
     }
 
-    private CompositeDirectiveType CreateIncludeDirective()
+    private FusionDirectiveDefinition CreateIncludeDirective()
     {
         var ifField = new CompositeInputField(
             "if",
@@ -210,7 +210,7 @@ public sealed class CompositeSchemaContext
             isDeprecated: false,
             deprecationReason: null);
 
-        var includeDirective = new CompositeDirectiveType(
+        var includeDirective = new FusionDirectiveDefinition(
             "include",
             "Directs the executor to include this field or fragment when the `if` argument is true.",
             isRepeatable: false,

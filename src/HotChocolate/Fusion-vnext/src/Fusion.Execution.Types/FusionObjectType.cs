@@ -4,11 +4,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class CompositeObjectType(
+public sealed class FusionObjectType(
     string name,
     string? description,
     CompositeOutputFieldCollection fields)
-    : CompositeComplexType(name, description, fields)
+    : FusionComplexType(name, description, fields)
 {
     private bool _isEntity;
 

@@ -2,14 +2,14 @@ using System.Collections;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
-public sealed class CompositeInterfaceTypeCollection(CompositeInterfaceType[] interfaceTypes)
-    : IReadOnlyList<CompositeInterfaceType>
+public sealed class CompositeInterfaceTypeCollection(FusionInterfaceType[] interfaceTypes)
+    : IReadOnlyList<FusionInterfaceType>
 {
     public int Count => interfaceTypes.Length;
 
     public bool IsReadOnly => false;
 
-    public CompositeInterfaceType this[int index]
+    public FusionInterfaceType this[int index]
     {
         get => interfaceTypes[index];
     }
@@ -17,10 +17,10 @@ public sealed class CompositeInterfaceTypeCollection(CompositeInterfaceType[] in
     public bool ContainsName(string name)
         => interfaceTypes.Any(t => t.Name.Equals(name, StringComparison.Ordinal));
 
-    public bool Contains(CompositeInterfaceType item)
+    public bool Contains(FusionInterfaceType item)
         => interfaceTypes.Contains(item);
 
-    public IEnumerator<CompositeInterfaceType> GetEnumerator()
+    public IEnumerator<FusionInterfaceType> GetEnumerator()
     {
         foreach (var interfaceType in interfaceTypes)
         {

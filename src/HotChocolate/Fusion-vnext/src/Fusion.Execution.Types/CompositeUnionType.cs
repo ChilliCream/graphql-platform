@@ -11,7 +11,7 @@ public sealed class CompositeUnionType(
     string? description)
     : ICompositeNamedType
 {
-    private FrozenDictionary<string, CompositeObjectType> _types = default!;
+    private FrozenDictionary<string, FusionObjectType> _types = default!;
     private DirectiveCollection _directives = default!;
     private bool _completed;
 
@@ -23,7 +23,7 @@ public sealed class CompositeUnionType(
 
     public TypeKind Kind => TypeKind.Union;
 
-    public ImmutableArray<CompositeObjectType> Types => _types.Values;
+    public ImmutableArray<FusionObjectType> Types => _types.Values;
 
     public bool IsAssignableFrom(ICompositeNamedType type)
     {
@@ -33,7 +33,7 @@ public sealed class CompositeUnionType(
                 return ReferenceEquals(type, this);
 
             case TypeKind.Object:
-                return _types.ContainsKey(((CompositeObjectType)type).Name);
+                return _types.ContainsKey(((FusionObjectType)type).Name);
 
             default:
                 return false;

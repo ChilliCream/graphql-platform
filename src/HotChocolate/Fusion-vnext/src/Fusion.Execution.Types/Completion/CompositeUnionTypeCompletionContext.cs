@@ -5,9 +5,9 @@ namespace HotChocolate.Fusion.Types.Completion;
 
 internal ref struct CompositeUnionTypeCompletionContext(
     DirectiveCollection directives,
-    FrozenDictionary<string, CompositeObjectType> types)
+    FrozenDictionary<string, FusionObjectType> types)
 {
     public DirectiveCollection Directives { get; } = directives;
 
-    public FrozenDictionary<string, CompositeObjectType> Types { get; } = types;
+    public FrozenDictionary<string, FusionObjectType> Types { get; } = types;
 }

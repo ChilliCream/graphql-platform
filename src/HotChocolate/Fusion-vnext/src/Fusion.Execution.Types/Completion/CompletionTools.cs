@@ -18,14 +18,14 @@ internal static class CompletionTools
             return DirectiveCollection.Empty;
         }
 
-        var temp = new CompositeDirective[directives.Count];
+        var temp = new FusionDirective[directives.Count];
 
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];
             var directiveType = context.GetDirectiveType(directive.Name.Value);
             var arguments = CreateArgumentAssignments(directive.Arguments);
-            temp[i] = new CompositeDirective(directiveType, arguments);
+            temp[i] = new FusionDirective(directiveType, arguments);
         }
 
         return new DirectiveCollection(temp);
@@ -62,11 +62,11 @@ internal static class CompletionTools
             return CompositeInterfaceTypeCollection.Empty;
         }
 
-        var temp = new CompositeInterfaceType[interfaceTypes.Count];
+        var temp = new FusionInterfaceType[interfaceTypes.Count];
 
         for (var i = 0; i < interfaceTypes.Count; i++)
         {
-            temp[i] = (CompositeInterfaceType)context.GetType(interfaceTypes[i]);
+            temp[i] = (FusionInterfaceType)context.GetType(interfaceTypes[i]);
         }
 
         return new CompositeInterfaceTypeCollection(temp);

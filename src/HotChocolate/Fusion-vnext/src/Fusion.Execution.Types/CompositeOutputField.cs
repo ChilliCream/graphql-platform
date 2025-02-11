@@ -14,7 +14,7 @@ public sealed class CompositeOutputField(
     private ICompositeType _type = default!;
     private SourceObjectFieldCollection _sources = default!;
     private DirectiveCollection _directives = default!;
-    private CompositeComplexType _declaringType = default!;
+    private FusionComplexType _declaringType = default!;
     private bool _completed;
 
     public string Name { get; } = name;
@@ -72,7 +72,7 @@ public sealed class CompositeOutputField(
         }
     }
 
-    public CompositeComplexType DeclaringType
+    public FusionComplexType DeclaringType
     {
         get => _declaringType;
         private set

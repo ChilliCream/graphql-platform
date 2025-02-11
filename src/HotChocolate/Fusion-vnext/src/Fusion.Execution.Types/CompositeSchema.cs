@@ -10,16 +10,16 @@ namespace HotChocolate.Fusion.Types;
 public sealed class CompositeSchema
 {
     private readonly FrozenDictionary<string, ICompositeNamedType> _types;
-    private readonly FrozenDictionary<string, CompositeDirectiveType> _directiveTypes;
+    private readonly FrozenDictionary<string, FusionDirectiveDefinition> _directiveTypes;
 
     public CompositeSchema(
         string? description,
-        CompositeObjectType queryType,
-        CompositeObjectType? mutationType,
-        CompositeObjectType? subscriptionType,
+        FusionObjectType queryType,
+        FusionObjectType? mutationType,
+        FusionObjectType? subscriptionType,
         FrozenDictionary<string, ICompositeNamedType> types,
         DirectiveCollection directives,
-        FrozenDictionary<string, CompositeDirectiveType> directiveTypes)
+        FrozenDictionary<string, FusionDirectiveDefinition> directiveTypes)
     {
         Description = description;
         QueryType = queryType;
@@ -38,29 +38,29 @@ public sealed class CompositeSchema
     /// <summary>
     /// The type that query operations will be rooted at.
     /// </summary>
-    public CompositeObjectType QueryType { get; }
+    public FusionObjectType QueryType { get; }
 
     /// <summary>
     /// If this server supports mutation, the type that
     /// mutation operations will be rooted at.
     /// </summary>
-    public CompositeObjectType? MutationType { get; }
+    public FusionObjectType? MutationType { get; }
 
     /// <summary>
     /// If this server support subscription, the type that
     /// subscription operations will be rooted at.
     /// </summary>
-    public CompositeObjectType? SubscriptionType { get; }
+    public FusionObjectType? SubscriptionType { get; }
 
     /// <summary>
     /// Gets the skip directive.
     /// </summary>
-    public CompositeDirectiveType SkipDirective { get; }
+    public FusionDirectiveDefinition SkipDirective { get; }
 
     /// <summary>
     /// Gets the include directive.
     /// </summary>
-    public CompositeDirectiveType IncludeDirective { get; }
+    public FusionDirectiveDefinition IncludeDirective { get; }
 
     /// <summary>
     /// Gets all the schema types.
@@ -75,7 +75,7 @@ public sealed class CompositeSchema
     /// <summary>
     /// Gets all the directive types that are supported by this schema.
     /// </summary>
-    public ImmutableArray<CompositeDirectiveType> DirectiveTypes
+    public ImmutableArray<FusionDirectiveDefinition> DirectiveTypes
         => _directiveTypes.Values;
 
     /// <summary>
@@ -116,7 +116,7 @@ public sealed class CompositeSchema
             nameof(typeName));
     }
 
-    public CompositeObjectType GetOperationType(OperationType operation)
+    public FusionObjectType GetOperationType(OperationType operation)
     {
         var operationType = operation switch
         {
@@ -167,7 +167,7 @@ public sealed class CompositeSchema
     /// Returns a collection with all possible object types
     /// for the given abstract type.
     /// </returns>
-    public ImmutableArray<CompositeObjectType> GetPossibleTypes(ICompositeNamedType abstractType)
+    public ImmutableArray<FusionObjectType> GetPossibleTypes(ICompositeNamedType abstractType)
     {
         if(abstractType.Kind is not TypeKind.Union and not TypeKind.Interface and not TypeKind.Object)
         {
@@ -181,13 +181,13 @@ public sealed class CompositeSchema
             return unionType.Types;
         }
 
-        if (abstractType is CompositeInterfaceType interfaceType)
+        if (abstractType is FusionInterfaceType interfaceType)
         {
-            var builder = ImmutableArray.CreateBuilder<CompositeObjectType>();
+            var builder = ImmutableArray.CreateBuilder<FusionObjectType>();
 
             foreach (var type in _types.Values)
             {
-                if (type is CompositeObjectType obj)
+                if (type is FusionObjectType obj)
                 {
                     if (obj.Implements.ContainsName(interfaceType.Name))
                     {
@@ -199,7 +199,7 @@ public sealed class CompositeSchema
             return builder.ToImmutable();
         }
 
-        if(abstractType is CompositeObjectType objectType)
+        if(abstractType is FusionObjectType objectType)
         {
             return [objectType];
         }
@@ -220,7 +220,7 @@ public sealed class CompositeSchema
     /// <exception cref="ArgumentException">
     /// The specified directive type does not exist.
     /// </exception>
-    public CompositeDirectiveType GetDirectiveType(string directiveName)
+    public FusionDirectiveDefinition GetDirectiveType(string directiveName)
     {
         if (_directiveTypes.TryGetValue(directiveName, out var directiveType))
         {
@@ -248,6 +248,6 @@ public sealed class CompositeSchema
     /// </returns>
     public bool TryGetDirectiveType(
         string directiveName,
-        [NotNullWhen(true)] out CompositeDirectiveType? directiveType)
+        [NotNullWhen(true)] out FusionDirectiveDefinition? directiveType)
         => _directiveTypes.TryGetValue(directiveName, out directiveType);
 }
