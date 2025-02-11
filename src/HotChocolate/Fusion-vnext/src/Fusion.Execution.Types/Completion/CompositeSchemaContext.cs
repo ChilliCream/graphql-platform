@@ -162,7 +162,7 @@ public sealed class CompositeSchemaContext
 
     private FusionDirectiveDefinition CreateSkipDirective()
     {
-        var ifField = new CompositeInputField(
+        var ifField = new FusionInputFieldDefinition(
             "if",
             "Skips this field or fragment when the condition is true.",
             defaultValue: null,
@@ -173,7 +173,7 @@ public sealed class CompositeSchemaContext
             "skip",
             "Directs the executor to skip this field or fragment when the `if` argument is true.",
             isRepeatable: false,
-            new CompositeInputFieldCollection([ifField]),
+            new FusionInputFieldDefinitionCollection([ifField]),
             DirectiveLocation.Field | DirectiveLocation.FragmentSpread | DirectiveLocation.InlineFragment);
 
         var skipDirectiveDef = new DirectiveDefinitionNode(
@@ -203,7 +203,7 @@ public sealed class CompositeSchemaContext
 
     private FusionDirectiveDefinition CreateIncludeDirective()
     {
-        var ifField = new CompositeInputField(
+        var ifField = new FusionInputFieldDefinition(
             "if",
             "Includes this field or fragment when the condition is true.",
             defaultValue: null,
@@ -214,7 +214,7 @@ public sealed class CompositeSchemaContext
             "include",
             "Directs the executor to include this field or fragment when the `if` argument is true.",
             isRepeatable: false,
-            new CompositeInputFieldCollection([ifField]),
+            new FusionInputFieldDefinitionCollection([ifField]),
             DirectiveLocation.Field | DirectiveLocation.FragmentSpread | DirectiveLocation.InlineFragment);
 
         var includeDirectiveDef = new DirectiveDefinitionNode(

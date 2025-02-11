@@ -111,17 +111,17 @@ public static class CompositeSchemaBuilder
             CreateOutputFields(definition.Fields));
     }
 
-    private static CompositeOutputFieldCollection CreateOutputFields(
+    private static FusionOutputFieldDefinitionCollection CreateOutputFields(
         IReadOnlyList<FieldDefinitionNode> fields)
     {
-        var sourceFields = new CompositeOutputField[fields.Count];
+        var sourceFields = new FusionOutputFieldDefinition[fields.Count];
 
         for (var i = 0; i < fields.Count; i++)
         {
             var field = fields[i];
             var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
 
-            sourceFields[i] = new CompositeOutputField(
+            sourceFields[i] = new FusionOutputFieldDefinition(
                 field.Name.Value,
                 field.Description?.Value,
                 isDeprecated,
@@ -129,25 +129,25 @@ public static class CompositeSchemaBuilder
                 CreateOutputFieldArguments(field.Arguments));
         }
 
-        return new CompositeOutputFieldCollection(sourceFields);
+        return new FusionOutputFieldDefinitionCollection(sourceFields);
     }
 
-    private static CompositeInputFieldCollection CreateOutputFieldArguments(
+    private static FusionInputFieldDefinitionCollection CreateOutputFieldArguments(
         IReadOnlyList<InputValueDefinitionNode> arguments)
     {
         if (arguments.Count == 0)
         {
-            return CompositeInputFieldCollection.Empty;
+            return FusionInputFieldDefinitionCollection.Empty;
         }
 
-        var temp = new CompositeInputField[arguments.Count];
+        var temp = new FusionInputFieldDefinition[arguments.Count];
 
         for (var i = 0; i < arguments.Count; i++)
         {
             var argument = arguments[i];
             var isDeprecated = DeprecatedDirectiveParser.TryParse(argument.Directives, out var deprecated);
 
-            temp[i] = new CompositeInputField(
+            temp[i] = new FusionInputFieldDefinition(
                 argument.Name.Value,
                 argument.Description?.Value,
                 argument.DefaultValue,
@@ -155,7 +155,7 @@ public static class CompositeSchemaBuilder
                 deprecated?.Reason);
         }
 
-        return new CompositeInputFieldCollection(temp);
+        return new FusionInputFieldDefinitionCollection(temp);
     }
 
     private static CompositeScalarType CreateScalarType(ScalarTypeDefinitionNode definition)
@@ -176,22 +176,22 @@ public static class CompositeSchemaBuilder
             DirectiveLocationUtils.Parse(definition.Locations));
     }
 
-    private static CompositeInputFieldCollection CreateInputFields(
+    private static FusionInputFieldDefinitionCollection CreateInputFields(
         IReadOnlyList<InputValueDefinitionNode> fields)
     {
         if (fields.Count == 0)
         {
-            return CompositeInputFieldCollection.Empty;
+            return FusionInputFieldDefinitionCollection.Empty;
         }
 
-        var sourceFields = new CompositeInputField[fields.Count];
+        var sourceFields = new FusionInputFieldDefinition[fields.Count];
 
         for (var i = 0; i < fields.Count; i++)
         {
             var field = fields[i];
             var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
 
-            sourceFields[i] = new CompositeInputField(
+            sourceFields[i] = new FusionInputFieldDefinition(
                 field.Name.Value,
                 field.Description?.Value,
                 field.DefaultValue,
@@ -199,7 +199,7 @@ public static class CompositeSchemaBuilder
                 deprecated?.Reason);
         }
 
-        return new CompositeInputFieldCollection(sourceFields);
+        return new FusionInputFieldDefinitionCollection(sourceFields);
     }
 
     private static CompositeSchema CompleteTypes(CompositeSchemaContext schemaContext)
@@ -262,7 +262,7 @@ public static class CompositeSchemaBuilder
     {
         foreach (var fieldDef in typeDef.Fields)
         {
-            CompleteOutputField(type, type.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
+            CompleteOutputField(type, type.FieldsDefinition[fieldDef.Name.Value], fieldDef, schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
@@ -278,7 +278,7 @@ public static class CompositeSchemaBuilder
     {
         foreach (var fieldDef in typeDef.Fields)
         {
-            CompleteOutputField(type, type.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
+            CompleteOutputField(type, type.FieldsDefinition[fieldDef.Name.Value], fieldDef, schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
@@ -289,23 +289,23 @@ public static class CompositeSchemaBuilder
 
     private static void CompleteOutputField(
         FusionComplexType declaringType,
-        CompositeOutputField field,
+        FusionOutputFieldDefinition fieldDefinition,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext schemaContext)
     {
         foreach (var argumentDef in fieldDef.Arguments)
         {
-            CompleteInputField(field.Arguments[argumentDef.Name.Value], argumentDef, schemaContext);
+            CompleteInputField(fieldDefinition.Arguments[argumentDef.Name.Value], argumentDef, schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(fieldDef.Directives, schemaContext);
         var type = schemaContext.GetType(fieldDef.Type);
-        var sources = BuildSourceObjectFieldCollection(field, fieldDef, schemaContext);
-        field.Complete(new CompositeObjectFieldCompletionContext(declaringType, directives, type, sources));
+        var sources = BuildSourceObjectFieldCollection(fieldDefinition, fieldDef, schemaContext);
+        fieldDefinition.Complete(new CompositeObjectFieldCompletionContext(declaringType, directives, type, sources));
     }
 
     private static SourceObjectFieldCollection BuildSourceObjectFieldCollection(
-        CompositeOutputField field,
+        FusionOutputFieldDefinition fieldDefinition,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext schemaContext)
     {
@@ -317,7 +317,7 @@ public static class CompositeSchemaBuilder
         {
             temp.Add(
                 new SourceOutputField(
-                    fieldDirective.SourceName ?? field.Name,
+                    fieldDirective.SourceName ?? fieldDefinition.Name,
                     fieldDirective.SchemaName,
                     ParseRequirements(requireDirectives, fieldDirective.SchemaName),
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, schemaContext)));
@@ -369,7 +369,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteInputField(
-        CompositeInputField argument,
+        FusionInputFieldDefinition argument,
         InputValueDefinitionNode argumentDef,
         CompositeSchemaContext schemaContext)
     {

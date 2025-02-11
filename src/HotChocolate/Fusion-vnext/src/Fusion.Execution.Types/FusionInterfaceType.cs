@@ -7,8 +7,8 @@ namespace HotChocolate.Fusion.Types;
 public sealed class FusionInterfaceType(
     string name,
     string? description,
-    CompositeOutputFieldCollection fields)
-    : FusionComplexType(name, description, fields)
+    FusionOutputFieldDefinitionCollection fieldsDefinition)
+    : FusionComplexType(name, description, fieldsDefinition)
 {
     private bool _isEntity;
 

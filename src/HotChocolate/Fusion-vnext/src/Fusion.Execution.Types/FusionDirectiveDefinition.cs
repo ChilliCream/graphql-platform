@@ -14,7 +14,7 @@ public sealed class FusionDirectiveDefinition
     public FusionDirectiveDefinition(string name,
         string? description,
         bool isRepeatable,
-        CompositeInputFieldCollection arguments,
+        FusionInputFieldDefinitionCollection arguments,
         DirectiveLocation locations)
     {
         Name = name;
@@ -48,7 +48,7 @@ public sealed class FusionDirectiveDefinition
     /// <summary>
     /// Gets the arguments that are defined on this directive.
     /// </summary>
-    public CompositeInputFieldCollection Arguments { get; }
+    public FusionInputFieldDefinitionCollection Arguments { get; }
 
     /// <summary>
     /// Gets the locations where this directive can be applied.

@@ -114,7 +114,7 @@ public static class SchemaDebugFormatter
             new NameNode(directive.Definition.Name),
             directive.Arguments.Select(Format).ToArray());
 
-    public static ArgumentNode Format(IArgumentAssignment argument)
+    public static ArgumentNode Format(ArgumentAssignment argument)
         => new ArgumentNode(null, new NameNode(argument.Name), argument.Value);
 
     private static NameNode Format(Types.DirectiveLocation location)
@@ -137,5 +137,3 @@ public static class SchemaDebugFormatter
         }
     }
 }
-
-

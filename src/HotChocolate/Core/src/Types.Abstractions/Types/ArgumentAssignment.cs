@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Serialization;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
@@ -106,7 +107,7 @@ public sealed class ArgumentAssignment : INameProvider, ISyntaxNodeProvider
     /// Creates an <see cref="ArgumentNode"/> from an <see cref="ArgumentAssignment"/>.
     /// </summary>
     public ArgumentNode ToSyntaxNode()
-        => new(null, new NameNode(Name), Value);
+        => SchemaDebugFormatter.Format(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => ToSyntaxNode();

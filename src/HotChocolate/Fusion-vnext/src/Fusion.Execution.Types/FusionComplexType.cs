@@ -20,11 +20,11 @@ public abstract class FusionComplexType : IComplexTypeDefinition
     protected FusionComplexType(
         string name,
         string? description,
-        CompositeOutputFieldCollection fields)
+        FusionOutputFieldDefinitionCollection fieldsDefinition)
     {
         Name = name;
         Description = description;
-        Fields = fields;
+        FieldsDefinition = fieldsDefinition;
     }
 
     public abstract TypeKind Kind { get; }
@@ -90,7 +90,7 @@ public abstract class FusionComplexType : IComplexTypeDefinition
     /// <value>
     /// The fields of this type.
     /// </value>
-    public CompositeOutputFieldCollection Fields { get; }
+    public FusionOutputFieldDefinitionCollection FieldsDefinition { get; }
 
     /// <summary>
     /// Gets the source type definition of this type.
