@@ -2,9 +2,9 @@ using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
-using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 

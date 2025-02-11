@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion.Logging;
@@ -59,7 +59,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry DisallowedInaccessibleIntrospectionArgument(
-        InputFieldDefinition argument,
+        MutableInputFieldDefinition argument,
         string fieldName,
         string typeName,
         SchemaDefinition schema)
@@ -79,7 +79,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry DisallowedInaccessibleDirectiveArgument(
-        InputFieldDefinition argument,
+        MutableInputFieldDefinition argument,
         string directiveName,
         SchemaDefinition schema)
     {
@@ -101,15 +101,15 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry EmptyMergedEnumType(
-        EnumTypeDefinition enumType,
+        MutableEnumTypeDefinition mutableEnumType,
         SchemaDefinition schema)
     {
         return new LogEntry(
-            string.Format(LogEntryHelper_EmptyMergedEnumType, enumType.Name),
+            string.Format(LogEntryHelper_EmptyMergedEnumType, mutableEnumType.Name),
             LogEntryCodes.EmptyMergedEnumType,
             LogSeverity.Error,
-            new SchemaCoordinate(enumType.Name),
-            enumType,
+            new SchemaCoordinate(mutableEnumType.Name),
+            mutableEnumType,
             schema);
     }
 
@@ -153,20 +153,20 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry EnumValuesMismatch(
-        EnumTypeDefinition enumType,
+        MutableEnumTypeDefinition mutableEnumType,
         string enumValue,
         SchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(
                 LogEntryHelper_EnumValuesMismatch,
-                enumType.Name,
+                mutableEnumType.Name,
                 schema.Name,
                 enumValue),
             LogEntryCodes.EnumValuesMismatch,
             LogSeverity.Error,
-            new SchemaCoordinate(enumType.Name),
-            enumType,
+            new SchemaCoordinate(mutableEnumType.Name),
+            mutableEnumType,
             schema);
     }
 
@@ -233,7 +233,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry FieldArgumentTypesNotMergeable(
-        InputFieldDefinition argument,
+        MutableInputFieldDefinition argument,
         string fieldName,
         string typeName,
         SchemaDefinition schemaA,
@@ -257,7 +257,7 @@ internal static class LogEntryHelper
     public static LogEntry InputFieldDefaultMismatch(
         IValueNode defaultValueA,
         IValueNode defaultValueB,
-        InputFieldDefinition field,
+        MutableInputFieldDefinition field,
         string typeName,
         SchemaDefinition schemaA,
         SchemaDefinition schemaB)
@@ -280,7 +280,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry InputFieldTypesNotMergeable(
-        InputFieldDefinition field,
+        MutableInputFieldDefinition field,
         string typeName,
         SchemaDefinition schemaA,
         SchemaDefinition schemaB)

@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>HotChocolate.Skimmed</RootNamespace>
-    <AssemblyName>HotChocolate.Skimmed</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Mutable</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Mutable</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

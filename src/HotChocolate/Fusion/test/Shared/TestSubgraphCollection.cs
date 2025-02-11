@@ -2,8 +2,9 @@ using System.Net;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
-using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -20,7 +21,7 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
         return await GetExecutorAsync(fusionGraph, configure);
     }
 
-    public async Task<Skimmed.SchemaDefinition> GetFusionGraphAsync(FusionFeatureCollection? features = null)
+    public async Task<SchemaDefinition> GetFusionGraphAsync(FusionFeatureCollection? features = null)
     {
         features ??= new FusionFeatureCollection(FusionFeatures.NodeField);
 
@@ -51,7 +52,7 @@ public class TestSubgraphCollection(ITestOutputHelper outputHelper, TestSubgraph
     }
 
     private async Task<IRequestExecutor> GetExecutorAsync(
-        Skimmed.SchemaDefinition fusionGraph,
+        SchemaDefinition fusionGraph,
         Action<FusionGatewayBuilder>? configure = null)
     {
         var httpClientFactory = GetHttpClientFactory();

@@ -1,6 +1,5 @@
 using System.Text;
 using HotChocolate.Language;
-using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Skimmed;
 

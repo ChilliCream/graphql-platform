@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
-public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollection
+public sealed class DirectiveDefinitionCollection
+    : IList<MutableDirectiveDefinition>
+    , IReadOnlyDirectiveDefinitionCollection
 {
     private readonly List<SchemaCoordinate> _schemaDefinitions;
-    private readonly OrderedDictionary<string, DirectiveDefinition> _definitions = new();
+    private readonly OrderedDictionary<string, MutableDirectiveDefinition> _definitions = new();
 
     internal DirectiveDefinitionCollection(List<SchemaCoordinate> schemaDefinitions)
     {
@@ -18,12 +20,29 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
 
     public bool IsReadOnly => false;
 
-    public DirectiveDefinition this[string name] => _definitions[name];
+    public MutableDirectiveDefinition this[string name] => _definitions[name];
 
-    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? definition)
+    IDirectiveDefinition IReadOnlyDirectiveDefinitionCollection.this[string name] => _definitions[name];
+
+    public bool TryGetDirective(string name, [NotNullWhen(true)] out MutableDirectiveDefinition? definition)
         => _definitions.TryGetValue(name, out definition);
 
-    public void Insert(int index, DirectiveDefinition definition)
+    bool IReadOnlyDirectiveDefinitionCollection.TryGetDirective(
+        string name,
+        [NotNullWhen(true)] out IDirectiveDefinition? definition)
+    {
+        if(_definitions.TryGetValue(name, out var directiveDefinition))
+        {
+            definition = directiveDefinition;
+            return true;
+        }
+
+        definition = null;
+        return false;
+    }
+
+
+    public void Insert(int index, MutableDirectiveDefinition definition)
     {
         if (definition is null)
         {
@@ -54,7 +73,18 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
         _schemaDefinitions.Remove(new SchemaCoordinate(type.Key, ofDirective: true));
     }
 
-    public void Add(DirectiveDefinition item)
+    MutableDirectiveDefinition IList<MutableDirectiveDefinition>.this[int index]
+    {
+        get => _definitions.GetAt(index).Value;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            RemoveAt(index);
+            Insert(index, value);
+        }
+    }
+
+    public void Add(MutableDirectiveDefinition item)
     {
         if (item is null)
         {
@@ -77,7 +107,7 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
         _schemaDefinitions.Add(new SchemaCoordinate(item.Name, ofDirective: true));
     }
 
-    public bool Remove(DirectiveDefinition item)
+    public bool Remove(MutableDirectiveDefinition item)
     {
         if (item is null)
         {
@@ -106,7 +136,7 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
     public bool ContainsName(string name)
         => _definitions.ContainsKey(name);
 
-    public int IndexOf(DirectiveDefinition definition)
+    public int IndexOf(MutableDirectiveDefinition definition)
     {
         if (definition is null)
         {
@@ -119,7 +149,7 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
     public int IndexOf(string name)
         => _definitions.IndexOf(name);
 
-    public bool Contains(DirectiveDefinition item)
+    public bool Contains(MutableDirectiveDefinition item)
     {
         if (item is null)
         {
@@ -134,7 +164,7 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
         return false;
     }
 
-    public void CopyTo(DirectiveDefinition[] array, int arrayIndex)
+    public void CopyTo(MutableDirectiveDefinition[] array, int arrayIndex)
     {
         foreach (var item in _definitions)
         {
@@ -142,7 +172,10 @@ public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollecti
         }
     }
 
-    public IEnumerator<DirectiveDefinition> GetEnumerator()
+    public IEnumerator<MutableDirectiveDefinition> GetEnumerator()
+        => _definitions.Values.GetEnumerator();
+
+    IEnumerator<IDirectiveDefinition> IEnumerable<IDirectiveDefinition>.GetEnumerator()
         => _definitions.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()

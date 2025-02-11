@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;

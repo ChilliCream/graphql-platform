@@ -6,7 +6,7 @@ using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
@@ -64,7 +64,7 @@ internal sealed class PreMergeValidator(
 
                         break;
 
-                    case ComplexTypeDefinition complexType:
+                    case MutableComplexTypeDefinition complexType:
                         foreach (var field in complexType.Fields)
                         {
                             outputFieldGroupByName.Add(
@@ -74,7 +74,7 @@ internal sealed class PreMergeValidator(
 
                         break;
 
-                    case EnumTypeDefinition enumType:
+                    case MutableEnumTypeDefinition enumType:
                         enumTypeGroupByName.Add(enumType.Name, new EnumTypeInfo(enumType, schema));
                         break;
                 }

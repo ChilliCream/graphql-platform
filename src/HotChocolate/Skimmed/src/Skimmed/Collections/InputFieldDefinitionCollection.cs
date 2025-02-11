@@ -1,11 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public sealed class InputFieldDefinitionCollection
-    : FieldDefinitionCollection<InputFieldDefinition>
-    , IInputFieldDefinitionCollection
+    : FieldDefinitionCollection<MutableInputFieldDefinition>
     , IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
 {
     IInputValueDefinition IReadOnlyFieldDefinitionCollection<IInputValueDefinition>.this[string name]

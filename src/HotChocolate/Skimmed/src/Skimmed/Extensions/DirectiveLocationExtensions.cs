@@ -1,7 +1,5 @@
 
-using HotChocolate.Types;
-
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 internal static class DirectiveLocationExtensions
 {

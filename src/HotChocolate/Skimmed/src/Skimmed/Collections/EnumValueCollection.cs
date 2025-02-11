@@ -1,28 +1,27 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public sealed class EnumValueCollection
-    : IEnumValueCollection
+    : IList<MutableEnumValue>
     , IReadOnlyEnumValueCollection
 {
-    private readonly OrderedDictionary<string, EnumValue> _fields = new();
+    private readonly OrderedDictionary<string, MutableEnumValue> _fields = new();
 
     public int Count => _fields.Count;
 
     public bool IsReadOnly => false;
 
-    public EnumValue this[string name] => _fields[name];
+    public MutableEnumValue this[string name] => _fields[name];
 
-    IReadOnlyEnumValue IReadOnlyEnumValueCollection.this[string name]
+    IEnumValue IReadOnlyEnumValueCollection.this[string name]
         => this[name];
 
-    public bool TryGetValue(string name, [NotNullWhen(true)] out EnumValue? value)
+    public bool TryGetValue(string name, [NotNullWhen(true)] out MutableEnumValue? value)
         => _fields.TryGetValue(name, out value);
 
-    public bool TryGetValue(string name, [NotNullWhen(true)] out IReadOnlyEnumValue? value)
+    bool IReadOnlyEnumValueCollection.TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value)
     {
         if (_fields.TryGetValue(name, out var enumValue))
         {
@@ -34,7 +33,7 @@ public sealed class EnumValueCollection
         return false;
     }
 
-    public void Insert(int index, EnumValue value)
+    public void Insert(int index, MutableEnumValue value)
     {
         if (value is null)
         {
@@ -50,7 +49,13 @@ public sealed class EnumValueCollection
     public void RemoveAt(int index)
         => _fields.RemoveAt(index);
 
-    public void Add(EnumValue value)
+    public MutableEnumValue this[int index]
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+
+    public void Add(MutableEnumValue value)
     {
         if (value is null)
         {
@@ -60,7 +65,7 @@ public sealed class EnumValueCollection
         _fields.Add(value.Name, value);
     }
 
-    public bool Remove(EnumValue value)
+    public bool Remove(MutableEnumValue value)
     {
         if (value is null)
         {
@@ -82,7 +87,7 @@ public sealed class EnumValueCollection
     public bool ContainsName(string name)
         => _fields.ContainsKey(name);
 
-    public int IndexOf(EnumValue value)
+    public int IndexOf(MutableEnumValue value)
     {
         if (value is null)
         {
@@ -95,7 +100,7 @@ public sealed class EnumValueCollection
     public int IndexOf(string name)
         => _fields.IndexOf(name);
 
-    public bool Contains(EnumValue value)
+    public bool Contains(MutableEnumValue value)
     {
         if (value is null)
         {
@@ -111,7 +116,7 @@ public sealed class EnumValueCollection
         return false;
     }
 
-    public void CopyTo(EnumValue[] array, int arrayIndex)
+    public void CopyTo(MutableEnumValue[] array, int arrayIndex)
     {
         foreach (var item in _fields)
         {
@@ -119,12 +124,12 @@ public sealed class EnumValueCollection
         }
     }
 
-    public IEnumerator<EnumValue> GetEnumerator()
+    public IEnumerator<MutableEnumValue> GetEnumerator()
         => _fields.Values.GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator()
+    IEnumerator<IEnumValue> IEnumerable<IEnumValue>.GetEnumerator()
         => GetEnumerator();
 
-    IEnumerator<IReadOnlyEnumValue> IEnumerable<IReadOnlyEnumValue>.GetEnumerator()
+    IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 }

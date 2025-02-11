@@ -1,27 +1,27 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Events;
 
 internal record DirectiveArgumentEvent(
-    InputFieldDefinition Argument,
-    DirectiveDefinition Directive,
+    MutableInputFieldDefinition Argument,
+    MutableDirectiveDefinition MutableDirective,
     SchemaDefinition Schema) : IEvent;
 
 internal record EnumTypeEvent(
-    EnumTypeDefinition EnumType,
+    MutableEnumTypeDefinition MutableEnumType,
     SchemaDefinition Schema) : IEvent;
 
 internal record FieldArgumentEvent(
-    InputFieldDefinition Argument,
+    MutableInputFieldDefinition Argument,
     OutputFieldDefinition Field,
     INamedTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record InputFieldEvent(
-    InputFieldDefinition InputField,
+    MutableInputFieldDefinition MutableInputField,
     InputObjectTypeDefinition InputType,
     SchemaDefinition Schema) : IEvent;
 
@@ -35,33 +35,33 @@ internal record InterfaceTypeEvent(
 
 internal record KeyFieldEvent(
     Directive KeyDirective,
-    ComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition EntityType,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldNodeEvent(
     FieldNode FieldNode,
     ImmutableArray<string> FieldNamePath,
     Directive KeyDirective,
-    ComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition EntityType,
     SchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldsInvalidReferenceEvent(
     FieldNode FieldNode,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     Directive KeyDirective,
-    ComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition EntityType,
     SchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldsInvalidSyntaxEvent(
     Directive KeyDirective,
-    ComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition EntityType,
     SchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldsInvalidTypeEvent(
     Directive KeyDirective,
-    ComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition EntityType,
     SchemaDefinition Schema) : IEvent;
 
 internal record ObjectTypeEvent(
@@ -75,10 +75,10 @@ internal record OutputFieldEvent(
 
 internal record ProvidesFieldEvent(
     OutputFieldDefinition ProvidedField,
-    ComplexTypeDefinition ProvidedType,
+    MutableComplexTypeDefinition ProvidedType,
     Directive ProvidesDirective,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record ProvidesFieldNodeEvent(
@@ -86,42 +86,42 @@ internal record ProvidesFieldNodeEvent(
     ImmutableArray<string> FieldNamePath,
     Directive ProvidesDirective,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record ProvidesFieldsInvalidSyntaxEvent(
     Directive ProvidesDirective,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record ProvidesFieldsInvalidTypeEvent(
     Directive ProvidesDirective,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record RequireFieldNodeEvent(
     FieldNode FieldNode,
     ImmutableArray<string> FieldNamePath,
     Directive RequireDirective,
-    InputFieldDefinition Argument,
+    MutableInputFieldDefinition Argument,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record RequireFieldsInvalidSyntaxEvent(
     Directive RequireDirective,
-    InputFieldDefinition Argument,
+    MutableInputFieldDefinition Argument,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record RequireFieldsInvalidTypeEvent(
     Directive RequireDirective,
-    InputFieldDefinition Argument,
+    MutableInputFieldDefinition Argument,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema) : IEvent;
 
 internal record SchemaEvent(SchemaDefinition Schema) : IEvent;

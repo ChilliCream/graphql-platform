@@ -1,3 +1,5 @@
+using HotChocolate.Types.Mutable;
+
 namespace HotChocolate.Skimmed;
 
 public class SpecScalarTests

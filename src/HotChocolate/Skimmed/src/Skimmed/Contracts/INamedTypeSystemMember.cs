@@ -1,4 +1,4 @@
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public interface INamedTypeSystemMemberDefinition<out TSelf> : INameProvider
 {

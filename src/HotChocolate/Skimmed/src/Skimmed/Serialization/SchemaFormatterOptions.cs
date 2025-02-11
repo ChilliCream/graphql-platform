@@ -1,4 +1,4 @@
-namespace HotChocolate.Skimmed.Serialization;
+namespace HotChocolate.Types.Mutable.Serialization;
 
 public struct SchemaFormatterOptions
 {

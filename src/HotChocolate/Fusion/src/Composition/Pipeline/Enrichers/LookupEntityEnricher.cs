@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -33,8 +33,8 @@ internal sealed class LookupEntityEnricher : IEntityEnricher
                     schema.Types.Add(stringType);
                 }
 
-                isDirective = new DirectiveDefinition("is");
-                isDirective.Arguments.Add(new InputFieldDefinition("field", stringType));
+                isDirective = new MutableDirectiveDefinition("is");
+                isDirective.Arguments.Add(new MutableInputFieldDefinition("field", stringType));
                 schema.DirectiveDefinitions.Add(isDirective);
             }
 

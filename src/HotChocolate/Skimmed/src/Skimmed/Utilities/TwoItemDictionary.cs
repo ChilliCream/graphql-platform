@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace HotChocolate.Skimmed.Utilities;
+namespace HotChocolate.Types.Mutable.Utilities;
 
 internal sealed class TwoItemDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
 {

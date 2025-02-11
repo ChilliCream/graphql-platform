@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
-using HotChocolate.Skimmed;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.WellKnownTypeNames;
 
 namespace HotChocolate.Fusion;

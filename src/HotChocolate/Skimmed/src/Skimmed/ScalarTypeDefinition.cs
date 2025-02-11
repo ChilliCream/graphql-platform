@@ -1,10 +1,9 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a GraphQL scalar type definition.
@@ -119,14 +118,14 @@ public class ScalarTypeDefinition(string name)
     /// The string representation of this instance.
     /// </returns>
     public override string ToString()
-        => RewriteScalarType(this).ToString(true);
+        => Format(this).ToString(true);
 
     /// <summary>
     /// Creates a <see cref="ScalarTypeDefinitionNode"/> from a <see cref="ScalarTypeDefinition"/>.
     /// </summary>
-    public ScalarTypeDefinitionNode ToSyntaxNode() => RewriteScalarType(this);
+    public ScalarTypeDefinitionNode ToSyntaxNode() => Format(this);
 
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteScalarType(this);
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => Format(this);
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other)

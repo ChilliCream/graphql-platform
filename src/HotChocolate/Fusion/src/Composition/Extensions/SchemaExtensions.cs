@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition;
 

@@ -1,10 +1,9 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a GraphQL output field definition.
@@ -187,14 +186,14 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
     /// The string representation of this instance.
     /// </returns>
     public override string ToString()
-        => RewriteOutputField(this).ToString(true);
+        => Format(this).ToString(true);
 
     /// <summary>
     /// Creates a <see cref="FieldDefinitionNode"/> from an <see cref="OutputFieldDefinition"/>.
     /// </summary>
-    public FieldDefinitionNode ToSyntaxNode() => RewriteOutputField(this);
+    public FieldDefinitionNode ToSyntaxNode() => Format(this);
 
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteOutputField(this);
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => Format(this);
 
     /// <summary>
     /// Creates a new output field definition.

@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 

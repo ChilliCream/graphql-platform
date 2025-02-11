@@ -1,8 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public static class Refactor
 {
@@ -30,7 +29,7 @@ public static class Refactor
                 return true;
             }
 
-            if (member is DirectiveDefinition dt)
+            if (member is MutableDirectiveDefinition dt)
             {
                 schema.DirectiveDefinitions.Remove(dt);
                 dt.Name = newName;
@@ -108,7 +107,7 @@ public static class Refactor
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumTypeDefinition) type;
+                    var enumType = (MutableEnumTypeDefinition) type;
 
                     if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
@@ -150,7 +149,7 @@ public static class Refactor
                 return false;
             }
 
-            var complexType = (ComplexTypeDefinition) type;
+            var complexType = (MutableComplexTypeDefinition) type;
 
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
@@ -205,15 +204,15 @@ public static class Refactor
         return false;
     }
 
-    private sealed class RemoveDirectiveRewriter : SchemaVisitor<DirectiveDefinition>
+    private sealed class RemoveDirectiveRewriter : SchemaVisitor<MutableDirectiveDefinition>
     {
         private readonly List<Directive> _remove = [];
 
-        public override void VisitDirectives(IDirectiveCollection directives, DirectiveDefinition directiveType)
+        public override void VisitDirectives(IDirectiveCollection directives, MutableDirectiveDefinition mutableDirectiveType)
         {
             foreach (var directive in directives)
             {
-                if (ReferenceEquals(directiveType, directive.Definition))
+                if (ReferenceEquals(mutableDirectiveType, directive.Definition))
                 {
                     _remove.Add(directive);
                 }
@@ -229,13 +228,13 @@ public static class Refactor
     }
 
     private sealed class RemoveDirectiveArgRewriter
-        : SchemaVisitor<(DirectiveDefinition Type, string Arg)>
+        : SchemaVisitor<(MutableDirectiveDefinition Type, string Arg)>
     {
         private readonly List<(Directive, Directive)> _replace = [];
 
         public override void VisitDirectives(
             IDirectiveCollection directives,
-            (DirectiveDefinition Type, string Arg) context)
+            (MutableDirectiveDefinition Type, string Arg) context)
         {
             foreach (var directive in directives)
             {
@@ -269,7 +268,7 @@ public static class Refactor
         // note: by removing fields this could clash with directive arguments
         // we should make this more robust and also remove these.
         private readonly List<OutputFieldDefinition> _removeOutputFields = [];
-        private readonly List<InputFieldDefinition> _removeInputFields = [];
+        private readonly List<MutableInputFieldDefinition> _removeInputFields = [];
 
         public override void VisitOutputFields(
             IFieldDefinitionCollection<OutputFieldDefinition> fields,
@@ -295,7 +294,7 @@ public static class Refactor
         }
 
         public override void VisitInputFields(
-            IFieldDefinitionCollection<InputFieldDefinition> fields,
+            IFieldDefinitionCollection<MutableInputFieldDefinition> fields,
             INamedTypeDefinition context)
         {
             foreach (var field in fields)
@@ -356,9 +355,9 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveEnumValueRewriter : SchemaVisitor<(EnumTypeDefinition Type, EnumValue Value)>
+    private sealed class RemoveEnumValueRewriter : SchemaVisitor<(MutableEnumTypeDefinition Type, MutableEnumValue Value)>
     {
-        public override void VisitInputField(InputFieldDefinition field, (EnumTypeDefinition Type, EnumValue Value) context)
+        public override void VisitInputField(MutableInputFieldDefinition field, (MutableEnumTypeDefinition Type, MutableEnumValue Value) context)
         {
             if (field.DefaultValue is not null &&
                 ReferenceEquals(field.Type.NamedType(), context.Type))
@@ -415,9 +414,9 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveInputFieldRewriter : SchemaVisitor<(InputObjectTypeDefinition Type, InputFieldDefinition Field)>
+    private sealed class RemoveInputFieldRewriter : SchemaVisitor<(InputObjectTypeDefinition Type, MutableInputFieldDefinition Field)>
     {
-        public override void VisitInputField(InputFieldDefinition field, (InputObjectTypeDefinition Type, InputFieldDefinition Field) context)
+        public override void VisitInputField(MutableInputFieldDefinition field, (InputObjectTypeDefinition Type, MutableInputFieldDefinition Field) context)
         {
             if (field.DefaultValue is not null &&
                 ReferenceEquals(field.Type.NamedType(), context.Type))

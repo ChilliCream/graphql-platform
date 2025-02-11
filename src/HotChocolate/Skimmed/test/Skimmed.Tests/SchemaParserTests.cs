@@ -1,6 +1,5 @@
 using System.Text;
 using HotChocolate.Language;
-using HotChocolate.Skimmed.Serialization;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Skimmed;

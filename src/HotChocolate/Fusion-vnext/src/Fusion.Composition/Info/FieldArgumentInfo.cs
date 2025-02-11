@@ -1,9 +1,9 @@
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Info;
 
 internal record FieldArgumentInfo(
-    InputFieldDefinition Argument,
+    MutableInputFieldDefinition Argument,
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema);

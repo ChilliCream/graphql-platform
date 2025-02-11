@@ -1,8 +1,7 @@
 using System.Text;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed.Serialization;
+namespace HotChocolate.Types.Mutable.Serialization;
 
 public static class SchemaParser
 {
@@ -47,7 +46,7 @@ public static class SchemaParser
                 switch (typeDef)
                 {
                     case EnumTypeDefinitionNode:
-                        schema.Types.Add(new EnumTypeDefinition(typeDef.Name.Value));
+                        schema.Types.Add(new MutableEnumTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case InputObjectTypeDefinitionNode:
@@ -89,7 +88,7 @@ public static class SchemaParser
                 }
 
                 schema.DirectiveDefinitions.Add(
-                    new DirectiveDefinition(directiveDef.Name.Value)
+                    new MutableDirectiveDefinition(directiveDef.Name.Value)
                     {
                         IsSpecDirective = BuiltIns.IsBuiltInDirective(directiveDef.Name.Value)
                     });
@@ -107,7 +106,7 @@ public static class SchemaParser
                 switch (definition)
                 {
                     case EnumTypeExtensionNode:
-                        var enumType = new EnumTypeDefinition(typeExt.Name.Value);
+                        var enumType = new MutableEnumTypeDefinition(typeExt.Name.Value);
                         enumType.GetTypeMetadata().IsExtension = true;
                         schema.Types.Add(enumType);
                         break;
@@ -161,7 +160,7 @@ public static class SchemaParser
                     case EnumTypeDefinitionNode typeDef:
                         BuildEnumType(
                             schema,
-                            (EnumTypeDefinition)schema.Types[typeDef.Name.Value],
+                            (MutableEnumTypeDefinition)schema.Types[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -219,7 +218,7 @@ public static class SchemaParser
                     case EnumTypeExtensionNode typeDef:
                         ExtendEnumType(
                             schema,
-                            (EnumTypeDefinition)schema.Types[typeDef.Name.Value],
+                            (MutableEnumTypeDefinition)schema.Types[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -343,7 +342,7 @@ public static class SchemaParser
 
     private static void BuildComplexType(
         SchemaDefinition schema,
-        ComplexTypeDefinition type,
+        MutableComplexTypeDefinition type,
         ComplexTypeDefinitionNodeBase node)
     {
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
@@ -381,7 +380,7 @@ public static class SchemaParser
                     throw new Exception("");
                 }
 
-                var argument = new InputFieldDefinition(argumentNode.Name.Value);
+                var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
                 argument.Description = argumentNode.Description?.Value;
                 argument.Type = schema.Types.ResolveType(argumentNode.Type);
                 argument.DefaultValue = argumentNode.DefaultValue;
@@ -425,7 +424,7 @@ public static class SchemaParser
                 throw new Exception("");
             }
 
-            var field = new InputFieldDefinition(fieldNode.Name.Value);
+            var field = new MutableInputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.ResolveType(fieldNode.Type);
             field.DefaultValue = fieldNode.DefaultValue;
@@ -444,7 +443,7 @@ public static class SchemaParser
 
     private static void BuildEnumType(
         SchemaDefinition schema,
-        EnumTypeDefinition type,
+        MutableEnumTypeDefinition type,
         EnumTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -453,7 +452,7 @@ public static class SchemaParser
 
     private static void ExtendEnumType(
         SchemaDefinition schema,
-        EnumTypeDefinition type,
+        MutableEnumTypeDefinition type,
         EnumTypeDefinitionNodeBase node)
     {
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
@@ -465,7 +464,7 @@ public static class SchemaParser
                 continue;
             }
 
-            var value = new EnumValue(enumValue.Name.Value);
+            var value = new MutableEnumValue(enumValue.Name.Value);
             value.Description = enumValue.Description?.Value;
 
             BuildDirectiveCollection(schema, value.Directives, enumValue.Directives);
@@ -542,7 +541,7 @@ public static class SchemaParser
 
     private static void BuildDirectiveType(
         SchemaDefinition schema,
-        DirectiveDefinition type,
+        MutableDirectiveDefinition type,
         DirectiveDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -550,7 +549,7 @@ public static class SchemaParser
 
         foreach (var argumentNode in node.Arguments)
         {
-            var argument = new InputFieldDefinition(argumentNode.Name.Value);
+            var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
             argument.Description = argumentNode.Description?.Value;
             argument.Type = schema.Types.ResolveType(argumentNode.Type);
             argument.DefaultValue = argumentNode.DefaultValue;
@@ -636,7 +635,7 @@ public static class SchemaParser
                 }
                 else
                 {
-                    directiveType = new DirectiveDefinition(directiveNode.Name.Value);
+                    directiveType = new MutableDirectiveDefinition(directiveNode.Name.Value);
                     // TODO: This is problematic, but currently necessary for the Fusion
                     // directives to work, since they don't have definitions in the source schema.
                     directiveType.IsRepeatable = true;

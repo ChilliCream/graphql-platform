@@ -1,6 +1,4 @@
-using HotChocolate.Types;
-
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public abstract class SchemaVisitor<TContext>
 {
@@ -23,7 +21,7 @@ public abstract class SchemaVisitor<TContext>
         switch (type.Kind)
         {
             case TypeKind.Enum:
-                VisitEnumType((EnumTypeDefinition)type, context);
+                VisitEnumType((MutableEnumTypeDefinition)type, context);
                 break;
 
             case TypeKind.InputObject:
@@ -64,7 +62,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitEnumType(EnumTypeDefinition type, TContext context)
+    public virtual void VisitEnumType(MutableEnumTypeDefinition type, TContext context)
     {
         VisitDirectives(type.Directives, context);
         VisitEnumValues(type.Values, context);
@@ -106,7 +104,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitEnumValue(EnumValue value, TContext context)
+    public virtual void VisitEnumValue(MutableEnumValue value, TContext context)
     {
         VisitDirectives(value.Directives, context);
     }
@@ -136,7 +134,7 @@ public abstract class SchemaVisitor<TContext>
     {
     }
 
-    public virtual void VisitInputFields(IFieldDefinitionCollection<InputFieldDefinition> fields, TContext context)
+    public virtual void VisitInputFields(IFieldDefinitionCollection<MutableInputFieldDefinition> fields, TContext context)
     {
         foreach (var field in fields)
         {
@@ -144,7 +142,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitInputField(InputFieldDefinition field, TContext context)
+    public virtual void VisitInputField(MutableInputFieldDefinition field, TContext context)
     {
         VisitDirectives(field.Directives, context);
     }
@@ -163,8 +161,8 @@ public abstract class SchemaVisitor<TContext>
         VisitInputFields(field.Arguments, context);
     }
 
-    public virtual void VisitDirectiveDefinition(DirectiveDefinition directive, TContext context)
+    public virtual void VisitDirectiveDefinition(MutableDirectiveDefinition mutableDirective, TContext context)
     {
-        VisitInputFields(directive.Arguments, context);
+        VisitInputFields(mutableDirective.Arguments, context);
     }
 }

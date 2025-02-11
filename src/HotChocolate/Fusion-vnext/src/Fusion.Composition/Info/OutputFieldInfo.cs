@@ -1,8 +1,8 @@
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Info;
 
 internal record OutputFieldInfo(
     OutputFieldDefinition Field,
-    ComplexTypeDefinition Type,
+    MutableComplexTypeDefinition Type,
     SchemaDefinition Schema);

@@ -1,6 +1,5 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
@@ -112,7 +111,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        ComplexTypeDefinition type,
+        MutableComplexTypeDefinition type,
         DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)

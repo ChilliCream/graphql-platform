@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 

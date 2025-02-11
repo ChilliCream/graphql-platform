@@ -1,7 +1,6 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
 using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
@@ -71,7 +70,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         {
             switch (type)
             {
-                case EnumTypeDefinition sourceType:
+                case MutableEnumTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
@@ -102,7 +101,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             if (!schema.DirectiveDefinitions.ContainsName(directiveType.Name))
             {
                 schema.DirectiveDefinitions.Add(
-                    new DirectiveDefinition(directiveType.Name)
+                    new MutableDirectiveDefinition(directiveType.Name)
                     {
                         IsRepeatable = directiveType.IsRepeatable,
                     });
@@ -142,7 +141,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         {
             switch (type)
             {
-                case EnumTypeDefinition sourceType:
+                case MutableEnumTypeDefinition sourceType:
                     MergeEnumType(context, sourceType, schema);
                     break;
 
@@ -171,10 +170,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
     private static void MergeEnumType(
         CompositionContext context,
-        EnumTypeDefinition source,
+        MutableEnumTypeDefinition source,
         SchemaDefinition targetSchema)
     {
-        if (targetSchema.Types.TryGetType<EnumTypeDefinition>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<MutableEnumTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -203,7 +202,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                 }
                 else
                 {
-                    targetValue = new EnumValue(sourceValue.Name);
+                    targetValue = new MutableEnumValue(sourceValue.Name);
                     targetValue.Description = sourceValue.Description;
                     targetValue.DeprecationReason = sourceValue.DeprecationReason;
                     targetValue.IsDeprecated = sourceValue.IsDeprecated;
@@ -251,7 +250,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         CompositionContext context,
         T source,
         SchemaDefinition targetSchema)
-        where T : ComplexTypeDefinition
+        where T : MutableComplexTypeDefinition
     {
         if (targetSchema.Types.TryGetType<T>(source.Name, out var target))
         {

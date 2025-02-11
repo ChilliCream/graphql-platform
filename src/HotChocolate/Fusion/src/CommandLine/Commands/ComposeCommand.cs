@@ -8,7 +8,7 @@ using HotChocolate.Fusion.CommandLine.Options;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 using HotChocolate.Utilities;
 using IOPath = System.IO.Path;
 using static System.Text.Json.JsonSerializerDefaults;

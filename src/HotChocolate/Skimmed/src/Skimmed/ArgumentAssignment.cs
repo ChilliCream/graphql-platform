@@ -1,14 +1,13 @@
 using HotChocolate.Language;
-using HotChocolate.Types;
+using HotChocolate.Serialization;
 using HotChocolate.Utilities;
-using static HotChocolate.Skimmed.SchemaDebugFormatter;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents an argument value assignment.
 /// </summary>
-public sealed class ArgumentAssignment : ISyntaxNodeProvider
+public sealed class ArgumentAssignment : IArgumentAssignment
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ArgumentAssignment"/> class.
@@ -102,12 +101,14 @@ public sealed class ArgumentAssignment : ISyntaxNodeProvider
     /// </summary>
     /// <returns></returns>
     public override string ToString()
-        => RewriteArgument(this).ToString(true);
+        => SchemaDebugFormatter.Format(this).ToString(true);
 
     /// <summary>
     /// Creates an <see cref="ArgumentNode"/> from an <see cref="ArgumentAssignment"/>.
     /// </summary>
-    public ArgumentNode ToSyntaxNode() => RewriteArgument(this);
+    public ArgumentNode ToSyntaxNode()
+        => SchemaDebugFormatter.Format(this);
 
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteArgument(this);
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
+        => SchemaDebugFormatter.Format(this);
 }

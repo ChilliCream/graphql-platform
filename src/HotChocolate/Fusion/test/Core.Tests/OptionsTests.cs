@@ -1,7 +1,6 @@
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;

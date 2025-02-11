@@ -1,4 +1,3 @@
-using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.MergeExtensions;
 
 namespace HotChocolate.Fusion.Composition;

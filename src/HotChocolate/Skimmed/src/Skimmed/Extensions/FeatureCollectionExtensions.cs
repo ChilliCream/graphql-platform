@@ -1,8 +1,11 @@
-namespace HotChocolate.Skimmed;
+using HotChocolate.Features;
+
+namespace HotChocolate.Types.Mutable;
 
 public static class FeatureCollectionExtensions
 {
-    public static TypeMetadata GetTypeMetadata(this INamedTypeDefinition type)
+    public static TypeMetadata GetTypeMetadata<T>(this T type)
+        where T : INamedTypeDefinition, IFeatureProvider
     {
         var metadata = type.Features.Get<TypeMetadata>();
 

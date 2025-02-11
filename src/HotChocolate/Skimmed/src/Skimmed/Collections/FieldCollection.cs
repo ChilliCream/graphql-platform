@@ -1,11 +1,9 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
-public abstract class FieldDefinitionCollection<TField>
-    : IFieldDefinitionCollection<TField>
-    where TField : IFieldDefinition
+public abstract class FieldDefinitionCollection<TField> : IList<TField> where TField : IFieldDefinition
 {
     private readonly OrderedDictionary<string, TField> _fields = new();
 
@@ -66,6 +64,16 @@ public abstract class FieldDefinitionCollection<TField>
         }
 
         _fields.RemoveAt(index);
+    }
+
+    TField IList<TField>.this[int index]
+    {
+        get => _fields.GetAt(index).Value;
+        set
+        {
+            RemoveAt(index);
+            Insert(index, value);
+        }
     }
 
     public void Clear() => _fields.Clear();

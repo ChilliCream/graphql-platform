@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 using INamedTypeDefinition = HotChocolate.Skimmed.INamedTypeDefinition;

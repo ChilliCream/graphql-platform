@@ -1,6 +1,6 @@
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using HotChocolate.Utilities;
 using INamedTypeDefinition = HotChocolate.Skimmed.INamedTypeDefinition;
 
@@ -219,7 +219,7 @@ internal static class MergeExtensions
         }
     }
 
-    internal static void MergeDescriptionWith(this DirectiveDefinition target, DirectiveDefinition source)
+    internal static void MergeDescriptionWith(this MutableDirectiveDefinition target, MutableDirectiveDefinition source)
     {
         if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
         {
@@ -227,7 +227,7 @@ internal static class MergeExtensions
         }
     }
 
-    internal static void MergeDescriptionWith(this EnumValue target, EnumValue source)
+    internal static void MergeDescriptionWith(this MutableEnumValue target, MutableEnumValue source)
     {
         if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
         {
@@ -258,7 +258,7 @@ internal static class MergeExtensions
         }
     }
 
-    internal static void MergeDeprecationWith(this EnumValue target, EnumValue source)
+    internal static void MergeDeprecationWith(this MutableEnumValue target, MutableEnumValue source)
     {
         if (!target.IsDeprecated && source.IsDeprecated)
         {

@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;

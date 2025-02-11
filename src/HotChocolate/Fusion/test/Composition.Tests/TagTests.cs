@@ -1,6 +1,6 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 

@@ -3,7 +3,7 @@ using System.Text.Json;
 using HotChocolate.Fusion.Aspire;
 using HotChocolate.Fusion.Composition.Settings;
 using HotChocolate.Language;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion.Composition;
 

@@ -1,6 +1,6 @@
 using HotChocolate.Features;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public sealed class TypeMetadata : ISealable
 {

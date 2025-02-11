@@ -1,5 +1,5 @@
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -20,7 +20,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         var groupedTypes = new Dictionary<string, List<TypePart>>();
-        var groupedDirectives = new Dictionary<string, List<DirectiveDefinition>>();
+        var groupedDirectives = new Dictionary<string, List<MutableDirectiveDefinition>>();
 
         foreach (var schema in context.Subgraphs)
         {
@@ -104,8 +104,8 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
     }
 
     private static void MergeDirectiveDefinition(
-        DirectiveDefinition source,
-        DirectiveDefinition target,
+        MutableDirectiveDefinition source,
+        MutableDirectiveDefinition target,
         CompositionContext context)
     {
         if (!target.IsRepeatable)

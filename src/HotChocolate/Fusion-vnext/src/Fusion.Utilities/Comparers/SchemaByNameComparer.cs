@@ -1,5 +1,3 @@
-using HotChocolate.Skimmed;
-
 namespace HotChocolate.Fusion.Comparers;
 
 public sealed class SchemaByNameComparer : Comparer<SchemaDefinition>

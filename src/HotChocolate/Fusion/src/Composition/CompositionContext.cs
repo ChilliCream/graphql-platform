@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Composition.Features;
-using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition;

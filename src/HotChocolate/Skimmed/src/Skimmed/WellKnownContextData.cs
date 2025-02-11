@@ -1,4 +1,4 @@
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 internal static class WellKnownContextData
 {

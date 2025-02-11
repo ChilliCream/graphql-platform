@@ -1,20 +1,12 @@
 using System.Runtime.CompilerServices;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 internal static class ArgumentAssertExtensions
 {
-    public static T ExpectNotNull<T>(this T? value, [CallerArgumentExpression("value")] string name = "value") where T : class
-    {
-        if (value is null)
-        {
-            throw new ArgumentNullException(name);
-        }
-
-        return value;
-    }
-
-    public static ITypeDefinition ExpectInputType(this ITypeDefinition type, [CallerArgumentExpression("type")] string name = "type")
+    public static ITypeDefinition ExpectInputType(
+        this ITypeDefinition type,
+        [CallerArgumentExpression("type")] string name = "type")
     {
         if (type is null)
         {

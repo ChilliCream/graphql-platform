@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Skimmed.Tests;
 

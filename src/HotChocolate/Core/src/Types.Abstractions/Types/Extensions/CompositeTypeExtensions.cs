@@ -2,24 +2,17 @@ namespace HotChocolate.Types.Extensions;
 
 public static class CompositeTypeExtensions
 {
-    public static IReadOnlyNamedTypeDefinition NamedType(this IReadOnlyTypeDefinition type)
-    {
-        switch (type.Kind)
+    public static INamedTypeDefinition NamedType(this ITypeDefinition type)
+        => type.Kind switch
         {
-            case TypeKind.NonNull:
-            case TypeKind.List:
-                return NamedType(((IReadOnlyWrapperType)type).Type);
-
-            case TypeKind.Object:
-            case TypeKind.Interface:
-            case TypeKind.Union:
-            case TypeKind.InputObject:
-            case TypeKind.Enum:
-            case TypeKind.Scalar:
-                return (IReadOnlyNamedTypeDefinition)type;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type));
-        }
-    }
+            TypeKind.NonNull => NamedType(((INonNullTypeDefinition)type).NullableType),
+            TypeKind.List => NamedType(((IListTypeDefinition)type).ElementType),
+            TypeKind.Object or
+                TypeKind.Interface or
+                TypeKind.Union or
+                TypeKind.InputObject or
+                TypeKind.Enum or
+                TypeKind.Scalar => (INamedTypeDefinition)type,
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
+        };
 }

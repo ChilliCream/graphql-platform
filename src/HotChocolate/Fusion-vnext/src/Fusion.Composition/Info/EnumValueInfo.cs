@@ -1,8 +1,8 @@
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Info;
 
 internal record EnumValueInfo(
-    EnumValue EnumValue,
-    EnumTypeDefinition EnumType,
+    MutableEnumValue MutableEnumValue,
+    MutableEnumTypeDefinition MutableEnumType,
     SchemaDefinition Schema);

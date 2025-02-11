@@ -2,13 +2,18 @@ using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Mutable;
+using EnumTypeDefinition = HotChocolate.Types.Descriptors.Definitions.EnumTypeDefinition;
+using InterfaceTypeDefinition = HotChocolate.Types.Descriptors.Definitions.InterfaceTypeDefinition;
+using ObjectTypeDefinition = HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition;
+using UnionTypeDefinition = HotChocolate.Types.Descriptors.Definitions.UnionTypeDefinition;
 
 namespace HotChocolate.OpenApi.TypeInterceptors;
 
 /// <summary>
 /// Copies OpenAPI-related context data from the skimmed schema to the type definitions.
 /// </summary>
-public sealed class ContextDataTypeInterceptor(Skimmed.SchemaDefinition schema) : TypeInterceptor
+public sealed class ContextDataTypeInterceptor(SchemaDefinition schema) : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,

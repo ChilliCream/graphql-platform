@@ -1,4 +1,3 @@
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 

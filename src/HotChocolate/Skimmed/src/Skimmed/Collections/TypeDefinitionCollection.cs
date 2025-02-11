@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
-public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
+public sealed class TypeDefinitionCollection
+    : IList<INamedTypeDefinition>
+    , IReadOnlyTypeDefinitionCollection
 {
     private readonly List<SchemaCoordinate> _schemaDefinitions;
     private readonly OrderedDictionary<string, INamedTypeDefinition> _types = new();
@@ -19,6 +21,16 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
     public bool IsReadOnly => false;
 
     public INamedTypeDefinition this[string name] => _types[name];
+
+    public INamedTypeDefinition this[int index]
+    {
+        get => _types.GetAt(index).Value;
+        set
+        {
+            RemoveAt(index);
+            Insert(index, value);
+        }
+    }
 
     public bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? definition)
         => _types.TryGetValue(name, out definition);
@@ -38,10 +50,7 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 
     public void Insert(int index, INamedTypeDefinition definition)
     {
-        if(_types.Count <= index)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _types.Count);
 
         var type = _types.GetAt(index);
         var definitionIndex = _schemaDefinitions.IndexOf(new SchemaCoordinate(type.Key));

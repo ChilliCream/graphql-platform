@@ -1,8 +1,7 @@
 using HotChocolate.Language;
-using HotChocolate.Types;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a GraphQL list type definition.
@@ -35,10 +34,10 @@ public sealed class ListTypeDefinition : ITypeDefinition, IReadOnlyWrapperType
     /// The string representation of this instance.
     /// </returns>
     public override string ToString()
-        => RewriteTypeRef(this).ToString(true);
+        => FormatTypeRef(this).ToString(true);
 
     public ISyntaxNode ToSyntaxNode()
-        => RewriteTypeRef(this);
+        => FormatTypeRef(this);
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other)

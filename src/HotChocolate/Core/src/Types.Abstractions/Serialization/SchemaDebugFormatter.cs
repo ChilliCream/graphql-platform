@@ -5,68 +5,68 @@ namespace HotChocolate.Serialization;
 
 public static class SchemaDebugFormatter
 {
-    public static ObjectTypeDefinitionNode RewriteObjectType(IObjectTypeDefinition type)
+    public static ObjectTypeDefinitionNode Format(IObjectTypeDefinition type)
         => new ObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
             type.Description is null
                 ? null
                 : new StringValueNode(type.Description),
-            type.Directives.Select(RewriteDirective).ToArray(),
-            type.Implements.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray(),
-            type.Fields.Select(RewriteOutputField).ToArray());
+            type.Directives.Select(Format).ToArray(),
+            type.Implements.Select(FormatTypeRef).Cast<NamedTypeNode>().ToArray(),
+            type.Fields.Select(Format).ToArray());
 
-    public static InterfaceTypeDefinitionNode RewriteInterfaceType(IInterfaceTypeDefinition type)
+    public static InterfaceTypeDefinitionNode Format(IInterfaceTypeDefinition type)
         => new InterfaceTypeDefinitionNode(
             null,
             new NameNode(type.Name),
             type.Description is null
                 ? null
                 : new StringValueNode(type.Description),
-            type.Directives.Select(RewriteDirective).ToArray(),
-            type.Implements.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray(),
-            type.Fields.Select(RewriteOutputField).ToArray());
+            type.Directives.Select(Format).ToArray(),
+            type.Implements.Select(FormatTypeRef).Cast<NamedTypeNode>().ToArray(),
+            type.Fields.Select(Format).ToArray());
 
-    public static UnionTypeDefinitionNode RewriteUnionType(IUnionTypeDefinition type)
+    public static UnionTypeDefinitionNode Format(IUnionTypeDefinition type)
         => new UnionTypeDefinitionNode(
             null,
             new NameNode(type.Name),
             type.Description is null
                 ? null
                 : new StringValueNode(type.Description),
-            type.Directives.Select(RewriteDirective).ToArray(),
-            type.Types.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray());
+            type.Directives.Select(Format).ToArray(),
+            type.Types.Select(FormatTypeRef).Cast<NamedTypeNode>().ToArray());
 
-    public static InputObjectTypeDefinitionNode RewriteInputObjectType(IInputObjectTypeDefinition type)
+    public static InputObjectTypeDefinitionNode Format(IInputObjectTypeDefinition type)
         => new InputObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
             type.Description is null
                 ? null
                 : new StringValueNode(type.Description),
-            type.Directives.Select(RewriteDirective).ToArray(),
-            type.Fields.Select(RewriteInputField).ToArray());
+            type.Directives.Select(Format).ToArray(),
+            type.Fields.Select(Format).ToArray());
 
-    public static EnumTypeDefinitionNode RewriteEnumType(IEnumTypeDefinition type)
+    public static EnumTypeDefinitionNode Format(IEnumTypeDefinition type)
             => new EnumTypeDefinitionNode(
             null,
             new NameNode(type.Name),
             type.Description is null
                 ? null
                 : new StringValueNode(type.Description),
-            type.Directives.Select(RewriteDirective).ToArray(),
-            type.Values.Select(RewriteEnumValue).ToArray());
+            type.Directives.Select(Format).ToArray(),
+            type.Values.Select(Format).ToArray());
 
-    public static ScalarTypeDefinitionNode RewriteScalarType(IScalarTypeDefinition type)
+    public static ScalarTypeDefinitionNode Format(IScalarTypeDefinition type)
         => new ScalarTypeDefinitionNode(
             null,
             new NameNode(type.Name),
             type.Description is null
                 ? null
                 : new StringValueNode(type.Description),
-            type.Directives.Select(RewriteDirective).ToArray());
+            type.Directives.Select(Format).ToArray());
 
-    public static DirectiveDefinitionNode RewriteDirectiveType(IDirectiveDefinition directiveDefinition)
+    public static DirectiveDefinitionNode Format(IDirectiveDefinition directiveDefinition)
         => new DirectiveDefinitionNode(
             null,
             new NameNode(directiveDefinition.Name),
@@ -74,62 +74,62 @@ public static class SchemaDebugFormatter
                 ? null
                 : new StringValueNode(directiveDefinition.Description),
             directiveDefinition.IsRepeatable,
-            directiveDefinition.Arguments.Select(RewriteInputField).ToArray(),
-            directiveDefinition.Locations.AsEnumerable().Select(RewriteDirectiveLocation).ToArray());
+            directiveDefinition.Arguments.Select(Format).ToArray(),
+            directiveDefinition.Locations.AsEnumerable().Select(Format).ToArray());
 
-    public static FieldDefinitionNode RewriteOutputField(IOutputFieldDefinition field)
+    public static FieldDefinitionNode Format(IOutputFieldDefinition field)
         => new FieldDefinitionNode(
             null,
             new NameNode(field.Name),
             field.Description is null
                 ? null
                 : new StringValueNode(field.Description),
-            field.Arguments.Select(RewriteInputField).ToArray(),
-            RewriteTypeRef(field.Type),
-            field.Directives.Select(RewriteDirective).ToArray());
+            field.Arguments.Select(Format).ToArray(),
+            FormatTypeRef(field.Type),
+            field.Directives.Select(Format).ToArray());
 
-    public static InputValueDefinitionNode RewriteInputField(IInputValueDefinition field)
+    public static InputValueDefinitionNode Format(IInputValueDefinition field)
         => new InputValueDefinitionNode(
             null,
             new NameNode(field.Name),
             field.Description is null
                 ? null
                 : new StringValueNode(field.Description),
-            RewriteTypeRef(field.Type),
+            FormatTypeRef(field.Type),
             field.DefaultValue,
-            field.Directives.Select(RewriteDirective).ToArray());
+            field.Directives.Select(Format).ToArray());
 
-    public static EnumValueDefinitionNode RewriteEnumValue(IEnumValue value)
+    public static EnumValueDefinitionNode Format(IEnumValue value)
         => new EnumValueDefinitionNode(
             null,
             new NameNode(value.Name),
             value.Description is null
                 ? null
                 : new StringValueNode(value.Description),
-            value.Directives.Select(RewriteDirective).ToArray());
+            value.Directives.Select(Format).ToArray());
 
-    public static DirectiveNode RewriteDirective(IDirective directive)
+    public static DirectiveNode Format(IDirective directive)
         => new DirectiveNode(
             null,
             new NameNode(directive.Definition.Name),
-            directive.Arguments.Select(RewriteArgument).ToArray());
+            directive.Arguments.Select(Format).ToArray());
 
-    public static ArgumentNode RewriteArgument(IArgumentAssignment argument)
+    public static ArgumentNode Format(IArgumentAssignment argument)
         => new ArgumentNode(null, new NameNode(argument.Name), argument.Value);
 
-    private static NameNode RewriteDirectiveLocation(Types.DirectiveLocation location)
+    private static NameNode Format(Types.DirectiveLocation location)
         => new NameNode(location.Format().ToString());
 
-    public static ITypeNode RewriteTypeRef(ITypeDefinition type)
+    public static ITypeNode FormatTypeRef(ITypeDefinition type)
     {
         switch (type.Kind)
         {
             case TypeKind.List:
-                return new ListTypeNode(RewriteTypeRef(((IListTypeDefinition)type).ElementType));
+                return new ListTypeNode(FormatTypeRef(((IListTypeDefinition)type).ElementType));
 
             case TypeKind.NonNull:
                 return new NonNullTypeNode(
-                    (INullableTypeNode)RewriteTypeRef(
+                    (INullableTypeNode)FormatTypeRef(
                         ((INonNullTypeDefinition)type).NullableType));
 
             default:

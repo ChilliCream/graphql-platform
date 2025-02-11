@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types;
 
-namespace HotChocolate;
+namespace HotChocolate.Types;
 
 public interface IReadOnlyDirectiveDefinitionCollection : IEnumerable<IDirectiveDefinition>
 {

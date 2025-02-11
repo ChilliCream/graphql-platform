@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
 

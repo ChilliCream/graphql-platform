@@ -1,11 +1,9 @@
 using System.Collections;
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public sealed class InterfaceTypeDefinitionCollection
-    : IInterfaceTypeDefinitionCollection
+    : IList<InterfaceTypeDefinition>
     , IReadOnlyInterfaceTypeDefinitionCollection
 {
     private readonly List<InterfaceTypeDefinition> _interfaces = new();
@@ -15,13 +13,22 @@ public sealed class InterfaceTypeDefinitionCollection
     public bool IsReadOnly => false;
 
     public InterfaceTypeDefinition this[int index]
-        => _interfaces[index];
+    {
+        get => _interfaces[index];
+        set => _interfaces[index] = value;
+    }
 
     public void Add(InterfaceTypeDefinition item)
         => _interfaces.Add(item);
 
     public bool Remove(InterfaceTypeDefinition item)
         => _interfaces.Remove(item);
+
+    public int IndexOf(InterfaceTypeDefinition item)
+        => _interfaces.IndexOf(item);
+
+    public void Insert(int index, InterfaceTypeDefinition item)
+        => _interfaces.Insert(index, item);
 
     public void RemoveAt(int index)
         => _interfaces.RemoveAt(index);

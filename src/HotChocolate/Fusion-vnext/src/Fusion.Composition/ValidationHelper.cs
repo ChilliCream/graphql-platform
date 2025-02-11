@@ -1,5 +1,5 @@
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 

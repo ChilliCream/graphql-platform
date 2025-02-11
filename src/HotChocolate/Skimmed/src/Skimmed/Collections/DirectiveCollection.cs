@@ -1,12 +1,13 @@
 using System.Collections;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a collection of directives.
 /// </summary>
-public sealed class DirectiveCollection : IDirectiveCollection, IReadOnlyDirectiveCollection
+public sealed class DirectiveCollection
+    : IList<Directive>
+    , IReadOnlyDirectiveCollection
 {
     private readonly List<Directive> _directives = [];
 
@@ -26,6 +27,15 @@ public sealed class DirectiveCollection : IDirectiveCollection, IReadOnlyDirecti
 
     IEnumerable<IDirective> IReadOnlyDirectiveCollection.this[string directiveName]
         => this[directiveName];
+
+    public Directive this[int index]
+    {
+        get => _directives[index];
+        set => _directives[index] = value;
+    }
+
+    IDirective IReadOnlyList<IDirective>.this[int index]
+        => _directives[index];
 
     private static IEnumerable<Directive> FindDirectives(List<Directive> directives, string name)
     {
@@ -66,8 +76,17 @@ public sealed class DirectiveCollection : IDirectiveCollection, IReadOnlyDirecti
     public bool Contains(Directive item)
         => _directives.Contains(item);
 
+    public int IndexOf(Directive item)
+        => _directives.IndexOf(item);
+
     public void Add(Directive item)
         => _directives.Add(item);
+
+    public void Insert(int index, Directive item)
+        => _directives.Insert(index, item);
+
+    public void RemoveAt(int index)
+        => _directives.RemoveAt(index);
 
     public bool Replace(Directive currentDirective, Directive newDirective)
     {
@@ -97,7 +116,6 @@ public sealed class DirectiveCollection : IDirectiveCollection, IReadOnlyDirecti
         }
     }
 
-    /// <inheritdoc />
     public IEnumerator<Directive> GetEnumerator()
         => _directives.GetEnumerator();
 

@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.SchemaVisitors;
 

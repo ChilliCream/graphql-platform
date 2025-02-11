@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -26,7 +26,7 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
         {
             var fieldType = field.Type.NamedType();
 
-            if (fieldType is not ComplexTypeDefinition)
+            if (fieldType is not MutableComplexTypeDefinition)
             {
                 context.Log.Write(ProvidesOnNonCompositeField(field, type, schema));
             }

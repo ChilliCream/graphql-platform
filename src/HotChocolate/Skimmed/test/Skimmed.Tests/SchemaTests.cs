@@ -1,3 +1,5 @@
+using HotChocolate.Types.Mutable;
+
 namespace HotChocolate.Skimmed;
 
 public class SchemaTests
@@ -34,7 +36,7 @@ public class SchemaTests
         queryType.Fields.Add(new("foo", stringType));
         schema.QueryType = queryType;
 
-        var directive = new DirectiveDefinition("foo");
+        var directive = new MutableDirectiveDefinition("foo");
         schema.DirectiveDefinitions.Add(directive);
 
         schema.Seal();
@@ -42,6 +44,6 @@ public class SchemaTests
         Assert.Throws<NotSupportedException>(NotSupported);
         return;
 
-        void NotSupported() => schema.DirectiveDefinitions.Add(new DirectiveDefinition("bar"));
+        void NotSupported() => schema.DirectiveDefinitions.Add(new MutableDirectiveDefinition("bar"));
     }
 }

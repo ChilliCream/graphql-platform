@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 

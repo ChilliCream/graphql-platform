@@ -1,13 +1,12 @@
-using HotChocolate.Types;
-using static HotChocolate.Serialization.SchemaDebugFormatter;
+using HotChocolate.Serialization;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a GraphQL object type definition.
 /// </summary>
 public class ObjectTypeDefinition(string name)
-    : ComplexTypeDefinition(name)
+    : MutableComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<ObjectTypeDefinition>
     , IObjectTypeDefinition
 {
@@ -21,7 +20,7 @@ public class ObjectTypeDefinition(string name)
     /// The string representation of this instance.
     /// </returns>
     public override string ToString()
-        => RewriteObjectType(this).ToString(true);
+        => SchemaDebugFormatter.Format(this).ToString(true);
 
     /// <inheritdoc />
     public override bool Equals(ITypeDefinition? other, TypeComparison comparison)

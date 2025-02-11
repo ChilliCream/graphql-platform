@@ -1,13 +1,12 @@
-using HotChocolate.Types;
-using static HotChocolate.Serialization.SchemaDebugFormatter;
+using HotChocolate.Serialization;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a GraphQL interface type definition.
 /// </summary>
 public  class InterfaceTypeDefinition(string name)
-    : ComplexTypeDefinition(name)
+    : MutableComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<InterfaceTypeDefinition>
     , IInterfaceTypeDefinition
 {
@@ -33,7 +32,7 @@ public  class InterfaceTypeDefinition(string name)
     ///  The string representation of this instance.
     /// </returns>
     public override string ToString()
-        => RewriteInterfaceType(this).ToString(true);
+        => SchemaDebugFormatter.Format(this).ToString(true);
 
     /// <summary>
     /// Creates a new instance of <see cref="InterfaceTypeDefinition"/>.

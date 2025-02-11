@@ -1,8 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed.Serialization;
+namespace HotChocolate.Types.Mutable.Serialization;
 
 public static class SchemaFormatter
 {
@@ -123,7 +122,7 @@ public static class SchemaFormatter
 
             foreach (var definition in schema.GetAllDefinitions())
             {
-                if (definition is DirectiveDefinition directiveDefinition)
+                if (definition is MutableDirectiveDefinition directiveDefinition)
                 {
                     if (!context.PrintSpecDirectives
                         && BuiltIns.IsBuiltInDirective(directiveDefinition.Name))
@@ -206,7 +205,7 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in typesDefinition.OfType<EnumTypeDefinition>().OrderBy(t => t.Name))
+            foreach (var type in typesDefinition.OfType<MutableEnumTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -339,7 +338,7 @@ public static class SchemaFormatter
                         directives);
         }
 
-        public override void VisitEnumType(EnumTypeDefinition type, VisitorContext context)
+        public override void VisitEnumType(MutableEnumTypeDefinition type, VisitorContext context)
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -375,7 +374,7 @@ public static class SchemaFormatter
             context.Result = definitionNodes;
         }
 
-        public override void VisitEnumValue(EnumValue value, VisitorContext context)
+        public override void VisitEnumValue(MutableEnumValue value, VisitorContext context)
         {
             VisitDirectives(value.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -410,20 +409,20 @@ public static class SchemaFormatter
         }
 
         public override void VisitDirectiveDefinition(
-            DirectiveDefinition directive,
+            MutableDirectiveDefinition mutableDirective,
             VisitorContext context)
         {
-            VisitInputFields(directive.Arguments, context);
+            VisitInputFields(mutableDirective.Arguments, context);
             var arguments = (List<InputValueDefinitionNode>)context.Result!;
 
             context.Result =
                 new DirectiveDefinitionNode(
                     null,
-                    new NameNode(directive.Name),
-                    CreateDescription(directive.Description),
-                    directive.IsRepeatable,
+                    new NameNode(mutableDirective.Name),
+                    CreateDescription(mutableDirective.Description),
+                    mutableDirective.IsRepeatable,
                     arguments,
-                    directive.Locations.ToNameNodes());
+                    mutableDirective.Locations.ToNameNodes());
         }
 
         public override void VisitOutputFields(
@@ -461,7 +460,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitInputFields(
-            IFieldDefinitionCollection<InputFieldDefinition> fields,
+            IFieldDefinitionCollection<MutableInputFieldDefinition> fields,
             VisitorContext context)
         {
             var inputNodes = new List<InputValueDefinitionNode>();
@@ -475,7 +474,7 @@ public static class SchemaFormatter
             context.Result = inputNodes;
         }
 
-        public override void VisitInputField(InputFieldDefinition field, VisitorContext context)
+        public override void VisitInputField(MutableInputFieldDefinition field, VisitorContext context)
         {
             VisitDirectives(field.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;

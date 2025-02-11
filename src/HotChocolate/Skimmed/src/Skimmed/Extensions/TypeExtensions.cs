@@ -1,9 +1,8 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public static class TypeExtensions
 {

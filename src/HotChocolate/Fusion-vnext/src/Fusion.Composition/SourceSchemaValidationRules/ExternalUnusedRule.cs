@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -23,7 +23,7 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
         {
             var referencingFields =
                 schema.Types
-                    .OfType<ComplexTypeDefinition>()
+                    .OfType<MutableComplexTypeDefinition>()
                     .SelectMany(t => t.Fields)
                     .Where(f => f.Type == type);
 

@@ -1,9 +1,8 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// <para>

@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.OpenApi.Extensions;
 using HotChocolate.Types;
+using TypeExtensions = HotChocolate.Types.Mutable.TypeExtensions;
 
 namespace HotChocolate.OpenApi.Helpers;
 
@@ -56,9 +57,9 @@ internal static class GraphQLNamingHelper
     public static string CreateObjectWrapperTypeName(Skimmed.ITypeDefinition type)
     {
         var typeName = JsonNamingPolicy.CamelCase.ConvertName(
-            Skimmed.TypeExtensions.NamedType(type).Name).FirstCharacterToUpper();
+            TypeExtensions.NamedType(type).Name).FirstCharacterToUpper();
 
-        var suffix = Skimmed.TypeExtensions.IsListType(type) ? "List" : "";
+        var suffix = TypeExtensions.IsListType(type) ? "List" : "";
 
         return $"{typeName}{suffix}Wrapper";
     }

@@ -1,10 +1,9 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types;
+using HotChocolate.Serialization;
 using HotChocolate.Utilities;
-using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a GraphQL union type definition.
@@ -115,14 +114,14 @@ public class UnionTypeDefinition(string name)
     /// Returns the string representation of the union type definition.
     /// </returns>
     public override string ToString()
-        => RewriteUnionType(this).ToString(true);
+        => SchemaDebugFormatter.Format(this).ToString(true);
 
     /// <summary>
     /// Creates a <see cref="UnionTypeDefinitionNode"/> from a <see cref="UnionTypeDefinition"/>.
     /// </summary>
-    public UnionTypeDefinitionNode ToSyntaxNode() => RewriteUnionType(this);
+    public UnionTypeDefinitionNode ToSyntaxNode() => SchemaDebugFormatter.Format(this);
 
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => RewriteUnionType(this);
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => SchemaDebugFormatter.Format(this);
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other)

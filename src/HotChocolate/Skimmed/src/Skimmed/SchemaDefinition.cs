@@ -1,10 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types;
+using HotChocolate.Types.Mutable.Serialization;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a GraphQL schema definition.
@@ -251,7 +250,7 @@ public sealed class SchemaDefinition
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumTypeDefinition)type;
+                    var enumType = (MutableEnumTypeDefinition)type;
                     if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         member = enumValue;
@@ -276,7 +275,7 @@ public sealed class SchemaDefinition
                 return false;
             }
 
-            var complexType = (ComplexTypeDefinition)type;
+            var complexType = (MutableComplexTypeDefinition)type;
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)

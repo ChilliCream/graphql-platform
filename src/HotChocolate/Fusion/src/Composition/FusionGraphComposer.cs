@@ -1,6 +1,5 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Composition.Pipeline;
-using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition;
 

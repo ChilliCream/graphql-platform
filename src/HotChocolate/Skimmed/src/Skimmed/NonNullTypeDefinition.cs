@@ -1,9 +1,8 @@
 using HotChocolate.Language;
-using HotChocolate.Types;
-using static HotChocolate.Skimmed.Properties.SkimmedResources;
+using static HotChocolate.Types.Mutable.Properties.SkimmedResources;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public sealed class NonNullTypeDefinition : ITypeDefinition, IReadOnlyWrapperType
 {
@@ -28,10 +27,10 @@ public sealed class NonNullTypeDefinition : ITypeDefinition, IReadOnlyWrapperTyp
     IReadOnlyTypeDefinition IReadOnlyWrapperType.Type => NullableType;
 
     public override string ToString()
-        => RewriteTypeRef(this).ToString(true);
+        => FormatTypeRef(this).ToString(true);
 
     public ISyntaxNode ToSyntaxNode()
-        => RewriteTypeRef(this);
+        => FormatTypeRef(this);
 
     public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);

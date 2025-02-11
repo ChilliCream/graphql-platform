@@ -1,19 +1,28 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Skimmed.Utilities;
-using HotChocolate.Types;
+using HotChocolate.Types.Mutable.Utilities;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// Represents a collection of argument value assignments.
 /// </summary>
-public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignment> arguments)
-    : IReadOnlyArgumentAssignmentCollection
+public sealed class ArgumentAssignmentCollection : IReadOnlyArgumentAssignmentCollection
 {
-    private readonly IReadOnlyDictionary<string, ArgumentAssignment> _arguments =
-        ToDictionary(arguments);
+    private readonly IReadOnlyDictionary<string, ArgumentAssignment> _argumentMap;
+
+    private readonly ImmutableArray<ArgumentAssignment> _arguments;
+
+    /// <summary>
+    /// Represents a collection of argument value assignments.
+    /// </summary>
+    public ArgumentAssignmentCollection(ImmutableArray<ArgumentAssignment> arguments)
+    {
+        _arguments = arguments;
+        _argumentMap = ToDictionary(arguments);
+    }
 
     /// <summary>
     /// Gets the number of argument assignments in the collection.
@@ -21,7 +30,7 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
     /// <value>
     /// The number of argument assignments in the collection.
     /// </value>
-    public int Count => _arguments.Count;
+    public int Count => _argumentMap.Count;
 
     /// <summary>
     /// Defines if this collection is read-only.
@@ -35,12 +44,14 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
     /// <summary>
     /// Gets the argument assignment with the specified <paramref name="argumentName"/>.
     /// </summary>
-    public IValueNode this[string argumentName] => _arguments[argumentName].Value;
+    public IValueNode this[string argumentName] => _argumentMap[argumentName].Value;
 
     /// <summary>
     /// Gets the argument assignment at the specified <paramref name="index"/>.
     /// </summary>
-    public ArgumentAssignment this[int index] => arguments[index];
+    public ArgumentAssignment this[int index] => _arguments[index];
+
+    IArgumentAssignment IReadOnlyList<IArgumentAssignment>.this[int index] => _arguments[index];
 
     /// <summary>
     /// Tries to get the argument assignment with the specified <paramref name="argumentName"/>.
@@ -57,7 +68,7 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
     /// </returns>
     public bool TryGetValue(string argumentName, [NotNullWhen(true)] out IValueNode? value)
     {
-        if (_arguments.TryGetValue(argumentName, out var arg))
+        if (_argumentMap.TryGetValue(argumentName, out var arg))
         {
             value = arg.Value;
             return true;
@@ -82,7 +93,7 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
     /// returns a <paramref name="defaultValue"/>.
     /// </returns>
     public IValueNode? GetValueOrDefault(string argumentName, IValueNode? defaultValue = null)
-        => _arguments.TryGetValue(argumentName, out var value)
+        => _argumentMap.TryGetValue(argumentName, out var value)
             ? value.Value
             : defaultValue;
 
@@ -98,7 +109,7 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
     /// <paramref name="argumentName"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool ContainsName(string argumentName)
-        => _arguments.ContainsKey(argumentName);
+        => _argumentMap.ContainsKey(argumentName);
 
     /// <summary>
     /// Checks if the collection contains the specified <paramref name="argument"/>.
@@ -111,7 +122,7 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
     /// otherwise, <c>false</c>.
     /// </returns>
     public bool Contains(ArgumentAssignment argument)
-        => arguments.Contains(argument);
+        => _arguments.Contains(argument);
 
     /// <summary>
     /// Copies the argument assignments to the specified <paramref name="array"/>.
@@ -124,15 +135,24 @@ public sealed class ArgumentAssignmentCollection(IReadOnlyList<ArgumentAssignmen
     /// </param>
     public void CopyTo(ArgumentAssignment[] array, int arrayIndex)
     {
-        foreach (var argument in arguments)
+        foreach (var argument in _arguments)
         {
             array[arrayIndex++] = argument;
         }
     }
 
-    /// <inheritdoc />
     public IEnumerator<ArgumentAssignment> GetEnumerator()
-        => arguments.GetEnumerator();
+    {
+        return ((IEnumerable<ArgumentAssignment>)_arguments).GetEnumerator();
+    }
+
+    IEnumerator<IArgumentAssignment> IEnumerable<IArgumentAssignment>.GetEnumerator()
+    {
+        foreach (var argument in _arguments)
+        {
+            yield return argument;
+        }
+    }
 
     /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator()

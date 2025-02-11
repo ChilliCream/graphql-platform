@@ -1,7 +1,6 @@
 using HotChocolate.Language;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 /// <summary>
 /// This type definition is used when building fields

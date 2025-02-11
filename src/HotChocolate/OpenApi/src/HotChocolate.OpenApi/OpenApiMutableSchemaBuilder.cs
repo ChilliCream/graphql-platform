@@ -5,11 +5,13 @@ using HotChocolate.Language;
 using HotChocolate.OpenApi.Extensions;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.Resolvers;
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using Directive = HotChocolate.Types.Mutable.Directive;
 using OperationType = Microsoft.OpenApi.Models.OperationType;
+using TypeExtensions = HotChocolate.Types.Mutable.TypeExtensions;
 
 namespace HotChocolate.OpenApi;
 
@@ -177,7 +179,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             unionName: GraphQLNamingHelper.CreateOperationResultName(operationName));
 
         var successTypeName = JsonNamingPolicy.CamelCase.ConvertName(
-            Skimmed.TypeExtensions.NamedType(successType).Name);
+            TypeExtensions.NamedType(successType).Name);
 
         var field = new OutputFieldDefinition(successTypeName, successType);
         field.SetUseParentResult(true);
@@ -252,7 +254,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
     private ObjectTypeDefinition CreateUnionMember(ITypeDefinition type)
     {
-        if (Skimmed.TypeExtensions.InnerType(type) is ObjectTypeDefinition objectType)
+        if (TypeExtensions.InnerType(type) is ObjectTypeDefinition objectType)
         {
             return objectType;
         }
@@ -291,7 +293,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             {
                 var parameterName = GraphQLNamingHelper.CreateName(parameter.Name);
 
-                outputField.Arguments.Add(new InputFieldDefinition(parameterName)
+                outputField.Arguments.Add(new MutableInputFieldDefinition(parameterName)
                 {
                     DefaultValue = CreateValueNodeFromOpenApiAny(parameter.Schema.Default),
                     Description = parameter.Description,
@@ -335,9 +337,9 @@ internal sealed class OpenApiMutableSchemaBuilder
 
             var inputFieldName = _mutationConventionsEnabled
                 ? inputArgumentName
-                : Skimmed.TypeExtensions.NamedType(inputType).Name.FirstCharacterToLower();
+                : TypeExtensions.NamedType(inputType).Name.FirstCharacterToLower();
 
-            var inputField = new InputFieldDefinition(inputFieldName)
+            var inputField = new MutableInputFieldDefinition(inputFieldName)
             {
                 Description = operation.RequestBody.Description,
                 Type = inputType,
@@ -360,8 +362,8 @@ internal sealed class OpenApiMutableSchemaBuilder
         {
             var tagName = GraphQLNamingHelper.CreateName(tag.Name);
 
-            outputField.Directives.Add(new Skimmed.Directive(
-                new DirectiveDefinition(WellKnownDirectives.Tag),
+            outputField.Directives.Add(new Directive(
+                new MutableDirectiveDefinition(WellKnownDirectives.Tag),
                 [new ArgumentAssignment(WellKnownDirectives.Name, tagName)]));
         }
     }
@@ -553,13 +555,13 @@ internal sealed class OpenApiMutableSchemaBuilder
         };
     }
 
-    private InputFieldDefinition CreateInputField(
+    private MutableInputFieldDefinition CreateInputField(
         string schemaTitle,
         string propertyName,
         OpenApiSchema propertySchema,
         bool required = false)
     {
-        var field = new InputFieldDefinition(GraphQLNamingHelper.CreateName(propertyName))
+        var field = new MutableInputFieldDefinition(GraphQLNamingHelper.CreateName(propertyName))
         {
             DefaultValue = CreateValueNodeFromOpenApiAny(propertySchema.Default),
             Description = propertySchema.Description,
@@ -612,7 +614,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
             foreach (var type in typeMap.Values)
             {
-                var innerType = Skimmed.TypeExtensions.InnerType(type);
+                var innerType = TypeExtensions.InnerType(type);
 
                 List<ObjectTypeDefinition> objectTypes = [];
 
@@ -623,7 +625,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                         break;
 
                     case ListTypeDefinition listType
-                        when Skimmed.TypeExtensions.InnerType(listType.ElementType) is
+                        when TypeExtensions.InnerType(listType.ElementType) is
                             ObjectTypeDefinition objectType:
 
                         objectTypes.Add(objectType);

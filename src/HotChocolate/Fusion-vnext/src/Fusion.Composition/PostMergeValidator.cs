@@ -4,7 +4,7 @@ using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
@@ -33,7 +33,7 @@ internal sealed class PostMergeValidator(
         {
             switch (type)
             {
-                case EnumTypeDefinition enumType:
+                case MutableEnumTypeDefinition enumType:
                     PublishEvent(new EnumTypeEvent(enumType, mergedSchema), context);
                     break;
 
@@ -60,7 +60,7 @@ internal sealed class PostMergeValidator(
                     break;
             }
 
-            if (type is ComplexTypeDefinition complexType)
+            if (type is MutableComplexTypeDefinition complexType)
             {
                 foreach (var field in complexType.Fields)
                 {

@@ -5,7 +5,7 @@ using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
@@ -38,7 +38,7 @@ internal sealed class SourceSchemaValidator(
             {
                 PublishEvent(new TypeEvent(type, schema), context);
 
-                if (type is ComplexTypeDefinition complexType)
+                if (type is MutableComplexTypeDefinition complexType)
                 {
                     if (complexType.Directives.ContainsName(DirectiveNames.Key))
                     {
@@ -96,7 +96,7 @@ internal sealed class SourceSchemaValidator(
     }
 
     private void PublishEntityEvents(
-        ComplexTypeDefinition entityType,
+        MutableComplexTypeDefinition entityType,
         SchemaDefinition schema,
         CompositionContext context)
     {
@@ -138,14 +138,14 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishKeyFieldEvents(
         SelectionSetNode selectionSet,
-        ComplexTypeDefinition entityType,
+        MutableComplexTypeDefinition entityType,
         Directive keyDirective,
         List<string> fieldNamePath,
-        ComplexTypeDefinition? parentType,
+        MutableComplexTypeDefinition? parentType,
         SchemaDefinition schema,
         CompositionContext context)
     {
-        ComplexTypeDefinition? nextParentType = null;
+        MutableComplexTypeDefinition? nextParentType = null;
 
         foreach (var selection in selectionSet.Selections)
         {
@@ -175,7 +175,7 @@ internal sealed class SourceSchemaValidator(
                                 schema),
                             context);
 
-                        if (field.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        if (field.Type.NullableType() is MutableComplexTypeDefinition fieldType)
                         {
                             nextParentType = fieldType;
                         }
@@ -214,7 +214,7 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishProvidesEvents(
         OutputFieldDefinition field,
-        ComplexTypeDefinition type,
+        MutableComplexTypeDefinition type,
         SchemaDefinition schema,
         CompositionContext context)
     {
@@ -255,14 +255,14 @@ internal sealed class SourceSchemaValidator(
     private void PublishProvidesFieldEvents(
         SelectionSetNode selectionSet,
         OutputFieldDefinition field,
-        ComplexTypeDefinition type,
+        MutableComplexTypeDefinition type,
         Directive providesDirective,
         List<string> fieldNamePath,
         ITypeDefinition? parentType,
         SchemaDefinition schema,
         CompositionContext context)
     {
-        ComplexTypeDefinition? nextParentType = null;
+        MutableComplexTypeDefinition? nextParentType = null;
 
         foreach (var selection in selectionSet.Selections)
         {
@@ -280,7 +280,7 @@ internal sealed class SourceSchemaValidator(
                         schema),
                     context);
 
-                if (parentType?.NullableType() is ComplexTypeDefinition providedType)
+                if (parentType?.NullableType() is MutableComplexTypeDefinition providedType)
                 {
                     if (providedType.Fields.TryGetField(
                             fieldNode.Name.Value,
@@ -296,7 +296,7 @@ internal sealed class SourceSchemaValidator(
                                 schema),
                             context);
 
-                        if (providedField.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        if (providedField.Type.NullableType() is MutableComplexTypeDefinition fieldType)
                         {
                             nextParentType = fieldType;
                         }
@@ -326,9 +326,9 @@ internal sealed class SourceSchemaValidator(
     }
 
     private void PublishRequireEvents(
-        InputFieldDefinition argument,
+        MutableInputFieldDefinition argument,
         OutputFieldDefinition field,
-        ComplexTypeDefinition type,
+        MutableComplexTypeDefinition type,
         SchemaDefinition schema,
         CompositionContext context)
     {
@@ -373,9 +373,9 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishRequireFieldEvents(
         SelectionSetNode selectionSet,
-        InputFieldDefinition argument,
+        MutableInputFieldDefinition argument,
         OutputFieldDefinition field,
-        ComplexTypeDefinition type,
+        MutableComplexTypeDefinition type,
         Directive requireDirective,
         List<string> fieldNamePath,
         SchemaDefinition schema,

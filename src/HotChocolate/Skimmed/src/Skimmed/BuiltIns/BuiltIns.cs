@@ -1,4 +1,4 @@
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public static class BuiltIns
 {
@@ -42,7 +42,7 @@ public static class BuiltIns
         public const string Name = "include";
         public const string If = "if";
 
-        public static IncludeDirectiveDefinition Create(SchemaDefinition schema)
+        public static IncludeMutableDirectiveDefinition Create(SchemaDefinition schema)
         {
             if (!schema.Types.TryGetType<ScalarTypeDefinition>(Boolean.Name, out var booleanTypeDef))
             {
@@ -50,7 +50,7 @@ public static class BuiltIns
                 schema.Types.Add(booleanTypeDef);
             }
 
-            return new IncludeDirectiveDefinition(booleanTypeDef);
+            return new IncludeMutableDirectiveDefinition(booleanTypeDef);
         }
     }
 
@@ -59,7 +59,7 @@ public static class BuiltIns
         public const string Name = "skip";
         public const string If = "if";
 
-        public static SkipDirectiveDefinition Create(SchemaDefinition schema)
+        public static SkipMutableDirectiveDefinition Create(SchemaDefinition schema)
         {
             if (!schema.Types.TryGetType<ScalarTypeDefinition>(Boolean.Name, out var booleanTypeDef))
             {
@@ -67,7 +67,7 @@ public static class BuiltIns
                 schema.Types.Add(booleanTypeDef);
             }
 
-            return new SkipDirectiveDefinition(booleanTypeDef);
+            return new SkipMutableDirectiveDefinition(booleanTypeDef);
         }
     }
 
@@ -76,7 +76,7 @@ public static class BuiltIns
         public const string Name = "deprecated";
         public const string Reason = "reason";
 
-        public static DeprecatedDirectiveDefinition Create(SchemaDefinition schema)
+        public static DeprecatedMutableDirectiveDefinition Create(SchemaDefinition schema)
         {
             if (!schema.Types.TryGetType<ScalarTypeDefinition>(String.Name, out var stringTypeDef))
             {
@@ -84,7 +84,7 @@ public static class BuiltIns
                 schema.Types.Add(stringTypeDef);
             }
 
-            return new DeprecatedDirectiveDefinition(stringTypeDef);
+            return new DeprecatedMutableDirectiveDefinition(stringTypeDef);
         }
     }
 
@@ -93,7 +93,7 @@ public static class BuiltIns
         public const string Name = "specifiedBy";
         public const string Url = "url";
 
-        public static SpecifiedByDirectiveDefinition Create(SchemaDefinition schema)
+        public static SpecifiedByMutableDirectiveDefinition Create(SchemaDefinition schema)
         {
             if (!schema.Types.TryGetType<ScalarTypeDefinition>(String.Name, out var stringTypeDef))
             {
@@ -101,7 +101,7 @@ public static class BuiltIns
                 schema.Types.Add(stringTypeDef);
             }
 
-            return new SpecifiedByDirectiveDefinition(stringTypeDef);
+            return new SpecifiedByMutableDirectiveDefinition(stringTypeDef);
         }
     }
 

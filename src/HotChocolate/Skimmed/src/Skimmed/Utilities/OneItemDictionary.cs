@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Skimmed.Utilities;
+namespace HotChocolate.Types.Mutable.Utilities;
 
 internal sealed class OneItemDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
 {

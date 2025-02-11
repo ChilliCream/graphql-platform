@@ -1,5 +1,3 @@
-using HotChocolate.Skimmed;
-
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
 internal sealed class AlignTypesVisitor(SchemaDefinition schema) : SchemaVisitor<object>

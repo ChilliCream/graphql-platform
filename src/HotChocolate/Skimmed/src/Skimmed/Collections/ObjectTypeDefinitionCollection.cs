@@ -1,15 +1,18 @@
 using System.Collections;
-using HotChocolate.Types;
 
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types.Mutable;
 
 public sealed class ObjectTypeDefinitionCollection
-    : IObjectTypeDefinitionCollection
+    : IList<ObjectTypeDefinition>
     , IReadOnlyObjectTypeDefinitionCollection
 {
     private readonly List<ObjectTypeDefinition> _types = [];
 
-    public ObjectTypeDefinition this[int index] => _types[index];
+    public ObjectTypeDefinition this[int index]
+    {
+        get => _types[index];
+        set => _types[index] = value;
+    }
 
     public int Count => _types.Count;
 
@@ -26,6 +29,12 @@ public sealed class ObjectTypeDefinitionCollection
 
     public bool ContainsName(string name)
         => _types.Exists(t => t.Name.Equals(name));
+
+    public int IndexOf(ObjectTypeDefinition item)
+        => _types.IndexOf(item);
+
+    public void Insert(int index, ObjectTypeDefinition item)
+        => _types.Insert(index, item);
 
     public void RemoveAt(int index)
         => _types.RemoveAt(index);
