@@ -1,8 +1,9 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Serialization.SchemaDebugFormatter;
+using static HotChocolate.Skimmed.SchemaDebugFormatter;
 
-namespace HotChocolate.Types;
+namespace HotChocolate.Skimmed;
 
 /// <summary>
 /// Represents an argument value assignment.

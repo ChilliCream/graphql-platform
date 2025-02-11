@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed class InlineFragmentOperationRewriter(IReadOnlySchemaDefinition schema)
+public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 {
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
     {
@@ -106,7 +106,7 @@ public sealed class InlineFragmentOperationRewriter(IReadOnlySchemaDefinition sc
         }
         else
         {
-            var field = ((IReadOnlyComplexType)context.Type).Fields[fieldNode.ResponseName()];
+            var field = ((IComplexType)context.Type).Fields[fieldNode.ResponseName()];
             var fieldContext = context.Branch(field.Type.NamedType());
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);

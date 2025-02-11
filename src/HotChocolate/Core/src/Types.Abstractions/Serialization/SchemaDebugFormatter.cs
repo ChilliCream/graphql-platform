@@ -3,9 +3,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Serialization;
 
-internal static class SchemaDebugFormatter
+public static class SchemaDebugFormatter
 {
-    public static ObjectTypeDefinitionNode RewriteObjectType(IReadOnlyObjectTypeDefinition type)
+    public static ObjectTypeDefinitionNode RewriteObjectType(IObjectTypeDefinition type)
         => new ObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -16,7 +16,7 @@ internal static class SchemaDebugFormatter
             type.Implements.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray(),
             type.Fields.Select(RewriteOutputField).ToArray());
 
-    public static InterfaceTypeDefinitionNode RewriteInterfaceType(IReadOnlyInterfaceTypeDefinition type)
+    public static InterfaceTypeDefinitionNode RewriteInterfaceType(IInterfaceTypeDefinition type)
         => new InterfaceTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -27,7 +27,7 @@ internal static class SchemaDebugFormatter
             type.Implements.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray(),
             type.Fields.Select(RewriteOutputField).ToArray());
 
-    public static UnionTypeDefinitionNode RewriteUnionType(IReadOnlyUnionTypeDefinition type)
+    public static UnionTypeDefinitionNode RewriteUnionType(IUnionTypeDefinition type)
         => new UnionTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -37,7 +37,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Types.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray());
 
-    public static InputObjectTypeDefinitionNode RewriteInputObjectType(IReadOnlyInputObjectTypeDefinition type)
+    public static InputObjectTypeDefinitionNode RewriteInputObjectType(IInputObjectTypeDefinition type)
         => new InputObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -47,7 +47,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Fields.Select(RewriteInputField).ToArray());
 
-    public static EnumTypeDefinitionNode RewriteEnumType(IReadOnlyEnumTypeDefinition type)
+    public static EnumTypeDefinitionNode RewriteEnumType(IEnumTypeDefinition type)
             => new EnumTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -57,7 +57,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Values.Select(RewriteEnumValue).ToArray());
 
-    public static ScalarTypeDefinitionNode RewriteScalarType(IReadOnlyScalarTypeDefinition type)
+    public static ScalarTypeDefinitionNode RewriteScalarType(IScalarTypeDefinition type)
         => new ScalarTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -66,7 +66,7 @@ internal static class SchemaDebugFormatter
                 : new StringValueNode(type.Description),
             type.Directives.Select(RewriteDirective).ToArray());
 
-    public static DirectiveDefinitionNode RewriteDirectiveType(IReadOnlyDirectiveDefinition directiveDefinition)
+    public static DirectiveDefinitionNode RewriteDirectiveType(IDirectiveDefinition directiveDefinition)
         => new DirectiveDefinitionNode(
             null,
             new NameNode(directiveDefinition.Name),
@@ -77,7 +77,7 @@ internal static class SchemaDebugFormatter
             directiveDefinition.Arguments.Select(RewriteInputField).ToArray(),
             directiveDefinition.Locations.AsEnumerable().Select(RewriteDirectiveLocation).ToArray());
 
-    public static FieldDefinitionNode RewriteOutputField(IReadOnlyOutputFieldDefinition field)
+    public static FieldDefinitionNode RewriteOutputField(IOutputFieldDefinition field)
         => new FieldDefinitionNode(
             null,
             new NameNode(field.Name),
@@ -88,7 +88,7 @@ internal static class SchemaDebugFormatter
             RewriteTypeRef(field.Type),
             field.Directives.Select(RewriteDirective).ToArray());
 
-    public static InputValueDefinitionNode RewriteInputField(IReadOnlyInputValueDefinition field)
+    public static InputValueDefinitionNode RewriteInputField(IInputValueDefinition field)
         => new InputValueDefinitionNode(
             null,
             new NameNode(field.Name),
@@ -99,7 +99,7 @@ internal static class SchemaDebugFormatter
             field.DefaultValue,
             field.Directives.Select(RewriteDirective).ToArray());
 
-    public static EnumValueDefinitionNode RewriteEnumValue(IReadOnlyEnumValue value)
+    public static EnumValueDefinitionNode RewriteEnumValue(IEnumValue value)
         => new EnumValueDefinitionNode(
             null,
             new NameNode(value.Name),
@@ -108,32 +108,32 @@ internal static class SchemaDebugFormatter
                 : new StringValueNode(value.Description),
             value.Directives.Select(RewriteDirective).ToArray());
 
-    public static DirectiveNode RewriteDirective(IReadOnlyDirective directive)
+    public static DirectiveNode RewriteDirective(IDirective directive)
         => new DirectiveNode(
             null,
             new NameNode(directive.Definition.Name),
             directive.Arguments.Select(RewriteArgument).ToArray());
 
-    public static ArgumentNode RewriteArgument(ArgumentAssignment argument)
+    public static ArgumentNode RewriteArgument(IArgumentAssignment argument)
         => new ArgumentNode(null, new NameNode(argument.Name), argument.Value);
 
     private static NameNode RewriteDirectiveLocation(Types.DirectiveLocation location)
         => new NameNode(location.Format().ToString());
 
-    public static ITypeNode RewriteTypeRef(IReadOnlyTypeDefinition type)
+    public static ITypeNode RewriteTypeRef(ITypeDefinition type)
     {
         switch (type.Kind)
         {
             case TypeKind.List:
-                return new ListTypeNode(RewriteTypeRef(((IReadOnlyWrapperType)type).Type));
+                return new ListTypeNode(RewriteTypeRef(((IListTypeDefinition)type).ElementType));
 
             case TypeKind.NonNull:
                 return new NonNullTypeNode(
                     (INullableTypeNode)RewriteTypeRef(
-                        ((IReadOnlyWrapperType)type).Type));
+                        ((INonNullTypeDefinition)type).NullableType));
 
             default:
-                return new NamedTypeNode(((IReadOnlyNamedTypeDefinition)type).Name);
+                return new NamedTypeNode(((INamedTypeDefinition)type).Name);
         }
     }
 }

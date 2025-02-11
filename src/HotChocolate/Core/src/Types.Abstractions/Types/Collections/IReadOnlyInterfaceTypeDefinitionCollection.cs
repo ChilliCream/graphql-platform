@@ -1,9 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace HotChocolate.Types;
 
 public interface IReadOnlyInterfaceTypeDefinitionCollection
-    : IEnumerable<IReadOnlyInterfaceTypeDefinition>
+    : IEnumerable<IInterfaceTypeDefinition>
 {
     bool ContainsName(string name);
 }

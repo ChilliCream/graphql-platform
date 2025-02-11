@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
-public interface IReadOnlyInputValueDefinition : IReadOnlyFieldDefinition
+public interface IInputValueDefinition : IFieldDefinition
 {
     IValueNode? DefaultValue { get; }
 }

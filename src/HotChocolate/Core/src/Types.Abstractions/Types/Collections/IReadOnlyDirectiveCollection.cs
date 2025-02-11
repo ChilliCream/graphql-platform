@@ -1,7 +1,6 @@
 namespace HotChocolate.Types;
 
-public interface IReadOnlyDirectiveCollection
-    : IEnumerable<IReadOnlyDirective>
+public interface IReadOnlyDirectiveCollection : IEnumerable<IDirective>
 {
     /// <summary>
     /// Gets a directive by its name.
@@ -9,7 +8,7 @@ public interface IReadOnlyDirectiveCollection
     /// <param name="directiveName">
     /// The name of the directive.
     /// </param>
-    IEnumerable<IReadOnlyDirective> this[string directiveName] { get; }
+    IEnumerable<IDirective> this[string directiveName] { get; }
 
     /// <summary>
     /// Gets the first directive that matches the specified name.
@@ -20,7 +19,7 @@ public interface IReadOnlyDirectiveCollection
     /// <returns>
     /// The first directive that matches the specified name.
     /// </returns>
-    IReadOnlyDirective? FirstOrDefault(string directiveName);
+    IDirective? FirstOrDefault(string directiveName);
 
     /// <summary>
     /// Determines whether the collection contains a directive with the specified name.

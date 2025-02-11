@@ -3,7 +3,7 @@ using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Directive : ITypeSystemMemberDefinition, IReadOnlyDirective
+public sealed class Directive : ITypeSystemMemberDefinition, IDirective
 {
     public Directive(DirectiveDefinition type, params ArgumentAssignment[] arguments)
         : this(type, (IReadOnlyList<ArgumentAssignment>)arguments)
@@ -20,11 +20,11 @@ public sealed class Directive : ITypeSystemMemberDefinition, IReadOnlyDirective
 
     public DirectiveDefinition Definition { get; }
 
-    IReadOnlyDirectiveDefinition IReadOnlyDirective.Definition => Definition;
+    IDirectiveDefinition IDirective.Definition => Definition;
 
     public ArgumentAssignmentCollection Arguments { get; }
 
-    IReadOnlyArgumentAssignmentCollection IReadOnlyDirective.Arguments => Arguments;
+    IReadOnlyArgumentAssignmentCollection IDirective.Arguments => Arguments;
 
     public override string ToString()
         => RewriteDirective(this).ToString(true);

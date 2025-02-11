@@ -12,7 +12,7 @@ namespace HotChocolate.Skimmed;
 public class InputObjectTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<InputObjectTypeDefinition>
-    , IReadOnlyInputObjectTypeDefinition
+    , IInputObjectTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -73,8 +73,8 @@ public class InputObjectTypeDefinition(string name)
     public IInputFieldDefinitionCollection Fields
         => _fields;
 
-    IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition> IReadOnlyInputObjectTypeDefinition.Fields
-        => _fields as IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields
+        => _fields as IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
             ?? ReadOnlyInputFieldDefinitionCollection.Empty;
 
     /// <inheritdoc />

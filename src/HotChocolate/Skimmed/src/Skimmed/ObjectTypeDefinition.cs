@@ -9,7 +9,7 @@ namespace HotChocolate.Skimmed;
 public class ObjectTypeDefinition(string name)
     : ComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<ObjectTypeDefinition>
-    , IReadOnlyObjectTypeDefinition
+    , IObjectTypeDefinition
 {
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;

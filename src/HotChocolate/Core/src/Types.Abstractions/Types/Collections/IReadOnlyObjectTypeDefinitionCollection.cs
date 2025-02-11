@@ -1,7 +1,7 @@
 namespace HotChocolate.Types;
 
 public interface IReadOnlyObjectTypeDefinitionCollection
-    : IEnumerable<IReadOnlyObjectTypeDefinition>
+    : IEnumerable<IObjectTypeDefinition>
 {
     bool ContainsName(string name);
 }

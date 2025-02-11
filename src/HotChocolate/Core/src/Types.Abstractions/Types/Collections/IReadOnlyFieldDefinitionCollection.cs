@@ -2,9 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types;
 
-public interface IReadOnlyFieldDefinitionCollection<TField>
-    : IEnumerable<TField>
-    where TField : IReadOnlyFieldDefinition
+public interface IReadOnlyFieldDefinitionCollection<TField> : IEnumerable<TField> where TField : IFieldDefinition
 {
     TField this[string name] { get; }
 

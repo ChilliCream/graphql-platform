@@ -54,7 +54,7 @@ public sealed class ReadOnlyInterfaceTypeDefinitionCollection
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    IEnumerator<IReadOnlyInterfaceTypeDefinition> IEnumerable<IReadOnlyInterfaceTypeDefinition>.GetEnumerator()
+    IEnumerator<IInterfaceTypeDefinition> IEnumerable<IInterfaceTypeDefinition>.GetEnumerator()
         => GetEnumerator();
 
     public static ReadOnlyInterfaceTypeDefinitionCollection Empty { get; } = new([]);

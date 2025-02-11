@@ -1,4 +1,4 @@
-namespace HotChocolate.Types;
+namespace HotChocolate.Types.Extensions;
 
 public static class CompositeTypeExtensions
 {

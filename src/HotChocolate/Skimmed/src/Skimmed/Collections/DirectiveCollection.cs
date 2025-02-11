@@ -24,7 +24,7 @@ public sealed class DirectiveCollection : IDirectiveCollection, IReadOnlyDirecti
         }
     }
 
-    IEnumerable<IReadOnlyDirective> IReadOnlyDirectiveCollection.this[string directiveName]
+    IEnumerable<IDirective> IReadOnlyDirectiveCollection.this[string directiveName]
         => this[directiveName];
 
     private static IEnumerable<Directive> FindDirectives(List<Directive> directives, string name)
@@ -57,7 +57,7 @@ public sealed class DirectiveCollection : IDirectiveCollection, IReadOnlyDirecti
         return null;
     }
 
-    IReadOnlyDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
+    IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
         => FirstOrDefault(directiveName);
 
     public bool ContainsName(string directiveName)
@@ -104,6 +104,6 @@ public sealed class DirectiveCollection : IDirectiveCollection, IReadOnlyDirecti
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-    IEnumerator<IReadOnlyDirective> IEnumerable<IReadOnlyDirective>.GetEnumerator()
+    IEnumerator<IDirective> IEnumerable<IDirective>.GetEnumerator()
         => GetEnumerator();
 }

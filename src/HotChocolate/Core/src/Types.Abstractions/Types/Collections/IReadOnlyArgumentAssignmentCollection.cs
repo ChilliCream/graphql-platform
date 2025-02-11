@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
-public interface IReadOnlyArgumentAssignmentCollection : IReadOnlyList<ArgumentAssignment>
+public interface IReadOnlyArgumentAssignmentCollection : IReadOnlyList<IArgumentAssignment>
 {
     /// <summary>
     /// Gets the argument assignment with the specified <paramref name="argumentName"/>.

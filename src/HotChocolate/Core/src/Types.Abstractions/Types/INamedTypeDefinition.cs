@@ -1,7 +1,4 @@
-using HotChocolate.Features;
-using HotChocolate.Types;
-
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Represents a GraphQL type definition of a named type.
@@ -11,7 +8,6 @@ public interface INamedTypeDefinition
     , INameProvider
     , IDescriptionProvider
     , IDirectivesProvider
-    , IFeatureProvider
     , ISyntaxNodeProvider
 {
     /// <summary>
@@ -29,4 +25,10 @@ public interface INamedTypeDefinition
     /// The description of the type.
     /// </value>
     new string? Description { get; set; }
+
+    /// <summary>
+    /// Determines whether an instance of a specified type <paramref name="type" />
+    /// can be assigned to a variable of the current type.
+    /// </summary>
+    bool IsAssignableFrom(INamedTypeDefinition type);
 }

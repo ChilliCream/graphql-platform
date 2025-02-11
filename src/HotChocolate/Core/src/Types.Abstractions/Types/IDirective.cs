@@ -1,8 +1,10 @@
 ﻿namespace HotChocolate.Types;
 
-public interface IReadOnlyDirective
+public interface IDirective
 {
-    IReadOnlyDirectiveDefinition Definition { get; }
+    string Name { get; }
+
+    IDirectiveDefinition Definition { get; }
 
     IReadOnlyArgumentAssignmentCollection Arguments { get; }
 }

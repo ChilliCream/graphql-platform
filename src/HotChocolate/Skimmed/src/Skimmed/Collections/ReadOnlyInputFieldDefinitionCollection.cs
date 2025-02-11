@@ -6,19 +6,19 @@ namespace HotChocolate.Skimmed;
 public sealed class ReadOnlyInputFieldDefinitionCollection
     : ReadOnlyFieldDefinitionCollection<InputFieldDefinition>
     , IInputFieldDefinitionCollection
-    , IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+    , IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
 {
     private ReadOnlyInputFieldDefinitionCollection(IEnumerable<InputFieldDefinition> values)
         : base(values)
     {
     }
 
-    IReadOnlyInputValueDefinition IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>.this[string name]
+    IInputValueDefinition IReadOnlyFieldDefinitionCollection<IInputValueDefinition>.this[string name]
         => this[name];
 
-    bool IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>.TryGetField(
+    bool IReadOnlyFieldDefinitionCollection<IInputValueDefinition>.TryGetField(
         string name,
-        [NotNullWhen(true)] out IReadOnlyInputValueDefinition? field)
+        [NotNullWhen(true)] out IInputValueDefinition? field)
     {
         if(TryGetField(name, out var f))
         {
@@ -30,7 +30,7 @@ public sealed class ReadOnlyInputFieldDefinitionCollection
         return false;
     }
 
-    IEnumerator<IReadOnlyInputValueDefinition> IEnumerable<IReadOnlyInputValueDefinition>.GetEnumerator()
+    IEnumerator<IInputValueDefinition> IEnumerable<IInputValueDefinition>.GetEnumerator()
         => GetEnumerator();
 
     public static ReadOnlyInputFieldDefinitionCollection Empty { get; } = new(Array.Empty<InputFieldDefinition>());

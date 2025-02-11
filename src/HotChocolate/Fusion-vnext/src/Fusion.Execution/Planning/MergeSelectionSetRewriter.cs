@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public class MergeSelectionSetRewriter(IReadOnlySchemaDefinition schema)
+public class MergeSelectionSetRewriter(ISchemaDefinition schema)
 {
     private readonly InlineFragmentOperationRewriter _rewriter = new(schema);
 

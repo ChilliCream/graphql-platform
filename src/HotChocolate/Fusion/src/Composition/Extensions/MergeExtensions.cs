@@ -2,6 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using INamedTypeDefinition = HotChocolate.Skimmed.INamedTypeDefinition;
 
 namespace HotChocolate.Fusion.Composition;
 

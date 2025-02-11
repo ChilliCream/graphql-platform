@@ -42,6 +42,6 @@ public sealed class ObjectTypeDefinitionCollection
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-    IEnumerator<IReadOnlyObjectTypeDefinition> IEnumerable<IReadOnlyObjectTypeDefinition>.GetEnumerator()
+    IEnumerator<IObjectTypeDefinition> IEnumerable<IObjectTypeDefinition>.GetEnumerator()
         => GetEnumerator();
 }

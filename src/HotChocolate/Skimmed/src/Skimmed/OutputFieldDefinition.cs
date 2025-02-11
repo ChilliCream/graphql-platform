@@ -12,7 +12,7 @@ namespace HotChocolate.Skimmed;
 public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = null)
     : IFieldDefinition
     , INamedTypeSystemMemberDefinition<OutputFieldDefinition>
-    , IReadOnlyOutputFieldDefinition
+    , IOutputFieldDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -113,8 +113,8 @@ public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = n
     public IInputFieldDefinitionCollection Arguments
         => _arguments ??= new InputFieldDefinitionCollection();
 
-    IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition> IReadOnlyOutputFieldDefinition.Arguments
-        => _arguments as IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IOutputFieldDefinition.Arguments
+        => _arguments as IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
             ?? ReadOnlyInputFieldDefinitionCollection.Empty;
 
     /// <summary>

@@ -65,7 +65,7 @@ public sealed class ReadOnlyObjectTypeDefinitionCollection
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-    IEnumerator<IReadOnlyObjectTypeDefinition> IEnumerable<IReadOnlyObjectTypeDefinition>.GetEnumerator()
+    IEnumerator<IObjectTypeDefinition> IEnumerable<IObjectTypeDefinition>.GetEnumerator()
         => GetEnumerator();
 
     public static ReadOnlyObjectTypeDefinitionCollection Empty { get; } = new([]);

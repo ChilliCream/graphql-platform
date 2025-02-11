@@ -12,7 +12,7 @@ namespace HotChocolate.Skimmed;
 public class ScalarTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<ScalarTypeDefinition>
-    , IReadOnlyScalarTypeDefinition
+    , IScalarTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();

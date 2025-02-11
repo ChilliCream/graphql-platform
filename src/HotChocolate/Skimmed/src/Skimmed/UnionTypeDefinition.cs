@@ -12,7 +12,7 @@ namespace HotChocolate.Skimmed;
 public class UnionTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<UnionTypeDefinition>
-    , IReadOnlyUnionTypeDefinition
+    , IUnionTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -70,7 +70,7 @@ public class UnionTypeDefinition(string name)
     public IObjectTypeDefinitionCollection Types
         => _types ??= new ObjectTypeDefinitionCollection();
 
-    IReadOnlyObjectTypeDefinitionCollection IReadOnlyUnionTypeDefinition.Types
+    IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types
         => _types as IReadOnlyObjectTypeDefinitionCollection
             ?? ReadOnlyObjectTypeDefinitionCollection.Empty;
 

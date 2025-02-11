@@ -14,7 +14,7 @@ public class DirectiveDefinition
     : INamedTypeSystemMemberDefinition<DirectiveDefinition>
     , IDescriptionProvider
     , IFeatureProvider
-    , IReadOnlyDirectiveDefinition
+    , IDirectiveDefinition
     , ISyntaxNodeProvider
     , ISealable
 {
@@ -119,8 +119,8 @@ public class DirectiveDefinition
     public IInputFieldDefinitionCollection Arguments
         => _arguments ??= new InputFieldDefinitionCollection();
 
-    IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition> IReadOnlyDirectiveDefinition.Arguments
-        => _arguments as IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
+        => _arguments as IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
             ?? ReadOnlyInputFieldDefinitionCollection.Empty;
 
     /// <summary>

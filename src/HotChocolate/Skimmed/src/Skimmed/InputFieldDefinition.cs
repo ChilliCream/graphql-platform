@@ -12,7 +12,7 @@ namespace HotChocolate.Skimmed;
 public sealed class InputFieldDefinition(string name, ITypeDefinition? type = null)
     : IFieldDefinition
     , INamedTypeSystemMemberDefinition<InputFieldDefinition>
-    , IReadOnlyInputValueDefinition
+    , IInputValueDefinition
     , ISealable
 {
     private ITypeDefinition _type = type ?? NotSetTypeDefinition.Default;

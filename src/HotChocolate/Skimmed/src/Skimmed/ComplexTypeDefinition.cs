@@ -11,7 +11,7 @@ namespace HotChocolate.Skimmed;
 /// </summary>
 public abstract class ComplexTypeDefinition(string name)
     : INamedTypeDefinition
-    , IReadOnlyComplexType
+    , IComplexType
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -71,7 +71,7 @@ public abstract class ComplexTypeDefinition(string name)
     public IInterfaceTypeDefinitionCollection Implements
         => _implements ??= new InterfaceTypeDefinitionCollection();
 
-    IReadOnlyInterfaceTypeDefinitionCollection IReadOnlyComplexType.Implements
+    IReadOnlyInterfaceTypeDefinitionCollection IComplexType.Implements
         => _implements as IReadOnlyInterfaceTypeDefinitionCollection ?? ReadOnlyInterfaceTypeDefinitionCollection.Empty;
 
     /// <summary>
@@ -83,8 +83,8 @@ public abstract class ComplexTypeDefinition(string name)
     public IOutputFieldDefinitionCollection Fields
         => _fields;
 
-    IReadOnlyFieldDefinitionCollection<IReadOnlyOutputFieldDefinition> IReadOnlyComplexType.Fields
-        => _fields as IReadOnlyFieldDefinitionCollection<IReadOnlyOutputFieldDefinition>
+    IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> IComplexType.Fields
+        => _fields as IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>
             ?? ReadOnlyOutputFieldDefinitionCollection.Empty;
 
     /// <inheritdoc />

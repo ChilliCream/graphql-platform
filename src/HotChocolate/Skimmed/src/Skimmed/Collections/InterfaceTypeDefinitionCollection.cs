@@ -41,7 +41,7 @@ public sealed class InterfaceTypeDefinitionCollection
     public IEnumerator<InterfaceTypeDefinition> GetEnumerator()
         => _interfaces.GetEnumerator();
 
-    IEnumerator<IReadOnlyInterfaceTypeDefinition> IEnumerable<IReadOnlyInterfaceTypeDefinition>.GetEnumerator()
+    IEnumerator<IInterfaceTypeDefinition> IEnumerable<IInterfaceTypeDefinition>.GetEnumerator()
         => GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

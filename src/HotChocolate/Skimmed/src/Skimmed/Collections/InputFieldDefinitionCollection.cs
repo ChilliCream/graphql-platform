@@ -6,14 +6,14 @@ namespace HotChocolate.Skimmed;
 public sealed class InputFieldDefinitionCollection
     : FieldDefinitionCollection<InputFieldDefinition>
     , IInputFieldDefinitionCollection
-    , IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>
+    , IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
 {
-    IReadOnlyInputValueDefinition IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>.this[string name]
+    IInputValueDefinition IReadOnlyFieldDefinitionCollection<IInputValueDefinition>.this[string name]
         => this[name];
 
-    bool IReadOnlyFieldDefinitionCollection<IReadOnlyInputValueDefinition>.TryGetField(
+    bool IReadOnlyFieldDefinitionCollection<IInputValueDefinition>.TryGetField(
         string name,
-        [NotNullWhen(true)] out IReadOnlyInputValueDefinition? field)
+        [NotNullWhen(true)] out IInputValueDefinition? field)
     {
         if(TryGetField(name, out var inputField))
         {
@@ -25,6 +25,6 @@ public sealed class InputFieldDefinitionCollection
         return false;
     }
 
-    IEnumerator<IReadOnlyInputValueDefinition> IEnumerable<IReadOnlyInputValueDefinition>.GetEnumerator()
+    IEnumerator<IInputValueDefinition> IEnumerable<IInputValueDefinition>.GetEnumerator()
         => GetEnumerator();
 }

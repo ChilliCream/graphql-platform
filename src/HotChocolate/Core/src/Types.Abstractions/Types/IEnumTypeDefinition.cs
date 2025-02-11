@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-public interface IReadOnlyEnumTypeDefinition : IReadOnlyNamedTypeDefinition
+public interface IEnumTypeDefinition : INamedTypeDefinition
 {
     IReadOnlyEnumValueCollection Values { get; }
 }

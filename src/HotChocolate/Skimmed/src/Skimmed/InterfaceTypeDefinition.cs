@@ -9,7 +9,7 @@ namespace HotChocolate.Skimmed;
 public  class InterfaceTypeDefinition(string name)
     : ComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<InterfaceTypeDefinition>
-    , IReadOnlyInterfaceTypeDefinition
+    , IInterfaceTypeDefinition
 {
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;

@@ -1,7 +1,4 @@
-using HotChocolate.Features;
-using HotChocolate.Types;
-
-namespace HotChocolate.Skimmed;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// The base interface for GraphQL field definitions.
@@ -11,7 +8,6 @@ public interface IFieldDefinition
     , IDescriptionProvider
     , IDeprecationProvider
     , IDirectivesProvider
-    , IFeatureProvider
     , ISyntaxNodeProvider
 {
     /// <summary>

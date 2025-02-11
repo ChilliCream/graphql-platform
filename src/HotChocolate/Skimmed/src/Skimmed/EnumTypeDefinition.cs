@@ -12,7 +12,7 @@ namespace HotChocolate.Skimmed;
 public class EnumTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<EnumTypeDefinition>
-    , IReadOnlyEnumTypeDefinition
+    , IEnumTypeDefinition
     , ISealable
 {
     private string _name = name.EnsureGraphQLName();
@@ -73,7 +73,7 @@ public class EnumTypeDefinition(string name)
     public IEnumValueCollection Values
         => _values;
 
-    IReadOnlyEnumValueCollection IReadOnlyEnumTypeDefinition.Values
+    IReadOnlyEnumValueCollection IEnumTypeDefinition.Values
         => _values as IReadOnlyEnumValueCollection ?? ReadOnlyEnumValueCollection.Empty;
 
     /// <inheritdoc />
