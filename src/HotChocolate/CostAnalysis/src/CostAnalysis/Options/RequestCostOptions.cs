@@ -5,6 +5,9 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public record RequestCostOptions
 {
+    private bool _enforceCostLimits;
+    private bool _skipAnalyzer;
+
     /// <summary>
     /// Request options for cost analysis.
     /// </summary>
@@ -79,7 +82,7 @@ public record RequestCostOptions
     /// </summary>
     public bool EnforceCostLimits
     {
-        get;
+        get => _enforceCostLimits;
         init
         {
             if (value)
@@ -87,7 +90,7 @@ public record RequestCostOptions
                 SkipAnalyzer = false;
             }
 
-            field = value;
+            _enforceCostLimits = value;
         }
     }
 
@@ -96,7 +99,7 @@ public record RequestCostOptions
     /// </summary>
     public bool SkipAnalyzer
     {
-        get;
+        get => _skipAnalyzer;
         init
         {
             if (value)
@@ -104,7 +107,7 @@ public record RequestCostOptions
                 EnforceCostLimits = false;
             }
 
-            field = value;
+            _skipAnalyzer = value;
         }
     }
 
