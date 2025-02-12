@@ -1,4 +1,5 @@
 using GreenDonut.Data;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
@@ -21,8 +22,22 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
         => (T)(object)MapArguments(context);
 
     private static PagingArguments MapArguments(IResolverContext context)
-        => MapArguments(context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments));
+    {
+        var pagingArguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);
+        var includeTotalCount = IncludeTotalCount(context.Selection);
 
-    private static PagingArguments MapArguments(CursorPagingArguments arguments)
-        => new(arguments.First, arguments.After, arguments.Last, arguments.Before);
+        if (includeTotalCount)
+        {
+            includeTotalCount = context.IsSelected("totalCount");
+        }
+
+        return MapArguments(pagingArguments, includeTotalCount);
+    }
+
+    private static PagingArguments MapArguments(CursorPagingArguments arguments, bool includeTotalCount)
+        => new(arguments.First, arguments.After, arguments.Last, arguments.Before, includeTotalCount);
+
+    private static bool IncludeTotalCount(ISelection selection)
+        => selection.Field.ContextData.TryGetValue(WellKnownContextData.PagingOptions, out var options)
+            && options is PagingOptions { IncludeTotalCount: true };
 }
