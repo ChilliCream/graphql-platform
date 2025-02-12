@@ -2129,6 +2129,14 @@
             "title": "Migrating",
             "items": [
               {
+                "path": "migrate-from-14-to-15",
+                "title": "Migrate from 14 to 15"
+              },
+              {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
+              {
                 "path": "migrate-from-12-to-13",
                 "title": "Migrate from 12 to 13"
               }
@@ -2228,6 +2236,10 @@
             "path": "migrating",
             "title": "Migrating",
             "items": [
+              {
+                "path": "migrate-from-13-to-14",
+                "title": "Migrate from 13 to 14"
+              },
               {
                 "path": "migrate-from-12-to-13",
                 "title": "Migrate from 12 to 13"
