@@ -75,6 +75,8 @@ type ProductsConnection {
   edges: [ProductsEdge!]
   "A flattened list of the nodes."
   nodes: [Product!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
 }
 
 "An edge in a connection."

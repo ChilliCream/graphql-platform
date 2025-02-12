@@ -43,7 +43,7 @@ public static class PagingQueryableExtensions
         this IQueryable<T> source,
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
-        => await source.ToPageAsync(arguments, includeTotalCount: false, cancellationToken);
+        => await source.ToPageAsync(arguments, includeTotalCount: arguments.IncludeTotalCount, cancellationToken);
 
     /// <summary>
     /// Executes a query with paging and returns the selected page.
@@ -212,7 +212,12 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync<TKey, TValue, TValue>(source, keySelector, t => t, arguments, cancellationToken);
+        => ToBatchPageAsync<TKey, TValue, TValue>(
+            source,
+            keySelector,
+            t => t,
+            arguments,
+            cancellationToken);
 
     /// <summary>
     /// Executes a batch query with paging and returns the selected pages for each parent.
@@ -295,7 +300,13 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync(source, keySelector, valueSelector, arguments, includeTotalCount: false, cancellationToken);
+        => ToBatchPageAsync(
+            source,
+            keySelector,
+            valueSelector,
+            arguments,
+            includeTotalCount: arguments.IncludeTotalCount,
+            cancellationToken);
 
     /// <summary>
     /// Executes a batch query with paging and returns the selected pages for each parent.
