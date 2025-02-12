@@ -114,6 +114,120 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task QueryContext_Simple_Selector()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Product>(
+            Selector: t => new Product { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Product>().AddDescending(t => t.Id));
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Products
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
+    public async Task QueryContext_Simple_Selector_Include_Brand()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Product>(
+            Selector: t => new Product { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Product>().AddDescending(t => t.Id));
+
+        query = query.Include(t => t.Brand);
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Products
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
+    public async Task QueryContext_Simple_Selector_Include_Brand_Name()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Product>(
+            Selector: t => new Product { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Product>().AddDescending(t => t.Id));
+
+        query = query.Select(t => new Product { Brand = new Brand { Name = t.Brand!.Name } });
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Products
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+     [Fact]
+    public async Task QueryContext_Simple_Selector_Include_Product_List()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Brand>(
+            Selector: t => new Brand { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Brand>().AddDescending(t => t.Id));
+
+        query = query.Select(t => new Brand { Products = t.Products.Select(p => new Product { Id = p.Id, Name = p.Name }).ToList() });
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Brands
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
     public async Task Fetch_Last_2_Items_Before_Last_Page()
     {
         // Arrange
@@ -305,5 +419,14 @@ public class PagingHelperTests(PostgreSqlResource resource)
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private static Snapshot CreateSnapshot()
+    {
+#if NET9_0_OR_GREATER
+        return Snapshot.Create();
+#else
+        return Snapshot.Create("NET8_0");
+#endif
     }
 }
