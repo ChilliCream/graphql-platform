@@ -246,6 +246,9 @@ public static class SchemaHelper
         TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.String);
         TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
         TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
+        TryAddLeafType(leafTypes, ScalarNames.LocalDate, TypeNames.DateOnly);
+        TryAddLeafType(leafTypes, ScalarNames.LocalDateTime, TypeNames.DateTime);
+        TryAddLeafType(leafTypes, ScalarNames.LocalTime, TypeNames.TimeOnly);
         TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
         TryAddLeafType(
             leafTypes,
