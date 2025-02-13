@@ -89,8 +89,6 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        var dictionary = new Dictionary<string, SyntaxInfo>();
-
         foreach (var syntaxInfo in syntaxInfos.AsSpan())
         {
             if (syntaxInfo.Diagnostics.Length > 0)
