@@ -2178,6 +2178,64 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Viewer_Bug_1()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              recentTestimonial: Testimonial
+              viewer: Viewer
+            }
+
+            type Testimonial {
+              id: ID!
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              exclusiveSubgraphB: String
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+
+        var request = Parse(
+            """
+            query {
+              recentTestimonial {
+                __typename
+              }
+              viewer {
+                exclusiveSubgraphB
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;
