@@ -267,6 +267,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged object type &apos;{0}&apos; must implement the field &apos;{1}&apos; on interface &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InterfaceFieldNoImplementation {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InterfaceFieldNoImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {
