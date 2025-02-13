@@ -186,7 +186,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 }
 
                 executionStep.AllSelections.Add(selection);
-                executionStep.RootSelections.Add(new RootSelection(selection, resolver));
+                var rootSelection = new RootSelection(selection, resolver);
+                executionStep.RootSelections.Add(rootSelection);
 
                 if (resolver is not null)
                 {
@@ -195,7 +196,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
                 if (selection.SelectionSet is not null)
                 {
-                    CollectNestedSelections(
+                    var couldPlanSelections = CollectNestedSelections(
                         backlog,
                         operation,
                         selection,
@@ -204,6 +205,15 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         executionStep,
                         preferBatching,
                         context.ParentSelections);
+
+                    if (!couldPlanSelections)
+                    {
+                        executionStep.AllSelections.Remove(selection);
+                        executionStep.RootSelections.Remove(rootSelection);
+                        executionStep.SelectionResolvers.Remove(selection);
+
+                        (leftovers ??=[]).Add(selection);
+                    }
                 }
 
                 path.RemoveAt(pathIndex);
@@ -281,7 +291,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         }
     }
 
-    private void CollectNestedSelections(
+    private bool CollectNestedSelections(
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
@@ -296,9 +306,10 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             preferBatching = parentSelection.Type.IsListType();
         }
 
+        var overallCouldPlanSelections = false;
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
-            CollectNestedSelections(
+            var couldPlanSelections = CollectNestedSelections(
                 backlog,
                 operation,
                 parentSelection,
@@ -308,10 +319,17 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 possibleType,
                 preferBatching,
                 parentSelectionLookup);
+
+            if (couldPlanSelections)
+            {
+                overallCouldPlanSelections = true;
+            }
         }
+
+        return overallCouldPlanSelections;
     }
 
-    private void CollectNestedSelections(
+    private bool CollectNestedSelections(
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
@@ -378,7 +396,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
                 if (selection.SelectionSet is not null)
                 {
-                    CollectNestedSelections(
+                    var couldPlanSelections = CollectNestedSelections(
                         backlog,
                         operation,
                         selection,
@@ -387,6 +405,14 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         executionStep,
                         preferBatching,
                         parentSelectionLookup);
+
+                    if (!couldPlanSelections)
+                    {
+                        executionStep.AllSelections.Remove(selection);
+                        executionStep.SelectionResolvers.Remove(selection);
+
+                        (leftovers ??=[]).Add(selection);
+                    }
                 }
             }
             else
@@ -399,6 +425,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         if (leftovers is not null)
         {
+            if (leftovers.Count == selectionSet.Selections.Count)
+            {
+                return false;
+            }
+
             backlog.Enqueue(
                 new BacklogItem(
                     parentSelection,
@@ -407,6 +438,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                     leftovers,
                     preferBatching));
         }
+
+        return true;
     }
 
     private static SelectionPath? CreateSelectionPath(SelectionPath? rootPath, List<ISelection> pathSegments)
