@@ -313,7 +313,7 @@ public static class ProductOperations
 
 The `[Lookup]` and `[Internal]` attributes are from the `HotChocolate.Fusion.SourceSchema` package. Technically, these attributes are not required, yet, it's a good practice to mark all lookup methods with `[Lookup]`. In case the lookup should not be used as an entry point in a query, you can mark it as `[Internal]`.
 
-You can learn more about lookups in the [Fusion documentation](/docs/fusion/v14/lookups).
+You can learn more about lookups in the [Fusion documentation](/docs/fusion/v15/lookups).
 
 This method provides a way for the gateway to fetch a `Product` by its `id`, which is essential for resolving cross-service references.
 
@@ -375,10 +375,10 @@ This query fetches orders and, for each line item, retrieves detailed informatio
 
 Nitro simplifies deployment orchestration, allowing downstream services to be deployed independently without requiring a full gateway redeployment.
 
-[Learn more about the DevOps process with Nitro in the DevOps documentation.](/docs/fusion/v14/devops).
+[Learn more about the DevOps process with Nitro in the DevOps documentation.](/docs/fusion/v15/devops).
 
 ## Next Steps
 
-- **Lookups:** Learn more about resolving entities in Fusion using lookups. [Read the Lookups documentation](/docs/fusion/v14/lookups)
-- **Entities:** Understand how Fusion handles entities and relationships across services. [Explore the Entity Relationships guide](/docs/fusion/v14/entities)
+- **Lookups:** Learn more about resolving entities in Fusion using lookups. [Read the Lookups documentation](/docs/fusion/v15/lookups)
+- **Entities:** Understand how Fusion handles entities and relationships across services. [Explore the Entity Relationships guide](/docs/fusion/v15/entities)
 - **Engage with the Community:** Join the ChilliCream community to share your experiences, seek support, and contribute to the ongoing development of Fusion. [Joint the Slack Community](https://slack.chillicream.com/)
