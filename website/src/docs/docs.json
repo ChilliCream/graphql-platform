@@ -162,7 +162,7 @@
     "title": "Fusion",
     "description": "Federated GraphQL Gateway",
     "metaDescription": "Fusion is a powerful, open-source GraphQL gateway that helps developers to build a unified API for their services.",
-    "latestStableVersion": "v14",
+    "latestStableVersion": "v15",
     "versions": [
       {
         "path": "v14",
@@ -209,7 +209,7 @@
     "title": "Hot Chocolate",
     "description": "GraphQL Server / Gateway",
     "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
-    "latestStableVersion": "v14",
+    "latestStableVersion": "v15",
     "versions": [
       {
         "path": "v15",
@@ -2034,7 +2034,7 @@
     "title": "Strawberry Shake",
     "description": "GraphQL Client for .NET",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
-    "latestStableVersion": "v14",
+    "latestStableVersion": "v15",
     "versions": [
       {
         "path": "v15",
