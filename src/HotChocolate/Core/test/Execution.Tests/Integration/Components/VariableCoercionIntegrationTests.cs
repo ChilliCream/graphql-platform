@@ -151,13 +151,15 @@ public class VariableCoercionIntegrationTests
     }
 
     [Fact]
-    public async Task Invalid_Enum_Value_Provided()
+    public async Task Invalid_Field_Provided_When_Enum_Is_Present()
     {
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
             new ObjectFieldNode("name", "Oliver"),
-            new ObjectFieldNode("gender", "FOO"));
+            new ObjectFieldNode("surname", "Smith"),
+            new ObjectFieldNode("gender", "MALE"),
+            new ObjectFieldNode("foo", "bar"));
 
         var request =
             OperationRequestBuilder
@@ -170,15 +172,13 @@ public class VariableCoercionIntegrationTests
     }
 
     [Fact]
-    public async Task Invalid_Field_Provided_When_Enum_Is_Present()
+    public async Task Invalid_Enum_Value_Provided()
     {
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
             new ObjectFieldNode("name", "Oliver"),
-            new ObjectFieldNode("surname", "Smith"),
-            new ObjectFieldNode("gender", "MALE"),
-            new ObjectFieldNode("foo", "bar"));
+            new ObjectFieldNode("gender", "FOO"));
 
         var request =
             OperationRequestBuilder
