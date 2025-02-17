@@ -292,7 +292,7 @@ context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(request.Paging
 
 The important point here is that the order must produce a unique cursor. That’s why we added the `Id` property as the last `ThenBy`. This is a common pattern to ensure the cursor remains unique
 
-With client-controlled sorting, we cannot simply use LINQ, as we do not know whether the user has already applied an order. This is where the Wither method comes in — it allows us to rewrite the order to ensure that the sort definition produces a unique cursor.
+With client-controlled sorting, we cannot simply use LINQ, as we do not know whether the user has already applied an order. This is where the `With` method comes in — it allows us to rewrite the order to ensure that the sort definition produces a unique cursor.
 
 ```csharp
 public class GetBrandQueryHandler(CatalogContext context)
@@ -407,11 +407,11 @@ The beauty of this approach is that the complexity in my business layer remains 
 
 ## DataLoader Branching
 
-But wait — if we use a DataLoader and fetch by key and path in different query contexts, wouldn’t that lead to conflicting data fetches? It would if we were using the same DataLoader. However, DataLoaders are immutable. When we apply a wither method, we are effectively branching the DataLoader as we are effectively changing what we fetch and how we fetch it.
+But wait — if we use a DataLoader and fetch by key and path in different query contexts, wouldn’t that lead to conflicting data fetches? It would if we were using the same DataLoader. However, DataLoaders are immutable. When we apply a `With` method, we are effectively branching the DataLoader as we are effectively changing what we fetch and how we fetch it.
 
 Essentially, we create a unique key based on the state passed into the DataLoader, which generates a new branch. If another resolver with the same state requests a different entity key, we look up the corresponding branch of the DataLoader and delegate the request to the correct instance.
 
-You can even branch further on top of the Wither method. For example, if you always need to ensure that data is queried within a specific customer context, you could add an additional where clause on top of our DataLoader. This would create a new branch of our DataLoader ensuring that only this `Handle` method will restrict data fetching.
+You can even branch further on top of the `With` method. For example, if you always need to ensure that data is queried within a specific customer context, you could add an additional where clause on top of our DataLoader. This would create a new branch of our DataLoader ensuring that only this `Handle` method will restrict data fetching.
 
 ```csharp
 public async Task<Page<Brand>> Handle(
