@@ -106,10 +106,15 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                         t.InterfaceName,
                         t.IsInterfacePublic ?? isPublic));
 
-                buffer ??= new();
+                buffer ??= [];
                 buffer.Clear();
                 buffer.AddRange(dataLoaderGroups);
-                generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer, defaults.GenerateInterfaces);
+                generator.WriteDataLoaderGroupClass(
+                    dataLoaderGroup.Key,
+                    buffer,
+                    defaults.GenerateInterfaces,
+                    defaults.IsInterfacePublic ?? true,
+                    defaults.IsPublic ?? true);
             }
 
             generator.WriteEndNamespace();

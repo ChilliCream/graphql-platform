@@ -3,9 +3,9 @@ using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using HotChocolate.Types.Analyzers.Helpers;
 using static System.StringComparison;
 using static HotChocolate.Types.Analyzers.WellKnownAttributes;
-using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
@@ -31,11 +31,14 @@ public sealed class DataLoaderModuleInspector : ISyntaxInspector
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
                 if (fullName.Equals(DataLoaderModuleAttribute, Ordinal) &&
-                    attributeSyntax.ArgumentList is { Arguments.Count: > 0, })
+                    attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
                 {
+
                     var nameExpr = attributeSyntax.ArgumentList.Arguments[0].Expression;
                     var name = context.SemanticModel.GetConstantValue(nameExpr).ToString();
-                    syntaxInfo = new DataLoaderModuleInfo(name);
+                    syntaxInfo = new DataLoaderModuleInfo(
+                        name,
+                        attributeSyntax.ArgumentList.Arguments.IsModuleInternal(context));
                     return true;
                 }
             }
