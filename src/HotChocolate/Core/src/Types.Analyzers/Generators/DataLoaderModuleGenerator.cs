@@ -10,7 +10,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         var module = GetDataLoaderModuleInfo(syntaxInfos);
