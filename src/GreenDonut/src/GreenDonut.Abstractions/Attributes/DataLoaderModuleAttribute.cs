@@ -23,4 +23,9 @@ public sealed class DataLoaderModuleAttribute : Attribute
     /// </summary>
     /// <value></value>
     public string Name { get; }
+
+    /// <summary>
+    /// Specifies if the generated module shall be internal.
+    /// </summary>
+    public bool IsInternal { get; set; }
 }

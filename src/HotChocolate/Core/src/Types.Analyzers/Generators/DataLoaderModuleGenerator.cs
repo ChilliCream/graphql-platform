@@ -26,7 +26,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 
         generator.WriteHeader();
         generator.WriteBeginNamespace();
-        generator.WriteBeginClass();
+        generator.WriteBeginClass(module.IsInternal);
         generator.WriteBeginRegistrationMethod();
 
         foreach (var syntaxInfo in syntaxInfos)
@@ -81,7 +81,9 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
         {
             if (syntaxInfo is DataLoaderModuleInfo module)
             {
-                return new DataLoaderModuleInfo(GeneratorUtils.SanitizeIdentifier(module.ModuleName));
+                return new DataLoaderModuleInfo(
+                    GeneratorUtils.SanitizeIdentifier(module.ModuleName),
+                    module.IsInternal);
             }
         }
 
