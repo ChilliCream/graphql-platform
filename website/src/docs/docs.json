@@ -165,6 +165,44 @@
     "latestStableVersion": "v15",
     "versions": [
       {
+        "path": "v15",
+        "title": "v15",
+        "items": [
+          {
+            "path": "index",
+            "title": "Overview"
+          },
+          {
+            "path": "quick-start",
+            "title": "Quick Start"
+          },
+          {
+            "path": "entities",
+            "title": "Entities"
+          },
+          {
+            "path": "lookups",
+            "title": "Lookups"
+          },
+          {
+            "path": "devops",
+            "title": "DevOps"
+          },
+          {
+            "path": "node",
+            "title": "Node Pattern"
+          },
+          {
+            "path": "aspire",
+            "title": "Aspire"
+          },
+          {
+            "path": "cli",
+            "title": "CLI"
+          }
+        ]
+      },
+      {
         "path": "v14",
         "title": "v14",
         "items": [
