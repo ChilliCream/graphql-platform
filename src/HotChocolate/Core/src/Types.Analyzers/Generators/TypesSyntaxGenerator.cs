@@ -11,7 +11,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
@@ -19,7 +19,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+        var module = syntaxInfos.GetModuleInfo(assemblyName, out _);
 
         // the generator is disabled.
         if(module.Options == ModuleOptions.Disabled)
