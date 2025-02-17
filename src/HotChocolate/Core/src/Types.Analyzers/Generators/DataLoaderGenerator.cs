@@ -11,7 +11,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
