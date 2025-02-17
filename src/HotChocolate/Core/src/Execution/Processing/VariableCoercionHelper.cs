@@ -173,6 +173,7 @@ internal sealed class VariableCoercionHelper
             {
                 // if we do not find a field on the type we also skip this error and let
                 // the deserialization produce a proper error on this.
+                fields?.Add(current);
                 continue;
             }
 
