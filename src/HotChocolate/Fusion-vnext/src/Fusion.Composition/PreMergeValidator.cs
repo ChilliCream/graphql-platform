@@ -2,28 +2,31 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
-using HotChocolate.Fusion.PreMergeValidation;
-using HotChocolate.Fusion.PreMergeValidation.Info;
+using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Info;
+using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class PreMergeValidator(IEnumerable<object> rules)
+internal sealed class PreMergeValidator(
+    ImmutableSortedSet<SchemaDefinition> schemas,
+    ImmutableArray<object> rules,
+    ICompositionLog log)
 {
-    private readonly ImmutableArray<object> _rules = [.. rules];
-
-    public CompositionResult Validate(CompositionContext context)
+    public CompositionResult Validate()
     {
-        PublishEvents(context);
+        PublishEvents();
 
-        return context.Log.HasErrors
+        return log.HasErrors
             ? ErrorHelper.PreMergeValidationFailed()
             : CompositionResult.Success();
     }
 
-    private void PublishEvents(CompositionContext context)
+    private void PublishEvents()
     {
+        var context = new CompositionContext(schemas, log);
         MultiValueDictionary<string, TypeInfo> typeGroupByName = [];
 
         foreach (var schema in context.SchemaDefinitions)
@@ -56,7 +59,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         {
                             inputFieldGroupByName.Add(
                                 field.Name,
-                                new InputFieldInfo(field, type, schema));
+                                new InputFieldInfo(field, inputType, schema));
                         }
 
                         break;
@@ -66,7 +69,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
                         {
                             outputFieldGroupByName.Add(
                                 field.Name,
-                                new OutputFieldInfo(field, type, schema));
+                                new OutputFieldInfo(field, complexType, schema));
                         }
 
                         break;
@@ -127,7 +130,7 @@ internal sealed class PreMergeValidator(IEnumerable<object> rules)
     private void PublishEvent<TEvent>(TEvent @event, CompositionContext context)
         where TEvent : IEvent
     {
-        foreach (var rule in _rules)
+        foreach (var rule in rules)
         {
             if (rule is IEventHandler<TEvent> handler)
             {

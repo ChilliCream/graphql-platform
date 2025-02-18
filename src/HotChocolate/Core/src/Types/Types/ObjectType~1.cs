@@ -49,6 +49,8 @@ public class ObjectType<T> : ObjectType
         _configure!(descriptor);
         _configure = null;
 
+        context.DescriptorContext.TypeConfiguration.Apply<IObjectTypeDescriptor<T>>(typeof(T), descriptor);
+
         return descriptor.CreateDefinition();
     }
 

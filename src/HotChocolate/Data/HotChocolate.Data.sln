@@ -45,7 +45,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions.InMemory", "..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj", "{3D9A5709-1CD1-4F07-B473-CE05D6E97113}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenDonut", "..\..\GreenDonut\src\Core\GreenDonut.csproj", "{75FE6381-6AE3-4F29-9777-B488D872BFAE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenDonut", "..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj", "{75FE6381-6AE3-4F29-9777-B488D872BFAE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fetching", "..\Core\src\Fetching\HotChocolate.Fetching.csproj", "{F6C7A00A-3C18-4EC1-BF7E-7F0BF83E7B6E}"
 EndProject
@@ -86,6 +86,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Tests.Utilities", "..\AspNetCore\test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj", "{AB5D66E9-FA86-4AAE-910A-BEEC1C4B8A80}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.EntityFramework.Pagination.Tests", "test\Data.EntityFramework.Pagination.Tests\HotChocolate.Data.EntityFramework.Pagination.Tests.csproj", "{D8BC128F-28C8-4730-B87D-3017B17ADD27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.PostgreSQL.Tests", "test\Data.PostgreSQL.Tests\HotChocolate.Data.PostgreSQL.Tests.csproj", "{C6440AEA-54FB-4436-8922-075F7C592E94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -136,6 +138,7 @@ Global
 		{F793AC13-0500-492A-914D-4229F6AE0687} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 		{AB5D66E9-FA86-4AAE-910A-BEEC1C4B8A80} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
 		{D8BC128F-28C8-4730-B87D-3017B17ADD27} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{C6440AEA-54FB-4436-8922-075F7C592E94} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D68A0AB9-871A-487B-8D12-1A7544D81B9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -560,5 +563,17 @@ Global
 		{D8BC128F-28C8-4730-B87D-3017B17ADD27}.Release|x64.Build.0 = Release|Any CPU
 		{D8BC128F-28C8-4730-B87D-3017B17ADD27}.Release|x86.ActiveCfg = Release|Any CPU
 		{D8BC128F-28C8-4730-B87D-3017B17ADD27}.Release|x86.Build.0 = Release|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Debug|x64.Build.0 = Debug|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Debug|x86.Build.0 = Debug|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Release|x64.ActiveCfg = Release|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Release|x64.Build.0 = Release|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Release|x86.ActiveCfg = Release|Any CPU
+		{C6440AEA-54FB-4436-8922-075F7C592E94}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

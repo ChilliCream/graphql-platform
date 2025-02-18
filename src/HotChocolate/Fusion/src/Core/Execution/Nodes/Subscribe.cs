@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
@@ -58,7 +59,7 @@ internal sealed class Subscribe(int id, Config config) : ResolverNodeBase(id, co
             var context = rootContext.Clone();
             var operationContext = context.OperationContext;
 
-                // we ensure that the query plan is only included once per stream
+            // we ensure that the query plan is only included once per stream
             // in order to not inflate response sizes.
             if (initialResponse)
             {
@@ -79,6 +80,33 @@ internal sealed class Subscribe(int id, Config config) : ResolverNodeBase(id, co
                     context.QueryPlan);
             }
             initialResponse = false;
+
+            if(response.Data.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined
+                && response.Errors.ValueKind is JsonValueKind.Array)
+            {
+                ExtractErrors(
+                    operationContext.Operation.Document,
+                    operationContext.Operation.Definition,
+                    operationContext.Result,
+                    operationContext.ErrorHandler,
+                    response.Errors,
+                    HotChocolate.Path.Root,
+                    pathDepth: 0,
+                    addDebugInfo: context.ShowDebugInfo);
+
+                // Before we yield back the result we register with it the rented operation context.
+                // When the result is disposed in the transport after usage
+                // so will the operation context.
+                context.Result.RegisterForCleanup(
+                    () =>
+                    {
+                        context.Dispose();
+                        return default;
+                    });
+
+                yield return context.Result.BuildResult();
+                continue;
+            }
 
             // Before we can start building requests we need to rent state for the execution result.
             var rootSelectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);

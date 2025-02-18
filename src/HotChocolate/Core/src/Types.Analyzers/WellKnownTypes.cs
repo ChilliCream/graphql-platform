@@ -1,3 +1,6 @@
+using System.Data;
+using System.Diagnostics.Contracts;
+
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes
@@ -66,9 +69,19 @@ public static class WellKnownTypes
     public const string PromiseCacheObserver = "GreenDonut.PromiseCacheObserver";
     public const string KeyValuePair = "System.Collections.Generic.KeyValuePair";
     public const string EnumerableExtensions = "System.Linq.Enumerable";
-    public const string SelectorBuilder = "GreenDonut.Selectors.ISelectorBuilder";
-    public const string PredicateBuilder = "GreenDonut.Predicates.IPredicateBuilder";
-    public const string PagingArguments = "HotChocolate.Pagination.PagingArguments";
+    public const string SelectorBuilder = "GreenDonut.Data.ISelectorBuilder";
+    public const string PredicateBuilder = "GreenDonut.Data.IPredicateBuilder";
+    public const string PagingArguments = "GreenDonut.Data.PagingArguments";
+    public const string QueryContext = "GreenDonut.Data.QueryContext";
+    public const string QueryContextGeneric = QueryContext + "<";
+    public const string SortDefinition = "GreenDonut.Data.SortDefinition";
+    public const string SortDefinitionGeneric = SortDefinition + "<";
+    public const string HotChocolateExecutionSelectionExtensions =
+        "HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions";
+    public const string FilterContextResolverContextExtensions =
+        "HotChocolate.Data.Filters.FilterContextResolverContextExtensions";
+    public const string SortingContextResolverContextExtensions =
+        "HotChocolate.Data.Sorting.SortingContextResolverContextExtensions";
 
     public static HashSet<string> TypeClass { get; } =
     [

@@ -100,6 +100,71 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EmptyMergedEnumType(
+        EnumTypeDefinition enumType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedEnumType, enumType.Name),
+            LogEntryCodes.EmptyMergedEnumType,
+            LogSeverity.Error,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedInputObjectType(
+        InputObjectTypeDefinition inputObjectType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedInputObjectType, inputObjectType.Name),
+            LogEntryCodes.EmptyMergedInputObjectType,
+            LogSeverity.Error,
+            new SchemaCoordinate(inputObjectType.Name),
+            inputObjectType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedInterfaceType(
+        InterfaceTypeDefinition interfaceType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedInterfaceType, interfaceType.Name),
+            LogEntryCodes.EmptyMergedInterfaceType,
+            LogSeverity.Error,
+            new SchemaCoordinate(interfaceType.Name),
+            interfaceType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedObjectType(
+        ObjectTypeDefinition objectType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedObjectType, objectType.Name),
+            LogEntryCodes.EmptyMergedObjectType,
+            LogSeverity.Error,
+            new SchemaCoordinate(objectType.Name),
+            objectType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedUnionType(
+        UnionTypeDefinition unionType,
+        SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedUnionType, unionType.Name),
+            LogEntryCodes.EmptyMergedUnionType,
+            LogSeverity.Error,
+            new SchemaCoordinate(unionType.Name),
+            unionType,
+            schema);
+    }
+
     public static LogEntry EnumValuesMismatch(
         EnumTypeDefinition enumType,
         string enumValue,
@@ -266,6 +331,30 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry InvalidGraphQL(string exceptionMessage)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_InvalidGraphQL, exceptionMessage),
+            LogEntryCodes.InvalidGraphQL,
+            severity: LogSeverity.Error);
+    }
+
+    public static LogEntry InvalidShareableUsage(
+        OutputFieldDefinition field,
+        INamedTypeDefinition type,
+        SchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, field.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_InvalidShareableUsage, coordinate, schema.Name),
+            LogEntryCodes.InvalidShareableUsage,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry KeyDirectiveInFieldsArgument(
         string entityTypeName,
         Directive keyDirective,
@@ -413,6 +502,17 @@ internal static class LogEntryHelper
             LogSeverity.Warning,
             coordinate,
             field,
+            schema);
+    }
+
+    public static LogEntry NoQueries(ObjectTypeDefinition queryType, SchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_NoQueries),
+            LogEntryCodes.NoQueries,
+            LogSeverity.Error,
+            new SchemaCoordinate(queryType.Name),
+            queryType,
             schema);
     }
 
@@ -691,5 +791,27 @@ internal static class LogEntryHelper
             severity: LogSeverity.Error,
             member: schema,
             schema: schema);
+    }
+
+    public static LogEntry TypeKindMismatch(
+        INamedTypeDefinition type,
+        SchemaDefinition schemaA,
+        string typeKindA,
+        SchemaDefinition schemaB,
+        string typeKindB)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_TypeKindMismatch,
+                type.Name,
+                schemaA.Name,
+                typeKindA,
+                schemaB.Name,
+                typeKindB),
+            LogEntryCodes.TypeKindMismatch,
+            LogSeverity.Error,
+            new SchemaCoordinate(type.Name),
+            type,
+            schemaA);
     }
 }

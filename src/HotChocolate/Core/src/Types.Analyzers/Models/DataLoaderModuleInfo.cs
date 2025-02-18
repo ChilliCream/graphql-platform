@@ -1,8 +1,10 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class DataLoaderModuleInfo(string moduleName) : SyntaxInfo
+public sealed class DataLoaderModuleInfo(string moduleName, bool isInternal) : SyntaxInfo
 {
     public string ModuleName { get; } = moduleName;
+
+    public bool IsInternal { get; } = isInternal;
 
     public override string OrderByKey => ModuleName;
 
@@ -13,8 +15,9 @@ public sealed class DataLoaderModuleInfo(string moduleName) : SyntaxInfo
         => obj is DataLoaderModuleInfo other && Equals(other);
 
     private bool Equals(DataLoaderModuleInfo other)
-        => string.Equals(ModuleName, other.ModuleName, StringComparison.Ordinal);
+        => string.Equals(ModuleName, other.ModuleName, StringComparison.Ordinal)
+            && IsInternal == other.IsInternal;
 
     public override int GetHashCode()
-        => HashCode.Combine(ModuleName);
+        => HashCode.Combine(ModuleName, IsInternal);
 }

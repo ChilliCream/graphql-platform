@@ -18,8 +18,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
+    <value>Post-merge validation failed. View the composition log for details.</value>
+  </data>
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed. View the composition log for details.</value>
+  </data>
+  <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
+    <value>Source schema parsing failed. View the composition log for details.</value>
   </data>
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
     <value>Source schema validation failed. View the composition log for details.</value>
@@ -38,6 +44,21 @@
   </data>
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The built-in directive argument '{0}' in schema '{1}' is not accessible.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedEnumType" xml:space="preserve">
+    <value>The merged enum type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedInputObjectType" xml:space="preserve">
+    <value>The merged input object type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedInterfaceType" xml:space="preserve">
+    <value>The merged interface type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedObjectType" xml:space="preserve">
+    <value>The merged object type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedUnionType" xml:space="preserve">
+    <value>The merged union type '{0}' is empty.</value>
   </data>
   <data name="LogEntryHelper_EnumValuesMismatch" xml:space="preserve">
     <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>
@@ -66,6 +87,12 @@
   <data name="LogEntryHelper_InputWithMissingRequiredFields" xml:space="preserve">
     <value>The input type '{0}' in schema '{1}' must define the required field '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
+    <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
+    <value>The interface field '{0}' in schema '{1}' must not be marked as shareable.</value>
+  </data>
   <data name="LogEntryHelper_KeyDirectiveInFieldsArgument" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
   </data>
@@ -89,6 +116,9 @@
   </data>
   <data name="LogEntryHelper_LookupReturnsNonNullableType" xml:space="preserve">
     <value>The lookup field '{0}' in schema '{1}' should return a nullable type.</value>
+  </data>
+  <data name="LogEntryHelper_NoQueries" xml:space="preserve">
+    <value>The merged query type has no accessible fields.</value>
   </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
     <value>The output field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
@@ -137,5 +167,8 @@
   </data>
   <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
     <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
+  </data>
+  <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
+    <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
 </root>

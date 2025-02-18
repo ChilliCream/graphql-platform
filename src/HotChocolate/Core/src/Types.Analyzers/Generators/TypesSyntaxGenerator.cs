@@ -11,7 +11,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
@@ -19,7 +19,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+        var module = syntaxInfos.GetModuleInfo(assemblyName, out _);
 
         // the generator is disabled.
         if(module.Options == ModuleOptions.Disabled)
@@ -67,9 +67,9 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                     continue;
                 }
 
-                var classGenerator = typeInfo is ObjectTypeExtensionInfo
-                    ? (IOutputTypeFileBuilder)new ObjectTypeExtensionFileBuilder(sb, group.Key)
-                    : new InterfaceTypeExtensionFileBuilder(sb, group.Key);
+                var classGenerator = typeInfo is InterfaceTypeExtensionInfo
+                    ? new InterfaceTypeExtensionFileBuilder(sb, group.Key)
+                    : (IOutputTypeFileBuilder)new ObjectTypeExtensionFileBuilder(sb, group.Key);
 
                 if (!firstClass)
                 {

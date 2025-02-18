@@ -58,7 +58,10 @@ public class GraphQLServerGenerator : IIncrementalGenerator
                 .WithComparer(SyntaxInfoComparer.Default)
                 .Collect();
 
-        var valueProvider = context.CompilationProvider.Combine(syntaxInfos);
+        var assemblyNameProvider = context.CompilationProvider
+            .Select(static (c, _) => c.AssemblyName!);
+
+        var valueProvider = assemblyNameProvider.Combine(syntaxInfos);
 
         context.RegisterSourceOutput(
             valueProvider,
@@ -83,7 +86,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
 
     private static void Execute(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         foreach (var syntaxInfo in syntaxInfos.AsSpan())
@@ -99,7 +102,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
 
         foreach (var generator in _generators.AsSpan())
         {
-            generator.Generate(context, compilation, syntaxInfos);
+            generator.Generate(context, assemblyName, syntaxInfos);
         }
     }
 }

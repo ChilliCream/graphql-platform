@@ -60,11 +60,29 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Post-merge validation failed. View the composition log for details..
+        /// </summary>
+        internal static string ErrorHelper_PostMergeValidationFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_PostMergeValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pre-merge validation failed. View the composition log for details..
         /// </summary>
         internal static string ErrorHelper_PreMergeValidationFailed {
             get {
                 return ResourceManager.GetString("ErrorHelper_PreMergeValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema parsing failed. View the composition log for details..
+        /// </summary>
+        internal static string ErrorHelper_SourceSchemaParsingFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SourceSchemaParsingFailed", resourceCulture);
             }
         }
         
@@ -119,6 +137,51 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_DisallowedInaccessibleIntrospectionType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_DisallowedInaccessibleIntrospectionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged enum type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedEnumType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedEnumType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged input object type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedInputObjectType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedInputObjectType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged interface type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedInterfaceType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedInterfaceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged object type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedObjectType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedObjectType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged union type &apos;{0}&apos; is empty..
+        /// </summary>
+        internal static string LogEntryHelper_EmptyMergedUnionType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EmptyMergedUnionType", resourceCulture);
             }
         }
         
@@ -204,6 +267,24 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidGraphQL {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidGraphQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidShareableUsage {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidShareableUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
@@ -272,6 +353,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_LookupReturnsNonNullableType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_LookupReturnsNonNullableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged query type has no accessible fields..
+        /// </summary>
+        internal static string LogEntryHelper_NoQueries {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_NoQueries", resourceCulture);
             }
         }
         
@@ -416,6 +506,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_RootSubscriptionUsed {
             get {
                 return ResourceManager.GetString("LogEntryHelper_RootSubscriptionUsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; has a different kind in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_TypeKindMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_TypeKindMismatch", resourceCulture);
             }
         }
     }
