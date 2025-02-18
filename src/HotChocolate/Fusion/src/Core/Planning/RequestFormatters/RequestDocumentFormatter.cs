@@ -256,37 +256,34 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             ? new NameNode(selection.ResponseName)
             : null;
 
-        // TODO: this is not good but will fix the include issue ...
-        // we need to rework the operation compiler for a proper fix.
-        foreach (var node in selection.SyntaxNodes)
-        {
-            if(node.Directives.Count > 0)
-            {
-                foreach (var directive in node.Directives)
-                {
-                    foreach (var argument in directive.Arguments)
-                    {
-                        if (argument.Value is not VariableNode variable)
-                        {
-                            continue;
-                        }
+        var syntaxNode = selection.SyntaxNode;
 
-                        var originalVarDef = context.Operation.Definition.VariableDefinitions
-                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
-                        context.ForwardedVariables.Add(originalVarDef);
+        if (syntaxNode.Directives.Count > 0)
+        {
+            foreach (var directive in syntaxNode.Directives)
+            {
+                foreach (var argument in directive.Arguments)
+                {
+                    if (argument.Value is not VariableNode variable)
+                    {
+                        continue;
                     }
+
+                    var originalVarDef = context.Operation.Definition.VariableDefinitions
+                        .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                    context.ForwardedVariables.Add(originalVarDef);
                 }
             }
-
-            selectionNodes.Add(
-                new FieldNode(
-                    null,
-                    new(binding.Name),
-                    alias,
-                    node.Directives,
-                    node.Arguments,
-                    selectionSetNode));
         }
+
+        selectionNodes.Add(
+            new FieldNode(
+                null,
+                new(binding.Name),
+                alias,
+                syntaxNode.Directives,
+                syntaxNode.Arguments,
+                selectionSetNode));
     }
 
     protected virtual SelectionSetNode CreateSelectionSetNode(
