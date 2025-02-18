@@ -950,7 +950,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         {
             descriptor
                 .Field(t => t.Details)
-                .ParentRequires<Brand>(nameof(Brand.Name))
+                .ParentRequires<Brand>(t => new { t.Name })
                 .Resolve(ctx => "Brand Name:" + ctx.Parent<Brand>().Name);
         }
     }
