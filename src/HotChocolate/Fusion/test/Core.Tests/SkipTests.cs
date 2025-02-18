@@ -2678,4 +2678,192 @@ public class SkipTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
     #endregion
+
+    [Fact]
+    public async Task Same_TopLevel_Selection_Only_One_Skipped()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              price: Float!
+              brand: Brand
+            }
+
+            type Brand {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("""
+                         query Test($skip: Boolean!) {
+                           product @skip(if: $skip) {
+                             price
+                           }
+                           product {
+                             brand {
+                               name
+                             }
+                           }
+                         }
+                         """)
+            .SetVariableValues(new Dictionary<string, object?> { ["skip"] = true })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Same_TopLevel_Selection_Skipped_Twice()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              price: Float!
+              brand: Brand
+            }
+
+            type Brand {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("""
+                         query Test($skip: Boolean!) {
+                           product @skip(if: $skip) {
+                             price
+                           }
+                           product @skip(if: $skip) {
+                             brand {
+                               name
+                             }
+                           }
+                         }
+                         """)
+            .SetVariableValues(new Dictionary<string, object?> { ["skip"] = true })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Same_Sub_Selection_Only_One_Skipped()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              price: Float!
+              brand: Brand
+            }
+
+            type Brand {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("""
+                         query Test($skip: Boolean!) {
+                           product {
+                             brand @skip(if: $skip) {
+                               name
+                             }
+                             brand {
+                               id
+                             }
+                           }
+                         }
+                         """)
+            .SetVariableValues(new Dictionary<string, object?> { ["skip"] = true })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact]
+    public async Task Same_Sub_Selection_Skipped_Twice()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              price: Float!
+              brand: Brand
+            }
+
+            type Brand {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("""
+                         query Test($skip: Boolean!) {
+                           product {
+                             brand @skip(if: $skip) {
+                               name
+                             }
+                             brand @skip(if: $skip) {
+                               id
+                             }
+                           }
+                         }
+                         """)
+            .SetVariableValues(new Dictionary<string, object?> { ["skip"] = true })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
 }
