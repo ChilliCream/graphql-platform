@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
@@ -79,9 +80,11 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
-        return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode, }),
-            path);
+        var document = new DocumentNode([operationDefinitionNode]);
+        var rewriter = new SelectionRewriter();
+        document = rewriter.RewriteDocument(document, null);
+
+        return new RequestDocument(document, path);
     }
 
     private SelectionSetNode CreateRootLevelQuery(
