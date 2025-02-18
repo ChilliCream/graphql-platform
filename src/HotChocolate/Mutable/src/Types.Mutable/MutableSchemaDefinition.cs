@@ -10,8 +10,8 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableSchemaDefinition
     : INamedTypeSystemMemberDefinition<MutableSchemaDefinition>
-    , ISchemaDefinition
-    , IFeatureProvider
+        , ISchemaDefinition
+        , IFeatureProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
     private MutableObjectTypeDefinition? _queryType;
@@ -45,7 +45,8 @@ public class MutableSchemaDefinition
         }
     }
 
-    IObjectTypeDefinition? ISchemaDefinition.QueryType => QueryType;
+    IObjectTypeDefinition ISchemaDefinition.QueryType
+        => QueryType ?? throw new InvalidOperationException("The query type is not defined.");
 
     /// <summary>
     /// Gets or sets the mutation type.
@@ -250,6 +251,48 @@ public class MutableSchemaDefinition
 
     IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operationType)
         => GetOperationType(operationType);
+
+    public IEnumerable<MutableObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType)
+    {
+        if (abstractType.Kind is not TypeKind.Union and not TypeKind.Interface and not TypeKind.Object)
+        {
+            throw new ArgumentException(
+                "The specified type is not an abstract type.",
+                nameof(abstractType));
+        }
+
+        if (abstractType is MutableUnionTypeDefinition unionType)
+        {
+            foreach (var possibleType in unionType.Types.AsEnumerable())
+            {
+                yield return possibleType;
+            }
+
+            yield break;
+        }
+
+        if (abstractType is MutableInterfaceTypeDefinition interfaceType)
+        {
+            foreach (var type in Types)
+            {
+                if (type is MutableObjectTypeDefinition obj
+                    && obj.Implements.ContainsName(interfaceType.Name))
+                {
+                    yield return obj;
+                }
+            }
+
+            yield break;
+        }
+
+        if (abstractType is MutableObjectTypeDefinition objectType)
+        {
+            yield return objectType;
+        }
+    }
+
+    IEnumerable<IObjectTypeDefinition> ISchemaDefinition.GetPossibleTypes(ITypeDefinition abstractType)
+        => GetPossibleTypes(abstractType);
 
     /// <summary>
     /// Gets the type and directive definitions that are defined in this schema in insert order.

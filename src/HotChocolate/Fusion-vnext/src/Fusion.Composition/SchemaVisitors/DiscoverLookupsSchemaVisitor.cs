@@ -7,7 +7,7 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.SchemaVisitors;
 
 internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schema)
-    : SchemaVisitor<DiscoverLookupsContext>
+    : MutableSchemaDefinitionVisitor<DiscoverLookupsContext>
 {
     private readonly MultiValueDictionary<string, MutableObjectTypeDefinition>
         _implementingTypesByInterfaceName = [];
