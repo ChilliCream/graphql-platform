@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
@@ -79,9 +80,11 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
-        return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode, }),
-            path);
+        var document = new DocumentNode([operationDefinitionNode]);
+        var rewriter = new SelectionRewriter();
+        document = rewriter.RewriteDocument(document, null);
+
+        return new RequestDocument(document, path);
     }
 
     private SelectionSetNode CreateRootLevelQuery(
@@ -115,7 +118,7 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                 }
             }
 
-            selectionSet = new SelectionSetNode(new[] { selectionNode, });
+            selectionSet = new SelectionSetNode([selectionNode]);
 
             current = current.Parent;
         }
@@ -184,12 +187,14 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
 
                 var unspecifiedArguments = GetUnspecifiedArguments(rootSelection.Selection);
 
+                var sharedDirectives = GetSharedDirectives(rootSelection.Selection.SyntaxNodes);
+
                 var (s, _) = rootSelection.Resolver.CreateSelection(
                     context.VariableValues,
                     selectionSetNode,
                     rootSelection.Selection.ResponseName,
                     unspecifiedArguments,
-                    rootSelection.Selection.SyntaxNode.Directives);
+                    sharedDirectives);
                 selectionNode = s;
             }
 
@@ -256,34 +261,75 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             ? new NameNode(selection.ResponseName)
             : null;
 
-        var syntaxNode = selection.SyntaxNode;
+        // If the combined field node has directives, we need to print each
+        // field node part of the selection individually as to not end up
+        // in a situation where there are for example two `@skip` directives
+        // applied to the same node.
+        var hasDirectives = selection.SyntaxNode.Directives.Any();
 
-        if (syntaxNode.Directives.Count > 0)
+        if (hasDirectives)
         {
-            foreach (var directive in syntaxNode.Directives)
+            foreach (var fieldNode in selection.SyntaxNodes)
             {
-                foreach (var argument in directive.Arguments)
+                if (fieldNode.Directives.Count > 0)
                 {
-                    if (argument.Value is not VariableNode variable)
+                    foreach (var directive in fieldNode.Directives)
                     {
-                        continue;
-                    }
+                        foreach (var argument in directive.Arguments)
+                        {
+                            if (argument.Value is not VariableNode variable)
+                            {
+                                continue;
+                            }
 
-                    var originalVarDef = context.Operation.Definition.VariableDefinitions
-                        .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
-                    context.ForwardedVariables.Add(originalVarDef);
+                            var originalVarDef = context.Operation.Definition.VariableDefinitions
+                                .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                            context.ForwardedVariables.Add(originalVarDef);
+                        }
+                    }
                 }
+
+                selectionNodes.Add(
+                    new FieldNode(
+                        null,
+                        new(binding.Name),
+                        alias,
+                        fieldNode.Directives,
+                        fieldNode.Arguments,
+                        selectionSetNode));
             }
         }
+        else
+        {
+            var fieldNode = selection.SyntaxNode;
 
-        selectionNodes.Add(
-            new FieldNode(
-                null,
-                new(binding.Name),
-                alias,
-                syntaxNode.Directives,
-                syntaxNode.Arguments,
-                selectionSetNode));
+            if (fieldNode.Directives.Count > 0)
+            {
+                foreach (var directive in fieldNode.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
+            }
+
+            selectionNodes.Add(
+                new FieldNode(
+                    null,
+                    new(binding.Name),
+                    alias,
+                    fieldNode.Directives,
+                    fieldNode.Arguments,
+                    selectionSetNode));
+        }
     }
 
     protected virtual SelectionSetNode CreateSelectionSetNode(
@@ -600,6 +646,42 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                         Array.Empty<DirectiveNode>()));
             }
         }
+    }
+
+    private static List<DirectiveNode> GetSharedDirectives(IReadOnlyList<FieldNode> fieldNodes)
+    {
+        var sharedDirectives = new HashSet<DirectiveNode>(SyntaxComparer.BySyntax);
+
+        foreach (var fieldNode in fieldNodes)
+        {
+            // If one selection doesn't have any directives, there can't be any shared ones.
+            if (fieldNode.Directives.Count < 1)
+            {
+                return [];
+            }
+
+            if (sharedDirectives.Count < 1)
+            {
+                foreach (var directive in fieldNode.Directives)
+                {
+                    sharedDirectives.Add(directive);
+                }
+            }
+            else
+            {
+                var fieldNodeDirectives = new HashSet<DirectiveNode>(fieldNode.Directives, SyntaxComparer.BySyntax);
+
+                foreach (var sharedDirective in sharedDirectives)
+                {
+                    if (!fieldNodeDirectives.Contains(sharedDirective))
+                    {
+                        sharedDirectives.Remove(sharedDirective);
+                    }
+                }
+            }
+        }
+
+        return sharedDirectives.ToList();
     }
 
     private static IReadOnlyList<string>? GetUnspecifiedArguments(ISelection selection)
