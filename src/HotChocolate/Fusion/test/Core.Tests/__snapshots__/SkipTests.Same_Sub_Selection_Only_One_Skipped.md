@@ -6,7 +6,9 @@
 {
   "data": {
     "product": {
-      "brand": null
+      "brand": {
+        "id": "1"
+      }
     }
   }
 }
@@ -30,7 +32,7 @@ query Test($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-20B3F1E88D04B0D8A6C7C31B3FE4B6A21727E094
+464C363B5DA6DE9DECACBC57867F8467C5F6EBDC
 ```
 
 ## QueryPlan
@@ -45,7 +47,7 @@ query Test($skip: Boolean!) {
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query Test_1($skip: Boolean!) { product { brand @skip(if: $skip) { name id } } }",
+        "document": "query Test_1($skip: Boolean!) { product { brand @skip(if: $skip) { name id } brand { name id } } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {

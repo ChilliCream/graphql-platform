@@ -115,7 +115,7 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                 }
             }
 
-            selectionSet = new SelectionSetNode(new[] { selectionNode, });
+            selectionSet = new SelectionSetNode([selectionNode]);
 
             current = current.Parent;
         }
@@ -256,34 +256,71 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             ? new NameNode(selection.ResponseName)
             : null;
 
-        var syntaxNode = selection.SyntaxNode;
+        var hasDirectives = selection.SyntaxNodes.Any(node => node.Directives.Any());
 
-        if (syntaxNode.Directives.Count > 0)
+        if (hasDirectives)
         {
-            foreach (var directive in syntaxNode.Directives)
+            foreach (var fieldNode in selection.SyntaxNodes)
             {
-                foreach (var argument in directive.Arguments)
+                if (fieldNode.Directives.Count > 0)
                 {
-                    if (argument.Value is not VariableNode variable)
+                    foreach (var directive in fieldNode.Directives)
                     {
-                        continue;
-                    }
+                        foreach (var argument in directive.Arguments)
+                        {
+                            if (argument.Value is not VariableNode variable)
+                            {
+                                continue;
+                            }
 
-                    var originalVarDef = context.Operation.Definition.VariableDefinitions
-                        .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
-                    context.ForwardedVariables.Add(originalVarDef);
+                            var originalVarDef = context.Operation.Definition.VariableDefinitions
+                                .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                            context.ForwardedVariables.Add(originalVarDef);
+                        }
+                    }
                 }
+
+                selectionNodes.Add(
+                    new FieldNode(
+                        null,
+                        new(binding.Name),
+                        alias,
+                        fieldNode.Directives,
+                        fieldNode.Arguments,
+                        selectionSetNode));
             }
         }
+        else
+        {
+            var fieldNode = selection.SyntaxNode;
 
-        selectionNodes.Add(
-            new FieldNode(
-                null,
-                new(binding.Name),
-                alias,
-                syntaxNode.Directives,
-                syntaxNode.Arguments,
-                selectionSetNode));
+            if (fieldNode.Directives.Count > 0)
+            {
+                foreach (var directive in fieldNode.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
+            }
+
+            selectionNodes.Add(
+                new FieldNode(
+                    null,
+                    new(binding.Name),
+                    alias,
+                    fieldNode.Directives,
+                    fieldNode.Arguments,
+                    selectionSetNode));
+        }
     }
 
     protected virtual SelectionSetNode CreateSelectionSetNode(

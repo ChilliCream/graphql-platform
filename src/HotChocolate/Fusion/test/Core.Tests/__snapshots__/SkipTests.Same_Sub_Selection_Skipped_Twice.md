@@ -4,25 +4,8 @@
 
 ```json
 {
-  "errors": [
-    {
-      "message": "Only one of each directive is allowed per location.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "product"
-      ],
-      "extensions": {
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Unique-Per-Location"
-      }
-    }
-  ],
   "data": {
-    "product": null
+    "product": {}
   }
 }
 ```
@@ -45,7 +28,7 @@ query Test($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-9BFCF93360016E8648F2E5FE8AB694B3CD50AC97
+73D677EC19A26DBBC1B3ADFFADEEC023B1B4388F
 ```
 
 ## QueryPlan
@@ -60,7 +43,7 @@ query Test($skip: Boolean!) {
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query Test_1($skip: Boolean!) { product { brand @skip(if: $skip) @skip(if: $skip) { name id } } }",
+        "document": "query Test_1($skip: Boolean!) { product { brand @skip(if: $skip) { name id } brand @skip(if: $skip) { name id } } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
