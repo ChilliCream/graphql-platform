@@ -258,7 +258,11 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             ? new NameNode(selection.ResponseName)
             : null;
 
-        var hasDirectives = selection.SyntaxNodes.Any(node => node.Directives.Any());
+        // If the combined field node has directives, we need to print each
+        // field node part of the selection individually as to not end up
+        // in a situation where there are for example two `@skip` directives
+        // applied to the same node.
+        var hasDirectives = selection.SyntaxNode.Directives.Any();
 
         if (hasDirectives)
         {
