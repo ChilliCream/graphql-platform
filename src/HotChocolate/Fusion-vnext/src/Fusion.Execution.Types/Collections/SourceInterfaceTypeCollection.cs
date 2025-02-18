@@ -3,11 +3,16 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
-public class SourceInterfaceTypeCollection(IEnumerable<SourceInterfaceType> members)
-    : SourceMemberCollection<SourceInterfaceType>(members)
-        , ISourceComplexTypeCollection<SourceInterfaceType>
-        , ISourceComplexTypeCollection<ISourceComplexType>
+public class SourceInterfaceTypeCollection
+    : SourceMemberCollection<SourceInterfaceType>
+    , ISourceComplexTypeCollection<SourceInterfaceType>
+    , ISourceComplexTypeCollection<ISourceComplexType>
 {
+    public SourceInterfaceTypeCollection(IEnumerable<SourceInterfaceType> members)
+        : base(members)
+    {
+    }
+
     ISourceComplexType ISourceMemberCollection<ISourceComplexType>.this[string schemaName]
         => this[schemaName];
 
@@ -16,6 +21,7 @@ public class SourceInterfaceTypeCollection(IEnumerable<SourceInterfaceType> memb
 
     ImmutableArray<ISourceComplexType> ISourceComplexTypeCollection<ISourceComplexType>.Types
         => [..Members];
+
 
     public bool TryGetType(string schemaName, [NotNullWhen(true)] out SourceInterfaceType? type)
         => TryGetMember(schemaName, out type);

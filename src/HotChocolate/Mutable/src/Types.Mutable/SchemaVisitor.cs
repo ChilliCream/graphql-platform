@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Mutable;
 
-public abstract class SchemaVisitor<TContext>
+public abstract class MutableSchemaDefinitionVisitor<TContext>
 {
     public virtual void VisitSchema(MutableSchemaDefinition schema, TContext context)
     {

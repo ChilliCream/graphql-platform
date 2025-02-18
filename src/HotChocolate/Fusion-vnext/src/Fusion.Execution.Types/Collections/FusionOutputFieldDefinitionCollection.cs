@@ -1,14 +1,18 @@
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
-public sealed class FusionOutputFieldDefinitionCollection(
-    ImmutableArray<FusionOutputFieldDefinition> fields)
-    : FusionFieldCollection<FusionOutputFieldDefinition>(fields)
+public sealed class FusionOutputFieldDefinitionCollection
+    : FusionFieldDefinitionCollection<FusionOutputFieldDefinition>
     , IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>
 {
+    public FusionOutputFieldDefinitionCollection(
+        FusionOutputFieldDefinition[] fields)
+        : base(fields)
+    {
+    }
+
     IOutputFieldDefinition IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>.this[string name]
         => this[name];
 

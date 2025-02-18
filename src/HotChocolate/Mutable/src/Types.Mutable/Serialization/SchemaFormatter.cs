@@ -45,7 +45,7 @@ public static class SchemaFormatter
         return (DocumentNode)context.Result!;
     }
 
-    private sealed class SchemaFormatterVisitor : SchemaVisitor<VisitorContext>
+    private sealed class SchemaFormatterVisitor : MutableSchemaDefinitionVisitor<VisitorContext>
     {
         public override void VisitSchema(MutableSchemaDefinition schema, VisitorContext context)
         {

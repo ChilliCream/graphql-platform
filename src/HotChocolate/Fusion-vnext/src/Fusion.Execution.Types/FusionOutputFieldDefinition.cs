@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -30,6 +29,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
         Type = null!;
         Sources = null!;
         DeclaringType = null!;
+        Directives = null!;
     }
 
     public string Name { get; }
@@ -40,7 +40,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
 
     public string? DeprecationReason { get; }
 
-    public DirectiveCollection Directives
+    public FusionDirectiveCollection Directives
     {
         get;
         private set
@@ -78,7 +78,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
         }
     }
 
-    public FusionComplexType DeclaringType
+    public FusionComplexTypeDefinition DeclaringType
     {
         get;
         private set

@@ -41,7 +41,6 @@ public sealed class DirectiveDefinitionCollection
         return false;
     }
 
-
     public void Insert(int index, MutableDirectiveDefinition definition)
     {
         if (definition is null)

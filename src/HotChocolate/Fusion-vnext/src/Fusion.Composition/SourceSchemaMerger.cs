@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.Rewriters;

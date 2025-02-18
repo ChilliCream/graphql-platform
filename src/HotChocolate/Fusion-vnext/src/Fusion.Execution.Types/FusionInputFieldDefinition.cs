@@ -39,7 +39,7 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
 
     public string? DeprecationReason { get; }
 
-    public DirectiveCollection Directives
+    public FusionDirectiveCollection Directives
     {
         get;
         private set
@@ -70,8 +70,11 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
     }
 
     public override string ToString()
-        => ToSyntaxNode().ToString(indented: true);
+        => SchemaDebugFormatter.Format(this).ToString(indented: true);
 
-    public ISyntaxNode ToSyntaxNode()
+    public InputValueDefinitionNode ToSyntaxNode()
+        => SchemaDebugFormatter.Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaDebugFormatter.Format(this);
 }

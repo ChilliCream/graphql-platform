@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Language;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Fusion.Rewriters;

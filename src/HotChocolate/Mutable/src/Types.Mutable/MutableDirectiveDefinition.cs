@@ -86,7 +86,8 @@ public class MutableDirectiveDefinition
         => Format(this).ToString(true);
 
     /// <summary>
-    /// Creates a <see cref="DirectiveDefinitionNode"/> from a <see cref="MutableDirectiveDefinition"/>.
+    /// Creates a <see cref="DirectiveDefinitionNode"/>
+    /// from a <see cref="MutableDirectiveDefinition"/>.
     /// </summary>
     public DirectiveDefinitionNode ToSyntaxNode() => Format(this);
 

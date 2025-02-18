@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Types;
 
-public interface IDirective : INameProvider
+public interface IDirective : INameProvider, ISyntaxNodeProvider
 {
     IDirectiveDefinition Definition { get; }
 

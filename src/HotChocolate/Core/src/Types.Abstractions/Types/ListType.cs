@@ -1,12 +1,12 @@
 using HotChocolate.Language;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-namespace HotChocolate.Types.Mutable;
+namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a GraphQL list type definition.
+/// Represents a GraphQL list type.
 /// </summary>
-public sealed class ListType : IListType
+public sealed class ListType : IType
 {
     /// <summary>
     /// Represents a GraphQL list type definition.
@@ -39,17 +39,5 @@ public sealed class ListType : IListType
 
     /// <inheritdoc />
     public bool Equals(IType? other)
-        => Equals(other, TypeComparison.Reference);
-
-    /// <inheritdoc />
-    public bool Equals(IType? other, TypeComparison comparison)
-    {
-        if (comparison is TypeComparison.Reference)
-        {
-            return ReferenceEquals(this, other);
-        }
-
-        return other is ListType otherList &&
-            ElementType.Equals(otherList.ElementType, comparison);
-    }
+        => this.Equals(other, TypeComparison.Reference);
 }

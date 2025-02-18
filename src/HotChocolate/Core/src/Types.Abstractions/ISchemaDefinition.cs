@@ -5,17 +5,21 @@ namespace HotChocolate;
 
 public interface ISchemaDefinition : INameProvider, IDescriptionProvider, ISyntaxNodeProvider
 {
-    public IObjectTypeDefinition? QueryType { get; }
+    IObjectTypeDefinition QueryType { get; }
 
-    public IObjectTypeDefinition? MutationType { get; }
+    IObjectTypeDefinition? MutationType { get; }
 
-    public IObjectTypeDefinition? SubscriptionType { get; }
+    IObjectTypeDefinition? SubscriptionType { get; }
 
-    public IReadOnlyDirectiveCollection Directives { get; }
+    IReadOnlyDirectiveCollection Directives { get; }
 
-    public IReadOnlyTypeDefinitionCollection Types { get; }
+    IReadOnlyTypeDefinitionCollection Types { get; }
 
-    public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions { get; }
+    IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions { get; }
 
-    public IObjectTypeDefinition GetOperationType(OperationType operationType);
+    IObjectTypeDefinition GetOperationType(OperationType operationType);
+
+    IEnumerable<IObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType);
+
+    IEnumerable<INameProvider> GetAllDefinitions();
 }

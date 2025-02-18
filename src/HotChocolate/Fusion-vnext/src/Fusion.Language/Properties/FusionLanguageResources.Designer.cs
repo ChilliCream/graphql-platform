@@ -7,10 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Fusion.Properties {
-    using System;
-    
-    
+namespace HotChocolate.Fusion.Language.Properties {
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +19,15 @@ namespace HotChocolate.Fusion.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FusionLanguageResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal FusionLanguageResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +41,7 @@ namespace HotChocolate.Fusion.Properties {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +55,7 @@ namespace HotChocolate.Fusion.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Code is not a punctuator..
         /// </summary>
@@ -67,7 +64,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("CodeIsNotPunctuator", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Expected a `{0}`-token, but found a `{1}`-token..
         /// </summary>
@@ -76,7 +73,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("InvalidToken", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Source text contains more than {0} nodes. Parsing aborted..
         /// </summary>
@@ -85,7 +82,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("MaxAllowedNodesExceeded", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Source text contains more than {0} tokens. Parsing aborted..
         /// </summary>
@@ -94,7 +91,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("MaxAllowedTokensExceeded", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Must be greater than or equal to 1..
         /// </summary>
@@ -103,7 +100,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("NewLineMustBeGreaterThanOrEqualToOne", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The source text cannot be empty..
         /// </summary>
@@ -112,7 +109,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("SourceTextCannotBeEmpty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected character `{0}`..
         /// </summary>
@@ -121,7 +118,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("UnexpectedCharacter", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected token: {0}..
         /// </summary>

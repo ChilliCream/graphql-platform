@@ -1,39 +1,40 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
 public sealed class CompositeSchemaContext
 {
-    private readonly Dictionary<ITypeNode, ICompositeType> _compositeTypes = new(SyntaxComparer.BySyntax);
-    private readonly Dictionary<string, ICompositeNamedType> _typeNameLookup;
-    private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitions;
-    private readonly Dictionary<string, FusionDirectiveDefinition> _directiveTypeNameLookup;
-    private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitions;
+    private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
+    private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
+    private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
+    private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
+    private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
 
     public CompositeSchemaContext(
         string queryType,
         string? mutationType,
         string? subscriptionType,
-        IReadOnlyList<DirectiveNode> directives,
-        ImmutableArray<ICompositeNamedType> types,
-        ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitions,
-        ImmutableArray<FusionDirectiveDefinition> directiveTypes,
-        ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitions)
+        ImmutableArray<DirectiveNode> directives,
+        ImmutableArray<ITypeDefinition> typeDefinitions,
+        ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitionNodeLookup,
+        ImmutableArray<FusionDirectiveDefinition> directiveDefinitions,
+        ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup)
     {
-        _typeNameLookup = types.ToDictionary(t => t.Name);
-        _directiveTypeNameLookup = directiveTypes.ToDictionary(t => t.Name);
-        _typeDefinitions = typeDefinitions;
-        _directiveDefinitions = directiveDefinitions;
+        _typeDefinitionLookup = typeDefinitions.ToDictionary(t => t.Name);
+        _directiveDefinitionLookup = directiveDefinitions.ToDictionary(t => t.Name);
+        _typeDefinitionNodeLookup = typeDefinitionNodeLookup;
+        _directiveDefinitionNodeLookup = directiveDefinitionNodeLookup;
 
         QueryType = queryType;
         MutationType = mutationType;
         SubscriptionType = subscriptionType;
-        Types = types;
         Directives = directives;
-        DirectiveTypes = directiveTypes;
+        TypeDefinitions = typeDefinitions;
+        DirectiveDefinitions = directiveDefinitions;
 
         AddSpecDirectives();
     }
@@ -44,16 +45,16 @@ public sealed class CompositeSchemaContext
 
     public string? SubscriptionType { get; }
 
-    public ImmutableArray<ICompositeNamedType> Types { get; private set; }
+    public ImmutableArray<ITypeDefinition> TypeDefinitions { get; private set; }
 
-    public IReadOnlyList<DirectiveNode> Directives { get; }
+    public ImmutableArray<DirectiveNode> Directives { get; }
 
-    public ImmutableArray<FusionDirectiveDefinition> DirectiveTypes { get; private set; }
+    public ImmutableArray<FusionDirectiveDefinition> DirectiveDefinitions { get; private set; }
 
     public T GetTypeDefinition<T>(string typeName)
         where T : ITypeDefinitionNode
     {
-        if (_typeDefinitions.TryGetValue(typeName, out var typeDefinition))
+        if (_typeDefinitionNodeLookup.TryGetValue(typeName, out var typeDefinition))
         {
             return (T)typeDefinition;
         }
@@ -63,7 +64,7 @@ public sealed class CompositeSchemaContext
 
     public DirectiveDefinitionNode GetDirectiveDefinition(string typeName)
     {
-        if (_directiveDefinitions.TryGetValue(typeName, out var directiveDefinition))
+        if (_directiveDefinitionNodeLookup.TryGetValue(typeName, out var directiveDefinition))
         {
             return directiveDefinition;
         }
@@ -72,9 +73,9 @@ public sealed class CompositeSchemaContext
     }
 
     public T GetType<T>(string typeName)
-        where T : ICompositeNamedType
+        where T : ITypeDefinition
     {
-        if (_typeNameLookup.TryGetValue(typeName, out var type)
+        if (_typeDefinitionLookup.TryGetValue(typeName, out var type)
             && type is T castedType)
         {
             return castedType;
@@ -83,7 +84,7 @@ public sealed class CompositeSchemaContext
         throw new InvalidOperationException();
     }
 
-    public ICompositeType GetType(ITypeNode typeStructure, string? typeName = null)
+    public IType GetType(ITypeNode typeStructure, string? typeName = null)
     {
         typeName ??= typeStructure.NamedType().Name.Value;
 
@@ -96,9 +97,9 @@ public sealed class CompositeSchemaContext
         return type;
     }
 
-    private ICompositeType CreateType(ITypeNode typeNode, string typeName)
+    private IType CreateType(ITypeNode typeNode, string typeName)
     {
-        if (!_typeNameLookup.TryGetValue(typeName, out var type))
+        if (!_typeDefinitionLookup.TryGetValue(typeName, out var type))
         {
             if (!IsSpecScalarType(typeName))
             {
@@ -106,34 +107,34 @@ public sealed class CompositeSchemaContext
             }
 
             type = CreateSpecScalar(typeName);
-            _typeNameLookup[typeName] = type;
+            _typeDefinitionLookup[typeName] = type;
         }
 
         return CreateType(typeNode, type);
     }
 
-    private CompositeScalarType CreateSpecScalar(string name)
+    private FusionScalarTypeDefinition CreateSpecScalar(string name)
     {
-        var type = new CompositeScalarType(name, null);
+        var type = new FusionScalarTypeDefinition(name, null);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, Array.Empty<DirectiveNode>());
-        type.Complete(new CompositeScalarTypeCompletionContext(DirectiveCollection.Empty));
+        type.Complete(new CompositeScalarTypeCompletionContext(FusionDirectiveCollection.Empty));
 
-        _typeDefinitions = _typeDefinitions.SetItem(name, typeDef);
-        Types = Types.Add(type);
+        _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
+        TypeDefinitions = TypeDefinitions.Add(type);
 
         return type;
     }
 
-    private static ICompositeType CreateType(ITypeNode typeNode, ICompositeNamedType compositeNamedType)
+    private static IType CreateType(ITypeNode typeNode, ITypeDefinition compositeNamedType)
     {
         if (typeNode is NonNullTypeNode nonNullType)
         {
-            return new CompositeNonNullType(CreateType(nonNullType.InnerType(), compositeNamedType));
+            return new NonNullType(CreateType(nonNullType.InnerType(), compositeNamedType));
         }
 
         if (typeNode is ListTypeNode listType)
         {
-            return new CompositeListType(CreateType(listType.Type, compositeNamedType));
+            return new ListType(CreateType(listType.Type, compositeNamedType));
         }
 
         return compositeNamedType;
@@ -141,7 +142,7 @@ public sealed class CompositeSchemaContext
 
     public FusionDirectiveDefinition GetDirectiveType(string name)
     {
-        if (_directiveTypeNameLookup.TryGetValue(name, out var type))
+        if (_directiveDefinitionLookup.TryGetValue(name, out var type))
         {
             return type;
         }
@@ -152,12 +153,12 @@ public sealed class CompositeSchemaContext
     private void AddSpecDirectives()
     {
         var directive = CreateSkipDirective();
-        _directiveTypeNameLookup.Add(directive.Name, directive);
-        DirectiveTypes = DirectiveTypes.Add(directive);
+        _directiveDefinitionLookup.Add(directive.Name, directive);
+        DirectiveDefinitions = DirectiveDefinitions.Add(directive);
 
         directive = CreateIncludeDirective();
-        _directiveTypeNameLookup.Add(directive.Name, directive);
-        DirectiveTypes = DirectiveTypes.Add(directive);
+        _directiveDefinitionLookup.Add(directive.Name, directive);
+        DirectiveDefinitions = DirectiveDefinitions.Add(directive);
     }
 
     private FusionDirectiveDefinition CreateSkipDirective()
@@ -196,7 +197,7 @@ public sealed class CompositeSchemaContext
                 new NameNode(Language.DirectiveLocation.InlineFragment.Value)
             ]);
 
-        _directiveDefinitions = _directiveDefinitions.SetItem("skip", skipDirectiveDef);
+        _directiveDefinitionNodeLookup = _directiveDefinitionNodeLookup.SetItem("skip", skipDirectiveDef);
 
         return skipDirective;
     }
@@ -237,7 +238,7 @@ public sealed class CompositeSchemaContext
                 new NameNode(Language.DirectiveLocation.InlineFragment.Value)
             ]);
 
-        _directiveDefinitions = _directiveDefinitions.Add("include", includeDirectiveDef);
+        _directiveDefinitionNodeLookup = _directiveDefinitionNodeLookup.Add("include", includeDirectiveDef);
 
         return includeDirective;
     }

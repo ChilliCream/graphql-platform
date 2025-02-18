@@ -1,6 +1,6 @@
-using static HotChocolate.Fusion.CharConstants;
+using static HotChocolate.Fusion.Language.CharConstants;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options)
     : FieldSelectionMapSyntaxVisitor<ISyntaxWriter>

@@ -5,19 +5,42 @@ namespace HotChocolate.Types;
 
 public static class HotChocolateBaseTypeExtensions
 {
+    private const int _maxDepth = 16;
+
     public static ITypeDefinition AsTypeDefinition(this IType type)
-        => type.Kind switch
+    {
+        var depthRemaining = _maxDepth;
+
+        while (true)
         {
-            TypeKind.NonNull => AsTypeDefinition(((NonNullType)type).NullableType),
-            TypeKind.List => AsTypeDefinition(((ListType)type).ElementType),
-            TypeKind.Object or
-                TypeKind.Interface or
-                TypeKind.Union or
-                TypeKind.InputObject or
-                TypeKind.Enum or
-                TypeKind.Scalar => (ITypeDefinition)type,
-            _ => throw new ArgumentOutOfRangeException(nameof(type))
-        };
+            if (depthRemaining-- <= 0)
+            {
+                throw new InvalidOperationException($"The type resolution depth limit of {_maxDepth} was exceeded.");
+            }
+
+            switch (type.Kind)
+            {
+                case TypeKind.NonNull:
+                    type = ((NonNullType)type).NullableType;
+                    continue;
+
+                case TypeKind.List:
+                    type = ((ListType)type).ElementType;
+                    continue;
+
+                case TypeKind.Object:
+                case TypeKind.Interface:
+                case TypeKind.Union:
+                case TypeKind.InputObject:
+                case TypeKind.Enum:
+                case TypeKind.Scalar:
+                    return (ITypeDefinition)type;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type));
+            }
+        }
+    }
 
     public static bool Equals(this IType thisType, IType? otherType, TypeComparison comparison)
     {
@@ -38,13 +61,13 @@ public static class HotChocolateBaseTypeExtensions
 
     private static bool IsStructurallyEqual(this IType thisType, IType otherType)
     {
-        var depthLimit = 16;
+        var depthRemaining = _maxDepth;
 
         while (true)
         {
-            if (depthLimit-- <= 0)
+            if (depthRemaining-- <= 0)
             {
-                throw new InvalidOperationException("The type comparison depth limit was reached.");
+                throw new InvalidOperationException($"The type comparison depth limit of {_maxDepth} was reached.");
             }
 
             if (thisType.Kind != otherType.Kind)

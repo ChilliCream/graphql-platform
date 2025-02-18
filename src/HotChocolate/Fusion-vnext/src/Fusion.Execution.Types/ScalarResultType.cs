@@ -1,10 +1,11 @@
 namespace HotChocolate.Fusion.Types;
 
+[Flags]
 public enum ScalarResultType
 {
-    String,
-    Int,
-    Float,
-    Boolean,
-    Unknown
+    Unknown = 0,
+    String = 1,
+    Int = 2,
+    Float = 4,
+    Boolean = 8
 }

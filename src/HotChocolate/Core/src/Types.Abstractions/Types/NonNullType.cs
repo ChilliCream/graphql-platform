@@ -1,10 +1,10 @@
 using HotChocolate.Language;
-using static HotChocolate.Types.Mutable.Properties.SkimmedResources;
+using static HotChocolate.Properties.TypesAbstractionResources;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-namespace HotChocolate.Types.Mutable;
+namespace HotChocolate.Types;
 
-public sealed class NonNullType : INonNullType
+public sealed class NonNullType : IType
 {
     public NonNullType(IType nullableType)
     {

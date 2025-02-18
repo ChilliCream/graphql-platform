@@ -1,4 +1,6 @@
+using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
+using GraphQLNameNode = HotChocolate.Language.NameNode;
 
 namespace HotChocolate.Fusion.Rewriters;
 
@@ -132,7 +134,7 @@ public sealed class SelectedValueToSelectionSetRewriter
 
         selections.Add(
             new FieldNode(
-                new Language.NameNode(pathSegment.FieldName.Value),
+                new GraphQLNameNode(pathSegment.FieldName.Value),
                 null,
                 [],
                 [],

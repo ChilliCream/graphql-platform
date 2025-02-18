@@ -1,13 +1,15 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
 internal static class CompletionTools
 {
-    public static DirectiveCollection CreateDirectiveCollection(
+    public static FusionDirectiveCollection CreateDirectiveCollection(
         IReadOnlyList<DirectiveNode> directives,
         CompositeSchemaContext context)
     {
@@ -15,7 +17,7 @@ internal static class CompletionTools
 
         if(directives.Count == 0)
         {
-            return DirectiveCollection.Empty;
+            return FusionDirectiveCollection.Empty;
         }
 
         var temp = new FusionDirective[directives.Count];
@@ -25,10 +27,12 @@ internal static class CompletionTools
             var directive = directives[i];
             var directiveType = context.GetDirectiveType(directive.Name.Value);
             var arguments = CreateArgumentAssignments(directive.Arguments);
-            temp[i] = new FusionDirective(directiveType, arguments);
+            temp[i] = new FusionDirective(
+                directiveType,
+                ImmutableCollectionsMarshal.AsImmutableArray(arguments));
         }
 
-        return new DirectiveCollection(temp);
+        return new FusionDirectiveCollection(temp);
     }
 
     private static ArgumentAssignment[] CreateArgumentAssignments(
@@ -53,23 +57,23 @@ internal static class CompletionTools
         ArgumentNode argument)
         => new(argument.Name.Value, argument.Value);
 
-    public static CompositeInterfaceTypeCollection CreateInterfaceTypeCollection(
+    public static FusionInterfaceTypeDefinitionCollection CreateInterfaceTypeCollection(
         IReadOnlyList<NamedTypeNode> interfaceTypes,
         CompositeSchemaContext context)
     {
         if(interfaceTypes.Count == 0)
         {
-            return CompositeInterfaceTypeCollection.Empty;
+            return FusionInterfaceTypeDefinitionCollection.Empty;
         }
 
-        var temp = new FusionInterfaceType[interfaceTypes.Count];
+        var temp = new FusionInterfaceTypeDefinition[interfaceTypes.Count];
 
         for (var i = 0; i < interfaceTypes.Count; i++)
         {
-            temp[i] = (FusionInterfaceType)context.GetType(interfaceTypes[i]);
+            temp[i] = (FusionInterfaceTypeDefinition)context.GetType(interfaceTypes[i]);
         }
 
-        return new CompositeInterfaceTypeCollection(temp);
+        return new FusionInterfaceTypeDefinitionCollection(temp);
     }
 
     public static SourceObjectTypeCollection CreateSourceObjectTypeCollection(

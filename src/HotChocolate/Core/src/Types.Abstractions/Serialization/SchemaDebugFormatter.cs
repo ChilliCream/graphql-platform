@@ -125,12 +125,12 @@ public static class SchemaDebugFormatter
         switch (type.Kind)
         {
             case TypeKind.List:
-                return new ListTypeNode(FormatTypeRef(((IListType)type).ElementType));
+                return new ListTypeNode(FormatTypeRef(((ListType)type).ElementType));
 
             case TypeKind.NonNull:
                 return new NonNullTypeNode(
                     (INullableTypeNode)FormatTypeRef(
-                        ((INonNullType)type).NullableType));
+                        ((NonNullType)type).NullableType));
 
             default:
                 return new NamedTypeNode(((ITypeDefinition)type).Name);

@@ -29,7 +29,8 @@ public class MutableObjectTypeDefinition(string name)
             return ReferenceEquals(this, other);
         }
 
-        return other is MutableObjectTypeDefinition otherObject && otherObject.Name.Equals(Name, StringComparison.Ordinal);
+        return other is MutableObjectTypeDefinition otherObject
+            && otherObject.Name.Equals(Name, StringComparison.Ordinal);
     }
 
     /// <inheritdoc />

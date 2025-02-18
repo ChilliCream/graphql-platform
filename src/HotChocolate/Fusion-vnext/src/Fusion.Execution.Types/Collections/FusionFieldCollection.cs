@@ -1,21 +1,18 @@
 using System.Collections;
 using System.Collections.Frozen;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
-public abstract class FusionFieldCollection<TField>
+public abstract class FusionFieldDefinitionCollection<TField>
     : IEnumerable<TField> where TField : IFieldDefinition
 {
     private readonly FrozenDictionary<string, TField> _map;
-    private readonly ImmutableArray<TField> _order;
 
-    protected FusionFieldCollection(ImmutableArray<TField> fields)
+    protected FusionFieldDefinitionCollection(TField[] fields)
     {
         _map = fields.ToFrozenDictionary(t => t.Name);
-        _order = fields;
     }
 
     public int Count => _map.Count;
@@ -29,7 +26,7 @@ public abstract class FusionFieldCollection<TField>
         => _map.ContainsKey(name);
 
     public IEnumerator<TField> GetEnumerator()
-        => ((IEnumerable<TField>)_order).GetEnumerator();
+        => ((IEnumerable<TField>)_map.Values).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

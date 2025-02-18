@@ -1,12 +1,15 @@
 using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Language;
+using HotChocolate.Serialization;
 using HotChocolate.Types;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Types;
 
 /// <summary>
 /// Represents a GraphQL directive definition.
 /// </summary>
-public sealed class FusionDirectiveDefinition
+public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 {
     /// <summary>
     /// Represents a GraphQL directive definition.
@@ -50,6 +53,9 @@ public sealed class FusionDirectiveDefinition
     /// </summary>
     public FusionInputFieldDefinitionCollection Arguments { get; }
 
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
+        => Arguments;
+
     /// <summary>
     /// Gets the locations where this directive can be applied.
     /// </summary>
@@ -59,10 +65,19 @@ public sealed class FusionDirectiveDefinition
     public DirectiveLocation Locations { get; }
 
     /// <summary>
-    /// Returns the name of the directive.
+    /// Gets a string that represents the current object.
     /// </summary>
     /// <returns>
-    /// The name of the directive.
+    /// A string that represents the current object.
     /// </returns>
-    public override string ToString() => Name;
+    public override string ToString()
+        => SchemaDebugFormatter.Format(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="DirectiveDefinitionNode"/>
+    /// from a <see cref="FusionDirectiveDefinition"/>.
+    /// </summary>
+    public DirectiveDefinitionNode ToSyntaxNode() => SchemaDebugFormatter.Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => SchemaDebugFormatter.Format(this);
 }

@@ -5,7 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
-public class SourceMemberCollection<TMember> : ISourceMemberCollection<TMember> where TMember : ISourceMember
+public class SourceMemberCollection<TMember>
+    : ISourceMemberCollection<TMember>
+    where TMember : ISourceMember
 {
     private readonly FrozenDictionary<string, TMember> _members;
 
@@ -14,9 +16,9 @@ public class SourceMemberCollection<TMember> : ISourceMemberCollection<TMember> 
         _members = members.ToFrozenDictionary(t => t.SchemaName);
     }
 
-    public int Count => _members.Count;
-
     public TMember this[string schemaName] => _members[schemaName];
+
+    public int Count => _members.Count;
 
     public bool ContainsSchema(string schemaName)
         => _members.ContainsKey(schemaName);

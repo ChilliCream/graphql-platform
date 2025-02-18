@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 internal class StringSyntaxWriter(StringSyntaxWriterOptions? options = null) : ISyntaxWriter
 {

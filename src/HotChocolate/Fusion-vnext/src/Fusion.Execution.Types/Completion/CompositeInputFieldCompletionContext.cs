@@ -4,10 +4,10 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Types.Completion;
 
 internal ref struct CompositeInputFieldCompletionContext(
-    DirectiveCollection directives,
-    ICompositeType type)
+    FusionDirectiveCollection directives,
+    IType type)
 {
-    public DirectiveCollection Directives { get; } = directives;
+    public FusionDirectiveCollection Directives { get; } = directives;
 
     public IType Type { get; } = type;
 }

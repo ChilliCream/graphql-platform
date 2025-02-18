@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;

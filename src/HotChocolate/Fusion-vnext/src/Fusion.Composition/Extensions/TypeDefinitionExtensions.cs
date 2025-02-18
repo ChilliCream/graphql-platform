@@ -9,8 +9,8 @@ internal static class TypeDefinitionExtensions
     {
         return type switch
         {
-            IListType listType => listType.ElementType.NullableType(),
-            INonNullType nonNullType => nonNullType.NullableType,
+            ListType listType => listType.ElementType.NullableType(),
+            NonNullType nonNullType => nonNullType.NullableType,
             _ => type
         };
     }

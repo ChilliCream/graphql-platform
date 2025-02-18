@@ -1,15 +1,16 @@
-using System.Collections.Frozen;
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using static System.Runtime.InteropServices.ImmutableCollectionsMarshal;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
 public static class CompositeSchemaBuilder
 {
-    public static CompositeSchema Create(DocumentNode documentNode)
+    public static FusionSchemaDefinition Create(DocumentNode documentNode)
     {
         var context = CreateTypes(documentNode);
         return CompleteTypes(context);
@@ -20,8 +21,8 @@ public static class CompositeSchemaBuilder
         string? queryType = null;
         string? mutationType = null;
         string? subscriptionType = null;
-        IReadOnlyList<DirectiveNode> directives = Array.Empty<DirectiveNode>();
-        var types = ImmutableArray.CreateBuilder<ICompositeNamedType>();
+        var directives = ImmutableArray<DirectiveNode>.Empty;
+        var types = ImmutableArray.CreateBuilder<ITypeDefinition>();
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
         var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
@@ -29,8 +30,8 @@ public static class CompositeSchemaBuilder
         foreach (var definition in schema.Definitions)
         {
             if (definition is IHasName namedSyntaxNode
-                && (FusionTypes.IsBuiltInType(namedSyntaxNode.Name.Value)
-                    || FusionTypes.IsBuiltInDirective(namedSyntaxNode.Name.Value)))
+                && (FusionBuiltIns.IsBuiltInType(namedSyntaxNode.Name.Value)
+                    || FusionBuiltIns.IsBuiltInDirective(namedSyntaxNode.Name.Value)))
             {
                 continue;
             }
@@ -58,7 +59,7 @@ public static class CompositeSchemaBuilder
                     break;
 
                 case SchemaDefinitionNode schemaDefinition:
-                    directives = schemaDefinition.Directives;
+                    directives = [..schemaDefinition.Directives];
 
                     foreach (var operationType in schemaDefinition.OperationTypes)
                     {
@@ -93,19 +94,19 @@ public static class CompositeSchemaBuilder
             directiveDefinitions.ToImmutable());
     }
 
-    private static FusionObjectType CreateObjectType(
+    private static FusionObjectTypeDefinition CreateObjectType(
         ObjectTypeDefinitionNode definition)
     {
-        return new FusionObjectType(
+        return new FusionObjectTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
             CreateOutputFields(definition.Fields));
     }
 
-    private static FusionInterfaceType CreateInterfaceType(
+    private static FusionInterfaceTypeDefinition CreateInterfaceType(
         InterfaceTypeDefinitionNode definition)
     {
-        return new FusionInterfaceType(
+        return new FusionInterfaceTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
             CreateOutputFields(definition.Fields));
@@ -158,9 +159,9 @@ public static class CompositeSchemaBuilder
         return new FusionInputFieldDefinitionCollection(temp);
     }
 
-    private static CompositeScalarType CreateScalarType(ScalarTypeDefinitionNode definition)
+    private static FusionScalarTypeDefinition CreateScalarType(ScalarTypeDefinitionNode definition)
     {
-        return new CompositeScalarType(
+        return new FusionScalarTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value);
     }
@@ -202,27 +203,27 @@ public static class CompositeSchemaBuilder
         return new FusionInputFieldDefinitionCollection(sourceFields);
     }
 
-    private static CompositeSchema CompleteTypes(CompositeSchemaContext schemaContext)
+    private static FusionSchemaDefinition CompleteTypes(CompositeSchemaContext schemaContext)
     {
-        foreach (var type in schemaContext.Types)
+        foreach (var type in schemaContext.TypeDefinitions)
         {
             switch (type)
             {
-                case FusionObjectType objectType:
+                case FusionObjectTypeDefinition objectType:
                     CompleteObjectType(
                         objectType,
                         schemaContext.GetTypeDefinition<ObjectTypeDefinitionNode>(objectType.Name),
                         schemaContext);
                     break;
 
-                case FusionInterfaceType interfaceType:
+                case FusionInterfaceTypeDefinition interfaceType:
                     CompleteInterfaceType(
                         interfaceType,
                         schemaContext.GetTypeDefinition<InterfaceTypeDefinitionNode>(interfaceType.Name),
                         schemaContext);
                     break;
 
-                case CompositeScalarType scalarType:
+                case FusionScalarTypeDefinition scalarType:
                     CompleteScalarType(
                         scalarType,
                         schemaContext.GetTypeDefinition<ScalarTypeDefinitionNode>(scalarType.Name),
@@ -231,7 +232,7 @@ public static class CompositeSchemaBuilder
             }
         }
 
-        foreach (var directiveType in schemaContext.DirectiveTypes)
+        foreach (var directiveType in schemaContext.DirectiveDefinitions)
         {
             CompleteDirectiveType(
                 directiveType,
@@ -241,28 +242,29 @@ public static class CompositeSchemaBuilder
 
         var directives = CompletionTools.CreateDirectiveCollection(schemaContext.Directives, schemaContext);
 
-        return new CompositeSchema(
+        return new FusionSchemaDefinition(
+            "Default",
             null,
-            schemaContext.GetType<FusionObjectType>(schemaContext.QueryType),
+            schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.QueryType),
             schemaContext.MutationType is not null
-                ? schemaContext.GetType<FusionObjectType>(schemaContext.MutationType)
+                ? schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.MutationType)
                 : null,
             schemaContext.SubscriptionType is not null
-                ? schemaContext.GetType<FusionObjectType>(schemaContext.SubscriptionType)
+                ? schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.SubscriptionType)
                 : null,
-            schemaContext.Types.ToFrozenDictionary(t => t.Name),
             directives,
-            schemaContext.DirectiveTypes.ToFrozenDictionary(t => t.Name));
+            new FusionTypeDefinitionCollection(AsArray(schemaContext.TypeDefinitions)!),
+            new FusionDirectiveDefinitionCollection(AsArray(schemaContext.DirectiveDefinitions)!));
     }
 
     private static void CompleteObjectType(
-        FusionObjectType type,
+        FusionObjectTypeDefinition type,
         ObjectTypeDefinitionNode typeDef,
         CompositeSchemaContext schemaContext)
     {
         foreach (var fieldDef in typeDef.Fields)
         {
-            CompleteOutputField(type, type.FieldsDefinition[fieldDef.Name.Value], fieldDef, schemaContext);
+            CompleteOutputField(type, type.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
@@ -272,13 +274,13 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteInterfaceType(
-        FusionInterfaceType type,
+        FusionInterfaceTypeDefinition type,
         InterfaceTypeDefinitionNode typeDef,
         CompositeSchemaContext schemaContext)
     {
         foreach (var fieldDef in typeDef.Fields)
         {
-            CompleteOutputField(type, type.FieldsDefinition[fieldDef.Name.Value], fieldDef, schemaContext);
+            CompleteOutputField(type, type.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
@@ -288,7 +290,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteOutputField(
-        FusionComplexType declaringType,
+        FusionComplexTypeDefinition declaringType,
         FusionOutputFieldDefinition fieldDefinition,
         FieldDefinitionNode fieldDef,
         CompositeSchemaContext schemaContext)
@@ -357,7 +359,7 @@ public static class CompositeSchemaBuilder
             return null;
         }
 
-        static ICompositeType CompleteType(
+        static IType CompleteType(
             ITypeNode type,
             ITypeNode? sourceType,
             CompositeSchemaContext schemaContext)
@@ -379,7 +381,7 @@ public static class CompositeSchemaBuilder
     }
 
     private static void CompleteScalarType(
-        CompositeScalarType type,
+        FusionScalarTypeDefinition type,
         ScalarTypeDefinitionNode typeDef,
         CompositeSchemaContext schemaContext)
     {

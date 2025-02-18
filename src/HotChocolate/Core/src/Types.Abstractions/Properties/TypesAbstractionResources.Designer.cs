@@ -44,5 +44,11 @@ namespace HotChocolate.Properties {
                 resourceCulture = value;
             }
         }
+        
+        internal static string NonNullType_InnerTypeCannotBeNonNull {
+            get {
+                return ResourceManager.GetString("NonNullType_InnerTypeCannotBeNonNull", resourceCulture);
+            }
+        }
     }
 }
