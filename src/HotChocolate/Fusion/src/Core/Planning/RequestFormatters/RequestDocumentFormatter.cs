@@ -184,12 +184,14 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
 
                 var unspecifiedArguments = GetUnspecifiedArguments(rootSelection.Selection);
 
+                var sharedDirectives = GetSharedDirectives(rootSelection.Selection.SyntaxNodes);
+
                 var (s, _) = rootSelection.Resolver.CreateSelection(
                     context.VariableValues,
                     selectionSetNode,
                     rootSelection.Selection.ResponseName,
                     unspecifiedArguments,
-                    rootSelection.Selection.SyntaxNode.Directives);
+                    sharedDirectives);
                 selectionNode = s;
             }
 
@@ -637,6 +639,42 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                         Array.Empty<DirectiveNode>()));
             }
         }
+    }
+
+    private static List<DirectiveNode> GetSharedDirectives(IReadOnlyList<FieldNode> fieldNodes)
+    {
+        var sharedDirectives = new HashSet<DirectiveNode>(SyntaxComparer.BySyntax);
+
+        foreach (var fieldNode in fieldNodes)
+        {
+            // If one selection doesn't have any directives, there can't be any shared ones.
+            if (fieldNode.Directives.Count < 1)
+            {
+                return [];
+            }
+
+            if (sharedDirectives.Count < 1)
+            {
+                foreach (var directive in fieldNode.Directives)
+                {
+                    sharedDirectives.Add(directive);
+                }
+            }
+            else
+            {
+                var fieldNodeDirectives = new HashSet<DirectiveNode>(fieldNode.Directives, SyntaxComparer.BySyntax);
+
+                foreach (var sharedDirective in sharedDirectives)
+                {
+                    if (!fieldNodeDirectives.Contains(sharedDirective))
+                    {
+                        sharedDirectives.Remove(sharedDirective);
+                    }
+                }
+            }
+        }
+
+        return sharedDirectives.ToList();
     }
 
     private static IReadOnlyList<string>? GetUnspecifiedArguments(ISelection selection)

@@ -1,27 +1,21 @@
-# Same_TopLevel_Selection_Only_One_Skipped
+# Same_TopLevel_Selection_Skipped_With_Entirely_Different_Skips
 
 ## Result
 
 ```json
 {
-  "data": {
-    "product": {
-      "brand": {
-        "name": "string"
-      }
-    }
-  }
+  "data": {}
 }
 ```
 
 ## Request
 
 ```graphql
-query Test($skip: Boolean!) {
-  product @skip(if: $skip) {
+query Test($skip1: Boolean!, $skip2: Boolean!) {
+  product @skip(if: $skip1) {
     price
   }
-  product {
+  product @skip(if: $skip2) {
     brand {
       name
     }
@@ -32,14 +26,14 @@ query Test($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-069A24AC99B558177CB5DCB4CE7E955A0281B31A
+4E267E255CE78944D042F593B46CF371F5ACDE78
 ```
 
 ## QueryPlan
 
 ```json
 {
-  "document": "query Test($skip: Boolean!) { product @skip(if: $skip) { price } product { brand { name } } }",
+  "document": "query Test($skip1: Boolean!, $skip2: Boolean!) { product @skip(if: $skip1) { price } product @skip(if: $skip2) { brand { name } } }",
   "operation": "Test",
   "rootNode": {
     "type": "Sequence",
