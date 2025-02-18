@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Types.Products;
 [QueryType]
 public static partial class ProductQueries
 {
-    [UsePaging]
+    [UsePaging(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
     public static async Task<Connection<Product>> GetProductsAsync(

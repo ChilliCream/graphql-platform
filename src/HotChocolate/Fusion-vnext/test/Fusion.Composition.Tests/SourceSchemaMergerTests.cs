@@ -12,6 +12,7 @@ public sealed class SourceSchemaMergerTests
     public void Merge_WithOperationTypes_SetsOperationTypes()
     {
         // arrange
+        var intType = BuiltIns.Int.Create();
         var merger = new SourceSchemaMerger(
         [
             new MutableSchemaDefinition
@@ -19,11 +20,11 @@ public sealed class SourceSchemaMergerTests
                 Types =
                 {
                     new MutableObjectTypeDefinition(Query)
-                        { Fields = { new MutableOutputFieldDefinition("field") } },
+                        { Fields = { new MutableOutputFieldDefinition("field", intType) } },
                     new MutableObjectTypeDefinition(Mutation)
-                        { Fields = { new MutableOutputFieldDefinition("field") } },
+                        { Fields = { new MutableOutputFieldDefinition("field", intType) } },
                     new MutableObjectTypeDefinition(Subscription)
-                        { Fields = { new MutableOutputFieldDefinition("field") } }
+                        { Fields = { new MutableOutputFieldDefinition("field", intType) } }
                 }
             }
         ]);
@@ -49,7 +50,12 @@ public sealed class SourceSchemaMergerTests
                 Types =
                 {
                     new MutableObjectTypeDefinition(Query)
-                        { Fields = { new MutableOutputFieldDefinition("field") } },
+                    {
+                        Fields =
+                        {
+                            new MutableOutputFieldDefinition("field", BuiltIns.Int.Create())
+                        }
+                    },
                     new MutableObjectTypeDefinition(Mutation),
                     new MutableObjectTypeDefinition(Subscription)
                 }

@@ -102,18 +102,15 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// <typeparam name="TValue">
     /// The value type of the DataLoader.
     /// </typeparam>
-    /// <typeparam name="TElement">
-    /// The element type of the projection.
-    /// </typeparam>
     /// <returns>
     /// Returns the DataLoader with the added projection.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, Page<TValue>> Select<TElement, TKey, TValue>(
+    public static IDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
         this IDataLoader<TKey, Page<TValue>> dataLoader,
-        Expression<Func<TElement, TElement>>? selector)
+        Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
         if (dataLoader is null)

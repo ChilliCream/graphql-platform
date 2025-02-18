@@ -35,7 +35,7 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     /// <summary>
     /// Gets the sort direction.
     /// </summary>
-    public bool Ascending { get => field; init; }
+    public bool Ascending { get; init; }
 
     /// <summary>
     /// Applies the sort operation to the queryable.

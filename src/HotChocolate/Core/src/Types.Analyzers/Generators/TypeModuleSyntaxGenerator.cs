@@ -11,13 +11,13 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
-        => Execute(context, compilation, syntaxInfos);
+        => Execute(context, assemblyName, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
@@ -25,7 +25,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
+        var module = syntaxInfos.GetModuleInfo(assemblyName, out var defaultModule);
 
         // the generator is disabled.
         if (module.Options == ModuleOptions.Disabled)

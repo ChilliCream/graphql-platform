@@ -81,9 +81,9 @@ public sealed class SourceSchemaMergerInputFieldTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     minTotal: Int
-                        @inaccessible
                         @fusion__inputField(schema: A)
                         @fusion__inputField(schema: B)
+                        @fusion__inaccessible
                 }
                 """
             },

@@ -114,9 +114,80 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                 ],
                 """
                 interface Product
-                    @inaccessible
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+                """
+            },
+            // Implemented interfaces. I2 is inaccessible.
+            {
+                [
+                    """
+                    # Schema A
+                    interface I1 {
+                        id: ID!
+                    }
+
+                    interface I2 {
+                        id: ID!
+                    }
+
+                    interface Product implements I1 & I2 {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    interface I1 {
+                        id: ID!
+                    }
+
+                    interface I2 @inaccessible {
+                        id: ID!
+                    }
+
+                    interface I3 {
+                        id: ID!
+                    }
+
+                    interface Product implements I1 & I2 & I3 {
+                        id: ID!
+                    }
+                    """
+                ],
+                """
+                interface I1
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I2
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I3
+                    @fusion__type(schema: B) {
+                    id: ID!
+                        @fusion__field(schema: B)
+                }
+
+                interface Product implements I1 & I3
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__implements(schema: A, interface: "I1")
+                    @fusion__implements(schema: B, interface: "I1")
+                    @fusion__implements(schema: B, interface: "I3") {
                     id: ID!
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
@@ -201,8 +272,9 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                         @fusion__field(schema: A)
                 }
 
-                type Cat
+                type Cat implements Animal
                     @fusion__type(schema: A)
+                    @fusion__implements(schema: A, interface: "Animal")
                     @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById") {
                     catById(id: ID!
                         @fusion__inputField(schema: A)): Cat
@@ -211,8 +283,9 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                         @fusion__field(schema: A)
                 }
 
-                type Dog
+                type Dog implements Animal
                     @fusion__type(schema: A)
+                    @fusion__implements(schema: A, interface: "Animal")
                     @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById") {
                     dogById(id: ID!
                         @fusion__inputField(schema: A)): Dog
