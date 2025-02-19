@@ -17,7 +17,10 @@ public class DataLoaderServiceCollectionExtensionsTests
             .AddDataLoader(sp =>
             {
                 factoryCalled = true;
-                return new DataLoader<string, string>(fetch, sp.GetRequiredService<IBatchScheduler>());
+                return new DataLoader<string, string>(
+                    fetch,
+                    sp.GetRequiredService<IBatchScheduler>(),
+                    sp.GetRequiredService<DataLoaderOptions>());
             });
         var scope = services.BuildServiceProvider().CreateScope();
 
@@ -40,7 +43,10 @@ public class DataLoaderServiceCollectionExtensionsTests
             .AddDataLoader<IDataLoader<string, string>, DataLoader<string, string>>(sp =>
             {
                 factoryCalled = true;
-                return new DataLoader<string, string>(fetch, sp.GetRequiredService<IBatchScheduler>());
+                return new DataLoader<string, string>(
+                    fetch,
+                    sp.GetRequiredService<IBatchScheduler>(),
+                    sp.GetRequiredService<DataLoaderOptions>());
             });
         var scope = services.BuildServiceProvider().CreateScope();
 

@@ -6,7 +6,7 @@ public static class DataLoaderStateTests
     public static async Task SetStateInferredKey()
     {
         // arrange
-        var loader = new DummyDataLoader(typeof(string).FullName!);
+        var loader = new DummyDataLoader(typeof(string).FullName!, new DataLoaderOptions());
 
         // act
         await loader.SetState("abc").LoadAsync("def");
@@ -19,7 +19,7 @@ public static class DataLoaderStateTests
     public static async Task SetStateExplicitKey()
     {
         // arrange
-        var loader = new DummyDataLoader("abc");
+        var loader = new DummyDataLoader("abc", new DataLoaderOptions());
 
         // act
         await loader.SetState("abc", "def").LoadAsync("ghi");
@@ -32,7 +32,7 @@ public static class DataLoaderStateTests
     public static async Task TrySetStateInferredKey()
     {
         // arrange
-        var loader = new DummyDataLoader(typeof(string).FullName!);
+        var loader = new DummyDataLoader(typeof(string).FullName!, new DataLoaderOptions());
 
         // act
         await loader.SetState("abc").TrySetState("xyz").LoadAsync("def");
@@ -45,7 +45,7 @@ public static class DataLoaderStateTests
     public static async Task TrySetStateExplicitKey()
     {
         // arrange
-        var loader = new DummyDataLoader("abc");
+        var loader = new DummyDataLoader("abc", new DataLoaderOptions());
 
         // act
         await loader.SetState("abc", "def").TrySetState("abc", "xyz").LoadAsync("def");
@@ -58,7 +58,7 @@ public static class DataLoaderStateTests
     public static async Task AddStateEnumerableInferredKey()
     {
         // arrange
-        var loader = new DummyDataLoader(typeof(string).FullName!);
+        var loader = new DummyDataLoader(typeof(string).FullName!, new DataLoaderOptions());
 
         // act
         await loader.AddStateEnumerable("abc").AddStateEnumerable("xyz").LoadAsync("def");
@@ -74,7 +74,7 @@ public static class DataLoaderStateTests
     public static async Task AddStateEnumerableExplicitKey()
     {
         // arrange
-        var loader = new DummyDataLoader("abc");
+        var loader = new DummyDataLoader("abc", new DataLoaderOptions());
 
         // act
         await loader.AddStateEnumerable("abc", "def").AddStateEnumerable("abc", "xyz").LoadAsync("def");
@@ -86,7 +86,7 @@ public static class DataLoaderStateTests
             item => Assert.Equal("xyz", item));
     }
 
-    public class DummyDataLoader(string expectedKey, DataLoaderOptions? options = null)
+    public class DummyDataLoader(string expectedKey, DataLoaderOptions options)
         : DataLoaderBase<string, string>(AutoBatchScheduler.Default, options)
     {
         public object? State { get; set; }
