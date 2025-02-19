@@ -1,6 +1,4 @@
 <Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
-
   <PropertyGroup>
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutput>$(OutputPath)coverage.cobertura.xml</CoverletOutput>
