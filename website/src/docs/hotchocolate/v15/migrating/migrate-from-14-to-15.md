@@ -52,4 +52,42 @@ Please ensure that your clients are sending date/time strings in the correct for
 
 # Deprecations
 
-Things that will continue to function this release, but we encourage you to move away from.
+## AdHoc DataLoader
+
+The ad-hoc DataLoader methods on IResolverContext have been deprecated.
+
+```csharp
+public async Task<Product?> GetProductById(int id, IResolverContext context, CatalogContext catalogContext)
+{
+    return context
+        .BatchDataLoader<string, string>(
+            (productIds, ct) => catalogContext.Products.Where(p => productIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, ct),
+            "productById")
+        .LoadAsync(id);
+}
+```
+
+Use the source-generated DataLoaders instead.
+
+```csharp
+internal static class ProductDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<int, Product>> GetProductByIdAsync(
+        IReadOnlyList<int> productIds,
+        CatalogContext context,
+        CancellationToken cancellationToken)
+        => await context.Products
+            .Where(t => productIds.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, cancellationToken);
+}
+```
+
+This approach leads to better resolvers and helps avoid errors when capturing the context within the resolver.
+
+```csharp
+public async Task<Product?> GetProductById(int id, IProductDataLoader productDataLoader)
+    => await productDataLoader.LoadAsync(id);
+```
+
+To pass state to the DataLoader, use the new branching and state APIs available on the DataLoader.

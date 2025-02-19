@@ -3,6 +3,7 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -17,7 +18,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class ObjectFieldDescriptor
     : OutputFieldDescriptorBase<ObjectFieldDefinition>
-    , IObjectFieldDescriptor
+        , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
     private ParameterInfo[] _parameterInfos = [];
@@ -151,9 +152,9 @@ public class ObjectFieldDescriptor
 
         CompleteArguments(definition);
 
-        if (!definition.HasStreamResult &&
-            definition.ResultType?.IsGenericType is true &&
-            definition.ResultType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+        if (!definition.HasStreamResult
+            && definition.ResultType?.IsGenericType is true
+            && definition.ResultType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
         {
             definition.HasStreamResult = true;
         }
@@ -473,6 +474,10 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
+    public IObjectFieldDescriptor ParentRequires<TParent>(Expression<Func<TParent, object>> selector)
+        => ParentRequires<TParent>(ExpressionSelectionSetFormatter.Format(selector));
+
+    /// <inheritdoc />
     public IObjectFieldDescriptor ParentRequires<TParent>(string? requires)
     {
         if (!(requires?.Length > 0))
@@ -556,4 +561,45 @@ public class ObjectFieldDescriptor
         IDescriptorContext context,
         ObjectFieldDefinition definition)
         => new(context, definition);
+
+    public static class ExpressionSelectionSetFormatter
+    {
+        public static string Format<T, TProperty>(Expression<Func<T, TProperty>> expression)
+        {
+            return ProcessExpression(expression.Body).Trim();
+        }
+
+        private static string ProcessExpression(Expression? expression)
+        {
+            if (expression is null)
+            {
+                return string.Empty;
+            }
+
+            switch (expression)
+            {
+                case MemberExpression memberExpr:
+                    var parent = ProcessExpression(memberExpr.Expression);
+                    return string.IsNullOrEmpty(parent)
+                        ? memberExpr.Member.Name
+                        : $"{parent} {{ {memberExpr.Member.Name} }}";
+
+                case NewExpression newExpr:
+                    return string.Join(" ", newExpr.Arguments.Select(ProcessExpression));
+
+                case MemberInitExpression memberInitExpr:
+                    return string.Join(" ", memberInitExpr.Bindings.OfType<MemberAssignment>()
+                        .Select(b => $"{b.Member.Name}{ProcessExpression(b.Expression)}"));
+
+                case MethodCallExpression { Method.Name: "Select" } methodCallExpr:
+                    if (methodCallExpr.Arguments is [_, UnaryExpression { Operand: LambdaExpression lambda }])
+                    {
+                        return $"{{ {ProcessExpression(lambda.Body)} }}";
+                    }
+                    break;
+            }
+
+            return string.Empty;
+        }
+    }
 }
