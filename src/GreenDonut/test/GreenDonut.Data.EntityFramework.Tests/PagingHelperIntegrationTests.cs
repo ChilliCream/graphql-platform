@@ -19,8 +19,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Arrange
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        var queries = new List<QueryInfo>();
-        using var capture = new CapturePagingQueryInterceptor(queries);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // Act
         await using var context = new CatalogContext(connectionString);
@@ -30,7 +29,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         await CreateSnapshot()
-            .AddQueries(queries)
+            .AddQueries(capture.Queries)
             .Add(
                 new
                 {
@@ -51,8 +50,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Arrange
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        var queries = new List<QueryInfo>();
-        using var capture = new CapturePagingQueryInterceptor(queries);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // Act
         await using var context = new CatalogContext(connectionString);
@@ -62,7 +60,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         await CreateSnapshot()
-            .AddQueries(queries)
+            .AddQueries(capture.Queries)
             .Add(
                 new
                 {
@@ -83,8 +81,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Arrange
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        var queries = new List<QueryInfo>();
-        using var capture = new CapturePagingQueryInterceptor(queries);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // Act
         await using var context = new CatalogContext(connectionString);
@@ -98,7 +95,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         await CreateSnapshot()
-            .AddQueries(queries)
+            .AddQueries(capture.Queries)
             .Add(
                 new
                 {
@@ -119,8 +116,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Arrange
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        var queries = new List<QueryInfo>();
-        using var capture = new CapturePagingQueryInterceptor(queries);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // Act
         await using var context = new CatalogContext(connectionString);
@@ -130,7 +126,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         await CreateSnapshot()
-            .AddQueries(queries)
+            .AddQueries(capture.Queries)
             .Add(
                 new
                 {
@@ -151,8 +147,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         // Arrange
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        var queries = new List<QueryInfo>();
-        using var capture = new CapturePagingQueryInterceptor(queries);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // Act
         await using var context = new CatalogContext(connectionString);
@@ -166,7 +161,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         await CreateSnapshot()
-            .AddQueries(queries)
+            .AddQueries(capture.Queries)
             .Add(
                 new
                 {
@@ -193,8 +188,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        var queries = new List<QueryInfo>();
-        using var capture = new CapturePagingQueryInterceptor(queries);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // Act
         await using var context = new CatalogContext(connectionString);
@@ -220,7 +214,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 name: page.Key.ToString());
         }
 
-        snapshot.AddQueries(queries);
+        snapshot.AddQueries(capture.Queries);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -236,8 +230,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        var queries = new List<QueryInfo>();
-        using var capture = new CapturePagingQueryInterceptor(queries);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // Act
         await using var context = new CatalogContext(connectionString);
@@ -262,7 +255,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 name: page.Key.ToString());
         }
 
-        snapshot.AddQueries(queries);
+        snapshot.AddQueries(capture.Queries);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -396,35 +389,5 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 #else
         return Snapshot.Create("NET8_0");
 #endif
-    }
-}
-
-file static class Extensions
-{
-    public static Snapshot AddQueries(
-        this Snapshot snapshot,
-        List<QueryInfo> queries)
-    {
-        for (var i = 0; i < queries.Count; i++)
-        {
-            snapshot
-                .Add(queries[i].QueryText, $"SQL {i}", "sql")
-                .Add(queries[i].ExpressionText, $"Expression {i}");
-        }
-
-        return snapshot;
-    }
-}
-
-file sealed class CapturePagingQueryInterceptor(List<QueryInfo> queries) : PagingQueryInterceptor
-{
-    public override void OnBeforeExecute<T>(IQueryable<T> query)
-    {
-        queries.Add(
-            new QueryInfo
-            {
-                ExpressionText = query.Expression.ToString(),
-                QueryText = query.ToQueryString()
-            });
     }
 }

@@ -146,11 +146,82 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                 ],
                 """
                 type Product
-                    @inaccessible
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+                """
+            },
+            // Implemented interfaces. I2 is inaccessible.
+            {
+                [
+                    """
+                    # Schema A
+                    interface I1 {
+                        id: ID!
+                    }
+
+                    interface I2 {
+                        id: ID!
+                    }
+
+                    type Product implements I1 & I2 {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    interface I1 {
+                        id: ID!
+                    }
+
+                    interface I2 @inaccessible {
+                        id: ID!
+                    }
+
+                    interface I3 {
+                        id: ID!
+                    }
+
+                    type Product implements I1 & I2 & I3 {
+                        id: ID!
+                    }
+                    """
+                ],
+                """
+                type Product implements I1 & I3
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__implements(schema: A, interface: "I1")
+                    @fusion__implements(schema: B, interface: "I1")
+                    @fusion__implements(schema: B, interface: "I3") {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I1
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     id: ID!
                         @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I2
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I3
+                    @fusion__type(schema: B) {
+                    id: ID!
                         @fusion__field(schema: B)
                 }
                 """

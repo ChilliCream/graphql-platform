@@ -102,15 +102,28 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry EmptyMergedEnumType(
-        MutableEnumTypeDefinition mutableEnumType,
+        MutableEnumTypeDefinition enumType,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
-            string.Format(LogEntryHelper_EmptyMergedEnumType, mutableEnumType.Name),
+            string.Format(LogEntryHelper_EmptyMergedEnumType, enumType.Name),
             LogEntryCodes.EmptyMergedEnumType,
             LogSeverity.Error,
-            new SchemaCoordinate(mutableEnumType.Name),
-            mutableEnumType,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
+            schema);
+    }
+
+    public static LogEntry EmptyMergedInputObjectType(
+        MutableInputObjectTypeDefinition inputObjectType,
+        MutableSchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_EmptyMergedInputObjectType, inputObjectType.Name),
+            LogEntryCodes.EmptyMergedInputObjectType,
+            LogSeverity.Error,
+            new SchemaCoordinate(inputObjectType.Name),
+            inputObjectType,
             schema);
     }
 
@@ -154,20 +167,20 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry EnumValuesMismatch(
-        MutableEnumTypeDefinition mutableEnumType,
+        MutableEnumTypeDefinition enumType,
         string enumValue,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(
                 LogEntryHelper_EnumValuesMismatch,
-                mutableEnumType.Name,
+                enumType.Name,
                 schema.Name,
                 enumValue),
             LogEntryCodes.EnumValuesMismatch,
             LogSeverity.Error,
-            new SchemaCoordinate(mutableEnumType.Name),
-            mutableEnumType,
+            new SchemaCoordinate(enumType.Name),
+            enumType,
             schema);
     }
 
