@@ -9,12 +9,14 @@ public sealed class Lookup
         string schemaName,
         string name,
         ImmutableArray<LookupArgument> arguments,
-        ImmutableArray<FieldPath> fields)
+        ImmutableArray<FieldPath> fields,
+        SelectionSetNode selectionSet)
     {
         SchemaName = schemaName;
+        Name = name;
         Arguments = arguments;
         Fields = fields;
-        Name = name;
+        SelectionSet = selectionSet;
     }
 
     /// <summary>
@@ -37,8 +39,5 @@ public sealed class Lookup
     /// </summary>
     public ImmutableArray<FieldPath> Fields { get; }
 
-    /// <summary>
-    /// Gets the complexity score of fulfilling the requirements.
-    /// </summary>
-    public int RequirementsCost { get; set; }
+    public SelectionSetNode SelectionSet { get; }
 }

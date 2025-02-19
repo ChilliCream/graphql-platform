@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -133,19 +134,23 @@ internal static class CompletionTools
                     arguments.Add(new LookupArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fields = ImmutableArray.CreateBuilder<FieldPath>();
+                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath>();
 
                 foreach (var field in lookup.Map)
                 {
-                    fields.Add(FieldPath.Parse(field));
+                    fieldsBuilder.Add(FieldPath.Parse(field));
                 }
+
+                var fields = fieldsBuilder.ToImmutable();
+                var selectionSet = fields.ToSelectionSetNode();
 
                 lookups.Add(
                     new Lookup(
                         lookup.SchemaName,
                         lookup.Field.Name.Value,
                         arguments.ToImmutable(),
-                        fields.ToImmutable()));
+                        fields,
+                        selectionSet));
             }
         }
 

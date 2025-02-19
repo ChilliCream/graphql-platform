@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
@@ -82,10 +80,27 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
-    public IObjectTypeDefinition GetOperationType(OperationType operationType)
+    public FusionObjectTypeDefinition GetOperationType(OperationType operationType)
     {
-        throw new NotImplementedException();
+        var type = operationType switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+
+        if (type is null)
+        {
+            throw new InvalidOperationException(
+                $"The specified operation type `{operationType}` is not supported.");
+        }
+
+        return type;
     }
+
+    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operationType)
+        => GetOperationType(operationType);
 
     /// <summary>
     /// Gets the possible object types to
@@ -162,10 +177,9 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
 
+    // TODO : Implement
     public IEnumerable<INameProvider> GetAllDefinitions()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     private record PossibleTypeLookupContext(
         ITypeDefinition AbstractType,

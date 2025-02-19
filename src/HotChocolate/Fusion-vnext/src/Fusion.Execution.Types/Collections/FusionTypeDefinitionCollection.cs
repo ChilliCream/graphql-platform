@@ -22,6 +22,24 @@ public sealed class FusionTypeDefinitionCollection
     public bool ContainsName(string name)
         => _types.ContainsKey(name);
 
+    [return: NotNull]
+    public T GetType<T>(string name)
+        where T : ITypeDefinition
+    {
+        if (_types.TryGetValue(name, out var t))
+        {
+            if (t is T casted)
+            {
+                return casted;
+            }
+
+            throw new InvalidOperationException(
+                $"The specified type '{name}' does not match the requested type.");
+        }
+
+        throw new ArgumentException("The specified type name does not exist.", nameof(name));
+    }
+
     public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? definition)
     {
         if (_types.TryGetValue(name, out var t))
