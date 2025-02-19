@@ -17,8 +17,8 @@ public static class TypeExtensions
     public static bool IsInputType(this IType type)
         => type.Kind switch
         {
-            TypeKind.Interface or TypeKind.Object or TypeKind.Union => false,
             TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => true,
+            TypeKind.Interface or TypeKind.Object or TypeKind.Union => false,
             TypeKind.List => IsInputType(((ListType)type).ElementType),
             TypeKind.NonNull => IsInputType(((NonNullType)type).NullableType),
             _ => throw new NotSupportedException(),
@@ -27,8 +27,8 @@ public static class TypeExtensions
     public static bool IsOutputType(this IType type)
         => type.Kind switch
         {
-            TypeKind.Interface or TypeKind.Object or TypeKind.Union => true,
-            TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => false,
+            TypeKind.Interface or TypeKind.Object or TypeKind.Union or TypeKind.Enum or TypeKind.Scalar => true,
+            TypeKind.InputObject => false,
             TypeKind.List => IsOutputType(((ListType)type).ElementType),
             TypeKind.NonNull => IsOutputType(((NonNullType)type).NullableType),
             _ => throw new NotSupportedException(),

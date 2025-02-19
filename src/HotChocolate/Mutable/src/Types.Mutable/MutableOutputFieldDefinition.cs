@@ -91,7 +91,7 @@ public class MutableOutputFieldDefinition
     public IType Type
     {
         get => _type;
-        set => _type = value.ExpectInputType();
+        set => _type = value.ExpectOutputType();
     }
 
     /// <inheritdoc />

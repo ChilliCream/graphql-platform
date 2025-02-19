@@ -32,7 +32,7 @@ internal static class ArgumentAssertExtensions
 
         if (!type.IsOutputType())
         {
-            throw new ArgumentException("Must be an input type.", name);
+            throw new ArgumentException("Must be an output type.", name);
         }
 
         return type;

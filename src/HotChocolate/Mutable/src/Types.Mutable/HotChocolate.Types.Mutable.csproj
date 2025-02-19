@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Types.Mutable</RootNamespace>
     <AssemblyName>HotChocolate.Types.Mutable</AssemblyName>
+    <LangVersion>Preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

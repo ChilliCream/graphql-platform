@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Execution.Types</AssemblyName>
     <RootNamespace>HotChocolate.Fusion.Types</RootNamespace>
+    <LangVersion>Preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
