@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Planning.Nodes3;
+namespace HotChocolate.Fusion.Planning;
 
 public record OperationPlanStep : PlanStep
 {

@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-namespace HotChocolate.Fusion.Planning.Nodes3;
+namespace HotChocolate.Fusion.Planning;
 
 public sealed class SelectionSetIndexer : SyntaxWalker
 {

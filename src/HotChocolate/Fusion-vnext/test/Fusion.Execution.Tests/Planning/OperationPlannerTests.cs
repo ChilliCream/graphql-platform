@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Planning.Nodes3;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -117,7 +116,7 @@ public class OperationPlannerTests : FusionTestBase
         return planner.CreatePlan(operation);
     }
 
-    private static void Match(ImmutableList<Nodes3.PlanStep> plan)
+    private static void Match(ImmutableList<PlanStep> plan)
     {
         var i = 0;
         var snapshot = new Snapshot();

@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Planning.Nodes3;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;

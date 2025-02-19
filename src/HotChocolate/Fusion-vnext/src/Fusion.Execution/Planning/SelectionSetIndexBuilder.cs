@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Planning.Nodes3;
+namespace HotChocolate.Fusion.Planning;
 
 public sealed class SelectionSetIndexBuilder : ISelectionSetIndex
 {

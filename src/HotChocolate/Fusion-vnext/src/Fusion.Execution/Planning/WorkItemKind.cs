@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Planning.Nodes3;
+namespace HotChocolate.Fusion.Planning;
 
 public enum WorkItemKind
 {

@@ -2,6 +2,9 @@
 
 ```graphql
 {
-
+  productBySlug(slug: "1") {
+    id
+    name
+  }
 }
 ```

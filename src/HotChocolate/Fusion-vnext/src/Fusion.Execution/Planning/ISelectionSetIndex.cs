@@ -1,4 +1,4 @@
-using HotChocolate.Fusion.Planning.Nodes3;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
