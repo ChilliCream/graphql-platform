@@ -9,6 +9,8 @@ Every data fetching technology suffers the _n+1_ problem.
 The difference between GraphQL and, for example, REST is that the _n+1_ problem occurs on the server rather than on the client.
 The clear benefit is that we only have to deal with this problem once on the server rather than on every client.
 
+<Video videoId="gVIxde5nlWE" />
+
 To illustrate the issue that data loaders solve in this context, let’s assume we have the following schema:
 
 ```sdl
