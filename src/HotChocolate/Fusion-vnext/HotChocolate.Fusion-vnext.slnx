@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
+    <Project Path="src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
+    <Project Path="src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
+    <Project Path="src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
+    <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
+    <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
+    <Project Path="test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
+    <Project Path="test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
+  </Folder>
+</Solution>
