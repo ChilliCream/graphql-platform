@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
-    <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
     <ProjectReference Include="..\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
   </ItemGroup>
 

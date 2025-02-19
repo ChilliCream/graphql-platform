@@ -22,7 +22,8 @@ internal sealed class EmptyMergedEnumTypeRule : IEventHandler<EnumTypeEvent>
             return;
         }
 
-        var accessibleValues = enumType.Values.Where(v => !v.HasFusionInaccessibleDirective());
+        var accessibleValues =
+            enumType.Values.AsEnumerable().Where(v => !v.HasFusionInaccessibleDirective());
 
         if (!accessibleValues.Any())
         {

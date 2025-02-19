@@ -1,5 +1,7 @@
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Info;
 
-internal record InterfaceInfo(InterfaceTypeDefinition InterfaceType, SchemaDefinition Schema);
+internal record InterfaceInfo(
+    MutableInterfaceTypeDefinition InterfaceType,
+    MutableSchemaDefinition Schema);

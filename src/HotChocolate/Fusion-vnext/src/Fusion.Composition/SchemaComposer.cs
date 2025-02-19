@@ -4,7 +4,7 @@ using HotChocolate.Fusion.PostMergeValidationRules;
 using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.SourceSchemaValidationRules;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
@@ -16,7 +16,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
     private readonly ICompositionLog _log = log
         ?? throw new ArgumentNullException(nameof(log));
 
-    public CompositionResult<SchemaDefinition> Compose()
+    public CompositionResult<MutableSchemaDefinition> Compose()
     {
         // Parse Source Schemas
         var (_, isParseFailure, schemas, parseErrors) =

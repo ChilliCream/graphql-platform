@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
-using static HotChocolate.Fusion.Properties.FusionLanguageResources;
-using TokenKind = HotChocolate.Fusion.FieldSelectionMapTokenKind;
+using TokenKind = HotChocolate.Fusion.Language.FieldSelectionMapTokenKind;
+using static HotChocolate.Fusion.Language.Properties.FusionLanguageResources;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// Parses nodes from source text representing a field selection map.
