@@ -2,6 +2,7 @@
 
 using System.Collections;
 using HotChocolate.Configuration;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -345,7 +346,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
     {
         if (result is null && levels.Contains(currentLevel))
         {
-            context.ReportError(CreateSemanticNonNullViolationError(path));
+            context.ReportError(CreateSemanticNonNullViolationError(path, context.Selection));
             return;
         }
 
@@ -367,10 +368,12 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         }
     }
 
-    private static IError CreateSemanticNonNullViolationError(Path path)
+    // TODO: Move
+    public static IError CreateSemanticNonNullViolationError(Path path, ISelection selection)
         => ErrorBuilder.New()
             .SetMessage("Cannot return null for semantic non-null field.")
             .SetCode(ErrorCodes.Execution.SemanticNonNullViolation)
+            .AddLocation(selection.SyntaxNode)
             .SetPath(path)
             .Build();
 }
