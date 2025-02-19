@@ -50,7 +50,73 @@ Please ensure that your clients are sending date/time strings in the correct for
 - `DateOnly` is now bound to `LocalDateType` instead of `DateType`.
 - `TimeOnly` is now bound to `LocalTimeType` instead of `TimeSpanType`.
 
+## DataLoaderOptions are now required
+
+Starting with Hot Chocolate 15, the `DataLoaderOptions` must be passed down to the DataLoaderBase constructor.
+
+```csharp
+public class ProductByIdDataLoader : BatchDataLoader<int, Product>
+{
+    private readonly IServiceProvider _services;
+
+    public ProductDataLoader1(
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions options) // the options are now required ...
+        : base(batchScheduler, options)
+    {
+    }
+}
+```
+
+## DataLoader Dependency Injection
+
+DataLoader must not be manually registered with the dependency injection and must use the extension methods provided by GreenDonut.
+
+```csharp
+services.AddDataLoader<ProductByIdDataLoader>();
+services.AddDataLoader<IProductByIdDataLoader, ProductByIdDataLoader>();
+services.AddDataLoader<IProductByIdDataLoader>(sp => ....);
+```
+
+We recommend to use the source-generated DataLoaders and let the source generator write the registration code for you.
+
+> If you register DataLoader manually they will be stuck in the auto-dispatch mode, which basically means that they will no longer batch.
+
+DataLoader are available as scoped services and can be injected like any other scoped service.
+
+```csharp
+public class ProductService(IProductByIdDataLoader productByIdData)
+{
+    public async Task<Product> GetProductById(int id)
+    {
+        return await productByIdDataLoader.LoadAsync(id);
+    }
+}
+```
+
 # Deprecations
+
+## GroupDataLoader
+
+We no longer recommend using the `GroupDataLoader`, as the same functionality can be achieved with a BatchDataLoader, which provides greater flexibility in determining the type of list returned.
+
+Use the following patter to replace the `GroupDataLoader`:
+
+```csharp
+internal static class ProductDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<int, Product[]>> GetProductsByBrandIdAsync(
+        IReadOnlyList<int> brandIds,
+        CatalogContext context,
+        CancellationToken cancellationToken)
+        => await context.Products
+            .Where(t => brandIds.Contains(t.BrandId))
+            .GroupBy(t => t.BrandId)
+            .Select(t => new { t.Key, Items = t.OrderBy(p => p.Name).ToArray() })
+            .ToDictionaryAsync(t => t.Key, t => t.Items, cancellationToken);
+}
+```
 
 ## AdHoc DataLoader
 
