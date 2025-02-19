@@ -1,12 +1,13 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Rewriters;
 
 public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 {
-    public DocumentNode RewriteDocument(DocumentNode document, string? operationName)
+    public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
     {
         var operation = document.GetOperation(operationName);
         var operationType = schema.GetOperationType(operation.Operation);
@@ -62,7 +63,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
             switch (selection)
             {
                 case FieldNode field:
-                    MergeField(field.ResponseName(), context);
+                    MergeField(field.Alias?.Value ?? field.Name.Value, context);
                     break;
 
                 case InlineFragmentNode inlineFragment:
@@ -106,7 +107,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         }
         else
         {
-            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.ResponseName()];
+            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.Name.Value];
             var fieldContext = context.Branch(field.Type.AsTypeDefinition());
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);
@@ -290,7 +291,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 
         public void AddField(FieldNode field)
         {
-            var responseName = field.ResponseName();
+            var responseName = field.Alias?.Value ?? field.Name.Value;
             if (!Fields.TryGetValue(responseName, out var fields))
             {
                 fields = [];
@@ -376,10 +377,4 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 
         public static FieldComparer Instance { get; } = new();
     }
-}
-
-file static class FileExtensions
-{
-    public static string ResponseName(this FieldNode field)
-        => field.Alias?.Value ?? field.Name.Value;
 }

@@ -3,6 +3,7 @@
   <Folder Name="/CookieCrumble/src/">
     <Project Path="CookieCrumble/src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Fusion/CookieCrumble.Fusion.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate/CookieCrumble.HotChocolate.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.TUnit/CookieCrumble.TUnit.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
