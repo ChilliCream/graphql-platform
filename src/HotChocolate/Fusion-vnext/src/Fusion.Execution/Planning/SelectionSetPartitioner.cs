@@ -204,7 +204,7 @@ public class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 return (null, fieldNode);
             }
 
-            if (source.Requirements is null)
+            if (source.Requirements is not null)
             {
                 context.FieldsWithRequirements =
                     context.FieldsWithRequirements.Push(
