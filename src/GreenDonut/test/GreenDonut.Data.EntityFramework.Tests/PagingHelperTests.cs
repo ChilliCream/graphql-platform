@@ -38,11 +38,31 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // -> get first page
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
         arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Assert
+        page.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_First_2_Items_Second_Page_With_Offset_2()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // -> get first page
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        await using var context = new CatalogContext(connectionString);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Act
+        var cursor = page.CreateCursor(page.Last!, 2);
+        arguments = new PagingArguments(2, after: cursor);
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -198,7 +218,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .MatchMarkdown();
     }
 
-     [Fact]
+    [Fact]
     public async Task QueryContext_Simple_Selector_Include_Product_List()
     {
         // Arrange

@@ -40,9 +40,9 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentException">
     /// If the number of keys does not match the number of values.
     /// </exception>
-    public static Expression<Func<T, bool>> BuildWhereExpression<T>(
+    public static (Expression<Func<T, bool>> WhereExpression, int Offset, bool ReverseOrder) BuildWhereExpression<T>(
         ReadOnlySpan<CursorKey> keys,
-        ReadOnlySpan<object?> cursor,
+        Cursor cursor,
         bool forward)
     {
         if (keys.Length == 0)
@@ -50,15 +50,15 @@ internal static class ExpressionHelpers
             throw new ArgumentException("At least one key must be specified.", nameof(keys));
         }
 
-        if (keys.Length != cursor.Length)
+        if (keys.Length != cursor.Values.Length)
         {
-            throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor));
+            throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor.Values));
         }
 
-        var cursorExpr = new Expression[cursor.Length];
-        for (var i = 0; i < cursor.Length; i++)
+        var cursorExpr = new Expression[cursor.Values.Length];
+        for (var i = 0; i < cursor.Values.Length; i++)
         {
-            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
+            cursorExpr[i] = CreateParameter(cursor.Values[i], keys[i].Expression.ReturnType);
         }
 
         var handled = new List<CursorKey>();
@@ -118,7 +118,10 @@ internal static class ExpressionHelpers
             handled.Add(key);
         }
 
-        return Expression.Lambda<Func<T, bool>>(expression!, parameter);
+        var offset = cursor.Offset ?? 0;
+        var reverseOrder = offset < 0; // Reverse order if offset is negative
+
+        return (Expression.Lambda<Func<T, bool>>(expression!, parameter), Math.Abs(offset), reverseOrder);
     }
 
     /// <summary>
@@ -203,13 +206,13 @@ internal static class ExpressionHelpers
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+            source = BuildBatchWhereExpression<TV>(source, keys, [.. cursor.Values], forward);
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+            source = BuildBatchWhereExpression<TV>(source, keys, [.. cursor.Values], forward);
         }
 
         if (arguments.First is not null)
@@ -355,7 +358,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
-        if(expression is null)
+        if (expression is null)
         {
             throw new ArgumentNullException(nameof(expression));
         }
