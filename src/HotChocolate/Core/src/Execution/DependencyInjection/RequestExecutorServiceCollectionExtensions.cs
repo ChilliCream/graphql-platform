@@ -184,9 +184,9 @@ public static class RequestExecutorServiceCollectionExtensions
         this IServiceCollection services,
         int capacity = 100)
     {
-        services.RemoveAll<IPreparedOperationCache>();
-        services.AddTransient<IPreparedOperationCache>(
-            _ => new DefaultPreparedOperationCache(capacity));
+        services.RemoveAll<PreparedOperationCacheOptions>();
+        services.AddSingleton<PreparedOperationCacheOptions>(
+            _ => new PreparedOperationCacheOptions{ Capacity = capacity });
         return services;
     }
 
