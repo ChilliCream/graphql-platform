@@ -100,4 +100,17 @@ public sealed class DemoSubgraph
                     new WebSocketClientConfiguration(WebSocketEndpointUri),
                 },
                 null);
+
+    public static SubgraphConfiguration CreateSubgraphConfig(
+        string name,
+        Uri httpEndpointUri,
+        string schema)
+        => new(
+            name,
+            schema,
+            [],
+            [
+                new HttpClientConfiguration(httpEndpointUri)
+            ],
+            null);
 }
