@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// The <c>Path</c> literal is a string used to select a single output value from the return type by

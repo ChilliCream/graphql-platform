@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using static HotChocolate.Fusion.Properties.FusionLanguageResources;
-using TokenKind = HotChocolate.Fusion.FieldSelectionMapTokenKind;
+using static HotChocolate.Fusion.Language.Properties.FusionLanguageResources;
+using TokenKind = HotChocolate.Fusion.Language.FieldSelectionMapTokenKind;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// Reads syntax tokens from source text representing a field selection map.

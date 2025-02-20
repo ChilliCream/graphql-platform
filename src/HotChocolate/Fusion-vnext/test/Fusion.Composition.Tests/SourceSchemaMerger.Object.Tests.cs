@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -492,6 +492,43 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                         @fusion__field(schema: A)
                     sku: String!
                         @fusion__field(schema: B)
+                }
+                """
+            },
+            // @lookup on field with multiple arguments.
+            {
+                [
+                    """
+                    type Query {
+                        productByIdAndCategoryId(id: ID!, categoryId: Int): Product! @lookup
+                    }
+
+                    type Product {
+                        id: ID!
+                        categoryId: Int
+                    }
+                    """
+                ],
+                """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    productByIdAndCategoryId(categoryId: Int
+                        @fusion__inputField(schema: A) id: ID!
+                        @fusion__inputField(schema: A)): Product!
+                        @fusion__field(schema: A)
+                }
+
+                type Product
+                    @fusion__type(schema: A)
+                    @fusion__lookup(schema: A, key: "id categoryId", field: "productByIdAndCategoryId(id: ID! categoryId: Int): Product!", map: [ "id", "categoryId" ], path: null) {
+                    categoryId: Int
+                        @fusion__field(schema: A)
+                    id: ID!
+                        @fusion__field(schema: A)
                 }
                 """
             }

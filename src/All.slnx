@@ -1,0 +1,316 @@
+<Solution>
+  <Folder Name="/CookieCrumble/" />
+  <Folder Name="/CookieCrumble/src/">
+    <Project Path="CookieCrumble/src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.Fusion/CookieCrumble.Fusion.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate/CookieCrumble.HotChocolate.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.TUnit/CookieCrumble.TUnit.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.Xunit3/CookieCrumble.Xunit3.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble/CookieCrumble.csproj" />
+  </Folder>
+  <Folder Name="/CookieCrumble/test/">
+    <Project Path="CookieCrumble/test/CookieCrumble.Tests/CookieCrumble.Tests.csproj" />
+  </Folder>
+  <Folder Name="/GreenDonut/" />
+  <Folder Name="/GreenDonut/src/">
+    <Project Path="GreenDonut/src/GreenDonut.Abstractions/GreenDonut.Abstractions.csproj" />
+    <Project Path="GreenDonut/src/GreenDonut.Data.Abstractions/GreenDonut.Data.Abstractions.csproj" />
+    <Project Path="GreenDonut/src/GreenDonut.Data.EntityFramework/GreenDonut.Data.EntityFramework.csproj" />
+    <Project Path="GreenDonut/src/GreenDonut.Data.Primitives/GreenDonut.Data.Primitives.csproj" />
+    <Project Path="GreenDonut/src/GreenDonut.Data/GreenDonut.Data.csproj" />
+    <Project Path="GreenDonut/src/GreenDonut/GreenDonut.csproj" />
+  </Folder>
+  <Folder Name="/GreenDonut/test/">
+    <Project Path="GreenDonut/test/GreenDonut.Data.EntityFramework.Tests/GreenDonut.Data.EntityFramework.Tests.csproj" />
+    <Project Path="GreenDonut/test/GreenDonut.Data.Tests/GreenDonut.Data.Tests.csproj" />
+    <Project Path="GreenDonut/test/GreenDonut.Tests/GreenDonut.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/" />
+  <Folder Name="/HotChocolate/ApolloFederation/" />
+  <Folder Name="/HotChocolate/ApolloFederation/src/">
+    <Project Path="HotChocolate/ApolloFederation/src/ApolloFederation/HotChocolate.ApolloFederation.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/ApolloFederation/test/">
+    <Project Path="HotChocolate/ApolloFederation/test/ApolloFederation.Tests/HotChocolate.ApolloFederation.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/AspNetCore/" />
+  <Folder Name="/HotChocolate/AspNetCore/src/">
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.CommandLine/HotChocolate.AspNetCore.CommandLine.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore/HotChocolate.AspNetCore.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/AspNetCore/test/">
+    <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />
+    <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Tests/HotChocolate.AspNetCore.Authorization.Tests.csproj" />
+    <Project Path="HotChocolate/AspNetCore/test/AspNetCore.CommandLine.Tests/HotChocolate.AspNetCore.CommandLine.Tests.csproj" />
+    <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Tests.Utilities/HotChocolate.AspNetCore.Tests.Utilities.csproj" />
+    <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Tests/HotChocolate.AspNetCore.Tests.csproj" />
+    <Project Path="HotChocolate/AspNetCore/test/Transport.Http.Tests/HotChocolate.Transport.Http.Tests.csproj" />
+    <Project Path="HotChocolate/AspNetCore/test/Transport.Sockets.Client.Tests/HotChocolate.Transport.Sockets.Client.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/AzureFunctions/" />
+  <Folder Name="/HotChocolate/AzureFunctions/src/">
+    <Project Path="HotChocolate/AzureFunctions/src/HotChocolate.AzureFunctions.IsolatedProcess/HotChocolate.AzureFunctions.IsolatedProcess.csproj" />
+    <Project Path="HotChocolate/AzureFunctions/src/HotChocolate.AzureFunctions/HotChocolate.AzureFunctions.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/AzureFunctions/test/">
+    <Project Path="HotChocolate/AzureFunctions/test/HotChocolate.AzureFunctions.IsolatedProcess.Tests/HotChocolate.AzureFunctions.IsolatedProcess.Tests.csproj" />
+    <Project Path="HotChocolate/AzureFunctions/test/HotChocolate.AzureFunctions.Tests/HotChocolate.AzureFunctions.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Caching/" />
+  <Folder Name="/HotChocolate/Caching/src/">
+    <Project Path="HotChocolate/Caching/src/Caching/HotChocolate.Caching.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Caching/test/">
+    <Project Path="HotChocolate/Caching/test/Caching.Tests/HotChocolate.Caching.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Core/" />
+  <Folder Name="/HotChocolate/Core/src/">
+    <Project Path="HotChocolate/Core/src/Abstractions/HotChocolate.Abstractions.csproj" />
+    <Project Path="HotChocolate/Core/src/Authorization/HotChocolate.Authorization.csproj" />
+    <Project Path="HotChocolate/Core/src/Core/HotChocolate.Core.csproj" />
+    <Project Path="HotChocolate/Core/src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj" />
+    <Project Path="HotChocolate/Core/src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
+    <Project Path="HotChocolate/Core/src/Execution/HotChocolate.Execution.csproj" />
+    <Project Path="HotChocolate/Core/src/Features/HotChocolate.Features.csproj" />
+    <Project Path="HotChocolate/Core/src/Fetching/HotChocolate.Fetching.csproj" />
+    <Project Path="HotChocolate/Core/src/Subscriptions.InMemory/HotChocolate.Subscriptions.InMemory.csproj" />
+    <Project Path="HotChocolate/Core/src/Subscriptions.Nats/HotChocolate.Subscriptions.Nats.csproj" />
+    <Project Path="HotChocolate/Core/src/Subscriptions.Postgres/HotChocolate.Subscriptions.Postgres.csproj" />
+    <Project Path="HotChocolate/Core/src/Subscriptions.RabbitMQ/HotChocolate.Subscriptions.RabbitMQ.csproj" />
+    <Project Path="HotChocolate/Core/src/Subscriptions.Redis/HotChocolate.Subscriptions.Redis.csproj" />
+    <Project Path="HotChocolate/Core/src/Subscriptions.Serializers.Newtonsoft/HotChocolate.Subscriptions.Serializers.Newtonsoft.csproj" />
+    <Project Path="HotChocolate/Core/src/Subscriptions/HotChocolate.Subscriptions.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Analyzers/HotChocolate.Types.Analyzers.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Errors/HotChocolate.Types.Errors.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Json/HotChocolate.Types.Json.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Mutations/HotChocolate.Types.Mutations.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.NodaTime/HotChocolate.Types.NodaTime.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.OffsetPagination/HotChocolate.Types.OffsetPagination.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Queries/HotChocolate.Types.Queries.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Scalars.Upload/HotChocolate.Types.Scalars.Upload.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Scalars/HotChocolate.Types.Scalars.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Shared/HotChocolate.Types.Shared.csproj" />
+    <Project Path="HotChocolate/Core/src/Types/HotChocolate.Types.csproj" />
+    <Project Path="HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Core/test/">
+    <Project Path="HotChocolate/Core/test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Execution.Tests/HotChocolate.Execution.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Features.Tests/HotChocolate.Features.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Fetching.Tests/HotChocolate.Fetching.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/StarWars/HotChocolate.StarWars.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Subscriptions.InMemory.Tests/HotChocolate.Subscriptions.InMemory.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Subscriptions.Nats.Tests/HotChocolate.Subscriptions.Nats.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Subscriptions.Postgres.Tests/HotChocolate.Subscriptions.Postgres.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Subscriptions.RabbitMQ.Tests/HotChocolate.Subscriptions.RabbitMQ.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Mutations.Tests/HotChocolate.Types.Mutations.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.NodaTime.Tests/HotChocolate.Types.NodaTime.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.OffsetPagination.Tests/HotChocolate.Types.OffsetPagination.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Queries.Tests/HotChocolate.Types.Queries.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Records.Tests/HotChocolate.Types.Records.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Scalars.Tests/HotChocolate.Types.Scalars.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Tests.Documentation/HotChocolate.Types.Tests.Documentation.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Utilities/HotChocolate.Tests.Utilities.csproj" />
+    <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/CostAnalysis/" />
+  <Folder Name="/HotChocolate/CostAnalysis/src/">
+    <Project Path="HotChocolate/CostAnalysis/src/CostAnalysis/HotChocolate.CostAnalysis.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/CostAnalysis/test/">
+    <Project Path="HotChocolate/CostAnalysis/test/CostAnalysis.Tests/HotChocolate.CostAnalysis.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Data/" />
+  <Folder Name="/HotChocolate/Data/src/">
+    <Project Path="HotChocolate/Data/src/AutoMapper/HotChocolate.Data.AutoMapper.csproj" />
+    <Project Path="HotChocolate/Data/src/Data/HotChocolate.Data.csproj" />
+    <Project Path="HotChocolate/Data/src/EntityFramework/HotChocolate.Data.EntityFramework.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Data/test/">
+    <Project Path="HotChocolate/Data/test/Data.AutoMapper.Tests/HotChocolate.Data.AutoMapper.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.EntityFramework.Pagination.Tests/HotChocolate.Data.EntityFramework.Pagination.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.EntityFramework.Tests/HotChocolate.Data.EntityFramework.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Filters.InMemory.Tests/HotChocolate.Data.Filters.InMemory.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Filters.SqlServer.Tests/HotChocolate.Data.Filters.SqlServer.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Filters.Tests/HotChocolate.Data.Filters.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.PostgreSQL.Tests/HotChocolate.Data.PostgreSQL.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.SqlServer.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Projections.Tests/HotChocolate.Data.Projections.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Sorting.InMemory.Tests/HotChocolate.Data.Sorting.InMemory.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Sorting.SqlLite.Tests/HotChocolate.Data.Sorting.SqlLite.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Sorting.Tests/HotChocolate.Data.Sorting.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.Tests/HotChocolate.Data.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Diagnostics/" />
+  <Folder Name="/HotChocolate/Diagnostics/src/">
+    <Project Path="HotChocolate/Diagnostics/src/Diagnostics/HotChocolate.Diagnostics.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Diagnostics/test/">
+    <Project Path="HotChocolate/Diagnostics/test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Fusion-vnext/" />
+  <Folder Name="/HotChocolate/Fusion-vnext/src/">
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Fusion-vnext/test/">
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Language/" />
+  <Folder Name="/HotChocolate/Language/src/">
+    <Project Path="HotChocolate/Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
+    <Project Path="HotChocolate/Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
+    <Project Path="HotChocolate/Language/src/Language.Visitors/HotChocolate.Language.Visitors.csproj" />
+    <Project Path="HotChocolate/Language/src/Language.Web/HotChocolate.Language.Web.csproj" />
+    <Project Path="HotChocolate/Language/src/Language/HotChocolate.Language.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Language/test/">
+    <Project Path="HotChocolate/Language/test/Language.SyntaxTree.Tests/HotChocolate.Language.SyntaxTree.Tests.csproj" />
+    <Project Path="HotChocolate/Language/test/Language.Tests/HotChocolate.Language.Tests.csproj" />
+    <Project Path="HotChocolate/Language/test/Language.Web.Tests/HotChocolate.Language.Web.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Marten/" />
+  <Folder Name="/HotChocolate/Marten/src/">
+    <Project Path="HotChocolate/Marten/src/Data/HotChocolate.Data.Marten.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Marten/test/">
+    <Project Path="HotChocolate/Marten/test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj" />
+    <Project Path="HotChocolate/Marten/test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/MongoDb/" />
+  <Folder Name="/HotChocolate/MongoDb/src/">
+    <Project Path="HotChocolate/MongoDb/src/Data/HotChocolate.Data.MongoDb.csproj" />
+    <Project Path="HotChocolate/MongoDb/src/Types/HotChocolate.Types.MongoDb.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/MongoDb/test/">
+    <Project Path="HotChocolate/MongoDb/test/Data.MongoDb.Filters.Tests/HotChocolate.Data.MongoDb.Filters.Tests.csproj" />
+    <Project Path="HotChocolate/MongoDb/test/Data.MongoDb.Paging.Tests/HotChocolate.Data.MongoDb.Paging.Tests.csproj" />
+    <Project Path="HotChocolate/MongoDb/test/Data.MongoDb.Projections.Tests/HotChocolate.Data.MongoDb.Projections.Tests.csproj" />
+    <Project Path="HotChocolate/MongoDb/test/Data.MongoDb.Sorting.Tests/HotChocolate.Data.MongoDb.Sorting.Tests.csproj" />
+    <Project Path="HotChocolate/MongoDb/test/Types.MongoDb/HotChocolate.Types.MongoDb.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Mutable/" />
+  <Folder Name="/HotChocolate/Mutable/src/">
+    <Project Path="HotChocolate/Mutable/src/Types.Mutable/HotChocolate.Types.Mutable.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Mutable/test/">
+    <Project Path="HotChocolate/Mutable/test/Types.Mutable.Tests/HotChocolate.Types.Mutable.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/PersistedOperations/" />
+  <Folder Name="/HotChocolate/PersistedOperations/src/">
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.AzureBlobStorage/HotChocolate.PersistedOperations.AzureBlobStorage.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.FileSystem/HotChocolate.PersistedOperations.FileSystem.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.InMemory/HotChocolate.PersistedOperations.InMemory.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Redis/HotChocolate.PersistedOperations.Redis.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/PersistedOperations/test/">
+    <Project Path="HotChocolate/PersistedOperations/test/PersistedOperations.AzureBlobStorage.Tests/HotChocolate.PersistedOperations.AzureBlobStorage.Tests.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/test/PersistedOperations.FileSystem.Tests/HotChocolate.PersistedOperations.FileSystem.Tests.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/test/PersistedOperations.InMemory.Tests/HotChocolate.PersistedOperations.InMemory.Tests.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/test/PersistedOperations.Redis.Tests/HotChocolate.PersistedOperations.Redis.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Primitives/" />
+  <Folder Name="/HotChocolate/Primitives/src/">
+    <Project Path="HotChocolate/Primitives/src/Primitives/HotChocolate.Primitives.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Primitives/test/">
+    <Project Path="HotChocolate/Primitives/test/Primitives.Tests/HotChocolate.Primitives.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Raven/" />
+  <Folder Name="/HotChocolate/Raven/src/">
+    <Project Path="HotChocolate/Raven/src/Data/HotChocolate.Data.Raven.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Raven/test/">
+    <Project Path="HotChocolate/Raven/test/Data.Raven.Filters.Tests/Data.Raven.Filters.Tests.csproj" />
+    <Project Path="HotChocolate/Raven/test/Data.Raven.Paging.Tests/HotChocolate.Data.Raven.Paging.Tests.csproj" />
+    <Project Path="HotChocolate/Raven/test/Data.Raven.Projections.Tests/HotChocolate.Data.Raven.Projections.Tests.csproj" />
+    <Project Path="HotChocolate/Raven/test/Data.Raven.Sorting.Tests/Data.Raven.Sorting.Tests.csproj" />
+    <Project Path="HotChocolate/Raven/test/Data.Raven.Tests/Data.Raven.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Spatial/" />
+  <Folder Name="/HotChocolate/Spatial/src/">
+    <Project Path="HotChocolate/Spatial/src/Data/HotChocolate.Data.Spatial.csproj" />
+    <Project Path="HotChocolate/Spatial/src/Types/HotChocolate.Types.Spatial.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Spatial/test/">
+    <Project Path="HotChocolate/Spatial/test/Data.Filters.SqlServer.Tests/HotChocolate.Spatial.Data.Filters.SqlServer.Tests.csproj" />
+    <Project Path="HotChocolate/Spatial/test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.Spatial.SqlServer.Tests.csproj" />
+    <Project Path="HotChocolate/Spatial/test/Data.Tests/HotChocolate.Data.Spatial.Tests.csproj" />
+    <Project Path="HotChocolate/Spatial/test/Types.Tests/HotChocolate.Types.Spatial.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Utilities/" />
+  <Folder Name="/HotChocolate/Utilities/src/">
+    <Project Path="HotChocolate/Utilities/src/Utilities.DependencyInjection/HotChocolate.Utilities.DependencyInjection.csproj" />
+    <Project Path="HotChocolate/Utilities/src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
+    <Project Path="HotChocolate/Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Utilities/test/">
+    <Project Path="HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />
+    <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
+  </Folder>
+  <Folder Name="/StrawberryShake/" />
+  <Folder Name="/StrawberryShake/Client/" />
+  <Folder Name="/StrawberryShake/Client/src/">
+    <Project Path="StrawberryShake/Client/src/Core/StrawberryShake.Core.csproj" />
+    <Project Path="StrawberryShake/Client/src/MetaPackage/StrawberryShake.csproj" />
+    <Project Path="StrawberryShake/Client/src/Persistence.SQLite/StrawberryShake.Persistence.SQLite.csproj" />
+    <Project Path="StrawberryShake/Client/src/Razor/StrawberryShake.Razor.csproj" />
+    <Project Path="StrawberryShake/Client/src/Resources/StrawberryShake.Resources.csproj" />
+    <Project Path="StrawberryShake/Client/src/Transport.Http/StrawberryShake.Transport.Http.csproj" />
+    <Project Path="StrawberryShake/Client/src/Transport.InMemory/StrawberryShake.Transport.InMemory.csproj" />
+    <Project Path="StrawberryShake/Client/src/Transport.WebSockets/StrawberryShake.Transport.WebSockets.csproj" />
+  </Folder>
+  <Folder Name="/StrawberryShake/Client/test/">
+    <Project Path="StrawberryShake/Client/test/Core.Tests/StrawberryShake.Core.Tests.csproj" />
+    <Project Path="StrawberryShake/Client/test/Persistence.SQLite.Tests/StrawberryShake.Persistence.SQLite.Tests.csproj" />
+    <Project Path="StrawberryShake/Client/test/Transport.Http.Tests/StrawberryShake.Transport.Http.Tests.csproj" />
+    <Project Path="StrawberryShake/Client/test/Transport.InMemory.Tests/StrawberryShake.Transport.InMemory.Tests.csproj" />
+    <Project Path="StrawberryShake/Client/test/Transport.WebSocket.Tests/StrawberryShake.Transport.WebSocket.Tests.csproj" />
+  </Folder>
+  <Folder Name="/StrawberryShake/CodeGeneration/" />
+  <Folder Name="/StrawberryShake/CodeGeneration/src/">
+    <Project Path="StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp/StrawberryShake.CodeGeneration.CSharp.csproj" />
+    <Project Path="StrawberryShake/CodeGeneration/src/CodeGeneration/StrawberryShake.CodeGeneration.csproj" />
+  </Folder>
+  <Folder Name="/StrawberryShake/CodeGeneration/test/">
+    <Project Path="StrawberryShake/CodeGeneration/test/CodeGeneration.CSharp.Tests/StrawberryShake.CodeGeneration.CSharp.Tests.csproj" />
+    <Project Path="StrawberryShake/CodeGeneration/test/CodeGeneration.Razor.Tests/StrawberryShake.CodeGeneration.Razor.Tests.csproj" />
+    <Project Path="StrawberryShake/CodeGeneration/test/CodeGeneration.Tests/StrawberryShake.CodeGeneration.Tests.csproj" />
+  </Folder>
+  <Folder Name="/StrawberryShake/MetaPackages/">
+    <Project Path="StrawberryShake/MetaPackages/Blazor/StrawberryShake.Blazor.csproj" />
+    <Project Path="StrawberryShake/MetaPackages/Maui/StrawberryShake.Maui.csproj" />
+    <Project Path="StrawberryShake/MetaPackages/Server/StrawberryShake.Server.csproj" />
+  </Folder>
+  <Folder Name="/StrawberryShake/Tooling/" />
+  <Folder Name="/StrawberryShake/Tooling/src/">
+    <Project Path="StrawberryShake/Tooling/src/Configuration/StrawberryShake.Tools.Configuration.csproj" />
+    <Project Path="StrawberryShake/Tooling/src/dotnet-graphql/dotnet-graphql.csproj" />
+  </Folder>
+  <Folder Name="/StrawberryShake/Tooling/test/">
+    <Project Path="StrawberryShake/Tooling/test/Configuration.Tests/StrawberryShake.Tools.Configuration.Tests.csproj" />
+  </Folder>
+</Solution>

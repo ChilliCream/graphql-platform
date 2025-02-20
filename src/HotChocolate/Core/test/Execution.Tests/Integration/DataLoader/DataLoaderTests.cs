@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Integration.DataLoader;
 
 public class DataLoaderTests
 {
+    [Obsolete]
     [Fact]
     public async Task FetchOnceDataLoader()
     {
@@ -35,6 +36,7 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Obsolete]
     [Fact]
     public async Task FetchSingleDataLoader()
     {
@@ -58,6 +60,7 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Obsolete]
     [Fact]
     public async Task FetchMultipleNodesDataLoader()
     {
@@ -95,6 +98,7 @@ public class DataLoaderTests
         Assert.Equal(1, batchFetchCount);
     }
 
+    [Obsolete]
     [LocalFact]
     public async Task FetchDataLoader()
     {
@@ -119,6 +123,7 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Obsolete]
     [Fact]
     public async Task FetchGroupDataLoader()
     {
@@ -143,6 +148,7 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Obsolete]
     [Fact]
     public async Task AddSingleDiagnosticEventListener()
     {
@@ -168,6 +174,7 @@ public class DataLoaderTests
         Assert.True(listener.BatchResultsTouched);
     }
 
+    [Obsolete]
     [LocalFact]
     public async Task AddMultipleDiagnosticEventListener()
     {

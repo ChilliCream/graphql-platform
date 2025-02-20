@@ -4,16 +4,17 @@ using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Skimmed;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaParser(IEnumerable<string> sourceSchemas, ICompositionLog log)
 {
-    public CompositionResult<ImmutableSortedSet<SchemaDefinition>> Parse()
+    public CompositionResult<ImmutableSortedSet<MutableSchemaDefinition>> Parse()
     {
-        var sortedSetBuilder = ImmutableSortedSet.CreateBuilder(new SchemaByNameComparer());
+        var sortedSetBuilder = ImmutableSortedSet.CreateBuilder(
+            new SchemaByNameComparer<MutableSchemaDefinition>());
 
         foreach (var sourceSchema in sourceSchemas)
         {

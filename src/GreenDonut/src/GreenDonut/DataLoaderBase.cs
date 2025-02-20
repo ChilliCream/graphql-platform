@@ -46,9 +46,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="options"/> is <c>null</c>.
     /// </exception>
-    protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions? options = null)
+    protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions options)
     {
-        options ??= new DataLoaderOptions();
+        ArgumentNullException.ThrowIfNull(batchScheduler);
+        ArgumentNullException.ThrowIfNull(options);
+
         _diagnosticEvents = options.DiagnosticEvents ?? Default;
         Cache = options.Cache;
         _batchScheduler = batchScheduler;
@@ -226,7 +228,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 ct);
         }
     }
-    
+
     /// <inheritdoc />
     public void SetCacheEntry(TKey key, Task<TValue?> value)
     {

@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -28,7 +28,7 @@ internal sealed class InvalidShareableUsageRule : IEventHandler<OutputFieldEvent
     {
         var (field, type, schema) = @event;
 
-        if (type is InterfaceTypeDefinition && field.HasShareableDirective())
+        if (type is MutableInterfaceTypeDefinition && field.HasShareableDirective())
         {
             context.Log.Write(InvalidShareableUsage(field, type, schema));
         }

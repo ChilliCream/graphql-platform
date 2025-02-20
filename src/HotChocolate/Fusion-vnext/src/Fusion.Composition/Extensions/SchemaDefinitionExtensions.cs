@@ -1,10 +1,10 @@
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Extensions;
 
 internal static class SchemaDefinitionExtensions
 {
-    public static bool IsRootOperationType(this SchemaDefinition schema, ObjectTypeDefinition type)
+    public static bool IsRootOperationType(this MutableSchemaDefinition schema, MutableObjectTypeDefinition type)
     {
         return
             schema.QueryType == type

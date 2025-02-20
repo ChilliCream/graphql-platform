@@ -30,7 +30,8 @@ internal sealed class NoQueriesRule : IEventHandler<ObjectTypeEvent>
             return;
         }
 
-        var accessibleFields = objectType.Fields.Where(f => !f.HasFusionInaccessibleDirective());
+        var accessibleFields =
+            objectType.Fields.AsEnumerable().Where(f => !f.HasFusionInaccessibleDirective());
 
         if (!accessibleFields.Any())
         {

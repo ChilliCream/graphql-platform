@@ -1,5 +1,5 @@
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 

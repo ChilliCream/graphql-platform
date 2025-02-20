@@ -30,6 +30,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the value for the requested key.
     /// </returns>
+    [Obsolete("Use the BatchDataLoader class or the source generated DataLoader instead.")]
     public static Task<TValue?> BatchAsync<TKey, TValue>(
         this IResolverContext context,
         FetchBatch<TKey, TValue> fetch,
@@ -53,6 +54,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the DataLoader.
     /// </returns>
+    [Obsolete("Use the BatchDataLoader class or the source generated DataLoader instead.")]
     public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchBatch<TKey, TValue> fetch,
@@ -102,6 +104,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the value for the requested key.
     /// </returns>
+    [Obsolete("Use the BatchDataLoader class or the source generated DataLoader instead.")]
     public static Task<TValue[]?> GroupAsync<TKey, TValue>(
         this IResolverContext context,
         FetchGroup<TKey, TValue> fetch,
@@ -125,6 +128,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the DataLoader.
     /// </returns>
+    [Obsolete("Use the BatchDataLoader class or the source generated DataLoader instead.")]
     public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchGroup<TKey, TValue> fetch,
@@ -174,6 +178,7 @@ public static class DataLoaderResolverContextExtensions
     /// <returns>
     /// Returns the value for the requested key.
     /// </returns>
+    [Obsolete("Use the CacheDataLoader class or the source generated DataLoader instead.")]
     public static Task<TValue?> CacheAsync<TKey, TValue>(
         this IResolverContext context,
         FetchCache<TKey, TValue> fetch,
@@ -182,6 +187,7 @@ public static class DataLoaderResolverContextExtensions
         where TKey : notnull
         => CacheDataLoader(context, fetch, name).LoadAsync(key, context.RequestAborted);
 
+    [Obsolete("Use the CacheDataLoader class or the source generated DataLoader instead.")]
     public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchCache<TKey, TValue> fetch,
@@ -209,12 +215,14 @@ public static class DataLoaderResolverContextExtensions
                 services.GetRequiredService<DataLoaderOptions>());
     }
 
+    [Obsolete("Use the CacheDataLoader class or the source generated DataLoader instead.")]
     public static Task<TValue?> CacheAsync<TValue>(
         this IResolverContext context,
         Func<CancellationToken, Task<TValue>> fetch,
         string? name = null)
         => FetchOnceAsync(context, fetch, name);
 
+    [Obsolete("Use the CacheDataLoader class or the source generated DataLoader instead.")]
     public static Task<TValue?> FetchOnceAsync<TValue>(
         this IResolverContext context,
         Func<CancellationToken, Task<TValue>> fetch,

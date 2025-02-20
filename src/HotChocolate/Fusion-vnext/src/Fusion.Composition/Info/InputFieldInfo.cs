@@ -1,8 +1,8 @@
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Info;
 
 internal record InputFieldInfo(
-    InputFieldDefinition Field,
-    InputObjectTypeDefinition Type,
-    SchemaDefinition Schema);
+    MutableInputFieldDefinition Field,
+    MutableInputObjectTypeDefinition Type,
+    MutableSchemaDefinition Schema);

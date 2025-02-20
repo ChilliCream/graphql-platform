@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
@@ -9,10 +9,10 @@ namespace HotChocolate.Fusion;
 /// Applies @lookup, @key, and optionally @shareable to a source schema to make it equivalent to a Fusion v1 source schema.
 /// </summary>
 internal sealed class SourceSchemaPreprocessor(
-    SchemaDefinition schema,
+    MutableSchemaDefinition schema,
     SourceSchemaPreprocessorOptions? options = null)
 {
-    public SchemaDefinition Process()
+    public MutableSchemaDefinition Process()
     {
         var context = new SourceSchemaPreprocessorContext(schema, options ?? new());
 
@@ -43,10 +43,10 @@ internal sealed class SourceSchemaPreprocessor(
                 continue;
             }
 
-            var keyArgument = queryField.Arguments.First();
+            var keyArgument = queryField.Arguments.AsEnumerable().First();
             var @is = keyArgument.GetIsFieldSelectionMap();
 
-            var queryFieldType = queryField.Type.NamedType();
+            var queryFieldType = queryField.Type.AsTypeDefinition();
             var keyOutputFieldName = @is ?? keyArgument.Name;
 
             if (!context.Schema.Types.TryGetType(queryFieldType.Name, out var resultType))
@@ -54,7 +54,7 @@ internal sealed class SourceSchemaPreprocessor(
                 continue;
             }
 
-            if (resultType is ObjectTypeDefinition resultObjectType)
+            if (resultType is MutableObjectTypeDefinition resultObjectType)
             {
                 if (resultObjectType.Fields.TryGetField(keyOutputFieldName, out var keyField))
                 {
@@ -63,7 +63,7 @@ internal sealed class SourceSchemaPreprocessor(
                     resultObjectType.ApplyKeyDirective([keyField.Name]);
                 }
             }
-            else if (resultType is InterfaceTypeDefinition resultInterfaceType)
+            else if (resultType is MutableInterfaceTypeDefinition resultInterfaceType)
             {
                 if (resultInterfaceType.Fields.TryGetField(keyOutputFieldName, out var keyField))
                 {
@@ -71,7 +71,7 @@ internal sealed class SourceSchemaPreprocessor(
 
                     resultInterfaceType.ApplyKeyDirective([keyField.Name]);
 
-                    foreach (var objectType in context.Schema.Types.OfType<ObjectTypeDefinition>())
+                    foreach (var objectType in context.Schema.Types.OfType<MutableObjectTypeDefinition>())
                     {
                         if (objectType.Implements.ContainsName(resultInterfaceType.Name))
                         {
@@ -85,7 +85,7 @@ internal sealed class SourceSchemaPreprocessor(
 
     private static void ApplyShareableToAllTypes(SourceSchemaPreprocessorContext context)
     {
-        foreach (var objectType in context.Schema.Types.OfType<ObjectTypeDefinition>())
+        foreach (var objectType in context.Schema.Types.OfType<MutableObjectTypeDefinition>())
         {
             objectType.ApplyShareableDirective();
         }
@@ -93,10 +93,10 @@ internal sealed class SourceSchemaPreprocessor(
 }
 
 internal sealed class SourceSchemaPreprocessorContext(
-    SchemaDefinition schema,
+    MutableSchemaDefinition schema,
     SourceSchemaPreprocessorOptions options)
 {
-    public SchemaDefinition Schema => schema;
+    public MutableSchemaDefinition Schema => schema;
 
     public SourceSchemaPreprocessorOptions Options => options;
 }

@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defaultAction)
     : FieldSelectionMapSyntaxVisitor, ISyntaxVisitor<TContext>
