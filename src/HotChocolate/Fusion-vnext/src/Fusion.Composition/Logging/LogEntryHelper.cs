@@ -333,10 +333,10 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry InterfaceFieldNoImplementation(
-        ObjectTypeDefinition objectType,
+        MutableObjectTypeDefinition objectType,
         string fieldName,
         string interfaceName,
-        SchemaDefinition schema)
+        MutableSchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(

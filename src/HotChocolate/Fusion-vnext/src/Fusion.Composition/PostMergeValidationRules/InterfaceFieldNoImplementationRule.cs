@@ -30,7 +30,7 @@ internal sealed class InterfaceFieldNoImplementationRule : IEventHandler<ObjectT
         foreach (var interfaceType in objectType.Implements)
         {
             var accessibleFields =
-                interfaceType.Fields.Where(f => !f.HasFusionInaccessibleDirective());
+                interfaceType.Fields.AsEnumerable().Where(f => !f.HasFusionInaccessibleDirective());
 
             foreach (var interfaceField in accessibleFields)
             {
