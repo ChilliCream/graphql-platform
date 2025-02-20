@@ -20,7 +20,7 @@ public class Connection<T> : Connection
     /// The total count of items of this connection
     /// </param>
     public Connection(
-        IReadOnlyList<Edge<T>> edges,
+        IReadOnlyList<IEdge<T>> edges,
         ConnectionPageInfo info,
         int totalCount = 0)
         : base(edges, info, totalCount)
@@ -31,22 +31,22 @@ public class Connection<T> : Connection
     public Connection(
         ConnectionPageInfo info,
         int totalCount = 0)
-        : base(Array.Empty<Edge<T>>(), info, totalCount)
+        : base([], info, totalCount)
     {
-        Edges = Array.Empty<Edge<T>>();
+        Edges = [];
     }
 
     /// <summary>
     /// The edges that belong to this connection.
     /// </summary>
-    public new IReadOnlyList<Edge<T>> Edges { get; }
+    public new IReadOnlyList<IEdge<T>> Edges { get; }
 
     /// <inheritdoc cref="Connection"/>
     public override void Accept(IPageObserver observer)
     {
         if(Edges.Count == 0)
         {
-            ReadOnlySpan<T> empty = Array.Empty<T>();
+            ReadOnlySpan<T> empty = [];
             observer.OnAfterSliced(empty, Info);
             return;
         }
@@ -61,7 +61,7 @@ public class Connection<T> : Connection
         ReadOnlySpan<T> items = buffer.AsSpan(0, Edges.Count);
         observer.OnAfterSliced(items, Info);
 
-        buffer.AsSpan().Slice(0, Edges.Count).Clear();
+        buffer.AsSpan()[..Edges.Count].Clear();
         ArrayPool<T>.Shared.Return(buffer);
     }
 }

@@ -26,7 +26,7 @@ public interface IPage
     /// Accepts a page observer and will in turn report the page.
     /// </summary>
     /// <param name="observer">
-    /// The page obserer.
+    /// The page observer.
     /// </param>
     void Accept(IPageObserver observer);
 }
