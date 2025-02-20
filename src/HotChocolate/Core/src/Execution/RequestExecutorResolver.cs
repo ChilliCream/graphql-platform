@@ -96,8 +96,20 @@ internal sealed partial class RequestExecutorResolver
                 setup.SchemaBuilder ?? new SchemaBuilder(),
                 _applicationServices);
 
+
+            var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
+
+            // if there are any type modules we will register them with the
+            // type module change monitor.
+            // The module will track if type modules signal changes to the schema and
+            // start a schema eviction.
+            foreach (var typeModule in setup.TypeModules)
+            {
+                typeModuleChangeMonitor.Register(typeModule);
+            }
+
             var schemaServices =
-                await CreateSchemaServicesAsync(context, setup, cancellationToken)
+                await CreateSchemaServicesAsync(context, setup, typeModuleChangeMonitor, cancellationToken)
                     .ConfigureAwait(false);
 
             registeredExecutor = new RegisteredExecutor(
@@ -105,7 +117,7 @@ internal sealed partial class RequestExecutorResolver
                 schemaServices,
                 schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
                 setup,
-                schemaServices.GetRequiredService<TypeModuleChangeMonitor>());
+                typeModuleChangeMonitor);
 
             var executor = registeredExecutor.Executor;
 
@@ -131,24 +143,26 @@ internal sealed partial class RequestExecutorResolver
     {
         schemaName ??= Schema.DefaultName;
 
-        if (_executors.TryRemove(schemaName, out var re))
+        if (_executors.TryRemove(schemaName, out var executor))
         {
-            re.DiagnosticEvents.ExecutorEvicted(schemaName, re.Executor);
+            executor.DiagnosticEvents.ExecutorEvicted(schemaName, executor.Executor);
 
             try
             {
+                executor.TypeModuleChangeMonitor.Dispose();
+
                 RequestExecutorEvicted?.Invoke(
                     this,
-                    new RequestExecutorEvictedEventArgs(schemaName, re.Executor));
+                    new RequestExecutorEvictedEventArgs(schemaName, executor.Executor));
                 _events.RaiseEvent(
                     new RequestExecutorEvent(
                         RequestExecutorEventType.Evicted,
                         schemaName,
-                        re.Executor));
+                        executor.Executor));
             }
             finally
             {
-                BeginRunEvictionEvents(re);
+                BeginRunEvictionEvents(executor);
             }
         }
     }
@@ -157,26 +171,7 @@ internal sealed partial class RequestExecutorResolver
     {
         foreach (var key in _executors.Keys)
         {
-            if (_executors.TryRemove(key, out var re))
-            {
-                re.DiagnosticEvents.ExecutorEvicted(key, re.Executor);
-
-                try
-                {
-                    RequestExecutorEvicted?.Invoke(
-                        this,
-                        new RequestExecutorEvictedEventArgs(key, re.Executor));
-                    _events.RaiseEvent(
-                        new RequestExecutorEvent(
-                            RequestExecutorEventType.Evicted,
-                            key,
-                            re.Executor));
-                }
-                finally
-                {
-                    BeginRunEvictionEvents(re);
-                }
-            }
+            EvictRequestExecutor(key);
         }
     }
 
@@ -201,6 +196,7 @@ internal sealed partial class RequestExecutorResolver
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
         ConfigurationContext context,
         RequestExecutorSetup setup,
+        TypeModuleChangeMonitor typeModuleChangeMonitor,
         CancellationToken cancellationToken)
     {
         ulong version;
@@ -211,21 +207,11 @@ internal sealed partial class RequestExecutorResolver
         }
 
         var serviceCollection = new ServiceCollection();
-        var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
         var lazy = new SchemaBuilder.LazySchema();
 
         var executorOptions =
             await OnConfigureRequestExecutorOptionsAsync(context, setup, cancellationToken)
                 .ConfigureAwait(false);
-
-        // if there are any type modules we will register them with the
-        // type module change monitor.
-        // The module will track if type modules signal changes to the schema and
-        // start a schema eviction.
-        foreach (var typeModule in setup.TypeModules)
-        {
-            typeModuleChangeMonitor.Register(typeModule);
-        }
 
         // we allow newer type modules to apply configurations.
         await typeModuleChangeMonitor.ConfigureAsync(context, cancellationToken)
@@ -241,7 +227,6 @@ internal sealed partial class RequestExecutorResolver
                 setup.DefaultPipelineFactory,
                 setup.Pipeline));
 
-        serviceCollection.AddSingleton(typeModuleChangeMonitor);
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
