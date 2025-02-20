@@ -163,15 +163,6 @@ public static class RequestExecutorServiceCollectionExtensions
 
         builder.Services.AddValidation(schemaName);
 
-        builder.Configure(
-            (sp, e) =>
-            {
-                e.OnRequestExecutorEvictedHooks.Add(
-                    // when ever we evict this schema we will clear the caches.
-                    new OnRequestExecutorEvictedAction(
-                        _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));
-            });
-
         builder.TryAddNoOpTransactionScopeHandler();
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
@@ -194,10 +185,8 @@ public static class RequestExecutorServiceCollectionExtensions
         int capacity = 100)
     {
         services.RemoveAll<IPreparedOperationCache>();
-
-        services.AddSingleton<IPreparedOperationCache>(
+        services.AddTransient<IPreparedOperationCache>(
             _ => new DefaultPreparedOperationCache(capacity));
-
         return services;
     }
 

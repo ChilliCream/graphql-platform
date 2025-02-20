@@ -166,7 +166,7 @@ internal static class InternalServiceCollectionExtensions
     {
         services.TryAddSingleton<IDocumentCache>(
             _ => new DefaultDocumentCache());
-        services.TryAddSingleton<IPreparedOperationCache>(
+        services.TryAddTransient<IPreparedOperationCache>(
             _ => new DefaultPreparedOperationCache());
         return services;
     }
