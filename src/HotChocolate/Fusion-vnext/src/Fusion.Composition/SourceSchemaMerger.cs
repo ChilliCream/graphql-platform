@@ -28,7 +28,11 @@ internal sealed class SourceSchemaMerger
     private readonly FrozenDictionary<MutableSchemaDefinition, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
     private readonly FrozenDictionary<string, ITypeDefinition> _fusionTypeDefinitions;
-    private readonly FrozenDictionary<string, MutableDirectiveDefinition> _fusionDirectiveDefinitions;
+    private readonly FrozenDictionary<string, MutableDirectiveDefinition>
+        _fusionDirectiveDefinitions;
+    private readonly Dictionary<string, SelectedValueToSelectionSetRewriter>
+        _selectedValueToSelectionSetRewriters = [];
+    private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
 
     public SourceSchemaMerger(
         ImmutableSortedSet<MutableSchemaDefinition> schemas,
@@ -932,12 +936,17 @@ internal sealed class SourceSchemaMerger
             var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
             var lookupMap = GetFusionLookupMap(sourceField);
             var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
+            var selectedValueToSelectionSetRewriter =
+                GetSelectedValueToSelectionSetRewriter(sourceSchema);
             var selectionSets = selectedValues
-                .Select(SelectedValueToSelectionSetRewriter.SelectedValueToSelectionSet)
+                .Select(
+                    s => selectedValueToSelectionSetRewriter.SelectedValueToSelectionSet(s, type))
                 .ToImmutableArray();
-            // FIXME: Merge selection sets. Waiting for selection set merge utility.
+            var mergedSelectionSet = selectionSets.Length == 1
+                ? selectionSets[0]
+                : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, type);
             var keyArgument =
-                selectionSets[0].ToString(indented: false).AsSpan()[2 .. ^2].ToString();
+                mergedSelectionSet.ToString(indented: false).AsSpan()[2 .. ^2].ToString();
 
             var fieldArgument =
                 _removeDirectivesRewriter
@@ -1158,6 +1167,33 @@ internal sealed class SourceSchemaMerger
         {
             mergedSchema.DirectiveDefinitions.Add(definition);
         }
+    }
+
+    private SelectedValueToSelectionSetRewriter GetSelectedValueToSelectionSetRewriter(
+        MutableSchemaDefinition schema)
+    {
+        if (_selectedValueToSelectionSetRewriters.TryGetValue(schema.Name, out var rewriter))
+        {
+            return rewriter;
+        }
+
+        rewriter = new SelectedValueToSelectionSetRewriter(schema);
+        _selectedValueToSelectionSetRewriters.Add(schema.Name, rewriter);
+
+        return rewriter;
+    }
+
+    private MergeSelectionSetRewriter GetMergeSelectionSetRewriter(MutableSchemaDefinition schema)
+    {
+        if (_mergeSelectionSetRewriters.TryGetValue(schema.Name, out var rewriter))
+        {
+            return rewriter;
+        }
+
+        rewriter = new MergeSelectionSetRewriter(schema);
+        _mergeSelectionSetRewriters.Add(schema.Name, rewriter);
+
+        return rewriter;
     }
 
     private static void Assert(bool condition)
