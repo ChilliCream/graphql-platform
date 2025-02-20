@@ -87,6 +87,9 @@
   <data name="LogEntryHelper_InputWithMissingRequiredFields" xml:space="preserve">
     <value>The input type '{0}' in schema '{1}' must define the required field '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_InterfaceFieldNoImplementation" xml:space="preserve">
+    <value>The merged object type '{0}' must implement the field '{1}' on interface '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>
