@@ -113,7 +113,7 @@ public class SortConvention
         {
             var extensions =
                 CollectExtensions(context.Services, Definition);
-            init.Initialize(context);
+            init.Initialize(context, this);
             MergeExtensions(context, init, extensions);
             init.Complete(context);
         }
@@ -315,7 +315,7 @@ public class SortConvention
         return extensions;
     }
 
-    private static void MergeExtensions(
+    private void MergeExtensions(
         IConventionContext context,
         ISortProviderConvention provider,
         IReadOnlyList<ISortProviderExtension> extensions)
@@ -329,7 +329,7 @@ public class SortConvention
         {
             if (extensions[m] is ISortProviderConvention extensionConvention)
             {
-                extensionConvention.Initialize(context);
+                extensionConvention.Initialize(context, this);
                 extensions[m].Merge(context, providerConvention);
                 extensionConvention.Complete(context);
             }
