@@ -59,18 +59,7 @@ internal sealed class ValidationHelper
                 continue;
             }
 
-            // note the structural equals ensures that the types are the same kind and have the same name.
-            // if (typeA.Kind != typeB.Kind)
-            // {
-            //    return false;
-            // }
-
-            if (typeA.Equals(typeB, TypeComparison.Structural))
-            {
-                return false;
-            }
-
-            return true;
+            return typeA.Equals(typeB, TypeComparison.Structural);
         }
     }
 }
