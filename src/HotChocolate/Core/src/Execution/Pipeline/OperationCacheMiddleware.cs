@@ -10,7 +10,8 @@ internal sealed class OperationCacheMiddleware
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IPreparedOperationCache _operationCache;
 
-    private OperationCacheMiddleware(RequestDelegate next,
+    private OperationCacheMiddleware(
+        RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IPreparedOperationCache operationCache)
     {
