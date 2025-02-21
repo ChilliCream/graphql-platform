@@ -1,0 +1,61 @@
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 13,
+          "barBool": false,
+          "barString": "testctest"
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12,
+          "barBool": true,
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14,
+          "barBool": true,
+          "barString": "testbtest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 14,
+          "barBool": true,
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12,
+          "barBool": true,
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13,
+          "barBool": false,
+          "barString": "testctest"
+        }
+      }
+    ]
+  }
+}
+---------------

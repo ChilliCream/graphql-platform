@@ -1,4 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
@@ -454,6 +461,74 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             .MatchAsync();
     }
 
+    [Fact]
+    public async Task Create_ObjectComplex_OrderBy_Sum()
+    {
+        // arrange
+        var convention = new SortConvention(x =>
+        {
+            x.AddDefaults().BindRuntimeType<Bar, ComplexBarSortType>();
+            x.AddProviderExtension(
+                new MockProviderExtension(y =>
+                {
+                    y.AddFieldHandler<ComplexOrderSumHandler>();
+                    y.AddFieldHandler<ComplexOrderSumFieldsHandler>();
+                    y.AddFieldHandler<ComplexOrderSumSortHandler>();
+                })
+            );
+        });
+        var tester = _cache.CreateSchema<Bar, ComplexBarSortType>(
+            _barEntities,
+            convention: convention
+        );
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                        root(order: [
+                            { foo: { complex_order_sum: { fields: ["barShort" "barBool"] sort: ASC } } }
+                            { foo: { barString: DESC } }]) {
+                            foo {
+                                barShort
+                                barBool
+                                barString
+                            }
+                        }
+                    }
+                    """
+                )
+                .Build()
+        );
+
+        var res2 = await tester.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                        root(order: [
+                            { foo: { complex_order_sum: { fields: ["barShort" "barBool"] sort: DESC } } }
+                            { foo: { barString: ASC } }]) {
+                            foo {
+                                barShort
+                                barBool
+                                barString
+                            }
+                        }
+                    }
+                    """
+                )
+                .Build()
+        );
+
+        // assert
+        await Snapshot.Create().Add(res1, "ASC").Add(res2, "13").MatchAsync();
+    }
+
     public class Foo
     {
         public int Id { get; set; }
@@ -504,12 +579,32 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarSortType : SortInputType<Bar>
+    public class BarSortType : SortInputType<Bar>;
+
+    public class BarNullableSortType : SortInputType<BarNullable>;
+
+    public class ComplexBarSortType : SortInputType<Bar>
     {
+        protected override void Configure(ISortInputTypeDescriptor<Bar> descriptor)
+        {
+            descriptor.Field(x => x.Foo).Type<ComplexFooSortType>();
+        }
     }
 
-    public class BarNullableSortType : SortInputType<BarNullable>
+    public class ComplexFooSortType : SortInputType<Foo>
     {
+        protected override void Configure(ISortInputTypeDescriptor<Foo> descriptor)
+        {
+            descriptor
+                .Field("complex_order_sum")
+                .Type(
+                    new SortInputType(z =>
+                    {
+                        z.Field("fields").Type<ListType<StringType>>();
+                        z.Field("sort").Type<DefaultSortEnumType>();
+                    })
+                );
+        }
     }
 
     public enum BarEnum
@@ -519,4 +614,114 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         BAZ,
         QUX,
     }
+
+    class ComplexOrderSumHandler(ISortConvention convention, InputParser inputParser)
+        : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
+    {
+        private readonly Dictionary<string, PropertyInfo> _fieldMap = typeof(Foo)
+            .GetProperties()
+            .ToDictionary(convention.GetFieldName);
+
+        public override bool CanHandle(
+            ITypeCompletionContext context,
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition
+        )
+        {
+            return fieldDefinition.Name == "complex_order_sum";
+        }
+
+        public override bool TryHandleEnter(
+            QueryableSortContext context,
+            ISortField field,
+            ObjectFieldNode node,
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action
+        )
+        {
+            if (
+                context.GetInstance() is QueryableFieldSelector fieldSelector
+                && field.Type is InputObjectType inputType
+                && node.Value is ObjectValueNode objectValueNode
+            )
+            {
+                var fieldsField = objectValueNode.Fields.First(x => x.Name.Value == "fields");
+                if (
+                    inputParser.ParseLiteral(
+                        fieldsField.Value,
+                        inputType.Fields["fields"],
+                        typeof(string[])
+                    )
+                    is string[] fields
+                )
+                {
+                    var properties = fields
+                        .Select(x => _fieldMap[x])
+                        .Select(x => Expression.Property(fieldSelector.Selector, x));
+                    context.PushInstance(
+                        fieldSelector.WithSelector(
+                            properties
+                                .Select(x => Expression.Convert(x, typeof(int)).Reduce())
+                                .Aggregate(Expression.Add)
+                        )
+                    );
+                    action = SyntaxVisitor.Continue;
+                    return true;
+                }
+            }
+            action = SyntaxVisitor.Skip;
+            return false;
+        }
+
+        public override bool TryHandleLeave(
+            QueryableSortContext context,
+            ISortField field,
+            ObjectFieldNode node,
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action
+        )
+        {
+            context.PopInstance();
+            action = SyntaxVisitor.Continue;
+            return true;
+        }
+    }
+
+    class ComplexOrderSumFieldsHandler
+        : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
+    {
+        public override bool CanHandle(
+            ITypeCompletionContext context,
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition
+        )
+        {
+            return fieldDefinition.Name == "fields";
+        }
+    }
+
+    class ComplexOrderSumSortHandler
+        : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
+    {
+        public override bool CanHandle(
+            ITypeCompletionContext context,
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition
+        )
+        {
+            return fieldDefinition.Name == "sort";
+        }
+
+        public override bool TryHandleEnter(
+            QueryableSortContext context,
+            ISortField field,
+            ObjectFieldNode node,
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action
+        )
+        {
+            action = SyntaxVisitor.Continue;
+            return true;
+        }
+    }
+
+    class MockProviderExtension(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+        : SortProviderExtensions<QueryableSortContext>(configure);
 }
