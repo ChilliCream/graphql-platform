@@ -21,7 +21,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
         new InterfaceTypeInfoInspector(),
-        new RequestMiddlewareInspector()
+        new RequestMiddlewareInspector(),
+        new ConnectionTypeInspector()
     ];
 
     private static readonly ISyntaxGenerator[] _generators =

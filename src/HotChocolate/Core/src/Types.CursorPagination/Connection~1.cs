@@ -44,7 +44,7 @@ public class Connection<T> : Connection
     /// <inheritdoc cref="Connection"/>
     public override void Accept(IPageObserver observer)
     {
-        if(Edges.Count == 0)
+        if (Edges.Count == 0)
         {
             ReadOnlySpan<T> empty = [];
             observer.OnAfterSliced(empty, Info);

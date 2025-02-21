@@ -9,18 +9,18 @@ public sealed class Resolver(
     ResolverResultKind resultKind,
     ImmutableArray<ResolverParameter> parameters,
     ImmutableArray<MemberBinding> bindings,
-    bool isNodeResolver = false)
+    ResolverKind kind = ResolverKind.Default)
 {
     public string TypeName => typeName;
 
     public ISymbol Member => member;
 
     public bool IsPure
-        => !isNodeResolver
+        => kind is not ResolverKind.NodeResolver
             && resultKind is ResolverResultKind.Pure
             && parameters.All(t => t.IsPure);
 
-    public bool IsNodeResolver => isNodeResolver;
+    public ResolverKind Kind => kind;
 
     public ResolverResultKind ResultKind => resultKind;
 

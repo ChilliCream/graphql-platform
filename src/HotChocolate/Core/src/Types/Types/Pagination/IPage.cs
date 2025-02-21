@@ -18,15 +18,11 @@ public interface IPage
     IPageInfo Info { get; }
 
     /// <summary>
-    /// Gets the total count of the data set.
-    /// </summary>
-    int TotalCount { get; }
-
-    /// <summary>
     /// Accepts a page observer and will in turn report the page.
     /// </summary>
     /// <param name="observer">
     /// The page observer.
     /// </param>
-    void Accept(IPageObserver observer);
+    public void Accept(IPageObserver observer);
 }
+
