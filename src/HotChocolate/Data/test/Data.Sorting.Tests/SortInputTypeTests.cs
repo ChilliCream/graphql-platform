@@ -2,6 +2,7 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Tests;
 
@@ -142,6 +143,21 @@ public class SortInputTypeTest : SortTestBase
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d.Name("Test").Field(x => x.Bar))));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInput_AddField()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s.AddType(
+                new SortInputType(
+                    d => d.Field("x").Type<DefaultSortEnumType>()
+                        .ExtendWith(x => x.Definition.Handler = new MatchAnyQueryableFieldHandler()))));
 
         // assert
         schema.MatchSnapshot();

@@ -1,0 +1,16 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input SortInput {
+  x: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
