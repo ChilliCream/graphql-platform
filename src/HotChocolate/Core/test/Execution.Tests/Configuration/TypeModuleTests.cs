@@ -71,7 +71,7 @@ public class TypeModuleTests
         // arrange
         var typeModule = new TriggerableTypeModule();
         var warmups = 0;
-        var resetEvent = new AutoResetEvent(false);
+        var warmupResetEvent = new AutoResetEvent(false);
 
         var services = new ServiceCollection();
         services
@@ -80,7 +80,7 @@ public class TypeModuleTests
             .InitializeOnStartup(keepWarm: true, warmup: (_, _) =>
             {
                 warmups++;
-                resetEvent.Set();
+                warmupResetEvent.Set();
                 return Task.CompletedTask;
             })
             .AddQueryType(d => d.Field("foo").Resolve(""));
@@ -99,15 +99,19 @@ public class TypeModuleTests
 
         // act
         // assert
-        typeModule.TriggerChange();
-        resetEvent.WaitOne();
+        warmupResetEvent.WaitOne();
 
-        // 2 since we have the initial warmup at "startup" and the one triggered above.
+        Assert.Equal(1, warmups);
+        warmupResetEvent.Reset();
+
+        typeModule.TriggerChange();
+        warmupResetEvent.WaitOne();
+
         Assert.Equal(2, warmups);
+        warmupResetEvent.Reset();
 
-        resetEvent.Reset();
         typeModule.TriggerChange();
-        resetEvent.WaitOne();
+        warmupResetEvent.WaitOne();
 
         Assert.Equal(3, warmups);
     }
