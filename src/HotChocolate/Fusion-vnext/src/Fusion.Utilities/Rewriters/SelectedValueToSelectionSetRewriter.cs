@@ -1,14 +1,22 @@
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using GraphQLNameNode = HotChocolate.Language.NameNode;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class SelectedValueToSelectionSetRewriter
+public sealed class SelectedValueToSelectionSetRewriter(ISchemaDefinition schema)
 {
-    public static SelectionSetNode SelectedValueToSelectionSet(SelectedValueNode selectedValue)
+    private readonly MergeSelectionSetRewriter _mergeSelectionSetRewriter = new(schema);
+
+    public SelectionSetNode SelectedValueToSelectionSet(
+        SelectedValueNode selectedValue,
+        ITypeDefinition type)
     {
-        return new SelectionSetNode(Visit(selectedValue));
+        var selections = Visit(selectedValue);
+        var selectionSets = selections.Select(s => new SelectionSetNode([s])).ToArray();
+
+        return _mergeSelectionSetRewriter.Merge(selectionSets, type);
     }
 
     private static List<ISelectionNode> Visit(SelectedValueNode selectedValue)
@@ -17,7 +25,6 @@ public sealed class SelectedValueToSelectionSetRewriter
 
         if (selectedValue.SelectedValue is not null)
         {
-            // FIXME: Merge with selections above. Waiting for selection set merge utility.
             selections.AddRange(Visit(selectedValue.SelectedValue));
         }
 
@@ -155,7 +162,6 @@ public sealed class SelectedValueToSelectionSetRewriter
             }
             else
             {
-                // FIXME: Merge selections. Waiting for selection set merge utility.
                 selections.AddRange(Visit(field.SelectedValue));
             }
         }

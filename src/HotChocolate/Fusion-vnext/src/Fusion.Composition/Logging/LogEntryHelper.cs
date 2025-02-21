@@ -332,6 +332,25 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry InterfaceFieldNoImplementation(
+        MutableObjectTypeDefinition objectType,
+        string fieldName,
+        string interfaceName,
+        MutableSchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_InterfaceFieldNoImplementation,
+                objectType.Name,
+                fieldName,
+                interfaceName),
+            LogEntryCodes.InterfaceFieldNoImplementation,
+            LogSeverity.Error,
+            new SchemaCoordinate(objectType.Name),
+            objectType,
+            schema);
+    }
+
     public static LogEntry InvalidGraphQL(string exceptionMessage)
     {
         return new LogEntry(
