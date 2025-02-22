@@ -474,13 +474,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                     y.AddFieldHandler<ComplexOrderSumHandler>();
                     y.AddFieldHandler<ComplexOrderSumFieldsHandler>();
                     y.AddFieldHandler<ComplexOrderSumSortHandler>();
-                })
-            );
+                }));
         });
         var tester = _cache.CreateSchema<Bar, ComplexBarSortType>(
             _barEntities,
-            convention: convention
-        );
+            convention: convention);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -490,7 +488,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                     """
                     {
                         root(order: [
-                            { foo: { complex_order_sum: { fields: ["barShort" "barBool"] sort: ASC } } }
+                            { foo: { complex_order_sum: {
+                                fields: ["barShort" "barBool"]
+                                sort: ASC
+                            } } }
                             { foo: { barString: DESC } }]) {
                             foo {
                                 barShort
@@ -499,10 +500,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             }
                         }
                     }
-                    """
-                )
-                .Build()
-        );
+                    """)
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder
@@ -511,7 +510,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                     """
                     {
                         root(order: [
-                            { foo: { complex_order_sum: { fields: ["barShort" "barBool"] sort: DESC } } }
+                            { foo: { complex_order_sum: {
+                                fields: ["barShort" "barBool"]
+                                sort: DESC
+                            } } }
                             { foo: { barString: ASC } }]) {
                             foo {
                                 barShort
@@ -520,10 +522,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             }
                         }
                     }
-                    """
-                )
-                .Build()
-        );
+                    """)
+                .Build());
 
         // assert
         await Snapshot.Create().Add(res1, "ASC").Add(res2, "13").MatchAsync();
@@ -602,8 +602,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                     {
                         z.Field("fields").Type<ListType<StringType>>();
                         z.Field("sort").Type<DefaultSortEnumType>();
-                    })
-                );
+                    }));
         }
     }
 
@@ -625,8 +624,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
-            ISortFieldDefinition fieldDefinition
-        )
+            ISortFieldDefinition fieldDefinition)
         {
             return fieldDefinition.Name == "complex_order_sum";
         }
@@ -635,24 +633,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             QueryableSortContext context,
             ISortField field,
             ObjectFieldNode node,
-            [NotNullWhen(true)] out ISyntaxVisitorAction? action
-        )
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            if (
-                context.GetInstance() is QueryableFieldSelector fieldSelector
+            if (context.GetInstance() is QueryableFieldSelector fieldSelector
                 && field.Type is InputObjectType inputType
-                && node.Value is ObjectValueNode objectValueNode
-            )
+                && node.Value is ObjectValueNode objectValueNode)
             {
                 var fieldsField = objectValueNode.Fields.First(x => x.Name.Value == "fields");
-                if (
-                    inputParser.ParseLiteral(
+                if (inputParser.ParseLiteral(
                         fieldsField.Value,
                         inputType.Fields["fields"],
-                        typeof(string[])
-                    )
-                    is string[] fields
-                )
+                        typeof(string[]))
+                    is string[] fields)
                 {
                     var properties = fields
                         .Select(x => _fieldMap[x])
@@ -661,9 +653,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         fieldSelector.WithSelector(
                             properties
                                 .Select(x => Expression.Convert(x, typeof(int)).Reduce())
-                                .Aggregate(Expression.Add)
-                        )
-                    );
+                                .Aggregate(Expression.Add)));
                     action = SyntaxVisitor.Continue;
                     return true;
                 }
@@ -676,8 +666,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             QueryableSortContext context,
             ISortField field,
             ObjectFieldNode node,
-            [NotNullWhen(true)] out ISyntaxVisitorAction? action
-        )
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             context.PopInstance();
             action = SyntaxVisitor.Continue;
@@ -691,8 +680,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
-            ISortFieldDefinition fieldDefinition
-        )
+            ISortFieldDefinition fieldDefinition)
         {
             return fieldDefinition.Name == "fields";
         }
@@ -704,8 +692,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
-            ISortFieldDefinition fieldDefinition
-        )
+            ISortFieldDefinition fieldDefinition)
         {
             return fieldDefinition.Name == "sort";
         }
@@ -714,8 +701,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             QueryableSortContext context,
             ISortField field,
             ObjectFieldNode node,
-            [NotNullWhen(true)] out ISyntaxVisitorAction? action
-        )
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             action = SyntaxVisitor.Continue;
             return true;
