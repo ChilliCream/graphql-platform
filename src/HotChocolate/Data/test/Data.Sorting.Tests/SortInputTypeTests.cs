@@ -157,7 +157,8 @@ public class SortInputTypeTest : SortTestBase
             s => s.AddType(
                 new SortInputType(
                     d => d.Field("x").Type<DefaultSortEnumType>()
-                        .ExtendWith(x => x.Definition.Handler = new MatchAnyQueryableFieldHandler()))));
+                        .ExtendWith(
+                            x => x.Definition.Handler = new MatchAnyQueryableFieldHandler()))));
 
         // assert
         schema.MatchSnapshot();

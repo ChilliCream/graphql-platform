@@ -129,9 +129,9 @@ public class SortConvention
     /// <inheritdoc />
     public virtual string GetTypeName(Type runtimeType)
     {
-        var name = _namingConventions.GetTypeName(runtimeType, TypeKind.Object);
+        var name = _namingConventions.GetTypeName(runtimeType);
 
-        var isInputObjectType = runtimeType.IsAssignableTo(typeof(SortInputType));
+        var isInputObjectType = typeof(SortInputType).IsAssignableFrom(runtimeType);
         var isEndingInput = name.EndsWith(_inputPostFix, StringComparison.Ordinal);
         var isEndingInputType = name.EndsWith(_inputTypePostFix, StringComparison.Ordinal);
 
