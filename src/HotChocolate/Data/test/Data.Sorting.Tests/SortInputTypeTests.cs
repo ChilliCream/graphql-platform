@@ -149,7 +149,7 @@ public class SortInputTypeTest : SortTestBase
     }
 
     [Fact]
-    public void SortInput_AddField()
+    public void SortInput_ImplicitName_NonGeneric()
     {
         // arrange
         // act
