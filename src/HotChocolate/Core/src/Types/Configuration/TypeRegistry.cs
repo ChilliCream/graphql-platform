@@ -162,7 +162,8 @@ internal sealed class TypeRegistry
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);
             }
             else if (registeredType.Kind == TypeKind.Scalar &&
-                registeredType.Type is ScalarType scalar)
+                registeredType.Type is ScalarType scalar &&
+                !_nameRefs.ContainsKey(scalar.Name))
             {
                 _nameRefs.Add(scalar.Name, registeredType.References[0]);
             }
