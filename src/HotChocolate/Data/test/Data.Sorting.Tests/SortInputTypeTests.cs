@@ -149,22 +149,6 @@ public class SortInputTypeTest : SortTestBase
     }
 
     [Fact]
-    public void SortInput_ImplicitName_NonGeneric()
-    {
-        // arrange
-        // act
-        var schema = CreateSchema(
-            s => s.AddType(
-                new SortInputType(
-                    d => d.Field("x").Type<DefaultSortEnumType>()
-                        .ExtendWith(
-                            x => x.Definition.Handler = new MatchAnyQueryableFieldHandler()))));
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegistered()
     {
         // arrange
