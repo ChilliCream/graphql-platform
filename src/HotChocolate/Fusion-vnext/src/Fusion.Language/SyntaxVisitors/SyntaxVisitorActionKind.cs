@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Language;
 
-internal enum SyntaxVisitorActionKind
+public enum SyntaxVisitorActionKind
 {
     Continue,
     Skip,
