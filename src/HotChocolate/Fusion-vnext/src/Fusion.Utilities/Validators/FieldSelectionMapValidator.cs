@@ -201,20 +201,17 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
     {
         if (context.InputType is MutableInputObjectTypeDefinition inputType)
         {
-            var inputField =
-                inputType.Fields.AsEnumerable().FirstOrDefault(f => f.Name == node.Name.Value);
-
-            if (inputField is null)
+            if (inputType.Fields.TryGetField(node.Name.Value, out var inputField))
+            {
+                context.InputType = inputField.Type.AsTypeDefinition();
+            }
+            else
             {
                 context.Errors.Add(
                     string.Format(
                         FieldSelectionMapValidator_FieldDoesNotExistOnInputType,
                         node.Name,
                         inputType.Name));
-            }
-            else
-            {
-                context.InputType = inputField.Type.AsTypeDefinition();
             }
         }
 
