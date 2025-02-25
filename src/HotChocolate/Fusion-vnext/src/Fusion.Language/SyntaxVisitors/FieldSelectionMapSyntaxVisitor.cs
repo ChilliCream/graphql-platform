@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Language;
 
-internal abstract class FieldSelectionMapSyntaxVisitor
+public abstract class FieldSelectionMapSyntaxVisitor
 {
     /// <summary>
     /// Ends traversing the graph.
