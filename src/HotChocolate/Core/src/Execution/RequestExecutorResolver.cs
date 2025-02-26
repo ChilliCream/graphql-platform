@@ -83,8 +83,6 @@ internal sealed partial class RequestExecutorResolver
             var registeredExecutor = await CreateRequestExecutorAsync(schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
-            _executors.TryAdd(schemaName, registeredExecutor);
-
             return registeredExecutor.Executor;
         }
         finally
@@ -146,10 +144,12 @@ internal sealed partial class RequestExecutorResolver
             }
         }
 
+        // TODO: Is this a good idea
+        _executors[schemaName] = registeredExecutor;
+
         registeredExecutor.DiagnosticEvents.ExecutorCreated(
             schemaName,
             registeredExecutor.Executor);
-        _executors.TryAdd(schemaName, registeredExecutor);
 
         _events.RaiseEvent(
             new RequestExecutorEvent(
@@ -177,11 +177,9 @@ internal sealed partial class RequestExecutorResolver
         // during the phase-out of the previous executor.
         previousExecutor.TypeModuleChangeMonitor.Dispose();
 
-        var newExecutor = await CreateRequestExecutorAsync(schemaName, CancellationToken.None)
+        // This will hot swap the request executor.
+        await CreateRequestExecutorAsync(schemaName, CancellationToken.None)
             .ConfigureAwait(false);
-
-        // We just replace the executor, so no call to resolve the executor hits a lock.
-        _executors[schemaName] = newExecutor;
 
         previousExecutor.DiagnosticEvents.ExecutorEvicted(schemaName, previousExecutor.Executor);
 

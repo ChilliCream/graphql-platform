@@ -19,7 +19,7 @@ public class RequestExecutorResolverTests
         var provider = services.BuildServiceProvider();
         var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
 
-        resolver.Events.Subscribe(new ExecutorResolverEventObserver(@event =>
+        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Evicted)
             {
@@ -65,7 +65,7 @@ public class RequestExecutorResolverTests
         var provider = services.BuildServiceProvider();
         var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
 
-        resolver.Events.Subscribe(new ExecutorResolverEventObserver(@event =>
+        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Evicted)
             {
@@ -124,20 +124,5 @@ public class RequestExecutorResolverTests
         schema1CreationResetEvent.Set();
 
         await executor1Task;
-    }
-
-    private sealed class ExecutorResolverEventObserver(Action<RequestExecutorEvent> onEvent)
-        : IObserver<RequestExecutorEvent>
-    {
-        public void OnCompleted()
-        {
-        }
-
-        public void OnError(Exception error)
-        {
-        }
-
-        public void OnNext(RequestExecutorEvent value)
-            => onEvent(value);
     }
 }

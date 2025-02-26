@@ -29,7 +29,7 @@ public sealed class RequestExecutorProxy : IDisposable
         _schemaName = schemaName;
         _eventSubscription =
             _executorResolver.Events.Subscribe(
-                new ExecutorObserver(EvictRequestExecutor));
+                new RequestExecutorEventObserver(OnRequestExecutorEvent));
     }
 
     public IRequestExecutor? CurrentExecutor => _executor;
@@ -178,21 +178,22 @@ public sealed class RequestExecutorProxy : IDisposable
         return executor;
     }
 
-    private void EvictRequestExecutor(string schemaName)
+    private void OnRequestExecutorEvent(RequestExecutorEvent @event)
     {
-        if (!_disposed && schemaName.Equals(_schemaName))
+        if (_disposed || !@event.Name.Equals(_schemaName) || _executor is null)
         {
-            _semaphore.Wait();
+            return;
+        }
 
-            try
-            {
-                _executor = null;
-                ExecutorEvicted?.Invoke(this, EventArgs.Empty);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+        // TODO: Re-add semaphores
+        if (@event.Type is RequestExecutorEventType.Evicted)
+        {
+            ExecutorEvicted?.Invoke(this, EventArgs.Empty);
+        }
+        else if (@event.Type is RequestExecutorEventType.Created)
+        {
+            _executor = @event.Executor;
+            ExecutorUpdated?.Invoke(this, new RequestExecutorUpdatedEventArgs(@event.Executor));
         }
     }
 
@@ -205,20 +206,5 @@ public sealed class RequestExecutorProxy : IDisposable
             _semaphore.Dispose();
             _disposed = true;
         }
-    }
-
-    private sealed class ExecutorObserver(Action<string> evicted) : IObserver<RequestExecutorEvent>
-    {
-        public void OnNext(RequestExecutorEvent value)
-        {
-            if (value.Type is RequestExecutorEventType.Evicted)
-            {
-                evicted(value.Name);
-            }
-        }
-
-        public void OnError(Exception error) { }
-
-        public void OnCompleted() { }
     }
 }
