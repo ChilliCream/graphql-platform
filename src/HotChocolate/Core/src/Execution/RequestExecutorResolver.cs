@@ -70,7 +70,7 @@ internal sealed partial class RequestExecutorResolver
             return re.Executor;
         }
 
-        var semaphore = _semaphoreBySchema.GetOrAdd(schemaName, _ => new SemaphoreSlim(1, 1));
+        var semaphore = GetSemaphoreForSchema(schemaName);
         await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
@@ -80,7 +80,7 @@ internal sealed partial class RequestExecutorResolver
                 return re2.Executor;
             }
 
-            var registeredExecutor = await CreateRequestExecutorAsync(schemaName, cancellationToken)
+            var registeredExecutor = await CreateRequestExecutorAsync(schemaName, true, cancellationToken)
                 .ConfigureAwait(false);
 
             return registeredExecutor.Executor;
@@ -88,15 +88,40 @@ internal sealed partial class RequestExecutorResolver
         finally
         {
             semaphore.Release();
-            if (_semaphoreBySchema.TryRemove(schemaName, out var removedSemaphore))
-            {
-                removedSemaphore.Dispose();
-            }
         }
     }
 
+    public void EvictRequestExecutor(string? schemaName = default)
+    {
+        schemaName ??= Schema.DefaultName;
+
+        // TODO: What happens if Get and Evict are called at roughly the same time?
+        if (_executors.TryGetValue(schemaName, out var previousExecutor))
+        {
+            // TODO: Try to get rid of Task.Run
+            _ = Task.Run(() =>
+            {
+                var semaphore = GetSemaphoreForSchema(schemaName);
+                semaphore.Wait();
+
+                try
+                {
+                    return UpdateRequestExecutorAsync(schemaName, previousExecutor);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+        }
+    }
+
+    private SemaphoreSlim GetSemaphoreForSchema(string schemaName)
+        => _semaphoreBySchema.GetOrAdd(schemaName, _ => new SemaphoreSlim(1, 1));
+
     private async Task<RegisteredExecutor> CreateRequestExecutorAsync(
         string schemaName,
+        bool isInitialCreation,
         CancellationToken cancellationToken)
     {
         var setup =
@@ -137,14 +162,17 @@ internal sealed partial class RequestExecutorResolver
 
         if (_warmupTasksBySchema.TryGetValue(schemaName, out var warmupTasks))
         {
+            if (!isInitialCreation)
+            {
+                warmupTasks = warmupTasks.Where(t => t.KeepWarm).ToArray();
+            }
+
             foreach (var warmupTask in warmupTasks)
             {
-                // TODO: Consider keepWarm option
                 await warmupTask.ExecuteAsync(executor, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        // TODO: Is this a good idea
         _executors[schemaName] = registeredExecutor;
 
         registeredExecutor.DiagnosticEvents.ExecutorCreated(
@@ -160,17 +188,6 @@ internal sealed partial class RequestExecutorResolver
         return registeredExecutor;
     }
 
-    public void EvictRequestExecutor(string? schemaName = default)
-    {
-        schemaName ??= Schema.DefaultName;
-
-        // TODO: Use a queueing mechanism
-        if (_executors.TryGetValue(schemaName, out var previousExecutor))
-        {
-            _ = Task.Run(() => UpdateRequestExecutorAsync(schemaName, previousExecutor));
-        }
-    }
-
     private async Task UpdateRequestExecutorAsync(string schemaName, RegisteredExecutor previousExecutor)
     {
         // We dispose the subscription to type updates so there will be no updates
@@ -178,7 +195,7 @@ internal sealed partial class RequestExecutorResolver
         previousExecutor.TypeModuleChangeMonitor.Dispose();
 
         // This will hot swap the request executor.
-        await CreateRequestExecutorAsync(schemaName, CancellationToken.None)
+        await CreateRequestExecutorAsync(schemaName, false, CancellationToken.None)
             .ConfigureAwait(false);
 
         previousExecutor.DiagnosticEvents.ExecutorEvicted(schemaName, previousExecutor.Executor);

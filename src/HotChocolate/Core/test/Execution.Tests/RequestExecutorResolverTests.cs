@@ -91,6 +91,51 @@ public class RequestExecutorResolverTests
         Assert.NotSame(initialExecutor, executorAfterWarmup);
     }
 
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 2)]
+    public async Task WarmupSchemaTasks_Are_Applied_Correct_Number_Of_Times(
+        bool keepWarm, int expectedWarmups)
+    {
+        // arrange
+        var warmups = 0;
+        var executorEvictedResetEvent = new AutoResetEvent(false);
+
+        var services = new ServiceCollection();
+        services
+            .AddGraphQL()
+            .InitializeOnStartup(
+                keepWarm: keepWarm,
+                warmup: (_, _) =>
+                {
+                    warmups++;
+                    return Task.CompletedTask;
+                })
+            .AddQueryType(d => d.Field("foo").Resolve(""));
+        var provider = services.BuildServiceProvider();
+        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+
+        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
+        {
+            if (@event.Type == RequestExecutorEventType.Evicted)
+            {
+                executorEvictedResetEvent.Set();
+            }
+        }));
+
+        // act
+        // assert
+        var initialExecutor = await resolver.GetRequestExecutorAsync();
+
+        resolver.EvictRequestExecutor();
+        executorEvictedResetEvent.WaitOne(1000);
+
+        var executorAfterEviction = await resolver.GetRequestExecutorAsync();
+
+        Assert.NotSame(initialExecutor, executorAfterEviction);
+        Assert.Equal(expectedWarmups, warmups);
+    }
+
     [Fact]
     public async Task Executor_Resolution_Should_Be_Parallel()
     {
