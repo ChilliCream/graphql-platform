@@ -185,15 +185,32 @@ public sealed class RequestExecutorProxy : IDisposable
             return;
         }
 
-        // TODO: Re-add semaphores
         if (@event.Type is RequestExecutorEventType.Evicted)
         {
-            ExecutorEvicted?.Invoke(this, EventArgs.Empty);
+            _semaphore.Wait();
+
+            try
+            {
+                ExecutorEvicted?.Invoke(this, EventArgs.Empty);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
         else if (@event.Type is RequestExecutorEventType.Created)
         {
-            _executor = @event.Executor;
-            ExecutorUpdated?.Invoke(this, new RequestExecutorUpdatedEventArgs(@event.Executor));
+            _semaphore.Wait();
+
+            try
+            {
+                _executor = @event.Executor;
+                ExecutorUpdated?.Invoke(this, new RequestExecutorUpdatedEventArgs(@event.Executor));
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
     }
 

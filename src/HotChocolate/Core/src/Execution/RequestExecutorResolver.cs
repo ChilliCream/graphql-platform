@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
+using System.Threading.Channels;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
@@ -32,6 +33,7 @@ internal sealed partial class RequestExecutorResolver
     private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly EventObservable _events = new();
+    private readonly ChannelWriter<string> _executorEvictionChannelWriter;
     private ulong _version;
     private bool _disposed;
 
@@ -49,6 +51,11 @@ internal sealed partial class RequestExecutorResolver
             throw new ArgumentNullException(nameof(serviceProvider));
         _warmupTasksBySchema = warmupSchemaTasks.GroupBy(t => t.SchemaName)
             .ToDictionary(g => g.Key, g => g.ToArray());
+
+        var executorEvictionChannel = Channel.CreateUnbounded<string>();
+        _executorEvictionChannelWriter = executorEvictionChannel.Writer;
+
+        _ = Task.Run(() => ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader));
 
         _optionsMonitor.OnChange(EvictRequestExecutor);
 
@@ -75,6 +82,7 @@ internal sealed partial class RequestExecutorResolver
 
         try
         {
+            // TODO: Rename
             if (_executors.TryGetValue(schemaName, out var re2))
             {
                 return re2.Executor;
@@ -95,24 +103,36 @@ internal sealed partial class RequestExecutorResolver
     {
         schemaName ??= Schema.DefaultName;
 
-        // TODO: What happens if Get and Evict are called at roughly the same time?
-        if (_executors.TryGetValue(schemaName, out var previousExecutor))
+        _executorEvictionChannelWriter.TryWrite(schemaName);
+    }
+
+    private async ValueTask ConsumeExecutorEvictionsAsync(
+        ChannelReader<string> reader)
+    {
+        while (await reader.WaitToReadAsync())
         {
-            // TODO: Try to get rid of Task.Run
-            _ = Task.Run(() =>
+            while (reader.TryRead(out var schemaName))
             {
                 var semaphore = GetSemaphoreForSchema(schemaName);
-                semaphore.Wait();
+                // TODO: This doesn't allow for parallel updates of other schemas (wasn't possible before as well)
+                await semaphore.WaitAsync();
 
                 try
                 {
-                    return UpdateRequestExecutorAsync(schemaName, previousExecutor);
+                    if (_executors.TryGetValue(schemaName, out var previousExecutor))
+                    {
+                        await UpdateRequestExecutorAsync(schemaName, previousExecutor);
+                    }
+                }
+                catch
+                {
+                    // Ignore
                 }
                 finally
                 {
                     semaphore.Release();
                 }
-            });
+            }
         }
     }
 
