@@ -33,7 +33,7 @@ public class RequestExecutorResolverTests
             .GetRequiredService<IPreparedOperationCache>();
 
         resolver.EvictRequestExecutor();
-        executorEvictedResetEvent.WaitOne();
+        executorEvictedResetEvent.WaitOne(1000);
 
         var secondExecutor = await resolver.GetRequestExecutorAsync();
         var secondOperationCache = secondExecutor.Services.GetCombinedServices()
@@ -57,7 +57,7 @@ public class RequestExecutorResolverTests
                 keepWarm: true,
                 warmup: (_, _) =>
                 {
-                    warmupResetEvent.WaitOne();
+                    warmupResetEvent.WaitOne(1000);
 
                     return Task.CompletedTask;
                 })
@@ -85,7 +85,7 @@ public class RequestExecutorResolverTests
         Assert.Same(initialExecutor, executorAfterEviction);
 
         warmupResetEvent.Set();
-        executorEvictedResetEvent.WaitOne();
+        executorEvictedResetEvent.WaitOne(1000);
         var executorAfterWarmup = await resolver.GetRequestExecutorAsync();
 
         Assert.NotSame(initialExecutor, executorAfterWarmup);
@@ -102,7 +102,7 @@ public class RequestExecutorResolverTests
             .AddGraphQL("schema1")
             .AddQueryType(d =>
             {
-                schema1CreationResetEvent.WaitOne();
+                schema1CreationResetEvent.WaitOne(1000);
                 d.Field("foo").Resolve("");
             });
         services

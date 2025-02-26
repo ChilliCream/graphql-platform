@@ -99,19 +99,19 @@ public class TypeModuleTests
 
         // act
         // assert
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.WaitOne(1000);
 
         Assert.Equal(1, warmups);
         warmupResetEvent.Reset();
 
         typeModule.TriggerChange();
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.WaitOne(1000);
 
         Assert.Equal(2, warmups);
         warmupResetEvent.Reset();
 
         typeModule.TriggerChange();
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.WaitOne(1000);
 
         Assert.Equal(3, warmups);
     }

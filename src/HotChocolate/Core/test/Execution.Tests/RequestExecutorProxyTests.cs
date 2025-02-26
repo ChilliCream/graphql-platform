@@ -54,7 +54,7 @@ public class RequestExecutorProxyTests
         // act
         var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);
         resolver.EvictRequestExecutor();
-        executorUpdatedResetEvent.WaitOne();
+        executorUpdatedResetEvent.WaitOne(1000);
         var b = await proxy.GetRequestExecutorAsync(CancellationToken.None);
 
         // assert
