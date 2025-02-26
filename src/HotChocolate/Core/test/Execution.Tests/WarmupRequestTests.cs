@@ -34,9 +34,9 @@ public class WarmupRequestTests
         // assert 1
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var provider = executor.Services.GetCombinedServices();
-        var documentCache = provider.GetRequiredService<IDocumentCache>();
-        var operationCache = provider.GetRequiredService<IPreparedOperationCache>();
+        var documentCache = executor.Services.GetCombinedServices()
+            .GetRequiredService<IDocumentCache>();
+        var operationCache = executor.Services.GetRequiredService<IPreparedOperationCache>();
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);

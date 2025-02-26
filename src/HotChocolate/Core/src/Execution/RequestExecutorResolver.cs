@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
@@ -236,6 +237,10 @@ internal sealed partial class RequestExecutorResolver
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
+
+        serviceCollection.AddSingleton<IPreparedOperationCache>(
+            _ => new DefaultPreparedOperationCache(
+                _applicationServices.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
 
