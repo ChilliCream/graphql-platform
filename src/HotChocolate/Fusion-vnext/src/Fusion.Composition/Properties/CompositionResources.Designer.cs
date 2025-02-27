@@ -467,23 +467,23 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
-        internal static string LogEntryHelper_RequireDirectiveInFieldsArgument {
+        internal static string LogEntryHelper_RequireDirectiveInFieldArgument {
             get {
-                return ResourceManager.GetString("LogEntryHelper_RequireDirectiveInFieldsArgument", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_RequireDirectiveInFieldArgument", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;field&apos; argument..
         /// </summary>
-        internal static string LogEntryHelper_RequireInvalidFieldsType {
+        internal static string LogEntryHelper_RequireInvalidFieldType {
             get {
-                return ResourceManager.GetString("LogEntryHelper_RequireInvalidFieldsType", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidFieldType", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;fields&apos; argument..
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;field&apos; argument..
         /// </summary>
         internal static string LogEntryHelper_RequireInvalidSyntax {
             get {
