@@ -153,14 +153,14 @@
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
   </data>
-  <data name="LogEntryHelper_RequireDirectiveInFieldsArgument" xml:space="preserve">
+  <data name="LogEntryHelper_RequireDirectiveInFieldArgument" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
   </data>
-  <data name="LogEntryHelper_RequireInvalidFieldsType" xml:space="preserve">
-    <value>The @require directive on argument '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
+  <data name="LogEntryHelper_RequireInvalidFieldType" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' must specify a string value for the 'field' argument.</value>
   </data>
   <data name="LogEntryHelper_RequireInvalidSyntax" xml:space="preserve">
-    <value>The @require directive on argument '{0}' in schema '{1}' contains invalid syntax in the 'fields' argument.</value>
+    <value>The @require directive on argument '{0}' in schema '{1}' contains invalid syntax in the 'field' argument.</value>
   </data>
   <data name="LogEntryHelper_RootMutationUsed" xml:space="preserve">
     <value>The root mutation type in schema '{0}' must be named 'Mutation'.</value>

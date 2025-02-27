@@ -724,7 +724,7 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry RequireDirectiveInFieldsArgument(
+    public static LogEntry RequireDirectiveInFieldArgument(
         ImmutableArray<string> fieldNamePath,
         Directive requireDirective,
         string argumentName,
@@ -736,18 +736,18 @@ internal static class LogEntryHelper
 
         return new LogEntry(
             string.Format(
-                LogEntryHelper_RequireDirectiveInFieldsArgument,
+                LogEntryHelper_RequireDirectiveInFieldArgument,
                 coordinate,
                 schema.Name,
                 string.Join(".", fieldNamePath)),
-            LogEntryCodes.RequireDirectiveInFieldsArg,
+            LogEntryCodes.RequireDirectiveInFieldArg,
             LogSeverity.Error,
             coordinate,
             requireDirective,
             schema);
     }
 
-    public static LogEntry RequireInvalidFieldsType(
+    public static LogEntry RequireInvalidFieldType(
         Directive requireDirective,
         string argumentName,
         string fieldName,
@@ -757,8 +757,8 @@ internal static class LogEntryHelper
         var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_RequireInvalidFieldsType, coordinate, schema.Name),
-            LogEntryCodes.RequireInvalidFieldsType,
+            string.Format(LogEntryHelper_RequireInvalidFieldType, coordinate, schema.Name),
+            LogEntryCodes.RequireInvalidFieldType,
             LogSeverity.Error,
             coordinate,
             requireDirective,
