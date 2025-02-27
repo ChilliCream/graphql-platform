@@ -2,7 +2,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.Warmup;
 
-internal class RequestExecutorWarmupService(
+internal sealed class RequestExecutorWarmupService(
     IRequestExecutorWarmup executorWarmup)
     : IHostedService
 {
