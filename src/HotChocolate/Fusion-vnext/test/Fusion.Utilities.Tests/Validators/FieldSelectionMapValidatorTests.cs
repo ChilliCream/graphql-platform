@@ -262,7 +262,14 @@ public sealed class FieldSelectionMapValidatorTests
             { "String", "Book", "<Book>.title" },
             // For non-leaf fields, the Path must continue to specify subselections until a leaf
             // field is reached.
-            { "ID", "Book", "author.id" }
+            { "ID", "Book", "author.id" },
+            // https://graphql.github.io/composite-schemas-spec/draft/#sec-SelectedValue
+            { "String", "Query", "mediaById<Book>.title | mediaById<Movie>.movieTitle" },
+            { "FindMediaInput", "Media", "{ bookId: <Book>.id } | { movieId: <Movie>.id }" },
+            { "Nested", "Media", "{ nested: { bookId: <Book>.id } | { movieId: <Movie>.id } }" },
+            // Other tests.
+            { "ID", "Query", "mediaById<Book>.author.id | mediaById<Movie>.id" },
+            { "ID", "Media", "{ bookId: <Book>.author.id } | { movieId: <Movie>.id }" }
         };
     }
 
@@ -396,6 +403,10 @@ public sealed class FieldSelectionMapValidatorTests
             input SearchStoreInput {
                 city: String
                 hasInStock: FindMediaInput
+            }
+
+            input Nested {
+                nested: FindMediaInput
             }
             """);
 
