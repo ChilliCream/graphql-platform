@@ -21,9 +21,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         _executorProxy = requestExecutorProxy;
         _executor = initialExecutor;
 
-        _executorProxy.ExecutorEvicted += (_, _) => BeginUpdateExecutor();
-
-        BeginUpdateExecutor();
+        _executorProxy.ExecutorUpdated += (_, args) => _executor = args.Executor;
     }
 
     /// <summary>
@@ -143,26 +141,6 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
         => _executor.ExecuteBatchAsync(requestBatch, cancellationToken);
-
-    private void BeginUpdateExecutor()
-        => UpdateExecutorAsync().FireAndForget();
-
-    private async ValueTask UpdateExecutorAsync()
-    {
-        await _semaphore.WaitAsync().ConfigureAwait(false);
-
-        try
-        {
-            var executor = await _executorProxy
-                .GetRequestExecutorAsync(CancellationToken.None)
-                .ConfigureAwait(false);
-            _executor = executor;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
 
     /// <inheritdoc cref="IDisposable" />
     public void Dispose()
