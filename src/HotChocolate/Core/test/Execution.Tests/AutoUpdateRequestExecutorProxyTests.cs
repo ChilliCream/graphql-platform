@@ -33,6 +33,7 @@ public class AutoUpdateRequestExecutorProxyTests
     public async Task Ensure_Executor_Is_Correctly_Swapped_When_Evicted()
     {
         // arrange
+        var executorUpdatedResetEvent = new AutoResetEvent(false);
         var resolver =
             new ServiceCollection()
                 .AddGraphQL()
@@ -45,30 +46,21 @@ public class AutoUpdateRequestExecutorProxyTests
         var updated = false;
 
         var innerProxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
+
+        var proxy = await AutoUpdateRequestExecutorProxy.CreateAsync(innerProxy);
         innerProxy.ExecutorEvicted += (_, _) =>
         {
             evicted = true;
-            updated = false;
+            executorUpdatedResetEvent.Set();
         };
         innerProxy.ExecutorUpdated += (_, _) => updated = true;
-
-        var proxy = await AutoUpdateRequestExecutorProxy.CreateAsync(innerProxy);
 
         // act
         var a = proxy.InnerExecutor;
         resolver.EvictRequestExecutor();
+        executorUpdatedResetEvent.WaitOne(1000);
 
-        var i = 0;
         var b = proxy.InnerExecutor;
-        while (ReferenceEquals(a, b))
-        {
-            await Task.Delay(100);
-            b = proxy.InnerExecutor;
-            if (i++ > 10)
-            {
-                break;
-            }
-        }
 
         // assert
         Assert.NotSame(a, b);
