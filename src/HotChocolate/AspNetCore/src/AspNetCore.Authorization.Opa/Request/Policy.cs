@@ -1,14 +1,17 @@
 namespace HotChocolate.AspNetCore.Authorization;
 
-public sealed class Policy
+/// <summary>
+/// The structure representing information about OPA policy to be evaluated by OPA server.
+/// </summary>
+public sealed class Policy(string path, IReadOnlyList<string> roles)
 {
-    public Policy(string path, IReadOnlyList<string> roles)
-    {
-        Path = path ?? throw new ArgumentNullException(nameof(path));
-        Roles = roles ?? throw new ArgumentNullException(nameof(roles));
-    }
+    /// <summary>
+    /// Path of the policy. Contains the path string appended to the OPA base address.
+    /// </summary>
+    public string Path { get; } = path ?? throw new ArgumentNullException(nameof(path));
 
-    public string Path { get; }
-
-    public IReadOnlyList<string> Roles { get; }
+    /// <summary>
+    /// Roles associated with the user to evaluate by policy rule.
+    /// </summary>
+    public IReadOnlyList<string> Roles { get; } = roles ?? throw new ArgumentNullException(nameof(roles));
 }
