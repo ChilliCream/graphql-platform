@@ -12,12 +12,11 @@ public class RequestExecutorResolverTests
         // arrange
         var executorEvictedResetEvent = new AutoResetEvent(false);
 
-        var services = new ServiceCollection();
-        services
+        var resolver = new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(d => d.Field("foo").Resolve(""));
-        var provider = services.BuildServiceProvider();
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+            .AddQueryType(d => d.Field("foo").Resolve(""))
+            .Services.BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>();
 
         resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
@@ -50,8 +49,7 @@ public class RequestExecutorResolverTests
         var warmupResetEvent = new AutoResetEvent(true);
         var executorEvictedResetEvent = new AutoResetEvent(false);
 
-        var services = new ServiceCollection();
-        services
+        var resolver = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
                 keepWarm: true,
@@ -61,9 +59,9 @@ public class RequestExecutorResolverTests
 
                     return Task.CompletedTask;
                 })
-            .AddQueryType(d => d.Field("foo").Resolve(""));
-        var provider = services.BuildServiceProvider();
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+            .AddQueryType(d => d.Field("foo").Resolve(""))
+            .Services.BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>();
 
         resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
@@ -101,8 +99,7 @@ public class RequestExecutorResolverTests
         var warmups = 0;
         var executorEvictedResetEvent = new AutoResetEvent(false);
 
-        var services = new ServiceCollection();
-        services
+        var resolver = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
                 keepWarm: keepWarm,
@@ -111,9 +108,9 @@ public class RequestExecutorResolverTests
                     warmups++;
                     return Task.CompletedTask;
                 })
-            .AddQueryType(d => d.Field("foo").Resolve(""));
-        var provider = services.BuildServiceProvider();
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+            .AddQueryType(d => d.Field("foo").Resolve(""))
+            .Services.BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>();
 
         resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
@@ -134,6 +131,30 @@ public class RequestExecutorResolverTests
 
         Assert.NotSame(initialExecutor, executorAfterEviction);
         Assert.Equal(expectedWarmups, warmups);
+    }
+
+    [Fact]
+    public async Task Calling_GetExecutorAsync_Multiple_Times_Only_Creates_One_Executor()
+    {
+        // arrange
+        var resolver = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Field("foo").Resolve("");
+            })
+            .Services.BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>();
+
+        // act
+        var executor1Task = Task.Run(async () => await resolver.GetRequestExecutorAsync());
+        var executor2Task = Task.Run(async () => await resolver.GetRequestExecutorAsync());
+
+        var executor1 = await executor1Task;
+        var executor2 = await executor2Task;
+
+        // assert
+        Assert.Same(executor1, executor2);
     }
 
     [Fact]

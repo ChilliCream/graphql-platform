@@ -82,10 +82,12 @@ internal sealed partial class RequestExecutorResolver
 
         try
         {
-            // TODO: Rename
-            if (_executors.TryGetValue(schemaName, out var re2))
+            // We check the cache again for the case that GetRequestExecutorAsync has been
+            // called multiple times. This should only happen, if someone calls GetRequestExecutorAsync
+            // themselves. Normally the RequestExecutorProxy takes care of only calling this method once.
+            if (_executors.TryGetValue(schemaName, out re))
             {
-                return re2.Executor;
+                return re.Executor;
             }
 
             var registeredExecutor = await CreateRequestExecutorAsync(schemaName, true, cancellationToken)
@@ -114,7 +116,6 @@ internal sealed partial class RequestExecutorResolver
             while (reader.TryRead(out var schemaName))
             {
                 var semaphore = GetSemaphoreForSchema(schemaName);
-                // TODO: This doesn't allow for parallel updates of other schemas (wasn't possible before as well)
                 await semaphore.WaitAsync();
 
                 try
