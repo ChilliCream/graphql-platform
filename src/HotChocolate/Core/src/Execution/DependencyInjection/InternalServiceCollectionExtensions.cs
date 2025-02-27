@@ -153,7 +153,9 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddRequestExecutorResolver(
         this IServiceCollection services)
     {
-        services.TryAddSingleton<IRequestExecutorResolver, RequestExecutorResolver>();
+        services.TryAddSingleton<RequestExecutorResolver>();
+        services.TryAddSingleton<IRequestExecutorResolver>(sp => sp.GetRequiredService<RequestExecutorResolver>());
+        services.TryAddSingleton<IRequestExecutorWarmup>(sp => sp.GetRequiredService<RequestExecutorResolver>());
         return services;
     }
 

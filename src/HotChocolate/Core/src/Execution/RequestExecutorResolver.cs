@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Threading.Channels;
@@ -25,11 +26,12 @@ namespace HotChocolate.Execution;
 
 internal sealed partial class RequestExecutorResolver
     : IRequestExecutorResolver
+    , IRequestExecutorWarmup
     , IDisposable
 {
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
-    private readonly Dictionary<string, WarmupSchemaTask[]> _warmupTasksBySchema;
+    private readonly FrozenDictionary<string, WarmupSchemaTask[]> _warmupTasksBySchema;
     private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly EventObservable _events = new();
@@ -50,12 +52,12 @@ internal sealed partial class RequestExecutorResolver
         _applicationServices = serviceProvider ??
             throw new ArgumentNullException(nameof(serviceProvider));
         _warmupTasksBySchema = warmupSchemaTasks.GroupBy(t => t.SchemaName)
-            .ToDictionary(g => g.Key, g => g.ToArray());
+            .ToFrozenDictionary(g => g.Key, g => g.ToArray());
 
         var executorEvictionChannel = Channel.CreateUnbounded<string>();
         _executorEvictionChannelWriter = executorEvictionChannel.Writer;
 
-        _ = Task.Run(() => ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader));
+        ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader).FireAndForget();
 
         _optionsMonitor.OnChange(EvictRequestExecutor);
 
@@ -185,7 +187,7 @@ internal sealed partial class RequestExecutorResolver
         {
             if (!isInitialCreation)
             {
-                warmupTasks = warmupTasks.Where(t => t.KeepWarm).ToArray();
+                warmupTasks = [.. warmupTasks.Where(t => t.KeepWarm)];
             }
 
             foreach (var warmupTask in warmupTasks)
@@ -256,7 +258,7 @@ internal sealed partial class RequestExecutorResolver
         finally
         {
             // we will give the request executor some grace period to finish all request
-            // in the pipeline
+            // in the pipeline.
             await Task.Delay(TimeSpan.FromMinutes(5));
             registeredExecutor.Dispose();
         }
