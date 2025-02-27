@@ -29,6 +29,7 @@ internal sealed partial class RequestExecutorResolver
     , IRequestExecutorWarmup
     , IDisposable
 {
+    private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
     private readonly FrozenDictionary<string, WarmupSchemaTask[]> _warmupTasksBySchema;
@@ -57,7 +58,7 @@ internal sealed partial class RequestExecutorResolver
         var executorEvictionChannel = Channel.CreateUnbounded<string>();
         _executorEvictionChannelWriter = executorEvictionChannel.Writer;
 
-        ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader).FireAndForget();
+        ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
 
         _optionsMonitor.OnChange(EvictRequestExecutor);
 
@@ -111,14 +112,15 @@ internal sealed partial class RequestExecutorResolver
     }
 
     private async ValueTask ConsumeExecutorEvictionsAsync(
-        ChannelReader<string> reader)
+        ChannelReader<string> reader,
+        CancellationToken cancellationToken)
     {
-        while (await reader.WaitToReadAsync())
+        while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
         {
             while (reader.TryRead(out var schemaName))
             {
                 var semaphore = GetSemaphoreForSchema(schemaName);
-                await semaphore.WaitAsync();
+                await semaphore.WaitAsync(cancellationToken);
 
                 try
                 {
@@ -509,9 +511,23 @@ internal sealed partial class RequestExecutorResolver
     {
         if (!_disposed)
         {
+            // this will stop the eviction processor.
+            _cts.Cancel();
+
+            foreach (var executor in _executors.Values)
+            {
+                executor.Dispose();
+            }
+
+            foreach (var semaphore in _semaphoreBySchema.Values)
+            {
+                semaphore.Dispose();
+            }
+
             _events.Dispose();
             _executors.Clear();
             _semaphoreBySchema.Clear();
+            _cts.Dispose();
             _disposed = true;
         }
     }
