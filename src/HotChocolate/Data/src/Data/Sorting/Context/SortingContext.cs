@@ -184,18 +184,25 @@ public class SortingContext : ISortingContext
             Context context)
         {
             var type = context.Types.Peek();
-            var field = (SortField)type.Fields[node.Name.Value];
-            var fieldType = field.Type.NamedType();
-            var expression = context.Parents.Pop();
 
-            if (fieldType.IsInputObjectType())
+            if (type.Fields.TryGetField(node.Name.Value, out var inputField) && inputField is SortField sortField)
             {
-                context.Types.Pop();
+                var fieldType = sortField.Type.NamedType();
+                var expression = context.Parents.Pop();
+
+                if (fieldType.IsInputObjectType())
+                {
+                    context.Types.Pop();
+                }
+                else
+                {
+                    var ascending = node.Value.Value?.Equals("ASC") ?? true;
+                    context.Completed.Add((expression, ascending, sortField.Member!.GetReturnType()));
+                }
             }
             else
             {
-                var ascending = node.Value.Value?.Equals("ASC") ?? true;
-                context.Completed.Add((expression, ascending, field.Member!.GetReturnType()));
+                context.Types.Pop();
             }
 
             return base.Leave(node, context);
