@@ -150,6 +150,7 @@
     <Project Path="HotChocolate/Data/test/Data.Filters.InMemory.Tests/HotChocolate.Data.Filters.InMemory.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.Filters.SqlServer.Tests/HotChocolate.Data.Filters.SqlServer.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.Filters.Tests/HotChocolate.Data.Filters.Tests.csproj" />
+    <Project Path="HotChocolate/Data/test/Data.NodaTime.Tests/HotChocolate.Data.NodaTime.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.PostgreSQL.Tests/HotChocolate.Data.PostgreSQL.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.SqlServer.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.Projections.Tests/HotChocolate.Data.Projections.Tests.csproj" />
