@@ -853,7 +853,7 @@ internal sealed class SourceSchemaMerger
 
             if (sourceField.HasExternalDirective())
             {
-                arguments.Add(new ArgumentAssignment(ArgumentNames.External, true));
+                arguments.Add(new ArgumentAssignment(ArgumentNames.Partial, true));
             }
 
             field.Directives.Add(
