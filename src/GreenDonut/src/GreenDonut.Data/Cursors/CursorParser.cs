@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
+using System.Collections.Immutable;
+using System.Dynamic;
 using System.Text;
 
 namespace GreenDonut.Data.Cursors;
@@ -30,7 +32,7 @@ public static class CursorParser
     /// <exception cref="ArgumentException">
     /// If the number of keys is zero.
     /// </exception>
-    public static object?[] Parse(string cursor, ReadOnlySpan<CursorKey> keys)
+    public static Cursor Parse(string cursor, ReadOnlySpan<CursorKey> keys)
     {
         if (cursor == null)
         {
@@ -56,7 +58,9 @@ public static class CursorParser
         var start = 0;
         var end = 0;
         var parsedCursor = new object?[keys.Length];
-        for(var current = 0; current < bufferSpan.Length; current++)
+        var (offset, page, totalCount) = ParsePageInfo(ref bufferSpan);
+
+        for (var current = 0; current < bufferSpan.Length; current++)
         {
             var code = bufferSpan[current];
             end++;
@@ -83,7 +87,7 @@ public static class CursorParser
         }
 
         ArrayPool<byte>.Shared.Return(buffer);
-        return parsedCursor;
+        return new Cursor(parsedCursor.ToImmutableArray(), offset, page, totalCount);
 
         static bool CanParse(byte code, int pos, ReadOnlySpan<byte> buffer)
         {
@@ -100,12 +104,124 @@ public static class CursorParser
                 }
             }
 
-            if(pos == buffer.Length - 1)
+            if (pos == buffer.Length - 1)
             {
                 return true;
             }
 
             return false;
         }
+    }
+
+    private static CursorPageInfo ParsePageInfo(ref Span<byte> span)
+    {
+        const byte Open = (byte)'{';
+        const byte Close = (byte)'}';
+        const byte Separator = (byte)'|';
+
+        // Validate input: must start with `{` and end with `}`
+        if (span.Length < 2 || span[0] != Open)
+        {
+            return default;
+        }
+
+        // the page info is empty
+        if (span[0] == Open && span[1] == Close)
+        {
+            span = span[2..];
+            return default;
+        }
+
+        // Advance span beyond opening `{`
+        span = span[1..];
+
+        var separatorIndex = ExpectSeparator(span, Separator);
+        var part = span[..separatorIndex];
+        ParseNumber(part, out var offset, out var consumed);
+        var start = separatorIndex + 1;
+
+        separatorIndex = ExpectSeparator(span[start..], Separator);
+        part = span.Slice(start, separatorIndex);
+        ParseNumber(part, out var page, out consumed);
+        start += separatorIndex + 1;
+
+        separatorIndex = ExpectSeparator(span[start..], Close);
+        part = span.Slice(start, separatorIndex);
+        ParseNumber(part, out var totalCount, out consumed);
+        start += separatorIndex + 1;
+
+        // Advance span beyond closing `}`
+        span = span[start..];
+
+        return new CursorPageInfo(offset, page, totalCount);
+
+        static void ParseNumber(ReadOnlySpan<byte> span, out int value, out int consumed)
+        {
+            if (!Utf8Parser.TryParse(span, out value, out consumed))
+            {
+                throw new InvalidOperationException(
+                    "The cursor page info could not be parsed.");
+            }
+        }
+
+        static int ExpectSeparator(ReadOnlySpan<byte> span, byte separator)
+        {
+            var index = span.IndexOf(separator);
+
+            if(index == -1)
+            {
+                throw new InvalidOperationException(
+                    "The cursor page info could not be parsed.");
+            }
+
+            return index;
+        }
+    }
+}
+
+public record Cursor(
+    ImmutableArray<object?> Values,
+    int? Offset = null,
+    int? Page = null,
+    int? TotalCount = null);
+
+public readonly ref struct CursorPageInfo
+{
+    public CursorPageInfo(int offset, int page, int totalCount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(page);
+        ArgumentOutOfRangeException.ThrowIfNegative(totalCount);
+
+        if (offset > 0 && totalCount == 0)
+        {
+            throw new ArgumentException(
+                "The total count must be greater than zero if an offset is set.",
+                nameof(totalCount));
+        }
+
+        Offset = offset;
+        Page = page;
+        TotalCount = totalCount;
+    }
+
+    public int Offset { get; }
+
+    public int Page { get; }
+
+    public int TotalCount { get; }
+
+    public void Deconstruct(out int? offset, out int? page, out int? totalCount)
+    {
+        if (TotalCount == 0)
+        {
+            offset = null;
+            page = null;
+            totalCount = null;
+            return;
+        }
+
+        offset = Offset;
+        page = Page;
+        totalCount = TotalCount;
     }
 }

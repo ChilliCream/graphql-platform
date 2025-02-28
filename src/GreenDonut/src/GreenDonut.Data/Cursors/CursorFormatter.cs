@@ -18,6 +18,9 @@ public static class CursorFormatter
     /// <param name="keys">
     /// The keys that make up the cursor.
     /// </param>
+    /// <param name="pageInfo">
+    /// The page information for this cursor.
+    /// </param>
     /// <typeparam name="T">
     /// The type of the entity.
     /// </typeparam>
@@ -33,7 +36,7 @@ public static class CursorFormatter
     /// <exception cref="InvalidOperationException">
     /// If a key cannot be formatted.
     /// </exception>
-    public static string Format<T>(T entity, CursorKey[] keys)
+    public static string Format<T>(T entity, CursorKey[] keys, CursorPageInfo pageInfo = default)
     {
         if (entity == null)
         {
@@ -52,19 +55,30 @@ public static class CursorFormatter
 
         Span<byte> span = stackalloc byte[256];
         byte[]? poolArray = null;
-
         var totalWritten = 0;
         var first = true;
+
+        if (pageInfo.TotalCount == 0)
+        {
+            span[totalWritten++] = (byte)'{';
+            span[totalWritten++] = (byte)'}';
+        }
+        else
+        {
+            WriteCharacter('{', ref span, ref poolArray, ref totalWritten);
+            WriteNumber(pageInfo.Offset, ref span, ref poolArray, ref totalWritten);
+            WriteCharacter('|', ref span, ref poolArray, ref totalWritten);
+            WriteNumber(pageInfo.Page, ref span, ref poolArray, ref totalWritten);
+            WriteCharacter('|', ref span, ref poolArray, ref totalWritten);
+            WriteNumber(pageInfo.TotalCount, ref span, ref poolArray, ref totalWritten);
+            WriteCharacter('}', ref span, ref poolArray, ref totalWritten);
+        }
 
         foreach (var key in keys)
         {
             if (!first)
             {
-                if (totalWritten + 1 > span.Length)
-                {
-                    ExpandBuffer(ref poolArray, ref span, totalWritten, 1);
-                }
-                span[totalWritten++] = (byte)':';
+                WriteCharacter(':', ref span, ref poolArray, ref totalWritten);
             }
             else
             {
@@ -103,6 +117,30 @@ public static class CursorFormatter
         }
 
         return result;
+
+        static void WriteCharacter(char c, ref Span<byte> span, ref byte[]? poolArray, ref int totalWritten)
+        {
+            if (totalWritten + 1 > span.Length)
+            {
+                ExpandBuffer(ref poolArray, ref span, totalWritten, 1);
+            }
+            span[totalWritten++] = (byte)c;
+        }
+
+        static void WriteNumber(int number, ref Span<byte> span, ref byte[]? poolArray, ref int totalWritten)
+        {
+            if (!Utf8Formatter.TryFormat(number, span[totalWritten..], out var written))
+            {
+                ExpandBuffer(ref poolArray, ref span, totalWritten, span.Length);
+
+                if (!Utf8Formatter.TryFormat(number, span[totalWritten..], out written))
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+
+            totalWritten += written;
+        }
     }
 
     private static void ExpandBuffer(

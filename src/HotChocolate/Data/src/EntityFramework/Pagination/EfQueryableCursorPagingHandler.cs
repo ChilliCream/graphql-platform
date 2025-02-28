@@ -46,13 +46,15 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, true));
+            var (whereExpr, _, _) = ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, true);
+            query = query.Where(whereExpr);
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, false));
+            var (whereExpr, _, _) = ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, false);
+            query = query.Where(whereExpr);
         }
 
         if (arguments.First is not null)

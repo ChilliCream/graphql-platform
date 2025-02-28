@@ -9,8 +9,7 @@ public static class SymbolExtensions
 {
     public static bool IsNullableType(this ITypeSymbol typeSymbol)
     {
-        return typeSymbol.IsNullableRefType() ||
-            typeSymbol.IsNullableValueType();
+        return typeSymbol.IsNullableRefType() || typeSymbol.IsNullableValueType();
     }
 
     public static bool IsNullableRefType(this ITypeSymbol typeSymbol)
@@ -23,8 +22,8 @@ public static class SymbolExtensions
     {
         if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
         {
-            if (namedTypeSymbol.IsGenericType &&
-                namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (namedTypeSymbol.IsGenericType
+                && namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return true;
             }
@@ -42,8 +41,8 @@ public static class SymbolExtensions
         => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
     public static bool IsParent(this IParameterSymbol parameter)
-        => parameter.IsThis ||
-            parameter
+        => parameter.IsThis
+            || parameter
                 .GetAttributes()
                 .Any(static t => t.AttributeClass?.ToDisplayString() == WellKnownAttributes.ParentAttribute);
 
@@ -80,8 +79,8 @@ public static class SymbolExtensions
         {
             if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
             {
-                if (namedTypeSymbol.Name == "SetState" &&
-                    namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
+                if (namedTypeSymbol.Name == "SetState"
+                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
                 {
                     stateTypeName = namedTypeSymbol.TypeArguments[0].ToDisplayString();
                     return true;
@@ -99,8 +98,8 @@ public static class SymbolExtensions
         {
             if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
             {
-                if (namedTypeSymbol.Name == "SetState" &&
-                    namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
+                if (namedTypeSymbol.Name == "SetState"
+                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
                 {
                     return true;
                 }
@@ -132,9 +131,9 @@ public static class SymbolExtensions
         {
             if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.GlobalStateAttribute"))
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -167,9 +166,9 @@ public static class SymbolExtensions
         {
             if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.ScopedStateAttribute"))
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -202,9 +201,9 @@ public static class SymbolExtensions
         {
             if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.LocalStateAttribute"))
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -251,9 +250,9 @@ public static class SymbolExtensions
         {
             if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -286,9 +285,9 @@ public static class SymbolExtensions
         {
             if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ArgumentAttribute)
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -318,8 +317,8 @@ public static class SymbolExtensions
             return false;
         }
 
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol &&
-            namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
         {
             return false;
         }
@@ -341,17 +340,14 @@ public static class SymbolExtensions
 
         var returnType = method.ReturnType.ToDisplayString();
 
-        if (returnType.Equals(WellKnownTypes.Task) ||
-            returnType.Equals(WellKnownTypes.ValueTask))
+        if (returnType.Equals(WellKnownTypes.Task) || returnType.Equals(WellKnownTypes.ValueTask))
         {
             return ResolverResultKind.Invalid;
         }
 
-        if (returnType.StartsWith(task) ||
-            returnType.StartsWith(valueTask))
+        if (returnType.StartsWith(task) || returnType.StartsWith(valueTask))
         {
-            if (returnType.StartsWith(taskEnumerable) ||
-                returnType.StartsWith(valueTaskEnumerable))
+            if (returnType.StartsWith(taskEnumerable) || returnType.StartsWith(valueTaskEnumerable))
             {
                 return ResolverResultKind.TaskAsyncEnumerable;
             }
@@ -445,6 +441,7 @@ public static class SymbolExtensions
                 break;
             }
         }
+
         return typeSymbol;
     }
 
@@ -471,8 +468,8 @@ public static class SymbolExtensions
         while (attributeClass != null)
         {
             var typeName = attributeClass.ToDisplayString();
-            if (typeName.Equals("HotChocolate.Types.UsePagingAttribute") ||
-                typeName.Equals("HotChocolate.Types.UseOffsetPagingAttribute"))
+            if (typeName.Equals("HotChocolate.Types.UsePagingAttribute")
+                || typeName.Equals("HotChocolate.Types.UseOffsetPagingAttribute"))
             {
                 return true;
             }
@@ -498,7 +495,7 @@ public static class SymbolExtensions
 
         while (current != null)
         {
-            foreach(var typeName in fullTypeName)
+            foreach (var typeName in fullTypeName)
             {
                 if (current.ToDisplayString() == typeName)
                 {
@@ -536,7 +533,7 @@ public static class SymbolExtensions
         {
             returnType = method.ReturnType;
         }
-        else if(member is IPropertySymbol property)
+        else if (member is IPropertySymbol property)
         {
             returnType = property.Type;
         }
@@ -547,13 +544,26 @@ public static class SymbolExtensions
 
         if (returnType is INamedTypeSymbol namedTypeSymbol)
         {
-            if (namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.Task<T>" ||
-                namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.ValueTask<T>")
+            if (namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.Task<T>"
+                || namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.ValueTask<T>")
             {
                 return namedTypeSymbol.TypeArguments.FirstOrDefault();
             }
         }
 
         return returnType;
+    }
+
+    public static bool IsConnectionType(this INamedTypeSymbol typeSymbol, Compilation compilation)
+    {
+        var connectionInterface = compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.IConnection`1");
+
+        if (connectionInterface == null)
+        {
+            return false;
+        }
+
+        return typeSymbol.AllInterfaces.Any(
+            s => SymbolEqualityComparer.Default.Equals(s.OriginalDefinition, connectionInterface));
     }
 }
