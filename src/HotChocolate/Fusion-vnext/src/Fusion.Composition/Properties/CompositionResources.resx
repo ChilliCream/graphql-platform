@@ -30,6 +30,90 @@
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
     <value>Source schema validation failed. View the composition log for details.</value>
   </data>
+  <data name="FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that provides the specified enum value.</value>
+  </data>
+  <data name="FusionEnumValueMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__enumValue directive specifies which source schema provides an enum value.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_Partial_Description" xml:space="preserve">
+    <value>Indicates that this field is only partially provided and must be combined with `provides`.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_Provides_Description" xml:space="preserve">
+    <value>A selection set of fields this field provides in the composite schema.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided this field.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_SourceType_Description" xml:space="preserve">
+    <value>The field type in the source schema if it differs in nullability or structure.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has.</value>
+  </data>
+  <data name="FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description" xml:space="preserve">
+    <value>The name of the interface type.</value>
+  </data>
+  <data name="FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema on which the annotated type implements the specified interface.</value>
+  </data>
+  <data name="FusionImplementsMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type.</value>
+  </data>
+  <data name="FusionInputFieldMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided this input field.</value>
+  </data>
+  <data name="FusionInputFieldMutableDirectiveDefinition_Argument_SourceType_Description" xml:space="preserve">
+    <value>The field type in the source schema if it differs in nullability or structure.</value>
+  </data>
+  <data name="FusionInputFieldMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__inputField directive specifies which source schema provides an input field in a composite input type.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
+    <value>The GraphQL field definition in the source schema that can be used to look up the entity.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Key_Description" xml:space="preserve">
+    <value>A selection set on the annotated entity type that describes the stable key for the lookup.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Map_Description" xml:space="preserve">
+    <value>The map describes how the key values are resolved from the annotated entity type.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Path_Description" xml:space="preserve">
+    <value>The path to the lookup field relative to the Query type.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema where the annotated entity type can be looked up from.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Field_Description" xml:space="preserve">
+    <value>The GraphQL field definition in the source schema that this field depends on.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Map_Description" xml:space="preserve">
+    <value>The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema where this field has requirements to data on other source schemas.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__requires directive specifies if a field has requirements on a source schema.</value>
+  </data>
+  <data name="FusionTypeMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided part of the annotated type.</value>
+  </data>
+  <data name="FusionTypeMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__type directive specifies which source schemas provide parts of a composite type.</value>
+  </data>
+  <data name="FusionUnionMemberMutableDirectiveDefinition_Argument_Member_Description" xml:space="preserve">
+    <value>The name of the member type.</value>
+  </data>
+  <data name="FusionUnionMemberMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that provides the specified member type.</value>
+  </data>
+  <data name="FusionUnionMemberMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__unionMember directive specifies which source schema provides a member type of a union.</value>
+  </data>
   <data name="LogEntryHelper_DisallowedInaccessibleBuiltInScalar" xml:space="preserve">
     <value>The built-in scalar type '{0}' in schema '{1}' is not accessible.</value>
   </data>
