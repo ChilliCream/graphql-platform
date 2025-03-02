@@ -1,10 +1,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System.Threading.Channels;
 using HotChocolate.Configuration;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
@@ -19,8 +17,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
-
-[assembly: MetadataUpdateHandler(typeof(RequestExecutorResolver.ApplicationUpdateHandler))]
 
 namespace HotChocolate.Execution;
 
@@ -61,10 +57,6 @@ internal sealed partial class RequestExecutorResolver
         ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
 
         _optionsMonitor.OnChange(EvictRequestExecutor);
-
-        // we register the schema eviction for application updates when hot reload is used.
-        // Whenever a hot reload update is triggered we will evict all executors.
-        ApplicationUpdateHandler.RegisterForApplicationUpdate(EvictAllRequestExecutors);
     }
 
     public IObservable<RequestExecutorEvent> Events => _events;
@@ -240,14 +232,6 @@ internal sealed partial class RequestExecutorResolver
         finally
         {
             RunEvictionEvents(previousExecutor).FireAndForget();
-        }
-    }
-
-    private void EvictAllRequestExecutors()
-    {
-        foreach (var key in _executors.Keys)
-        {
-            EvictRequestExecutor(key);
         }
     }
 
@@ -776,33 +760,5 @@ internal sealed partial class RequestExecutorResolver
         public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; } = defaultPipelineFactory;
 
         public IList<RequestCoreMiddleware> Pipeline { get; } = pipeline;
-    }
-
-    /// <summary>
-    /// A helper calls that receives hot reload update events from the runtime and triggers
-    /// reload of registered components.
-    /// </summary>
-    internal static class ApplicationUpdateHandler
-    {
-        private static readonly List<Action> _actions = [];
-
-        public static void RegisterForApplicationUpdate(Action action)
-        {
-            lock (_actions)
-            {
-                _actions.Add(action);
-            }
-        }
-
-        public static void UpdateApplication(Type[]? updatedTypes)
-        {
-            lock (_actions)
-            {
-                foreach (var action in _actions)
-                {
-                    action();
-                }
-            }
-        }
     }
 }

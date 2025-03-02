@@ -96,6 +96,258 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that provides the specified enum value..
+        /// </summary>
+        internal static string FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__enumValue directive specifies which source schema provides an enum value..
+        /// </summary>
+        internal static string FusionEnumValueMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionEnumValueMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates that this field is only partially provided and must be combined with `provides`..
+        /// </summary>
+        internal static string FusionFieldMutableDirectiveDefinition_Argument_Partial_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_Partial_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A selection set of fields this field provides in the composite schema..
+        /// </summary>
+        internal static string FusionFieldMutableDirectiveDefinition_Argument_Provides_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_Provides_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that originally provided this field..
+        /// </summary>
+        internal static string FusionFieldMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field type in the source schema if it differs in nullability or structure..
+        /// </summary>
+        internal static string FusionFieldMutableDirectiveDefinition_Argument_SourceType_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Argument_SourceType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has..
+        /// </summary>
+        internal static string FusionFieldMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the interface type..
+        /// </summary>
+        internal static string FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description {
+            get {
+                return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema on which the annotated type implements the specified interface..
+        /// </summary>
+        internal static string FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type..
+        /// </summary>
+        internal static string FusionImplementsMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that originally provided this input field..
+        /// </summary>
+        internal static string FusionInputFieldMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionInputFieldMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field type in the source schema if it differs in nullability or structure..
+        /// </summary>
+        internal static string FusionInputFieldMutableDirectiveDefinition_Argument_SourceType_Description {
+            get {
+                return ResourceManager.GetString("FusionInputFieldMutableDirectiveDefinition_Argument_SourceType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__inputField directive specifies which source schema provides an input field in a composite input type..
+        /// </summary>
+        internal static string FusionInputFieldMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionInputFieldMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GraphQL field definition in the source schema that can be used to look up the entity..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Field_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Field_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A selection set on the annotated entity type that describes the stable key for the lookup..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Key_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Key_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The map describes how the key values are resolved from the annotated entity type..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Map_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Map_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The path to the lookup field relative to the Query type..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Path_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Path_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema where the annotated entity type can be looked up from..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__requires directive specifies if a field has requirements on a source schema..
+        /// </summary>
+        internal static string FusionRequiresMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GraphQL field definition in the source schema that this field depends on..
+        /// </summary>
+        internal static string FusionRequiresMutableDirectiveDefinition_Field_Description {
+            get {
+                return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Field_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type..
+        /// </summary>
+        internal static string FusionRequiresMutableDirectiveDefinition_Map_Description {
+            get {
+                return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Map_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema where this field has requirements to data on other source schemas..
+        /// </summary>
+        internal static string FusionRequiresMutableDirectiveDefinition_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that originally provided part of the annotated type..
+        /// </summary>
+        internal static string FusionTypeMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionTypeMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__type directive specifies which source schemas provide parts of a composite type..
+        /// </summary>
+        internal static string FusionTypeMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionTypeMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the member type..
+        /// </summary>
+        internal static string FusionUnionMemberMutableDirectiveDefinition_Argument_Member_Description {
+            get {
+                return ResourceManager.GetString("FusionUnionMemberMutableDirectiveDefinition_Argument_Member_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that provides the specified member type..
+        /// </summary>
+        internal static string FusionUnionMemberMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionUnionMemberMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__unionMember directive specifies which source schema provides a member type of a union..
+        /// </summary>
+        internal static string FusionUnionMemberMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionUnionMemberMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleBuiltInScalar {
