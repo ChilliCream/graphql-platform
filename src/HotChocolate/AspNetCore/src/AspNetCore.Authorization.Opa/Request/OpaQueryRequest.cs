@@ -12,11 +12,11 @@ public sealed class OpaQueryRequest
     /// <param name="request">The instance of <see cref="OriginalRequest"/>.
     ///     Stores information about the original GraphQl request.</param>
     /// <param name="source">The instance <see cref="IPAndPort"/>.
-    ///     Stores information about source address of the original request</param>
+    ///     Stores information about the source address of the original request</param>
     /// <param name="destination">The instance <see cref="IPAndPort"/>.
-    ///     Stores information about destination address of the original request.</param>
+    ///     Stores information about the destination address of the original request.</param>
     /// <param name="extensions">The instance of object that provides extended information for the OPA query request.
-    ///     Usually represented as a dictionary.</param>
+    ///     Usually is represented as a dictionary.</param>
     public OpaQueryRequest(
         Policy policy,
         OriginalRequest request,
@@ -36,7 +36,7 @@ public sealed class OpaQueryRequest
     }
 
     /// <summary>
-    /// The property to get instance of <see cref="OpaQueryRequestInput"/>.
+    /// The property to get the instance of <see cref="OpaQueryRequestInput"/>.
     /// </summary>
     public OpaQueryRequestInput Input { get; }
 
@@ -47,11 +47,11 @@ public sealed class OpaQueryRequest
     /// <param name="request">The instance of <see cref="OriginalRequest"/>.
     ///     Stores information about the original GraphQl request.</param>
     /// <param name="source">The instance <see cref="IPAndPort"/>.
-    ///     Stores information about source address of the original request</param>
+    ///     Stores information about the source address of the original request</param>
     /// <param name="destination">The instance <see cref="IPAndPort"/>.
-    ///     Stores information about destination address of the original request.</param>
+    ///     Stores information about the destination address of the original request.</param>
     /// <param name="extensions">The instance of object the provides extended information for the OPA query request.
-    ///     Usually represented as a dictionary.</param>
+    ///     Usually is represented as a dictionary.</param>
     public sealed class OpaQueryRequestInput(
         Policy policy,
         OriginalRequest request,

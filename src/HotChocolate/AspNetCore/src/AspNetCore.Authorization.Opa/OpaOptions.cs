@@ -12,10 +12,8 @@ public sealed class OpaOptions
 {
     private readonly ConcurrentDictionary<string, Regex> _handlerKeysRegexes = new();
 
-    // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
     public Uri BaseAddress { get; set; } = new("http://127.0.0.1:8181/v1/data/");
 
-    // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
     public TimeSpan Timeout { get; set; } = TimeSpan.FromMilliseconds(250);
 
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = new();

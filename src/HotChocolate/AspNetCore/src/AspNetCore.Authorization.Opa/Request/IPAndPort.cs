@@ -11,7 +11,7 @@ public sealed class IPAndPort
     /// </summary>
     /// <param name="ipAddress">IP address.</param>
     /// <param name="port">Port number.</param>
-    /// <exception cref="ArgumentNullException">Thrown if port values is out of range: [0:65535].</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if port values is out of range: [0:65535].</exception>
     public IPAndPort(string ipAddress, int port = 0)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
