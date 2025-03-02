@@ -37,11 +37,13 @@ public class AuthorizationTestData : IEnumerable<object[]>
                 })
             .AddOpaResultHandler(
                 Policies.HasDefinedAge,
-                response => response.GetResult<HasAgeDefinedResponse>() switch
-                {
-                    { Allow: true, } => AuthorizeResult.Allowed,
-                    _ => AuthorizeResult.NotAllowed,
-                })
+                response => response.DecisionId is null
+                    ? AuthorizeResult.NotAllowed
+                    : response.GetResult<HasAgeDefinedResponse>() switch
+                    {
+                        { Allow: true, } => AuthorizeResult.Allowed,
+                        _ => AuthorizeResult.NotAllowed,
+                    })
             .UseField(_schemaMiddleware);
 
     private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
@@ -54,11 +56,13 @@ public class AuthorizationTestData : IEnumerable<object[]>
                 })
             .AddOpaResultHandler(
                 Policies.HasDefinedAge,
-                response => response.GetResult<HasAgeDefinedResponse>() switch
-                {
-                    { Allow: true, } => AuthorizeResult.Allowed,
-                    _ => AuthorizeResult.NotAllowed,
-                })
+                response => response.DecisionId is null
+                    ? AuthorizeResult.NotAllowed
+                    : response.GetResult<HasAgeDefinedResponse>() switch
+                    {
+                        { Allow: true, } => AuthorizeResult.Allowed,
+                        _ => AuthorizeResult.NotAllowed,
+                    })
             .UseField(_schemaMiddleware);
 
     public IEnumerator<object[]> GetEnumerator()
