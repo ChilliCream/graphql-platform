@@ -47,18 +47,18 @@ internal sealed class OpaAuthorizationHandler : IAuthorizationHandler
     }
 
     private async ValueTask<AuthorizeResult> AuthorizeAsync(
-        OpaAuthorizationHandlerContext authContext,
+        OpaAuthorizationHandlerContext context,
         IReadOnlyList<AuthorizeDirective> directives,
         CancellationToken ct)
     {
         if (directives.Count == 1)
         {
-            return await AuthorizeAsync(authContext, directives[0], ct).ConfigureAwait(false);
+            return await AuthorizeAsync(context, directives[0], ct).ConfigureAwait(false);
         }
 
         var tasks = Partitioner.Create(directives)
             .GetPartitions(2)
-            .Select(partition => ExecuteAsync(authContext, partition, AuthorizeAsync, ct))
+            .Select(partition => ExecuteAsync(context, partition, AuthorizeAsync, ct))
             .ToArray();
 
         var first = await Task.WhenAny(tasks).ConfigureAwait(false);
