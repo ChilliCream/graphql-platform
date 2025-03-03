@@ -33,33 +33,44 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
         if (connectionResolvers is not null)
         {
-            var connectionTypeLookup = new Dictionary<ITypeSymbol, IOutputTypeInfo>(SymbolEqualityComparer.Default);
+            var connectionTypeLookup = new Dictionary<string, IOutputTypeInfo>();
             List<ConnectionObjectTypeInfo>? connectionTypeInfos = null;
 
             foreach (var syntaxInfo in syntaxInfos)
             {
                 if(syntaxInfo is IOutputTypeInfo { RuntimeType: not null } typeInfo)
                 {
-                    connectionTypeLookup[typeInfo.RuntimeType] = typeInfo;
+                    connectionTypeLookup[typeInfo.RuntimeType.ToFullyQualified()] = typeInfo;
                 }
             }
 
             foreach (var connectionResolver in connectionResolvers)
             {
-                var connectionType = connectionResolver.Member.GetReturnType()!.UnwrapTaskOrValueTask();
-
-                if (connectionTypeLookup.ContainsKey(connectionType))
+                var connectionType = GetConnectionType(connectionResolver);
+                if (connectionTypeLookup.ContainsKey(connectionType.ToFullyQualified()))
                 {
                     continue;
                 }
 
-                var connectionTypeInfo = new ConnectionObjectTypeInfo(
-                    compilation,
-                    (INamedTypeSymbol)connectionType);
+                var edgeType = GetEdgeType(connectionType);
+                if (edgeType is null)
+                {
+                    continue;
+                }
 
+                var connectionTypeInfo = new ConnectionObjectTypeInfo(compilation, connectionType, isConnection: true);
                 connectionTypeInfos ??= [];
                 connectionTypeInfos.Add(connectionTypeInfo);
-                connectionTypeLookup.Add(connectionType, connectionTypeInfo);
+                connectionTypeLookup.Add(connectionType.ToFullyQualified(), connectionTypeInfo);
+
+                if (connectionTypeLookup.ContainsKey(edgeType.ToFullyQualified()))
+                {
+                    continue;
+                }
+
+                var edgeTypeInfo = new ConnectionObjectTypeInfo(compilation, connectionType, isConnection: true);
+                connectionTypeInfos.Add(edgeTypeInfo);
+                connectionTypeLookup.Add(edgeType.ToFullyQualified(), edgeTypeInfo);
             }
 
             if(connectionTypeInfos is not null)
@@ -69,5 +80,14 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         }
 
         return syntaxInfos;
+
+        static INamedTypeSymbol GetConnectionType(Resolver connectionResolver)
+            => (INamedTypeSymbol)connectionResolver.Member.GetReturnType()!.UnwrapTaskOrValueTask();
+
+        static INamedTypeSymbol? GetEdgeType(INamedTypeSymbol connectionType)
+            => connectionType.GetMembers()
+                .OfType<IPropertySymbol>()
+                .FirstOrDefault(p => p.Name == "Edge")
+                ?.Type as INamedTypeSymbol;
     }
 }

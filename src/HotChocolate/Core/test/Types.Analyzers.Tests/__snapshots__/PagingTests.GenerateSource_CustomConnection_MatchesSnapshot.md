@@ -264,17 +264,18 @@ public static partial class AuthorConnectionType
 {
     internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.AuthorConnection> descriptor)
     {
-        const global::System.Reflection.BindingFlags bindingFlags =
+        const global::System.Reflection.BindingFlags runtimeBindingFlags =
             global::System.Reflection.BindingFlags.Public
                 | global::System.Reflection.BindingFlags.NonPublic
+                | global::System.Reflection.BindingFlags.Instance
                 | global::System.Reflection.BindingFlags.Static;
 
-        var thisType = typeof(global::TestNamespace.AuthorConnectionType);
+        var runtimeType = typeof(global::TestNamespace.AuthorConnection);
         var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
         global::TestNamespace.AuthorConnectionTypeResolvers.InitializeBindings(bindingResolver);
 
         descriptor
-            .Field(thisType.GetMember("Edges", bindingFlags)[0])
+            .Field(runtimeType.GetMember("Edges", runtimeBindingFlags)[0])
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
@@ -282,7 +283,7 @@ public static partial class AuthorConnectionType
             });
 
         descriptor
-            .Field(thisType.GetMember("Nodes", bindingFlags)[0])
+            .Field(runtimeType.GetMember("Nodes", runtimeBindingFlags)[0])
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
@@ -290,7 +291,7 @@ public static partial class AuthorConnectionType
             });
 
         descriptor
-            .Field(thisType.GetMember("PageInfo", bindingFlags)[0])
+            .Field(runtimeType.GetMember("PageInfo", runtimeBindingFlags)[0])
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
@@ -298,7 +299,7 @@ public static partial class AuthorConnectionType
             });
 
         descriptor
-            .Field(thisType.GetMember("TotalCount", bindingFlags)[0])
+            .Field(runtimeType.GetMember("TotalCount", runtimeBindingFlags)[0])
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();

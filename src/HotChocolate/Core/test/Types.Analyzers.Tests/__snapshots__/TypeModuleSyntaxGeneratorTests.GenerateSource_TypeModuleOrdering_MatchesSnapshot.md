@@ -144,6 +144,7 @@ namespace TestNamespace
         private static bool _bindingsInitialized;
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
+            _bindingsInitialized = true;
         }
     }
 
@@ -153,6 +154,7 @@ namespace TestNamespace
         private static bool _bindingsInitialized;
         public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
         {
+            _bindingsInitialized = true;
         }
     }
 }

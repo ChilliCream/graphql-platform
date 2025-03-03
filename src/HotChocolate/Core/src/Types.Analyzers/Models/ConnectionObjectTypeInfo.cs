@@ -6,12 +6,13 @@ using static HotChocolate.Types.Analyzers.Inspectors.ObjectTypeExtensionInfoInsp
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ConnectionObjectTypeInfo : SyntaxInfo
+public sealed class ConnectionObjectTypeInfo
+    : SyntaxInfo
     , IOutputTypeInfo
 {
     private readonly INamedTypeSymbol _runtimeType;
 
-    public ConnectionObjectTypeInfo(Compilation compilation, INamedTypeSymbol runtimeType)
+    public ConnectionObjectTypeInfo(Compilation compilation, INamedTypeSymbol runtimeType, bool isConnection)
     {
         _runtimeType = runtimeType;
         ClassName = runtimeType.Name + "Type";
@@ -43,13 +44,28 @@ public sealed class ConnectionObjectTypeInfo : SyntaxInfo
                     break;
 
                 case IPropertySymbol property:
+                    var flags = FieldFlags.None;
+
+                    if (isConnection)
+                    {
+                        if(property.Name.Equals("Edges", StringComparison.Ordinal))
+                        {
+                            flags |= FieldFlags.ConnectionEdgesField;
+                        }
+                        else if(property.Name.Equals("Nodes", StringComparison.Ordinal))
+                        {
+                            flags |= FieldFlags.ConnectionNodesField;
+                        }
+                    }
+
                     resolvers.Add(
                         new Resolver(
                             ClassName,
                             property,
                             ResolverResultKind.Pure,
                             ImmutableArray<ResolverParameter>.Empty,
-                            GetMemberBindings(member)));
+                            GetMemberBindings(member),
+                            flags: flags));
                     break;
             }
         }
@@ -83,7 +99,6 @@ public sealed class ConnectionObjectTypeInfo : SyntaxInfo
 
     private bool Equals(ConnectionObjectTypeInfo other)
         => string.Equals(Name, other.Name, StringComparison.Ordinal);
-
 
     public override int GetHashCode()
         => HashCode.Combine(Name);

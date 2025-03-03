@@ -67,10 +67,10 @@ namespace TestNamespace
         private static global::System.Object? Query_GetTest_Resolver(global::HotChocolate.Resolvers.IResolverContext context)
         {
             var args0_selection = context.Selection;
-            var args0_filter = HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
-            var args0_sorting = HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
+            var args0_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
+            var args0_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
             var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Foo>(
-                HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Foo>(args0_selection),
+                global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Foo>(args0_selection),
                 args0_filter?.AsPredicate<global::TestNamespace.Foo>(),
                 args0_sorting?.AsSortDefinition<global::TestNamespace.Foo>());
             var result = global::TestNamespace.Query.GetTest(args0);

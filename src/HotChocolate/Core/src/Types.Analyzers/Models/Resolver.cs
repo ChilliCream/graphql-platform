@@ -11,7 +11,8 @@ public sealed class Resolver
         ResolverResultKind resultKind,
         ImmutableArray<ResolverParameter> parameters,
         ImmutableArray<MemberBinding> bindings,
-        ResolverKind kind = ResolverKind.Default)
+        ResolverKind kind = ResolverKind.Default,
+        FieldFlags flags = FieldFlags.None)
     {
         TypeName = typeName;
         Member = member;
@@ -19,6 +20,7 @@ public sealed class Resolver
         Parameters = parameters;
         Bindings = bindings;
         Kind = kind;
+        Flags = flags;
     }
 
     public string TypeName { get; }
@@ -33,6 +35,8 @@ public sealed class Resolver
             && Parameters.All(t => t.IsPure);
 
     public ResolverKind Kind { get; }
+
+    public FieldFlags Flags { get; }
 
     public ResolverResultKind ResultKind { get; }
 

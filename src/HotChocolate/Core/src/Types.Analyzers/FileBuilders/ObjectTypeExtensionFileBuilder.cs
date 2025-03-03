@@ -273,7 +273,8 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     _writer.WriteIndentedLine("{");
                     using (_writer.IncreaseIndent())
                     {
-                        _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+                        WriteFieldFlags(resolver);
+
                         _writer.WriteIndentedLine(
                             "c.Definition.Resolvers = global::{0}.{1}Resolvers.{2}_{3}();",
                             typeInfo.Namespace,
@@ -323,7 +324,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
         }
     }
 
-     private void WriteRuntimeTypeResolverBindings(IOutputTypeInfo typeInfo)
+    private void WriteRuntimeTypeResolverBindings(IOutputTypeInfo typeInfo)
     {
         if (typeInfo.Resolvers.Length > 0)
         {
@@ -342,7 +343,8 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     _writer.WriteIndentedLine("{");
                     using (_writer.IncreaseIndent())
                     {
-                        _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+                        WriteFieldFlags(resolver);
+
                         _writer.WriteIndentedLine(
                             "c.Definition.Resolvers = global::{0}.{1}Resolvers.{2}_{3}();",
                             typeInfo.Namespace,
@@ -364,6 +366,26 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     _writer.WriteIndentedLine("});");
                 }
             }
+        }
+    }
+
+    private void WriteFieldFlags(Resolver resolver)
+    {
+        _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+
+        if (resolver.Kind is ResolverKind.ConnectionResolver)
+        {
+            _writer.WriteIndentedLine("c.Definition.SetConnectionFlags();");
+        }
+
+        if ((resolver.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField)
+        {
+            _writer.WriteIndentedLine("c.Definition.SetConnectionEdgesFlags();");
+        }
+
+        if ((resolver.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField)
+        {
+            _writer.WriteIndentedLine("c.Definition.SetConnectionNodesFlags();");
         }
     }
 
