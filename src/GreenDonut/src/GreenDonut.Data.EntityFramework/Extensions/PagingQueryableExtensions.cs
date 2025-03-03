@@ -108,6 +108,7 @@ public static class PagingQueryableExtensions
         var requestedCount = int.MaxValue;
         var reverseOrder = false;
         var offset = 0;
+        int? totalCount = null;
 
         if (arguments.After is not null)
         {
@@ -117,6 +118,11 @@ public static class PagingQueryableExtensions
             source = source.Where(whereExpr);
             offset = cursorOffset;
             reverseOrder = reverse;
+
+            if (!includeTotalCount)
+            {
+                totalCount ??= cursor.TotalCount;
+            }
         }
 
         if (arguments.Before is not null)
@@ -127,6 +133,11 @@ public static class PagingQueryableExtensions
             source = source.Where(whereExpr);
             offset = cursorOffset;
             reverseOrder = reverse;
+
+            if (!includeTotalCount)
+            {
+                totalCount ??= cursor.TotalCount;
+            }
         }
 
         // Reverse order if offset is negative
@@ -158,7 +169,6 @@ public static class PagingQueryableExtensions
         }
 
         var builder = ImmutableArray.CreateBuilder<T>();
-        int? totalCount = null;
         var fetchCount = 0;
 
         if (includeTotalCount)
