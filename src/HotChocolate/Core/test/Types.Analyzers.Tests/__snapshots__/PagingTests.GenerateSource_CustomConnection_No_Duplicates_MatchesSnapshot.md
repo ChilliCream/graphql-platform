@@ -328,6 +328,48 @@ namespace TestNamespace
             return result;
         }
     }
+
+    internal static class AuthorEdgeTypeResolvers
+    {
+        private static readonly object _sync = new object();
+        private static bool _bindingsInitialized;
+        public static void InitializeBindings(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
+        {
+            _bindingsInitialized = true;
+        }
+
+        public static HotChocolate.Resolvers.FieldResolverDelegates AuthorEdgeType_Node()
+        {
+            if(!_bindingsInitialized)
+            {
+                throw new global::System.InvalidOperationException("The bindings must be initialized before the resolvers can be created.");
+            }
+
+            return new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: AuthorEdgeType_Node_Resolver);
+        }
+
+        private static global::System.Object? AuthorEdgeType_Node_Resolver(global::HotChocolate.Resolvers.IResolverContext context)
+        {
+            var result = context.Parent<global::TestNamespace.AuthorEdge>().Node;
+            return result;
+        }
+
+        public static HotChocolate.Resolvers.FieldResolverDelegates AuthorEdgeType_Cursor()
+        {
+            if(!_bindingsInitialized)
+            {
+                throw new global::System.InvalidOperationException("The bindings must be initialized before the resolvers can be created.");
+            }
+
+            return new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: AuthorEdgeType_Cursor_Resolver);
+        }
+
+        private static global::System.Object? AuthorEdgeType_Cursor_Resolver(global::HotChocolate.Resolvers.IResolverContext context)
+        {
+            var result = context.Parent<global::TestNamespace.AuthorEdge>().Cursor;
+            return result;
+        }
+    }
 }
 
 
@@ -408,6 +450,7 @@ public static partial class AuthorQueries
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
+                c.Definition.SetConnectionFlags();
                 c.Definition.Resolvers = global::TestNamespace.Types.Root.AuthorQueriesResolvers.AuthorQueries_GetAuthorsAsync();
             });
 
@@ -416,6 +459,7 @@ public static partial class AuthorQueries
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
+                c.Definition.SetConnectionFlags();
                 c.Definition.Resolvers = global::TestNamespace.Types.Root.AuthorQueriesResolvers.AuthorQueries_GetAuthors2Async();
             });
 
@@ -446,6 +490,7 @@ public static partial class AuthorNode
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
+                c.Definition.SetConnectionFlags();
                 c.Definition.Resolvers = global::TestNamespace.Types.Nodes.AuthorNodeResolvers.AuthorNode_GetAuthorsAsync();
             });
 
@@ -477,6 +522,7 @@ public static partial class AuthorConnectionType
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
+                c.Definition.SetConnectionEdgesFlags();
                 c.Definition.Resolvers = global::TestNamespace.AuthorConnectionTypeResolvers.AuthorConnectionType_Edges();
             });
 
@@ -485,6 +531,7 @@ public static partial class AuthorConnectionType
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
+                c.Definition.SetConnectionNodesFlags();
                 c.Definition.Resolvers = global::TestNamespace.AuthorConnectionTypeResolvers.AuthorConnectionType_Nodes();
             });
 
@@ -508,6 +555,42 @@ public static partial class AuthorConnectionType
     }
 
     static partial void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.AuthorConnection> descriptor);
+}
+
+public static partial class AuthorEdgeType
+{
+    internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.AuthorEdge> descriptor)
+    {
+        const global::System.Reflection.BindingFlags runtimeBindingFlags =
+            global::System.Reflection.BindingFlags.Public
+                | global::System.Reflection.BindingFlags.NonPublic
+                | global::System.Reflection.BindingFlags.Instance
+                | global::System.Reflection.BindingFlags.Static;
+
+        var runtimeType = typeof(global::TestNamespace.AuthorEdge);
+        var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+        global::TestNamespace.AuthorEdgeTypeResolvers.InitializeBindings(bindingResolver);
+
+        descriptor
+            .Field(runtimeType.GetMember("Node", runtimeBindingFlags)[0])
+            .ExtendWith(c =>
+            {
+                c.Definition.SetSourceGeneratorFlags();
+                c.Definition.Resolvers = global::TestNamespace.AuthorEdgeTypeResolvers.AuthorEdgeType_Node();
+            });
+
+        descriptor
+            .Field(runtimeType.GetMember("Cursor", runtimeBindingFlags)[0])
+            .ExtendWith(c =>
+            {
+                c.Definition.SetSourceGeneratorFlags();
+                c.Definition.Resolvers = global::TestNamespace.AuthorEdgeTypeResolvers.AuthorEdgeType_Cursor();
+            });
+
+        Configure(descriptor);
+    }
+
+    static partial void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.AuthorEdge> descriptor);
 }
 }
 

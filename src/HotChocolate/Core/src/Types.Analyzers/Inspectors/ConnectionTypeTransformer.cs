@@ -68,7 +68,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                     continue;
                 }
 
-                var edgeTypeInfo = new ConnectionObjectTypeInfo(compilation, connectionType, isConnection: true);
+                var edgeTypeInfo = new ConnectionObjectTypeInfo(compilation, edgeType, isConnection: false);
                 connectionTypeInfos.Add(edgeTypeInfo);
                 connectionTypeLookup.Add(edgeType.ToFullyQualified(), edgeTypeInfo);
             }
@@ -85,9 +85,29 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
             => (INamedTypeSymbol)connectionResolver.Member.GetReturnType()!.UnwrapTaskOrValueTask();
 
         static INamedTypeSymbol? GetEdgeType(INamedTypeSymbol connectionType)
-            => connectionType.GetMembers()
+        {
+            var property = connectionType.GetMembers()
                 .OfType<IPropertySymbol>()
-                .FirstOrDefault(p => p.Name == "Edge")
-                ?.Type as INamedTypeSymbol;
+                .FirstOrDefault(p => p.Name == "Edges");
+
+            // since we could not find the edges property we return null
+            // and do not recognize this type as a connection type.
+            if (property is null)
+            {
+                return null;
+            }
+
+            // the return type must be of the structure `IReadOnlyList<MyEdgeType>`
+            var returnType = property.GetReturnType();
+            if (returnType is not INamedTypeSymbol namedType
+                || !namedType.IsGenericType
+                || namedType.TypeArguments.Length != 1
+                || namedType.Name != "IReadOnlyList")
+            {
+                return null;
+            }
+
+            return (INamedTypeSymbol)namedType.TypeArguments[0];
+        }
     }
 }

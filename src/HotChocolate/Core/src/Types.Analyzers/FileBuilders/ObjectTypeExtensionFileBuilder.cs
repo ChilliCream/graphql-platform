@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
@@ -269,6 +270,13 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                         ".Field(thisType.GetMember(\"{0}\", bindingFlags)[0])",
                         resolver.Member.Name);
 
+                    if (resolver.Kind is ResolverKind.ConnectionResolver)
+                    {
+                        _writer.WriteIndentedLine(
+                            ".Type<ObjectType<{0}>>()",
+                            resolver.Member.GetReturnType()!.UnwrapTaskOrValueTask().ToFullyQualified());
+                    }
+
                     _writer.WriteIndentedLine(".ExtendWith(c =>");
                     _writer.WriteIndentedLine("{");
                     using (_writer.IncreaseIndent())
@@ -380,12 +388,12 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
 
         if ((resolver.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField)
         {
-            _writer.WriteIndentedLine("c.Definition.SetConnectionEdgesFlags();");
+            _writer.WriteIndentedLine("c.Definition.SetConnectionEdgesFieldFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField)
         {
-            _writer.WriteIndentedLine("c.Definition.SetConnectionNodesFlags();");
+            _writer.WriteIndentedLine("c.Definition.SetConnectionNodesFieldFlags();");
         }
     }
 
