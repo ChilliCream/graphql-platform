@@ -117,7 +117,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         "        | global::{0}.NonPublic",
                         WellKnownTypes.BindingFlags);
                     _writer.WriteIndentedLine(
-                        "        | global::{0}.Static;",
+                        resolver.IsStatic
+                            ? "        | global::{0}.Static;"
+                            : "        | global::{0}.Instance;",
                         WellKnownTypes.BindingFlags);
                     _writer.WriteLine();
                     _writer.WriteIndentedLine("var type = typeof({0});", method.ContainingType.ToFullyQualified());

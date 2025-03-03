@@ -238,6 +238,34 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Query_Products_First_2_With_4_EndCursors()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                products(first: 2) {
+                    nodes {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                    endCursors(count: 4)
+                }
+            }
+
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
     public async Task Query_Products_Include_TotalCount()
     {
         // arrange
@@ -305,7 +333,8 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ModifyPagingOptions(o => o.AllowRelativeCursors = true);
 
         services.AddSingleton<IDbSeeder<CatalogContext>, CatalogContextSeed>();
 

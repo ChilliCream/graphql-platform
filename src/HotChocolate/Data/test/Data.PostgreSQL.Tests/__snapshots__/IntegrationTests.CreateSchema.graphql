@@ -74,6 +74,7 @@ type ProductsConnection {
   pageInfo: PageInfo!
   "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
+  endCursors(count: Int!): [String!]!
 }
 
 "An edge in a connection."
