@@ -214,11 +214,11 @@ internal sealed class ConnectionType
     private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<IConnection>().Info;
 
-    private static IEnumerable<IEdge> GetEdges(IResolverContext context)
+    private static IEnumerable<IEdge>? GetEdges(IResolverContext context)
         => context.Parent<IConnection>().Edges;
 
-    private static IEnumerable<object?> GetNodes(IResolverContext context)
-        => context.Parent<IConnection>().Edges.Select(t => t.Node);
+    private static IEnumerable<object?>? GetNodes(IResolverContext context)
+        => context.Parent<IConnection>().Edges?.Select(t => t.Node);
 
     private static object? GetTotalCount(IResolverContext context)
         => context.Parent<IPageTotalCountProvider>().TotalCount;

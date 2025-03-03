@@ -273,6 +273,8 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     if (resolver.Kind is ResolverKind.ConnectionResolver)
                     {
                         _writer.WriteIndentedLine(
+                            ".AddPagingArguments()");
+                        _writer.WriteIndentedLine(
                             ".Type<ObjectType<{0}>>()",
                             resolver.Member.GetReturnType()!.UnwrapTaskOrValueTask().ToFullyQualified());
                     }
@@ -282,6 +284,19 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     using (_writer.IncreaseIndent())
                     {
                         WriteFieldFlags(resolver);
+
+                        if(resolver.Kind is ResolverKind.ConnectionResolver)
+                        {
+                            _writer.WriteIndentedLine(
+                                "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
+                                WellKnownTypes.PagingHelper);
+                            _writer.WriteIndentedLine(
+                                "c.Definition.State = c.Definition.State.SetItem("
+                                + "HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);");
+                            _writer.WriteIndentedLine(
+                                "c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = "
+                                + "pagingOptions;");
+                        }
 
                         _writer.WriteIndentedLine(
                             "c.Definition.Resolvers = global::{0}.{1}Resolvers.{2}_{3}();",
@@ -394,6 +409,11 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
         if ((resolver.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField)
         {
             _writer.WriteIndentedLine("c.Definition.SetConnectionNodesFieldFlags();");
+        }
+
+        if ((resolver.Flags & FieldFlags.TotalCount) == FieldFlags.TotalCount)
+        {
+            _writer.WriteIndentedLine("c.Definition.SetConnectionTotalCountFieldFlags();");
         }
     }
 

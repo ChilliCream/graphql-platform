@@ -10,7 +10,14 @@ namespace HotChocolate.Data.Types.Products;
 [ObjectType<Product>]
 public static partial class ProductNode
 {
-    // [BindMember(nameof(Product.Brand))]
+    static partial void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor.Ignore(t => t.BrandId);
+        descriptor.Ignore(t => t.TypeId);
+        descriptor.Ignore(t => t.RemoveStock(0));
+        descriptor.Ignore(t => t.AddStock(0));
+    }
+
     public static async Task<Brand?> GetBrandAsync(
         [Parent(requires: nameof(Product.BrandId))] Product product,
         QueryContext<Brand> query,

@@ -8,7 +8,7 @@ public interface IConnection : IPage
     /// <summary>
     /// The edges that belong to this connection.
     /// </summary>
-    IReadOnlyList<IEdge> Edges { get; }
+    IReadOnlyList<IEdge>? Edges { get; }
 }
 
 /// <summary>
@@ -19,5 +19,5 @@ public interface IConnection<out TNode> : IConnection
     /// <summary>
     /// The edges that belong to this connection.
     /// </summary>
-    new IReadOnlyList<IEdge<TNode>> Edges { get; }
+    new IReadOnlyList<IEdge<TNode>>? Edges { get; }
 }

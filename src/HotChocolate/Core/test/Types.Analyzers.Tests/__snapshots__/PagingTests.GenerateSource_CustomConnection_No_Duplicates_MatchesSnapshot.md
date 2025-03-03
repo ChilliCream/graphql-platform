@@ -447,6 +447,8 @@ public static partial class AuthorQueries
 
         descriptor
             .Field(thisType.GetMember("GetAuthorsAsync", bindingFlags)[0])
+            .AddPagingArguments()
+            .Type<ObjectType<global::TestNamespace.AuthorConnection>>()
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
@@ -456,6 +458,8 @@ public static partial class AuthorQueries
 
         descriptor
             .Field(thisType.GetMember("GetAuthors2Async", bindingFlags)[0])
+            .AddPagingArguments()
+            .Type<ObjectType<global::TestNamespace.AuthorConnection>>()
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
@@ -487,6 +491,8 @@ public static partial class AuthorNode
 
         descriptor
             .Field(thisType.GetMember("GetAuthorsAsync", bindingFlags)[0])
+            .AddPagingArguments()
+            .Type<ObjectType<global::TestNamespace.AuthorConnection>>()
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
@@ -522,7 +528,7 @@ public static partial class AuthorConnectionType
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
-                c.Definition.SetConnectionEdgesFlags();
+                c.Definition.SetConnectionEdgesFieldFlags();
                 c.Definition.Resolvers = global::TestNamespace.AuthorConnectionTypeResolvers.AuthorConnectionType_Edges();
             });
 
@@ -531,7 +537,7 @@ public static partial class AuthorConnectionType
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
-                c.Definition.SetConnectionNodesFlags();
+                c.Definition.SetConnectionNodesFieldFlags();
                 c.Definition.Resolvers = global::TestNamespace.AuthorConnectionTypeResolvers.AuthorConnectionType_Nodes();
             });
 

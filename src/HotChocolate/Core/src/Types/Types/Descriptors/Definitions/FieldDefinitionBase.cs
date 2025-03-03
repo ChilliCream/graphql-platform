@@ -106,7 +106,7 @@ public abstract class FieldDefinitionBase
 
     public void SetConnectionNodesFieldFlags() => Flags |= FieldFlags.ConnectionNodesField;
 
-    public void SetConnectionTotalCountFlags() => Flags |= FieldFlags.TotalCount;
+    public void SetConnectionTotalCountFieldFlags() => Flags |= FieldFlags.TotalCount;
 
     protected void CopyTo(FieldDefinitionBase target)
     {

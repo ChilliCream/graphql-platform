@@ -213,7 +213,7 @@ public static class PagingHelper
         PagingOptions? options) =>
         context.DescriptorContext.GetPagingOptions(options);
 
-    internal static PagingOptions GetPagingOptions(
+    public static PagingOptions GetPagingOptions(
         this IDescriptorContext context,
         PagingOptions? options)
     {

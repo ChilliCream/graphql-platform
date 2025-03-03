@@ -56,6 +56,10 @@ public sealed class ConnectionObjectTypeInfo
                         {
                             flags |= FieldFlags.ConnectionNodesField;
                         }
+                        else if(property.Name.Equals("TotalCount", StringComparison.Ordinal))
+                        {
+                            flags |= FieldFlags.TotalCount;
+                        }
                     }
 
                     resolvers.Add(

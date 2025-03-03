@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
+using HotChocolate.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -117,6 +118,16 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         {
             var definition = fieldDesc.Extend().Definition;
             definition.Configurations.Add(
+                new CreateConfiguration(
+                    (_, d) =>
+                    {
+                        ((ObjectFieldDefinition)d).State =
+                            ((ObjectFieldDefinition)d).State.SetItem(
+                                WellKnownContextData.PagingOptions,
+                                options);
+                    },
+                    definition));
+            definition.Configurations.Add(
                 new CompleteConfiguration<ObjectFieldDefinition>(
                     (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
                     definition,
@@ -130,6 +141,23 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         {
             options = context.GetPagingOptions(options);
             definition.ContextData[WellKnownContextData.PagingOptions] = options;
+
+            if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
+            {
+                return;
+            }
+
+            var beforeArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("before"));
+            if(beforeArg is not null)
+            {
+                definition.Arguments.Remove(beforeArg);
+            }
+
+            var lastArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("last"));
+            if(lastArg is not null)
+            {
+                definition.Arguments.Remove(lastArg);
+            }
         }
     }
 }

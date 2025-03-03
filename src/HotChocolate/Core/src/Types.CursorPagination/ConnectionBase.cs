@@ -10,21 +10,21 @@ public abstract class ConnectionBase<TNode, TEdge, TPageInfo>
     where TEdge : IEdge<TNode>
     where TPageInfo : IPageInfo
 {
-    public abstract IReadOnlyList<TEdge> Edges { get; }
+    public abstract IReadOnlyList<TEdge>? Edges { get; }
 
     public abstract TPageInfo PageInfo { get; }
 
-    IReadOnlyList<IEdge<TNode>> IConnection<TNode>.Edges => (IReadOnlyList<IEdge<TNode>>)Edges;
+    IReadOnlyList<IEdge<TNode>>? IConnection<TNode>.Edges => (IReadOnlyList<IEdge<TNode>>?)Edges;
 
-    IReadOnlyList<IEdge> IConnection.Edges => (IReadOnlyList<IEdge<TNode>>)Edges;
+    IReadOnlyList<IEdge>? IConnection.Edges => (IReadOnlyList<IEdge<TNode>>?)Edges;
 
-    IReadOnlyList<object> IPage.Items => (IReadOnlyList<IEdge<TNode>>)Edges;
+    IReadOnlyList<object> IPage.Items => (IReadOnlyList<IEdge<TNode>>?)Edges!;
 
     IPageInfo IPage.Info => PageInfo;
 
     void IPage.Accept(IPageObserver observer)
     {
-        if (Edges.Count == 0)
+        if (Edges is null || Edges.Count == 0)
         {
             ReadOnlySpan<TNode> empty = [];
             observer.OnAfterSliced(empty, PageInfo);
