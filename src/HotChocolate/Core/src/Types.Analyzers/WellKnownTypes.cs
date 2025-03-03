@@ -82,6 +82,8 @@ public static class WellKnownTypes
         "HotChocolate.Data.Filters.FilterContextResolverContextExtensions";
     public const string SortingContextResolverContextExtensions =
         "HotChocolate.Data.Sorting.SortingContextResolverContextExtensions";
+    public const string PagingHelper = "HotChocolate.Types.Pagination.PagingHelper";
+    public const string PagingDefaults = "HotChocolate.Types.Pagination.PagingDefaults";
 
     public static HashSet<string> TypeClass { get; } =
     [
@@ -129,9 +131,8 @@ public static class WellKnownTypes
         };
 
     public static HashSet<string> TaskWrapper { get; } =
-        new()
-        {
+        [
             "System.Threading.Tasks.Task<>",
             "System.Threading.Tasks.ValueTask<>"
-        };
+        ];
 }

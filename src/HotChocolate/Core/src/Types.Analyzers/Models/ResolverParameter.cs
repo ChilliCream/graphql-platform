@@ -145,6 +145,11 @@ public sealed class ResolverParameter
             return ResolverParameterKind.QueryContext;
         }
 
+        if(parameter.IsPagingArguments())
+        {
+            return ResolverParameterKind.PagingArguments;
+        }
+
         return ResolverParameterKind.Unknown;
     }
 

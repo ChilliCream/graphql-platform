@@ -25,7 +25,6 @@ public class CustomConnectionTest
         result.ToJson().MatchSnapshot();
     }
 
-
     public class Query
     {
         [UsePaging]

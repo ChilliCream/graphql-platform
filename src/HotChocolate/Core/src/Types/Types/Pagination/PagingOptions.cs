@@ -60,6 +60,11 @@ public class PagingOptions
     public bool? IncludeNodesField { get; set; }
 
     /// <summary>
+    /// Defines whether relative cursors are allowed.
+    /// </summary>
+    public bool AllowRelativeCursors { get; set; }
+
+    /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever
     /// a property is not set.
     /// </summary>

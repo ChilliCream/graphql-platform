@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-public class ObjectTypeTests
+public class PagingTests
 {
     [Fact]
     public async Task GenerateSource_BatchDataLoader_MatchesSnapshot()
@@ -29,16 +29,14 @@ public class ObjectTypeTests
                 public int AuthorId { get; set; }
             }
 
-            [ObjectType<Book>]
-            internal static partial class BookNode
+            [QueryType]
+            public static partial class BookPage
             {
-                [BindMember(nameof(Book.AuthorId))]
-                public static Task<Author?> GetAuthorAsync(
-                    [Parent] Book book,
+                public static Task<HotChocolate.Types.Pagination.Connection<Author>> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
                     CancellationToken cancellationToken)
-                    => default;
+                    => default!;
             }
             """).MatchMarkdownAsync();
     }
 }
-

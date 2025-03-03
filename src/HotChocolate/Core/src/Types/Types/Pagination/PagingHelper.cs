@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -194,6 +195,17 @@ public static class PagingHelper
 
         namedType = null;
         return false;
+    }
+
+    public static PagingOptions GetPagingOptions(ISchema schema, IObjectField field)
+    {
+        if (field.ContextData.TryGetValue(WellKnownContextData.PagingOptions, out var o)
+            && o is PagingOptions options)
+        {
+            return options;
+        }
+
+        return schema.Features.GetRequired<PagingOptions>();
     }
 
     internal static PagingOptions GetPagingOptions(

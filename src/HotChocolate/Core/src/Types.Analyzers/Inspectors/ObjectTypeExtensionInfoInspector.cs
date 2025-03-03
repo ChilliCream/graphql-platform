@@ -295,7 +295,7 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             resolverParameters.ToImmutableArray(),
             resolverMethod.GetMemberBindings(),
-            isNodeResolver: true);
+            kind: ResolverKind.NodeResolver);
     }
 }
 

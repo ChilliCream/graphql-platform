@@ -121,6 +121,17 @@ public static class SymbolExtensions
         return false;
     }
 
+    public static bool IsPagingArguments(this IParameterSymbol parameter)
+    {
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
         [NotNullWhen(true)] out string? key)

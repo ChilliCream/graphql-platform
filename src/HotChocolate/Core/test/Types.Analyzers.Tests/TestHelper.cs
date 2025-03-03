@@ -9,6 +9,7 @@ using GreenDonut;
 using GreenDonut.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Types.Analyzers;
+using HotChocolate.Types.Pagination;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -35,6 +36,7 @@ internal static partial class TestHelper
 
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
 
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),

@@ -176,7 +176,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         i);
                 }
 
-                if (resolver.IsNodeResolver)
+                if (resolver.Kind is ResolverKind.NodeResolver)
                 {
                     _writer.WriteLine();
 
@@ -504,7 +504,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         {
             var parameter = resolver.Parameters[i];
 
-            if (resolver.IsNodeResolver
+            if (resolver.Kind is ResolverKind.NodeResolver
                 && parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
                 && (parameter.Name == "id" || parameter.Key == "id"))
             {
@@ -717,10 +717,10 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 case ResolverParameterKind.QueryContext:
                     var entityType = parameter.TypeParameters[0].ToFullyQualified();
                     _writer.WriteIndentedLine("var args{0}_selection = context.Selection;", i);
-                    _writer.WriteIndentedLine("var args{0}_filter = {1}.GetFilterContext(context);",
+                    _writer.WriteIndentedLine("var args{0}_filter = global::{1}.GetFilterContext(context);",
                         i,
                         WellKnownTypes.FilterContextResolverContextExtensions);
-                    _writer.WriteIndentedLine("var args{0}_sorting = {1}.GetSortingContext(context);",
+                    _writer.WriteIndentedLine("var args{0}_sorting = global::{1}.GetSortingContext(context);",
                         i,
                         WellKnownTypes.SortingContextResolverContextExtensions);
                     _writer.WriteIndentedLine(
@@ -731,14 +731,67 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     using (_writer.IncreaseIndent())
                     {
                         _writer.WriteIndentedLine(
-                            "{0}.AsSelector<{1}>(args{2}_selection),",
+                            "global::{0}.AsSelector<{1}>(args{2}_selection),",
                             WellKnownTypes.HotChocolateExecutionSelectionExtensions,
                             entityType,
                             i);
                         _writer.WriteIndentedLine("args{0}_filter?.AsPredicate<{1}>(),", i, entityType);
                         _writer.WriteIndentedLine("args{0}_sorting?.AsSortDefinition<{1}>());", i, entityType);
                     }
+                    break;
 
+                case ResolverParameterKind.PagingArguments:
+                    _writer.WriteIndentedLine(
+                        "var args{0}_options = global::{1}.GetPagingOptions(context.Schema, context.Selection.Field);",
+                        i,
+                        WellKnownTypes.PagingHelper);
+                    _writer.WriteIndentedLine("var args{0}_first = context.ArgumentValue<int?>(\"first\");", i);
+                    _writer.WriteIndentedLine("var args{0}_after = context.ArgumentValue<string?>(\"after\");", i);
+                    _writer.WriteIndentedLine("int? args{0}_last = null;", i);
+                    _writer.WriteIndentedLine("string? args{0}_before = null;", i);
+                    _writer.WriteIndentedLine("bool args{0}_includeTotalCount = false;", i);
+                    _writer.WriteLine();
+                    _writer.WriteIndentedLine(
+                        "if(args{0}_options.AllowBackwardPagination ?? global::{1}.AllowBackwardPagination)",
+                        i,
+                        WellKnownTypes.PagingDefaults);
+                    _writer.WriteIndentedLine("{");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("args{0}_last = context.ArgumentValue<int?>(\"last\");", i);
+                        _writer.WriteIndentedLine("args{0}_before = context.ArgumentValue<string?>(\"before\");", i);
+                    }
+                    _writer.WriteIndentedLine("}");
+                    _writer.WriteLine();
+                    _writer.WriteIndentedLine(
+                        "if(args{0}_options.IncludeTotalCount ?? global::{1}.IncludeTotalCount)",
+                        i,
+                        WellKnownTypes.PagingDefaults);
+                    _writer.WriteIndentedLine("{");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("args{0}_includeTotalCount = context.IsSelected(\"totalCount\");", i);
+                    }
+                    _writer.WriteIndentedLine("}");
+                    _writer.WriteLine();
+                    _writer.WriteIndentedLine(
+                        "var args{0} = new global::{1}(",
+                        i,
+                        WellKnownTypes.PagingArguments);
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("args{0}_first,", i);
+                        _writer.WriteIndentedLine("args{0}_after,", i);
+                        _writer.WriteIndentedLine("args{0}_last,", i);
+                        _writer.WriteIndentedLine("args{0}_before,", i);
+                        _writer.WriteIndentedLine("args{0}_includeTotalCount)", i);
+                        _writer.WriteIndentedLine("{");
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine("EnableRelativeCursors = args{0}_options.AllowRelativeCursors", i);
+                        }
+                        _writer.WriteIndentedLine("};");
+                    }
                     break;
 
                 default:

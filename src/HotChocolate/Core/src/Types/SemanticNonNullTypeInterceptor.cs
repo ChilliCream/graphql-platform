@@ -8,6 +8,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate;

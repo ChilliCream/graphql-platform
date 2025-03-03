@@ -1,18 +1,18 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>
-/// This attribute adds the cursor paging middleware to the annotated method or property.
+/// This attribute allows to override the global paging options for a specific field.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
-public sealed class UsePagingAttribute : DescriptorAttribute
+public sealed class UseConnectionAttribute : DescriptorAttribute
 {
-    private string? _connectionName;
     private int? _defaultPageSize;
     private int? _maxPageSize;
     private bool? _includeTotalCount;
@@ -21,32 +21,14 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     private bool? _inferConnectionNameFromField;
 
     /// <summary>
-    /// Applies the cursor paging middleware to the annotated property.
+    /// Overrides the global paging options for the annotated  field.
     /// </summary>
-    /// <param name="type">
-    /// The schema type representing the item type.
-    /// </param>
     /// <param name="order">
     /// The explicit order priority for this attribute.
     /// </param>
-    public UsePagingAttribute(Type? type = null, [CallerLineNumber] int order = 0)
+    public UseConnectionAttribute([CallerLineNumber] int order = 0)
     {
-        Type = type;
         Order = order;
-    }
-
-    /// <summary>
-    /// The schema type representation of the node type.
-    /// </summary>
-    public Type? Type { get; private set; }
-
-    /// <summary>
-    /// Specifies the connection name.
-    /// </summary>
-    public string? ConnectionName
-    {
-        get => _connectionName;
-        set => _connectionName = value;
     }
 
     /// <summary>
@@ -120,12 +102,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
             return;
         }
 
-        var connectionName =
-            string.IsNullOrEmpty(_connectionName)
-                ? default!
-                : _connectionName;
-
-        var options =new PagingOptions
+        var options = new PagingOptions
         {
             DefaultPageSize = _defaultPageSize,
             MaxPageSize = _maxPageSize,
@@ -136,19 +113,23 @@ public sealed class UsePagingAttribute : DescriptorAttribute
             ProviderName = ProviderName
         };
 
-        if (descriptor is IObjectFieldDescriptor ofd)
+        if (descriptor is IObjectFieldDescriptor fieldDesc)
         {
-            ofd.UsePaging(
-                Type,
-                connectionName: connectionName,
-                options: options);
+            var definition = fieldDesc.Extend().Definition;
+            definition.Configurations.Add(
+                new CompleteConfiguration<ObjectFieldDefinition>(
+                    (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
+                    definition,
+                    ApplyConfigurationOn.BeforeCompletion));
         }
-        else if (descriptor is IInterfaceFieldDescriptor ifd)
+
+        static void ApplyPagingOptions(
+            IDescriptorContext context,
+            ObjectFieldDefinition definition,
+            PagingOptions options)
         {
-            ifd.UsePaging(
-                Type,
-                connectionName: connectionName,
-                options: options);
+            options = context.GetPagingOptions(options);
+            definition.ContextData[WellKnownContextData.PagingOptions] = options;
         }
     }
 }
