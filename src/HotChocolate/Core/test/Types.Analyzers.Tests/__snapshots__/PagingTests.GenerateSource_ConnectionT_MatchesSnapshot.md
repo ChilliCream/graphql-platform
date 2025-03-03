@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_MatchesSnapshot
+# GenerateSource_ConnectionT_MatchesSnapshot
 
 ## HotChocolateResolvers.735550c.g.cs
 
@@ -69,7 +69,33 @@ namespace TestNamespace
 
         private static async global::System.Threading.Tasks.ValueTask<global::System.Object?> BookPage_GetAuthorsAsync_Resolver(global::HotChocolate.Resolvers.IResolverContext context)
         {
-            var args0 = _args_BookPage_GetAuthorsAsync[0].Execute<global::GreenDonut.Data.PagingArguments>(context);
+            var args0_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+            var args0_first = context.ArgumentValue<int?>("first");
+            var args0_after = context.ArgumentValue<string?>("after");
+            int? args0_last = null;
+            string? args0_before = null;
+            bool args0_includeTotalCount = false;
+
+            if(args0_options.AllowBackwardPagination ?? global::HotChocolate.Types.Pagination.PagingDefaults.AllowBackwardPagination)
+            {
+                args0_last = context.ArgumentValue<int?>("last");
+                args0_before = context.ArgumentValue<string?>("before");
+            }
+
+            if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
+            {
+                args0_includeTotalCount = context.IsSelected("totalCount");
+            }
+
+            var args0 = new global::GreenDonut.Data.PagingArguments(
+                args0_first,
+                args0_after,
+                args0_last,
+                args0_before,
+                args0_includeTotalCount)
+                {
+                    EnableRelativeCursors = args0_options.AllowRelativeCursors
+                };
             var args1 = context.RequestAborted;
             var result = await global::TestNamespace.BookPage.GetAuthorsAsync(args0, args1);
             return result;
@@ -162,28 +188,5 @@ public static partial class BookPage
 }
 
 
-```
-
-## Compilation Diagnostics
-
-```json
-[
-  {
-    "Id": "CS0246",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (25,23)-(25,41)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
-    "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
-    "Message": "The type or namespace name 'Connection<>' could not be found (are you missing a using directive or an assembly reference?)",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
 ```
 

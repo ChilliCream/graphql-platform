@@ -4,5 +4,6 @@ public enum ResolverKind
 {
     Default = 0,
     NodeResolver = 1,
-    PagingResolver = 2
+    ConnectionResolver = 2,
+    InstanceResolver = 3
 }

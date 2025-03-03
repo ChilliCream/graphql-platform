@@ -53,6 +53,10 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
         {
             WriteRootTypeInitializeMethod(rootTypeExtension);
         }
+        else if(typeInfo is ConnectionObjectTypeInfo connectionTypeExtension)
+        {
+            WriteConnectionTypeInitializeMethod(connectionTypeExtension);
+        }
         else
         {
             throw new NotSupportedException();
@@ -204,6 +208,52 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
         _writer.WriteIndentedLine("}");
     }
 
+    public void WriteConnectionTypeInitializeMethod(ConnectionObjectTypeInfo connectionTypeInfo)
+    {
+        _writer.WriteIndentedLine(
+            "internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<{0}> descriptor)",
+            connectionTypeInfo.RuntimeType.ToFullyQualified());
+
+        _writer.WriteIndentedLine("{");
+
+        using (_writer.IncreaseIndent())
+        {
+            if (connectionTypeInfo.Resolvers.Length > 0)
+            {
+                _writer.WriteIndentedLine("const global::{0} runtimeBindingFlags =", WellKnownTypes.BindingFlags);
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine("global::{0}.Public", WellKnownTypes.BindingFlags);
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("| global::{0}.NonPublic", WellKnownTypes.BindingFlags);
+                        _writer.WriteIndentedLine("| global::{0}.Instance", WellKnownTypes.BindingFlags);
+                        _writer.WriteIndentedLine("| global::{0}.Static;", WellKnownTypes.BindingFlags);
+                    }
+                }
+
+                _writer.WriteLine();
+
+                _writer.WriteIndentedLine(
+                    "var runtimeType = typeof({0});",
+                    connectionTypeInfo.RuntimeType.ToFullyQualified());
+                _writer.WriteIndentedLine(
+                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
+                _writer.WriteIndentedLine(
+                    "global::{0}.{1}Resolvers.InitializeBindings(bindingResolver);",
+                    connectionTypeInfo.Namespace,
+                    connectionTypeInfo.ClassName);
+            }
+
+            WriteRuntimeTypeResolverBindings(connectionTypeInfo);
+
+            _writer.WriteLine();
+            _writer.WriteIndentedLine("Configure(descriptor);");
+        }
+
+        _writer.WriteIndentedLine("}");
+    }
+
     private void WriteResolverBindings(IOutputTypeInfo typeInfo)
     {
         if (typeInfo.Resolvers.Length > 0)
@@ -225,9 +275,10 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     {
                         _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
                         _writer.WriteIndentedLine(
-                            "c.Definition.Resolvers = {0}Resolvers.{1}_{2}();",
-                            typeInfo.Type.ToFullyQualified(),
-                            typeInfo.Type.Name,
+                            "c.Definition.Resolvers = global::{0}.{1}Resolvers.{2}_{3}();",
+                            typeInfo.Namespace,
+                            typeInfo.ClassName,
+                            typeInfo.ClassName,
                             resolver.Member.Name);
 
                         if (resolver.ResultKind is not ResolverResultKind.Pure
@@ -267,6 +318,50 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+     private void WriteRuntimeTypeResolverBindings(IOutputTypeInfo typeInfo)
+    {
+        if (typeInfo.Resolvers.Length > 0)
+        {
+            foreach (var resolver in typeInfo.Resolvers)
+            {
+                _writer.WriteLine();
+                _writer.WriteIndentedLine("descriptor");
+
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine(
+                        ".Field(runtimeType.GetMember(\"{0}\", runtimeBindingFlags)[0])",
+                        resolver.Member.Name);
+
+                    _writer.WriteIndentedLine(".ExtendWith(c =>");
+                    _writer.WriteIndentedLine("{");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+                        _writer.WriteIndentedLine(
+                            "c.Definition.Resolvers = global::{0}.{1}Resolvers.{2}_{3}();",
+                            typeInfo.Namespace,
+                            typeInfo.ClassName,
+                            typeInfo.ClassName,
+                            resolver.Member.Name);
+
+                        if (resolver.ResultKind is not ResolverResultKind.Pure
+                            && !resolver.Member.HasPostProcessorAttribute()
+                            && resolver.Member.IsListType(out var elementType))
+                        {
+                            _writer.WriteIndentedLine(
+                                "c.Definition.ResultPostProcessor = global::{0}<{1}>.Default;",
+                                WellKnownTypes.ListPostProcessor,
+                                elementType);
+                        }
+                    }
+
+                    _writer.WriteIndentedLine("});");
                 }
             }
         }

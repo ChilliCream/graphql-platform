@@ -47,7 +47,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         var firstNamespace = true;
         foreach (var group in syntaxInfos
             .OfType<IOutputTypeInfo>()
-            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+            .GroupBy(t => t.Namespace))
         {
             var generator = new ObjectTypeExtensionFileBuilder(sb, group.Key);
 
@@ -78,7 +78,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
                 firstClass = false;
 
-                classGenerator.WriteBeginClass(typeInfo.Type.Name);
+                classGenerator.WriteBeginClass(typeInfo.ClassName);
                 classGenerator.WriteInitializeMethod(typeInfo);
                 sb.AppendLine();
                 classGenerator.WriteConfigureMethod(typeInfo);
@@ -110,7 +110,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         var firstNamespace = true;
         foreach (var group in syntaxInfos
             .OfType<IOutputTypeInfo>()
-            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+            .GroupBy(t => t.Namespace))
         {
             if (!firstNamespace)
             {
@@ -138,7 +138,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                     resolvers = resolvers.Add(nodeResolver);
                 }
 
-                generator.WriteBeginClass(typeInfo.Type.Name + "Resolvers");
+                generator.WriteBeginClass(typeInfo.ClassName + "Resolvers");
 
                 if (generator.AddResolverDeclarations(resolvers))
                 {

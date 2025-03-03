@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -11,11 +10,15 @@ public interface IOutputTypeInfo
 
     bool IsRootType { get; }
 
-    INamedTypeSymbol Type { get; }
+    INamedTypeSymbol? Type { get; }
 
     INamedTypeSymbol? RuntimeType { get; }
 
-    ClassDeclarationSyntax ClassDeclarationSyntax { get; }
+    string ClassName { get; }
+
+    string Namespace { get; }
+
+    ClassDeclarationSyntax? ClassDeclarationSyntax { get; }
 
     ImmutableArray<Resolver> Resolvers { get; }
 

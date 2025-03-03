@@ -26,6 +26,7 @@ public static class WellKnownAttributes
     public const string ArgumentAttribute = "HotChocolate.ArgumentAttribute";
     public const string BindMemberAttribute = "HotChocolate.Types.BindMemberAttribute";
     public const string BindFieldAttribute = "HotChocolate.Types.BindFieldAttribute";
+    public const string GraphQLIgnoreAttribute = "HotChocolate.GraphQLIgnoreAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [

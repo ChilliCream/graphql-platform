@@ -100,6 +100,14 @@ public abstract class FieldDefinitionBase
 
     public void SetSourceGeneratorFlags() => Flags |= FieldFlags.SourceGenerator;
 
+    public void SetConnectionFlags() => Flags |= FieldFlags.Connection;
+
+    public void SetConnectionEdgesFieldFlags() => Flags |= FieldFlags.ConnectionEdgesField;
+
+    public void SetConnectionNodesFieldFlags() => Flags |= FieldFlags.ConnectionNodesField;
+
+    public void SetConnectionTotalCountFlags() => Flags |= FieldFlags.TotalCount;
+
     protected void CopyTo(FieldDefinitionBase target)
     {
         base.CopyTo(target);

@@ -220,7 +220,11 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 }
             }
 
-            if (!first)
+            if (first)
+            {
+                _writer.WriteIndentedLine("_bindingsInitialized = true;");
+            }
+            else
             {
                 _writer.DecreaseIndent();
                 _writer.WriteIndentedLine("}");
@@ -274,7 +278,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
             }
         }
 
-        AddStaticPropertyResolver(resolver);
+        AddPropertyResolver(resolver);
     }
 
     private void AddStaticStandardResolver(
@@ -328,7 +332,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
             if (async)
             {
                 _writer.WriteIndentedLine(
-                    "var result = await {0}.{1}({2});",
+                    resolver.IsStatic
+                        ? "var result = await {0}.{1}({2});"
+                        : "var result = await context.Parent<{0}>().{1}({2});",
                     resolver.Member.ContainingType.ToFullyQualified(),
                     resolver.Member.Name,
                     GetResolverArguments(resolver.Parameters.Length));
@@ -338,7 +344,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
             else
             {
                 _writer.WriteIndentedLine(
-                    "var result = {0}.{1}({2});",
+                    resolver.IsStatic
+                        ? "var result = {0}.{1}({2});"
+                        : "var result = context.Parent<{0}>().{1}({2});",
                     resolver.Member.ContainingType.ToFullyQualified(),
                     resolver.Member.Name,
                     GetResolverArguments(resolver.Parameters.Length));
@@ -437,7 +445,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
             AddResolverArguments(resolver, resolverMethod, typeLookup);
 
             _writer.WriteIndentedLine(
-                "var result = {0}.{1}({2});",
+                resolver.IsStatic
+                    ? "var result = {0}.{1}({2});"
+                    : "var result = context.Parent<{0}>().{1}({2});",
                 resolver.Member.ContainingType.ToFullyQualified(),
                 resolver.Member.Name,
                 GetResolverArguments(resolver.Parameters.Length));
@@ -448,7 +458,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("}");
     }
 
-    private void AddStaticPropertyResolver(Resolver resolver)
+    private void AddPropertyResolver(Resolver resolver)
     {
         using (_writer.WriteMethod(
             "public static",
@@ -483,7 +493,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         using (_writer.IncreaseIndent())
         {
             _writer.WriteIndentedLine(
-                "var result = {0}.{1};",
+                resolver.IsStatic
+                    ? "var result = {0}.{1};"
+                    : "var result = context.Parent<{0}>().{1};",
                 resolver.Member.ContainingType.ToFullyQualified(),
                 resolver.Member.Name);
 
@@ -584,26 +596,26 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalState<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Key);
+                        "var args{0} = context.GetGlobalState<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
                     break;
 
                 case ResolverParameterKind.GetGlobalState:
@@ -624,34 +636,34 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedState<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Key);
+                        "var args{0} = context.GetScopedState<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
                     break;
 
                 case ResolverParameterKind.GetScopedState:
                     _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Key);
+                        "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
                     break;
 
                 case ResolverParameterKind.SetScopedState:
@@ -664,34 +676,34 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetLocalState when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalState<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Key);
+                        "var args{0} = context.GetLocalState<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
                     break;
 
                 case ResolverParameterKind.GetLocalState:
                     _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Key);
+                        "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
                     break;
 
                 case ResolverParameterKind.SetLocalState:
@@ -738,6 +750,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         _writer.WriteIndentedLine("args{0}_filter?.AsPredicate<{1}>(),", i, entityType);
                         _writer.WriteIndentedLine("args{0}_sorting?.AsSortDefinition<{1}>());", i, entityType);
                     }
+
                     break;
 
                 case ResolverParameterKind.PagingArguments:
@@ -761,6 +774,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         _writer.WriteIndentedLine("args{0}_last = context.ArgumentValue<int?>(\"last\");", i);
                         _writer.WriteIndentedLine("args{0}_before = context.ArgumentValue<string?>(\"before\");", i);
                     }
+
                     _writer.WriteIndentedLine("}");
                     _writer.WriteLine();
                     _writer.WriteIndentedLine(
@@ -772,6 +786,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     {
                         _writer.WriteIndentedLine("args{0}_includeTotalCount = context.IsSelected(\"totalCount\");", i);
                     }
+
                     _writer.WriteIndentedLine("}");
                     _writer.WriteLine();
                     _writer.WriteIndentedLine(
@@ -788,10 +803,13 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         _writer.WriteIndentedLine("{");
                         using (_writer.IncreaseIndent())
                         {
-                            _writer.WriteIndentedLine("EnableRelativeCursors = args{0}_options.AllowRelativeCursors", i);
+                            _writer.WriteIndentedLine("EnableRelativeCursors = args{0}_options.AllowRelativeCursors",
+                                i);
                         }
+
                         _writer.WriteIndentedLine("};");
                     }
+
                     break;
 
                 default:

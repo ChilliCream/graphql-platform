@@ -22,6 +22,10 @@ public sealed class ObjectTypeExtensionInfo(
 
     public INamedTypeSymbol RuntimeType { get; } = runtimeType;
 
+    public string ClassName => Type.Name;
+
+    public string Namespace => Type.ContainingNamespace.ToDisplayString();
+
     public Resolver? NodeResolver { get; } = nodeResolver;
 
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;

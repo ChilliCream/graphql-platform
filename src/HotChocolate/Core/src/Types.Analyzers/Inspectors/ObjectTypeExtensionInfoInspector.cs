@@ -226,8 +226,14 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         INamedTypeSymbol resolverType,
         IMethodSymbol resolverMethod)
+        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod);
+
+    public static Resolver CreateResolver(
+        Compilation compilation,
+        INamedTypeSymbol resolverType,
+        IMethodSymbol resolverMethod,
+        string? resolverTypeName = null)
     {
-        var compilation = context.SemanticModel.Compilation;
         var parameters = resolverMethod.Parameters;
         var resolverParameters = new ResolverParameter[parameters.Length];
 
@@ -236,12 +242,17 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             resolverParameters[i] = ResolverParameter.Create(parameters[i], compilation);
         }
 
+        resolverTypeName ??= resolverType.Name;
+
         return new Resolver(
-            resolverType.Name,
+            resolverTypeName,
             resolverMethod,
             resolverMethod.GetResultKind(),
             resolverParameters.ToImmutableArray(),
-            resolverMethod.GetMemberBindings());
+            resolverMethod.GetMemberBindings(),
+            kind: resolverMethod.ReturnType.IsConnectionBase()
+                ? ResolverKind.ConnectionResolver
+                : ResolverKind.Default);
     }
 
     private static Resolver CreateNodeResolver(
@@ -297,6 +308,9 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             resolverMethod.GetMemberBindings(),
             kind: ResolverKind.NodeResolver);
     }
+
+    public static ImmutableArray<MemberBinding> GetMemberBindings(ISymbol member)
+        => member.GetMemberBindings();
 }
 
 file static class Extensions

@@ -21,8 +21,12 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
         new InterfaceTypeInfoInspector(),
-        new RequestMiddlewareInspector(),
-        new ConnectionTypeInspector()
+        new RequestMiddlewareInspector()
+    ];
+
+    private static readonly IPostCollectSyntaxTransformer[] _postCollectTransformers =
+    [
+        new ConnectionTypeTransformer()
     ];
 
     private static readonly ISyntaxGenerator[] _generators =
@@ -59,14 +63,31 @@ public class GraphQLServerGenerator : IIncrementalGenerator
                 .WithComparer(SyntaxInfoComparer.Default)
                 .Collect();
 
+        var postProcessedSyntaxInfos =
+            context.CompilationProvider
+                .Combine(syntaxInfos)
+                .Select((ctx, _) => OnAfterCollect(ctx.Left, ctx.Right));
+
         var assemblyNameProvider = context.CompilationProvider
             .Select(static (c, _) => c.AssemblyName!);
 
-        var valueProvider = assemblyNameProvider.Combine(syntaxInfos);
+        var valueProvider = assemblyNameProvider.Combine(postProcessedSyntaxInfos);
 
         context.RegisterSourceOutput(
             valueProvider,
             static (context, source) => Execute(context, source.Left, source.Right));
+    }
+
+    private static ImmutableArray<SyntaxInfo> OnAfterCollect(
+        Compilation compilation,
+        ImmutableArray<SyntaxInfo> syntaxInfos)
+    {
+        foreach (var transformer in _postCollectTransformers)
+        {
+            syntaxInfos = transformer.Transform(compilation, syntaxInfos);
+        }
+
+        return syntaxInfos;
     }
 
     private static bool Predicate(SyntaxNode node)

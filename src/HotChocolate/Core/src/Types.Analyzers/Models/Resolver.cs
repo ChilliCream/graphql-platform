@@ -3,28 +3,40 @@ using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class Resolver(
-    string typeName,
-    ISymbol member,
-    ResolverResultKind resultKind,
-    ImmutableArray<ResolverParameter> parameters,
-    ImmutableArray<MemberBinding> bindings,
-    ResolverKind kind = ResolverKind.Default)
+public sealed class Resolver
 {
-    public string TypeName => typeName;
+    public Resolver(
+        string typeName,
+        ISymbol member,
+        ResolverResultKind resultKind,
+        ImmutableArray<ResolverParameter> parameters,
+        ImmutableArray<MemberBinding> bindings,
+        ResolverKind kind = ResolverKind.Default)
+    {
+        TypeName = typeName;
+        Member = member;
+        ResultKind = resultKind;
+        Parameters = parameters;
+        Bindings = bindings;
+        Kind = kind;
+    }
 
-    public ISymbol Member => member;
+    public string TypeName { get; }
+
+    public ISymbol Member { get; }
+
+    public bool IsStatic => Member.IsStatic;
 
     public bool IsPure
-        => kind is not ResolverKind.NodeResolver
-            && resultKind is ResolverResultKind.Pure
-            && parameters.All(t => t.IsPure);
+        => Kind is not ResolverKind.NodeResolver
+            && ResultKind is ResolverResultKind.Pure
+            && Parameters.All(t => t.IsPure);
 
-    public ResolverKind Kind => kind;
+    public ResolverKind Kind { get; }
 
-    public ResolverResultKind ResultKind => resultKind;
+    public ResolverResultKind ResultKind { get; }
 
-    public ImmutableArray<ResolverParameter> Parameters => parameters;
+    public ImmutableArray<ResolverParameter> Parameters { get; }
 
-    public ImmutableArray<MemberBinding> Bindings => bindings;
+    public ImmutableArray<MemberBinding> Bindings { get; }
 }

@@ -21,6 +21,10 @@ public sealed class InterfaceTypeExtensionInfo(
 
     public INamedTypeSymbol RuntimeType { get; } = runtimeType;
 
+    public string ClassName => Type.Name;
+
+    public string Namespace => Type.ContainingNamespace.ToDisplayString();
+
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
 
     public ImmutableArray<Resolver> Resolvers { get; } = resolvers;

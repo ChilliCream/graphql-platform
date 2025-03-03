@@ -9,14 +9,13 @@ public sealed class RootTypeExtensionInfo
     : SyntaxInfo
     , IOutputTypeInfo
 {
-    private readonly OperationType _operationType;
-
-    public RootTypeExtensionInfo(INamedTypeSymbol type,
+    public RootTypeExtensionInfo(
+        INamedTypeSymbol type,
         OperationType operationType,
         ClassDeclarationSyntax classDeclarationSyntax,
         ImmutableArray<Resolver> resolvers)
     {
-        _operationType = operationType;
+        OperationType = operationType;
         Name = type.ToFullyQualified();
         Type = type;
         ClassDeclarationSyntax = classDeclarationSyntax;
@@ -27,11 +26,15 @@ public sealed class RootTypeExtensionInfo
 
     public bool IsRootType => true;
 
-    public OperationType OperationType => _operationType;
+    public OperationType OperationType { get; }
 
     public INamedTypeSymbol Type { get; }
 
     public INamedTypeSymbol? RuntimeType => null;
+
+    public string ClassName => Type.Name;
+
+    public string Namespace => Type.ContainingNamespace.ToDisplayString();
 
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
 
