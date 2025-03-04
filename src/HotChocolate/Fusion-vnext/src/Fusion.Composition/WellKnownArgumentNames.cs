@@ -14,4 +14,5 @@ internal static class WellKnownArgumentNames
     public const string Provides = "provides";
     public const string Schema = "schema";
     public const string SourceType = "sourceType";
+    public const string Value = "value";
 }
