@@ -28,4 +28,20 @@ public sealed class SourceSchemaParserTests
             "found a `EndOfFile`-token..",
             log.First().Message);
     }
+
+    [Fact]
+    public void Parse_SourceSchemasWithSchemaNameDirective_SetsSchemaName()
+    {
+        // arrange
+        var schemas = ImmutableArray.Create("""schema @schemaName(value: "Example") { }""");
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(schemas, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Example", result.Value[0].Name);
+    }
 }
