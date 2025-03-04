@@ -13,7 +13,9 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.ClassDeclaration];
 
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {

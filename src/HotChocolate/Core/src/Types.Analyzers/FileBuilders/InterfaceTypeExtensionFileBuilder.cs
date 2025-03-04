@@ -69,12 +69,12 @@ public sealed class InterfaceTypeExtensionFileBuilder(StringBuilder sb, string n
 
                 _writer.WriteIndentedLine(
                     "var thisType = typeof({0});",
-                    typeInfo.Type!.ToFullyQualified());
+                    typeInfo.SchemaSchemaType!.ToFullyQualified());
                 _writer.WriteIndentedLine(
                     "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
                 _writer.WriteIndentedLine(
                     "global::{0}Resolvers.InitializeBindings(bindingResolver);",
-                    typeInfo.Type!.ToDisplayString());
+                    typeInfo.SchemaSchemaType!.ToDisplayString());
             }
 
             if (typeInfo.Resolvers.Length > 0)
@@ -97,8 +97,8 @@ public sealed class InterfaceTypeExtensionFileBuilder(StringBuilder sb, string n
                             _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
                             _writer.WriteIndentedLine(
                                 "c.Definition.Resolvers = {0}Resolvers.{1}_{2}();",
-                                typeInfo.Type!.ToFullyQualified(),
-                                typeInfo.Type!.Name,
+                                typeInfo.SchemaSchemaType!.ToFullyQualified(),
+                                typeInfo.SchemaSchemaType!.Name,
                                 resolver.Member.Name);
 
                             if (resolver.ResultKind is not ResolverResultKind.Pure

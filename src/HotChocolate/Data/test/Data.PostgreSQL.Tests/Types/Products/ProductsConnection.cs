@@ -95,4 +95,6 @@ public class ProductsConnection : ConnectionBase<Product, ProductsEdge, Connecti
             yield return _page.CreateCursor(_page.Last, i);
         }
     }
+
+    // public string TestMe() => "djkfhksdjhfk";
 }

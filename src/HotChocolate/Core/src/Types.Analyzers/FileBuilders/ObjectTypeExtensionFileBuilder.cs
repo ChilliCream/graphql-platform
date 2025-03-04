@@ -71,7 +71,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
             return;
         }
 
-        if (typeInfo.IsRootType)
+        if (typeInfo is RootTypeExtensionInfo)
         {
             _writer.WriteIndentedLine(
                 "internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)");
@@ -122,7 +122,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
 
                 _writer.WriteIndentedLine(
                     "var thisType = typeof({0});",
-                    objectTypeExtension.Type.ToFullyQualified());
+                    objectTypeExtension.SchemaSchemaType.ToFullyQualified());
                 if (hasRuntimeBindings)
                 {
                     _writer.WriteIndentedLine(
@@ -134,7 +134,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
                 _writer.WriteIndentedLine(
                     "global::{0}Resolvers.InitializeBindings(bindingResolver);",
-                    objectTypeExtension.Type.ToDisplayString());
+                    objectTypeExtension.SchemaSchemaType.ToDisplayString());
             }
 
             if (objectTypeExtension.NodeResolver is not null)
@@ -146,8 +146,8 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                     _writer.WriteIndentedLine(".ImplementsNode()");
                     _writer.WriteIndentedLine(
                         ".ResolveNode({0}Resolvers.{1}_{2}().Resolver!);",
-                        objectTypeExtension.Type.ToFullyQualified(),
-                        objectTypeExtension.Type.Name,
+                        objectTypeExtension.SchemaSchemaType.ToFullyQualified(),
+                        objectTypeExtension.SchemaSchemaType.Name,
                         objectTypeExtension.NodeResolver.Member.Name);
                 }
             }
@@ -192,12 +192,12 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
 
                 _writer.WriteIndentedLine(
                     "var thisType = typeof({0});",
-                    rootTypeExtension.Type.ToFullyQualified());
+                    rootTypeExtension.SchemaSchemaType.ToFullyQualified());
                 _writer.WriteIndentedLine(
                     "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
                 _writer.WriteIndentedLine(
                     "global::{0}Resolvers.InitializeBindings(bindingResolver);",
-                    rootTypeExtension.Type.ToDisplayString());
+                    rootTypeExtension.SchemaSchemaType.ToDisplayString());
             }
 
             WriteResolverBindings(rootTypeExtension);
@@ -243,7 +243,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                 _writer.WriteIndentedLine(
                     "global::{0}.{1}Resolvers.InitializeBindings(bindingResolver);",
                     connectionTypeInfo.Namespace,
-                    connectionTypeInfo.ClassName);
+                    connectionTypeInfo.Name);
             }
 
             WriteRuntimeTypeResolverBindings(connectionTypeInfo);
@@ -301,8 +301,8 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                         _writer.WriteIndentedLine(
                             "c.Definition.Resolvers = global::{0}.{1}Resolvers.{2}_{3}();",
                             typeInfo.Namespace,
-                            typeInfo.ClassName,
-                            typeInfo.ClassName,
+                            typeInfo.Name,
+                            typeInfo.Name,
                             resolver.Member.Name);
 
                         if (resolver.ResultKind is not ResolverResultKind.Pure
@@ -371,8 +371,8 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
                         _writer.WriteIndentedLine(
                             "c.Definition.Resolvers = global::{0}.{1}Resolvers.{2}_{3}();",
                             typeInfo.Namespace,
-                            typeInfo.ClassName,
-                            typeInfo.ClassName,
+                            typeInfo.Name,
+                            typeInfo.Name,
                             resolver.Member.Name);
 
                         if (resolver.ResultKind is not ResolverResultKind.Pure

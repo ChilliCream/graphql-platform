@@ -242,6 +242,12 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
+            builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.AuthorConnection>(
+                "Tests::TestNamespace.AuthorConnection",
+                () => global::TestNamespace.AuthorConnectionType.Initialize));
+            builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.AuthorEdge>(
+                "Tests::TestNamespace.AuthorEdge",
+                () => global::TestNamespace.AuthorEdgeType.Initialize));
             builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd(
                 "Tests::TestNamespace.AuthorQueries",
                 global::HotChocolate.Types.OperationTypeNames.Query,
@@ -251,6 +257,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     () => new global::HotChocolate.Types.ObjectType(
                         d => d.Name(global::HotChocolate.Types.OperationTypeNames.Query)),
                     HotChocolate.Language.OperationType.Query));
+            builder.AddType<ObjectType<global::TestNamespace.AuthorConnection>>();
+            builder.AddType<ObjectType<global::TestNamespace.AuthorEdge>>();
             return builder;
         }
     }
@@ -296,6 +304,9 @@ public static partial class AuthorQueries
             {
                 c.Definition.SetSourceGeneratorFlags();
                 c.Definition.SetConnectionFlags();
+                var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
+                c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
+                c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
                 c.Definition.Resolvers = global::TestNamespace.AuthorQueriesResolvers.AuthorQueries_GetAuthorsAsync();
             });
 
@@ -350,6 +361,7 @@ public static partial class AuthorConnectionType
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
+                c.Definition.SetConnectionTotalCountFieldFlags();
                 c.Definition.Resolvers = global::TestNamespace.AuthorConnectionTypeResolvers.AuthorConnectionType_TotalCount();
             });
 

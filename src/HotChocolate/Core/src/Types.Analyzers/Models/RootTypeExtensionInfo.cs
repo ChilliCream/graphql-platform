@@ -10,49 +10,48 @@ public sealed class RootTypeExtensionInfo
     , IOutputTypeInfo
 {
     public RootTypeExtensionInfo(
-        INamedTypeSymbol type,
+        INamedTypeSymbol schemaType,
         OperationType operationType,
         ClassDeclarationSyntax classDeclarationSyntax,
         ImmutableArray<Resolver> resolvers)
     {
         OperationType = operationType;
-        Name = type.ToFullyQualified();
-        Type = type;
-        ClassDeclarationSyntax = classDeclarationSyntax;
+        SchemaSchemaType = schemaType;
+        SchemaTypeFullName = schemaType.ToFullyQualified();
+        ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
     }
 
-    public string Name { get; }
+    public string Name => SchemaSchemaType.Name;
 
-    public bool IsRootType => true;
+    public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
 
     public OperationType OperationType { get; }
 
-    public INamedTypeSymbol Type { get; }
+    public INamedTypeSymbol SchemaSchemaType { get; }
+
+    public string SchemaTypeFullName { get; }
+
+    public bool HasSchemaType => true;
 
     public INamedTypeSymbol? RuntimeType => null;
 
-    public string ClassName => Type.Name;
+    public string? RuntimeTypeFullName => null;
 
-    public string Namespace => Type.ContainingNamespace.ToDisplayString();
+    public bool HasRuntimeType => false;
 
-    public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
+    public ClassDeclarationSyntax ClassDeclaration { get; }
 
     public ImmutableArray<Resolver> Resolvers { get; }
 
-    public override string OrderByKey => Name;
+    public override string OrderByKey => SchemaTypeFullName;
 
     public override bool Equals(object? obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 
-    private bool Equals(ObjectTypeExtensionInfo other)
-        => string.Equals(Name, other.Name, StringComparison.Ordinal) &&
-            ClassDeclarationSyntax.SyntaxTree.IsEquivalentTo(
-                other.ClassDeclarationSyntax.SyntaxTree);
-
     public override int GetHashCode()
-        => HashCode.Combine(Name, ClassDeclarationSyntax);
+        => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
 }

@@ -78,7 +78,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
                 firstClass = false;
 
-                classGenerator.WriteBeginClass(typeInfo.ClassName);
+                classGenerator.WriteBeginClass(typeInfo.Name);
                 classGenerator.WriteInitializeMethod(typeInfo);
                 sb.AppendLine();
                 classGenerator.WriteConfigureMethod(typeInfo);
@@ -138,7 +138,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                     resolvers = resolvers.Add(nodeResolver);
                 }
 
-                generator.WriteBeginClass(typeInfo.ClassName + "Resolvers");
+                generator.WriteBeginClass(typeInfo.Name + "Resolvers");
 
                 if (generator.AddResolverDeclarations(resolvers))
                 {

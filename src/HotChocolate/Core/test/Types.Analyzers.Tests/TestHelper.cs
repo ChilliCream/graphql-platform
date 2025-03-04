@@ -33,7 +33,6 @@ internal static partial class TestHelper
 #elif NET9_0
             .. Net90.References.All,
 #endif
-
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),

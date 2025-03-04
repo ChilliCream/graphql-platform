@@ -1,108 +1,75 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static HotChocolate.Types.Analyzers.Inspectors.ObjectTypeExtensionInfoInspector;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ConnectionObjectTypeInfo
-    : SyntaxInfo
-        , IOutputTypeInfo
+public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClassInfo>
 {
-    private ConnectionObjectTypeInfo(
-        string name,
+    private ConnectionClassInfo(
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax? classDeclaration,
+        ClassDeclarationSyntax classDeclarations,
         ImmutableArray<Resolver> resolvers)
     {
-        Name = name;
-        RuntimeTypeFullName = runtimeType.ToFullyQualified();
         RuntimeType = runtimeType;
-        Namespace = runtimeType.ContainingNamespace.ToDisplayString();
-        ClassDeclaration = classDeclaration;
+        ClassDeclarations = classDeclarations;
         Resolvers = resolvers;
+        OrderByKey = runtimeType.ToFullyQualified();
     }
-
-    public string Name { get; }
-
-    public string Namespace { get; }
-
-    public INamedTypeSymbol? SchemaSchemaType => null;
-
-    public string? SchemaTypeFullName => null;
-
-    public bool HasSchemaType => false;
 
     public INamedTypeSymbol RuntimeType { get; }
 
-    public string RuntimeTypeFullName { get; }
-
-    public bool HasRuntimeType => true;
-
-    public ClassDeclarationSyntax? ClassDeclaration { get; }
+    public ClassDeclarationSyntax ClassDeclarations { get; }
 
     public ImmutableArray<Resolver> Resolvers { get; }
 
-    public override string OrderByKey => RuntimeTypeFullName;
+    public override string OrderByKey { get; }
 
     public override bool Equals(object? obj)
-        => obj is ConnectionObjectTypeInfo other && Equals(other);
+        => obj is ConnectionClassInfo other
+            && Equals(other);
 
-    public override bool Equals(SyntaxInfo? obj)
-        => obj is ConnectionObjectTypeInfo other && Equals(other);
+    public override bool Equals(SyntaxInfo? other)
+        => other is ConnectionClassInfo otherConnectionClassInfo
+            && Equals(otherConnectionClassInfo);
 
-    private bool Equals(ConnectionObjectTypeInfo other)
+    public bool Equals(ConnectionClassInfo? other)
     {
-        if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
+        if (other is null)
         {
             return false;
         }
 
-        if (ClassDeclaration is null)
+        if (ReferenceEquals(this, other))
         {
-            return other.ClassDeclaration is null;
+            return true;
         }
 
-        if (other.ClassDeclaration is null)
-        {
-            return false;
-        }
-
-        return ClassDeclaration.SyntaxTree.IsEquivalentTo(
-            other.ClassDeclaration.SyntaxTree);
+        return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
+            && ClassDeclarations.SyntaxTree.IsEquivalentTo(other.ClassDeclarations.SyntaxTree);
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(OrderByKey, ClassDeclaration);
+        => HashCode.Combine(OrderByKey, ClassDeclarations);
 
-
-    public static ConnectionObjectTypeInfo CreateConnectionFrom(
-        ConnectionClassInfo connectionClass)
-    {
-        return new ConnectionObjectTypeInfo(
-            connectionClass.RuntimeType.Name + "Type",
-            connectionClass.RuntimeType,
-            connectionClass.ClassDeclarations,
-            connectionClass.Resolvers);
-    }
-
-    public static ConnectionObjectTypeInfo CreateConnection(
+    public static ConnectionClassInfo CreateConnection(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax? classDeclaration)
+        ClassDeclarationSyntax classDeclaration)
         => Create(compilation, runtimeType, classDeclaration, isConnection: true);
 
-    public static ConnectionObjectTypeInfo CreateEdge(
+    public static ConnectionClassInfo CreateEdge(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax? classDeclaration)
+        ClassDeclarationSyntax classDeclaration)
         => Create(compilation, runtimeType, classDeclaration, isConnection: false);
 
-    private static ConnectionObjectTypeInfo Create(
+    private static ConnectionClassInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax? classDeclaration,
+        ClassDeclarationSyntax classDeclaration,
         bool isConnection)
     {
         var name = runtimeType.Name + "Type";
@@ -130,7 +97,7 @@ public sealed class ConnectionObjectTypeInfo
                         continue;
                     }
 
-                    resolvers.Add(CreateResolver(compilation, runtimeType, method, name));
+                    resolvers.Add(ObjectTypeExtensionInfoInspector.CreateResolver(compilation, runtimeType, method, name));
                     break;
 
                 case IPropertySymbol property:
@@ -158,14 +125,13 @@ public sealed class ConnectionObjectTypeInfo
                             property,
                             ResolverResultKind.Pure,
                             ImmutableArray<ResolverParameter>.Empty,
-                            GetMemberBindings(member),
+                            ObjectTypeExtensionInfoInspector.GetMemberBindings(member),
                             flags: flags));
                     break;
             }
         }
 
-        return new ConnectionObjectTypeInfo(
-            name,
+        return new ConnectionClassInfo(
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable());

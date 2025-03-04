@@ -26,9 +26,9 @@
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="1.4.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" Version="1.1.0" />
     <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.13.0" />
     <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />

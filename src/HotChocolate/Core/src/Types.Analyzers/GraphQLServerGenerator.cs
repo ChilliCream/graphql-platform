@@ -1,16 +1,20 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace HotChocolate.Types.Analyzers;
 
+#pragma warning disable RS1041
 [Generator]
+#pragma warning restore RS1041
 public class GraphQLServerGenerator : IIncrementalGenerator
 {
-    private static readonly ISyntaxInspector[] _inspectors =
+    private static readonly ISyntaxInspector[] _allInspectors =
     [
         new TypeAttributeInspector(),
         new ClassBaseClassInspector(),
@@ -21,7 +25,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
         new InterfaceTypeInfoInspector(),
-        new RequestMiddlewareInspector()
+        new RequestMiddlewareInspector(),
+        new ConnectionInspector()
     ];
 
     private static readonly IPostCollectSyntaxTransformer[] _postCollectTransformers =
@@ -38,18 +43,31 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new DataLoaderGenerator()
     ];
 
+    private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> _inspectorLookup;
     private static readonly Func<SyntaxNode, bool> _predicate;
 
     static GraphQLServerGenerator()
     {
         var filterBuilder = new SyntaxFilterBuilder();
+        var inspectorLookup = new Dictionary<SyntaxKind, List<ISyntaxInspector>>();
 
-        foreach (var inspector in _inspectors)
+        foreach (var inspector in _allInspectors)
         {
             filterBuilder.AddRange(inspector.Filters);
+
+            foreach (var supportedKind in inspector.SupportedKinds)
+            {
+                if(!inspectorLookup.TryGetValue(supportedKind, out var inspectors))
+                {
+                    inspectors = [];
+                    inspectorLookup[supportedKind] = inspectors;
+                }
+                inspectors.Add(inspector);
+            }
         }
 
         _predicate = filterBuilder.Build();
+        _inspectorLookup = inspectorLookup.ToFrozenDictionary(t => t.Key, t => t.Value.ToImmutableArray());
     }
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -95,9 +113,14 @@ public class GraphQLServerGenerator : IIncrementalGenerator
 
     private static SyntaxInfo? Transform(GeneratorSyntaxContext context)
     {
-        for (var i = 0; i < _inspectors.Length; i++)
+        if (!_inspectorLookup.TryGetValue(context.Node.Kind(), out var inspectors))
         {
-            if (_inspectors[i].TryHandle(context, out var syntaxInfo))
+            return null;
+        }
+
+        foreach (var inspector in inspectors)
+        {
+            if (inspector.TryHandle(context, out var syntaxInfo))
             {
                 return syntaxInfo;
             }

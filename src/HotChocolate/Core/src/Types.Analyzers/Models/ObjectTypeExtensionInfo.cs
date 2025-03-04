@@ -5,46 +5,60 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ObjectTypeExtensionInfo(
-    INamedTypeSymbol type,
-    INamedTypeSymbol runtimeType,
-    Resolver? nodeResolver,
-    ClassDeclarationSyntax classDeclarationSyntax,
-    ImmutableArray<Resolver> resolvers)
-    : SyntaxInfo
+public sealed class ObjectTypeExtensionInfo : SyntaxInfo
     , IOutputTypeInfo
 {
-    public string Name { get; } = type.ToFullyQualified();
+    public ObjectTypeExtensionInfo(INamedTypeSymbol schemaType,
+        INamedTypeSymbol runtimeType,
+        Resolver? nodeResolver,
+        ClassDeclarationSyntax classDeclarationSyntax,
+        ImmutableArray<Resolver> resolvers)
+    {
+        SchemaSchemaType = schemaType;
+        SchemaTypeFullName = schemaType.ToFullyQualified();
+        RuntimeType = runtimeType;
+        RuntimeTypeFullName = runtimeType.ToFullyQualified();
+        NodeResolver = nodeResolver;
+        ClassDeclaration = classDeclarationSyntax;
+        Resolvers = resolvers;
+    }
+
+    public string Name => SchemaSchemaType.Name;
+
+    public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
 
     public bool IsRootType => false;
 
-    public INamedTypeSymbol Type { get; } = type;
+    public INamedTypeSymbol SchemaSchemaType { get; }
 
-    public INamedTypeSymbol RuntimeType { get; } = runtimeType;
+    public string SchemaTypeFullName { get; }
 
-    public string ClassName => Type.Name;
+    public bool HasSchemaType => true;
 
-    public string Namespace => Type.ContainingNamespace.ToDisplayString();
+    public INamedTypeSymbol RuntimeType { get; }
 
-    public Resolver? NodeResolver { get; } = nodeResolver;
+    public string RuntimeTypeFullName { get; }
 
-    public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
+    public bool HasRuntimeType => true;
 
-    public ImmutableArray<Resolver> Resolvers { get; } = resolvers;
+    public Resolver? NodeResolver { get; }
 
-    public override string OrderByKey => Name;
+    public ClassDeclarationSyntax ClassDeclaration { get; }
+
+    public ImmutableArray<Resolver> Resolvers { get; }
+
+    public override string OrderByKey => SchemaTypeFullName;
 
     public override bool Equals(object? obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 
     private bool Equals(ObjectTypeExtensionInfo other)
-        => string.Equals(Name, other.Name, StringComparison.Ordinal) &&
-            ClassDeclarationSyntax.SyntaxTree.IsEquivalentTo(
-                other.ClassDeclarationSyntax.SyntaxTree);
-
+        => string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(
+                other.ClassDeclaration.SyntaxTree);
     public override int GetHashCode()
-        => HashCode.Combine(Name, ClassDeclarationSyntax);
+        => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
 }

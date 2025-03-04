@@ -147,9 +147,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         objectTypeExtensions.Add(objectTypeExtension.RuntimeType.ToFullyQualified());
 
                         generator.WriteRegisterTypeExtension(
-                            GetAssemblyQualifiedName(objectTypeExtension.Type),
+                            GetAssemblyQualifiedName(objectTypeExtension.SchemaSchemaType),
                             objectTypeExtension.RuntimeType.ToFullyQualified(),
-                            objectTypeExtension.Type.ToFullyQualified());
+                            objectTypeExtension.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
                     }
                     break;
@@ -164,7 +164,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         generator.WriteRegisterTypeExtension(
                             GetAssemblyQualifiedName(objectTypeExtension.RuntimeType),
                             objectTypeExtension.RuntimeType.ToFullyQualified(),
-                            $"global::{objectTypeExtension.Namespace}.{objectTypeExtension.ClassName}");
+                            $"global::{objectTypeExtension.Namespace}.{objectTypeExtension.Name}");
                         hasConfigurations = true;
                     }
                     break;
@@ -177,9 +177,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         interfaceTypeExtensions.Add(interfaceType.RuntimeType.ToFullyQualified());
 
                         generator.WriteRegisterTypeExtension(
-                            GetAssemblyQualifiedName(interfaceType.Type),
+                            GetAssemblyQualifiedName(interfaceType.SchemaSchemaType),
                             interfaceType.RuntimeType.ToFullyQualified(),
-                            interfaceType.Type.ToFullyQualified());
+                            interfaceType.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
                     }
                     break;
@@ -191,9 +191,9 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         var operationType = rootType.OperationType;
 
                         generator.WriteRegisterRootTypeExtension(
-                            GetAssemblyQualifiedName(rootType.Type),
+                            GetAssemblyQualifiedName(rootType.SchemaSchemaType),
                             operationType,
-                            rootType.Type.ToFullyQualified());
+                            rootType.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
 
                         if (operationType is not OperationType.No && (operations & operationType) != operationType)

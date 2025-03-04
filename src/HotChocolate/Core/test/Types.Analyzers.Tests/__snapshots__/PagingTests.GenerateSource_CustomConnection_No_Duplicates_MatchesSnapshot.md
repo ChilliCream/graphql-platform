@@ -395,6 +395,12 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
+            builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.AuthorConnection>(
+                "Tests::TestNamespace.AuthorConnection",
+                () => global::TestNamespace.AuthorConnectionType.Initialize));
+            builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.AuthorEdge>(
+                "Tests::TestNamespace.AuthorEdge",
+                () => global::TestNamespace.AuthorEdgeType.Initialize));
             builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd<global::TestNamespace.Author>(
                 "Tests::TestNamespace.Types.Nodes.AuthorNode",
                 () => global::TestNamespace.Types.Nodes.AuthorNode.Initialize));
@@ -407,6 +413,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     () => new global::HotChocolate.Types.ObjectType(
                         d => d.Name(global::HotChocolate.Types.OperationTypeNames.Query)),
                     HotChocolate.Language.OperationType.Query));
+            builder.AddType<ObjectType<global::TestNamespace.AuthorConnection>>();
+            builder.AddType<ObjectType<global::TestNamespace.AuthorEdge>>();
             builder.AddType<ObjectType<global::TestNamespace.Author>>();
             return builder;
         }
@@ -453,6 +461,9 @@ public static partial class AuthorQueries
             {
                 c.Definition.SetSourceGeneratorFlags();
                 c.Definition.SetConnectionFlags();
+                var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
+                c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
+                c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
                 c.Definition.Resolvers = global::TestNamespace.Types.Root.AuthorQueriesResolvers.AuthorQueries_GetAuthorsAsync();
             });
 
@@ -464,6 +475,9 @@ public static partial class AuthorQueries
             {
                 c.Definition.SetSourceGeneratorFlags();
                 c.Definition.SetConnectionFlags();
+                var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
+                c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
+                c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
                 c.Definition.Resolvers = global::TestNamespace.Types.Root.AuthorQueriesResolvers.AuthorQueries_GetAuthors2Async();
             });
 
@@ -497,6 +511,9 @@ public static partial class AuthorNode
             {
                 c.Definition.SetSourceGeneratorFlags();
                 c.Definition.SetConnectionFlags();
+                var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
+                c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
+                c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
                 c.Definition.Resolvers = global::TestNamespace.Types.Nodes.AuthorNodeResolvers.AuthorNode_GetAuthorsAsync();
             });
 
@@ -554,6 +571,7 @@ public static partial class AuthorConnectionType
             .ExtendWith(c =>
             {
                 c.Definition.SetSourceGeneratorFlags();
+                c.Definition.SetConnectionTotalCountFieldFlags();
                 c.Definition.Resolvers = global::TestNamespace.AuthorConnectionTypeResolvers.AuthorConnectionType_TotalCount();
             });
 
