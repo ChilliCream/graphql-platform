@@ -1,0 +1,10 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  scalar: Char
+}
+
+"The CharType scalar type represents a single character value."
+scalar Char
