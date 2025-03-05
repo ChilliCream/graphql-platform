@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class ConnectionObjectTypeInfo
     : SyntaxInfo
-        , IOutputTypeInfo
+    , IOutputTypeInfo
 {
     private ConnectionObjectTypeInfo(
         string name,
@@ -17,7 +17,7 @@ public sealed class ConnectionObjectTypeInfo
         ImmutableArray<Resolver> resolvers)
     {
         Name = name;
-        RuntimeTypeFullName = runtimeType.ToFullyQualified();
+        RuntimeTypeFullName = runtimeType.ToDisplayString();
         RuntimeType = runtimeType;
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
         ClassDeclaration = classDeclaration;
@@ -27,6 +27,8 @@ public sealed class ConnectionObjectTypeInfo
     public string Name { get; }
 
     public string Namespace { get; }
+
+    public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
     public INamedTypeSymbol? SchemaSchemaType => null;
 

@@ -93,6 +93,7 @@
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="9.0.2" />
     <PackageVersion Include="System.IO.Packaging" Version="9.0.2" />
     <PackageVersion Include="System.IO.Pipelines" Version="9.0.2" />
+    <PackageVersion Include="System.IO.Hashing" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
@@ -117,6 +118,7 @@
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
     <PackageVersion Include="System.IO.Packaging" Version="8.0.1" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />

@@ -17,7 +17,7 @@ public sealed class RootTypeExtensionInfo
     {
         OperationType = operationType;
         SchemaSchemaType = schemaType;
-        SchemaTypeFullName = schemaType.ToFullyQualified();
+        SchemaTypeFullName = schemaType.ToDisplayString();
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
     }
@@ -25,6 +25,8 @@ public sealed class RootTypeExtensionInfo
     public string Name => SchemaSchemaType.Name;
 
     public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
+
+    public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
     public OperationType OperationType { get; }
 

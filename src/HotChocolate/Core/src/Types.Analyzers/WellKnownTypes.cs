@@ -84,6 +84,9 @@ public static class WellKnownTypes
         "HotChocolate.Data.Sorting.SortingContextResolverContextExtensions";
     public const string PagingHelper = "HotChocolate.Types.Pagination.PagingHelper";
     public const string PagingDefaults = "HotChocolate.Types.Pagination.PagingDefaults";
+    public const string StaticMemberFlags = "HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags";
+    public const string InstanceMemberFlags = "HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags";
+    public const string IObjectTypeDescriptor = "HotChocolate.Types.IObjectTypeDescriptor";
 
     public static HashSet<string> TypeClass { get; } =
     [

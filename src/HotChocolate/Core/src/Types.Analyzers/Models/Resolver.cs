@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Models;
@@ -27,6 +28,13 @@ public sealed class Resolver
 
     public ISymbol Member { get; }
 
+    public ITypeSymbol ReturnType
+        => Member.GetReturnType()
+            ?? throw new InvalidOperationException("Resolver has no return type.");
+
+    public ITypeSymbol UnwrappedReturnType
+        => ReturnType.UnwrapTaskOrValueTask();
+
     public bool IsStatic => Member.IsStatic;
 
     public bool IsPure
@@ -41,6 +49,8 @@ public sealed class Resolver
     public ResolverResultKind ResultKind { get; }
 
     public ImmutableArray<ResolverParameter> Parameters { get; }
+
+    public bool RequiresParameterBindings => Parameters.Any(t => t.RequiresBinding);
 
     public ImmutableArray<MemberBinding> Bindings { get; }
 }

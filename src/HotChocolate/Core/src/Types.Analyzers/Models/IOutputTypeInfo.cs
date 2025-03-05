@@ -18,6 +18,11 @@ public interface IOutputTypeInfo
     string Namespace { get; }
 
     /// <summary>
+    /// Defines if the type is a public.
+    /// </summary>
+    bool IsPublic { get; }
+
+    /// <summary>
     /// Gets the schema type symbol.
     /// </summary>
     INamedTypeSymbol? SchemaSchemaType { get; }

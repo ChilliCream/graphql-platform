@@ -5,7 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class InterfaceTypeExtensionInfo : SyntaxInfo
+public sealed class InterfaceTypeExtensionInfo
+    : SyntaxInfo
     , IOutputTypeInfo
 {
     public InterfaceTypeExtensionInfo(INamedTypeSymbol schemaType,
@@ -14,9 +15,9 @@ public sealed class InterfaceTypeExtensionInfo : SyntaxInfo
         ImmutableArray<Resolver> resolvers)
     {
         SchemaSchemaType = schemaType;
-        SchemaTypeFullName = schemaType.ToFullyQualified();
+        SchemaTypeFullName = schemaType.ToDisplayString();
         RuntimeType = runtimeType;
-        RuntimeTypeFullName = runtimeType.ToFullyQualified();
+        RuntimeTypeFullName = runtimeType.ToDisplayString();
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
     }
@@ -24,6 +25,8 @@ public sealed class InterfaceTypeExtensionInfo : SyntaxInfo
     public string Name => SchemaSchemaType.Name;
 
     public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
+
+    public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
     public INamedTypeSymbol SchemaSchemaType { get; }
 

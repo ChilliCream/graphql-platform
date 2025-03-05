@@ -1,4 +1,6 @@
+using System.Buffers.Text;
 using System.Collections.Immutable;
+using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
@@ -30,12 +32,74 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         var sb = PooledObjects.GetStringBuilder();
 
         WriteTypes(context, syntaxInfos, sb);
+        WriteTypes2(context, syntaxInfos, sb);
 
         sb.Clear();
 
         WriteResolvers(context, syntaxInfos, sb);
 
         PooledObjects.Return(sb);
+    }
+
+    private static void WriteTypes2(
+        SourceProductionContext context,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        StringBuilder sb)
+    {
+        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+
+        foreach (var type in syntaxInfos.OfType<IOutputTypeInfo>())
+        {
+            sb.Clear();
+
+            if (type is ObjectTypeExtensionInfo objectType)
+            {
+                var file = new ObjectTypeFileBuilder(sb);
+                file.WriteHeader();
+                file.WriteBeginNamespace(objectType);
+                file.WriteBeginClass(objectType);
+                file.WriteInitializeMethod(objectType);
+                file.WriteConfigureMethod(objectType);
+                file.WriteBeginResolverClass();
+                file.WriteResolverFields(objectType);
+                file.WriteResolverConstructor(objectType, typeLookup);
+                file.WriteResolverMethods(objectType, typeLookup);
+                file.WriteEndResolverClass();
+                file.WriteEndClass();
+                file.WriteEndNamespace();
+                file.Flush();
+
+                context.AddSource(CreateFileName(objectType), sb.ToString());
+            }
+        }
+
+        static string CreateFileName(IOutputTypeInfo type)
+        {
+            Span<byte> hash = stackalloc byte[64];
+            var bytes = Encoding.UTF8.GetBytes(type.Namespace);
+            MD5.HashData(bytes, hash);
+            Base64.EncodeToUtf8InPlace(hash, 16, out var written);
+            hash = hash[..written];
+
+            for (var i = 0; i < hash.Length; i++)
+            {
+                if (hash[i] == (byte)'+')
+                {
+                    hash[i] = (byte)'-';
+                }
+                else if (hash[i] == (byte)'/')
+                {
+                    hash[i] = (byte)'_';
+                }
+                else if(hash[i] == (byte)'=')
+                {
+                    hash = hash[..i];
+                    break;
+                }
+            }
+
+            return $"{type.Name}.{Encoding.UTF8.GetString(hash)}.hc.g.cs";
+        }
     }
 
     private static void WriteTypes(
@@ -62,7 +126,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             var firstClass = true;
             foreach (var typeInfo in group)
             {
-                if (typeInfo.Diagnostics.Length > 0)
+                if (typeInfo.Diagnostics.Length > 0 || typeInfo is ObjectTypeExtensionInfo)
                 {
                     continue;
                 }

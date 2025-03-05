@@ -29,20 +29,22 @@ public sealed class ResolverParameter
     public ResolverParameterKind Kind { get; }
 
     public bool IsPure
-        => Kind == ResolverParameterKind.Argument ||
-            Kind == ResolverParameterKind.Parent ||
-            Kind == ResolverParameterKind.Service ||
-            Kind == ResolverParameterKind.GetGlobalState ||
-            Kind == ResolverParameterKind.SetGlobalState ||
-            Kind == ResolverParameterKind.GetScopedState ||
-            Kind == ResolverParameterKind.HttpContext ||
-            Kind == ResolverParameterKind.HttpRequest ||
-            Kind == ResolverParameterKind.HttpResponse ||
-            Kind == ResolverParameterKind.DocumentNode ||
-            Kind == ResolverParameterKind.EventMessage ||
-            Kind == ResolverParameterKind.FieldNode ||
-            Kind == ResolverParameterKind.OutputField ||
-            Kind == ResolverParameterKind.ClaimsPrincipal;
+        => Kind is ResolverParameterKind.Argument
+            or ResolverParameterKind.Parent
+            or ResolverParameterKind.Service
+            or ResolverParameterKind.GetGlobalState
+            or ResolverParameterKind.SetGlobalState
+            or ResolverParameterKind.GetScopedState
+            or ResolverParameterKind.HttpContext
+            or ResolverParameterKind.HttpRequest
+            or ResolverParameterKind.HttpResponse
+            or ResolverParameterKind.DocumentNode
+            or ResolverParameterKind.EventMessage
+            or ResolverParameterKind.FieldNode
+            or ResolverParameterKind.OutputField
+            or ResolverParameterKind.ClaimsPrincipal;
+    public bool RequiresBinding
+        => Kind == ResolverParameterKind.Unknown;
 
     public bool IsNullable { get; }
 
