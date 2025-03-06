@@ -629,9 +629,7 @@ internal sealed class SourceSchemaMerger
                 i => ((MutableUnionTypeDefinition)i.Type).Types.AsEnumerable(),
                 (i, t) => new UnionMemberInfo(t, (MutableUnionTypeDefinition)i.Type, i.Schema))
             .Where(i => !i.MemberType.HasInternalDirective())
-            .GroupBy(i => i.MemberType.Name)
-            // Intersection: Member type definition count matches union type definition count.
-            .Where(g => g.Count() == typeGroup.Length);
+            .GroupBy(i => i.MemberType.Name);
 
         foreach (var (memberName, memberGroup) in unionMemberGroupByName)
         {
@@ -855,7 +853,7 @@ internal sealed class SourceSchemaMerger
 
             if (sourceField.HasExternalDirective())
             {
-                arguments.Add(new ArgumentAssignment(ArgumentNames.External, true));
+                arguments.Add(new ArgumentAssignment(ArgumentNames.Partial, true));
             }
 
             field.Directives.Add(

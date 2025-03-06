@@ -1,0 +1,15 @@
+schema @schemaName(value: "Schema1") {
+  query: Query
+}
+
+type Query @inaccessible {         # Error:   QUERY_ROOT_TYPE_INACCESSIBLE
+  userById(id: ID!): User! @lookup # Warning: LOOKUP_RETURNS_NON_NULLABLE_TYPE
+}
+
+type User {
+  id: ID!
+}
+
+directive @schemaName(value: String!) on SCHEMA
+directive @inaccessible on OBJECT # | etc.
+directive @lookup on FIELD_DEFINITION
