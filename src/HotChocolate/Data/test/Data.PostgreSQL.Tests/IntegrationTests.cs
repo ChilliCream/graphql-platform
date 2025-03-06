@@ -303,7 +303,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var result = await ExecuteAsync(
             """
             {
-                products(first: 2) {
+                productsNonRelative(first: 2) {
                     nodes {
                         name
                     }
@@ -328,7 +328,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var result = await ExecuteAsync(
             """
             {
-                products(first: 2) {
+                productsNonRelative(first: 2) {
                     nodes {
                         name
                     }
@@ -361,8 +361,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .ModifyPagingOptions(o => o.AllowRelativeCursors = true);
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
 
         services.AddSingleton<IDbSeeder<CatalogContext>, CatalogContextSeed>();
 
