@@ -53,10 +53,10 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
     "brands": {
       "edges": [
         {
-          "cursor": "QnJhbmRcOjA6MQ=="
+          "cursor": "e31CcmFuZFw6MDox"
         },
         {
-          "cursor": "QnJhbmRcOjE6Mg=="
+          "cursor": "e31CcmFuZFw6MToy"
         }
       ],
       "nodes": [
@@ -73,8 +73,8 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
             "pageInfo": {
               "hasNextPage": true,
               "hasPreviousPage": false,
-              "startCursor": "UHJvZHVjdCAwLTA6MQ==",
-              "endCursor": "UHJvZHVjdCAwLTE6Mg=="
+              "startCursor": "e31Qcm9kdWN0IDAtMDox",
+              "endCursor": "e31Qcm9kdWN0IDAtMToy"
             }
           }
         },
@@ -91,8 +91,8 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
             "pageInfo": {
               "hasNextPage": true,
               "hasPreviousPage": false,
-              "startCursor": "UHJvZHVjdCAxLTA6MTAx",
-              "endCursor": "UHJvZHVjdCAxLTE6MTAy"
+              "startCursor": "e31Qcm9kdWN0IDEtMDoxMDE=",
+              "endCursor": "e31Qcm9kdWN0IDEtMToxMDI="
             }
           }
         }

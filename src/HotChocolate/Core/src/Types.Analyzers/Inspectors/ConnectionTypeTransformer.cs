@@ -42,7 +42,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         {
             connectionClassLookup ??= [];
             var connectionTypeLookup = new Dictionary<string, IOutputTypeInfo>();
-            List<ConnectionObjectTypeInfo>? connectionTypeInfos = null;
+            List<ConnectionTypeInfo>? connectionTypeInfos = null;
 
             foreach (var syntaxInfo in syntaxInfos)
             {
@@ -69,8 +69,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
                 var connectionTypeInfo =
                     connectionClassLookup.TryGetValue(connectionTypeName, out var connectionClass)
-                        ? ConnectionObjectTypeInfo.CreateConnectionFrom(connectionClass)
-                        : ConnectionObjectTypeInfo.CreateConnection(compilation, connectionType, null);
+                        ? ConnectionTypeInfo.CreateConnectionFrom(connectionClass)
+                        : ConnectionTypeInfo.CreateConnection(compilation, connectionType, null);
 
                 connectionTypeInfos ??= [];
                 connectionTypeInfos.Add(connectionTypeInfo);
@@ -81,7 +81,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                     continue;
                 }
 
-                var edgeTypeInfo = ConnectionObjectTypeInfo.CreateEdge(compilation, edgeType, null);
+                var edgeTypeInfo = ConnectionTypeInfo.CreateEdge(compilation, edgeType, null);
                 connectionTypeInfos.Add(edgeTypeInfo);
                 connectionTypeLookup.Add(edgeType.ToFullyQualified(), edgeTypeInfo);
             }

@@ -62,7 +62,7 @@ public class PagingOptions
     /// <summary>
     /// Defines whether relative cursors are allowed.
     /// </summary>
-    public bool AllowRelativeCursors { get; set; }
+    public bool? AllowRelativeCursors { get; set; }
 
     /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever
@@ -82,6 +82,7 @@ public class PagingOptions
         InferCollectionSegmentNameFromField ??= other.InferCollectionSegmentNameFromField;
         ProviderName ??= other.ProviderName;
         IncludeNodesField ??= other.IncludeNodesField;
+        AllowRelativeCursors ??= other.AllowRelativeCursors;
     }
 
     /// <summary>
@@ -98,6 +99,7 @@ public class PagingOptions
             InferConnectionNameFromField = InferConnectionNameFromField,
             InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
             ProviderName = ProviderName,
-            IncludeNodesField = IncludeNodesField
+            IncludeNodesField = IncludeNodesField,
+            AllowRelativeCursors = AllowRelativeCursors
         };
 }

@@ -32,16 +32,12 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         var sb = PooledObjects.GetStringBuilder();
 
         WriteTypes(context, syntaxInfos, sb);
-        WriteTypes2(context, syntaxInfos, sb);
 
         sb.Clear();
-
-        WriteResolvers(context, syntaxInfos, sb);
-
         PooledObjects.Return(sb);
     }
 
-    private static void WriteTypes2(
+    private static void WriteTypes(
         SourceProductionContext context,
         ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
@@ -52,24 +48,32 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         {
             sb.Clear();
 
-            if (type is ObjectTypeExtensionInfo objectType)
+            if (type is ObjectTypeInfo objectType)
             {
                 var file = new ObjectTypeFileBuilder(sb);
-                file.WriteHeader();
-                file.WriteBeginNamespace(objectType);
-                file.WriteBeginClass(objectType);
-                file.WriteInitializeMethod(objectType);
-                file.WriteConfigureMethod(objectType);
-                file.WriteBeginResolverClass();
-                file.WriteResolverFields(objectType);
-                file.WriteResolverConstructor(objectType, typeLookup);
-                file.WriteResolverMethods(objectType, typeLookup);
-                file.WriteEndResolverClass();
-                file.WriteEndClass();
-                file.WriteEndNamespace();
-                file.Flush();
-
+                WriteFile(file, objectType, typeLookup);
                 context.AddSource(CreateFileName(objectType), sb.ToString());
+            }
+
+            if(type is InterfaceTypeInfo interfaceType)
+            {
+                var file = new InterfaceTypeFileBuilder(sb);
+                WriteFile(file, interfaceType, typeLookup);
+                context.AddSource(CreateFileName(interfaceType), sb.ToString());
+            }
+
+            if(type is RootTypeInfo rootType)
+            {
+                var file = new RootTypeFileBuilder(sb);
+                WriteFile(file, rootType, typeLookup);
+                context.AddSource(CreateFileName(rootType), sb.ToString());
+            }
+
+            if(type is ConnectionTypeInfo connectionType)
+            {
+                var file = new ConnectionTypeFileBuilder(sb);
+                WriteFile(file, connectionType, typeLookup);
+                context.AddSource(CreateFileName(connectionType), sb.ToString());
             }
         }
 
@@ -102,131 +106,20 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         }
     }
 
-    private static void WriteTypes(
-        SourceProductionContext context,
-        ImmutableArray<SyntaxInfo> syntaxInfos,
-        StringBuilder sb)
+    private static void WriteFile(TypeFileBuilderBase file, IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
-        var hasTypes = false;
-        var firstNamespace = true;
-        foreach (var group in syntaxInfos
-            .OfType<IOutputTypeInfo>()
-            .GroupBy(t => t.Namespace))
-        {
-            var generator = new ObjectTypeExtensionFileBuilder(sb, group.Key);
-
-            if (firstNamespace)
-            {
-                generator.WriteHeader();
-                firstNamespace = false;
-            }
-
-            generator.WriteBeginNamespace();
-
-            var firstClass = true;
-            foreach (var typeInfo in group)
-            {
-                if (typeInfo.Diagnostics.Length > 0 || typeInfo is ObjectTypeExtensionInfo)
-                {
-                    continue;
-                }
-
-                var classGenerator = typeInfo is InterfaceTypeExtensionInfo
-                    ? new InterfaceTypeExtensionFileBuilder(sb, group.Key)
-                    : (IOutputTypeFileBuilder)new ObjectTypeExtensionFileBuilder(sb, group.Key);
-
-                if (!firstClass)
-                {
-                    sb.AppendLine();
-                }
-
-                firstClass = false;
-
-                classGenerator.WriteBeginClass(typeInfo.Name);
-                classGenerator.WriteInitializeMethod(typeInfo);
-                sb.AppendLine();
-                classGenerator.WriteConfigureMethod(typeInfo);
-                classGenerator.WriteEndClass();
-                hasTypes = true;
-
-            }
-
-            generator.WriteEndNamespace();
-        }
-
-        if (hasTypes)
-        {
-            context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
-        }
-    }
-
-    private static void WriteResolvers(
-        SourceProductionContext context,
-        ImmutableArray<SyntaxInfo> syntaxInfos,
-        StringBuilder sb)
-    {
-        var hasResolvers = false;
-        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
-
-        var generator = new ResolverFileBuilder(sb);
-        generator.WriteHeader();
-
-        var firstNamespace = true;
-        foreach (var group in syntaxInfos
-            .OfType<IOutputTypeInfo>()
-            .GroupBy(t => t.Namespace))
-        {
-            if (!firstNamespace)
-            {
-                sb.AppendLine();
-            }
-
-            firstNamespace = false;
-
-            generator.WriteBeginNamespace(group.Key);
-
-            var firstClass = true;
-            foreach (var typeInfo in group)
-            {
-                if (!firstClass)
-                {
-                    sb.AppendLine();
-                }
-
-                firstClass = false;
-
-                var resolvers = typeInfo.Resolvers;
-
-                if (typeInfo is ObjectTypeExtensionInfo { NodeResolver: { } nodeResolver })
-                {
-                    resolvers = resolvers.Add(nodeResolver);
-                }
-
-                generator.WriteBeginClass(typeInfo.Name + "Resolvers");
-
-                if (generator.AddResolverDeclarations(resolvers))
-                {
-                    sb.AppendLine();
-                }
-
-                generator.AddParameterInitializer(resolvers, typeLookup);
-
-                foreach (var resolver in resolvers)
-                {
-                    sb.AppendLine();
-                    generator.AddResolver(resolver, typeLookup);
-                }
-
-                generator.WriteEndClass();
-                hasResolvers = true;
-            }
-
-            generator.WriteEndNamespace();
-        }
-
-        if (hasResolvers)
-        {
-            context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
-        }
+        file.WriteHeader();
+        file.WriteBeginNamespace(type);
+        file.WriteBeginClass(type);
+        file.WriteInitializeMethod(type);
+        file.WriteConfigureMethod(type);
+        file.WriteBeginResolverClass();
+        file.WriteResolverFields(type);
+        file.WriteResolverConstructor(type, typeLookup);
+        file.WriteResolverMethods(type, typeLookup);
+        file.WriteEndResolverClass();
+        file.WriteEndClass();
+        file.WriteEndNamespace();
+        file.Flush();
     }
 }

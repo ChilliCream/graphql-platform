@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class InterfaceTypeExtensionInfo
+public sealed class InterfaceTypeInfo
     : SyntaxInfo
     , IOutputTypeInfo
 {
-    public InterfaceTypeExtensionInfo(INamedTypeSymbol schemaType,
+    public InterfaceTypeInfo(INamedTypeSymbol schemaType,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax classDeclarationSyntax,
         ImmutableArray<Resolver> resolvers)
@@ -47,12 +47,12 @@ public sealed class InterfaceTypeExtensionInfo
     public override string OrderByKey => SchemaTypeFullName;
 
     public override bool Equals(object? obj)
-        => obj is ObjectTypeExtensionInfo other && Equals(other);
+        => obj is ObjectTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ObjectTypeExtensionInfo other && Equals(other);
+        => obj is ObjectTypeInfo other && Equals(other);
 
-    private bool Equals(ObjectTypeExtensionInfo other)
+    private bool Equals(ObjectTypeInfo other)
         => string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal) &&
             ClassDeclaration.SyntaxTree.IsEquivalentTo(
                 other.ClassDeclaration.SyntaxTree);

@@ -6,11 +6,11 @@ using static HotChocolate.Types.Analyzers.Inspectors.ObjectTypeExtensionInfoInsp
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ConnectionObjectTypeInfo
+public sealed class ConnectionTypeInfo
     : SyntaxInfo
     , IOutputTypeInfo
 {
-    private ConnectionObjectTypeInfo(
+    private ConnectionTypeInfo(
         string name,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
@@ -49,12 +49,12 @@ public sealed class ConnectionObjectTypeInfo
     public override string OrderByKey => RuntimeTypeFullName;
 
     public override bool Equals(object? obj)
-        => obj is ConnectionObjectTypeInfo other && Equals(other);
+        => obj is ConnectionTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ConnectionObjectTypeInfo other && Equals(other);
+        => obj is ConnectionTypeInfo other && Equals(other);
 
-    private bool Equals(ConnectionObjectTypeInfo other)
+    private bool Equals(ConnectionTypeInfo other)
     {
         if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
         {
@@ -79,29 +79,29 @@ public sealed class ConnectionObjectTypeInfo
         => HashCode.Combine(OrderByKey, ClassDeclaration);
 
 
-    public static ConnectionObjectTypeInfo CreateConnectionFrom(
+    public static ConnectionTypeInfo CreateConnectionFrom(
         ConnectionClassInfo connectionClass)
     {
-        return new ConnectionObjectTypeInfo(
+        return new ConnectionTypeInfo(
             connectionClass.RuntimeType.Name + "Type",
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
             connectionClass.Resolvers);
     }
 
-    public static ConnectionObjectTypeInfo CreateConnection(
+    public static ConnectionTypeInfo CreateConnection(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration)
         => Create(compilation, runtimeType, classDeclaration, isConnection: true);
 
-    public static ConnectionObjectTypeInfo CreateEdge(
+    public static ConnectionTypeInfo CreateEdge(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration)
         => Create(compilation, runtimeType, classDeclaration, isConnection: false);
 
-    private static ConnectionObjectTypeInfo Create(
+    private static ConnectionTypeInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
@@ -166,7 +166,7 @@ public sealed class ConnectionObjectTypeInfo
             }
         }
 
-        return new ConnectionObjectTypeInfo(
+        return new ConnectionTypeInfo(
             name,
             runtimeType,
             classDeclaration,

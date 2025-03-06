@@ -139,7 +139,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case ObjectTypeExtensionInfo objectTypeExtension:
+                case ObjectTypeInfo objectTypeExtension:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && objectTypeExtension.Diagnostics.Length == 0)
                     {
@@ -154,7 +154,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case ConnectionObjectTypeInfo objectTypeExtension:
+                case ConnectionTypeInfo objectTypeExtension:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && objectTypeExtension.Diagnostics.Length == 0)
                     {
@@ -169,7 +169,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case InterfaceTypeExtensionInfo interfaceType:
+                case InterfaceTypeInfo interfaceType:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && interfaceType.Diagnostics.Length == 0)
                     {
@@ -184,7 +184,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case RootTypeExtensionInfo rootType:
+                case RootTypeInfo rootType:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && rootType.Diagnostics.Length == 0)
                     {

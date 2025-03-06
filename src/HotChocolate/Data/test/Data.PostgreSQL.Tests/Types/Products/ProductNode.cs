@@ -18,10 +18,10 @@ public static partial class ProductNode
         descriptor.Ignore(t => t.AddStock(0));
     }
 
+    [BindMember(nameof(Product.BrandId))]
     public static async Task<Brand?> GetBrandAsync(
         [Parent(requires: nameof(Product.BrandId))] Product product,
         QueryContext<Brand> query,
-        ISelection selection,
         BrandService brandService,
         CancellationToken cancellationToken)
         => await brandService.GetBrandByIdAsync(product.BrandId, query, cancellationToken);

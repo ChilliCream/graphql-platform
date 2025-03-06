@@ -10,6 +10,8 @@ public static class PagingDefaults
 
     public const bool AllowBackwardPagination = true;
 
+    public const bool AllowRelativeCursors = false;
+
     public const bool InferConnectionNameFromField = true;
 
     public const bool InferCollectionSegmentNameFromField = true;

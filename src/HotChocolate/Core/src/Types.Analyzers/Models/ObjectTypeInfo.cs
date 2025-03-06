@@ -1,23 +1,24 @@
 using System.Collections.Immutable;
-using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class RootTypeExtensionInfo
+public sealed class ObjectTypeInfo
     : SyntaxInfo
     , IOutputTypeInfo
 {
-    public RootTypeExtensionInfo(
-        INamedTypeSymbol schemaType,
-        OperationType operationType,
+    public ObjectTypeInfo(INamedTypeSymbol schemaType,
+        INamedTypeSymbol runtimeType,
+        Resolver? nodeResolver,
         ClassDeclarationSyntax classDeclarationSyntax,
         ImmutableArray<Resolver> resolvers)
     {
-        OperationType = operationType;
         SchemaSchemaType = schemaType;
         SchemaTypeFullName = schemaType.ToDisplayString();
+        RuntimeType = runtimeType;
+        RuntimeTypeFullName = runtimeType.ToDisplayString();
+        NodeResolver = nodeResolver;
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
     }
@@ -28,7 +29,7 @@ public sealed class RootTypeExtensionInfo
 
     public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
-    public OperationType OperationType { get; }
+    public bool IsRootType => false;
 
     public INamedTypeSymbol SchemaSchemaType { get; }
 
@@ -36,11 +37,13 @@ public sealed class RootTypeExtensionInfo
 
     public bool HasSchemaType => true;
 
-    public INamedTypeSymbol? RuntimeType => null;
+    public INamedTypeSymbol RuntimeType { get; }
 
-    public string? RuntimeTypeFullName => null;
+    public string RuntimeTypeFullName { get; }
 
-    public bool HasRuntimeType => false;
+    public bool HasRuntimeType => true;
+
+    public Resolver? NodeResolver { get; }
 
     public ClassDeclarationSyntax ClassDeclaration { get; }
 
@@ -49,11 +52,15 @@ public sealed class RootTypeExtensionInfo
     public override string OrderByKey => SchemaTypeFullName;
 
     public override bool Equals(object? obj)
-        => obj is ObjectTypeExtensionInfo other && Equals(other);
+        => obj is ObjectTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ObjectTypeExtensionInfo other && Equals(other);
+        => obj is ObjectTypeInfo other && Equals(other);
 
+    private bool Equals(ObjectTypeInfo other)
+        => string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(
+                other.ClassDeclaration.SyntaxTree);
     public override int GetHashCode()
         => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
 }

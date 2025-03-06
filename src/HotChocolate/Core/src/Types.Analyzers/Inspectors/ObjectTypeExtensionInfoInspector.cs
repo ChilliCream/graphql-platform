@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
@@ -52,7 +53,7 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal)
+            if (member.DeclaredAccessibility is Accessibility.Public && !member.IsIgnored())
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -91,14 +92,14 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
 
         if (runtimeType is not null)
         {
-            syntaxInfo = new ObjectTypeExtensionInfo(
+            syntaxInfo = new ObjectTypeInfo(
                 classSymbol,
                 runtimeType,
                 nodeResolver,
                 possibleType,
                 i == 0
                     ? ImmutableArray<Resolver>.Empty
-                    : resolvers.ToImmutableArray());
+                    : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
             if (diagnostics.Length > 0)
             {
@@ -107,13 +108,13 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = new RootTypeExtensionInfo(
+        syntaxInfo = new RootTypeInfo(
             classSymbol,
             operationType!.Value,
             possibleType,
             i == 0
                 ? ImmutableArray<Resolver>.Empty
-                : resolvers.ToImmutableArray());
+                : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
         if (diagnostics.Length > 0)
         {

@@ -87,6 +87,7 @@ public static class WellKnownTypes
     public const string StaticMemberFlags = "HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags";
     public const string InstanceMemberFlags = "HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags";
     public const string IObjectTypeDescriptor = "HotChocolate.Types.IObjectTypeDescriptor";
+    public const string IInterfaceTypeDescriptor = "HotChocolate.Types.IInterfaceTypeDescriptor";
 
     public static HashSet<string> TypeClass { get; } =
     [

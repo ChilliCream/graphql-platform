@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
@@ -46,15 +45,15 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
 
     public void WriteInitializeMethod(IOutputTypeInfo typeInfo)
     {
-        if (typeInfo is ObjectTypeExtensionInfo objectTypeExtension)
+        if (typeInfo is ObjectTypeInfo objectTypeExtension)
         {
             WriteObjectTypeInitializeMethod(objectTypeExtension);
         }
-        else if (typeInfo is RootTypeExtensionInfo rootTypeExtension)
+        else if (typeInfo is RootTypeInfo rootTypeExtension)
         {
             WriteRootTypeInitializeMethod(rootTypeExtension);
         }
-        else if(typeInfo is ConnectionObjectTypeInfo connectionTypeExtension)
+        else if(typeInfo is ConnectionTypeInfo connectionTypeExtension)
         {
             WriteConnectionTypeInitializeMethod(connectionTypeExtension);
         }
@@ -66,12 +65,12 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
 
     public void WriteObjectTypeInitializeMethod(IOutputTypeInfo typeInfo)
     {
-        if (typeInfo is not ObjectTypeExtensionInfo objectTypeExtension)
+        if (typeInfo is not ObjectTypeInfo objectTypeExtension)
         {
             return;
         }
 
-        if (typeInfo is RootTypeExtensionInfo)
+        if (typeInfo is RootTypeInfo)
         {
             _writer.WriteIndentedLine(
                 "internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)");
@@ -163,7 +162,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
 
     public void WriteRootTypeInitializeMethod(IOutputTypeInfo typeInfo)
     {
-        if (typeInfo is not RootTypeExtensionInfo rootTypeExtension)
+        if (typeInfo is not RootTypeInfo rootTypeExtension)
         {
             return;
         }
@@ -209,7 +208,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteConnectionTypeInitializeMethod(ConnectionObjectTypeInfo connectionTypeInfo)
+    public void WriteConnectionTypeInitializeMethod(ConnectionTypeInfo connectionTypeInfo)
     {
         _writer.WriteIndentedLine(
             "internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<{0}> descriptor)",
