@@ -19,16 +19,16 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
-    <value>Post-merge validation failed. View the composition log for details.</value>
+    <value>Post-merge validation failed.</value>
   </data>
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
-    <value>Pre-merge validation failed. View the composition log for details.</value>
+    <value>Pre-merge validation failed.</value>
   </data>
   <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
-    <value>Source schema parsing failed. View the composition log for details.</value>
+    <value>Source schema parsing failed.</value>
   </data>
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
-    <value>Source schema validation failed. View the composition log for details.</value>
+    <value>Source schema validation failed.</value>
   </data>
   <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>

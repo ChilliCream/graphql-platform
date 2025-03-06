@@ -57,6 +57,7 @@ Giroux
 GraphiQL
 graphqlconfig
 graphqlrc
+graphqls
 graphyne
 greendonut
 Hasura

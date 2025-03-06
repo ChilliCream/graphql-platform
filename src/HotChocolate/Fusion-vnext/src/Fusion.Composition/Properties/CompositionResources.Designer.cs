@@ -60,7 +60,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Post-merge validation failed. View the composition log for details..
+        ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PostMergeValidationFailed {
             get {
@@ -69,7 +69,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pre-merge validation failed. View the composition log for details..
+        ///   Looks up a localized string similar to Pre-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PreMergeValidationFailed {
             get {
@@ -78,7 +78,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source schema parsing failed. View the composition log for details..
+        ///   Looks up a localized string similar to Source schema parsing failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaParsingFailed {
             get {
@@ -87,7 +87,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source schema validation failed. View the composition log for details..
+        ///   Looks up a localized string similar to Source schema validation failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaValidationFailed {
             get {
