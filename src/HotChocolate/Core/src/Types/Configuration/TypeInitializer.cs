@@ -595,7 +595,7 @@ internal sealed class TypeInitializer
 
     internal bool CompleteType(RegisteredType registeredType)
     {
-        if (registeredType.Status is TypeStatus.Completed)
+        if (registeredType.Type.IsCompleted)
         {
             return true;
         }
@@ -615,9 +615,10 @@ internal sealed class TypeInitializer
 
         foreach (var registeredType in _typeRegistry.Types)
         {
-            if (!registeredType.IsExtension)
+            if (registeredType is { IsExtension: false, Status: TypeStatus.Completed })
             {
                 registeredType.Type.CompleteMetadata(registeredType);
+                registeredType.Status = TypeStatus.MetadataCompleted;
             }
         }
 
@@ -635,6 +636,7 @@ internal sealed class TypeInitializer
             if (!registeredType.IsExtension)
             {
                 registeredType.Type.MakeExecutable(registeredType);
+                registeredType.Status = TypeStatus.Executable;
             }
         }
 
@@ -650,6 +652,7 @@ internal sealed class TypeInitializer
             if (!registeredType.IsExtension)
             {
                 registeredType.Type.FinalizeType(registeredType);
+                registeredType.Status = TypeStatus.Finalized;
             }
         }
 
