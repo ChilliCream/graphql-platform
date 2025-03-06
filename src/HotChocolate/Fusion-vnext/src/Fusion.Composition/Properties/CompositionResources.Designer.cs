@@ -60,7 +60,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Post-merge validation failed. View the composition log for details..
+        ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PostMergeValidationFailed {
             get {
@@ -69,7 +69,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pre-merge validation failed. View the composition log for details..
+        ///   Looks up a localized string similar to Pre-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PreMergeValidationFailed {
             get {
@@ -78,7 +78,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source schema parsing failed. View the composition log for details..
+        ///   Looks up a localized string similar to Source schema parsing failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaParsingFailed {
             get {
@@ -87,11 +87,20 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source schema validation failed. View the composition log for details..
+        ///   Looks up a localized string similar to Source schema validation failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaValidationFailed {
             get {
                 return ResourceManager.GetString("ErrorHelper_SourceSchemaValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it..
+        /// </summary>
+        internal static string ExternalMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("ExternalMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
         
@@ -344,6 +353,60 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionUnionMemberMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("FusionUnionMemberMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas..
+        /// </summary>
+        internal static string InaccessibleMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("InaccessibleMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @internal directive is used to mark types and fields as internal within a source schema..
+        /// </summary>
+        internal static string InternalMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("InternalMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Represents a selection path map syntax..
+        /// </summary>
+        internal static string IsMutableDirectiveDefinition_Argument_Field_Description {
+            get {
+                return ResourceManager.GetString("IsMutableDirectiveDefinition_Argument_Field_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive is utilized on lookup fields to describe how the arguments can be mapped from the entity type that the lookup field resolves..
+        /// </summary>
+        internal static string IsMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("IsMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Represents a selection set syntax..
+        /// </summary>
+        internal static string KeyMutableDirectiveDefinition_Argument_Fields_Description {
+            get {
+                return ResourceManager.GetString("KeyMutableDirectiveDefinition_Argument_Fields_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas..
+        /// </summary>
+        internal static string KeyMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("KeyMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
         
@@ -776,6 +839,96 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_TypeKindMismatch {
             get {
                 return ResourceManager.GetString("LogEntryHelper_TypeKindMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key..
+        /// </summary>
+        internal static string LookupMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("LookupMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that originally provided this field..
+        /// </summary>
+        internal static string OverrideMutableDirectiveDefinition_Argument_From_Description {
+            get {
+                return ResourceManager.GetString("OverrideMutableDirectiveDefinition_Argument_From_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @override directive is used to migrate a field from one source schema to another..
+        /// </summary>
+        internal static string OverrideMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("OverrideMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema..
+        /// </summary>
+        internal static string ProvidesMutableDirectiveDefinition_Argument_Fields_Description {
+            get {
+                return ResourceManager.GetString("ProvidesMutableDirectiveDefinition_Argument_Fields_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere..
+        /// </summary>
+        internal static string ProvidesMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("ProvidesMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Represents a selection path map syntax..
+        /// </summary>
+        internal static string RequireMutableDirectiveDefinition_Argument_Field_Description {
+            get {
+                return ResourceManager.GetString("RequireMutableDirectiveDefinition_Argument_Field_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive is used to express data requirements with other source schemas..
+        /// </summary>
+        internal static string RequireMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("RequireMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema..
+        /// </summary>
+        internal static string SchemaNameMutableDirectiveDefinition_Argument_Value_Description {
+            get {
+                return ResourceManager.GetString("SchemaNameMutableDirectiveDefinition_Argument_Value_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @schemaName directive is used to specify the name of a source schema..
+        /// </summary>
+        internal static string SchemaNameMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("SchemaNameMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked..
+        /// </summary>
+        internal static string ShareableMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
     }

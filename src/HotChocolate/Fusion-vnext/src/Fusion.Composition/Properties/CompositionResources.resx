@@ -19,16 +19,19 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
-    <value>Post-merge validation failed. View the composition log for details.</value>
+    <value>Post-merge validation failed.</value>
   </data>
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
-    <value>Pre-merge validation failed. View the composition log for details.</value>
+    <value>Pre-merge validation failed.</value>
   </data>
   <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
-    <value>Source schema parsing failed. View the composition log for details.</value>
+    <value>Source schema parsing failed.</value>
   </data>
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
-    <value>Source schema validation failed. View the composition log for details.</value>
+    <value>Source schema validation failed.</value>
+  </data>
+  <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>
   </data>
   <data name="FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that provides the specified enum value.</value>
@@ -113,6 +116,24 @@
   </data>
   <data name="FusionUnionMemberMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__unionMember directive specifies which source schema provides a member type of a union.</value>
+  </data>
+  <data name="InaccessibleMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas.</value>
+  </data>
+  <data name="InternalMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @internal directive is used to mark types and fields as internal within a source schema.</value>
+  </data>
+  <data name="IsMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
+    <value>Represents a selection path map syntax.</value>
+  </data>
+  <data name="IsMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @is directive is utilized on lookup fields to describe how the arguments can be mapped from the entity type that the lookup field resolves.</value>
+  </data>
+  <data name="KeyMutableDirectiveDefinition_Argument_Fields_Description" xml:space="preserve">
+    <value>Represents a selection set syntax.</value>
+  </data>
+  <data name="KeyMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas.</value>
   </data>
   <data name="LogEntryHelper_DisallowedInaccessibleBuiltInScalar" xml:space="preserve">
     <value>The built-in scalar type '{0}' in schema '{1}' is not accessible.</value>
@@ -257,5 +278,35 @@
   </data>
   <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
     <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
+  </data>
+  <data name="LookupMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key.</value>
+  </data>
+  <data name="OverrideMutableDirectiveDefinition_Argument_From_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided this field.</value>
+  </data>
+  <data name="OverrideMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @override directive is used to migrate a field from one source schema to another.</value>
+  </data>
+  <data name="ProvidesMutableDirectiveDefinition_Argument_Fields_Description" xml:space="preserve">
+    <value>Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema.</value>
+  </data>
+  <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
+  </data>
+  <data name="RequireMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
+    <value>Represents a selection path map syntax.</value>
+  </data>
+  <data name="RequireMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @require directive is used to express data requirements with other source schemas.</value>
+  </data>
+  <data name="SchemaNameMutableDirectiveDefinition_Argument_Value_Description" xml:space="preserve">
+    <value>The name of the source schema.</value>
+  </data>
+  <data name="SchemaNameMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @schemaName directive is used to specify the name of a source schema.</value>
+  </data>
+  <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
   </data>
 </root>
