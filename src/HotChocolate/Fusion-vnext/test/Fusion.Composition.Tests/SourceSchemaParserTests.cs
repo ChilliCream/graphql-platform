@@ -19,9 +19,7 @@ public sealed class SourceSchemaParserTests
         // assert
         Assert.True(result.IsFailure);
         Assert.Single(result.Errors);
-        Assert.Equal(
-            "Source schema parsing failed. View the composition log for details.",
-            result.Errors[0].Message);
+        Assert.Equal("Source schema parsing failed.", result.Errors[0].Message);
         Assert.Single(log);
         Assert.Equal(
             "Invalid GraphQL in source schema. Exception message: Expected a `Name`-token, but " +
