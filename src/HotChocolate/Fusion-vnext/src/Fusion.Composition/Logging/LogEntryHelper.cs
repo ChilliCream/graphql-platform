@@ -525,6 +525,20 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry NonNullInputFieldIsInaccessible(
+        MutableInputFieldDefinition inputField,
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_NonNullInputFieldIsInaccessible, coordinate, schema.Name),
+            LogEntryCodes.NonNullInputFieldIsInaccessible,
+            LogSeverity.Error,
+            coordinate,
+            inputField,
+            schema);
+    }
+
     public static LogEntry NoQueries(MutableObjectTypeDefinition queryType, MutableSchemaDefinition schema)
     {
         return new LogEntry(
