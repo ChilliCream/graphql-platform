@@ -7,7 +7,8 @@ namespace HotChocolate.Fusion.Definitions;
 
 internal sealed class FusionSchemaMutableEnumTypeDefinition : MutableEnumTypeDefinition
 {
-    public FusionSchemaMutableEnumTypeDefinition(ImmutableArray<string> schemaNames) : base(FusionSchema)
+    public FusionSchemaMutableEnumTypeDefinition(ImmutableArray<string> schemaNames)
+        : base(FusionSchema)
     {
         foreach (var schemaName in schemaNames)
         {
