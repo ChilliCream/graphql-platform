@@ -53,6 +53,9 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Definition.ContextData);
     }
 
+    private ITypeCompletionContext _tc = default!;
+    private AuthorizeDirectiveType _t = default!;
+
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
@@ -69,14 +72,33 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             case UnionType when definition is UnionTypeDefinition unionTypeDef:
                 _unionTypes.Add(new UnionTypeInfo(completionContext, unionTypeDef));
                 break;
+
+            case AuthorizeDirectiveType type:
+                _t = type;
+                _tc = completionContext;
+                break;
         }
 
         // note, we do not need to collect interfaces as the object type has a
         // list implements that links to the interfaces that expose an object type.
     }
 
-    public override void OnBeforeCompleteTypes()
+    public override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
     {
+        if (operationType is OperationType.Query)
+        {
+            _queryContext = completionContext;
+        }
+    }
+
+    public override void OnBeforeCompleteMetadata()
+    {
+        _t.CompleteMetadata(_tc);
+        ((RegisteredType)_tc).Status = TypeStatus.MetadataCompleted;
+
         // at this stage in the type initialization we will create some state that we
         // will use to transform the schema authorization.
         var state = _state = CreateState();
@@ -99,18 +121,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         FindFieldsAndApplyAuthMiddleware(state);
     }
 
-    public override void OnAfterResolveRootType(
-        ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
-        OperationType operationType)
-    {
-        if (operationType is OperationType.Query)
-        {
-            _queryContext = completionContext;
-        }
-    }
-
-    public override void OnBeforeCompleteType(
+    public override void OnBeforeCompleteMetadata(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
@@ -130,28 +141,30 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             var objectType = (ObjectType)type.TypeReg.Type;
 
-            if (objectType.ContextData.TryGetValue(NodeResolver, out var o) &&
-                o is NodeResolverInfo nodeResolverInfo)
+            if (!objectType.ContextData.TryGetValue(NodeResolver, out var o)
+                || o is not NodeResolverInfo nodeResolverInfo)
             {
-                var pipeline = nodeResolverInfo.Pipeline;
-                var directives = (DirectiveCollection)objectType.Directives;
-                var length = directives.Count;
-                ref var start = ref directives.GetReference();
-
-                for (var i = length - 1; i >= 0; i--)
-                {
-                    var directive = Unsafe.Add(ref start, i);
-
-                    if (directive.Type.Name.EqualsOrdinal(Authorize))
-                    {
-                        var authDir = directive.AsValue<AuthorizeDirective>();
-                        pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
-                    }
-                }
-
-                type.TypeDef.ContextData[NodeResolver] =
-                    new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline);
+                continue;
             }
+
+            var pipeline = nodeResolverInfo.Pipeline;
+            var directives = (DirectiveCollection)objectType.Directives;
+            var length = directives.Count;
+            ref var start = ref directives.GetReference();
+
+            for (var i = length - 1; i >= 0; i--)
+            {
+                var directive = Unsafe.Add(ref start, i);
+
+                if (directive.Type.Name.EqualsOrdinal(Authorize))
+                {
+                    var authDir = directive.AsValue<AuthorizeDirective>();
+                    pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+                }
+            }
+
+            type.TypeDef.ContextData[NodeResolver] =
+                new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline);
         }
     }
 
@@ -159,72 +172,76 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         foreach (var type in _objectTypes)
         {
-            if (IsAuthorizedType(type.TypeDef))
+            if (!IsAuthorizedType(type.TypeDef))
             {
-                var registration = type.TypeReg;
-                var mainTypeRef = registration.TypeReference;
+                continue;
+            }
 
-                // if this type is a root type we will copy type level auth down to the field.
-                if (registration.IsQueryType == true ||
-                    registration.IsMutationType == true ||
-                    registration.IsSubscriptionType == true)
+            var registration = type.TypeReg;
+            var mainTypeRef = registration.TypeReference;
+
+            // if this type is a root type we will copy type level auth down to the field.
+            if (registration.IsQueryType == true ||
+                registration.IsMutationType == true ||
+                registration.IsSubscriptionType == true)
+            {
+                foreach (var fieldDef in type.TypeDef.Fields)
                 {
-                    foreach (var fieldDef in type.TypeDef.Fields)
+                    // we are not interested in introspection fields or the node fields.
+                    if (fieldDef.IsIntrospectionField || fieldDef.IsNodeField())
                     {
-                        // we are not interested in introspection fields or the node fields.
-                        if (fieldDef.IsIntrospectionField || fieldDef.IsNodeField())
-                        {
-                            continue;
-                        }
-
-                        // if the field contains the AnonymousAllowed flag we will not
-                        // apply authorization on it.
-                        if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
-                        {
-                            continue;
-                        }
-
-                        ApplyAuthMiddleware(fieldDef, registration, false);
+                        continue;
                     }
-                }
 
-                foreach (var reference in registration.References)
-                {
-                    state.AuthTypes.Add(reference);
-                    state.NeedsAuth.Add(reference);
-                }
+                    // if the field contains the AnonymousAllowed flag we will not
+                    // apply authorization on it.
+                    if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+                    {
+                        continue;
+                    }
 
-                if (type.TypeDef.HasInterfaces)
-                {
-                    CollectInterfaces(
-                        type.TypeDef.GetInterfaces(),
-                        interfaceTypeRef =>
-                        {
-                            if (_typeRegistry.TryGetType(
-                                interfaceTypeRef,
-                                out var interfaceTypeReg))
-                            {
-                                foreach (var typeRef in interfaceTypeReg.References)
-                                {
-                                    state.NeedsAuth.Add(typeRef);
-
-                                    if (!state.AbstractToConcrete.TryGetValue(
-                                        typeRef,
-                                        out var authTypeRefs))
-                                    {
-                                        authTypeRefs = [];
-                                        state.AbstractToConcrete.Add(typeRef, authTypeRefs);
-                                    }
-
-                                    authTypeRefs.Add(mainTypeRef);
-                                }
-                            }
-                        },
-                        state);
-
-                    state.Completed.Clear();
+                    ApplyAuthMiddleware(fieldDef, registration, false);
                 }
             }
+
+            foreach (var reference in registration.References)
+            {
+                state.AuthTypes.Add(reference);
+                state.NeedsAuth.Add(reference);
+            }
+
+            if (!type.TypeDef.HasInterfaces)
+            {
+                continue;
+            }
+
+            CollectInterfaces(
+                type.TypeDef.GetInterfaces(),
+                interfaceTypeRef =>
+                {
+                    if (_typeRegistry.TryGetType(
+                        interfaceTypeRef,
+                        out var interfaceTypeReg))
+                    {
+                        foreach (var typeRef in interfaceTypeReg.References)
+                        {
+                            state.NeedsAuth.Add(typeRef);
+
+                            if (!state.AbstractToConcrete.TryGetValue(
+                                typeRef,
+                                out var authTypeRefs))
+                            {
+                                authTypeRefs = [];
+                                state.AbstractToConcrete.Add(typeRef, authTypeRefs);
+                            }
+
+                            authTypeRefs.Add(mainTypeRef);
+                        }
+                    }
+                },
+                state);
+
+            state.Completed.Clear();
         }
     }
 
@@ -623,7 +640,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 }
 
-static file class AuthorizationTypeInterceptorExtensions
+file static class AuthorizationTypeInterceptorExtensions
 {
     public static bool IsNodeField(this ObjectFieldDefinition fieldDef)
     {

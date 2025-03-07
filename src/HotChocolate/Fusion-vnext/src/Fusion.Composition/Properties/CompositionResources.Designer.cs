@@ -789,6 +789,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_RequireInvalidFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireInvalidFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;field&apos; argument..
         /// </summary>
         internal static string LogEntryHelper_RequireInvalidFieldType {
