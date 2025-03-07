@@ -441,6 +441,15 @@ public class OptimizedNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
+    {
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+
+        Assert.Throws<NodeIdInvalidFormatException>(
+            () => serializer.Parse("Rm9vOkJhcg", typeof(string)));
+    }
+
+    [Fact]
     public void Ensure_Lookup_Works_With_HashCollision()
     {
         // arrange
