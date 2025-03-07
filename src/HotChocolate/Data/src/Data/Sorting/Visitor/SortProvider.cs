@@ -23,6 +23,7 @@ public abstract class SortProvider<TContext>
     private readonly List<ISortOperationHandler<TContext>> _operationHandlers = [];
 
     private Action<ISortProviderDescriptor<TContext>>? _configure;
+    private ISortConvention? _sortConvention;
 
     protected SortProvider()
     {
@@ -63,8 +64,9 @@ public abstract class SortProvider<TContext>
         return descriptor.CreateDefinition();
     }
 
-    void ISortProviderConvention.Initialize(IConventionContext context)
+    void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
     {
+        _sortConvention = convention;
         base.Initialize(context);
     }
 
@@ -86,11 +88,20 @@ public abstract class SortProvider<TContext>
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
 
+        if (_sortConvention is null)
+        {
+            throw SortConvention_ProviderHasToBeInitializedByConvention(
+                GetType(),
+                context.Scope);
+        }
+
         var services = new CombinedServiceProvider(
             new DictionaryServiceProvider(
                 (typeof(ISortProvider), this),
                 (typeof(IConventionContext), context),
                 (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ISortConvention), _sortConvention),
+                (typeof(InputParser), context.DescriptorContext.InputParser),
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
