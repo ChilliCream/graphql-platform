@@ -56,13 +56,20 @@ public sealed class RequireInvalidFieldsRuleTests : CompositionTestBase
             {
                 [
                     """
+                    # Schema A
                     type User @key(fields: "id") {
                         id: ID!
-                        name: String!
                         profile(name: String! @require(field: "name")): Profile
                     }
 
                     type Profile {
+                        id: ID!
+                        name: String
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type User @key(fields: "id") {
                         id: ID!
                         name: String
                     }
