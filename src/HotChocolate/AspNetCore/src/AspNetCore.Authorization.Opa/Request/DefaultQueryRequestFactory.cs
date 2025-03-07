@@ -23,7 +23,6 @@ internal sealed class DefaultQueryRequestFactory : IOpaQueryRequestFactory
     public OpaQueryRequest CreateRequest(OpaAuthorizationHandlerContext context, AuthorizeDirective directive)
     {
         ArgumentNullException.ThrowIfNull(context);
-
         ArgumentNullException.ThrowIfNull(directive);
 
         var httpContext =
