@@ -106,7 +106,7 @@ internal sealed class SourceSchemaValidator(
         foreach (var keyDirective in keyDirectives)
         {
             if (!keyDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
-                || f is not StringValueNode fields)
+                || f is not StringValueNode fieldsArgument)
             {
                 PublishEvent(
                     new KeyFieldsInvalidTypeEvent(keyDirective, entityType, schema),
@@ -117,7 +117,7 @@ internal sealed class SourceSchemaValidator(
 
             try
             {
-                var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+                var selectionSet = Syntax.ParseSelectionSet($"{{{fieldsArgument.Value}}}");
 
                 PublishKeyFieldEvents(
                     selectionSet,
@@ -222,7 +222,7 @@ internal sealed class SourceSchemaValidator(
         var providesDirective = field.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Provides);
 
         if (!providesDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
-            || f is not StringValueNode fields)
+            || f is not StringValueNode fieldsArgument)
         {
             PublishEvent(
                 new ProvidesFieldsInvalidTypeEvent(providesDirective, field, type, schema),
@@ -233,7 +233,7 @@ internal sealed class SourceSchemaValidator(
 
         try
         {
-            var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+            var selectionSet = Syntax.ParseSelectionSet($"{{{fieldsArgument.Value}}}");
 
             PublishProvidesFieldEvents(
                 selectionSet,
@@ -335,11 +335,11 @@ internal sealed class SourceSchemaValidator(
     {
         var requireDirective = argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Require);
 
-        if (!requireDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
-            || f is not StringValueNode fields)
+        if (!requireDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
+            || f is not StringValueNode fieldArgument)
         {
             PublishEvent(
-                new RequireFieldsInvalidTypeEvent(requireDirective, argument, field, type, schema),
+                new RequireFieldInvalidTypeEvent(requireDirective, argument, field, type, schema),
                 context);
 
             return;
@@ -347,7 +347,7 @@ internal sealed class SourceSchemaValidator(
 
         try
         {
-            var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+            var selectionSet = Syntax.ParseSelectionSet($"{{{fieldArgument.Value}}}");
 
             PublishRequireFieldEvents(
                 selectionSet,
@@ -362,7 +362,7 @@ internal sealed class SourceSchemaValidator(
         catch (SyntaxException)
         {
             PublishEvent(
-                new RequireFieldsInvalidSyntaxEvent(
+                new RequireFieldInvalidSyntaxEvent(
                     requireDirective,
                     argument,
                     field,

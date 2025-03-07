@@ -6,15 +6,15 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
 /// The <c>@require</c> directive is used to specify fields on the same type that an argument
-/// depends on in order to resolve the annotated field. When using <c>@require(fields: "…")</c>, the
-/// <c>fields</c> argument must be a valid selection set string <b>without</b> any additional
+/// depends on in order to resolve the annotated field. When using <c>@require(field: "…")</c>, the
+/// <c>field</c> argument must be a valid selection set string <b>without</b> any additional
 /// directive applications. Applying a directive (e.g., <c>@lowercase</c>) inside this selection set
-/// is not supported and triggers the <c>REQUIRE_DIRECTIVE_IN_FIELDS_ARG</c> error.
+/// is not supported and triggers the <c>REQUIRE_DIRECTIVE_IN_FIELD_ARG</c> error.
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Require-Directive-in-Fields-Argument">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Require-Directive-in-Field-Argument">
 /// Specification
 /// </seealso>
-internal sealed class RequireDirectiveInFieldsArgumentRule : IEventHandler<RequireFieldNodeEvent>
+internal sealed class RequireDirectiveInFieldArgumentRule : IEventHandler<RequireFieldNodeEvent>
 {
     public void Handle(RequireFieldNodeEvent @event, CompositionContext context)
     {
@@ -23,7 +23,7 @@ internal sealed class RequireDirectiveInFieldsArgumentRule : IEventHandler<Requi
         if (fieldNode.Directives.Count != 0)
         {
             context.Log.Write(
-                RequireDirectiveInFieldsArgument(
+                RequireDirectiveInFieldArgument(
                     fieldNamePath,
                     requireDirective,
                     argument.Name,

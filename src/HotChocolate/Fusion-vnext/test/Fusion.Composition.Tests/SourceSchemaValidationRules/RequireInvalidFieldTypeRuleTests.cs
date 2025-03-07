@@ -3,9 +3,9 @@ using HotChocolate.Fusion.Logging;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class RequireInvalidFieldsTypeRuleTests : CompositionTestBase
+public sealed class RequireInvalidFieldTypeRuleTests : CompositionTestBase
 {
-    private static readonly object s_rule = new RequireInvalidFieldsTypeRule();
+    private static readonly object s_rule = new RequireInvalidFieldTypeRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
     private readonly CompositionLog _log = new();
 
@@ -39,7 +39,7 @@ public sealed class RequireInvalidFieldsTypeRuleTests : CompositionTestBase
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "REQUIRE_INVALID_FIELDS_TYPE"));
+        Assert.True(_log.All(e => e.Code == "REQUIRE_INVALID_FIELD_TYPE"));
         Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
 
@@ -47,14 +47,14 @@ public sealed class RequireInvalidFieldsTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In the following example, the @require directive’s "fields" argument is a valid
-            // string and satisfies the rule.
+            // In the following example, the @require directive’s "field" argument is a valid string
+            // and satisfies the rule.
             {
                 [
                     """
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(fields: "name")): Profile
+                        profile(name: String! @require(field: "name")): Profile
                     }
 
                     type Profile {
@@ -71,14 +71,14 @@ public sealed class RequireInvalidFieldsTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // Since "fields" is set to 123 (an integer) instead of a string, this violates the rule
-            // and triggers a REQUIRE_INVALID_FIELDS_TYPE error.
+            // Since "field" is set to 123 (an integer) instead of a string, this violates the rule
+            // and triggers a REQUIRE_INVALID_FIELD_TYPE error.
             {
                 [
                     """
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(fields: 123)): Profile
+                        profile(name: String! @require(field: 123)): Profile
                     }
 
                     type Profile {
@@ -89,7 +89,7 @@ public sealed class RequireInvalidFieldsTypeRuleTests : CompositionTestBase
                 ],
                 [
                     "The @require directive on argument 'User.profile(name:)' in schema 'A' must " +
-                    "specify a string value for the 'fields' argument."
+                    "specify a string value for the 'field' argument."
                 ]
             }
         };

@@ -47,14 +47,14 @@ public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In the following example, the @require directive’s "fields" argument is a valid
+            // In the following example, the @require directive’s "field" argument is a valid
             // selection map and satisfies the rule.
             {
                 [
                     """
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(fields: "name")): Profile
+                        profile(name: String! @require(field: "name")): Profile
                     }
 
                     type Profile {
@@ -71,14 +71,14 @@ public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In the following example, the @require directive’s "fields" argument has invalid
+            // In the following example, the @require directive’s "field" argument has invalid
             // syntax because it is missing a closing brace.
             {
                 [
                     """
                     type Book {
                         id: ID!
-                        title(lang: String! @require(fields: "author { name ")): String
+                        title(lang: String! @require(field: "author { name ")): String
                     }
 
                     type Author {
@@ -88,7 +88,7 @@ public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
                 ],
                 [
                     "The @require directive on argument 'Book.title(lang:)' in schema 'A' " +
-                    "contains invalid syntax in the 'fields' argument."
+                    "contains invalid syntax in the 'field' argument."
                 ]
             }
         };
