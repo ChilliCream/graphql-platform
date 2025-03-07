@@ -18,7 +18,8 @@ public class SortConvention
     : Convention<SortConventionDefinition>
     , ISortConvention
 {
-    private const string _typePostFix = "SortInput";
+    private const string _inputPostFix = "SortInput";
+    private const string _inputTypePostFix = "SortInputType";
 
     private Action<ISortConventionDescriptor>? _configure;
     private INamingConventions _namingConventions = default!;
@@ -113,7 +114,7 @@ public class SortConvention
         {
             var extensions =
                 CollectExtensions(context.Services, Definition);
-            init.Initialize(context);
+            init.Initialize(context, this);
             MergeExtensions(context, init, extensions);
             init.Complete(context);
         }
@@ -126,8 +127,31 @@ public class SortConvention
     }
 
     /// <inheritdoc />
-    public virtual string GetTypeName(Type runtimeType) =>
-        _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
+    public virtual string GetTypeName(Type runtimeType)
+    {
+        var name = _namingConventions.GetTypeName(runtimeType);
+
+        var isInputObjectType = typeof(SortInputType).IsAssignableFrom(runtimeType);
+        var isEndingInput = name.EndsWith(_inputPostFix, StringComparison.Ordinal);
+        var isEndingInputType = name.EndsWith(_inputTypePostFix, StringComparison.Ordinal);
+
+        if (isInputObjectType && isEndingInputType)
+        {
+            return name[..^4];
+        }
+
+        if (isInputObjectType && !isEndingInput && !isEndingInputType)
+        {
+            return name + _inputPostFix;
+        }
+
+        if (!isInputObjectType && !isEndingInput)
+        {
+            return name + _inputPostFix;
+        }
+
+        return name;
+    }
 
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type runtimeType) =>
@@ -315,7 +339,7 @@ public class SortConvention
         return extensions;
     }
 
-    private static void MergeExtensions(
+    private void MergeExtensions(
         IConventionContext context,
         ISortProviderConvention provider,
         IReadOnlyList<ISortProviderExtension> extensions)
@@ -329,7 +353,7 @@ public class SortConvention
         {
             if (extensions[m] is ISortProviderConvention extensionConvention)
             {
-                extensionConvention.Initialize(context);
+                extensionConvention.Initialize(context, this);
                 extensions[m].Merge(context, providerConvention);
                 extensionConvention.Complete(context);
             }
