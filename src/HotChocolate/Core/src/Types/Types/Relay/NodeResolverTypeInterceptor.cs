@@ -175,7 +175,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnAfterCompleteTypes()
+    public override void OnAfterMakeExecutable()
     {
         if (QueryType is not null && _nodes.Count > 0)
         {

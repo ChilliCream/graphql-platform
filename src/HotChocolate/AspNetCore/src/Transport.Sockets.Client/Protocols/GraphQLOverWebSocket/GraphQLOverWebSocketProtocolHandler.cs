@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
@@ -153,35 +154,33 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         {
             if (!_completed)
             {
-                Task.Factory.StartNew(
-                    async () =>
-                    {
-                        using var cts = new CancellationTokenSource(2000);
-
-                        try
-                        {
-                            if (socket.IsOpen())
-                            {
-                                await socket.SendCompleteMessageAsync(id, cts.Token);
-                            }
-                        }
-                        catch
-                        {
-                            // if we cannot send the complete message we will just abort the socket.
-                            try
-                            {
-                                socket.Abort();
-                            }
-                            catch
-                            {
-                                // ignore
-                            }
-                        }
-                    },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    TaskScheduler.Default);
+                TrySendCompleteMessageInternalAsync(socket, id).FireAndForget();
                 _completed = true;
+            }
+        }
+    }
+
+    private static async Task TrySendCompleteMessageInternalAsync(WebSocket socket, string id)
+    {
+        using var cts = new CancellationTokenSource(2000);
+
+        try
+        {
+            if (socket.IsOpen())
+            {
+                await socket.SendCompleteMessageAsync(id, cts.Token);
+            }
+        }
+        catch
+        {
+            // if we cannot send the complete message we will just abort the socket.
+            try
+            {
+                socket.Abort();
+            }
+            catch
+            {
+                // ignore
             }
         }
     }

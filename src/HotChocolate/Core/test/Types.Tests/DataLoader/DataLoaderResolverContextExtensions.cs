@@ -6,6 +6,7 @@ namespace HotChocolate.Resolvers;
 
 public class DataLoaderResolverContextExtensionsTests
 {
+    [Obsolete]
     [Fact]
     public void BatchDataLoader_1_ContextNull_ArgNullException()
     {
@@ -23,6 +24,7 @@ public class DataLoaderResolverContextExtensionsTests
         Assert.Throws<ArgumentNullException>(a);
     }
 
+    [Obsolete]
     [Fact]
     public void BatchDataLoader_1_FetchNull_ArgNullException()
     {
@@ -40,6 +42,7 @@ public class DataLoaderResolverContextExtensionsTests
         Assert.Throws<ArgumentNullException>(a);
     }
 
+    [Obsolete]
     [Fact]
     public void GroupDataLoader_1_ContextNull_ArgNullException()
     {
@@ -58,6 +61,7 @@ public class DataLoaderResolverContextExtensionsTests
         Assert.Throws<ArgumentNullException>(a);
     }
 
+    [Obsolete]
     [Fact]
     public void GroupDataLoader_1_FetchNull_ArgNullException()
     {
@@ -75,6 +79,7 @@ public class DataLoaderResolverContextExtensionsTests
         Assert.Throws<ArgumentNullException>(a);
     }
 
+    [Obsolete]
     [Fact]
     public void CacheDataLoader_1_ContextNull_ArgNullException()
     {
@@ -91,6 +96,7 @@ public class DataLoaderResolverContextExtensionsTests
         Assert.Throws<ArgumentNullException>(a);
     }
 
+    [Obsolete]
     [Fact]
     public void CacheDataLoader_1_FetchNull_ArgNullException()
     {
@@ -108,6 +114,7 @@ public class DataLoaderResolverContextExtensionsTests
         Assert.Throws<ArgumentNullException>(a);
     }
 
+    [Obsolete]
     [Fact]
     public void FetchOnceAsync_1_ContextNull_ArgNullException()
     {
@@ -123,6 +130,7 @@ public class DataLoaderResolverContextExtensionsTests
         Assert.Throws<ArgumentNullException>(a);
     }
 
+    [Obsolete]
     [Fact]
     public void FetchOnceAsync_1_FetchNull_ArgNullException()
     {

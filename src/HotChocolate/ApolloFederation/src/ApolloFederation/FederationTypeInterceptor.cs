@@ -338,7 +338,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             definition);
     }
 
-    public override void OnAfterCompleteType(
+    public override void OnAfterMakeExecutable(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
@@ -349,8 +349,6 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             CompleteReferenceResolver(typeDef);
         }
     }
-
-    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema) { }
 
     private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeDefinition typeDef)
         => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeDef);

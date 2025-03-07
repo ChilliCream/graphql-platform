@@ -101,9 +101,18 @@ internal sealed class TypeInitializer
         // before we start completing types we will compile the resolvers.
         CompileResolvers();
 
-        // last we complete the types. Completing types means that we will assign all
-        // the fields resolving all missing parts and then making the types immutable.
+        // now we complete the types. This means at this point we are completing
+        // the type structure. Fields and arguments will be accessible after
+        // types are completed.
         CompleteTypes();
+
+        // next we are completing type system directives and feature metadata.
+        CompleteMetadata();
+
+        // before we can finalize the types and make the immutable we are going to make the
+        // types executable. This means that at this point we are taking the compiled resolvers
+        // and are compiling from them field middleware that are assigned to the output fields.
+        MakeExecutable();
 
         // at this point everything is completely initialized, and we just trigger a type
         // finalize to allow the type to clean up any initialization data structures.
@@ -574,16 +583,19 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypes();
 
-        ProcessTypes(Completed, type => CompleteType(type));
+        if(ProcessTypes(Completed, type => CompleteType(type)))
+        {
+            _interceptor.OnTypesCompleted();
+        }
+
         EnsureNoErrors();
 
-        _interceptor.OnTypesCompleted();
         _interceptor.OnAfterCompleteTypes();
     }
 
     internal bool CompleteType(RegisteredType registeredType)
     {
-        if (registeredType.Status is TypeStatus.Completed)
+        if (registeredType.Type.IsCompleted)
         {
             return true;
         }
@@ -597,6 +609,42 @@ internal sealed class TypeInitializer
         return true;
     }
 
+    private void CompleteMetadata()
+    {
+        _interceptor.OnBeforeCompleteMetadata();
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (registeredType is { IsExtension: false, Status: TypeStatus.Completed })
+            {
+                registeredType.Type.CompleteMetadata(registeredType);
+                registeredType.Status = TypeStatus.MetadataCompleted;
+            }
+        }
+
+        EnsureNoErrors();
+
+        _interceptor.OnAfterCompleteMetadata();
+    }
+
+    private void MakeExecutable()
+    {
+        _interceptor.OnBeforeMakeExecutable();
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (!registeredType.IsExtension)
+            {
+                registeredType.Type.MakeExecutable(registeredType);
+                registeredType.Status = TypeStatus.Executable;
+            }
+        }
+
+        EnsureNoErrors();
+
+        _interceptor.OnAfterMakeExecutable();
+    }
+
     private void FinalizeTypes()
     {
         foreach (var registeredType in _typeRegistry.Types)
@@ -604,8 +652,11 @@ internal sealed class TypeInitializer
             if (!registeredType.IsExtension)
             {
                 registeredType.Type.FinalizeType(registeredType);
+                registeredType.Status = TypeStatus.Finalized;
             }
         }
+
+        EnsureNoErrors();
     }
 
     private bool ProcessTypes(

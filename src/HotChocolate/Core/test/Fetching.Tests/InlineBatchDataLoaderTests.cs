@@ -83,6 +83,7 @@ public class InlineBatchDataLoaderTests
 
     public class Query
     {
+        [Obsolete]
         public async Task<string> GetByKey(string key, IResolverContext context)
         {
             return await context
@@ -97,6 +98,7 @@ public class InlineBatchDataLoaderTests
 
     public class Query2
     {
+        [Obsolete]
         public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context.BatchAsync(FetchAsync, key);

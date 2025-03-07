@@ -17,12 +17,19 @@
       }
     },
     {
-      "label": "Build src/All.sln",
+      "type": "dotnet",
+      "task": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "dotnet: build"
+    },
+    {
+      "label": "Build src/All.slnx",
       "command": "dotnet",
       "type": "shell",
       "args": [
         "build",
-        "src/All.sln",
+        "src/All.slnx",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -49,12 +56,12 @@
       "problemMatcher": "$msCompile"
     },
     {
-      "label": "Test src/All.sln",
+      "label": "Test src/All.slnx",
       "command": "dotnet",
       "type": "shell",
       "args": [
         "test",
-        "src/All.sln",
+        "src/All.slnx",
         "--verbosity q",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
@@ -64,6 +71,6 @@
         "reveal": "silent"
       },
       "problemMatcher": "$msCompile"
-    },
+    }
   ]
 }

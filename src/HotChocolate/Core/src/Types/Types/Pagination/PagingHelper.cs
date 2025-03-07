@@ -68,6 +68,7 @@ public static class PagingHelper
 
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] = new(middleware, key: Paging);
+        definition.ContextData[WellKnownContextData.PagingOptions] = options;
     }
 
     private static IExtendedType GetSourceType(

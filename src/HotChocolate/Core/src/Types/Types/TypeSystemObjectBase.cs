@@ -68,13 +68,37 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
     protected internal bool IsInitialized
-        => _status is TypeStatus.Initialized or TypeStatus.Named or TypeStatus.Completed;
+        => _status is TypeStatus.Initialized
+            or TypeStatus.Named
+            or TypeStatus.Completed
+            or TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
 
     protected internal bool IsNamed
-        => _status is TypeStatus.Named or TypeStatus.Completed;
+        => _status is TypeStatus.Named
+            or TypeStatus.Completed
+            or TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
 
     protected internal bool IsCompleted
-        => _status is TypeStatus.Completed;
+        => _status is TypeStatus.Completed
+            or TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
+
+    protected internal bool IsMetadataCompleted
+        => _status is TypeStatus.MetadataCompleted
+            or TypeStatus.Executable
+            or TypeStatus.Finalized;
+
+    protected internal bool IsExecutable
+        => _status is TypeStatus.Executable
+            or TypeStatus.Finalized;
+
+    protected internal bool IsSealed
+        => _status is TypeStatus.Finalized;
 
     /// <summary>
     /// The type configuration is created and dependencies are registered.
@@ -93,7 +117,7 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     }
 
     /// <summary>
-    /// All type properties are set and the type settings are completed.
+    /// All type properties are set and the type structure is completed.
     /// </summary>
     internal virtual void CompleteType(ITypeCompletionContext context)
     {
@@ -101,17 +125,36 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     }
 
     /// <summary>
+    /// All type system directive are completed.
+    /// </summary>
+    internal virtual void CompleteMetadata(ITypeCompletionContext context)
+    {
+        MarkMetadataCompleted();
+    }
+
+    /// <summary>
+    /// All resolvers are compiled and the schema becomes executable.
+    /// </summary>
+    internal virtual void MakeExecutable(ITypeCompletionContext context)
+    {
+        MarkExecutable();
+    }
+
+    /// <summary>
+    /// <para>
     /// All types are completed at this point and the type can clean up any
     /// temporary data structures.
-    ///
+    /// </para>
+    /// <para>
     /// This step is mainly to cleanup.
+    /// </para>
     /// </summary>
     internal virtual void FinalizeType(ITypeCompletionContext context)
     {
         MarkFinalized();
     }
 
-    protected void MarkInitialized()
+    private protected void MarkInitialized()
     {
         Debug.Assert(_status == TypeStatus.Uninitialized);
 
@@ -123,7 +166,7 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
         _status = TypeStatus.Initialized;
     }
 
-    protected void MarkNamed()
+    private protected void MarkNamed()
     {
         Debug.Assert(_status == TypeStatus.Initialized);
 
@@ -135,7 +178,7 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
         _status = TypeStatus.Named;
     }
 
-    protected void MarkCompleted()
+    private protected void MarkCompleted()
     {
         Debug.Assert(_status == TypeStatus.Named);
 
@@ -147,11 +190,35 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
         _status = TypeStatus.Completed;
     }
 
-    protected void MarkFinalized()
+    private protected void MarkMetadataCompleted()
     {
         Debug.Assert(_status == TypeStatus.Completed);
 
         if (_status != TypeStatus.Completed)
+        {
+            throw new InvalidOperationException();
+        }
+
+        _status = TypeStatus.MetadataCompleted;
+    }
+
+    private protected void MarkExecutable()
+    {
+        Debug.Assert(_status == TypeStatus.MetadataCompleted);
+
+        if (_status != TypeStatus.MetadataCompleted)
+        {
+            throw new InvalidOperationException();
+        }
+
+        _status = TypeStatus.Executable;
+    }
+
+    private protected void MarkFinalized()
+    {
+        Debug.Assert(_status == TypeStatus.Executable);
+
+        if (_status != TypeStatus.Executable)
         {
             throw new InvalidOperationException();
         }

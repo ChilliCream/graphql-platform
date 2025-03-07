@@ -1,5 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
@@ -31,7 +32,7 @@ public class OutputFieldBase : FieldBase, IOutputField
     IFieldCollection<IInputField> IOutputFieldInfo.Arguments => Arguments;
 
     /// <summary>
-    /// Defines if this field as a introspection field.
+    /// Defines if this field as an introspection field.
     /// </summary>
     public bool IsIntrospectionField
         => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
@@ -64,6 +65,7 @@ public class OutputFieldBase : FieldBase, IOutputField
         Arguments = OnCompleteFields(context, definition);
     }
 
+    // TODO: V15: should be renamed to OnCompleteArguments
     protected virtual FieldCollection<Argument> OnCompleteFields(
         ITypeCompletionContext context,
         OutputFieldDefinitionBase definition)
@@ -71,6 +73,63 @@ public class OutputFieldBase : FieldBase, IOutputField
         return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
         static Argument CreateArgument(ArgumentDefinition argDef, int index)
             => new(argDef, index);
+    }
+
+    protected sealed override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+        => OnCompleteMetadata(context, declaringMember, (OutputFieldDefinitionBase)definition);
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldDefinitionBase definition)
+    {
+        base.OnCompleteMetadata(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.CompleteMetadata(context, this);
+        }
+    }
+
+    protected sealed override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+        => OnMakeExecutable(context, declaringMember, (OutputFieldDefinitionBase)definition);
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldDefinitionBase definition)
+    {
+        base.OnMakeExecutable(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.MakeExecutable(context, this);
+        }
+    }
+
+    protected sealed override void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+        => OnFinalizeField(context, declaringMember, (OutputFieldDefinitionBase)definition);
+
+    protected virtual void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldDefinitionBase definition)
+    {
+        base.OnFinalizeField(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.Finalize(context, this);
+        }
     }
 
     /// <summary>
