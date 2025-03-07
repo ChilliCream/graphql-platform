@@ -25,11 +25,8 @@ public sealed class OpaQueryRequest
         object? extensions = null)
     {
         ArgumentNullException.ThrowIfNull(policy);
-
         ArgumentNullException.ThrowIfNull(request);
-
         ArgumentNullException.ThrowIfNull(source);
-
         ArgumentNullException.ThrowIfNull(destination);
 
         Input = new OpaQueryRequestInput(policy, request, source, destination, extensions);
