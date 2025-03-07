@@ -681,6 +681,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The non-null input field &apos;{0}&apos; in schema &apos;{1}&apos; must be accessible in the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_NonNullInputFieldIsInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_NonNullInputFieldIsInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The merged query type has no accessible fields..
         /// </summary>
         internal static string LogEntryHelper_NoQueries {
