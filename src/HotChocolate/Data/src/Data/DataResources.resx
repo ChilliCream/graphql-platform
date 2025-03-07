@@ -238,6 +238,9 @@
   <data name="FilterConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
     <value>The filter provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a FilterConvention</value>
   </data>
+  <data name="SortConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
+    <value>The sort provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a SortConvention</value>
+  </data>
   <data name="UseProjection_CannotHandleType" xml:space="preserve">
     <value>Cannot handle the specified type.</value>
   </data>
