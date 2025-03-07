@@ -1,0 +1,14 @@
+schema @schemaName(value: "Schema2") {
+  query: Query
+}
+
+type Query {
+  userByUsername(username: String!): User! @lookup # Warning: LOOKUP_RETURNS_NON_NULLABLE_TYPE
+}
+
+type User {
+  username: String!
+}
+
+directive @schemaName(value: String!) on SCHEMA
+directive @lookup on FIELD_DEFINITION

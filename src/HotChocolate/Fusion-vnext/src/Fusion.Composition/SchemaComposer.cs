@@ -97,8 +97,8 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
-        new RequireDirectiveInFieldsArgumentRule(),
-        new RequireInvalidFieldsTypeRule(),
+        new RequireDirectiveInFieldArgumentRule(),
+        new RequireInvalidFieldTypeRule(),
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
@@ -126,6 +126,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
         new InterfaceFieldNoImplementationRule(),
-        new NoQueriesRule()
+        new NoQueriesRule(),
+        new RequireInvalidFieldsRule()
     ];
 }

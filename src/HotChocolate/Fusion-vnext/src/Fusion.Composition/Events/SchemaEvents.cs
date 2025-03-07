@@ -102,23 +102,23 @@ internal record ProvidesFieldsInvalidTypeEvent(
     MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
+internal record RequireFieldInvalidSyntaxEvent(
+    Directive RequireDirective,
+    MutableInputFieldDefinition Argument,
+    MutableOutputFieldDefinition Field,
+    MutableComplexTypeDefinition Type,
+    MutableSchemaDefinition Schema) : IEvent;
+
+internal record RequireFieldInvalidTypeEvent(
+    Directive RequireDirective,
+    MutableInputFieldDefinition Argument,
+    MutableOutputFieldDefinition Field,
+    MutableComplexTypeDefinition Type,
+    MutableSchemaDefinition Schema) : IEvent;
+
 internal record RequireFieldNodeEvent(
     FieldNode FieldNode,
     ImmutableArray<string> FieldNamePath,
-    Directive RequireDirective,
-    MutableInputFieldDefinition Argument,
-    MutableOutputFieldDefinition Field,
-    MutableComplexTypeDefinition Type,
-    MutableSchemaDefinition Schema) : IEvent;
-
-internal record RequireFieldsInvalidSyntaxEvent(
-    Directive RequireDirective,
-    MutableInputFieldDefinition Argument,
-    MutableOutputFieldDefinition Field,
-    MutableComplexTypeDefinition Type,
-    MutableSchemaDefinition Schema) : IEvent;
-
-internal record RequireFieldsInvalidTypeEvent(
     Directive RequireDirective,
     MutableInputFieldDefinition Argument,
     MutableOutputFieldDefinition Field,
