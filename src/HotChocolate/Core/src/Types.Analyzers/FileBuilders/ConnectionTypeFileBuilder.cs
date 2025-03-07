@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -33,6 +34,22 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     connectionType.Resolvers.Any(t => t.RequiresParameterBindings)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
                         : "var resolvers = new __Resolvers();");
+            }
+
+            if (connectionType.RuntimeType.IsGenericType
+                && !string.IsNullOrEmpty(connectionType.NameFormat))
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor");
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine(
+                        ".Name(t => string.Format(\"{0}\", t.Name));",
+                        connectionType.NameFormat);
+                    Writer.WriteIndentedLine(
+                        ".DependsOn(typeof({0}));",
+                        connectionType.RuntimeType.TypeArguments[0].ToFullyQualified());
+                }
             }
 
             WriteResolverBindings(connectionType);

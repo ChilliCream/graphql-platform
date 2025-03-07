@@ -5,6 +5,80 @@ namespace HotChocolate.Types.Analyzers;
 
 public static class KnownSymbols
 {
+    public static bool TryGetConnectionNameFromResolver(
+        this Compilation compilation,
+        ISymbol resolver,
+        [NotNullWhen(true)] out string? name)
+    {
+        var useConnectionAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.UseConnectionAttribute);
+
+        if (useConnectionAttribute is null)
+        {
+            name = null;
+            return false;
+        }
+
+        const string connectionName = "ConnectionName";
+        const string connection = "Connection";
+
+        foreach (var attributeData in resolver.GetAttributes())
+        {
+            if (!SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, useConnectionAttribute))
+            {
+                continue;
+            }
+
+            foreach (var namedArg in attributeData.NamedArguments)
+            {
+                if (namedArg is { Key: connectionName, Value.Value: string namedValue })
+                {
+                    if (namedValue.EndsWith(connection))
+                    {
+                        namedValue = namedValue[..^connection.Length];
+                    }
+
+                    name = namedValue;
+                    return true;
+                }
+            }
+        }
+
+        name = null;
+        return false;
+    }
+
+    public static bool TryGetGraphQLTypeName(
+        this Compilation compilation,
+        ISymbol symbol,
+        [NotNullWhen(true)] out string? name)
+    {
+        var graphQLNameAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLNameAttribute);
+
+        if (graphQLNameAttribute is null)
+        {
+            name = null;
+            return false;
+        }
+
+        foreach (var attributeData in symbol.GetAttributes())
+        {
+            if (!SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, graphQLNameAttribute))
+            {
+                continue;
+            }
+
+            if (attributeData.ConstructorArguments.Length > 0 &&
+                attributeData.ConstructorArguments[0].Value is string attributeValue)
+            {
+                name = attributeValue;
+                return true;
+            }
+        }
+
+        name = null;
+        return false;
+    }
+
     public static INamedTypeSymbol GetConnectionBaseSymbol(this GeneratorSyntaxContext context)
         => context.SemanticModel.Compilation.GetConnectionBaseSymbol();
 

@@ -12,7 +12,7 @@ using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
+public class ObjectTypeInspector : ISyntaxInspector
 {
     public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
 

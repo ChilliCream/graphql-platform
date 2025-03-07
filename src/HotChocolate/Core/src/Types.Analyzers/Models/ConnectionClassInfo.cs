@@ -97,7 +97,7 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                         continue;
                     }
 
-                    resolvers.Add(ObjectTypeExtensionInfoInspector.CreateResolver(compilation, runtimeType, method, name));
+                    resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, name));
                     break;
 
                 case IPropertySymbol property:
@@ -125,7 +125,7 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                             property,
                             ResolverResultKind.Pure,
                             ImmutableArray<ResolverParameter>.Empty,
-                            ObjectTypeExtensionInfoInspector.GetMemberBindings(member),
+                            ObjectTypeInspector.GetMemberBindings(member),
                             flags: flags));
                     break;
             }

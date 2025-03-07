@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static HotChocolate.Types.Analyzers.Inspectors.ObjectTypeExtensionInfoInspector;
+using static HotChocolate.Types.Analyzers.Inspectors.ObjectTypeInspector;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
@@ -12,11 +12,13 @@ public sealed class ConnectionTypeInfo
 {
     private ConnectionTypeInfo(
         string name,
+        string? nameFormat,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
         ImmutableArray<Resolver> resolvers)
     {
         Name = name;
+        NameFormat = nameFormat;
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         RuntimeType = runtimeType;
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
@@ -25,6 +27,8 @@ public sealed class ConnectionTypeInfo
     }
 
     public string Name { get; }
+
+    public string? NameFormat { get; }
 
     public string Namespace { get; }
 
@@ -78,12 +82,14 @@ public sealed class ConnectionTypeInfo
     public override int GetHashCode()
         => HashCode.Combine(OrderByKey, ClassDeclaration);
 
-
     public static ConnectionTypeInfo CreateConnectionFrom(
-        ConnectionClassInfo connectionClass)
+        ConnectionClassInfo connectionClass,
+        string? name = null,
+        string? nameFormat = null)
     {
         return new ConnectionTypeInfo(
-            connectionClass.RuntimeType.Name + "Type",
+            (name ?? connectionClass.RuntimeType.Name) + "Type",
+            nameFormat,
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
             connectionClass.Resolvers);
@@ -92,22 +98,41 @@ public sealed class ConnectionTypeInfo
     public static ConnectionTypeInfo CreateConnection(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax? classDeclaration)
-        => Create(compilation, runtimeType, classDeclaration, isConnection: true);
+        ClassDeclarationSyntax? classDeclaration,
+        string? name = null,
+        string? nameFormat = null)
+        => Create(compilation, runtimeType, classDeclaration, isConnection: true, name, nameFormat);
+
+    public static ConnectionTypeInfo CreateEdgeFrom(
+        ConnectionClassInfo connectionClass,
+        string? name = null,
+        string? nameFormat = null)
+    {
+        return new ConnectionTypeInfo(
+            (name ?? connectionClass.RuntimeType.Name) + "Type",
+            nameFormat,
+            connectionClass.RuntimeType,
+            connectionClass.ClassDeclarations,
+            connectionClass.Resolvers);
+    }
 
     public static ConnectionTypeInfo CreateEdge(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax? classDeclaration)
-        => Create(compilation, runtimeType, classDeclaration, isConnection: false);
+        ClassDeclarationSyntax? classDeclaration,
+        string? name = null,
+        string? nameFormat = null)
+        => Create(compilation, runtimeType, classDeclaration, isConnection: false, name, nameFormat);
 
     private static ConnectionTypeInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        bool isConnection)
+        bool isConnection,
+        string? name = null,
+        string? nameFormat = null)
     {
-        var name = runtimeType.Name + "Type";
+        var connectionName = (name ?? runtimeType.Name) + "Type";
 
         var resolvers = ImmutableArray.CreateBuilder<Resolver>();
 
@@ -132,7 +157,7 @@ public sealed class ConnectionTypeInfo
                         continue;
                     }
 
-                    resolvers.Add(CreateResolver(compilation, runtimeType, method, name));
+                    resolvers.Add(CreateResolver(compilation, runtimeType, method, connectionName));
                     break;
 
                 case IPropertySymbol property:
@@ -156,7 +181,7 @@ public sealed class ConnectionTypeInfo
 
                     resolvers.Add(
                         new Resolver(
-                            name,
+                            connectionName,
                             property,
                             ResolverResultKind.Pure,
                             ImmutableArray<ResolverParameter>.Empty,
@@ -167,7 +192,8 @@ public sealed class ConnectionTypeInfo
         }
 
         return new ConnectionTypeInfo(
-            name,
+            connectionName,
+            nameFormat,
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable());

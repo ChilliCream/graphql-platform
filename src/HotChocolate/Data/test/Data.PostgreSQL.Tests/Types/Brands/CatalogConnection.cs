@@ -1,20 +1,16 @@
 using GreenDonut.Data;
-using HotChocolate.Data.Models;
-using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Data.Types.Products;
+namespace HotChocolate.Data.Types.Brands;
 
-/// <summary>
-/// A connection to a list of items.
-/// </summary>
-public class ProductsConnection : ConnectionBase<Product, ProductsEdge, ConnectionPageInfo>
+[GraphQLName("{0}Connection")]
+public class CatalogConnection<TEntity> : ConnectionBase<TEntity, CatalogEdge<TEntity>, ConnectionPageInfo>
 {
-    private readonly Page<Product> _page;
+    private readonly Page<TEntity> _page;
     private ConnectionPageInfo? _pageInfo;
-    private ProductsEdge[]? _edges;
+    private CatalogEdge<TEntity>[]? _edges;
 
-    public ProductsConnection(Page<Product> page)
+    public CatalogConnection(Page<TEntity> page)
     {
         _page = page;
     }
@@ -22,18 +18,18 @@ public class ProductsConnection : ConnectionBase<Product, ProductsEdge, Connecti
     /// <summary>
     /// A list of edges.
     /// </summary>
-    public override IReadOnlyList<ProductsEdge>? Edges
+    public override IReadOnlyList<CatalogEdge<TEntity>> Edges
     {
         get
         {
             if (_edges is null)
             {
                 var items = _page.Items;
-                var edges = new ProductsEdge[items.Length];
+                var edges = new CatalogEdge<TEntity>[items.Length];
 
                 for (var i = 0; i < items.Length; i++)
                 {
-                    edges[i] = new ProductsEdge(_page, items[i]);
+                    edges[i] = new CatalogEdge<TEntity>(_page, items[i]);
                 }
 
                 _edges = edges;
@@ -46,7 +42,7 @@ public class ProductsConnection : ConnectionBase<Product, ProductsEdge, Connecti
     /// <summary>
     /// A flattened list of the nodes.
     /// </summary>
-    public IReadOnlyList<Product>? Nodes => _page.Items;
+    public IReadOnlyList<TEntity> Nodes => _page.Items;
 
     /// <summary>
     /// Information to aid in pagination.
@@ -81,18 +77,4 @@ public class ProductsConnection : ConnectionBase<Product, ProductsEdge, Connecti
     /// Identifies the total count of items in the connection.
     /// </summary>
     public int TotalCount => _page.TotalCount ?? 0;
-
-    [GraphQLType<NonNullType<ListType<NonNullType<StringType>>>>]
-    public IEnumerable<string> GetEndCursors(int count)
-    {
-        if (_page.Last is null)
-        {
-            yield break;
-        }
-
-        for (var i = 0; i < count; i++)
-        {
-            yield return _page.CreateCursor(_page.Last, i);
-        }
-    }
 }
