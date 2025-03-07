@@ -57,6 +57,7 @@ Giroux
 GraphiQL
 graphqlconfig
 graphqlrc
+graphqls
 graphyne
 greendonut
 Hasura
@@ -76,6 +77,7 @@ LICEN*
 Linq
 Marek
 matchesBrics
+MediatR
 Memberwise
 mercurius
 mergeable
@@ -109,6 +111,7 @@ oneof
 OpenIddict
 opensgid
 OPTOUT
+overfetching
 OWIN
 pageable
 Partitioner
@@ -117,6 +120,7 @@ PKCE
 pkey
 Postgraphile
 preconfigured
+preparables
 PRIMEM
 PROJCS
 protobuf
@@ -156,6 +160,7 @@ streamable
 Structs
 subgraphs
 sublicensable
+subselections
 supergraph
 Swashbuckle
 SYSLIB
@@ -178,6 +183,3 @@ websockets
 Wilhuff
 Wunder
 xunit
-preparables
-MediatR
-overfetching
