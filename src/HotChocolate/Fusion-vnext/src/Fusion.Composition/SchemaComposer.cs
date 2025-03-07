@@ -111,6 +111,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
         new FieldArgumentTypesMergeableRule(),
+        new FieldWithMissingRequiredArgumentRule(),
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
