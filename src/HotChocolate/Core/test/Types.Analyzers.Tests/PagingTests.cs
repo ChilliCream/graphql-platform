@@ -93,6 +93,112 @@ public class PagingTests
     }
 
     [Fact]
+    public async Task GenerateSource_CustomConnection_UseConnection_IncludeTotalCount_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                [UseConnection(IncludeTotalCount = true)]
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_CustomConnection_UseConnection_ConnectionName_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                [UseConnection(ConnectionName = "Authors123")]
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GenerateSource_CustomConnection_No_Duplicates_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

@@ -59,12 +59,13 @@ namespace TestNamespace
 
             descriptor
                 .Field(thisType.GetMember("GetTest", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(c =>
+                .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = resolvers.GetTest();
+                    c.Definition.Resolvers = r.GetTest();
                     c.Definition.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Entity>.Default;
-                });
+                },
+                resolvers);
 
             Configure(descriptor);
         }

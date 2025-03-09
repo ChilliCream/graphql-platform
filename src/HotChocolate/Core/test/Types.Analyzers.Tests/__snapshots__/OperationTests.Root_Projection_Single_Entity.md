@@ -64,11 +64,12 @@ namespace TestNamespace
 
             descriptor
                 .Field(thisType.GetMember("GetTest", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(c =>
+                .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = resolvers.GetTest();
-                });
+                    c.Definition.Resolvers = r.GetTest();
+                },
+                resolvers);
 
             Configure(descriptor);
         }
@@ -99,92 +100,5 @@ namespace TestNamespace
 }
 
 
-```
-
-## Compilation Diagnostics
-
-```json
-[
-  {
-    "Id": "CS1003",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (11,33)-(11,36)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1003)",
-    "MessageFormat": "Syntax error, '{0}' expected",
-    "Message": "Syntax error, ',' expected",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS1003",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (11,36)-(11,38)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1003)",
-    "MessageFormat": "Syntax error, '{0}' expected",
-    "Message": "Syntax error, ',' expected",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0747",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (11,33)-(11,36)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0747)",
-    "MessageFormat": "Invalid initializer member declarator",
-    "Message": "Invalid initializer member declarator",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0117",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (11,33)-(11,36)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0117)",
-    "MessageFormat": "'{0}' does not contain a definition for '{1}'",
-    "Message": "'Foo' does not contain a definition for 'abc'",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0747",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (11,36)-(11,38)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0747)",
-    "MessageFormat": "Invalid initializer member declarator",
-    "Message": "Invalid initializer member declarator",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
 ```
 

@@ -28,11 +28,12 @@ namespace TestNamespace
 
             descriptor
                 .Field(thisType.GetMember("GetAuthorsAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(c =>
+                .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = resolvers.GetAuthorsAsync();
-                });
+                    c.Definition.Resolvers = r.GetAuthorsAsync();
+                },
+                resolvers);
 
             Configure(descriptor);
         }
@@ -72,6 +73,7 @@ namespace TestNamespace
                     args0_includeTotalCount)
                     {
                         EnableRelativeCursors = args0_options.AllowRelativeCursors
+                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.AllowRelativeCursors
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.BookPage.GetAuthorsAsync(args0, args1);

@@ -1,4 +1,4 @@
-# GenerateSource_CustomConnection_MatchesSnapshot
+# GenerateSource_CustomConnection_UseConnection_ConnectionName_MatchesSnapshot
 
 ## AuthorConnectionType.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs
 

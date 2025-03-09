@@ -37,11 +37,12 @@ namespace TestNamespace
 
             descriptor
                 .Field(thisType.GetMember("GetAuthorAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(c =>
+                .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = resolvers.GetAuthorAsync();
-                });
+                    c.Definition.Resolvers = r.GetAuthorAsync();
+                },
+                resolvers);
 
             Configure(descriptor);
         }

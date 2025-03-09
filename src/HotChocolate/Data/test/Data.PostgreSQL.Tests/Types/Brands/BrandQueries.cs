@@ -2,7 +2,6 @@ using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Types.Brands;

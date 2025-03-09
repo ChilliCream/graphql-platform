@@ -68,11 +68,12 @@ namespace TestNamespace
 
             descriptor
                 .Field(thisType.GetMember("GetTestById", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(c =>
+                .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = resolvers.GetTestById();
-                });
+                    c.Definition.Resolvers = r.GetTestById();
+                },
+                resolvers);
 
             Configure(descriptor);
         }

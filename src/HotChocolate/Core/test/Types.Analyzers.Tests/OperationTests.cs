@@ -81,7 +81,7 @@ public class OperationTests
             {
                 public static Foo GetTest(QueryContext<Foo> context)
                 {
-                    return new Foo { Bar = ""abc"" };
+                    return new Foo { Bar = "abc" };
                 }
             }
 
