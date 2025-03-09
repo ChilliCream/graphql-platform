@@ -1,6 +1,7 @@
 using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
+using HotChocolate.Data.Types.Brands;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -12,26 +13,26 @@ public static partial class ProductQueries
     [UseConnection(IncludeTotalCount = true, AllowRelativeCursors = true)]
     [UseFiltering]
     [UseSorting]
-    public static async Task<ProductsConnection> GetProductsAsync(
+    public static async Task<ProductConnection> GetProductsAsync(
         PagingArguments pagingArgs,
         QueryContext<Product> query,
         ProductService productService,
         CancellationToken cancellationToken)
     {
         var page = await productService.GetProductsAsync(pagingArgs, query, cancellationToken);
-        return new ProductsConnection(page);
+        return new ProductConnection(page);
     }
 
     [UseConnection(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
-    public static async Task<ProductsConnection> GetProductsNonRelativeAsync(
+    public static async Task<ProductConnection> GetProductsNonRelativeAsync(
         PagingArguments pagingArgs,
         QueryContext<Product> query,
         ProductService productService,
         CancellationToken cancellationToken)
     {
         var page = await productService.GetProductsAsync(pagingArgs, query, cancellationToken);
-        return new ProductsConnection(page);
+        return new ProductConnection(page);
     }
 }

@@ -223,6 +223,7 @@ namespace TestNamespace.Types.Nodes
             descriptor
                 .Field(thisType.GetMember("GetAuthorsAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
                 .AddPagingArguments()
+                .Type<global::TestNamespace.AuthorCustomConnectionType>()
                 .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();
@@ -330,6 +331,7 @@ namespace TestNamespace.Types.Root
             descriptor
                 .Field(thisType.GetMember("GetAuthors2Async", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
                 .AddPagingArguments()
+                .Type<global::TestNamespace.AuthorCustomConnectionType>()
                 .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();

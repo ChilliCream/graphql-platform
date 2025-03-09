@@ -67,6 +67,14 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                         ".DependsOn(nodeTypeRef);");
                 }
             }
+            else if (!string.IsNullOrEmpty(edgeType.NameFormat)
+                && !edgeType.NameFormat.Contains("{0}"))
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine(
+                    "descriptor.Name(\"{0}\");",
+                    edgeType.NameFormat);
+            }
 
             WriteResolverBindings(edgeType);
         }

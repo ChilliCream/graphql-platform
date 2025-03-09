@@ -12,7 +12,7 @@ public static partial class BrandNode
     [UseConnection]
     [UseFiltering]
     [UseSorting]
-    public static async Task<ProductsConnection> GetProductsAsync(
+    public static async Task<ProductConnection> GetProductsAsync(
         [Parent(requires: nameof(Brand.Id))] Brand brand,
         PagingArguments pagingArgs,
         QueryContext<Product> query,
@@ -20,6 +20,6 @@ public static partial class BrandNode
         CancellationToken cancellationToken)
     {
         var page = await productService.GetProductsByBrandAsync(brand.Id, pagingArgs, query, cancellationToken);
-        return new ProductsConnection(page);
+        return new ProductConnection(page);
     }
 }

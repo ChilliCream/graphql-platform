@@ -68,6 +68,14 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                         ".DependsOn(nodeTypeRef);");
                 }
             }
+            else if (!string.IsNullOrEmpty(connectionType.NameFormat)
+                && !connectionType.NameFormat.Contains("{0}"))
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine(
+                    "descriptor.Name(\"{0}\");",
+                    connectionType.NameFormat);
+            }
 
             WriteResolverBindings(connectionType);
         }

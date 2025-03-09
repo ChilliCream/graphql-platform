@@ -8,13 +8,13 @@ namespace HotChocolate.Data.Types.Products;
 /// <summary>
 /// A connection to a list of items.
 /// </summary>
-public class ProductsConnection : ConnectionBase<Product, ProductsEdge, ConnectionPageInfo>
+public class ProductConnection : ConnectionBase<Product, ProductsEdge, ConnectionPageInfo>
 {
     private readonly Page<Product> _page;
     private ConnectionPageInfo? _pageInfo;
     private ProductsEdge[]? _edges;
 
-    public ProductsConnection(Page<Product> page)
+    public ProductConnection(Page<Product> page)
     {
         _page = page;
     }

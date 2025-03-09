@@ -112,11 +112,6 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                         continue;
                     }
 
-                    if (connectionTypeLookup.ContainsKey(connection.TypeName))
-                    {
-                        continue;
-                    }
-
                     edgeTypeInfo =
                         connectionClassLookup.TryGetValue(edge.TypeDefinitionName, out edgeClass)
                             ? EdgeTypeInfo.CreateEdge(
@@ -149,53 +144,76 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connection.Name,
                                 connection.NameFormat);
 
-                    connectionTypeInfos ??= [];
-                    connectionTypeInfos.Add(connectionTypeInfo);
-                    connectionTypeLookup.Add(connection.TypeName, connectionTypeInfo);
+                    var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
+                    var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;
 
-                    if (connectionTypeLookup.ContainsKey(edge.Type.ToFullyQualified()))
+                    if (!connectionTypeLookup.ContainsKey(connectionTypeName))
                     {
-                        continue;
+                        connectionTypeInfos ??= [];
+                        connectionTypeInfos.Add(connectionTypeInfo);
+                        connectionTypeLookup.Add(connectionTypeName, connectionTypeInfo);
                     }
 
-                    connectionTypeInfos.Add(edgeTypeInfo);
-                    connectionTypeLookup.Add(edgeType.ToFullyQualified(), edgeTypeInfo);
+                    if (!connectionTypeLookup.ContainsKey(edgeTypeName))
+                    {
+                        connectionTypeInfos ??= [];
+                        connectionTypeInfos.Add(edgeTypeInfo);
+                        connectionTypeLookup.Add(edgeTypeName, edgeTypeInfo);
+                    }
                 }
                 else
                 {
-                    var connectionTypeName = connectionType.ToFullyQualified();
-                    if (connectionTypeLookup.ContainsKey(connectionTypeName))
-                    {
-                        continue;
-                    }
-
                     var edgeType = GetEdgeType(connectionType);
                     if (edgeType is null)
                     {
                         continue;
                     }
 
-                    edgeTypeInfo =
-                        connectionClassLookup.TryGetValue(edgeType.ToFullyQualified(), out edgeClass)
-                            ? EdgeTypeInfo.CreateEdgeFrom(edgeClass)
-                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null);
+                    string? connectionName = null;
+                    string? edgeName = null;
 
-                    connectionTypeInfo =
-                        connectionClassLookup.TryGetValue(connectionTypeName, out connectionClass)
-                            ? ConnectionTypeInfo.CreateConnectionFrom(connectionClass, edgeTypeInfo.Name)
-                            : ConnectionTypeInfo.CreateConnection(compilation, connectionType, null, edgeType.Name);
-
-                    connectionTypeInfos ??= [];
-                    connectionTypeInfos.Add(connectionTypeInfo);
-                    connectionTypeLookup.Add(connectionType.ToFullyQualified(), connectionTypeInfo);
-
-                    if (connectionTypeLookup.ContainsKey(edgeType.ToFullyQualified()))
+                    if (compilation.TryGetConnectionNameFromResolver(connectionResolver.Member, out var name))
                     {
-                        continue;
+                        connectionName = $"{name}Connection";
+                        edgeName = $"{name}Edge";
                     }
 
-                    connectionTypeInfos.Add(edgeTypeInfo);
-                    connectionTypeLookup.Add(edgeType.ToFullyQualified(), edgeTypeInfo);
+                    edgeTypeInfo =
+                        connectionClassLookup.TryGetValue(edgeType.ToFullyQualified(), out edgeClass)
+                            ? EdgeTypeInfo.CreateEdgeFrom(edgeClass, edgeName, edgeName)
+                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null, edgeName, edgeName);
+
+                    connectionTypeInfo =
+                        connectionClassLookup.TryGetValue(connectionType.ToFullyQualified(), out connectionClass)
+                            ? ConnectionTypeInfo.CreateConnectionFrom(
+                                connectionClass,
+                                edgeTypeInfo.Name,
+                                connectionName,
+                                connectionName)
+                            : ConnectionTypeInfo.CreateConnection(
+                                compilation,
+                                connectionType,
+                                null,
+                                edgeType.Name,
+                                connectionName,
+                                connectionName);
+
+                    var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
+                    var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;
+
+                    if (!connectionTypeLookup.ContainsKey(connectionTypeName))
+                    {
+                        connectionTypeInfos ??= [];
+                        connectionTypeInfos.Add(connectionTypeInfo);
+                        connectionTypeLookup.Add(connectionTypeName, connectionTypeInfo);
+                    }
+
+                    if (!connectionTypeLookup.ContainsKey(edgeTypeName))
+                    {
+                        connectionTypeInfos ??= [];
+                        connectionTypeInfos.Add(edgeTypeInfo);
+                        connectionTypeLookup.Add(edgeTypeName, edgeTypeInfo);
+                    }
                 }
 
                 owner.ReplaceResolver(
