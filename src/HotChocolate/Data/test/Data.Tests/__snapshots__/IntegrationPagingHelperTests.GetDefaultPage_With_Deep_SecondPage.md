@@ -27,10 +27,10 @@ LIMIT @__p_2
     "brandsDeep": {
       "edges": [
         {
-          "cursor": "Q291bnRyeTEwOjEx"
+          "cursor": "e31Db3VudHJ5MTA6MTE="
         },
         {
-          "cursor": "Q291bnRyeTExOjEy"
+          "cursor": "e31Db3VudHJ5MTE6MTI="
         }
       ],
       "nodes": [
@@ -58,8 +58,8 @@ LIMIT @__p_2
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "Q291bnRyeTEwOjEx",
-        "endCursor": "Q291bnRyeTExOjEy"
+        "startCursor": "e31Db3VudHJ5MTA6MTE=",
+        "endCursor": "e31Db3VudHJ5MTE6MTI="
       }
     }
   }
