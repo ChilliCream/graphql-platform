@@ -555,6 +555,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; must be defined as required in schema &apos;{1}&apos;. Arguments marked with @require are treated as non-required..
+        /// </summary>
+        internal static string LogEntryHelper_FieldWithMissingRequiredArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FieldWithMissingRequiredArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputFieldDefaultMismatch {
@@ -677,6 +686,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_LookupReturnsNonNullableType {
             get {
                 return ResourceManager.GetString("LogEntryHelper_LookupReturnsNonNullableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The non-null input field &apos;{0}&apos; in schema &apos;{1}&apos; must be accessible in the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_NonNullInputFieldIsInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_NonNullInputFieldIsInaccessible", resourceCulture);
             }
         }
         

@@ -268,6 +268,23 @@ internal static class LogEntryHelper
             schemaA);
     }
 
+    public static LogEntry FieldWithMissingRequiredArgument(
+        string requiredArgumentName,
+        MutableOutputFieldDefinition field,
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name, requiredArgumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_FieldWithMissingRequiredArgument, coordinate, schema.Name),
+            LogEntryCodes.FieldWithMissingRequiredArgument,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry InputFieldDefaultMismatch(
         IValueNode defaultValueA,
         IValueNode defaultValueB,
@@ -522,6 +539,20 @@ internal static class LogEntryHelper
             LogSeverity.Warning,
             coordinate,
             field,
+            schema);
+    }
+
+    public static LogEntry NonNullInputFieldIsInaccessible(
+        MutableInputFieldDefinition inputField,
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_NonNullInputFieldIsInaccessible, coordinate, schema.Name),
+            LogEntryCodes.NonNullInputFieldIsInaccessible,
+            LogSeverity.Error,
+            coordinate,
+            inputField,
             schema);
     }
 
