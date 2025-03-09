@@ -16,6 +16,154 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
+    public async Task Same_Selection_On_Two_Object_Types_That_Require_Data_From_Another_Subgraph()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              item1: Item1!
+              item2: Item2!
+            }
+
+            type Item1 {
+              product: Product!
+            }
+
+            type Item2 {
+              product: Product!
+            }
+
+            type Product implements Node {
+              id: ID!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse("""
+                            query {
+                              item1 {
+                                product {
+                                  id
+                                  name
+                                }
+                              }
+                              item2 {
+                                product {
+                                  id
+                                  name
+                                }
+                              }
+                            }
+                            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              productsA: [Product]
+              productsB: [Product]
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            type Product implements Node {
+              id: ID!
+              price: Float!
+              reviewCount: Int!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse("""
+                      query {
+                        productsA {
+                          id
+                          name
+                          price
+                          reviewCount
+                        }
+                        productsB {
+                          id
+                          name
+                          price
+                          reviewCount
+                        }
+                      }
+                      """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Authors_And_Reviews_AutoCompose()
     {
         // arrange
