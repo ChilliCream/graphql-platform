@@ -47,9 +47,12 @@ public sealed class ObjectTypeInfo
 
     public ClassDeclarationSyntax ClassDeclaration { get; }
 
-    public ImmutableArray<Resolver> Resolvers { get; }
+    public ImmutableArray<Resolver> Resolvers { get; private set; }
 
     public override string OrderByKey => SchemaTypeFullName;
+
+    public void ReplaceResolver(Resolver current, Resolver replacement)
+        => Resolvers = Resolvers.Replace(current, replacement);
 
     public override bool Equals(object? obj)
         => obj is ObjectTypeInfo other && Equals(other);

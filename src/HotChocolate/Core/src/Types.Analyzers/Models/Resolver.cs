@@ -13,10 +13,12 @@ public sealed class Resolver
         ImmutableArray<ResolverParameter> parameters,
         ImmutableArray<MemberBinding> bindings,
         ResolverKind kind = ResolverKind.Default,
-        FieldFlags flags = FieldFlags.None)
+        FieldFlags flags = FieldFlags.None,
+        string? schemaTypeName = null)
     {
         TypeName = typeName;
         Member = member;
+        SchemaTypeName = schemaTypeName;
         ResultKind = resultKind;
         Parameters = parameters;
         Bindings = bindings;
@@ -34,6 +36,8 @@ public sealed class Resolver
 
     public ITypeSymbol UnwrappedReturnType
         => ReturnType.UnwrapTaskOrValueTask();
+
+    public string? SchemaTypeName { get; }
 
     public bool IsStatic => Member.IsStatic;
 
@@ -53,4 +57,17 @@ public sealed class Resolver
     public bool RequiresParameterBindings => Parameters.Any(t => t.RequiresBinding);
 
     public ImmutableArray<MemberBinding> Bindings { get; }
+
+    public Resolver WithSchemaTypeName(string? schemaTypeName)
+    {
+        return new Resolver(
+            TypeName,
+            Member,
+            ResultKind,
+            Parameters,
+            Bindings,
+            Kind,
+            Flags,
+            schemaTypeName);
+    }
 }

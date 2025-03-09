@@ -1,26 +1,24 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static HotChocolate.Types.Analyzers.Inspectors.ObjectTypeInspector;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ConnectionTypeInfo
+public sealed class EdgeTypeInfo
     : SyntaxInfo
-        , IOutputTypeInfo
+    , IOutputTypeInfo
 {
-    private ConnectionTypeInfo(
+    private EdgeTypeInfo(
         string name,
         string? nameFormat,
-        string edgeTypeName,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
         ImmutableArray<Resolver> resolvers)
     {
         Name = name;
         NameFormat = nameFormat;
-        EdgeTypeName = edgeTypeName;
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         RuntimeType = runtimeType;
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
@@ -31,8 +29,6 @@ public sealed class ConnectionTypeInfo
     public string Name { get; }
 
     public string? NameFormat { get; }
-
-    public string EdgeTypeName { get; }
 
     public string Namespace { get; }
 
@@ -89,39 +85,35 @@ public sealed class ConnectionTypeInfo
     public override int GetHashCode()
         => HashCode.Combine(OrderByKey, ClassDeclaration);
 
-    public static ConnectionTypeInfo CreateConnectionFrom(
+    public static EdgeTypeInfo CreateEdgeFrom(
         ConnectionClassInfo connectionClass,
-        string edgeTypeName,
         string? name = null,
         string? nameFormat = null)
     {
-        return new ConnectionTypeInfo(
+        return new EdgeTypeInfo(
             (name ?? connectionClass.RuntimeType.Name) + "Type",
             nameFormat,
-            edgeTypeName,
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
             connectionClass.Resolvers);
     }
 
-    public static ConnectionTypeInfo CreateConnection(
+    public static EdgeTypeInfo CreateEdge(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        string edgeTypeName,
         string? name = null,
         string? nameFormat = null)
-        => Create(compilation, runtimeType, classDeclaration, edgeTypeName, name, nameFormat);
+        => Create(compilation, runtimeType, classDeclaration, name, nameFormat);
 
-    private static ConnectionTypeInfo Create(
+    private static EdgeTypeInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        string edgeTypeName,
         string? name = null,
         string? nameFormat = null)
     {
-        var connectionName = (name ?? runtimeType.Name) + "Type";
+        var edgeName = (name ?? runtimeType.Name) + "Type";
 
         var resolvers = ImmutableArray.CreateBuilder<Resolver>();
 
@@ -146,41 +138,25 @@ public sealed class ConnectionTypeInfo
                         continue;
                     }
 
-                    resolvers.Add(CreateResolver(compilation, runtimeType, method, connectionName));
+                    resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, edgeName));
                     break;
 
                 case IPropertySymbol property:
-                    var flags = FieldFlags.None;
-
-                    if (property.Name.Equals("Edges", StringComparison.Ordinal))
-                    {
-                        flags |= FieldFlags.ConnectionEdgesField;
-                    }
-                    else if (property.Name.Equals("Nodes", StringComparison.Ordinal))
-                    {
-                        flags |= FieldFlags.ConnectionNodesField;
-                    }
-                    else if (property.Name.Equals("TotalCount", StringComparison.Ordinal))
-                    {
-                        flags |= FieldFlags.TotalCount;
-                    }
-
                     resolvers.Add(
                         new Resolver(
-                            connectionName,
+                            edgeName,
                             property,
                             ResolverResultKind.Pure,
                             ImmutableArray<ResolverParameter>.Empty,
-                            GetMemberBindings(member),
-                            flags: flags));
+                            ObjectTypeInspector.GetMemberBindings(member),
+                            flags: FieldFlags.None));
                     break;
             }
         }
 
-        return new ConnectionTypeInfo(
-            connectionName,
+        return new EdgeTypeInfo(
+            edgeName,
             nameFormat,
-            edgeTypeName,
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable());

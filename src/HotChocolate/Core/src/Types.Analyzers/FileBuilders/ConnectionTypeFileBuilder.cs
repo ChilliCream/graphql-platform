@@ -1,11 +1,24 @@
+using System.Data.Common;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
+using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    public override void WriteBeginClass(IOutputTypeInfo type)
+    {
+        Writer.WriteIndentedLine(
+            "{0} partial class {1} : ObjectType<global::{2}>",
+            type.IsPublic ? "public" : "internal",
+            type.Name,
+            type.RuntimeTypeFullName);
+        Writer.WriteIndentedLine("{");
+        Writer.IncreaseIndent();
+    }
+
     public override void WriteInitializeMethod(IOutputTypeInfo type)
     {
         if (type is not ConnectionTypeInfo connectionType)
@@ -15,7 +28,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
         }
 
         Writer.WriteIndentedLine(
-            "internal static void Initialize(global::{0}<global::{1}> descriptor)",
+            "protected override void Configure(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
             connectionType.RuntimeTypeFullName);
 
@@ -29,7 +42,9 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     "var thisType = typeof(global::{0});",
                     connectionType.RuntimeTypeFullName);
                 Writer.WriteIndentedLine(
-                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
+                    "var extend = descriptor.Extend();");
+                Writer.WriteIndentedLine(
+                    "var bindingResolver = extend.Context.ParameterBindingResolver;");
                 Writer.WriteIndentedLine(
                     connectionType.Resolvers.Any(t => t.RequiresParameterBindings)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
@@ -61,4 +76,75 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
         Writer.WriteIndentedLine("}");
         Writer.WriteLine();
     }
+
+    protected override void WriteResolverBindingDescriptor(IOutputTypeInfo type, Resolver resolver)
+    {
+        if (type is not ConnectionTypeInfo connectionType)
+        {
+            throw new InvalidOperationException(
+                "The specified type is not a connection type.");
+        }
+
+        if ((resolver.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField)
+        {
+            var edgeTypeName = $"{connectionType.Namespace}.{connectionType.EdgeTypeName}";
+
+            Writer.WriteIndentedLine(
+                ".Type<global::{0}.{1}>()",
+                connectionType.Namespace,
+                ToGraphQLType(resolver.UnwrappedReturnType, edgeTypeName));
+        }
+        else
+        {
+            base.WriteResolverBindingDescriptor(type, resolver);
+        }
+    }
+
+    private static string ToGraphQLType(
+        ITypeSymbol typeSymbol,
+        string edgeTypeName)
+    {
+        var isNullable = typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
+
+        if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            var innerType = GetListInnerType(namedTypeSymbol);
+            if (innerType is not null)
+            {
+                var type = ToGraphQLType(innerType, edgeTypeName);
+                type = $"global::{WellKnownTypes.ListType}<{type}>";
+                return isNullable ? type : $"global::{WellKnownTypes.NonNullType}<{type}>";
+            }
+            else
+            {
+                var typeName = edgeTypeName;
+                return isNullable ? $"global::{typeName}" : $"global::{WellKnownTypes.NonNullType}<global::{typeName}>";
+            }
+        }
+
+        throw new InvalidOperationException($"Unsupported type: {typeSymbol}");
+    }
+
+    private static INamedTypeSymbol? GetListInnerType(INamedTypeSymbol typeSymbol)
+    {
+        if (typeSymbol.IsGenericType &&
+            (typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>" ||
+             typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+        {
+            return typeSymbol.TypeArguments[0] as INamedTypeSymbol;
+        }
+
+        foreach (var interfaceType in typeSymbol.AllInterfaces)
+        {
+            if (interfaceType.IsGenericType &&
+                (interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>" ||
+                 interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+            {
+                return interfaceType.TypeArguments[0] as INamedTypeSymbol;
+            }
+        }
+
+        return null;
+    }
+
 }

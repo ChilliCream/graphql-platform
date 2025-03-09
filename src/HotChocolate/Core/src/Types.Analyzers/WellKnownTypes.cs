@@ -88,6 +88,11 @@ public static class WellKnownTypes
     public const string InstanceMemberFlags = "HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags";
     public const string IObjectTypeDescriptor = "HotChocolate.Types.IObjectTypeDescriptor";
     public const string IInterfaceTypeDescriptor = "HotChocolate.Types.IInterfaceTypeDescriptor";
+    public const string TypeReference = "HotChocolate.Types.Descriptors.TypeReference";
+    public const string IDescriptorContext = "HotChocolate.Types.Descriptors.IDescriptorContext";
+    public const string ObjectTypeDefinition = "HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition";
+    public const string NonNullType = "HotChocolate.Types.NonNullType";
+    public const string ListType = "HotChocolate.Types.ListType";
 
     public static HashSet<string> TypeClass { get; } =
     [

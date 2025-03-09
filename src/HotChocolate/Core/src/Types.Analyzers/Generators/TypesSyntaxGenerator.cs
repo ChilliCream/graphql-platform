@@ -44,7 +44,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
     {
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
-        foreach (var type in syntaxInfos.OfType<IOutputTypeInfo>())
+        foreach (var type in syntaxInfos.OrderBy(t => t.OrderByKey).OfType<IOutputTypeInfo>())
         {
             sb.Clear();
 
@@ -74,6 +74,13 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 var file = new ConnectionTypeFileBuilder(sb);
                 WriteFile(file, connectionType, typeLookup);
                 context.AddSource(CreateFileName(connectionType), sb.ToString());
+            }
+
+            if(type is EdgeTypeInfo edgeType)
+            {
+                var file = new EdgeTypeFileBuilder(sb);
+                WriteFile(file, edgeType, typeLookup);
+                context.AddSource(CreateFileName(edgeType), sb.ToString());
             }
         }
 

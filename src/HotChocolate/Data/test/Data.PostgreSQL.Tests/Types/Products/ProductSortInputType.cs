@@ -1,6 +1,11 @@
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Types.Products;
 
@@ -14,12 +19,3 @@ public sealed class ProductSortInputType : SortInputType<Product>
     }
 }
 
-public partial class ProductsConnectionType
-{
-    static partial void Configure(IObjectTypeDescriptor<ProductsConnection> descriptor)
-    {
-        descriptor
-            .Name(c => c.Name + "Connection")
-            .DependsOn(typeof(string));
-    }
-}

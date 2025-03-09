@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
@@ -32,7 +33,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.WriteLine();
     }
 
-    public void WriteBeginClass(IOutputTypeInfo type)
+    public virtual void WriteBeginClass(IOutputTypeInfo type)
     {
         Writer.WriteIndentedLine(
             "{0} static partial class {1}",
@@ -57,7 +58,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             return;
         }
 
-        if(type.Resolvers.Any(t => t.Bindings.Length > 0))
+        if (type.Resolvers.Any(t => t.Bindings.Length > 0))
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("var naming = descriptor.Extend().Context.Naming;");
@@ -108,47 +109,63 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 {
                     Writer.WriteIndentedLine(
                         ".AddPagingArguments()");
-                    Writer.WriteIndentedLine(
-                        ".Type<ObjectType<{0}>>()",
-                        resolver.UnwrappedReturnType.ToFullyQualified());
                 }
 
-                Writer.WriteIndentedLine(".ExtendWith(c =>");
+                WriteResolverBindingDescriptor(type, resolver);
+
+                Writer.WriteIndentedLine(".ExtendWith(static (c, r) =>");
                 Writer.WriteIndentedLine("{");
                 using (Writer.IncreaseIndent())
                 {
-                    WriteFieldFlags(resolver);
-
-                    if (resolver.Kind is ResolverKind.ConnectionResolver)
-                    {
-                        Writer.WriteIndentedLine(
-                            "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
-                            WellKnownTypes.PagingHelper);
-                        Writer.WriteIndentedLine(
-                            "c.Definition.State = c.Definition.State.SetItem("
-                            + "HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);");
-                        Writer.WriteIndentedLine(
-                            "c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = "
-                            + "pagingOptions;");
-                    }
-
-                    Writer.WriteIndentedLine(
-                        "c.Definition.Resolvers = resolvers.{0}();",
-                        resolver.Member.Name);
-
-                    if (resolver.ResultKind is not ResolverResultKind.Pure
-                        && !resolver.Member.HasPostProcessorAttribute()
-                        && resolver.Member.IsListType(out var elementType))
-                    {
-                        Writer.WriteIndentedLine(
-                            "c.Definition.ResultPostProcessor = global::{0}<{1}>.Default;",
-                            WellKnownTypes.ListPostProcessor,
-                            elementType);
-                    }
+                    WriteResolverBindingExtendsWith(type, resolver);
                 }
 
-                Writer.WriteIndentedLine("});");
+                Writer.WriteIndentedLine("},");
+
+                Writer.WriteIndentedLine("resolvers);");
             }
+        }
+    }
+
+    protected virtual void WriteResolverBindingDescriptor(IOutputTypeInfo type, Resolver resolver)
+    {
+        if (!string.IsNullOrEmpty(resolver.SchemaTypeName))
+        {
+            Writer.WriteIndentedLine(
+                ".Type<global::{0}>()",
+                resolver.SchemaTypeName);
+        }
+    }
+
+    protected virtual void WriteResolverBindingExtendsWith(IOutputTypeInfo type, Resolver resolver)
+    {
+        WriteFieldFlags(resolver);
+
+        if (resolver.Kind is ResolverKind.ConnectionResolver)
+        {
+            Writer.WriteIndentedLine(
+                "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
+                WellKnownTypes.PagingHelper);
+            Writer.WriteIndentedLine(
+                "c.Definition.State = c.Definition.State.SetItem("
+                + "HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);");
+            Writer.WriteIndentedLine(
+                "c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = "
+                + "pagingOptions;");
+        }
+
+        Writer.WriteIndentedLine(
+            "c.Definition.Resolvers = r.{0}();",
+            resolver.Member.Name);
+
+        if (resolver.ResultKind is not ResolverResultKind.Pure
+            && !resolver.Member.HasPostProcessorAttribute()
+            && resolver.Member.IsListType(out var elementType))
+        {
+            Writer.WriteIndentedLine(
+                "c.Definition.ResultPostProcessor = global::{0}<{1}>.Default;",
+                WellKnownTypes.ListPostProcessor,
+                elementType);
         }
     }
 
@@ -678,19 +695,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
-                {
-                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                    {
+                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                    Writer.WriteIndentedLine(
-                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                        parameter.Key,
-                        defaultValueString);
-                    break;
-                }
+                        Writer.WriteIndentedLine(
+                            "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                            parameter.Key,
+                            defaultValueString);
+                        break;
+                    }
 
                 case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -718,19 +735,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
-                {
-                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                    {
+                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                    Writer.WriteIndentedLine(
-                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                        parameter.Key,
-                        defaultValueString);
-                    break;
-                }
+                        Writer.WriteIndentedLine(
+                            "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                            parameter.Key,
+                            defaultValueString);
+                        break;
+                    }
 
                 case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -758,19 +775,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
-                {
-                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                    {
+                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                    Writer.WriteIndentedLine(
-                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                        i,
-                        parameter.Type.ToFullyQualified(),
-                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                        parameter.Key,
-                        defaultValueString);
-                    break;
-                }
+                        Writer.WriteIndentedLine(
+                            "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            i,
+                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                            parameter.Key,
+                            defaultValueString);
+                        break;
+                    }
 
                 case ResolverParameterKind.GetLocalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
