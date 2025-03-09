@@ -889,8 +889,20 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         Writer.WriteIndentedLine("args{0}_last = context.ArgumentValue<int?>(\"last\");", i);
                         Writer.WriteIndentedLine("args{0}_before = context.ArgumentValue<string?>(\"before\");", i);
                     }
-
                     Writer.WriteIndentedLine("}");
+
+                    Writer.WriteLine();
+                    Writer.WriteIndentedLine("if(args{0}_first is null && args{0}_last is null)", i);
+                    Writer.WriteIndentedLine("{");
+                    using (Writer.IncreaseIndent())
+                    {
+                        Writer.WriteIndentedLine(
+                            "args{0}_first = args{0}_options.DefaultPageSize ?? global::{1}.DefaultPageSize;",
+                            i,
+                            WellKnownTypes.PagingDefaults);
+                    }
+                    Writer.WriteIndentedLine("}");
+
                     Writer.WriteLine();
                     Writer.WriteIndentedLine(
                         "if(args{0}_options.IncludeTotalCount ?? global::{1}.IncludeTotalCount)",
