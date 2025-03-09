@@ -63,6 +63,11 @@ public readonly record struct PagingArguments
     public bool IncludeTotalCount { get; init; }
 
     /// <summary>
+    /// Defines if relative cursors are allowed.
+    /// </summary>
+    public bool EnableRelativeCursors { get; init; }
+
+    /// <summary>
     /// Deconstructs the paging arguments into its components.
     /// </summary>
     /// <param name="first">

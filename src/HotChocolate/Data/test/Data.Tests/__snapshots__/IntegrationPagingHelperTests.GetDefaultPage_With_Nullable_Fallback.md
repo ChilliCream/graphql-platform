@@ -24,34 +24,34 @@ LIMIT @__p_0
     "brandsNullableFallback": {
       "edges": [
         {
-          "cursor": "QnJhbmRcOjE6Mg=="
+          "cursor": "e31CcmFuZFw6MToy"
         },
         {
-          "cursor": "QnJhbmRcOjExOjEy"
+          "cursor": "e31CcmFuZFw6MTE6MTI="
         },
         {
-          "cursor": "QnJhbmRcOjEzOjE0"
+          "cursor": "e31CcmFuZFw6MTM6MTQ="
         },
         {
-          "cursor": "QnJhbmRcOjE1OjE2"
+          "cursor": "e31CcmFuZFw6MTU6MTY="
         },
         {
-          "cursor": "QnJhbmRcOjE3OjE4"
+          "cursor": "e31CcmFuZFw6MTc6MTg="
         },
         {
-          "cursor": "QnJhbmRcOjE5OjIw"
+          "cursor": "e31CcmFuZFw6MTk6MjA="
         },
         {
-          "cursor": "QnJhbmRcOjIxOjIy"
+          "cursor": "e31CcmFuZFw6MjE6MjI="
         },
         {
-          "cursor": "QnJhbmRcOjIzOjI0"
+          "cursor": "e31CcmFuZFw6MjM6MjQ="
         },
         {
-          "cursor": "QnJhbmRcOjI1OjI2"
+          "cursor": "e31CcmFuZFw6MjU6MjY="
         },
         {
-          "cursor": "QnJhbmRcOjI3OjI4"
+          "cursor": "e31CcmFuZFw6Mjc6Mjg="
         }
       ],
       "nodes": [
@@ -159,8 +159,8 @@ LIMIT @__p_0
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": false,
-        "startCursor": "QnJhbmRcOjE6Mg==",
-        "endCursor": "QnJhbmRcOjI3OjI4"
+        "startCursor": "e31CcmFuZFw6MToy",
+        "endCursor": "e31CcmFuZFw6Mjc6Mjg="
       }
     }
   }

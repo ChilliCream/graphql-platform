@@ -27,10 +27,10 @@ LIMIT @__p_3
     "brandsNullable": {
       "edges": [
         {
-          "cursor": "QnJhbmRcOjExOlxudWxsOjEy"
+          "cursor": "e31CcmFuZFw6MTE6XG51bGw6MTI="
         },
         {
-          "cursor": "QnJhbmRcOjEyOlxudWxsOjEz"
+          "cursor": "e31CcmFuZFw6MTI6XG51bGw6MTM="
         }
       ],
       "nodes": [
@@ -58,8 +58,8 @@ LIMIT @__p_3
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmRcOjExOlxudWxsOjEy",
-        "endCursor": "QnJhbmRcOjEyOlxudWxsOjEz"
+        "startCursor": "e31CcmFuZFw6MTE6XG51bGw6MTI=",
+        "endCursor": "e31CcmFuZFw6MTI6XG51bGw6MTM="
       }
     }
   }
