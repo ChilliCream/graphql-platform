@@ -119,17 +119,17 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
         if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
         {
             var innerType = GetListInnerType(namedTypeSymbol);
-            if (innerType is not null)
+
+            if (innerType is null)
             {
-                var type = ToGraphQLType(innerType, edgeTypeName);
-                type = $"global::{WellKnownTypes.ListType}<{type}>";
-                return isNullable ? type : $"global::{WellKnownTypes.NonNullType}<{type}>";
+                return isNullable
+                    ? $"global::{edgeTypeName}"
+                    : $"global::{WellKnownTypes.NonNullType}<global::{edgeTypeName}>";
             }
-            else
-            {
-                var typeName = edgeTypeName;
-                return isNullable ? $"global::{typeName}" : $"global::{WellKnownTypes.NonNullType}<global::{typeName}>";
-            }
+
+            var type = ToGraphQLType(innerType, edgeTypeName);
+            type = $"global::{WellKnownTypes.ListType}<{type}>";
+            return isNullable ? type : $"global::{WellKnownTypes.NonNullType}<{type}>";
         }
 
         throw new InvalidOperationException($"Unsupported type: {typeSymbol}");

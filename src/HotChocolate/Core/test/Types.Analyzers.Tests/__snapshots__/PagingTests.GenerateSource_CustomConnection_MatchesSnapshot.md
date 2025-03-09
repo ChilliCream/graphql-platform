@@ -213,7 +213,7 @@ namespace TestNamespace
             descriptor
                 .Field(thisType.GetMember("GetAuthorsAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
                 .AddPagingArguments()
-                .Type<global::TestNamespace.AuthorConnectionType>()
+                .Type<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorConnectionType>>()
                 .ExtendWith(static (c, r) =>
                 {
                     c.Definition.SetSourceGeneratorFlags();

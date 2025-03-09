@@ -88,6 +88,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine("descriptor.Field(fieldName).Ignore();");
             }
+
             Writer.WriteIndentedLine("}");
         }
 
@@ -132,8 +133,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         if (!string.IsNullOrEmpty(resolver.SchemaTypeName))
         {
             Writer.WriteIndentedLine(
-                ".Type<global::{0}>()",
-                resolver.SchemaTypeName);
+                ".Type<{0}>()",
+                resolver.UnwrappedReturnType.IsNullableType()
+                    ? $"global::{resolver.SchemaTypeName}"
+                    : $"global::{WellKnownTypes.NonNullType}<global::{resolver.SchemaTypeName}>");
         }
     }
 
@@ -695,19 +698,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -735,19 +738,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -775,19 +778,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetLocalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -889,6 +892,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         Writer.WriteIndentedLine("args{0}_last = context.ArgumentValue<int?>(\"last\");", i);
                         Writer.WriteIndentedLine("args{0}_before = context.ArgumentValue<string?>(\"before\");", i);
                     }
+
                     Writer.WriteIndentedLine("}");
 
                     Writer.WriteLine();
@@ -901,6 +905,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             i,
                             WellKnownTypes.PagingDefaults);
                     }
+
                     Writer.WriteIndentedLine("}");
 
                     Writer.WriteLine();
@@ -940,6 +945,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                                     WellKnownTypes.PagingDefaults);
                             }
                         }
+
                         Writer.WriteIndentedLine("};");
                     }
 

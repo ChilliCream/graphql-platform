@@ -327,13 +327,12 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
         // we will store the connection name and the runtime type name for later reference.
         connectionNameLookup[typeName] = runtimeTypeName;
-        return new GenericTypeInfo(typeDefinitionName, genericType, typeName, name, nameFormat);
+        return new GenericTypeInfo(typeDefinitionName, genericType, name, nameFormat);
     }
 
     private record GenericTypeInfo(
         string TypeDefinitionName,
         INamedTypeSymbol Type,
-        string TypeName,
         string Name,
         string? NameFormat);
 
