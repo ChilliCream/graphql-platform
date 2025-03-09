@@ -2178,6 +2178,237 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact(Skip = "Fix this test in the new planner")]
+    public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node()
+    {
+        // arrange
+        var subgraph1 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+            type Product implements Node {
+              id: ID!
+              subgraph1Only: ProductAvailability
+            }
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail!
+            }
+            type ProductAvailabilityMail {
+              subgraph1Only: String!
+            }
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productById(id: ID!): Product
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        var subgraph2 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail!
+            }
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+            }
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph1, subgraph2]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query($productId: ID!) {
+                  productById(id: $productId) {
+                    subgraph1Only {
+                      sharedLinked {
+                        subgraph2Only
+                      }
+                    }
+                  }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?>
+            {
+                ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk="
+            })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact(Skip = "Fix this test in the new planner")]
+    public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_2()
+    {
+        // arrange
+        var subgraph1 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+            type Product implements Node {
+              id: ID!
+              subgraph1Only: ProductAvailability
+            }
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail!
+            }
+            type ProductAvailabilityMail {
+              sharedScalar: String!
+            }
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productById(id: ID!): Product
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        var subgraph2 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+            type ProductAvailability implements Node {
+              sharedLinked: ProductAvailabilityMail!
+              subgraph2Only: Boolean!
+              id: ID!
+            }
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+              sharedScalar: String!
+            }
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph1, subgraph2]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query($productId: ID!) {
+                  productById(id: $productId) {
+                    subgraph1Only {
+                      subgraph2Only
+                      sharedLinked {
+                        subgraph2Only
+                        sharedScalar
+                      }
+                    }
+                  }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?>
+            {
+                ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk="
+            })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+    [Fact(Skip = "Fix this test in the new planner")]
+    public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_3()
+    {
+        // arrange
+        var subgraph1 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+            type Product implements Node {
+              id: ID!
+              subgraph1Only: ProductAvailability
+            }
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail!
+              subgraph1Only: Boolean!
+            }
+            type ProductAvailabilityMail {
+              sharedScalar: String!
+              subgraph1Only: String!
+            }
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productById(id: ID!): Product
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        var subgraph2 = await TestSubgraph.CreateAsync(
+            """
+            interface Node {
+              id: ID!
+            }
+            type ProductAvailability implements Node {
+              sharedLinked: ProductAvailabilityMail!
+              subgraph2Only: Boolean!
+              id: ID!
+            }
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+              sharedScalar: String!
+            }
+            type Query {
+              node("ID of the object." id: ID!): Node
+              productAvailabilityById(id: ID!): ProductAvailability
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraph1, subgraph2]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query($productId: ID!) {
+                  productById(id: $productId) {
+                    subgraph1Only {
+                      subgraph2Only
+                      subgraph1Only
+                      sharedLinked {
+                        subgraph2Only
+                        sharedScalar
+                        subgraph1Only
+                      }
+                    }
+                  }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?>
+            {
+                ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk="
+            })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;
