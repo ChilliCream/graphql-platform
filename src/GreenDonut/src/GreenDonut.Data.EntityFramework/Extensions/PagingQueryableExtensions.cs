@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters;
 using GreenDonut.Data.Cursors;
 using GreenDonut.Data.Expressions;
 using Microsoft.EntityFrameworkCore;
@@ -183,12 +182,12 @@ public static class PagingQueryableExtensions
                 totalCount ??= item.TotalCount;
                 fetchCount++;
 
+                builder.Add(item.Item);
+
                 if (fetchCount > requestedCount)
                 {
                     break;
                 }
-
-                builder.Add(item.Item);
             }
         }
         else
@@ -200,12 +199,12 @@ public static class PagingQueryableExtensions
             {
                 fetchCount++;
 
+                builder.Add(item);
+
                 if (fetchCount > requestedCount)
                 {
                     break;
                 }
-
-                builder.Add(item);
             }
         }
 
@@ -214,9 +213,21 @@ public static class PagingQueryableExtensions
             return Page<T>.Empty;
         }
 
-        if (!forward)
+        if (!forward ^ reverseOrder)
         {
             builder.Reverse();
+        }
+
+        if (builder.Count > requestedCount)
+        {
+            if (!forward ^ reverseOrder)
+            {
+                builder.RemoveAt(0);
+            }
+            else
+            {
+                builder.RemoveAt(requestedCount);
+            }
         }
 
         return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, totalCount);
@@ -408,6 +419,13 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        if (arguments.EnableRelativeCursors
+            && string.IsNullOrEmpty(arguments.After)
+            && string.IsNullOrEmpty(arguments.Before))
+        {
+            includeTotalCount = true;
+        }
+
         Dictionary<TKey, int>? counts = null;
         if (includeTotalCount)
         {
@@ -424,7 +442,7 @@ public static class PagingQueryableExtensions
 
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
-        var selectExpression =
+        var (selectExpression, reverseOrder) =
             BuildBatchSelectExpression<TKey, TElement>(
                 arguments,
                 keys,
@@ -446,6 +464,11 @@ public static class PagingQueryableExtensions
             .WithCancellation(cancellationToken)
             .ConfigureAwait(false))
         {
+            if (reverseOrder)
+            {
+                item.Items.Reverse();
+            }
+
             if (item.Items.Count == 0)
             {
                 map.Add(item.Key, Page<TValue>.Empty);
@@ -584,7 +607,7 @@ public static class PagingQueryableExtensions
     {
         var parser = new CursorKeyParser();
         parser.Visit(source.Expression);
-        return parser.Keys.ToArray();
+        return [.. parser.Keys];
     }
 
     private sealed class InterceptorHolder

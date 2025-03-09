@@ -156,7 +156,7 @@ internal static class ExpressionHelpers
     /// If the number of keys is less than one or
     /// the number of order expressions does not match the number of order methods.
     /// </exception>
-    public static Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> BuildBatchSelectExpression<TK, TV>(
+    public static (Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> SelectExpression, bool ReverseOrder) BuildBatchSelectExpression<TK, TV>(
         PagingArguments arguments,
         ReadOnlySpan<CursorKey> keys,
         ReadOnlySpan<LambdaExpression> orderExpressions,
@@ -184,14 +184,8 @@ internal static class ExpressionHelpers
 
         for (var i = 0; i < orderExpressions.Length; i++)
         {
-            var methodName = orderMethods[i];
+            var methodName = forward ? orderMethods[i] : ReverseOrder(orderMethods[i]);
             var orderExpression = orderExpressions[i];
-
-            if (!forward)
-            {
-                methodName = ReverseOrder(methodName);
-            }
-
             var delegateType = typeof(Func<,>).MakeGenericType(typeof(TV), orderExpression.Body.Type);
             var typedOrderExpression = Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
 
@@ -203,16 +197,44 @@ internal static class ExpressionHelpers
                 typedOrderExpression);
         }
 
+        var reverseOrder = false;
+        var offset = 0;
+
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, [.. cursor.Values], forward);
+            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<TV>(keys, cursor, forward: true);
+            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
+            offset = cursorOffset;
+            reverseOrder = reverse;
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, [.. cursor.Values], forward);
+            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<TV>(keys, cursor, forward: false);
+            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
+            offset = cursorOffset;
+            reverseOrder = reverse;
+        }
+
+        if (reverseOrder)
+        {
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Reverse",
+                [typeof(TV)],
+                source);
+        }
+
+        if (offset > 0)
+        {
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Skip",
+                [typeof(TV)],
+                source,
+                Expression.Constant(offset));
         }
 
         if (arguments.First is not null)
@@ -251,7 +273,7 @@ internal static class ExpressionHelpers
         };
 
         var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
-        return Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group);
+        return (Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group), reverseOrder);
 
         static string ReverseOrder(string method)
             => method switch
@@ -264,12 +286,10 @@ internal static class ExpressionHelpers
             };
 
         static MethodInfo GetEnumerableMethod(string methodName, Type elementType, LambdaExpression keySelector)
-        {
-            return typeof(Enumerable)
+            => typeof(Enumerable)
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .First(m => m.Name == methodName && m.GetParameters().Length == 2)
                 .MakeGenericMethod(elementType, keySelector.Body.Type);
-        }
     }
 
     private static MethodCallExpression BuildBatchWhereExpression<T>(

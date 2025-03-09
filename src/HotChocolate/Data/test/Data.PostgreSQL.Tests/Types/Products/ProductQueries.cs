@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Types.Products;
 [QueryType]
 public static partial class ProductQueries
 {
-    [UseConnection(IncludeTotalCount = true, AllowRelativeCursors = true)]
+    [UseConnection(IncludeTotalCount = true, EnableRelativeCursors = true)]
     [UseFiltering]
     [UseSorting]
     public static async Task<ProductConnection> GetProductsAsync(

@@ -23,8 +23,10 @@ LIMIT @__p_0
   "HasNextPage": false,
   "HasPreviousPage": true,
   "First": 96,
+  "FirstName": "Brand:95",
   "FirstCursor": "e31CcmFuZFw6OTU6OTY=",
   "Last": 100,
+  "LastName": "Brand:99",
   "LastCursor": "e31CcmFuZFw6OTk6MTAw"
 }
 ```

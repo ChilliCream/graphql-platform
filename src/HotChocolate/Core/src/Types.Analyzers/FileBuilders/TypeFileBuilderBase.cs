@@ -936,12 +936,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "EnableRelativeCursors = args{0}_options.AllowRelativeCursors",
+                                "EnableRelativeCursors = args{0}_options.EnableRelativeCursors",
                                 i);
                             using (Writer.IncreaseIndent())
                             {
                                 Writer.WriteIndentedLine(
-                                    "?? global::{0}.AllowRelativeCursors",
+                                    "?? global::{0}.EnableRelativeCursors",
                                     WellKnownTypes.PagingDefaults);
                             }
                         }

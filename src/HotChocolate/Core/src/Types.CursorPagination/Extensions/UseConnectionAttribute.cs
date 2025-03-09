@@ -20,7 +20,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
     private bool? _allowBackwardPagination;
     private bool? _requirePagingBoundaries;
     private bool? _inferConnectionNameFromField;
-    private bool? _allowRelativeCursors;
+    private bool? _EnableRelativeCursors;
 
     /// <summary>
     /// Overrides the global paging options for the annotated  field.
@@ -92,10 +92,10 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
     /// <summary>
     /// Defines whether relative cursors are allowed.
     /// </summary>
-    public bool AllowRelativeCursors
+    public bool EnableRelativeCursors
     {
-        get => _allowRelativeCursors ?? PagingDefaults.AllowRelativeCursors;
-        set => _allowRelativeCursors = value;
+        get => _EnableRelativeCursors ?? PagingDefaults.EnableRelativeCursors;
+        set => _EnableRelativeCursors = value;
     }
 
     public string? ConnectionName { get; set; }
@@ -119,7 +119,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             RequirePagingBoundaries = _requirePagingBoundaries,
             InferConnectionNameFromField = _inferConnectionNameFromField,
             ProviderName = ConnectionName,
-            AllowRelativeCursors = _allowRelativeCursors,
+            EnableRelativeCursors = _EnableRelativeCursors,
         };
 
         if (descriptor is IObjectFieldDescriptor fieldDesc)

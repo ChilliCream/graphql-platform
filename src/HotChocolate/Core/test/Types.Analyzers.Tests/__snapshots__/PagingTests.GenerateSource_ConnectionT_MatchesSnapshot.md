@@ -77,8 +77,8 @@ namespace TestNamespace
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_options.AllowRelativeCursors
-                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.AllowRelativeCursors
+                        EnableRelativeCursors = args0_options.EnableRelativeCursors
+                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.EnableRelativeCursors
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.BookPage.GetAuthorsAsync(args0, args1);
