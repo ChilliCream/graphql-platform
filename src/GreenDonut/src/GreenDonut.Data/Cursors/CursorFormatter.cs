@@ -68,7 +68,7 @@ public static class CursorFormatter
             WriteCharacter('{', ref span, ref poolArray, ref totalWritten);
             WriteNumber(pageInfo.Offset, ref span, ref poolArray, ref totalWritten);
             WriteCharacter('|', ref span, ref poolArray, ref totalWritten);
-            WriteNumber(pageInfo.Page, ref span, ref poolArray, ref totalWritten);
+            WriteNumber(pageInfo.PageIndex, ref span, ref poolArray, ref totalWritten);
             WriteCharacter('|', ref span, ref poolArray, ref totalWritten);
             WriteNumber(pageInfo.TotalCount, ref span, ref poolArray, ref totalWritten);
             WriteCharacter('}', ref span, ref poolArray, ref totalWritten);

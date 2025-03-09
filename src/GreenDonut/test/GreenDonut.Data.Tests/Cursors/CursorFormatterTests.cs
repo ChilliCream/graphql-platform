@@ -107,7 +107,7 @@ public class CursorFormatterTests
 
         // assert
         Assert.Null(parsed.Offset);
-        Assert.Null(parsed.Page);
+        Assert.Null(parsed.PageIndex);
         Assert.Null(parsed.TotalCount);
         Assert.Equal("test:345", parsed.Values[0]);
         Assert.Equal("description:123", parsed.Values[1]);
