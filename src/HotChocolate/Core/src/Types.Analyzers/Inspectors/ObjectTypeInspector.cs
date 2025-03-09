@@ -21,13 +21,18 @@ public class ObjectTypeInspector : ISyntaxInspector
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
+        var isOperationType = false;
 
         OperationType? operationType = null;
-        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType)
-            && !IsOperationType(context, out possibleType, out classSymbol, out operationType))
+        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
         {
-            syntaxInfo = null;
-            return false;
+            if (!IsOperationType(context, out possibleType, out classSymbol, out operationType))
+            {
+                syntaxInfo = null;
+                return false;
+            }
+
+            isOperationType = true;
         }
 
         if (!possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
@@ -62,7 +67,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                         continue;
                     }
 
-                    if (methodSymbol.IsNodeResolver())
+                    if (!isOperationType && methodSymbol.IsNodeResolver())
                     {
                         nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
                     }

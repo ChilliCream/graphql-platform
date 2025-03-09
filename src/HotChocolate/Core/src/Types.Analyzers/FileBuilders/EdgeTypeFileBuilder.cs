@@ -52,26 +52,30 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
             if (edgeType.RuntimeType.IsGenericType
                 && !string.IsNullOrEmpty(edgeType.NameFormat))
             {
+                var nodeTypeName = edgeType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
+                Writer.WriteIndentedLine(
+                    "var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof({0}));",
+                    nodeTypeName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())
                 {
                     Writer.WriteIndentedLine(
-                        ".Name(t => string.Format(\"{0}\", t.Name));",
+                        ".Name(t => string.Format(\"{0}\", t.Name))",
                         edgeType.NameFormat);
                     Writer.WriteIndentedLine(
-                        ".DependsOn(typeof({0}));",
-                        edgeType.RuntimeType.TypeArguments[0].ToFullyQualified());
+                        ".DependsOn(nodeTypeRef);");
                 }
             }
 
             WriteResolverBindings(edgeType);
-
-            Writer.WriteLine();
-            Writer.WriteIndentedLine("Configure(descriptor);");
         }
 
         Writer.WriteIndentedLine("}");
         Writer.WriteLine();
+    }
+
+    public override void WriteConfigureMethod(IOutputTypeInfo type)
+    {
     }
 }

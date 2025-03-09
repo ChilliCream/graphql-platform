@@ -1,4 +1,3 @@
-using System.Data.Common;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
@@ -54,27 +53,31 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             if (connectionType.RuntimeType.IsGenericType
                 && !string.IsNullOrEmpty(connectionType.NameFormat))
             {
+                var nodeTypeName = connectionType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
+                Writer.WriteIndentedLine(
+                    "var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof({0}));",
+                    nodeTypeName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())
                 {
                     Writer.WriteIndentedLine(
-                        ".Name(t => string.Format(\"{0}\", t.Name));",
+                        ".Name(t => string.Format(\"{0}\", t.Name))",
                         connectionType.NameFormat);
                     Writer.WriteIndentedLine(
-                        ".DependsOn(typeof({0}));",
-                        connectionType.RuntimeType.TypeArguments[0].ToFullyQualified());
+                        ".DependsOn(nodeTypeRef);");
                 }
             }
 
             WriteResolverBindings(connectionType);
-
-            Writer.WriteLine();
-            Writer.WriteIndentedLine("Configure(descriptor);");
         }
 
         Writer.WriteIndentedLine("}");
         Writer.WriteLine();
+    }
+
+    public override void WriteConfigureMethod(IOutputTypeInfo type)
+    {
     }
 
     protected override void WriteResolverBindingDescriptor(IOutputTypeInfo type, Resolver resolver)
@@ -90,8 +93,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             var edgeTypeName = $"{connectionType.Namespace}.{connectionType.EdgeTypeName}";
 
             Writer.WriteIndentedLine(
-                ".Type<global::{0}.{1}>()",
-                connectionType.Namespace,
+                ".Type<{0}>()",
                 ToGraphQLType(resolver.UnwrappedReturnType, edgeTypeName));
         }
         else

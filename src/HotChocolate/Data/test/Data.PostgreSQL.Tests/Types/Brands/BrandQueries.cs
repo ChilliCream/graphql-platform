@@ -8,16 +8,18 @@ using HotChocolate.Types.Relay;
 namespace HotChocolate.Data.Types.Brands;
 
 [QueryType]
-public static class BrandQueries
+public static partial class BrandQueries
 {
-    [UsePaging]
     [UseFiltering]
-    public static async Task<Connection<Brand>> GetBrandsAsync(
+    public static async Task<CatalogConnection<Brand>> GetBrandsAsync(
         PagingArguments pagingArgs,
         QueryContext<Brand> query,
         BrandService brandService,
         CancellationToken cancellationToken)
-        => await brandService.GetBrandsAsync(pagingArgs, query, cancellationToken).ToConnectionAsync();
+    {
+        var page = await brandService.GetBrandsAsync(pagingArgs, query, cancellationToken);
+        return new CatalogConnection<Brand>(page);
+    }
 
     [NodeResolver]
     public static async Task<Brand?> GetBrandByIdAsync(

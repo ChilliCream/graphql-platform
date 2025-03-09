@@ -154,17 +154,20 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case ConnectionTypeInfo objectTypeExtension:
+                case ConnectionTypeInfo connectionType:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
-                        && objectTypeExtension.Diagnostics.Length == 0)
+                        && connectionType.Diagnostics.Length == 0)
                     {
-                        objectTypeExtensions ??= [];
-                        objectTypeExtensions.Add(objectTypeExtension.RuntimeType.ToFullyQualified());
+                        generator.WriteRegisterType($"{connectionType.Namespace}.{connectionType.Name}");
+                        hasConfigurations = true;
+                    }
+                    break;
 
-                        generator.WriteRegisterTypeExtension(
-                            GetAssemblyQualifiedName(objectTypeExtension.RuntimeType),
-                            objectTypeExtension.RuntimeType.ToFullyQualified(),
-                            $"global::{objectTypeExtension.Namespace}.{objectTypeExtension.Name}");
+                case EdgeTypeInfo edgeType:
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
+                        && edgeType.Diagnostics.Length == 0)
+                    {
+                        generator.WriteRegisterType($"{edgeType.Namespace}.{edgeType.Name}");
                         hasConfigurations = true;
                     }
                     break;

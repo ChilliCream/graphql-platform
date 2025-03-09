@@ -18,4 +18,3 @@ public sealed class ProductSortInputType : SortInputType<Product>
         descriptor.Field(t => t.Price);
     }
 }
-
