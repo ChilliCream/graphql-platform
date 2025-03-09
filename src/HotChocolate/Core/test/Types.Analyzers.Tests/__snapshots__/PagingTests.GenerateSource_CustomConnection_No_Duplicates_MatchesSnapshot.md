@@ -251,6 +251,11 @@ namespace TestNamespace.Types.Nodes
                     args1_before = context.ArgumentValue<string?>("before");
                 }
 
+                if(args1_first is null && args1_last is null)
+                {
+                    args1_first = args1_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                }
+
                 if(args1_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
                     args1_includeTotalCount = context.IsSelected("totalCount");
@@ -358,6 +363,11 @@ namespace TestNamespace.Types.Root
                     args0_before = context.ArgumentValue<string?>("before");
                 }
 
+                if(args0_first is null && args0_last is null)
+                {
+                    args0_first = args0_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                }
+
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
                     args0_includeTotalCount = context.IsSelected("totalCount");
@@ -394,6 +404,11 @@ namespace TestNamespace.Types.Root
                 {
                     args0_last = context.ArgumentValue<int?>("last");
                     args0_before = context.ArgumentValue<string?>("before");
+                }
+
+                if(args0_first is null && args0_last is null)
+                {
+                    args0_first = args0_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
                 }
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)

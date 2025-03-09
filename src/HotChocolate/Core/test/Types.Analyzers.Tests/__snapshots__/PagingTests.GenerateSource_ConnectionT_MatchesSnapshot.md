@@ -60,6 +60,11 @@ namespace TestNamespace
                     args0_before = context.ArgumentValue<string?>("before");
                 }
 
+                if(args0_first is null && args0_last is null)
+                {
+                    args0_first = args0_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                }
+
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
                     args0_includeTotalCount = context.IsSelected("totalCount");
