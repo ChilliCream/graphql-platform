@@ -168,6 +168,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             throw ThrowHelper.Formatter_InvalidAcceptMediaType();
         }
 
+        try
+        {
+            await FormatInternalAsync(response, result, proposedStatusCode, format, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // if the request is aborted we will fail gracefully.
+        }
+    }
+
+    private async ValueTask FormatInternalAsync(
+        HttpResponse response,
+        IExecutionResult result,
+        HttpStatusCode? proposedStatusCode,
+        FormatInfo format,
+        CancellationToken cancellationToken)
+    {
         switch (result)
         {
             case IOperationResult operationResult:

@@ -11,7 +11,7 @@ public sealed class DataLoaderModuleInfo(string moduleName, bool isInternal) : S
     public override bool Equals(object? obj)
         => obj is DataLoaderModuleInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is DataLoaderModuleInfo other && Equals(other);
 
     private bool Equals(DataLoaderModuleInfo other)

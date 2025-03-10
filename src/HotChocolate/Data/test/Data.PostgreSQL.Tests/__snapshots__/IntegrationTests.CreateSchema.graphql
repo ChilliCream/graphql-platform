@@ -8,34 +8,37 @@ interface Node {
 }
 
 type Brand implements Node {
-  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
   name: String!
 }
 
-"A connection to a list of items."
-type BrandsConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [BrandsEdge!]
-  "A flattened list of the nodes."
-  nodes: [Brand!]
+type BrandConnection {
+  edges: [BrandEdge!]!
+  nodes: [Brand!]!
+  pageInfo: ConnectionPageInfo!
+  totalCount: Int! @cost(weight: "10")
 }
 
-"An edge in a connection."
-type BrandsEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
+type BrandEdge {
   node: Brand!
+  cursor: String!
 }
 
-"Information about pagination in a connection."
-type PageInfo {
-  "Indicates whether more edges exist following the set defined by the clients arguments."
+"""
+Represents the connection page info.
+This class provides additional information about pagination in a connection.
+"""
+type ConnectionPageInfo {
+  """
+  true if there is another page after the current one.
+  false if this page is the last page of the current data set / collection.
+  """
   hasNextPage: Boolean!
-  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  """
+  true if there is before this page.
+  false if this page is the first page in the current data set / collection.
+  """
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
@@ -46,19 +49,29 @@ type PageInfo {
 type Product implements Node {
   id: ID!
   brand: Brand @cost(weight: "10")
-  removeStock(quantityDesired: Int!): Int!
-  addStock(quantity: Int!): Int!
   name: String!
   description: String
   price: Decimal!
   imageFileName: String
-  typeId: Int!
   type: ProductType
-  brandId: Int!
   availableStock: Int!
   restockThreshold: Int!
   maxStockThreshold: Int!
+  "True if item is on reorder"
   onReorder: Boolean!
+}
+
+"A connection to a list of items."
+type ProductConnection {
+  "A list of edges."
+  edges: [ProductsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Product!]
+  "Information to aid in pagination."
+  pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+  endCursors(count: Int!): [String!]!
 }
 
 type ProductType {
@@ -67,24 +80,12 @@ type ProductType {
   products: [Product!]!
 }
 
-"A connection to a list of items."
-type ProductsConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [ProductsEdge!]
-  "A flattened list of the nodes."
-  nodes: [Product!]
-  "Identifies the total count of items in the connection."
-  totalCount: Int! @cost(weight: "10")
-}
-
 "An edge in a connection."
 type ProductsEdge {
-  "A cursor for use in pagination."
-  cursor: String!
   "The item at the end of the edge."
   node: Product!
+  "A cursor for use in pagination."
+  cursor: String!
 }
 
 type Query {
@@ -92,9 +93,10 @@ type Query {
   node("ID of the object." id: ID!): Node @cost(weight: "10")
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
-  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
-  brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   brandById(id: ID!): Brand @cost(weight: "10")
+  products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 
 input BooleanOperationFilterInput {
@@ -166,6 +168,7 @@ input ProductFilterInput {
   availableStock: IntOperationFilterInput
   restockThreshold: IntOperationFilterInput
   maxStockThreshold: IntOperationFilterInput
+  "True if item is on reorder"
   onReorder: BooleanOperationFilterInput
 }
 

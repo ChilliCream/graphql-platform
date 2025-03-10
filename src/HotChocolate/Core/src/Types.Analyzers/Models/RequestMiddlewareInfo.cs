@@ -26,7 +26,7 @@ public sealed class RequestMiddlewareInfo(
     public override bool Equals(object? obj)
         => obj is RequestMiddlewareInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is RequestMiddlewareInfo other && Equals(other);
 
     private bool Equals(RequestMiddlewareInfo other)

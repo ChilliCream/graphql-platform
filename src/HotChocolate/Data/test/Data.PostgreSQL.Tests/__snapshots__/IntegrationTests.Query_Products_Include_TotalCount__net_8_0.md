@@ -5,7 +5,7 @@
 ```json
 {
   "data": {
-    "products": {
+    "productsNonRelative": {
       "nodes": [
         {
           "name": "Zero Gravity Ski Goggles"

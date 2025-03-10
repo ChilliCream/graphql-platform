@@ -40,9 +40,9 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentException">
     /// If the number of keys does not match the number of values.
     /// </exception>
-    public static Expression<Func<T, bool>> BuildWhereExpression<T>(
+    public static (Expression<Func<T, bool>> WhereExpression, int Offset, bool ReverseOrder) BuildWhereExpression<T>(
         ReadOnlySpan<CursorKey> keys,
-        ReadOnlySpan<object?> cursor,
+        Cursor cursor,
         bool forward)
     {
         if (keys.Length == 0)
@@ -50,15 +50,15 @@ internal static class ExpressionHelpers
             throw new ArgumentException("At least one key must be specified.", nameof(keys));
         }
 
-        if (keys.Length != cursor.Length)
+        if (keys.Length != cursor.Values.Length)
         {
-            throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor));
+            throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor.Values));
         }
 
-        var cursorExpr = new Expression[cursor.Length];
-        for (var i = 0; i < cursor.Length; i++)
+        var cursorExpr = new Expression[cursor.Values.Length];
+        for (var i = 0; i < cursor.Values.Length; i++)
         {
-            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
+            cursorExpr[i] = CreateParameter(cursor.Values[i], keys[i].Expression.ReturnType);
         }
 
         var handled = new List<CursorKey>();
@@ -118,7 +118,10 @@ internal static class ExpressionHelpers
             handled.Add(key);
         }
 
-        return Expression.Lambda<Func<T, bool>>(expression!, parameter);
+        var offset = cursor.Offset ?? 0;
+        var reverseOrder = offset < 0; // Reverse order if offset is negative
+
+        return (Expression.Lambda<Func<T, bool>>(expression!, parameter), Math.Abs(offset), reverseOrder);
     }
 
     /// <summary>
@@ -153,7 +156,7 @@ internal static class ExpressionHelpers
     /// If the number of keys is less than one or
     /// the number of order expressions does not match the number of order methods.
     /// </exception>
-    public static Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> BuildBatchSelectExpression<TK, TV>(
+    public static (Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> SelectExpression, bool ReverseOrder) BuildBatchSelectExpression<TK, TV>(
         PagingArguments arguments,
         ReadOnlySpan<CursorKey> keys,
         ReadOnlySpan<LambdaExpression> orderExpressions,
@@ -181,14 +184,8 @@ internal static class ExpressionHelpers
 
         for (var i = 0; i < orderExpressions.Length; i++)
         {
-            var methodName = orderMethods[i];
+            var methodName = forward ? orderMethods[i] : ReverseOrder(orderMethods[i]);
             var orderExpression = orderExpressions[i];
-
-            if (!forward)
-            {
-                methodName = ReverseOrder(methodName);
-            }
-
             var delegateType = typeof(Func<,>).MakeGenericType(typeof(TV), orderExpression.Body.Type);
             var typedOrderExpression = Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
 
@@ -200,16 +197,44 @@ internal static class ExpressionHelpers
                 typedOrderExpression);
         }
 
+        var reverseOrder = false;
+        var offset = 0;
+
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<TV>(keys, cursor, forward: true);
+            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
+            offset = cursorOffset;
+            reverseOrder = reverse;
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<TV>(keys, cursor, forward: false);
+            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
+            offset = cursorOffset;
+            reverseOrder = reverse;
+        }
+
+        if (reverseOrder)
+        {
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Reverse",
+                [typeof(TV)],
+                source);
+        }
+
+        if (offset > 0)
+        {
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Skip",
+                [typeof(TV)],
+                source,
+                Expression.Constant(offset));
         }
 
         if (arguments.First is not null)
@@ -248,7 +273,7 @@ internal static class ExpressionHelpers
         };
 
         var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
-        return Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group);
+        return (Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group), reverseOrder);
 
         static string ReverseOrder(string method)
             => method switch
@@ -261,12 +286,10 @@ internal static class ExpressionHelpers
             };
 
         static MethodInfo GetEnumerableMethod(string methodName, Type elementType, LambdaExpression keySelector)
-        {
-            return typeof(Enumerable)
+            => typeof(Enumerable)
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .First(m => m.Name == methodName && m.GetParameters().Length == 2)
                 .MakeGenericMethod(elementType, keySelector.Body.Type);
-        }
     }
 
     private static MethodCallExpression BuildBatchWhereExpression<T>(
@@ -355,7 +378,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
-        if(expression is null)
+        if (expression is null)
         {
             throw new ArgumentNullException(nameof(expression));
         }

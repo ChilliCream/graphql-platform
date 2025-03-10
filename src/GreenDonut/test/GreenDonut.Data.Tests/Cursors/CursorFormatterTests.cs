@@ -18,8 +18,8 @@ public class CursorFormatterTests
         var result = CursorFormatter.Format(entity, [new CursorKey(selector, serializer)]);
 
         // assert
-        Assert.Equal("dGVzdA==", result);
-        Assert.Equal("test", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+        Assert.Equal("e310ZXN0", result);
+        Assert.Equal("{}test", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
     }
 
     [Fact]
@@ -34,8 +34,8 @@ public class CursorFormatterTests
         var result = CursorFormatter.Format(entity, [new CursorKey(selector, serializer)]);
 
         // assert
-        Assert.Equal("dGVzdFw6dGVzdA==", result);
-        Assert.Equal("test\\:test", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+        Assert.Equal("e310ZXN0XDp0ZXN0", result);
+        Assert.Equal("{}test\\:test", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
     }
 
     [Fact]
@@ -56,8 +56,8 @@ public class CursorFormatterTests
             ]);
 
         // assert
-        Assert.Equal("dGVzdDpkZXNjcmlwdGlvbg==", result);
-        Assert.Equal("test:description", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+        Assert.Equal("e310ZXN0OmRlc2NyaXB0aW9u", result);
+        Assert.Equal("{}test:description", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public class CursorFormatterTests
             ]);
 
         // assert
-        Assert.Equal("dGVzdFw6MzQ1OmRlc2NyaXB0aW9uXDoxMjM=", result);
-        Assert.Equal("test\\:345:description\\:123", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+        Assert.Equal("e310ZXN0XDozNDU6ZGVzY3JpcHRpb25cOjEyMw==", result);
+        Assert.Equal("{}test\\:345:description\\:123", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class CursorFormatterTests
                 new CursorKey(selector1, serializer),
                 new CursorKey(selector2, serializer)
             ]);
-        var parsed =CursorParser.Parse(
+        var parsed = CursorParser.Parse(
             formatted,
             [
                 new CursorKey(selector1, serializer),
@@ -106,8 +106,11 @@ public class CursorFormatterTests
             ]);
 
         // assert
-        Assert.Equal("test:345", parsed[0]);
-        Assert.Equal("description:123", parsed[1]);
+        Assert.Null(parsed.Offset);
+        Assert.Null(parsed.PageIndex);
+        Assert.Null(parsed.TotalCount);
+        Assert.Equal("test:345", parsed.Values[0]);
+        Assert.Equal("description:123", parsed.Values[1]);
     }
 
     public class MyClass

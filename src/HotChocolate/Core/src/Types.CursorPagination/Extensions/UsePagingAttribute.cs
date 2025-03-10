@@ -124,17 +124,17 @@ public sealed class UsePagingAttribute : DescriptorAttribute
             string.IsNullOrEmpty(_connectionName)
                 ? default!
                 : _connectionName;
-        var options =
-            new PagingOptions
-            {
-                DefaultPageSize = _defaultPageSize,
-                MaxPageSize = _maxPageSize,
-                IncludeTotalCount = _includeTotalCount,
-                AllowBackwardPagination = _allowBackwardPagination,
-                RequirePagingBoundaries = _requirePagingBoundaries,
-                InferConnectionNameFromField = _inferConnectionNameFromField,
-                ProviderName = ProviderName
-            };
+
+        var options =new PagingOptions
+        {
+            DefaultPageSize = _defaultPageSize,
+            MaxPageSize = _maxPageSize,
+            IncludeTotalCount = _includeTotalCount,
+            AllowBackwardPagination = _allowBackwardPagination,
+            RequirePagingBoundaries = _requirePagingBoundaries,
+            InferConnectionNameFromField = _inferConnectionNameFromField,
+            ProviderName = ProviderName
+        };
 
         if (descriptor is IObjectFieldDescriptor ofd)
         {

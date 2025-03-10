@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Pagination;
 /// Represents an edge in a connection.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class Edge<T> : IEdge
+public class Edge<T> : IEdge<T>
 {
     private readonly Func<Edge<T>, string>? _resolveCursor;
     private string? _cursor;

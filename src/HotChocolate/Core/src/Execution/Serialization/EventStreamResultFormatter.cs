@@ -74,8 +74,11 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
             MessageHelper.WriteCompleteMessage(buffer);
 
-            await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
-            await outputStream.FlushAsync(ct).ConfigureAwait(false);
+            if (!ct.IsCancellationRequested)
+            {
+                await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+                await outputStream.FlushAsync(ct).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
@@ -111,8 +114,14 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                         {
                             buffer ??= new ArrayWriter();
                             MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+
                             writer.Write(buffer.GetWrittenSpan());
-                            await writer.FlushAsync(ct).ConfigureAwait(false);
+
+                            if (!ct.IsCancellationRequested)
+                            {
+                                await writer.FlushAsync(ct).ConfigureAwait(false);
+                            }
+
                             keepAlive?.Reset();
                             buffer.Reset();
                         }
@@ -148,8 +157,11 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             buffer?.Dispose();
         }
 
-        MessageHelper.WriteCompleteMessage(writer);
-        await writer.FlushAsync(ct).ConfigureAwait(false);
+        if (!ct.IsCancellationRequested)
+        {
+            MessageHelper.WriteCompleteMessage(writer);
+            await writer.FlushAsync(ct).ConfigureAwait(false);
+        }
     }
 
     private async ValueTask FormatResponseStreamAsync(
@@ -165,8 +177,11 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             await formatter.ProcessAsync(ct).ConfigureAwait(false);
         }
 
-        MessageHelper.WriteCompleteMessage(writer);
-        await writer.FlushAsync(ct).ConfigureAwait(false);
+        if (!ct.IsCancellationRequested)
+        {
+            MessageHelper.WriteCompleteMessage(writer);
+            await writer.FlushAsync(ct).ConfigureAwait(false);
+        }
     }
 
     private sealed class StreamFormatter(
@@ -206,6 +221,12 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                         scope?.Dispose();
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // if the operation was canceled we do not need to log this
+                // and will stop gracefully.
+                return;
             }
             finally
             {

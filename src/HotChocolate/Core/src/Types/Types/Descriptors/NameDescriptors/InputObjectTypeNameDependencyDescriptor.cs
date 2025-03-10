@@ -1,5 +1,6 @@
 using HotChocolate.Types.Helpers;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
 internal class InputObjectTypeNameDependencyDescriptor
@@ -28,6 +29,12 @@ internal class InputObjectTypeNameDependencyDescriptor
     public IInputObjectTypeDescriptor DependsOn(Type schemaType)
     {
         TypeNameHelper.AddNameFunction(_descriptor, _createName, schemaType);
+        return _descriptor;
+    }
+
+    public IInputObjectTypeDescriptor DependsOn(TypeReference typeReference)
+    {
+        TypeNameHelper.AddNameFunction(_descriptor, _createName, typeReference);
         return _descriptor;
     }
 }

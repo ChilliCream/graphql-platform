@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
@@ -11,20 +12,27 @@ using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
+public class ObjectTypeInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.ClassDeclaration];
 
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         var diagnostics = ImmutableArray<Diagnostic>.Empty;
+        var isOperationType = false;
 
         OperationType? operationType = null;
-        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType)
-            && !IsOperationType(context, out possibleType, out classSymbol, out operationType))
+        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
         {
-            syntaxInfo = null;
-            return false;
+            if (!IsOperationType(context, out possibleType, out classSymbol, out operationType))
+            {
+                syntaxInfo = null;
+                return false;
+            }
+
+            isOperationType = true;
         }
 
         if (!possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
@@ -50,7 +58,7 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal)
+            if (member.DeclaredAccessibility is Accessibility.Public && !member.IsIgnored())
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -59,7 +67,7 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
                         continue;
                     }
 
-                    if (methodSymbol.IsNodeResolver())
+                    if (!isOperationType && methodSymbol.IsNodeResolver())
                     {
                         nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
                     }
@@ -89,14 +97,14 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
 
         if (runtimeType is not null)
         {
-            syntaxInfo = new ObjectTypeExtensionInfo(
+            syntaxInfo = new ObjectTypeInfo(
                 classSymbol,
                 runtimeType,
                 nodeResolver,
                 possibleType,
                 i == 0
                     ? ImmutableArray<Resolver>.Empty
-                    : resolvers.ToImmutableArray());
+                    : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
             if (diagnostics.Length > 0)
             {
@@ -105,13 +113,13 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = new RootTypeExtensionInfo(
+        syntaxInfo = new RootTypeInfo(
             classSymbol,
             operationType!.Value,
             possibleType,
             i == 0
                 ? ImmutableArray<Resolver>.Empty
-                : resolvers.ToImmutableArray());
+                : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
         if (diagnostics.Length > 0)
         {
@@ -226,8 +234,14 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         INamedTypeSymbol resolverType,
         IMethodSymbol resolverMethod)
+        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod);
+
+    public static Resolver CreateResolver(
+        Compilation compilation,
+        INamedTypeSymbol resolverType,
+        IMethodSymbol resolverMethod,
+        string? resolverTypeName = null)
     {
-        var compilation = context.SemanticModel.Compilation;
         var parameters = resolverMethod.Parameters;
         var resolverParameters = new ResolverParameter[parameters.Length];
 
@@ -236,12 +250,17 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             resolverParameters[i] = ResolverParameter.Create(parameters[i], compilation);
         }
 
+        resolverTypeName ??= resolverType.Name;
+
         return new Resolver(
-            resolverType.Name,
+            resolverTypeName,
             resolverMethod,
             resolverMethod.GetResultKind(),
             resolverParameters.ToImmutableArray(),
-            resolverMethod.GetMemberBindings());
+            resolverMethod.GetMemberBindings(),
+            kind: resolverMethod.ReturnType.IsConnectionBase()
+                ? ResolverKind.ConnectionResolver
+                : ResolverKind.Default);
     }
 
     private static Resolver CreateNodeResolver(
@@ -295,8 +314,11 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             resolverParameters.ToImmutableArray(),
             resolverMethod.GetMemberBindings(),
-            isNodeResolver: true);
+            kind: ResolverKind.NodeResolver);
     }
+
+    public static ImmutableArray<MemberBinding> GetMemberBindings(ISymbol member)
+        => member.GetMemberBindings();
 }
 
 file static class Extensions

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
@@ -9,7 +10,9 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class OperationInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [MethodWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [MethodWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.MethodDeclaration];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,

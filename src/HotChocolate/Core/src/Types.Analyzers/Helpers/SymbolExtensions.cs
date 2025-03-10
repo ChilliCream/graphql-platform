@@ -8,30 +8,21 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 public static class SymbolExtensions
 {
     public static bool IsNullableType(this ITypeSymbol typeSymbol)
-    {
-        return typeSymbol.IsNullableRefType() ||
-            typeSymbol.IsNullableValueType();
-    }
+        => typeSymbol.IsNullableRefType() || typeSymbol.IsNullableValueType();
 
     public static bool IsNullableRefType(this ITypeSymbol typeSymbol)
-    {
-        return typeSymbol.IsReferenceType
-            && typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
-    }
+        => typeSymbol is
+        {
+            IsReferenceType: true,
+            NullableAnnotation: NullableAnnotation.Annotated
+        };
 
     public static bool IsNullableValueType(this ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
+        => typeSymbol is INamedTypeSymbol
         {
-            if (namedTypeSymbol.IsGenericType &&
-                namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+            IsGenericType: true,
+            OriginalDefinition.SpecialType: SpecialType.System_Nullable_T
+        };
 
     public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
     {
@@ -42,10 +33,14 @@ public static class SymbolExtensions
         => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
     public static bool IsParent(this IParameterSymbol parameter)
-        => parameter.IsThis ||
-            parameter
+        => parameter.IsThis
+            || parameter
                 .GetAttributes()
                 .Any(static t => t.AttributeClass?.ToDisplayString() == WellKnownAttributes.ParentAttribute);
+
+    public static bool IsIgnored(this ISymbol member)
+        => member.GetAttributes()
+            .Any(static t => t.AttributeClass?.ToDisplayString() == WellKnownAttributes.GraphQLIgnoreAttribute);
 
     public static bool IsCancellationToken(this IParameterSymbol parameter)
         => parameter.Type.ToDisplayString() == WellKnownTypes.CancellationToken;
@@ -80,8 +75,8 @@ public static class SymbolExtensions
         {
             if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
             {
-                if (namedTypeSymbol.Name == "SetState" &&
-                    namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
+                if (namedTypeSymbol.Name == "SetState"
+                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
                 {
                     stateTypeName = namedTypeSymbol.TypeArguments[0].ToDisplayString();
                     return true;
@@ -99,8 +94,8 @@ public static class SymbolExtensions
         {
             if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
             {
-                if (namedTypeSymbol.Name == "SetState" &&
-                    namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
+                if (namedTypeSymbol.Name == "SetState"
+                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
                 {
                     return true;
                 }
@@ -122,6 +117,17 @@ public static class SymbolExtensions
         return false;
     }
 
+    public static bool IsPagingArguments(this IParameterSymbol parameter)
+    {
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
         [NotNullWhen(true)] out string? key)
@@ -132,9 +138,9 @@ public static class SymbolExtensions
         {
             if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.GlobalStateAttribute"))
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -167,9 +173,9 @@ public static class SymbolExtensions
         {
             if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.ScopedStateAttribute"))
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -202,9 +208,9 @@ public static class SymbolExtensions
         {
             if (IsOrInheritsFrom(attributeData.AttributeClass, "HotChocolate.LocalStateAttribute"))
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -251,9 +257,9 @@ public static class SymbolExtensions
         {
             if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -286,9 +292,9 @@ public static class SymbolExtensions
         {
             if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ArgumentAttribute)
             {
-                if (attributeData.ConstructorArguments.Length == 1 &&
-                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
-                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1
+                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
+                    && attributeData.ConstructorArguments[0].Value is string keyValue)
                 {
                     key = keyValue;
                     return true;
@@ -318,8 +324,8 @@ public static class SymbolExtensions
             return false;
         }
 
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol &&
-            namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
         {
             return false;
         }
@@ -341,17 +347,14 @@ public static class SymbolExtensions
 
         var returnType = method.ReturnType.ToDisplayString();
 
-        if (returnType.Equals(WellKnownTypes.Task) ||
-            returnType.Equals(WellKnownTypes.ValueTask))
+        if (returnType.Equals(WellKnownTypes.Task) || returnType.Equals(WellKnownTypes.ValueTask))
         {
             return ResolverResultKind.Invalid;
         }
 
-        if (returnType.StartsWith(task) ||
-            returnType.StartsWith(valueTask))
+        if (returnType.StartsWith(task) || returnType.StartsWith(valueTask))
         {
-            if (returnType.StartsWith(taskEnumerable) ||
-                returnType.StartsWith(valueTaskEnumerable))
+            if (returnType.StartsWith(taskEnumerable) || returnType.StartsWith(valueTaskEnumerable))
             {
                 return ResolverResultKind.TaskAsyncEnumerable;
             }
@@ -445,6 +448,7 @@ public static class SymbolExtensions
                 break;
             }
         }
+
         return typeSymbol;
     }
 
@@ -471,8 +475,8 @@ public static class SymbolExtensions
         while (attributeClass != null)
         {
             var typeName = attributeClass.ToDisplayString();
-            if (typeName.Equals("HotChocolate.Types.UsePagingAttribute") ||
-                typeName.Equals("HotChocolate.Types.UseOffsetPagingAttribute"))
+            if (typeName.Equals("HotChocolate.Types.UsePagingAttribute")
+                || typeName.Equals("HotChocolate.Types.UseOffsetPagingAttribute"))
             {
                 return true;
             }
@@ -498,7 +502,7 @@ public static class SymbolExtensions
 
         while (current != null)
         {
-            foreach(var typeName in fullTypeName)
+            foreach (var typeName in fullTypeName)
             {
                 if (current.ToDisplayString() == typeName)
                 {
@@ -536,7 +540,7 @@ public static class SymbolExtensions
         {
             returnType = method.ReturnType;
         }
-        else if(member is IPropertySymbol property)
+        else if (member is IPropertySymbol property)
         {
             returnType = property.Type;
         }
@@ -547,8 +551,10 @@ public static class SymbolExtensions
 
         if (returnType is INamedTypeSymbol namedTypeSymbol)
         {
-            if (namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.Task<T>" ||
-                namedTypeSymbol.ConstructedFrom.ToString() == "System.Threading.Tasks.ValueTask<T>")
+            var definitionName = namedTypeSymbol.ConstructedFrom.ToDisplayString();
+
+            if (definitionName.StartsWith("System.Threading.Tasks.Task<")
+                || definitionName.StartsWith("System.Threading.Tasks.ValueTask<"))
             {
                 return namedTypeSymbol.TypeArguments.FirstOrDefault();
             }
@@ -556,4 +562,107 @@ public static class SymbolExtensions
 
         return returnType;
     }
+
+    public static bool IsConnectionType(this INamedTypeSymbol typeSymbol, Compilation compilation)
+    {
+        var connectionInterface = compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.IConnection`1");
+
+        if (connectionInterface == null)
+        {
+            return false;
+        }
+
+        return typeSymbol.AllInterfaces.Any(
+            s => SymbolEqualityComparer.Default.Equals(s.OriginalDefinition, connectionInterface));
+    }
+
+    public static bool IsConnectionBase(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            var definitionName = namedType.ConstructedFrom.ToDisplayString();
+
+            if (definitionName.StartsWith("System.Threading.Tasks.Task<")
+                || definitionName.StartsWith("System.Threading.Tasks.ValueTask<"))
+            {
+                typeSymbol = namedType.TypeArguments[0];
+            }
+        }
+
+        var current = typeSymbol;
+
+        while (current != null)
+        {
+            if (current is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
+            {
+                var baseType = namedTypeSymbol.ConstructedFrom;
+
+                if (baseType.ToDisplayString().StartsWith("HotChocolate.Types.Pagination.ConnectionBase<"))
+                {
+                    return true;
+                }
+            }
+
+            current = current.BaseType;
+        }
+
+        return false;
+    }
+
+    public static ITypeSymbol UnwrapTaskOrValueTask(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            var originalDefinition = namedType.ConstructedFrom;
+
+            if (originalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<T>"
+                || originalDefinition.ToDisplayString() == "System.Threading.Tasks.ValueTask<T>")
+            {
+                return namedType.TypeArguments[0];
+            }
+        }
+
+        return typeSymbol;
+    }
+
+    /// <summary>
+    /// Determines if the method is an accessor (e.g., get_Property, set_Property).
+    /// </summary>
+    public static bool IsPropertyOrEventAccessor(this IMethodSymbol method)
+    {
+        return method.MethodKind == MethodKind.PropertyGet
+            || method.MethodKind == MethodKind.PropertySet
+            || method.MethodKind == MethodKind.EventAdd
+            || method.MethodKind == MethodKind.EventRemove
+            || method.MethodKind == MethodKind.EventRaise;
+    }
+
+    /// <summary>
+    /// Determines if the method is an operator overload (e.g., op_Addition).
+    /// </summary>
+    public static bool IsOperator(this IMethodSymbol method)
+    {
+        return method.MethodKind == MethodKind.UserDefinedOperator
+            || method.MethodKind == MethodKind.Conversion;
+    }
+
+    public static bool IsConstructor(this IMethodSymbol method)
+    {
+        return method.MethodKind == MethodKind.Constructor
+            || method.MethodKind == MethodKind.SharedConstructor;
+    }
+
+    public static bool IsSpecialMethod(this IMethodSymbol method)
+    {
+        return method.MethodKind == MethodKind.Destructor
+            || method.MethodKind == MethodKind.LocalFunction
+            || method.MethodKind == MethodKind.AnonymousFunction
+            || method.MethodKind == MethodKind.DelegateInvoke;
+    }
+
+    public static bool IsCompilerGenerated(this IMethodSymbol method)
+        => method
+            .GetAttributes()
+            .Any(attr => attr.AttributeClass?.ToDisplayString()
+                == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
 }

@@ -60,6 +60,7 @@ public partial class SchemaBuilder
                     typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
                 }
 
+                PagingDefaults.Apply(builder._pagingOptions);
                 context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
 
                 InitializeInterceptors(

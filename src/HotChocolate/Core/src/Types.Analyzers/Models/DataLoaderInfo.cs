@@ -306,7 +306,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public override bool Equals(object? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
     private bool Equals(DataLoaderInfo other)

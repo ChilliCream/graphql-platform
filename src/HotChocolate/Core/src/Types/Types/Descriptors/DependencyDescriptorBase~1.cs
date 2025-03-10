@@ -70,4 +70,20 @@ internal abstract class DependencyDescriptorBase
                 TypeReference.Create(new NamedTypeNode(typeName)),
                 kind));
     }
+
+    protected void DependsOn(
+        TypeReference typeReference,
+        bool mustBeNamedOrCompleted)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        var kind = mustBeNamedOrCompleted
+            ? DependencyFulfilled
+            : TypeDependencyFulfilled.Default;
+
+        _configuration.AddDependency(new TypeDependency(typeReference, kind));
+    }
 }

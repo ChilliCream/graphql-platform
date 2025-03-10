@@ -11,7 +11,9 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public class InterfaceTypeInfoInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.ClassDeclaration];
 
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
@@ -70,13 +72,13 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             Array.Resize(ref resolvers, i);
         }
 
-        syntaxInfo = new InterfaceTypeExtensionInfo(
+        syntaxInfo = new InterfaceTypeInfo(
             classSymbol,
             runtimeType,
             possibleType,
             i == 0
                 ? ImmutableArray<Resolver>.Empty
-                : resolvers.ToImmutableArray());
+                : [..resolvers]);
 
         if (diagnostics.Length > 0)
         {
@@ -148,7 +150,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverType.Name,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            [..resolverParameters],
             ImmutableArray<MemberBinding>.Empty);
     }
 }

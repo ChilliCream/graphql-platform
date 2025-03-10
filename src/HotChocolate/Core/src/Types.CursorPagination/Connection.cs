@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Pagination;
 /// <summary>
 /// The connection represents one section of a dataset / collection.
 /// </summary>
-public class Connection : IPage
+public class Connection : IConnection, IPageTotalCountProvider
 {
     /// <summary>
     /// Initializes <see cref="Connection" />.

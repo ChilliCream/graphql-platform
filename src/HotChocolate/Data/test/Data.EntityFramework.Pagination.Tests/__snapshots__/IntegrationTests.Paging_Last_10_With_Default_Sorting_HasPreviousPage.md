@@ -39,7 +39,7 @@
       "pageInfo": {
         "hasNextPage": false,
         "hasPreviousPage": true,
-        "endCursor": "MTAw"
+        "endCursor": "e30xMDA="
       }
     }
   },

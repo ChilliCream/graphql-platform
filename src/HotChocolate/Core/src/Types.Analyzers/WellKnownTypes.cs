@@ -82,6 +82,17 @@ public static class WellKnownTypes
         "HotChocolate.Data.Filters.FilterContextResolverContextExtensions";
     public const string SortingContextResolverContextExtensions =
         "HotChocolate.Data.Sorting.SortingContextResolverContextExtensions";
+    public const string PagingHelper = "HotChocolate.Types.Pagination.PagingHelper";
+    public const string PagingDefaults = "HotChocolate.Types.Pagination.PagingDefaults";
+    public const string StaticMemberFlags = "HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags";
+    public const string InstanceMemberFlags = "HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags";
+    public const string IObjectTypeDescriptor = "HotChocolate.Types.IObjectTypeDescriptor";
+    public const string IInterfaceTypeDescriptor = "HotChocolate.Types.IInterfaceTypeDescriptor";
+    public const string TypeReference = "HotChocolate.Types.Descriptors.TypeReference";
+    public const string IDescriptorContext = "HotChocolate.Types.Descriptors.IDescriptorContext";
+    public const string ObjectTypeDefinition = "HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition";
+    public const string NonNullType = "HotChocolate.Types.NonNullType";
+    public const string ListType = "HotChocolate.Types.ListType";
 
     public static HashSet<string> TypeClass { get; } =
     [
@@ -129,9 +140,8 @@ public static class WellKnownTypes
         };
 
     public static HashSet<string> TaskWrapper { get; } =
-        new()
-        {
+        [
             "System.Threading.Tasks.Task<>",
             "System.Threading.Tasks.ValueTask<>"
-        };
+        ];
 }

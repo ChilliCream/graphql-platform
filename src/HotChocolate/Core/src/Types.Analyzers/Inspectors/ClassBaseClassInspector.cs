@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
@@ -10,7 +11,9 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public class ClassBaseClassInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [ClassWithBaseClass.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [ClassWithBaseClass.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.ClassDeclaration];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,

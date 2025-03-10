@@ -23,9 +23,9 @@ internal sealed partial class ExtendedType
             if (type.IsGenericType)
             {
                 var definition = type.GetGenericTypeDefinition();
-                if (typeof(ListType<>) == definition ||
-                    typeof(NonNullType<>) == definition ||
-                    typeof(NativeType<>) == definition)
+                if (typeof(ListType<>) == definition
+                    || typeof(NonNullType<>) == definition
+                    || typeof(NativeType<>) == definition)
                 {
                     return IsSchemaType(type.GetGenericArguments()[0]);
                 }
@@ -36,25 +36,27 @@ internal sealed partial class ExtendedType
 
         internal static Type RemoveNonEssentialTypes(Type type)
         {
-            if (type.IsGenericType &&
-                (type.GetGenericTypeDefinition() == typeof(NativeType<>) ||
-                type.GetGenericTypeDefinition() == typeof(ValueTask<>) ||
-                type.GetGenericTypeDefinition() == typeof(Task<>)))
+            if (type.IsGenericType
+                && (type.GetGenericTypeDefinition() == typeof(NativeType<>)
+                    || type.GetGenericTypeDefinition() == typeof(ValueTask<>)
+                    || type.GetGenericTypeDefinition() == typeof(Task<>)))
             {
                 return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
             }
+
             return type;
         }
 
         internal static IExtendedType RemoveNonEssentialTypes(IExtendedType type)
         {
-            if (type.IsGeneric &&
-                (type.Definition == typeof(NativeType<>) ||
-                type.Definition == typeof(ValueTask<>) ||
-                type.Definition == typeof(Task<>)))
+            if (type.IsGeneric
+                && (type.Definition == typeof(NativeType<>)
+                    || type.Definition == typeof(ValueTask<>)
+                    || type.Definition == typeof(Task<>)))
             {
                 return RemoveNonEssentialTypes(type.TypeArguments[0]);
             }
+
             return type;
         }
 
@@ -65,56 +67,6 @@ internal sealed partial class ExtendedType
 
         private static bool ImplementsListInterface(Type type) =>
             GetInnerListType(type) is not null;
-
-        internal static ExtendedType? GetInnerListType(
-            ExtendedType type,
-            TypeCache cache)
-        {
-            if (IsDictionary(type.Type))
-            {
-                IExtendedType key = type.TypeArguments[0];
-                IExtendedType value = type.TypeArguments[1];
-
-                var itemType = typeof(KeyValuePair<,>).MakeGenericType(key.Type, value.Type);
-
-                return cache.GetOrCreateType(itemType, () =>
-                {
-                    return new ExtendedType(
-                        itemType,
-                        ExtendedTypeKind.Runtime,
-                        new[] { (ExtendedType)key, (ExtendedType)value, },
-                        isNullable: false);
-                });
-            }
-
-            if (IsSupportedCollectionInterface(type.Type))
-            {
-                return type.TypeArguments[0];
-            }
-
-            if (type.IsInterface && type.Definition == typeof(IEnumerable<>))
-            {
-                return type.TypeArguments[0];
-            }
-
-            foreach (var interfaceType in type.Type.GetInterfaces())
-            {
-                if (IsSupportedCollectionInterface(interfaceType))
-                {
-                    var elementType = interfaceType.GetGenericArguments()[0];
-
-                    if (type.TypeArguments.Count == 1 &&
-                        type.TypeArguments[0].Type == elementType)
-                    {
-                        return type.TypeArguments[0];
-                    }
-
-                    return SystemType.FromType(elementType, cache);
-                }
-            }
-
-            return null;
-        }
 
         internal static Type? GetInnerListType(Type type)
         {
@@ -137,11 +89,20 @@ internal sealed partial class ExtendedType
                     return interfaceType.GetGenericArguments()[0];
                 }
 
-                if (interfaceType == typeof(IPage) &&
-                    type.IsGenericType &&
-                    type.GenericTypeArguments.Length == 1)
+                if (interfaceType == typeof(IPage))
                 {
-                    return type.GenericTypeArguments[0];
+                    if (type is { IsGenericType: true, GenericTypeArguments.Length: 1 })
+                    {
+                        return type.GenericTypeArguments[0];
+                    }
+                }
+
+                if (interfaceType.IsInterface
+                    && interfaceType.IsGenericType
+                    && interfaceType.IsAssignableTo(typeof(IPage))
+                    && interfaceType.GetGenericTypeDefinition().FullName == "HotChocolate.Types.Pagination.IConnection`1")
+                {
+                    return interfaceType.GetGenericArguments()[0];
                 }
             }
 
@@ -178,24 +139,7 @@ internal sealed partial class ExtendedType
                     return true;
                 }
             }
-            return false;
-        }
 
-        private static bool IsDictionary(Type type)
-        {
-            if (type.IsGenericType)
-            {
-                var typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition == typeof(IDictionary<,>)
-                    || typeDefinition == typeof(IReadOnlyDictionary<,>)
-                    || typeDefinition == typeof(Dictionary<,>)
-                    || typeDefinition == typeof(ConcurrentDictionary<,>)
-                    || typeDefinition == typeof(SortedDictionary<,>)
-                    || typeDefinition == typeof(ImmutableDictionary<,>))
-                {
-                    return true;
-                }
-            }
             return false;
         }
 
@@ -234,9 +178,7 @@ internal sealed partial class ExtendedType
 
             var pos = position++;
             var changeNullability =
-                nullable.Length > pos &&
-                nullable[pos].HasValue &&
-                nullable[pos]!.Value != type.IsNullable;
+                nullable.Length > pos && nullable[pos].HasValue && nullable[pos]!.Value != type.IsNullable;
             var typeArguments = type.TypeArguments;
 
             if (type.TypeArguments.Count > 0 && nullable.Length > position)
@@ -268,8 +210,7 @@ internal sealed partial class ExtendedType
                     ? type.ElementType
                     : null;
 
-                if (elementType is not null &&
-                    !ReferenceEquals(typeArguments, type.TypeArguments))
+                if (elementType is not null && !ReferenceEquals(typeArguments, type.TypeArguments))
                 {
                     for (var e = 0; e < type.TypeArguments.Count; e++)
                     {
@@ -379,6 +320,7 @@ internal sealed partial class ExtendedType
                     nullability |= 1u << (bits.Length - i);
                 }
             }
+
             return nullability;
         }
     }

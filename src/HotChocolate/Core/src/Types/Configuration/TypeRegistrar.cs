@@ -216,9 +216,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                 registeredType.References.TryAdd(runtimeTypeRef);
             }
 
-            if (_interceptor.TryCreateScope(
-                registeredType,
-                out var dependencies))
+            if (_interceptor.TryCreateScope(registeredType, out var dependencies))
             {
                 registeredType.Dependencies.Clear();
                 registeredType.Dependencies.AddRange(dependencies);

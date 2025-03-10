@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -115,6 +116,50 @@ public class DefaultNamingConventions
         return name;
     }
 
+    public virtual string GetTypeName(string originalTypeName, TypeKind kind)
+    {
+        var name = NameUtils.MakeValidGraphQLName(originalTypeName);
+        ArgumentException.ThrowIfNullOrEmpty(name, nameof(originalTypeName));
+
+        if (_formatInterfaceName &&
+            kind == TypeKind.Interface &&
+            name.Length > 1 &&
+            char.IsUpper(name[0]) &&
+            char.IsUpper(name[1]) &&
+            name[0] == 'I')
+        {
+            return name[1..];
+        }
+
+        if (kind == TypeKind.InputObject)
+        {
+            var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
+
+            if (!isEndingInput)
+            {
+                return name + _inputPostfix;
+            }
+        }
+
+        if (kind is TypeKind.Directive)
+        {
+            if (name.Length > _directivePostfix.Length &&
+                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            {
+                name = name[..^_directivePostfix.Length];
+            }
+            else if (name.Length > _directiveTypePostfix.Length &&
+                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            {
+                name = name[..^_directiveTypePostfix.Length];
+            }
+
+            name = NameFormattingHelpers.FormatFieldName(name);
+        }
+
+        return name;
+    }
+
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type type, TypeKind kind)
     {
@@ -151,6 +196,13 @@ public class DefaultNamingConventions
         }
 
         return member.GetGraphQLName();
+    }
+
+    public virtual string GetMemberName(string originalMemberName, MemberKind kind)
+    {
+        var name = NameUtils.MakeValidGraphQLName(originalMemberName);
+        ArgumentException.ThrowIfNullOrEmpty(name, nameof(originalMemberName));
+        return NameFormattingHelpers.FormatFieldName(name);
     }
 
     /// <inheritdoc />

@@ -35,6 +35,20 @@ public interface INamingConventions : IConvention
     string GetTypeName(Type type, TypeKind kind);
 
     /// <summary>
+    /// Formats a type name to abide by the current type naming convention for GraphQL types.
+    /// </summary>
+    /// <param name="originalTypeName">
+    /// The original non-formatted type name.
+    /// </param>
+    /// <param name="kind">
+    /// The kind of GraphQL type the name is for.
+    /// </param>
+    /// <returns>
+    /// Returns a name string that has the correct naming format.
+    /// </returns>
+    string GetTypeName(string originalTypeName, TypeKind kind);
+
+    /// <summary>
     /// Gets the description of a GraphQL type from its runtime type.
     /// </summary>
     /// <param name="type">
@@ -61,6 +75,20 @@ public interface INamingConventions : IConvention
     /// Returns a name string that has the correct naming format.
     /// </returns>
     string GetMemberName(MemberInfo member, MemberKind kind);
+
+    /// <summary>
+    /// Formats a member name to abide by the current member naming convention for GraphQL fields or arguments.
+    /// </summary>
+    /// <param name="originalMemberName">
+    /// The original non-formatted member name.
+    /// </param>
+    /// <param name="kind">
+    /// The kind of GraphQL member the name is for.
+    /// </param>
+    /// <returns>
+    /// Returns a name string that has the correct naming format.
+    /// </returns>
+    string GetMemberName(string originalMemberName, MemberKind kind);
 
     /// <summary>
     /// Gets the description of a GraphQL field or argument from its runtime member.
