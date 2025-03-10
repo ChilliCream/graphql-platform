@@ -16,7 +16,6 @@ public class EnumValueDescriptor
             throw new ArgumentNullException(nameof(runtimeValue));
         }
 
-        Definition.Name = context.Naming.GetEnumValueName(runtimeValue);
         Definition.RuntimeValue = runtimeValue;
         Definition.Description = context.Naming.GetEnumValueDescription(runtimeValue);
         Definition.Member = context.TypeInspector.GetEnumValueMember(runtimeValue);
@@ -51,6 +50,11 @@ public class EnumValueDescriptor
             {
                 Ignore();
             }
+        }
+
+        if (string.IsNullOrEmpty(definition.Name))
+        {
+            Definition.Name = Context.Naming.GetEnumValueName(Definition.RuntimeValue!);
         }
 
         base.OnCreateDefinition(definition);
