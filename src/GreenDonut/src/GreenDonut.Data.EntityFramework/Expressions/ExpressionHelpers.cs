@@ -40,7 +40,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentException">
     /// If the number of keys does not match the number of values.
     /// </exception>
-    public static (Expression<Func<T, bool>> WhereExpression, int Offset, bool ReverseOrder) BuildWhereExpression<T>(
+    public static (Expression<Func<T, bool>> WhereExpression, int Offset) BuildWhereExpression<T>(
         ReadOnlySpan<CursorKey> keys,
         Cursor cursor,
         bool forward)
@@ -77,52 +77,33 @@ internal static class ExpressionHelpers
             {
                 var handledKey = handled[j];
 
-                keyExpr =
-                    Expression.Equal(
-                        Expression.Call(
-                            ReplaceParameter(handledKey.Expression, parameter),
-                            handledKey.CompareMethod,
-                            cursorExpr[j]),
-                        zero);
+                keyExpr = Expression.Equal(
+                    Expression.Call(ReplaceParameter(handledKey.Expression, parameter), handledKey.CompareMethod,
+                        cursorExpr[j]), zero);
 
-                current = current is null
-                    ? keyExpr
-                    : Expression.AndAlso(current, keyExpr);
+                current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
             }
 
             var greaterThan = forward
-                ? key.Direction is CursorKeyDirection.Ascending
-                : key.Direction is CursorKeyDirection.Descending;
+                ? key.Direction == CursorKeyDirection.Ascending
+                : key.Direction == CursorKeyDirection.Descending;
 
-            keyExpr =
-                greaterThan
-                    ? Expression.GreaterThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero)
-                    : Expression.LessThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero);
+            keyExpr = greaterThan
+                ? Expression.GreaterThan(
+                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
+                    zero)
+                : Expression.LessThan(
+                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
+                    zero);
 
-            current = current is null
-                ? keyExpr
-                : Expression.AndAlso(current, keyExpr);
-            expression = expression is null
-                ? current
-                : Expression.OrElse(expression, current);
+            current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
+            expression = expression is null ? current : Expression.OrElse(expression, current);
             handled.Add(key);
         }
 
-        var offset = cursor.Offset ?? 0;
-        var reverseOrder = offset < 0; // Reverse order if offset is negative
-
-        return (Expression.Lambda<Func<T, bool>>(expression!, parameter), Math.Abs(offset), reverseOrder);
+        return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
     }
+
 
     /// <summary>
     /// Build the select expression for a batch paging expression that uses grouping.
@@ -151,12 +132,11 @@ internal static class ExpressionHelpers
     /// <typeparam name="TV">
     /// The value type.
     /// </typeparam>
-    /// <returns></returns>
     /// <exception cref="ArgumentException">
     /// If the number of keys is less than one or
     /// the number of order expressions does not match the number of order methods.
     /// </exception>
-    public static (Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> SelectExpression, bool ReverseOrder) BuildBatchSelectExpression<TK, TV>(
+    public static BatchExpression<TK, TV> BuildBatchExpression<TK, TV>(
         PagingArguments arguments,
         ReadOnlySpan<CursorKey> keys,
         ReadOnlySpan<LambdaExpression> orderExpressions,
@@ -187,7 +167,8 @@ internal static class ExpressionHelpers
             var methodName = forward ? orderMethods[i] : ReverseOrder(orderMethods[i]);
             var orderExpression = orderExpressions[i];
             var delegateType = typeof(Func<,>).MakeGenericType(typeof(TV), orderExpression.Body.Type);
-            var typedOrderExpression = Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
+            var typedOrderExpression =
+                Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
 
             var method = GetEnumerableMethod(methodName, typeof(TV), typedOrderExpression);
 
@@ -199,23 +180,57 @@ internal static class ExpressionHelpers
 
         var reverseOrder = false;
         var offset = 0;
+        int? pageIndex = null;
+        int? totalCount = null;
+        var usesRelativeCursors = false;
 
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<TV>(keys, cursor, forward: true);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: true);
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
-            reverseOrder = reverse;
+
+            if (cursor.IsRelative)
+            {
+                usesRelativeCursors = true;
+
+                if (arguments.First is not null)
+                {
+                    pageIndex = (cursor.PageIndex ?? 0) + (cursor.Offset ?? 0);
+                }
+                else if (arguments.Last is not null && totalCount is not null)
+                {
+                    pageIndex = Math.Max(0, (int)Math.Ceiling(cursor.TotalCount.Value / (double)arguments.Last.Value));
+                }
+            }
         }
 
         if (arguments.Before is not null)
         {
+            if (usesRelativeCursors)
+            {
+                throw new ArgumentException(
+                    "You cannot use `before` and `after` with relative cursors at the same time.",
+                    nameof(arguments));
+            }
+
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<TV>(keys, cursor, forward: false);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: false);
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
-            reverseOrder = reverse;
+
+            if (cursor.IsRelative)
+            {
+                if (arguments.First is not null)
+                {
+                    pageIndex = 0;
+                }
+                else if (arguments.Last is not null)
+                {
+                    pageIndex = (cursor.PageIndex ?? 0) - (cursor.Offset ?? 0);
+                }
+            }
         }
 
         if (reverseOrder)
@@ -273,7 +288,11 @@ internal static class ExpressionHelpers
         };
 
         var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
-        return (Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group), reverseOrder);
+        return new BatchExpression<TK, TV>(
+            Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group),
+            reverseOrder,
+            pageIndex,
+            totalCount);
 
         static string ReverseOrder(string method)
             => method switch
@@ -290,84 +309,6 @@ internal static class ExpressionHelpers
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .First(m => m.Name == methodName && m.GetParameters().Length == 2)
                 .MakeGenericMethod(elementType, keySelector.Body.Type);
-    }
-
-    private static MethodCallExpression BuildBatchWhereExpression<T>(
-        Expression enumerable,
-        ReadOnlySpan<CursorKey> keys,
-        object?[] cursor,
-        bool forward)
-    {
-        var cursorExpr = new Expression[cursor.Length];
-
-        for (var i = 0; i < cursor.Length; i++)
-        {
-            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
-        }
-
-        var handled = new List<CursorKey>();
-        Expression? expression = null;
-
-        var parameter = Expression.Parameter(typeof(T), "t");
-        var zero = Expression.Constant(0);
-
-        for (var i = 0; i < keys.Length; i++)
-        {
-            var key = keys[i];
-            Expression? current = null;
-            Expression keyExpr;
-
-            for (var j = 0; j < handled.Count; j++)
-            {
-                var handledKey = handled[j];
-
-                keyExpr =
-                    Expression.Equal(
-                        Expression.Call(
-                            ReplaceParameter(handledKey.Expression, parameter),
-                            handledKey.CompareMethod,
-                            cursorExpr[j]),
-                        zero);
-
-                current = current is null
-                    ? keyExpr
-                    : Expression.AndAlso(current, keyExpr);
-            }
-
-            var greaterThan = forward
-                ? key.Direction is CursorKeyDirection.Ascending
-                : key.Direction is CursorKeyDirection.Descending;
-
-            keyExpr =
-                greaterThan
-                    ? Expression.GreaterThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero)
-                    : Expression.LessThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero);
-
-            current = current is null
-                ? keyExpr
-                : Expression.AndAlso(current, keyExpr);
-            expression = expression is null
-                ? current
-                : Expression.OrElse(expression, current);
-            handled.Add(key);
-        }
-
-        return Expression.Call(
-            typeof(Enumerable),
-            "Where",
-            [typeof(T)],
-            enumerable,
-            Expression.Lambda<Func<T, bool>>(expression!, parameter));
     }
 
     /// <summary>
@@ -503,5 +444,17 @@ internal static class ExpressionHelpers
 
             return e;
         }
+    }
+
+    internal readonly struct BatchExpression<TK, TV>(
+        Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> selectExpression,
+        bool reverseOrder,
+        int? pageIndex,
+        int? totalCount)
+    {
+        public Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> SelectExpression { get; } = selectExpression;
+        public bool ReverseOrder { get; } = reverseOrder;
+        public int? PageIndex { get; } = pageIndex;
+        public int? TotalCount { get; } = totalCount;
     }
 }

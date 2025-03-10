@@ -95,6 +95,11 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        if (arguments.First is null && arguments.Last is null)
+        {
+            arguments = arguments with { First = 10 };
+        }
+
         if (arguments.EnableRelativeCursors
             && string.IsNullOrEmpty(arguments.After)
             && string.IsNullOrEmpty(arguments.Before))
@@ -104,68 +109,77 @@ public static class PagingQueryableExtensions
 
         var originalQuery = source;
         var forward = arguments.Last is null;
-        var requestedCount = int.MaxValue;
-        var reverseOrder = false;
+        var requestedCount = forward ? arguments.First!.Value : arguments.Last!.Value;
         var offset = 0;
         int? totalCount = null;
+        var usesRelativeCursors = false;
+        Cursor? cursor = null;
 
         if (arguments.After is not null)
         {
-            var cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<T>(keys, cursor, true);
-
+            cursor = CursorParser.Parse(arguments.After, keys);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, true);
             source = source.Where(whereExpr);
             offset = cursorOffset;
-            reverseOrder = reverse;
 
             if (!includeTotalCount)
             {
                 totalCount ??= cursor.TotalCount;
+            }
+
+            if (cursor.IsRelative)
+            {
+                usesRelativeCursors = true;
             }
         }
 
         if (arguments.Before is not null)
         {
-            var cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<T>(keys, cursor, false);
+            if (usesRelativeCursors)
+            {
+                throw new ArgumentException(
+                    "You cannot use `before` and `after` with relative cursors at the same time.",
+                    nameof(arguments));
+            }
 
+            cursor = CursorParser.Parse(arguments.Before, keys);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, false);
             source = source.Where(whereExpr);
             offset = cursorOffset;
-            reverseOrder = reverse;
 
             if (!includeTotalCount)
             {
                 totalCount ??= cursor.TotalCount;
             }
+
         }
 
-        // Reverse order if offset is negative
-        if (reverseOrder)
+        if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
         {
-            source = source.Reverse();
-        }
-
-        if (arguments.First is not null)
-        {
-            if (offset > 0)
+            if ((arguments.Last is not null && cursor.Offset > 0) ||
+                (arguments.First is not null && cursor.Offset < 0))
             {
-                source = source.Skip(offset * arguments.First.Value);
+                throw new ArgumentException(
+                    "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",
+                    nameof(arguments));
             }
-
-            source = source.Take(arguments.First.Value + 1);
-            requestedCount = arguments.First.Value;
         }
 
-        if (arguments.Last is not null)
+        var isBackward = arguments.Last is not null;
+
+        if (isBackward)
         {
-            if (offset > 0)
-            {
-                source = source.Skip(offset * arguments.Last.Value);
-            }
-
-            source = source.Reverse().Take(arguments.Last.Value + 1);
-            requestedCount = arguments.Last.Value;
+            source = ReverseOrderExpressionRewriter.Rewrite(source);
         }
+
+        var absOffset = Math.Abs(offset);
+
+        if (absOffset > 0)
+        {
+            source = source.Skip(absOffset * requestedCount);
+        }
+
+        source = source.Take(requestedCount + 1);
 
         var builder = ImmutableArray.CreateBuilder<T>();
         var fetchCount = 0;
@@ -213,24 +227,62 @@ public static class PagingQueryableExtensions
             return Page<T>.Empty;
         }
 
-        if (!forward ^ reverseOrder)
+        if (isBackward)
         {
             builder.Reverse();
         }
 
         if (builder.Count > requestedCount)
         {
-            if (!forward ^ reverseOrder)
+            builder.RemoveAt(isBackward ? 0 : requestedCount);
+        }
+
+        var pageIndex = CreateIndex(arguments, cursor, totalCount);
+        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, totalCount);
+    }
+
+    private static int? CreateIndex(PagingArguments arguments, Cursor? cursor, int? totalCount)
+    {
+        if (totalCount is not null
+            && arguments.Last is not null
+            && arguments.After is null
+            && arguments.Before is null)
+        {
+            return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
+        }
+
+        if (cursor?.IsRelative != true)
+        {
+            return null;
+        }
+
+        if (arguments.After is not null)
+        {
+            if (arguments.First is not null)
             {
-                builder.RemoveAt(0);
+                return (cursor.PageIndex ?? 1) + (cursor.Offset ?? 0) + 1;
             }
-            else
+
+            if (arguments.Last is not null && totalCount is not null)
             {
-                builder.RemoveAt(requestedCount);
+                return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
             }
         }
 
-        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, totalCount);
+        if (arguments.Before is not null)
+        {
+            if (arguments.First is not null)
+            {
+                return 1;
+            }
+
+            if (arguments.Last is not null)
+            {
+                return (cursor.PageIndex ?? 1) - Math.Abs(cursor.Offset ?? 0) - 1;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -442,8 +494,8 @@ public static class PagingQueryableExtensions
 
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
-        var (selectExpression, reverseOrder) =
-            BuildBatchSelectExpression<TKey, TElement>(
+        var batchExpression =
+            BuildBatchExpression<TKey, TElement>(
                 arguments,
                 keys,
                 ordering.OrderExpressions,
@@ -455,16 +507,16 @@ public static class PagingQueryableExtensions
         // we apply our new expression here.
         source = source.Provider.CreateQuery<TElement>(ordering.Expression);
 
-        TryGetQueryInterceptor()?.OnBeforeExecute(source.GroupBy(keySelector).Select(selectExpression));
+        TryGetQueryInterceptor()?.OnBeforeExecute(source.GroupBy(keySelector).Select(batchExpression.SelectExpression));
 
         await foreach (var item in source
             .GroupBy(keySelector)
-            .Select(selectExpression)
+            .Select(batchExpression.SelectExpression)
             .AsAsyncEnumerable()
             .WithCancellation(cancellationToken)
             .ConfigureAwait(false))
         {
-            if (reverseOrder)
+            if (batchExpression.ReverseOrder)
             {
                 item.Items.Reverse();
             }
@@ -484,7 +536,13 @@ public static class PagingQueryableExtensions
             }
 
             var totalCount = counts?.GetValueOrDefault(item.Key);
-            var page = CreatePage(builder.ToImmutable(), arguments, keys, item.Items.Count, totalCount);
+            var page = CreatePage(
+                builder.ToImmutable(),
+                arguments,
+                keys,
+                item.Items.Count,
+                batchExpression.PageIndex,
+                totalCount);
             map.Add(item.Key, page);
         }
 
@@ -506,7 +564,8 @@ public static class PagingQueryableExtensions
         return await query.ToDictionaryAsync(t => t.Key, t => t.Count, cancellationToken);
     }
 
-    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement, TKey>()
+    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement,
+        TKey>()
     {
         return (Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>>)
             _countExpressionCache.GetOrAdd(
@@ -551,7 +610,8 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CursorKey[] keys,
         int fetchCount,
-        int? totalCount = null)
+        int? index,
+        int? totalCount)
     {
         var hasPrevious = false;
         var hasNext = false;
@@ -591,7 +651,7 @@ public static class PagingQueryableExtensions
                 hasNext,
                 hasPrevious,
                 (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
-                0,
+                index ?? 1,
                 totalCount.Value);
         }
 
