@@ -1,3 +1,4 @@
+#if NET9_0_OR_GREATER
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Squadron;
@@ -1293,3 +1294,4 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         [MaxLength(100)] public required string Name { get; set; }
     }
 }
+#endif
