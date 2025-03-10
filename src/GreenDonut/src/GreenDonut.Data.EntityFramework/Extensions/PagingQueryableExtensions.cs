@@ -75,10 +75,7 @@ public static class PagingQueryableExtensions
         bool includeTotalCount,
         CancellationToken cancellationToken = default)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
 
@@ -98,36 +95,79 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        if (arguments.EnableRelativeCursors
+            && string.IsNullOrEmpty(arguments.After)
+            && string.IsNullOrEmpty(arguments.Before))
+        {
+            includeTotalCount = true;
+        }
+
         var originalQuery = source;
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
+        var reverseOrder = false;
+        var offset = 0;
+        int? totalCount = null;
 
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            source = source.Where(BuildWhereExpression<T>(keys, cursor, true));
+            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<T>(keys, cursor, true);
+
+            source = source.Where(whereExpr);
+            offset = cursorOffset;
+            reverseOrder = reverse;
+
+            if (!includeTotalCount)
+            {
+                totalCount ??= cursor.TotalCount;
+            }
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = source.Where(BuildWhereExpression<T>(keys, cursor, false));
+            var (whereExpr, cursorOffset, reverse) = BuildWhereExpression<T>(keys, cursor, false);
+
+            source = source.Where(whereExpr);
+            offset = cursorOffset;
+            reverseOrder = reverse;
+
+            if (!includeTotalCount)
+            {
+                totalCount ??= cursor.TotalCount;
+            }
+        }
+
+        // Reverse order if offset is negative
+        if (reverseOrder)
+        {
+            source = source.Reverse();
         }
 
         if (arguments.First is not null)
         {
+            if (offset > 0)
+            {
+                source = source.Skip(offset * arguments.First.Value);
+            }
+
             source = source.Take(arguments.First.Value + 1);
             requestedCount = arguments.First.Value;
         }
 
         if (arguments.Last is not null)
         {
+            if (offset > 0)
+            {
+                source = source.Skip(offset * arguments.Last.Value);
+            }
+
             source = source.Reverse().Take(arguments.Last.Value + 1);
             requestedCount = arguments.Last.Value;
         }
 
         var builder = ImmutableArray.CreateBuilder<T>();
-        int? totalCount = null;
         var fetchCount = 0;
 
         if (includeTotalCount)
@@ -142,12 +182,12 @@ public static class PagingQueryableExtensions
                 totalCount ??= item.TotalCount;
                 fetchCount++;
 
+                builder.Add(item.Item);
+
                 if (fetchCount > requestedCount)
                 {
                     break;
                 }
-
-                builder.Add(item.Item);
             }
         }
         else
@@ -159,12 +199,12 @@ public static class PagingQueryableExtensions
             {
                 fetchCount++;
 
+                builder.Add(item);
+
                 if (fetchCount > requestedCount)
                 {
                     break;
                 }
-
-                builder.Add(item);
             }
         }
 
@@ -173,9 +213,21 @@ public static class PagingQueryableExtensions
             return Page<T>.Empty;
         }
 
-        if (!forward)
+        if (!forward ^ reverseOrder)
         {
             builder.Reverse();
+        }
+
+        if (builder.Count > requestedCount)
+        {
+            if (!forward ^ reverseOrder)
+            {
+                builder.RemoveAt(0);
+            }
+            else
+            {
+                builder.RemoveAt(requestedCount);
+            }
         }
 
         return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, totalCount);
@@ -367,6 +419,13 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        if (arguments.EnableRelativeCursors
+            && string.IsNullOrEmpty(arguments.After)
+            && string.IsNullOrEmpty(arguments.Before))
+        {
+            includeTotalCount = true;
+        }
+
         Dictionary<TKey, int>? counts = null;
         if (includeTotalCount)
         {
@@ -383,7 +442,7 @@ public static class PagingQueryableExtensions
 
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
-        var selectExpression =
+        var (selectExpression, reverseOrder) =
             BuildBatchSelectExpression<TKey, TElement>(
                 arguments,
                 keys,
@@ -405,6 +464,11 @@ public static class PagingQueryableExtensions
             .WithCancellation(cancellationToken)
             .ConfigureAwait(false))
         {
+            if (reverseOrder)
+            {
+                item.Items.Reverse();
+            }
+
             if (item.Items.Count == 0)
             {
                 map.Add(item.Key, Page<TValue>.Empty);
@@ -520,6 +584,17 @@ public static class PagingQueryableExtensions
             hasNext = true;
         }
 
+        if (arguments.EnableRelativeCursors && totalCount is not null)
+        {
+            return new Page<T>(
+                items,
+                hasNext,
+                hasPrevious,
+                (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
+                0,
+                totalCount.Value);
+        }
+
         return new Page<T>(
             items,
             hasNext,
@@ -532,7 +607,7 @@ public static class PagingQueryableExtensions
     {
         var parser = new CursorKeyParser();
         parser.Visit(source.Expression);
-        return parser.Keys.ToArray();
+        return [.. parser.Keys];
     }
 
     private sealed class InterceptorHolder

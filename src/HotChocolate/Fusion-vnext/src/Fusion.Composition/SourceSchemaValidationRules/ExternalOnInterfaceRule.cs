@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -23,7 +23,7 @@ internal sealed class ExternalOnInterfaceRule : IEventHandler<OutputFieldEvent>
     {
         var (field, type, schema) = @event;
 
-        if (type is InterfaceTypeDefinition && field.HasExternalDirective())
+        if (type is MutableInterfaceTypeDefinition && field.HasExternalDirective())
         {
             context.Log.Write(ExternalOnInterface(field, type, schema));
         }

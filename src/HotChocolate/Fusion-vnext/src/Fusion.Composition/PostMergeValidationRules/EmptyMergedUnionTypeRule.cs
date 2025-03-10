@@ -22,7 +22,8 @@ internal sealed class EmptyMergedUnionTypeRule : IEventHandler<UnionTypeEvent>
             return;
         }
 
-        var accessibleTypes = unionType.Types.Where(t => !t.HasFusionInaccessibleDirective());
+        var accessibleTypes =
+            unionType.Types.AsEnumerable().Where(t => !t.HasFusionInaccessibleDirective());
 
         if (!accessibleTypes.Any())
         {

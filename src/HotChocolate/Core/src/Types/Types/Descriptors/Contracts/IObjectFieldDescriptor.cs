@@ -323,6 +323,17 @@ public interface IObjectFieldDescriptor
     /// <summary>
     /// Specifies the requirements for the parent object.
     /// </summary>
+    /// <param name="selector">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires<TParent>(Expression<Func<TParent, object>> selector);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
     /// <param name="requires">
     /// The requirements for the parent object.
     /// </param>

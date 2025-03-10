@@ -27,13 +27,13 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
         }
 
         var argumentNames = fieldGroup
-            .SelectMany(i => i.Field.Arguments, (_, arg) => arg.Name)
+            .SelectMany(i => i.Field.Arguments.AsEnumerable(), (_, arg) => arg.Name)
             .ToImmutableHashSet();
 
         foreach (var argumentName in argumentNames)
         {
             var arguments = fieldGroup
-                .SelectMany(i => i.Field.Arguments.Where(a => a.Name == argumentName))
+                .SelectMany(i => i.Field.Arguments.AsEnumerable().Where(a => a.Name == argumentName))
                 .ToImmutableArray();
 
             var defaultValue = arguments[0].DefaultValue;

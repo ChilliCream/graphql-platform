@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// This interface represents a GraphQL syntax writer.

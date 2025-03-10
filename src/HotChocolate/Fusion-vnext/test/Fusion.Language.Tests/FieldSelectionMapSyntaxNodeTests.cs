@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 public sealed class FieldSelectionMapSyntaxNodeTests
 {

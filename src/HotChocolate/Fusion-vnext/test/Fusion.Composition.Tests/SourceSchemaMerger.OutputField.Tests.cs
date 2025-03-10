@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -276,7 +276,7 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                 type User
                     @fusion__type(schema: A) {
                     email: String!
-                        @fusion__field(schema: A, external: true)
+                        @fusion__field(schema: A, partial: true)
                     id: ID!
                         @fusion__field(schema: A)
                     name: String!

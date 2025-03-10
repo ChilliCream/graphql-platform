@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Execution</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,8 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+    <ProjectReference Include="..\Fusion.Execution.Types\HotChocolate.Fusion.Execution.Types.csproj" />
+    <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

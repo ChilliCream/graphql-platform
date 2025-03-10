@@ -1,5 +1,5 @@
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
@@ -40,6 +40,11 @@ internal static class DirectivesProviderExtensions
     public static bool HasFusionInaccessibleDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(DirectiveNames.FusionInaccessible);
+    }
+
+    public static bool HasFusionRequiresDirective(this IDirectivesProvider type)
+    {
+        return type.Directives.ContainsName(DirectiveNames.FusionRequires);
     }
 
     public static bool HasInaccessibleDirective(this IDirectivesProvider type)

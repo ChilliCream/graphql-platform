@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
-using HotChocolate.Skimmed;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.WellKnownTypeNames;
 
 namespace HotChocolate.Fusion;
@@ -15,16 +15,16 @@ public sealed class SourceSchemaMergerTests
         var intType = BuiltIns.Int.Create();
         var merger = new SourceSchemaMerger(
         [
-            new SchemaDefinition
+            new MutableSchemaDefinition
             {
                 Types =
                 {
-                    new ObjectTypeDefinition(Query)
-                        { Fields = { new OutputFieldDefinition("field", intType) } },
-                    new ObjectTypeDefinition(Mutation)
-                        { Fields = { new OutputFieldDefinition("field", intType) } },
-                    new ObjectTypeDefinition(Subscription)
-                        { Fields = { new OutputFieldDefinition("field", intType) } }
+                    new MutableObjectTypeDefinition(Query)
+                        { Fields = { new MutableOutputFieldDefinition("field", intType) } },
+                    new MutableObjectTypeDefinition(Mutation)
+                        { Fields = { new MutableOutputFieldDefinition("field", intType) } },
+                    new MutableObjectTypeDefinition(Subscription)
+                        { Fields = { new MutableOutputFieldDefinition("field", intType) } }
                 }
             }
         ]);
@@ -45,14 +45,19 @@ public sealed class SourceSchemaMergerTests
         // arrange
         var merger = new SourceSchemaMerger(
         [
-            new SchemaDefinition
+            new MutableSchemaDefinition
             {
                 Types =
                 {
-                    new ObjectTypeDefinition(Query)
-                        { Fields = { new OutputFieldDefinition("field", BuiltIns.Int.Create()) } },
-                    new ObjectTypeDefinition(Mutation),
-                    new ObjectTypeDefinition(Subscription)
+                    new MutableObjectTypeDefinition(Query)
+                    {
+                        Fields =
+                        {
+                            new MutableOutputFieldDefinition("field", BuiltIns.Int.Create())
+                        }
+                    },
+                    new MutableObjectTypeDefinition(Mutation),
+                    new MutableObjectTypeDefinition(Subscription)
                 }
             }
         ]);
@@ -73,7 +78,7 @@ public sealed class SourceSchemaMergerTests
     public void Merge_FourNamedSchemas_AddsFusionDefinitions()
     {
         // arrange
-        IEnumerable<SchemaDefinition> schemas =
+        IEnumerable<MutableSchemaDefinition> schemas =
         [
             new() { Name = "ExampleOne" },
             new() { Name = "Example_Two" },
@@ -81,8 +86,9 @@ public sealed class SourceSchemaMergerTests
             new() { Name = "ExampleFourFive" }
         ];
 
-        var merger =
-            new SourceSchemaMerger(schemas.ToImmutableSortedSet(new SchemaByNameComparer()));
+        var merger = new SourceSchemaMerger(
+            schemas.ToImmutableSortedSet(
+                new SchemaByNameComparer<MutableSchemaDefinition>()));
 
         // act
         var result = merger.Merge();

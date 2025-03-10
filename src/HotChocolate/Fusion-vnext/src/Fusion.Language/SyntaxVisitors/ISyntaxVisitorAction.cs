@@ -1,6 +1,6 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
-internal interface ISyntaxVisitorAction
+public interface ISyntaxVisitorAction
 {
     SyntaxVisitorActionKind Kind { get; }
 }

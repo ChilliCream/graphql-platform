@@ -1,13 +1,13 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
-using HotChocolate.Skimmed;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
 public abstract class CompositionTestBase
 {
-    internal static ImmutableSortedSet<SchemaDefinition> CreateSchemaDefinitions(string[] sdl)
+    internal static ImmutableSortedSet<MutableSchemaDefinition> CreateSchemaDefinitions(string[] sdl)
     {
         var schemaDefinitions =
             sdl.Select((s, i) =>
@@ -18,6 +18,6 @@ public abstract class CompositionTestBase
                 return schemaDefinition;
             });
 
-        return schemaDefinitions.ToImmutableSortedSet(new SchemaByNameComparer());
+        return schemaDefinitions.ToImmutableSortedSet(new SchemaByNameComparer<MutableSchemaDefinition>());
     }
 }

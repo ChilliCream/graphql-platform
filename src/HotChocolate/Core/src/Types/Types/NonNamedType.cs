@@ -32,4 +32,7 @@ public abstract class NonNamedType
             return _clrType ??= this.ToRuntimeType();
         }
     }
+
+    public bool Equals(IType? other)
+        => ReferenceEquals(this, other);
 }

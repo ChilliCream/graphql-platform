@@ -9,14 +9,15 @@ public class SchemaCache : SortVisitorTestBase, IDisposable
 
     public IRequestExecutor CreateSchema<T, TType>(
         T?[] entities,
-        Action<ISchemaBuilder>? configure = null)
+        Action<ISchemaBuilder>? configure = null,
+        SortConvention? convention = null)
         where T : class
         where TType : SortInputType<T>
     {
         (Type, Type, T?[] entites) key = (typeof(T), typeof(TType), entities);
         return _cache.GetOrAdd(
             key,
-            _ => base.CreateSchema<T, TType>(entities, configure: configure));
+            _ => base.CreateSchema<T, TType>(entities, convention, configure));
     }
 
     public void Dispose() { }

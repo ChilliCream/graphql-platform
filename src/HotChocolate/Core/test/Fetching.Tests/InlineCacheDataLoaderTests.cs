@@ -100,6 +100,7 @@ public class InlineCacheDataLoaderTests
 
     public class Query
     {
+        [Obsolete]
         public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context
@@ -112,6 +113,7 @@ public class InlineCacheDataLoaderTests
 
     public class Query2
     {
+        [Obsolete]
         public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context.CacheAsync(FetchAsync, key);
@@ -123,6 +125,7 @@ public class InlineCacheDataLoaderTests
 
     public class Query3
     {
+        [Obsolete]
         public async Task<string?> GetByKey(string key, IResolverContext context)
         {
             return await context.CacheAsync(FetchAsync, key);

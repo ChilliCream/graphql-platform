@@ -5,7 +5,8 @@ using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
@@ -13,7 +14,7 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaValidator(
-    ImmutableSortedSet<SchemaDefinition> schemas,
+    ImmutableSortedSet<MutableSchemaDefinition> schemas,
     ImmutableArray<object> rules,
     ICompositionLog log)
 {
@@ -38,7 +39,7 @@ internal sealed class SourceSchemaValidator(
             {
                 PublishEvent(new TypeEvent(type, schema), context);
 
-                if (type is ComplexTypeDefinition complexType)
+                if (type is MutableComplexTypeDefinition complexType)
                 {
                     if (complexType.Directives.ContainsName(DirectiveNames.Key))
                     {
@@ -96,16 +97,16 @@ internal sealed class SourceSchemaValidator(
     }
 
     private void PublishEntityEvents(
-        ComplexTypeDefinition entityType,
-        SchemaDefinition schema,
+        MutableComplexTypeDefinition entityType,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var keyDirectives = entityType.Directives.Where(d => d.Name == DirectiveNames.Key);
+        var keyDirectives = entityType.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key);
 
         foreach (var keyDirective in keyDirectives)
         {
             if (!keyDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
-                || f is not StringValueNode fields)
+                || f is not StringValueNode fieldsArgument)
             {
                 PublishEvent(
                     new KeyFieldsInvalidTypeEvent(keyDirective, entityType, schema),
@@ -116,7 +117,7 @@ internal sealed class SourceSchemaValidator(
 
             try
             {
-                var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+                var selectionSet = Syntax.ParseSelectionSet($"{{{fieldsArgument.Value}}}");
 
                 PublishKeyFieldEvents(
                     selectionSet,
@@ -138,14 +139,14 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishKeyFieldEvents(
         SelectionSetNode selectionSet,
-        ComplexTypeDefinition entityType,
+        MutableComplexTypeDefinition entityType,
         Directive keyDirective,
         List<string> fieldNamePath,
-        ComplexTypeDefinition? parentType,
-        SchemaDefinition schema,
+        MutableComplexTypeDefinition? parentType,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        ComplexTypeDefinition? nextParentType = null;
+        MutableComplexTypeDefinition? nextParentType = null;
 
         foreach (var selection in selectionSet.Selections)
         {
@@ -175,7 +176,7 @@ internal sealed class SourceSchemaValidator(
                                 schema),
                             context);
 
-                        if (field.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        if (field.Type.NullableType() is MutableComplexTypeDefinition fieldType)
                         {
                             nextParentType = fieldType;
                         }
@@ -213,15 +214,15 @@ internal sealed class SourceSchemaValidator(
     }
 
     private void PublishProvidesEvents(
-        OutputFieldDefinition field,
-        ComplexTypeDefinition type,
-        SchemaDefinition schema,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var providesDirective = field.Directives.First(d => d.Name == DirectiveNames.Provides);
+        var providesDirective = field.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Provides);
 
         if (!providesDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
-            || f is not StringValueNode fields)
+            || f is not StringValueNode fieldsArgument)
         {
             PublishEvent(
                 new ProvidesFieldsInvalidTypeEvent(providesDirective, field, type, schema),
@@ -232,7 +233,7 @@ internal sealed class SourceSchemaValidator(
 
         try
         {
-            var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+            var selectionSet = Syntax.ParseSelectionSet($"{{{fieldsArgument.Value}}}");
 
             PublishProvidesFieldEvents(
                 selectionSet,
@@ -254,15 +255,15 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishProvidesFieldEvents(
         SelectionSetNode selectionSet,
-        OutputFieldDefinition field,
-        ComplexTypeDefinition type,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
         Directive providesDirective,
         List<string> fieldNamePath,
-        ITypeDefinition? parentType,
-        SchemaDefinition schema,
+        IType? parentType,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        ComplexTypeDefinition? nextParentType = null;
+        MutableComplexTypeDefinition? nextParentType = null;
 
         foreach (var selection in selectionSet.Selections)
         {
@@ -280,7 +281,7 @@ internal sealed class SourceSchemaValidator(
                         schema),
                     context);
 
-                if (parentType?.NullableType() is ComplexTypeDefinition providedType)
+                if (parentType?.NullableType() is MutableComplexTypeDefinition providedType)
                 {
                     if (providedType.Fields.TryGetField(
                             fieldNode.Name.Value,
@@ -296,7 +297,7 @@ internal sealed class SourceSchemaValidator(
                                 schema),
                             context);
 
-                        if (providedField.Type.NullableType() is ComplexTypeDefinition fieldType)
+                        if (providedField.Type.NullableType() is MutableComplexTypeDefinition fieldType)
                         {
                             nextParentType = fieldType;
                         }
@@ -326,19 +327,19 @@ internal sealed class SourceSchemaValidator(
     }
 
     private void PublishRequireEvents(
-        InputFieldDefinition argument,
-        OutputFieldDefinition field,
-        ComplexTypeDefinition type,
-        SchemaDefinition schema,
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var requireDirective = argument.Directives.First(d => d.Name == DirectiveNames.Require);
+        var requireDirective = argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Require);
 
-        if (!requireDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
-            || f is not StringValueNode fields)
+        if (!requireDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
+            || f is not StringValueNode fieldArgument)
         {
             PublishEvent(
-                new RequireFieldsInvalidTypeEvent(requireDirective, argument, field, type, schema),
+                new RequireFieldInvalidTypeEvent(requireDirective, argument, field, type, schema),
                 context);
 
             return;
@@ -346,7 +347,7 @@ internal sealed class SourceSchemaValidator(
 
         try
         {
-            var selectionSet = Syntax.ParseSelectionSet($"{{{fields.Value}}}");
+            var selectionSet = Syntax.ParseSelectionSet($"{{{fieldArgument.Value}}}");
 
             PublishRequireFieldEvents(
                 selectionSet,
@@ -361,7 +362,7 @@ internal sealed class SourceSchemaValidator(
         catch (SyntaxException)
         {
             PublishEvent(
-                new RequireFieldsInvalidSyntaxEvent(
+                new RequireFieldInvalidSyntaxEvent(
                     requireDirective,
                     argument,
                     field,
@@ -373,12 +374,12 @@ internal sealed class SourceSchemaValidator(
 
     private void PublishRequireFieldEvents(
         SelectionSetNode selectionSet,
-        InputFieldDefinition argument,
-        OutputFieldDefinition field,
-        ComplexTypeDefinition type,
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
         Directive requireDirective,
         List<string> fieldNamePath,
-        SchemaDefinition schema,
+        MutableSchemaDefinition schema,
         CompositionContext context)
     {
         foreach (var selection in selectionSet.Selections)

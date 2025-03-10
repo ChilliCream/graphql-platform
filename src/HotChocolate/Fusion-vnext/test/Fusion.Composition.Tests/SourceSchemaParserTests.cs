@@ -19,13 +19,27 @@ public sealed class SourceSchemaParserTests
         // assert
         Assert.True(result.IsFailure);
         Assert.Single(result.Errors);
-        Assert.Equal(
-            "Source schema parsing failed. View the composition log for details.",
-            result.Errors[0].Message);
+        Assert.Equal("Source schema parsing failed.", result.Errors[0].Message);
         Assert.Single(log);
         Assert.Equal(
             "Invalid GraphQL in source schema. Exception message: Expected a `Name`-token, but " +
             "found a `EndOfFile`-token..",
             log.First().Message);
+    }
+
+    [Fact]
+    public void Parse_SourceSchemasWithSchemaNameDirective_SetsSchemaName()
+    {
+        // arrange
+        var schemas = ImmutableArray.Create("""schema @schemaName(value: "Example") { }""");
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(schemas, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Example", result.Value[0].Name);
     }
 }

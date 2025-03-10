@@ -26,7 +26,8 @@ internal sealed class EmptyMergedInputObjectTypeRule : IEventHandler<InputTypeEv
             return;
         }
 
-        var accessibleFields = inputType.Fields.Where(f => !f.HasFusionInaccessibleDirective());
+        var accessibleFields =
+            inputType.Fields.AsEnumerable().Where(f => !f.HasFusionInaccessibleDirective());
 
         if (!accessibleFields.Any())
         {
