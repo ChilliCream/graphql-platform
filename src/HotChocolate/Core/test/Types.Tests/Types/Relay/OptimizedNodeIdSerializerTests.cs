@@ -458,7 +458,7 @@ public class OptimizedNodeIdSerializerTests
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
         Assert.Throws<NodeIdInvalidFormatException>(
-            () => serializer.Parse("Rm9vOkJhcg", typeof(string)));
+            () => serializer.Parse("Rm9vOkJhcg", lookup.Object));
     }
 
     [Fact]
