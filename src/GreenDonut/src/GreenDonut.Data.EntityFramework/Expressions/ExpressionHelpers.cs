@@ -178,15 +178,13 @@ internal static class ExpressionHelpers
                 typedOrderExpression);
         }
 
-        var reverseOrder = false;
         var offset = 0;
-        int? pageIndex = null;
-        int? totalCount = null;
         var usesRelativeCursors = false;
+        Cursor? cursor = null;
 
         if (arguments.After is not null)
         {
-            var cursor = CursorParser.Parse(arguments.After, keys);
+            cursor = CursorParser.Parse(arguments.After, keys);
             var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: true);
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
@@ -194,15 +192,6 @@ internal static class ExpressionHelpers
             if (cursor.IsRelative)
             {
                 usesRelativeCursors = true;
-
-                if (arguments.First is not null)
-                {
-                    pageIndex = (cursor.PageIndex ?? 0) + (cursor.Offset ?? 0);
-                }
-                else if (arguments.Last is not null && totalCount is not null)
-                {
-                    pageIndex = Math.Max(0, (int)Math.Ceiling(cursor.TotalCount.Value / (double)arguments.Last.Value));
-                }
             }
         }
 
@@ -215,32 +204,33 @@ internal static class ExpressionHelpers
                     nameof(arguments));
             }
 
-            var cursor = CursorParser.Parse(arguments.Before, keys);
+            cursor = CursorParser.Parse(arguments.Before, keys);
             var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: false);
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
+        }
 
-            if (cursor.IsRelative)
+        if (arguments.First is not null)
+        {
+            requestedCount = arguments.First.Value;
+        }
+
+        if (arguments.Last is not null)
+        {
+            requestedCount = arguments.Last.Value;
+        }
+
+        if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
+        {
+            if ((arguments.Last is not null && cursor.Offset > 0) || (arguments.First is not null && cursor.Offset < 0))
             {
-                if (arguments.First is not null)
-                {
-                    pageIndex = 0;
-                }
-                else if (arguments.Last is not null)
-                {
-                    pageIndex = (cursor.PageIndex ?? 0) - (cursor.Offset ?? 0);
-                }
+                throw new ArgumentException(
+                    "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",
+                    nameof(arguments));
             }
         }
 
-        if (reverseOrder)
-        {
-            source = Expression.Call(
-                typeof(Enumerable),
-                "Reverse",
-                [typeof(TV)],
-                source);
-        }
+        offset = Math.Abs(offset);
 
         if (offset > 0)
         {
@@ -249,7 +239,7 @@ internal static class ExpressionHelpers
                 "Skip",
                 [typeof(TV)],
                 source,
-                Expression.Constant(offset));
+                Expression.Constant(offset * requestedCount));
         }
 
         if (arguments.First is not null)
@@ -260,7 +250,6 @@ internal static class ExpressionHelpers
                 [typeof(TV)],
                 source,
                 Expression.Constant(arguments.First.Value + 1));
-            requestedCount = arguments.First.Value;
         }
 
         if (arguments.Last is not null)
@@ -271,7 +260,6 @@ internal static class ExpressionHelpers
                 [typeof(TV)],
                 source,
                 Expression.Constant(arguments.Last.Value + 1));
-            requestedCount = arguments.Last.Value;
         }
 
         source = Expression.Call(
@@ -290,9 +278,8 @@ internal static class ExpressionHelpers
         var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
         return new BatchExpression<TK, TV>(
             Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group),
-            reverseOrder,
-            pageIndex,
-            totalCount);
+            arguments.Last is not null,
+            cursor);
 
         static string ReverseOrder(string method)
             => method switch
@@ -448,13 +435,11 @@ internal static class ExpressionHelpers
 
     internal readonly struct BatchExpression<TK, TV>(
         Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> selectExpression,
-        bool reverseOrder,
-        int? pageIndex,
-        int? totalCount)
+        bool isBackward,
+        Cursor? cursor)
     {
         public Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> SelectExpression { get; } = selectExpression;
-        public bool ReverseOrder { get; } = reverseOrder;
-        public int? PageIndex { get; } = pageIndex;
-        public int? TotalCount { get; } = totalCount;
+        public bool IsBackward { get; } = isBackward;
+        public Cursor? Cursor { get; } = cursor;
     }
 }

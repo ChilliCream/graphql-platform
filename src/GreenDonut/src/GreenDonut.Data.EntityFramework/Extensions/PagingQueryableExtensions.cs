@@ -151,7 +151,6 @@ public static class PagingQueryableExtensions
             {
                 totalCount ??= cursor.TotalCount;
             }
-
         }
 
         if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
@@ -239,50 +238,6 @@ public static class PagingQueryableExtensions
 
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
         return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, totalCount);
-    }
-
-    private static int? CreateIndex(PagingArguments arguments, Cursor? cursor, int? totalCount)
-    {
-        if (totalCount is not null
-            && arguments.Last is not null
-            && arguments.After is null
-            && arguments.Before is null)
-        {
-            return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
-        }
-
-        if (cursor?.IsRelative != true)
-        {
-            return null;
-        }
-
-        if (arguments.After is not null)
-        {
-            if (arguments.First is not null)
-            {
-                return (cursor.PageIndex ?? 1) + (cursor.Offset ?? 0) + 1;
-            }
-
-            if (arguments.Last is not null && totalCount is not null)
-            {
-                return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
-            }
-        }
-
-        if (arguments.Before is not null)
-        {
-            if (arguments.First is not null)
-            {
-                return 1;
-            }
-
-            if (arguments.Last is not null)
-            {
-                return (cursor.PageIndex ?? 1) - Math.Abs(cursor.Offset ?? 0) - 1;
-            }
-        }
-
-        return null;
     }
 
     /// <summary>
@@ -516,11 +471,6 @@ public static class PagingQueryableExtensions
             .WithCancellation(cancellationToken)
             .ConfigureAwait(false))
         {
-            if (batchExpression.ReverseOrder)
-            {
-                item.Items.Reverse();
-            }
-
             if (item.Items.Count == 0)
             {
                 map.Add(item.Key, Page<TValue>.Empty);
@@ -530,18 +480,29 @@ public static class PagingQueryableExtensions
             var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
             var builder = ImmutableArray.CreateBuilder<TValue>(itemCount);
 
-            for (var i = 0; i < itemCount; i++)
+            if (batchExpression.IsBackward)
             {
-                builder.Add(valueSelector(item.Items[i]));
+                for (var i = itemCount - 1; i >= 0; i--)
+                {
+                    builder.Add(valueSelector(item.Items[i]));
+                }
+            }
+            else
+            {
+                for (var i = 0; i < itemCount; i++)
+                {
+                    builder.Add(valueSelector(item.Items[i]));
+                }
             }
 
-            var totalCount = counts?.GetValueOrDefault(item.Key);
+            var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
+            var pageIndex = CreateIndex(arguments, batchExpression.Cursor, totalCount);
             var page = CreatePage(
                 builder.ToImmutable(),
                 arguments,
                 keys,
                 item.Items.Count,
-                batchExpression.PageIndex,
+                pageIndex,
                 totalCount);
             map.Add(item.Key, page);
         }
@@ -661,6 +622,50 @@ public static class PagingQueryableExtensions
             hasPrevious,
             item => CursorFormatter.Format(item, keys),
             totalCount);
+    }
+
+    private static int? CreateIndex(PagingArguments arguments, Cursor? cursor, int? totalCount)
+    {
+        if (totalCount is not null
+            && arguments.Last is not null
+            && arguments.After is null
+            && arguments.Before is null)
+        {
+            return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
+        }
+
+        if (cursor?.IsRelative != true)
+        {
+            return null;
+        }
+
+        if (arguments.After is not null)
+        {
+            if (arguments.First is not null)
+            {
+                return (cursor.PageIndex ?? 1) + (cursor.Offset ?? 0) + 1;
+            }
+
+            if (arguments.Last is not null && totalCount is not null)
+            {
+                return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
+            }
+        }
+
+        if (arguments.Before is not null)
+        {
+            if (arguments.First is not null)
+            {
+                return 1;
+            }
+
+            if (arguments.Last is not null)
+            {
+                return (cursor.PageIndex ?? 1) - Math.Abs(cursor.Offset ?? 0) - 1;
+            }
+        }
+
+        return null;
     }
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)
