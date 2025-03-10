@@ -11,36 +11,29 @@ internal sealed class OpaService : IOpaService
 
     public OpaService(HttpClient httpClient, IOptions<OpaOptions> options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
-        _client = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        ArgumentNullException.ThrowIfNull(httpClient);
+
+        _client = httpClient;
         _options = options.Value;
     }
 
     public async Task<OpaQueryResponse> QueryAsync(
         string policyPath,
         OpaQueryRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken = default)
     {
-        if (policyPath is null)
-        {
-            throw new ArgumentNullException(nameof(policyPath));
-        }
+        ArgumentNullException.ThrowIfNull(policyPath);
 
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         using var body = JsonContent.Create(request, options: _options.JsonSerializerOptions);
 
-        using var response = await _client.PostAsync(policyPath, body, ct).ConfigureAwait(false);
+        using var response = await _client.PostAsync(policyPath, body, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-        var document = await JsonDocument.ParseAsync(stream, default, ct);
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        var document = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         return new OpaQueryResponse(document);
     }
 }
