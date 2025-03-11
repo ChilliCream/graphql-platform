@@ -67,6 +67,12 @@ jobs:
         run: dotnet build ${{ matrix.path }} --framework net9.0 --verbosity q
         timeout-minutes: 5
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Run tests
         id: run-tests
         timeout-minutes: 15
