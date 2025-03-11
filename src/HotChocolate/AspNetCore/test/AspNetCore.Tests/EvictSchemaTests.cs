@@ -10,7 +10,8 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
     public async Task Evict_Default_Schema()
     {
         // arrange
-        var newExecutorCreatedResetEvent = new AutoResetEvent(false);
+        var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(
@@ -28,7 +29,7 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
         // act
         await server.GetAsync(
             new ClientQueryRequest { Query = "{ evict }", });
-        newExecutorCreatedResetEvent.WaitOne(5000);
+        newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
         var time2 = await server.GetAsync(
@@ -40,7 +41,8 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
     public async Task Evict_Named_Schema()
     {
         // arrange
-        var newExecutorCreatedResetEvent = new AutoResetEvent(false);
+        var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(
@@ -60,7 +62,7 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
         await server.GetAsync(
             new ClientQueryRequest { Query = "{ evict }", },
             "/evict");
-        newExecutorCreatedResetEvent.WaitOne(5000);
+        newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
         var time2 = await server.GetAsync(
