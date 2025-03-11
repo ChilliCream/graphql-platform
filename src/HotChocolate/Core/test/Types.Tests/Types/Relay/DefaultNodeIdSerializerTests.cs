@@ -519,6 +519,26 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        Assert.Throws<NodeIdInvalidFormatException>(
+            () => serializer.Parse("Rm9vOkJhcg", typeof(string)));
+    }
+
+    [Fact]
+    public void ParseOnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        Assert.Throws<NodeIdInvalidFormatException>(
+            () => serializer.Parse("Rm9vOkJhcg", lookup.Object));
+    }
+
+    [Fact]
     public void Ensure_Lookup_Works_With_HashCollision()
     {
         // arrange
