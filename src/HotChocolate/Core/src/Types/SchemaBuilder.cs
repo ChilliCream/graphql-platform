@@ -254,6 +254,13 @@ public partial class SchemaBuilder : ISchemaBuilder
                 nameof(schemaType));
         }
 
+        if (runtimeType == typeof(object))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_BindRuntimeType_ObjectNotAllowed,
+                nameof(runtimeType));
+        }
+
         var context = SchemaTypeReference.InferTypeContext(schemaType);
         _clrTypes[runtimeType] =
             (ti => ti.GetTypeRef(runtimeType, context),
