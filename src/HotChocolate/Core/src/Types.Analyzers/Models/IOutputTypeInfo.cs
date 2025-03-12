@@ -35,7 +35,9 @@ public interface IOutputTypeInfo
     /// <summary>
     /// Specifies if this type info has a schema type.
     /// </summary>
-    [MemberNotNull(nameof(SchemaTypeFullName), nameof(SchemaSchemaType))]
+#if NET8_0_OR_GREATER
+    [MemberNotNull(nameof(RuntimeTypeFullName), nameof(RuntimeType))]
+#endif
     bool HasSchemaType { get; }
 
     /// <summary>
@@ -51,7 +53,9 @@ public interface IOutputTypeInfo
     /// <summary>
     /// Specifies if this type info has a runtime type.
     /// </summary>
+#if NET8_0_OR_GREATER
     [MemberNotNull(nameof(RuntimeTypeFullName), nameof(RuntimeType))]
+#endif
     bool HasRuntimeType { get; }
 
     /// <summary>

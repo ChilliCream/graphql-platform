@@ -210,7 +210,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
