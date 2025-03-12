@@ -69,7 +69,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                 }
             }
             else if (!string.IsNullOrEmpty(connectionType.NameFormat)
-                && !connectionType.NameFormat.Contains("{0}"))
+                && !connectionType.NameFormat!.Contains("{0}"))
             {
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(

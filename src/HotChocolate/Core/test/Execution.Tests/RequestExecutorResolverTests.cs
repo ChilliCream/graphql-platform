@@ -10,7 +10,8 @@ public class RequestExecutorResolverTests
     public async Task Operation_Cache_Should_Be_Scoped_To_Executor()
     {
         // arrange
-        var executorEvictedResetEvent = new AutoResetEvent(false);
+        var executorEvictedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         var resolver = new ServiceCollection()
             .AddGraphQL()
@@ -32,7 +33,7 @@ public class RequestExecutorResolverTests
             .GetRequiredService<IPreparedOperationCache>();
 
         resolver.EvictRequestExecutor();
-        executorEvictedResetEvent.WaitOne(1000);
+        executorEvictedResetEvent.Wait(cts.Token);
 
         var secondExecutor = await resolver.GetRequestExecutorAsync();
         var secondOperationCache = secondExecutor.Services.GetCombinedServices()
@@ -46,8 +47,9 @@ public class RequestExecutorResolverTests
     public async Task Executor_Should_Only_Be_Switched_Once_It_Is_Warmed_Up()
     {
         // arrange
-        var warmupResetEvent = new AutoResetEvent(true);
-        var executorEvictedResetEvent = new AutoResetEvent(false);
+        var warmupResetEvent = new ManualResetEventSlim(true);
+        var executorEvictedResetEvent = new ManualResetEventSlim(false);
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         var resolver = new ServiceCollection()
             .AddGraphQL()
@@ -55,7 +57,7 @@ public class RequestExecutorResolverTests
                 keepWarm: true,
                 warmup: (_, _) =>
                 {
-                    warmupResetEvent.WaitOne(1000);
+                    warmupResetEvent.Wait(cts.Token);
 
                     return Task.CompletedTask;
                 })
@@ -83,10 +85,12 @@ public class RequestExecutorResolverTests
         Assert.Same(initialExecutor, executorAfterEviction);
 
         warmupResetEvent.Set();
-        executorEvictedResetEvent.WaitOne(1000);
+        executorEvictedResetEvent.Wait(cts.Token);
         var executorAfterWarmup = await resolver.GetRequestExecutorAsync();
 
         Assert.NotSame(initialExecutor, executorAfterWarmup);
+
+        cts.Dispose();
     }
 
     [Theory]
@@ -97,7 +101,8 @@ public class RequestExecutorResolverTests
     {
         // arrange
         var warmups = 0;
-        var executorEvictedResetEvent = new AutoResetEvent(false);
+        var executorEvictedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         var resolver = new ServiceCollection()
             .AddGraphQL()
@@ -125,7 +130,7 @@ public class RequestExecutorResolverTests
         var initialExecutor = await resolver.GetRequestExecutorAsync();
 
         resolver.EvictRequestExecutor();
-        executorEvictedResetEvent.WaitOne(1000);
+        executorEvictedResetEvent.Wait(cts.Token);
 
         var executorAfterEviction = await resolver.GetRequestExecutorAsync();
 
@@ -161,14 +166,15 @@ public class RequestExecutorResolverTests
     public async Task Executor_Resolution_Should_Be_Parallel()
     {
         // arrange
-        var schema1CreationResetEvent = new AutoResetEvent(false);
+        var schema1CreationResetEvent = new ManualResetEventSlim(false);
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         var services = new ServiceCollection();
         services
             .AddGraphQL("schema1")
             .AddQueryType(d =>
             {
-                schema1CreationResetEvent.WaitOne(1000);
+                schema1CreationResetEvent.Wait(cts.Token);
                 d.Field("foo").Resolve("");
             });
         services
@@ -181,8 +187,8 @@ public class RequestExecutorResolverTests
         var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
 
         // act
-        var executor1Task = Task.Run(async () => await resolver.GetRequestExecutorAsync("schema1"));
-        var executor2Task = Task.Run(async () => await resolver.GetRequestExecutorAsync("schema2"));
+        var executor1Task = Task.Run(async () => await resolver.GetRequestExecutorAsync("schema1"), cts.Token);
+        var executor2Task = Task.Run(async () => await resolver.GetRequestExecutorAsync("schema2"), cts.Token);
 
         // assert
         await executor2Task;
@@ -190,5 +196,7 @@ public class RequestExecutorResolverTests
         schema1CreationResetEvent.Set();
 
         await executor1Task;
+
+        cts.Dispose();
     }
 }

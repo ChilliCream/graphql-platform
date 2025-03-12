@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;

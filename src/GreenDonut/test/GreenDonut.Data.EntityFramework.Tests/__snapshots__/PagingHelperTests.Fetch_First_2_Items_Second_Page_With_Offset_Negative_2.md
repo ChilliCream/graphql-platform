@@ -2,8 +2,8 @@
 
 ```json
 {
-  "First": "Product 0-0",
-  "Last": "Product 0-1",
+  "First": "Product 0-1",
+  "Last": "Product 0-10",
   "ItemsCount": 2
 }
 ```

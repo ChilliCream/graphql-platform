@@ -34,7 +34,11 @@ public static class KnownSymbols
                 {
                     if (namedValue.EndsWith(connection))
                     {
+#if NET8_0_OR_GREATER
                         namedValue = namedValue[..^connection.Length];
+#else
+                        namedValue = namedValue.Substring(0, namedValue.Length - connection.Length);
+#endif
                     }
 
                     name = namedValue;

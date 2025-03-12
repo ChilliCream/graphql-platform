@@ -71,7 +71,8 @@ public class TypeModuleTests
         // arrange
         var typeModule = new TriggerableTypeModule();
         var warmups = 0;
-        var warmupResetEvent = new AutoResetEvent(false);
+        var warmupResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         var services = new ServiceCollection();
         services
@@ -87,7 +88,6 @@ public class TypeModuleTests
         var provider = services.BuildServiceProvider();
         var warmupService = provider.GetRequiredService<IHostedService>();
 
-        using var cts = new CancellationTokenSource();
         _ = Task.Run(async () =>
         {
             await warmupService.StartAsync(CancellationToken.None);
@@ -95,23 +95,24 @@ public class TypeModuleTests
 
         var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
 
-        await resolver.GetRequestExecutorAsync(null, cts.Token);
+        await resolver.GetRequestExecutorAsync();
 
         // act
         // assert
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
 
         Assert.Equal(1, warmups);
-        warmupResetEvent.Reset();
 
         typeModule.TriggerChange();
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
 
         Assert.Equal(2, warmups);
-        warmupResetEvent.Reset();
 
         typeModule.TriggerChange();
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
 
         Assert.Equal(3, warmups);
     }

@@ -141,13 +141,6 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 nodeDescriptor.TryResolveNode(type);
             }
 
-            // we trigger a late id field configuration
-            var typeDescriptor = ObjectTypeDescriptor.From(
-                completionContext.DescriptorContext,
-                definition);
-            nodeDescriptor.ConfigureNodeField(typeDescriptor);
-            typeDescriptor.CreateDefinition();
-
             // invoke completion explicitly.
             nodeDescriptor.OnCompleteDefinition(completionContext, definition);
         });

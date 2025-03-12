@@ -68,7 +68,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                 }
             }
             else if (!string.IsNullOrEmpty(edgeType.NameFormat)
-                && !edgeType.NameFormat.Contains("{0}"))
+                && !edgeType.NameFormat!.Contains("{0}"))
             {
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(

@@ -86,6 +86,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         static string CreateFileName(IOutputTypeInfo type)
         {
+#if NET8_0_OR_GREATER
             Span<byte> hash = stackalloc byte[64];
             var bytes = Encoding.UTF8.GetBytes(type.Namespace);
             MD5.HashData(bytes, hash);
@@ -110,6 +111,14 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             }
 
             return $"{type.Name}.{Encoding.UTF8.GetString(hash)}.hc.g.cs";
+#else
+            var bytes = Encoding.UTF8.GetBytes(type.Namespace);
+            var md5 = MD5.Create();
+            var hash = md5.ComputeHash(bytes);
+            var hashString = Convert.ToBase64String(hash, Base64FormattingOptions.None);
+            hashString = hashString.Replace("+", "-").Replace("/", "_").TrimEnd('=');
+            return $"{type.Name}.{hashString}.hc.g.cs";
+#endif
         }
     }
 

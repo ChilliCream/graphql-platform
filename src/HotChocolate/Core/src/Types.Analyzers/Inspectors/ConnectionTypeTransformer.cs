@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.Analyzers.Models;
 using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
@@ -49,12 +49,23 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
             {
                 if (syntaxInfo is IOutputTypeInfo { HasRuntimeType: true } typeInfo)
                 {
+#if NET8_0_OR_GREATER
                     connectionTypeLookup[typeInfo.RuntimeTypeFullName] = typeInfo;
+#else
+                    connectionTypeLookup[typeInfo.RuntimeTypeFullName!] = typeInfo;
+#endif
                 }
             }
 
+#if NET8_0_OR_GREATER
             foreach (var (connectionResolver, owner) in connectionResolvers)
             {
+#else
+            foreach (var item in connectionResolvers.ToImmutableArray())
+            {
+                var connectionResolver = item.Key;
+                var owner = item.Value;
+#endif
                 var connectionType = GetConnectionType(compilation, connectionResolver.Member.GetReturnType());
                 ConnectionTypeInfo connectionTypeInfo;
                 ConnectionClassInfo? connectionClass;
@@ -330,11 +341,17 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         return new GenericTypeInfo(typeDefinitionName, genericType, name, nameFormat);
     }
 
-    private record GenericTypeInfo(
-        string TypeDefinitionName,
-        INamedTypeSymbol Type,
-        string Name,
-        string? NameFormat);
+    private sealed class GenericTypeInfo(
+        string typeDefinitionName,
+        INamedTypeSymbol type,
+        string name,
+        string? nameFormat)
+    {
+        public string TypeDefinitionName { get; } = typeDefinitionName;
+        public INamedTypeSymbol Type { get; } = type;
+        public string Name { get; } = name;
+        public string? NameFormat { get; } = nameFormat;
+    }
 
     private static INamedTypeSymbol? GetEdgeType(INamedTypeSymbol connectionType)
     {

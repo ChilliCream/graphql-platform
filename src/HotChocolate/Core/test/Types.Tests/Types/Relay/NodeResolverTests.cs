@@ -251,6 +251,26 @@ public class NodeResolverTests
             .MatchSnapshotAsync();
     }
 
+    // Ensure Issue 7829 is fixed.
+    [Fact]
+    public async Task NodeAttribute_On_Extension_With_Renamed_Id()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryEntityRenamed>()
+            .AddTypeExtension<EntityExtensionRenamingId>()
+            .ExecuteRequestAsync(
+                """
+                {
+                  entity(id: 5) {
+                    id
+                    data
+                  }
+                }
+                """)
+            .MatchSnapshotAsync();
+    }
+
     public class Query
     {
         public Entity GetEntity(string name) => new Entity { Name = name, };
@@ -329,6 +349,29 @@ public class NodeResolverTests
     public class EntityExtension4
     {
         public static Entity GetEntity(string id) => new() { Name = id, };
+    }
+
+    public class QueryEntityRenamed
+    {
+        public EntityNoId GetEntity(int id)
+            => new EntityNoId { Data = id };
+    }
+
+    public class EntityNoId
+    {
+        public int Data { get; set; }
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(EntityNoId))]
+    public class EntityExtensionRenamingId
+    {
+        public int GetId([Parent] EntityNoId entity)
+            => entity.Data;
+
+        [NodeResolver]
+        public EntityNoId GetEntity(int id)
+            => new() { Data = id, };
     }
 }
 #pragma warning restore RCS1102 // Make class static

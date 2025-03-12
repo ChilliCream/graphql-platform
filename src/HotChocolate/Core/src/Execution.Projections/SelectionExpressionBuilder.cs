@@ -11,14 +11,12 @@ namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
-    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
-
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements);
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
@@ -38,7 +36,7 @@ internal sealed class SelectionExpressionBuilder
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements);
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
@@ -252,7 +250,7 @@ internal sealed class SelectionExpressionBuilder
 
         if (node.Nodes.Count == 0)
         {
-            if (IsNullableType(node.Property))
+            if (IsNullableType(context, node.Property))
             {
                 var nullCheck = Expression.Condition(
                     Expression.Equal(propertyAccessor, Expression.Constant(null)),
@@ -273,7 +271,7 @@ internal sealed class SelectionExpressionBuilder
         var newContext = context with { Parent = propertyAccessor, ParentType = node.Property.PropertyType };
         var nestedExpression = BuildTypeSwitchExpression(newContext, node);
 
-        if (IsNullableType(node.Property))
+        if (IsNullableType(context, node.Property))
         {
             var nullCheck = Expression.Condition(
                 Expression.Equal(propertyAccessor, Expression.Constant(null)),
@@ -286,22 +284,22 @@ internal sealed class SelectionExpressionBuilder
         return nestedExpression is null ? null : Expression.Bind(node.Property, nestedExpression);
     }
 
-    private static bool IsNullableType(PropertyInfo propertyInfo)
+    private static bool IsNullableType(Context context, PropertyInfo propertyInfo)
     {
         if (propertyInfo.PropertyType.IsValueType)
         {
             return Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
         }
 
-        var nullabilityInfo = _nullabilityInfoContext.Create(propertyInfo);
-
+        var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
         return nullabilityInfo.WriteState == NullabilityState.Nullable;
     }
 
     private readonly record struct Context(
         Expression Parent,
         Type ParentType,
-        FieldRequirementsMetadata Requirements)
+        FieldRequirementsMetadata Requirements,
+        NullabilityInfoContext NullabilityInfoContext)
     {
         public TypeNode? GetRequirements(ISelection selection)
         {

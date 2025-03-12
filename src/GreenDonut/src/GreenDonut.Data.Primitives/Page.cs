@@ -141,7 +141,7 @@ public sealed class Page<T> : IEnumerable<T>
             throw new InvalidOperationException("This page does not allow relative cursors.");
         }
 
-        return _createCursor(item, offset, _index ?? 0, _totalCount ?? 0);
+        return _createCursor(item, offset, _index ?? 1, _totalCount ?? 0);
     }
 
     /// <summary>

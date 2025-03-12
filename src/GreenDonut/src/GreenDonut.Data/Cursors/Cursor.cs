@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GreenDonut.Data.Cursors;
 
@@ -22,4 +23,8 @@ public record Cursor(
     ImmutableArray<object?> Values,
     int? Offset = null,
     int? PageIndex = null,
-    int? TotalCount = null);
+    int? TotalCount = null)
+{
+    [MemberNotNullWhen(true, nameof(Offset), nameof(PageIndex), nameof(TotalCount))]
+    public bool IsRelative => Offset.HasValue && PageIndex.HasValue && TotalCount.HasValue;
+}

@@ -1009,4 +1009,7 @@ Type: `{0}`</value>
   <data name="LocalTimeType_Description" xml:space="preserve">
     <value>The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss.</value>
   </data>
+  <data name="SchemaBuilder_BindRuntimeType_ObjectNotAllowed" xml:space="preserve">
+    <value>The type `System.Object` cannot be implicitly bound to a schema type.</value>
+  </data>
 </root>

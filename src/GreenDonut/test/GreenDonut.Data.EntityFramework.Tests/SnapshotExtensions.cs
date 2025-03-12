@@ -15,4 +15,16 @@ public static class SnapshotExtensions
 
         return snapshot;
     }
+
+    public static Snapshot AddSql(
+        this Snapshot snapshot,
+        CapturePagingQueryInterceptor interceptor)
+    {
+        for (var i = 0; i < interceptor.Queries.Count; i++)
+        {
+            snapshot.Add(interceptor.Queries[i].QueryText, $"SQL {i}", "sql");
+        }
+
+        return snapshot;
+    }
 }

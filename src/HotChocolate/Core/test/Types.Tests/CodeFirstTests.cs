@@ -226,6 +226,13 @@ public class CodeFirstTests
             """);
     }
 
+    [Fact]
+    public void Disallow_Implicitly_Binding_Object()
+    {
+        Assert.Throws<ArgumentException>(
+            () => SchemaBuilder.New().BindRuntimeType<object, StringType>());
+    }
+
     public class Query
     {
         public string SayHello(string name) =>
