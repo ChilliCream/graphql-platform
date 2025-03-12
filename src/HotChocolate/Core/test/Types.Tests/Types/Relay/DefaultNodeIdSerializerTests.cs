@@ -524,7 +524,7 @@ public class DefaultNodeIdSerializerTests
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
         Assert.Throws<NodeIdInvalidFormatException>(
-            () => serializer.Parse("Rm9vOkJhcg", typeof(string)));
+            () => serializer.Parse("!", typeof(string)));
     }
 
     [Fact]
@@ -535,7 +535,27 @@ public class DefaultNodeIdSerializerTests
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
         Assert.Throws<NodeIdInvalidFormatException>(
-            () => serializer.Parse("Rm9vOkJhcg", lookup.Object));
+            () => serializer.Parse("!", lookup.Object));
+    }
+
+    [Theory]
+    [InlineData("RW50aXR5OjE")]      // No padding (length: 11).
+    [InlineData("RW50aXR5OjE=")]     // Correct padding (length: 12).
+    [InlineData("RW50aXR5OjE==")]    // Excess padding (length: 13).
+    [InlineData("RW50aXR5OjE===")]   // Excess padding (length: 14).
+    [InlineData("RW50aXR5OjE====")]  // Excess padding (length: 15).
+    [InlineData("RW50aXR5OjE=====")] // Excess padding (length: 16).
+    public void Parse_Ensures_Correct_Padding(string id)
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Entity")).Returns(typeof(int));
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
+
+        void Act1() => serializer.Parse(id, typeof(int));
+        void Act2() => serializer.Parse(id, lookup.Object);
+
+        Assert.Null(Record.Exception(Act1));
+        Assert.Null(Record.Exception(Act2));
     }
 
     [Fact]
