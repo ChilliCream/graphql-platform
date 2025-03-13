@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
@@ -12,6 +13,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Processing.Selection;
+using ErrorHelper = HotChocolate.Utilities.ErrorHelper;
 using IType = HotChocolate.Types.IType;
 using ObjectType = HotChocolate.Types.ObjectType;
 
@@ -774,7 +776,7 @@ internal static class ExecutionUtils
         int responseIndex)
     {
         var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
-        var error = SemanticNonNullTypeInterceptor.CreateSemanticNonNullViolationError(path, selection);
+        var error = ErrorHelper.CreateSemanticNonNullViolationError(path, selection);
         resultBuilder.AddError(error);
     }
 
@@ -789,9 +791,6 @@ internal static class ExecutionUtils
         ValueCompletion.PropagateNullValues(selectionSetResult);
     }
 
-    // TODO: Pull out
-    private const int MaxLevels = 3;
-
     private static readonly CustomOptionsFlags[] _levelOptions =
     [
         CustomOptionsFlags.Option5,
@@ -801,7 +800,7 @@ internal static class ExecutionUtils
 
     private static bool IsSemanticNonNull(Selection selection, int level)
     {
-        if (level >= MaxLevels)
+        if (level >= SemanticNonNullOptimizer.MaxLevels)
         {
             return true;
         }

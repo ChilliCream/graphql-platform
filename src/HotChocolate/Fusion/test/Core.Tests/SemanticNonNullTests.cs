@@ -5,8 +5,6 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Test with list with more than 3 levels
-// TODO: What is supposed to happen with a non-null that bubbles up to a semantic non-null field?
 public class SemanticNonNullTests(ITestOutputHelper output)
 {
     # region Scalar

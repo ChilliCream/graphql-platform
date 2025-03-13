@@ -4,8 +4,10 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class SemanticNonNullOptimizer : ISelectionSetOptimizer
 {
-    // TODO: Pull this out to somewhere
-    private const int MaxLevels = 3;
+    // This is an arbitrary limit to only use the last three options,
+    // so there's still room for other features requiring options.
+    // This is not ideal, but acceptable as this is just a prototype.
+    public const int MaxLevels = 3;
 
     private static readonly Selection.CustomOptionsFlags[] _levelOptions =
     [
