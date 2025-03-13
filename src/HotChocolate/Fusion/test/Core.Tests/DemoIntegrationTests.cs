@@ -1286,6 +1286,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     public async Task Hot_Reload()
     {
         // arrange
+        var executorUpdatedResetEvent = new ManualResetEventSlim(false);
         using var demoProject = await DemoProject.CreateAsync();
 
         var fusionGraph =
@@ -1319,6 +1320,18 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
         var executorProxy = new RequestExecutorProxy(executorResolver, Schema.DefaultName);
+        var isFirstUpdate = true;
+        executorProxy.ExecutorUpdated += (sender, args) =>
+        {
+            if (isFirstUpdate)
+            {
+                isFirstUpdate = false;
+            }
+            else
+            {
+                executorUpdatedResetEvent.Set();
+            }
+        };
 
         var result = await executorProxy.ExecuteAsync(
             OperationRequestBuilder
@@ -1342,6 +1355,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         config.SetConfiguration(
             new GatewayConfiguration(
                 SchemaFormatter.FormatAsDocument(fusionGraph)));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        executorUpdatedResetEvent.Wait(cts.Token);
 
         result = await executorProxy.ExecuteAsync(
             OperationRequestBuilder

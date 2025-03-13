@@ -1,5 +1,6 @@
 #pragma warning disable RCS1102 // Make class static
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
@@ -271,6 +272,33 @@ public class NodeResolverTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task NodeResolver_And_AsSelector()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddTypeExtension<EntityExtension5>()
+                .AddTypeExtension<Entity2Extension1>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["RW50aXR5OmZvbw=="]) {
+                    id
+                }
+            }
+            """);
+
+        // assert
+        Assert.Null(result.ExpectOperationResult().Errors);
+    }
+
     public class Query
     {
         public Entity GetEntity(string name) => new Entity { Name = name, };
@@ -292,7 +320,12 @@ public class NodeResolverTests
 
     public class Entity
     {
-        public string Id => Name;
+        public string Id
+        {
+            get => Name;
+            set => Name = value;
+        }
+
         public string Name { get; set; }
     }
 
@@ -349,6 +382,32 @@ public class NodeResolverTests
     public class EntityExtension4
     {
         public static Entity GetEntity(string id) => new() { Name = id, };
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(Entity))]
+    public class EntityExtension5
+    {
+        [NodeResolver]
+        public static Entity GetEntity(string id, ISelection selection)
+        {
+            selection.AsSelector<Entity>();
+
+            return new Entity { Name = id, };
+        }
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(Entity2))]
+    public class Entity2Extension1
+    {
+        [NodeResolver]
+        public static Entity2 GetEntity2(string id, ISelection selection)
+        {
+            selection.AsSelector<Entity2>();
+
+            return new Entity2 { Name = id, };
+        }
     }
 
     public class QueryEntityRenamed
