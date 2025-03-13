@@ -32,6 +32,14 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         OperationDefinitionNode node,
         IDocumentValidatorContext context)
     {
+        var operationType = context.Schema.GetOperationType(node.Operation);
+
+        if (operationType == null)
+        {
+            context.ReportError(context.OperationNotSupported(node.Operation));
+            return Skip;
+        }
+
         context.FieldSets.Clear();
         context.SelectionSets.Clear();
 
