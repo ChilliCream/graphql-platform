@@ -39,7 +39,6 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.2.1" />
     <PackageVersion Include="Npgsql" Version="8.0.4" />
-    <PackageVersion Include="Opa.Native" Version="0.41.0" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
     <PackageVersion Include="ProjNET" Version="2.0.0" />
     <PackageVersion Include="RabbitMQ.Client" Version="6.4.0" />
@@ -59,6 +58,7 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
+    <PackageVersion Include="Testcontainers" Version="4.3.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
