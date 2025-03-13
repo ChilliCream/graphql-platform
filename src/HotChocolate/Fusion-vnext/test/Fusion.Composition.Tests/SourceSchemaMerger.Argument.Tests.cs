@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -105,9 +105,9 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     field(limit: Int
-                        @inaccessible
                         @fusion__inputField(schema: A)
-                        @fusion__inputField(schema: B)): Int
+                        @fusion__inputField(schema: B)
+                        @fusion__inaccessible): Int
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
                 }

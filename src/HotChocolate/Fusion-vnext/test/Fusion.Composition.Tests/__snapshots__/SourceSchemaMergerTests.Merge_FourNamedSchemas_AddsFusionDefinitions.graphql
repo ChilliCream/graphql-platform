@@ -13,18 +13,26 @@ scalar fusion__FieldSelectionPath
 
 scalar fusion__FieldSelectionSet
 
-directive @fusion__enumValue(schema: fusion__Schema!) repeatable on ENUM_VALUE
+"The @fusion__enumValue directive specifies which source schema provides an enum value."
+directive @fusion__enumValue("The name of the source schema that provides the specified enum value." schema: fusion__Schema!) repeatable on ENUM_VALUE
 
-directive @fusion__field(external: Boolean! = false provides: fusion__FieldSelectionSet schema: fusion__Schema! sourceType: String) repeatable on FIELD_DEFINITION
+"The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
+directive @fusion__field("Indicates that this field is only partially provided and must be combined with `provides`." partial: Boolean! = false "A selection set of fields this field provides in the composite schema." provides: fusion__FieldSelectionSet "The name of the source schema that originally provided this field." schema: fusion__Schema! "The field type in the source schema if it differs in nullability or structure." sourceType: String) repeatable on FIELD_DEFINITION
 
-directive @fusion__implements(interface: String! schema: fusion__Schema!) repeatable on OBJECT | INTERFACE
+"The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
+directive @fusion__implements("The name of the interface type." interface: String! "The name of the source schema on which the annotated type implements the specified interface." schema: fusion__Schema!) repeatable on OBJECT | INTERFACE
 
-directive @fusion__inputField(schema: fusion__Schema! sourceType: String) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
+directive @fusion__inputField("The name of the source schema that originally provided this input field." schema: fusion__Schema! "The field type in the source schema if it differs in nullability or structure." sourceType: String) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
-directive @fusion__lookup(field: fusion__FieldDefinition! key: fusion__FieldSelectionSet! map: [fusion__FieldSelectionMap!]! path: fusion__FieldSelectionPath schema: fusion__Schema!) repeatable on OBJECT | INTERFACE | UNION
+"The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key."
+directive @fusion__lookup("The GraphQL field definition in the source schema that can be used to look up the entity." field: fusion__FieldDefinition! "A selection set on the annotated entity type that describes the stable key for the lookup." key: fusion__FieldSelectionSet! "The map describes how the key values are resolved from the annotated entity type." map: [fusion__FieldSelectionMap!]! "The path to the lookup field relative to the Query type." path: fusion__FieldSelectionPath "The name of the source schema where the annotated entity type can be looked up from." schema: fusion__Schema!) repeatable on OBJECT | INTERFACE | UNION
 
-directive @fusion__requires(field: fusion__FieldDefinition! map: [fusion__FieldSelectionMap]! schema: fusion__Schema!) repeatable on FIELD_DEFINITION
+"The @fusion__requires directive specifies if a field has requirements on a source schema."
+directive @fusion__requires("The GraphQL field definition in the source schema that this field depends on." field: fusion__FieldDefinition! "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type." map: [fusion__FieldSelectionMap]! "The name of the source schema where this field has requirements to data on other source schemas." schema: fusion__Schema!) repeatable on FIELD_DEFINITION
 
-directive @fusion__type(schema: fusion__Schema!) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+"The @fusion__type directive specifies which source schemas provide parts of a composite type."
+directive @fusion__type("The name of the source schema that originally provided part of the annotated type." schema: fusion__Schema!) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
 
-directive @fusion__unionMember(member: String! schema: fusion__Schema!) repeatable on UNION
+"The @fusion__unionMember directive specifies which source schema provides a member type of a union."
+directive @fusion__unionMember("The name of the member type." member: String! "The name of the source schema that provides the specified member type." schema: fusion__Schema!) repeatable on UNION

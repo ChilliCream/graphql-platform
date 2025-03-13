@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -23,7 +24,7 @@ internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<KeyFieldEve
 
         var fieldType = field.Type.NullableType();
 
-        if (fieldType is InterfaceTypeDefinition or ListTypeDefinition or UnionTypeDefinition)
+        if (fieldType is MutableInterfaceTypeDefinition or ListType or MutableUnionTypeDefinition)
         {
             context.Log.Write(
                 KeyFieldsSelectInvalidType(

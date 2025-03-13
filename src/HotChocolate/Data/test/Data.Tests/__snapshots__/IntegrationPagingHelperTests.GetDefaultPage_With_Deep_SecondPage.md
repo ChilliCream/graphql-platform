@@ -16,7 +16,7 @@ LIMIT @__p_2
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(x => x.BrandDetails.Country.Name).ThenBy(t => t.Id).Where(t => ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) > 0) OrElse ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.Int32]).value) > 0)))).Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(x => x.BrandDetails.Country.Name).ThenBy(t => t.Id).Where(t => ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) > 0) OrElse ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.Int32]).value) > 0)))).Take(3)
 ```
 
 ## Result
@@ -27,10 +27,10 @@ LIMIT @__p_2
     "brandsDeep": {
       "edges": [
         {
-          "cursor": "Q291bnRyeTEwOjEx"
+          "cursor": "e31Db3VudHJ5MTA6MTE="
         },
         {
-          "cursor": "Q291bnRyeTExOjEy"
+          "cursor": "e31Db3VudHJ5MTE6MTI="
         }
       ],
       "nodes": [
@@ -58,8 +58,8 @@ LIMIT @__p_2
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "Q291bnRyeTEwOjEx",
-        "endCursor": "Q291bnRyeTExOjEy"
+        "startCursor": "e31Db3VudHJ5MTA6MTE=",
+        "endCursor": "e31Db3VudHJ5MTE6MTI="
       }
     }
   }

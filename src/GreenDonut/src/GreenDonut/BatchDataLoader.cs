@@ -28,10 +28,6 @@ public abstract class BatchDataLoader<TKey, TValue>
         DataLoaderOptions options)
         : base(batchScheduler, options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
     }
 
     /// <inheritdoc />

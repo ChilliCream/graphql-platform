@@ -3,7 +3,7 @@ namespace GreenDonut;
 public class DataLoader<TKey, TValue>(
     FetchDataDelegate<TKey, TValue> fetch,
     IBatchScheduler batchScheduler,
-    DataLoaderOptions? options = null)
+    DataLoaderOptions options)
     : DataLoaderBase<TKey, TValue>(batchScheduler, options)
     where TKey : notnull
 {

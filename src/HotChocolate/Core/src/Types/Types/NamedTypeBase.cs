@@ -134,4 +134,7 @@ public abstract class NamedTypeBase<TDefinition>
 
     private void UpdateRuntimeType(ITypeDefinition definition)
         => _runtimeType = definition.RuntimeType ?? typeof(object);
+
+    public bool Equals(IType? other)
+        => ReferenceEquals(this, other);
 }

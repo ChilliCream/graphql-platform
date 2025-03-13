@@ -20,16 +20,21 @@ public readonly record struct PagingArguments
     /// <param name="before">
     /// The cursor before which entities shall be taken.
     /// </param>
+    /// <param name="includeTotalCount">
+    /// Defines if the total count of items in the dataset shall be included in the result.
+    /// </param>
     public PagingArguments(
         int? first = null,
         string? after = null,
         int? last = null,
-        string? before = null)
+        string? before = null,
+        bool includeTotalCount = false)
     {
         First = first;
         After = after;
         Last = last;
         Before = before;
+        IncludeTotalCount = includeTotalCount;
     }
 
     /// <summary>
@@ -53,6 +58,16 @@ public readonly record struct PagingArguments
     public string? Before { get; init; }
 
     /// <summary>
+    /// Defines if the total count of items in the dataset shall be included in the result.
+    /// </summary>
+    public bool IncludeTotalCount { get; init; }
+
+    /// <summary>
+    /// Defines if relative cursors are allowed.
+    /// </summary>
+    public bool EnableRelativeCursors { get; init; }
+
+    /// <summary>
     /// Deconstructs the paging arguments into its components.
     /// </summary>
     /// <param name="first">
@@ -67,15 +82,20 @@ public readonly record struct PagingArguments
     /// <param name="before">
     /// The cursor before which entities shall be taken.
     /// </param>
+    /// <param name="includeTotalCount">
+    /// Defines if the total count of items in the dataset shall be included in the result.
+    /// </param>
     public void Deconstruct(
         out int? first,
         out string? after,
         out int? last,
-        out string? before)
+        out string? before,
+        out bool includeTotalCount)
     {
         first = First;
         after = After;
         last = Last;
         before = Before;
+        includeTotalCount = IncludeTotalCount;
     }
 }

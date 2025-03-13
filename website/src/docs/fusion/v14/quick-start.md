@@ -243,9 +243,9 @@ This query fetches data from both the `Products` and `Orders` services. The gate
 
 Using Nitro, you can inspect the query plan to see how the gateway orchestrates the requests. You'll observe that the gateway fetches data from the `products` and `orders` services in parallel, optimizing performance and reducing latency.
 
-![Query Plan](./assets/quick-start-1.png)
-![Query Plan 2](./assets/quick-start-2.png)
-![Query Plan 3](./assets/quick-start-3.png)
+![Query Plan](../../shared/fusion/quick-start-1.png)
+![Query Plan 2](../../shared/fusion/quick-start-2.png)
+![Query Plan 3](../../shared/fusion/quick-start-3.png)
 
 # Step 6: Implementing Lookups for Cross-Service References
 

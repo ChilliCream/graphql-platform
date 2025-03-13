@@ -14,10 +14,12 @@ public static class LogEntryCodes
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
+    public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
     public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
     public const string InputFieldReferencesInaccessibleType = "INPUT_FIELD_REFERENCES_INACCESSIBLE_TYPE";
     public const string InputFieldTypesNotMergeable = "INPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string InputWithMissingRequiredFields = "INPUT_WITH_MISSING_REQUIRED_FIELDS";
+    public const string InterfaceFieldNoImplementation = "INTERFACE_FIELD_NO_IMPLEMENTATION";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
     public const string KeyDirectiveInFieldsArg = "KEY_DIRECTIVE_IN_FIELDS_ARG";
@@ -28,6 +30,7 @@ public static class LogEntryCodes
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
+    public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
@@ -39,8 +42,9 @@ public static class LogEntryCodes
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
-    public const string RequireDirectiveInFieldsArg = "REQUIRE_DIRECTIVE_IN_FIELDS_ARG";
-    public const string RequireInvalidFieldsType = "REQUIRE_INVALID_FIELDS_TYPE";
+    public const string RequireDirectiveInFieldArg = "REQUIRE_DIRECTIVE_IN_FIELD_ARG";
+    public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";
+    public const string RequireInvalidFieldType = "REQUIRE_INVALID_FIELD_TYPE";
     public const string RequireInvalidSyntax = "REQUIRE_INVALID_SYNTAX";
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";

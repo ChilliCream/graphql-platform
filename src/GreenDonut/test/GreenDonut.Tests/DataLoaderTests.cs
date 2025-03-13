@@ -15,7 +15,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         var fetch = CreateFetch<string, string>();
         var services = new ServiceCollection()
             .AddScoped<IBatchScheduler, ManualBatchScheduler>()
-            .AddDataLoader(sp => new DataLoader<string, string>(fetch, sp.GetRequiredService<IBatchScheduler>()));
+            .AddDataLoader(sp => new DataLoader<string, string>(
+                fetch,
+                sp.GetRequiredService<IBatchScheduler>(),
+                sp.GetRequiredService<DataLoaderOptions>()));
         var scope = services.BuildServiceProvider().CreateScope();
         var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoader<string, string>>();
 
@@ -52,7 +55,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         // act
         Task<string?> Verify() => loader.LoadAsync(default(string)!, CancellationToken.None);
@@ -67,7 +70,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var key = "Foo";
 
         // act
@@ -85,7 +88,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>("Bar");
         var batchScheduler = new DelayDispatcher();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var key = "Foo";
 
         // first load.
@@ -106,7 +109,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
             fetch,
-            batchScheduler);
+            batchScheduler,
+            new DataLoaderOptions());
         var key = "Foo";
 
         // act
@@ -124,7 +128,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var key = "Foo";
 
         // act
@@ -144,7 +148,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         // act
         Task<IReadOnlyList<string?>> Verify() => loader.LoadAsync(default(string[])!);
@@ -159,7 +163,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = Array.Empty<string>();
 
         // act
@@ -178,7 +182,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         var fetch = TestHelpers
             .CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = new[] { "Foo", };
 
         // act
@@ -196,7 +200,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         // act
         Task<IReadOnlyList<string?>> Verify()
@@ -212,7 +216,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = new List<string>();
 
         // act
@@ -230,7 +234,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = new List<string> { "Foo", };
 
         // act
@@ -249,7 +253,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         var batchScheduler = new DelayDispatcher();
         var loader = new DataLoader<string, string>(
             fetch,
-            batchScheduler);
+            batchScheduler,
+            new DataLoaderOptions());
         var keys = new List<string> { "Foo", };
 
         (await loader.LoadAsync(keys, CancellationToken.None)).MatchSnapshot();
@@ -269,7 +274,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
             fetch,
-            batchScheduler);
+            batchScheduler,
+            new DataLoaderOptions());
         var keys = new List<string> { "Foo", };
 
         // act
@@ -311,7 +317,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         }
 
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string?>(Fetch, batchScheduler);
+        var loader = new DataLoader<string, string?>(Fetch, batchScheduler, new DataLoaderOptions());
         var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux", };
 
         // act
@@ -356,7 +362,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         }
 
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(Fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(Fetch, batchScheduler, new DataLoaderOptions());
         var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux", };
 
         // act
@@ -379,7 +385,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var expectedException = new Exception("Foo");
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(Fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(Fetch, batchScheduler, new DataLoaderOptions());
         var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux", };
 
         ValueTask Fetch(
@@ -503,7 +509,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         loader.SetCacheEntry("Foo", Task.FromResult<string?>("Bar"));
 
@@ -520,7 +526,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var key = "Foo";
 
         // act
@@ -556,7 +562,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var value = Task.FromResult<string?>("Foo");
 
         // act
@@ -572,8 +578,8 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var key = "Foo";
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
+        const string key = "Foo";
 
         // act
         void Verify() => loader.SetCacheEntry(key, default!);
@@ -628,7 +634,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         // act
         Task<object?> Verify() => loader.LoadAsync(default(object)!);
@@ -643,7 +649,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         object key = "Foo";
 
         // act
@@ -661,7 +667,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         object key = "Foo";
 
         // act
@@ -683,7 +689,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         // act
         Task<IReadOnlyList<object?>> Verify() => loader.LoadAsync(default(object[])!);
@@ -698,7 +704,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = Array.Empty<object>();
 
         // act
@@ -714,7 +720,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = new object[] { "Foo", };
 
         // act
@@ -732,7 +738,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         // act
         Task<IReadOnlyList<object?>> Verify()
@@ -748,7 +754,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = new List<object>();
 
         // act
@@ -764,7 +770,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = new List<object> { "Foo", };
 
         // act
@@ -782,7 +788,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         loader.SetCacheEntry("Foo", Task.FromResult((object?)"Bar"));
 
@@ -799,7 +805,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         object key = "Foo";
 
         // act
@@ -835,7 +841,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var value = Task.FromResult<object?>("Foo");
 
         // act
@@ -851,7 +857,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         object key = "Foo";
 
         // act
@@ -867,7 +873,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         object key = "Foo";
         var value = Task.FromResult<object?>("Bar");
 
@@ -942,7 +948,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
     private class TestDataLoader1(
         IBatchScheduler batchScheduler,
-        DataLoaderOptions? options = null)
+        DataLoaderOptions options)
         : DataLoaderBase<int, Entity>(batchScheduler, options)
     {
         protected internal override ValueTask FetchAsync(
@@ -965,7 +971,7 @@ public class DataLoaderTests(ITestOutputHelper output)
     {
         public TestDataLoader2(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions? options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
             PromiseCacheObserver

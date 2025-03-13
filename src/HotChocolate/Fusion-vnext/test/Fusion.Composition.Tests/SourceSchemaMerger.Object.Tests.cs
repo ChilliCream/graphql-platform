@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -146,11 +146,82 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                 ],
                 """
                 type Product
-                    @inaccessible
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+                """
+            },
+            // Implemented interfaces. I2 is inaccessible.
+            {
+                [
+                    """
+                    # Schema A
+                    interface I1 {
+                        id: ID!
+                    }
+
+                    interface I2 {
+                        id: ID!
+                    }
+
+                    type Product implements I1 & I2 {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    interface I1 {
+                        id: ID!
+                    }
+
+                    interface I2 @inaccessible {
+                        id: ID!
+                    }
+
+                    interface I3 {
+                        id: ID!
+                    }
+
+                    type Product implements I1 & I2 & I3 {
+                        id: ID!
+                    }
+                    """
+                ],
+                """
+                type Product implements I1 & I3
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__implements(schema: A, interface: "I1")
+                    @fusion__implements(schema: B, interface: "I1")
+                    @fusion__implements(schema: B, interface: "I3") {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I1
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     id: ID!
                         @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I2
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B)
+                }
+
+                interface I3
+                    @fusion__type(schema: B) {
+                    id: ID!
                         @fusion__field(schema: B)
                 }
                 """
@@ -421,6 +492,43 @@ public sealed class SourceSchemaMergerObjectTests : CompositionTestBase
                         @fusion__field(schema: A)
                     sku: String!
                         @fusion__field(schema: B)
+                }
+                """
+            },
+            // @lookup on field with multiple arguments.
+            {
+                [
+                    """
+                    type Query {
+                        productByIdAndCategoryId(id: ID!, categoryId: Int): Product! @lookup
+                    }
+
+                    type Product {
+                        id: ID!
+                        categoryId: Int
+                    }
+                    """
+                ],
+                """
+                schema {
+                    query: Query
+                }
+
+                type Query
+                    @fusion__type(schema: A) {
+                    productByIdAndCategoryId(categoryId: Int
+                        @fusion__inputField(schema: A) id: ID!
+                        @fusion__inputField(schema: A)): Product!
+                        @fusion__field(schema: A)
+                }
+
+                type Product
+                    @fusion__type(schema: A)
+                    @fusion__lookup(schema: A, key: "id categoryId", field: "productByIdAndCategoryId(id: ID! categoryId: Int): Product!", map: [ "id", "categoryId" ], path: null) {
+                    categoryId: Int
+                        @fusion__field(schema: A)
+                    id: ID!
+                        @fusion__field(schema: A)
                 }
                 """
             }

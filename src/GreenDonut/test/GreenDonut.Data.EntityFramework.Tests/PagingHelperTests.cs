@@ -38,8 +38,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         // -> get first page
         var arguments = new PagingArguments(2);
         await using var context = new CatalogContext(connectionString);
-        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
         arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
@@ -47,6 +46,87 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         page.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_First_2_Items_Second_Page_With_Offset_2()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // -> get first page
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        await using var context = new CatalogContext(connectionString);
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Act
+        var cursor = page.CreateCursor(page.Last!, 2);
+        arguments = new PagingArguments(2, after: cursor);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Assert
+        page.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_First_2_Items_Second_Page_With_Offset_Negative_2()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new CatalogContext(connectionString);
+
+        // -> get first page
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // -> get second page
+        var cursor = first.CreateCursor(first.Last!, 0);
+        arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
+        var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // -> get third page
+        cursor = page.CreateCursor(page.Last!, 0);
+        arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Act
+        /*
+         1  Product 0-0
+         2  Product 0-1
+        11  Product 0-10
+        12  Product 0-11
+        13  Product 0-12   <- Cursor is set here - 1
+        14  Product 0-13
+        15  Product 0-14
+        16  Product 0-15
+        17  Product 0-16
+        18  Product 0-17
+        */
+        cursor = page.CreateCursor(page.Last!, -1);
+        arguments = new PagingArguments(last: 2, before: cursor);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Assert
+        /*
+         1  Product 0-0    <- first
+         2  Product 0-1    <- last
+        11  Product 0-10
+        12  Product 0-11
+        13  Product 0-12   <- Cursor is set here - 1
+        14  Product 0-13
+        15  Product 0-14
+        16  Product 0-15
+        17  Product 0-16
+        18  Product 0-17
+        */
+        new {
+            First = page.First!.Name,
+            Last = page.Last!.Name,
+            ItemsCount = page.Items.Length
+        }.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -111,6 +191,120 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         // Assert
         page.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryContext_Simple_Selector()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Product>(
+            Selector: t => new Product { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Product>().AddDescending(t => t.Id));
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        await context.Products
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
+    public async Task QueryContext_Simple_Selector_Include_Brand()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Product>(
+            Selector: t => new Product { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Product>().AddDescending(t => t.Id));
+
+        query = query.Include(t => t.Brand);
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Products
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
+    public async Task QueryContext_Simple_Selector_Include_Brand_Name()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Product>(
+            Selector: t => new Product { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Product>().AddDescending(t => t.Id));
+
+        query = query.Select(t => new Product { Brand = new Brand { Name = t.Brand!.Name } });
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Products
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
+    public async Task QueryContext_Simple_Selector_Include_Product_List()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var query = new QueryContext<Brand>(
+            Selector: t => new Brand { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Brand>().AddDescending(t => t.Id));
+
+        query = query.Select(t => new Brand { Products = t.Products.Select(p => new Product { Id = p.Id, Name = p.Name }).ToList() });
+
+        var arguments = new PagingArguments(last: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Brands
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // Assert
+        CreateSnapshot()
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
     }
 
     [Fact]
@@ -305,5 +499,14 @@ public class PagingHelperTests(PostgreSqlResource resource)
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private static Snapshot CreateSnapshot()
+    {
+#if NET9_0_OR_GREATER
+        return Snapshot.Create();
+#else
+        return Snapshot.Create("NET8_0");
+#endif
     }
 }

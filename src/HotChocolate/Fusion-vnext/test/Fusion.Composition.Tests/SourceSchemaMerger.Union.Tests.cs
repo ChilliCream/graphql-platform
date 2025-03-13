@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -69,8 +69,10 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                 union SearchResult
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
+                    @fusion__unionMember(schema: A, member: "Product")
                     @fusion__unionMember(schema: A, member: "Order")
-                    @fusion__unionMember(schema: B, member: "Order") = Order
+                    @fusion__unionMember(schema: B, member: "Order")
+                    @fusion__unionMember(schema: B, member: "User") = Product | Order | User
                 """
             },
             // If any of the unions is marked as @inaccessible, then the merged union is also marked
@@ -100,11 +102,11 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                 }
 
                 union SearchResult
-                    @inaccessible
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
                     @fusion__unionMember(schema: A, member: "User")
-                    @fusion__unionMember(schema: B, member: "User") = User
+                    @fusion__unionMember(schema: B, member: "User")
+                    @fusion__inaccessible = User
                 """
             },
             // The first non-empty description that is found is used as the description for the
@@ -167,7 +169,7 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     @fusion__type(schema: B) =
                 """
             },
-            // Union member type "User" internal in one of two schemas. No remaining member types.
+            // Union member type "User" internal in one of two schemas.
             {
                 [
                     """
@@ -192,7 +194,8 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
 
                 union SearchResult
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) =
+                    @fusion__type(schema: B)
+                    @fusion__unionMember(schema: A, member: "User") = User
                 """
             },
             // Union member type "Order" internal in one of two schemas, "Product" visible in both.
@@ -232,7 +235,8 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
                     @fusion__unionMember(schema: A, member: "Product")
-                    @fusion__unionMember(schema: B, member: "Product") = Product
+                    @fusion__unionMember(schema: B, member: "Product")
+                    @fusion__unionMember(schema: A, member: "Order") = Product | Order
                 """
             },
             // @lookup

@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -83,14 +83,14 @@ public sealed class SourceSchemaMergerEnumTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     ACTIVE
-                        @inaccessible
                         @fusion__enumValue(schema: A)
+                        @fusion__inaccessible
                     INACTIVE
                         @fusion__enumValue(schema: A)
                         @fusion__enumValue(schema: B)
                     PENDING
-                        @inaccessible
                         @fusion__enumValue(schema: B)
+                        @fusion__inaccessible
                 }
                 """
             },
@@ -113,9 +113,9 @@ public sealed class SourceSchemaMergerEnumTests : CompositionTestBase
                 ],
                 """
                 enum Status
-                    @inaccessible
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) {
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
                     ACTIVE
                         @fusion__enumValue(schema: A)
                     INACTIVE

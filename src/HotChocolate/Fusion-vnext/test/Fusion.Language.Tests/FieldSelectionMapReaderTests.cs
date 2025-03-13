@@ -1,6 +1,6 @@
-using SyntaxTokenInfo = HotChocolate.Fusion.FieldSelectionMapSyntaxTokenInfo;
+using SyntaxTokenInfo = HotChocolate.Fusion.Language.Utilities.FieldSelectionMapSyntaxTokenInfo;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 public sealed class FieldSelectionMapReaderTests
 {

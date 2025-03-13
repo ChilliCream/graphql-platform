@@ -1,5 +1,7 @@
 // ReSharper disable InconsistentNaming
 
+using System.Reflection.Metadata;
+
 namespace GreenDonut;
 
 public class DataLoaderExtensionsTests
@@ -24,7 +26,7 @@ public class DataLoaderExtensionsTests
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var value = "Bar";
 
         // act
@@ -40,7 +42,7 @@ public class DataLoaderExtensionsTests
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var key = "Foo";
 
         // act
@@ -149,7 +151,7 @@ public class DataLoaderExtensionsTests
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         object key = "Foo";
 
         // act

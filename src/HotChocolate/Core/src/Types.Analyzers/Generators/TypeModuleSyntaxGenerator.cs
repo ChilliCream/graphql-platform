@@ -11,13 +11,13 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
-        => Execute(context, compilation, syntaxInfos);
+        => Execute(context, assemblyName, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
-        Compilation compilation,
+        string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
@@ -25,7 +25,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
+        var module = syntaxInfos.GetModuleInfo(assemblyName, out var defaultModule);
 
         // the generator is disabled.
         if (module.Options == ModuleOptions.Disabled)
@@ -60,8 +60,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         var operations = OperationType.No;
         var hasConfigurations = false;
-        List<string>? _objectTypeExtensions = null;
-        List<string>? _interfaceTypeExtensions = null;
+        List<string>? objectTypeExtensions = null;
+        List<string>? interfaceTypeExtensions = null;
 
         foreach (var syntaxInfo in syntaxInfos.OrderBy(s => s.OrderByKey))
         {
@@ -139,46 +139,64 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case ObjectTypeExtensionInfo objectTypeExtension:
+                case ObjectTypeInfo objectTypeExtension:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && objectTypeExtension.Diagnostics.Length == 0)
                     {
-                        _objectTypeExtensions ??= [];
-                        _objectTypeExtensions.Add(objectTypeExtension.RuntimeType.ToFullyQualified());
+                        objectTypeExtensions ??= [];
+                        objectTypeExtensions.Add(objectTypeExtension.RuntimeType.ToFullyQualified());
 
                         generator.WriteRegisterTypeExtension(
-                            GetAssemblyQualifiedName(objectTypeExtension.Type),
+                            GetAssemblyQualifiedName(objectTypeExtension.SchemaSchemaType),
                             objectTypeExtension.RuntimeType.ToFullyQualified(),
-                            objectTypeExtension.Type.ToFullyQualified());
+                            objectTypeExtension.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
                     }
                     break;
 
-                case InterfaceTypeExtensionInfo interfaceType:
+                case ConnectionTypeInfo connectionType:
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
+                        && connectionType.Diagnostics.Length == 0)
+                    {
+                        generator.WriteRegisterType($"{connectionType.Namespace}.{connectionType.Name}");
+                        hasConfigurations = true;
+                    }
+                    break;
+
+                case EdgeTypeInfo edgeType:
+                    if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
+                        && edgeType.Diagnostics.Length == 0)
+                    {
+                        generator.WriteRegisterType($"{edgeType.Namespace}.{edgeType.Name}");
+                        hasConfigurations = true;
+                    }
+                    break;
+
+                case InterfaceTypeInfo interfaceType:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && interfaceType.Diagnostics.Length == 0)
                     {
-                        _interfaceTypeExtensions ??= [];
-                        _interfaceTypeExtensions.Add(interfaceType.RuntimeType.ToFullyQualified());
+                        interfaceTypeExtensions ??= [];
+                        interfaceTypeExtensions.Add(interfaceType.RuntimeType.ToFullyQualified());
 
                         generator.WriteRegisterTypeExtension(
-                            GetAssemblyQualifiedName(interfaceType.Type),
+                            GetAssemblyQualifiedName(interfaceType.SchemaSchemaType),
                             interfaceType.RuntimeType.ToFullyQualified(),
-                            interfaceType.Type.ToFullyQualified());
+                            interfaceType.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
                     }
                     break;
 
-                case RootTypeExtensionInfo rootType:
+                case RootTypeInfo rootType:
                     if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes
                         && rootType.Diagnostics.Length == 0)
                     {
                         var operationType = rootType.OperationType;
 
                         generator.WriteRegisterRootTypeExtension(
-                            GetAssemblyQualifiedName(rootType.Type),
+                            GetAssemblyQualifiedName(rootType.SchemaSchemaType),
                             operationType,
-                            rootType.Type.ToFullyQualified());
+                            rootType.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
 
                         if (operationType is not OperationType.No && (operations & operationType) != operationType)
@@ -216,17 +234,17 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
             }
         }
 
-        if (_objectTypeExtensions is not null)
+        if (objectTypeExtensions is not null)
         {
-            foreach (var type in _objectTypeExtensions)
+            foreach (var type in objectTypeExtensions)
             {
                 generator.WriteEnsureObjectTypeExtensionIsRegistered(type);
             }
         }
 
-        if (_interfaceTypeExtensions is not null)
+        if (interfaceTypeExtensions is not null)
         {
-            foreach (var type in _interfaceTypeExtensions)
+            foreach (var type in interfaceTypeExtensions)
             {
                 generator.WriteEnsureInterfaceTypeExtensionIsRegistered(type);
             }

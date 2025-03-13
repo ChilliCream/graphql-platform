@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -111,9 +111,9 @@ public sealed class SourceSchemaMergerInputObjectTests : CompositionTestBase
                 ],
                 """
                 input OrderInput
-                    @inaccessible
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) {
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
                     id: ID!
                         @fusion__inputField(schema: A)
                         @fusion__inputField(schema: B)

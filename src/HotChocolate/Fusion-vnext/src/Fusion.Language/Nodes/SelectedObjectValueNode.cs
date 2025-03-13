@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// <c>SelectedObjectValue</c> are unordered lists of keyed input values wrapped in curly-braces

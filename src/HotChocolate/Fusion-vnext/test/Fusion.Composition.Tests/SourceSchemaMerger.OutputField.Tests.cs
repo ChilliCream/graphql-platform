@@ -1,5 +1,5 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -109,9 +109,9 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     discountPercentage(percent: Int
-                        @inaccessible
                         @fusion__inputField(schema: A)
-                        @fusion__inputField(schema: B)): Int
+                        @fusion__inputField(schema: B)
+                        @fusion__inaccessible): Int
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
                 }
@@ -222,9 +222,9 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     discountPercentage: Int
-                        @inaccessible
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
+                        @fusion__inaccessible
                 }
                 """
             },
@@ -276,7 +276,7 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                 type User
                     @fusion__type(schema: A) {
                     email: String!
-                        @fusion__field(schema: A, external: true)
+                        @fusion__field(schema: A, partial: true)
                     id: ID!
                         @fusion__field(schema: A)
                     name: String!

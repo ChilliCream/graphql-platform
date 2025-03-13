@@ -17,12 +17,13 @@ internal sealed class EmptyMergedEnumTypeRule : IEventHandler<EnumTypeEvent>
     {
         var (enumType, schema) = @event;
 
-        if (enumType.HasInaccessibleDirective())
+        if (enumType.HasFusionInaccessibleDirective())
         {
             return;
         }
 
-        var accessibleValues = enumType.Values.Where(v => !v.HasInaccessibleDirective());
+        var accessibleValues =
+            enumType.Values.AsEnumerable().Where(v => !v.HasFusionInaccessibleDirective());
 
         if (!accessibleValues.Any())
         {

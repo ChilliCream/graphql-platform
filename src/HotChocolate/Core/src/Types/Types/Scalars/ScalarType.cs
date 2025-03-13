@@ -58,6 +58,8 @@ public abstract partial class ScalarType
 
     public bool IsAssignableFrom(INamedType type) => ReferenceEquals(type, this);
 
+    public bool Equals(IType? other) => ReferenceEquals(other, this);
+
     /// <summary>
     /// Defines if the specified <paramref name="valueSyntax" />
     /// can be parsed by this scalar.

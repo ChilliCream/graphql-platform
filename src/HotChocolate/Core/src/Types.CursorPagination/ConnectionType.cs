@@ -212,16 +212,16 @@ internal sealed class ConnectionType
         => (field.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField;
 
     private static IPageInfo GetPagingInfo(IResolverContext context)
-        => context.Parent<Connection>().Info;
+        => context.Parent<IConnection>().Info;
 
-    private static IReadOnlyCollection<IEdge> GetEdges(IResolverContext context)
-        => context.Parent<Connection>().Edges;
+    private static IEnumerable<IEdge>? GetEdges(IResolverContext context)
+        => context.Parent<IConnection>().Edges;
 
-    private static IEnumerable<object?> GetNodes(IResolverContext context)
-        => context.Parent<Connection>().Edges.Select(t => t.Node);
+    private static IEnumerable<object?>? GetNodes(IResolverContext context)
+        => context.Parent<IConnection>().Edges?.Select(t => t.Node);
 
     private static object? GetTotalCount(IResolverContext context)
-        => context.Parent<Connection>().TotalCount;
+        => context.Parent<IPageTotalCountProvider>().TotalCount;
 
     internal static class Names
     {

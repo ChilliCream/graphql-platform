@@ -24,34 +24,34 @@ LIMIT @__p_0
     "brandsNullable": {
       "edges": [
         {
-          "cursor": "QnJhbmRcOjA6XG51bGw6MQ=="
+          "cursor": "e31CcmFuZFw6MDpcbnVsbDox"
         },
         {
-          "cursor": "QnJhbmRcOjE6XG51bGw6Mg=="
+          "cursor": "e31CcmFuZFw6MTpcbnVsbDoy"
         },
         {
-          "cursor": "QnJhbmRcOjEwOlxudWxsOjEx"
+          "cursor": "e31CcmFuZFw6MTA6XG51bGw6MTE="
         },
         {
-          "cursor": "QnJhbmRcOjExOlxudWxsOjEy"
+          "cursor": "e31CcmFuZFw6MTE6XG51bGw6MTI="
         },
         {
-          "cursor": "QnJhbmRcOjEyOlxudWxsOjEz"
+          "cursor": "e31CcmFuZFw6MTI6XG51bGw6MTM="
         },
         {
-          "cursor": "QnJhbmRcOjEzOlxudWxsOjE0"
+          "cursor": "e31CcmFuZFw6MTM6XG51bGw6MTQ="
         },
         {
-          "cursor": "QnJhbmRcOjE0OlxudWxsOjE1"
+          "cursor": "e31CcmFuZFw6MTQ6XG51bGw6MTU="
         },
         {
-          "cursor": "QnJhbmRcOjE1OlxudWxsOjE2"
+          "cursor": "e31CcmFuZFw6MTU6XG51bGw6MTY="
         },
         {
-          "cursor": "QnJhbmRcOjE2OlxudWxsOjE3"
+          "cursor": "e31CcmFuZFw6MTY6XG51bGw6MTc="
         },
         {
-          "cursor": "QnJhbmRcOjE3OlxudWxsOjE4"
+          "cursor": "e31CcmFuZFw6MTc6XG51bGw6MTg="
         }
       ],
       "nodes": [
@@ -159,8 +159,8 @@ LIMIT @__p_0
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": false,
-        "startCursor": "QnJhbmRcOjA6XG51bGw6MQ==",
-        "endCursor": "QnJhbmRcOjE3OlxudWxsOjE4"
+        "startCursor": "e31CcmFuZFw6MDpcbnVsbDox",
+        "endCursor": "e31CcmFuZFw6MTc6XG51bGw6MTg="
       }
     }
   }

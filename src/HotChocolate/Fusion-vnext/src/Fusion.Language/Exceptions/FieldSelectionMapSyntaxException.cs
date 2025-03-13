@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 [Serializable]
 public sealed class FieldSelectionMapSyntaxException : Exception

@@ -1,6 +1,6 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
-internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defaultAction)
+public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defaultAction)
     : FieldSelectionMapSyntaxVisitor, ISyntaxVisitor<TContext>
 {
     public FieldSelectionMapSyntaxVisitor() : this(Skip)
@@ -120,6 +120,8 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
                 => Leave((NameNode)node, context),
             FieldSelectionMapSyntaxKind.Path
                 => Leave((PathNode)node, context),
+            FieldSelectionMapSyntaxKind.PathSegment
+                => Leave((PathSegmentNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedListValue
                 => Leave((SelectedListValueNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
@@ -141,6 +143,11 @@ internal class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction def
 
     protected virtual ISyntaxVisitorAction Leave(
         PathNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        PathSegmentNode node,
         TContext context) =>
         DefaultAction;
 

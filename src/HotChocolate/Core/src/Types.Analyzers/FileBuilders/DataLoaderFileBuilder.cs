@@ -567,11 +567,16 @@ public sealed class DataLoaderFileBuilder : IDisposable
     public void WriteDataLoaderGroupClass(
         string groupClassName,
         IReadOnlyList<GroupedDataLoaderInfo> dataLoaders,
-        bool withInterface)
+        bool withInterface,
+        bool isInterfacePublic,
+        bool isClassPublic)
     {
         if (withInterface)
         {
-            _writer.WriteIndentedLine("public interface I{0}", groupClassName);
+            _writer.WriteIndentedLine(
+                "{0} interface I{1}",
+                isInterfacePublic ? "public" : "internal",
+                groupClassName);
             _writer.WriteIndentedLine("{");
             _writer.IncreaseIndent();
 
@@ -587,11 +592,17 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
         if (withInterface)
         {
-            _writer.WriteIndentedLine("public sealed partial class {0} : I{0}", groupClassName);
+            _writer.WriteIndentedLine(
+                "{0} sealed partial class {1} : I{1}",
+                isClassPublic ? "public" : "internal",
+                groupClassName);
         }
         else
         {
-            _writer.WriteIndentedLine("public sealed partial class {0}", groupClassName);
+            _writer.WriteIndentedLine(
+                "{0} sealed partial class {1}",
+                isClassPublic ? "public" : "internal",
+                groupClassName);
         }
 
         _writer.WriteIndentedLine("{");

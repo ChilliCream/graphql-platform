@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 internal readonly ref struct TokenInfo(int start, int end, int line, int column)
 {

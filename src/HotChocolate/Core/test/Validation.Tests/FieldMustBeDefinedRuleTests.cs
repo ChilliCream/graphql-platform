@@ -243,4 +243,41 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Empty(context.Errors);
     }
+
+    [Fact]
+    public void Ensure_Non_Existent_Root_Types_Cause_Error()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext(CreateQueryOnlySchema());
+        var query = Utf8GraphQLParser.Parse(
+            """
+            subscription {
+                foo
+            }
+            """);
+        context.Prepare(query);
+
+        // act
+        Rule.Validate(context, query);
+
+        // assert
+        Assert.Collection(
+            context.Errors,
+            t => Assert.Equal(
+                "This GraphQL schema does not support `Subscription` operations.",
+                t.Message));
+    }
+
+    private ISchema CreateQueryOnlySchema()
+    {
+        return SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String
+                }
+                """)
+            .Use(next => next)
+            .Create();
+    }
 }
