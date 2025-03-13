@@ -242,6 +242,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             await using var stream = File.Create(snapshotFile);
             await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
@@ -274,6 +275,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             using var stream = File.Create(snapshotFile);
             stream.Write(writer.WrittenSpan);
@@ -309,6 +311,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             await using var stream = File.Create(snapshotFile);
             await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
@@ -346,6 +349,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             using var stream = File.Create(snapshotFile);
             stream.Write(writer.WrittenSpan);
@@ -718,6 +722,20 @@ public class Snapshot
         }
 
         return actualMethodInfo;
+    }
+
+    private static void CheckStrictMode()
+    {
+        var value = Environment.GetEnvironmentVariable("COOKIE_CRUMBLE_STRICT_MODE");
+
+        if (string.Equals(value, "on", StringComparison.Ordinal)
+            || (bool.TryParse(value, out var b) && b))
+        {
+            _testFramework.ThrowTestException(
+                "Strict mode is enabled and no snapshot has been found " +
+                "for the current test. Create a new snapshot locally and " +
+                "rerun your tests.");
+        }
     }
 
     private readonly struct SnapshotSegment(string? name, object? value, ISnapshotValueFormatter formatter)
