@@ -24,7 +24,10 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public InterfaceFieldDefinition() { }
+    public InterfaceFieldDefinition()
+    {
+        IsParallelExecutable = true;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -37,6 +40,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
         Name = name.EnsureGraphQLName();
         Description = description;
         Type = type;
+        IsParallelExecutable = true;
     }
 
     /// <summary>

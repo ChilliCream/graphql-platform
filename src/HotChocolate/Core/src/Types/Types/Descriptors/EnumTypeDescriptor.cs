@@ -72,12 +72,16 @@ public class EnumTypeDescriptor
         {
             foreach (var value in Context.TypeInspector.GetEnumValues(typeDefinition.RuntimeType))
             {
+                if (values.ContainsKey(value))
+                {
+                    continue;
+                }
+
                 var valueDefinition =
                     EnumValueDescriptor.New(Context, value)
                         .CreateDefinition();
 
-                if (valueDefinition.RuntimeValue is not null &&
-                    !values.ContainsKey(valueDefinition.RuntimeValue))
+                if (valueDefinition.RuntimeValue is not null)
                 {
                     values.Add(valueDefinition.RuntimeValue, valueDefinition);
                 }

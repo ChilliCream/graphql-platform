@@ -19,7 +19,11 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddGlobalObjectIdentification(
         this IRequestExecutorBuilder builder)
     {
-        builder.AddDefaultNodeIdSerializer();
+        if (builder.Services.All(t => t.ServiceType != typeof(INodeIdSerializer)))
+        {
+            builder.AddDefaultNodeIdSerializer();
+        }
+
         return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification());
     }
 
@@ -39,7 +43,11 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         bool registerNodeInterface)
     {
-        builder.AddDefaultNodeIdSerializer();
+        if (builder.Services.All(t => t.ServiceType != typeof(INodeIdSerializer)))
+        {
+            builder.AddDefaultNodeIdSerializer();
+        }
+
         return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification(registerNodeInterface));
     }
 

@@ -105,6 +105,23 @@ public static class BuiltIns
         }
     }
 
+    public static class SemanticNonNull
+    {
+        public const string Name = "semanticNonNull";
+        public const string Levels = "levels";
+
+        public static SemanticNonNullDirectiveDefinition Create(SchemaDefinition schema)
+        {
+            if (!schema.Types.TryGetType<ScalarTypeDefinition>(Int.Name, out var intTypeDef))
+            {
+                intTypeDef = Int.Create();
+                schema.Types.Add(intTypeDef);
+            }
+
+            return new SemanticNonNullDirectiveDefinition(intTypeDef);
+        }
+    }
+
     public static bool IsBuiltInScalar(string name)
         => name switch
         {
