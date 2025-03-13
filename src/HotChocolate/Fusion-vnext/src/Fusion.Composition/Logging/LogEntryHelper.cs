@@ -311,10 +311,10 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry InputFieldReferencesInaccessibleType(
-        InputFieldDefinition field,
+        MutableInputFieldDefinition field,
         string typeName,
         string referenceTypeName,
-        SchemaDefinition schema)
+        MutableSchemaDefinition schema)
     {
         var coordinate = new SchemaCoordinate(typeName, field.Name);
 

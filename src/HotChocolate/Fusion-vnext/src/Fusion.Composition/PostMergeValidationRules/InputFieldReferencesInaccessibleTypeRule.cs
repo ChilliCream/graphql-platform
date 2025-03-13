@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
@@ -25,15 +25,15 @@ internal sealed class InputFieldReferencesInaccessibleTypeRule : IEventHandler<I
             return;
         }
 
-        var namedType = field.Type.NamedType();
+        var fieldType = field.Type.AsTypeDefinition();
 
-        if (namedType.HasInaccessibleDirective())
+        if (fieldType.HasFusionInaccessibleDirective())
         {
             context.Log.Write(
                 InputFieldReferencesInaccessibleType(
                     field,
                     type.Name,
-                    namedType.Name,
+                    fieldType.Name,
                     schema));
         }
     }
