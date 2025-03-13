@@ -47,13 +47,13 @@
     <PackageVersion Include="Snapshooter.Xunit" Version="0.5.4" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
-    <PackageVersion Include="Squadron.Mongo" Version="0.23.0" />
-    <PackageVersion Include="Squadron.Nats" Version="0.18.0" />
-    <PackageVersion Include="Squadron.PostgreSql" Version="0.18.0" />
-    <PackageVersion Include="Squadron.RabbitMQ" Version="0.18.0" />
-    <PackageVersion Include="Squadron.RavenDB" Version="0.18.0" />
-    <PackageVersion Include="Squadron.Redis" Version="0.18.0" />
-    <PackageVersion Include="Squadron.AzureStorage" Version="0.18.0" />
+    <PackageVersion Include="Squadron.Mongo" Version="0.24.0" />
+    <PackageVersion Include="Squadron.Nats" Version="0.24.0" />
+    <PackageVersion Include="Squadron.PostgreSql" Version="0.24.0" />
+    <PackageVersion Include="Squadron.RabbitMQ" Version="0.24.0" />
+    <PackageVersion Include="Squadron.RavenDB" Version="0.24.0" />
+    <PackageVersion Include="Squadron.Redis" Version="0.24.0" />
+    <PackageVersion Include="Squadron.AzureStorage" Version="0.24.0" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
