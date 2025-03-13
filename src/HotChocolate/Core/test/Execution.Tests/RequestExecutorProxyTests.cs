@@ -31,7 +31,8 @@ public class RequestExecutorProxyTests
     public async Task Ensure_Executor_Is_Correctly_Swapped_When_Evicted()
     {
         // arrange
-        var executorUpdatedResetEvent = new AutoResetEvent(false);
+        var executorUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var resolver =
             new ServiceCollection()
                 .AddGraphQL()
@@ -54,7 +55,7 @@ public class RequestExecutorProxyTests
         // act
         var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);
         resolver.EvictRequestExecutor();
-        executorUpdatedResetEvent.WaitOne(1000);
+        executorUpdatedResetEvent.Wait(cts.Token);
         var b = await proxy.GetRequestExecutorAsync(CancellationToken.None);
 
         // assert
