@@ -20,7 +20,7 @@ internal sealed class InputFieldReferencesInaccessibleTypeRule : IEventHandler<I
     {
         var (field, type, schema) = @event;
 
-        if (field.HasInaccessibleDirective())
+        if (field.HasFusionInaccessibleDirective())
         {
             return;
         }
