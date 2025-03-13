@@ -75,9 +75,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -404,9 +408,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -737,9 +745,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -808,9 +820,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -839,9 +855,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -2685,15 +2705,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3206,15 +3237,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3820,15 +3862,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3965,15 +4018,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -4026,15 +4090,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
