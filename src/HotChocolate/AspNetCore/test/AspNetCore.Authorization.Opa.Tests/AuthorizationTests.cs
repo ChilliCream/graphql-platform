@@ -71,7 +71,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     "iwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
         using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
 
         var putPolicyResponse = await client.PutAsync(
@@ -107,7 +107,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     "jXBglnxac";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
         using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
 
         var putPolicyResponse = await client.PutAsync(
@@ -150,7 +150,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     "MS0yMDAwIn0.01Hb6X-HXl9ASf3X82Mt63RMpZ4SVJZT9hTI2dYet-k";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
         using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
 
         var putPolicyResponse = await client.PutAsync(
