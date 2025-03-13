@@ -29,10 +29,10 @@ ORDER BY f0."Name", f0."Id"
     "foos": {
       "edges": [
         {
-          "cursor": "Rm9vIDE6MQ=="
+          "cursor": "e31Gb28gMTox"
         },
         {
-          "cursor": "Rm9vIDI6Mg=="
+          "cursor": "e31Gb28gMjoy"
         }
       ],
       "nodes": [
@@ -53,8 +53,8 @@ ORDER BY f0."Name", f0."Id"
       "pageInfo": {
         "hasNextPage": false,
         "hasPreviousPage": false,
-        "startCursor": "Rm9vIDE6MQ==",
-        "endCursor": "Rm9vIDI6Mg=="
+        "startCursor": "e31Gb28gMTox",
+        "endCursor": "e31Gb28gMjoy"
       }
     }
   }

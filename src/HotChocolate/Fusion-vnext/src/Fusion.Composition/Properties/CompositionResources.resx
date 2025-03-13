@@ -183,6 +183,9 @@
   <data name="LogEntryHelper_FieldArgumentTypesNotMergeable" xml:space="preserve">
     <value>The argument '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_FieldWithMissingRequiredArgument" xml:space="preserve">
+    <value>The argument '{0}' must be defined as required in schema '{1}'. Arguments marked with @require are treated as non-required.</value>
+  </data>
   <data name="LogEntryHelper_InputFieldDefaultMismatch" xml:space="preserve">
     <value>The default value '{0}' of input field '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
@@ -225,6 +228,9 @@
   <data name="LogEntryHelper_LookupReturnsNonNullableType" xml:space="preserve">
     <value>The lookup field '{0}' in schema '{1}' should return a nullable type.</value>
   </data>
+  <data name="LogEntryHelper_NonNullInputFieldIsInaccessible" xml:space="preserve">
+    <value>The non-null input field '{0}' in schema '{1}' must be accessible in the composed schema.</value>
+  </data>
   <data name="LogEntryHelper_NoQueries" xml:space="preserve">
     <value>The merged query type has no accessible fields.</value>
   </data>
@@ -260,6 +266,9 @@
   </data>
   <data name="LogEntryHelper_RequireDirectiveInFieldArgument" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
+  </data>
+  <data name="LogEntryHelper_RequireInvalidFields" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
   <data name="LogEntryHelper_RequireInvalidFieldType" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' must specify a string value for the 'field' argument.</value>

@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.StringComparison;
 using static HotChocolate.Types.Analyzers.WellKnownAttributes;
@@ -10,7 +12,9 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class ModuleInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [AssemblyAttributeList.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [AssemblyAttributeList.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.AttributeList];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
@@ -20,7 +24,7 @@ public sealed class ModuleInspector : ISyntaxInspector
         {
             foreach (var attributeSyntax in attributeList.Attributes)
             {
-                var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
+                var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax).Symbol;
                 if (symbol is not IMethodSymbol attributeSymbol)
                 {
                     continue;

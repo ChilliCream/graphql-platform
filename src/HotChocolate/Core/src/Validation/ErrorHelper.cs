@@ -280,6 +280,17 @@ internal static class ErrorHelper
             .Build();
     }
 
+    public static IError OperationNotSupported(
+        this IDocumentValidatorContext context,
+        OperationType operationType)
+    {
+        return ErrorBuilder.New()
+            .SetMessage(
+                Resources.ErrorHelper_OperationNotSupported,
+                operationType)
+            .Build();
+    }
+
     public static IError FragmentNameNotUnique(
         this IDocumentValidatorContext context,
         FragmentDefinitionNode fragmentDefinition)

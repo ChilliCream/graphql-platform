@@ -16,7 +16,7 @@ LIMIT @__p_2
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => (t.DisplayName ?? t.Name)).ThenBy(t => t.Id).Where(t => (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) > 0) OrElse (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.Int32]).value) > 0)))).Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => (t.DisplayName ?? t.Name)).ThenBy(t => t.Id).Where(t => (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) > 0) OrElse (((t.DisplayName ?? t.Name).CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.Int32]).value) > 0)))).Take(3)
 ```
 
 ## Result
@@ -27,10 +27,10 @@ LIMIT @__p_2
     "brandsNullableFallback": {
       "edges": [
         {
-          "cursor": "QnJhbmRcOjEzOjE0"
+          "cursor": "e31CcmFuZFw6MTM6MTQ="
         },
         {
-          "cursor": "QnJhbmRcOjE1OjE2"
+          "cursor": "e31CcmFuZFw6MTU6MTY="
         }
       ],
       "nodes": [
@@ -58,8 +58,8 @@ LIMIT @__p_2
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmRcOjEzOjE0",
-        "endCursor": "QnJhbmRcOjE1OjE2"
+        "startCursor": "e31CcmFuZFw6MTM6MTQ=",
+        "endCursor": "e31CcmFuZFw6MTU6MTY="
       }
     }
   }

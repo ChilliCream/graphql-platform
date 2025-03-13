@@ -268,6 +268,23 @@ internal static class LogEntryHelper
             schemaA);
     }
 
+    public static LogEntry FieldWithMissingRequiredArgument(
+        string requiredArgumentName,
+        MutableOutputFieldDefinition field,
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name, requiredArgumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_FieldWithMissingRequiredArgument, coordinate, schema.Name),
+            LogEntryCodes.FieldWithMissingRequiredArgument,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry InputFieldDefaultMismatch(
         IValueNode defaultValueA,
         IValueNode defaultValueB,
@@ -525,6 +542,20 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry NonNullInputFieldIsInaccessible(
+        MutableInputFieldDefinition inputField,
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_NonNullInputFieldIsInaccessible, coordinate, schema.Name),
+            LogEntryCodes.NonNullInputFieldIsInaccessible,
+            LogSeverity.Error,
+            coordinate,
+            inputField,
+            schema);
+    }
+
     public static LogEntry NoQueries(MutableObjectTypeDefinition queryType, MutableSchemaDefinition schema)
     {
         return new LogEntry(
@@ -745,6 +776,27 @@ internal static class LogEntryHelper
             coordinate,
             requireDirective,
             schema);
+    }
+
+    public static LogEntry RequireInvalidFields(
+        Directive fusionRequiresDirective,
+        string argumentName,
+        string fieldName,
+        string typeName,
+        string sourceSchemaName,
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_RequireInvalidFields, coordinate, sourceSchemaName),
+            LogEntryCodes.RequireInvalidFields,
+            LogSeverity.Error,
+            coordinate,
+            fusionRequiresDirective,
+            schema,
+            errors);
     }
 
     public static LogEntry RequireInvalidFieldType(

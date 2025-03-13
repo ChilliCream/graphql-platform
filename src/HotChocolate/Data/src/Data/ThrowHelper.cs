@@ -201,6 +201,18 @@ internal static class ThrowHelper
                 .SetExtension(nameof(sortProvider), sortProvider)
                 .Build());
 
+    public static SchemaException SortConvention_ProviderHasToBeInitializedByConvention(
+        Type provider,
+        string? scope) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.SortConvention_ProviderHasToBeInitializedByConvention,
+                    provider.FullName ?? provider.Name,
+                    scope is null ? "" : "in scope " + scope)
+                .SetExtension(nameof(scope), scope)
+                .Build());
+
     public static SchemaException SortDescriptorContextExtensions_NoConvention(string? scope) =>
         new SchemaException(
             SchemaErrorBuilder.New()

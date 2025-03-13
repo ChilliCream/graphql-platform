@@ -238,7 +238,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task Query_Products_Include_TotalCount()
+    public async Task Query_Products_First_2_With_4_EndCursors()
     {
         // arrange
         using var interceptor = new TestQueryInterceptor();
@@ -248,6 +248,62 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """
             {
                 products(first: 2) {
+                    nodes {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                    endCursors(count: 4)
+                }
+            }
+
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Query_Products_First_2_With_4_EndCursors_Skip_4()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                products(first: 2, after: "ezN8MHwxMDF9WmVuaXRoIEN5Y2xpbmcgSmVyc2V5OjQ2") {
+                    nodes {
+                        name
+                        brand {
+                            name
+                        }
+                    }
+                    endCursors(count: 4)
+                }
+            }
+
+            """,
+            interceptor);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Query_Products_Include_TotalCount()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                productsNonRelative(first: 2) {
                     nodes {
                         name
                     }
@@ -272,7 +328,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var result = await ExecuteAsync(
             """
             {
-                products(first: 2) {
+                productsNonRelative(first: 2) {
                     nodes {
                         name
                     }

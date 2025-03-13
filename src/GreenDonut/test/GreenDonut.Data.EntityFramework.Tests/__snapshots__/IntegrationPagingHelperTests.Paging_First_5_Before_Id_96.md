@@ -16,7 +16,7 @@ LIMIT @__p_2
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Where(t => ((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) < 0) OrElse ((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.Int32]).value) < 0)))).Reverse().Take(6)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderByDescending(t => t.Name).ThenByDescending(t => t.Id).Where(t => ((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) < 0) OrElse ((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.Int32]).value) < 0)))).Take(6)
 ```
 
 ## Result 3
@@ -26,9 +26,9 @@ LIMIT @__p_2
   "HasNextPage": true,
   "HasPreviousPage": true,
   "First": 92,
-  "FirstCursor": "QnJhbmRcOjkxOjky",
+  "FirstCursor": "e31CcmFuZFw6OTE6OTI=",
   "Last": 96,
-  "LastCursor": "QnJhbmRcOjk1Ojk2"
+  "LastCursor": "e31CcmFuZFw6OTU6OTY="
 }
 ```
 

@@ -16,7 +16,7 @@ LIMIT @__p_3
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(x => x.AlwaysNull).ThenBy(t => t.Id).Where(t => (((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) > 0) OrElse ((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) == 0) AndAlso (t.AlwaysNull.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) > 0))) OrElse (((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) == 0) AndAlso (t.AlwaysNull.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.String]).value) == 0)) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass7_0`1[System.Int32]).value) > 0)))).Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(x => x.AlwaysNull).ThenBy(t => t.Id).Where(t => (((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) > 0) OrElse ((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) == 0) AndAlso (t.AlwaysNull.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) > 0))) OrElse (((t.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) == 0) AndAlso (t.AlwaysNull.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.String]).value) == 0)) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass6_0`1[System.Int32]).value) > 0)))).Take(3)
 ```
 
 ## Result
@@ -27,10 +27,10 @@ LIMIT @__p_3
     "brandsNullable": {
       "edges": [
         {
-          "cursor": "QnJhbmRcOjExOlxudWxsOjEy"
+          "cursor": "e31CcmFuZFw6MTE6XG51bGw6MTI="
         },
         {
-          "cursor": "QnJhbmRcOjEyOlxudWxsOjEz"
+          "cursor": "e31CcmFuZFw6MTI6XG51bGw6MTM="
         }
       ],
       "nodes": [
@@ -58,8 +58,8 @@ LIMIT @__p_3
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "startCursor": "QnJhbmRcOjExOlxudWxsOjEy",
-        "endCursor": "QnJhbmRcOjEyOlxudWxsOjEz"
+        "startCursor": "e31CcmFuZFw6MTE6XG51bGw6MTI=",
+        "endCursor": "e31CcmFuZFw6MTI6XG51bGw6MTM="
       }
     }
   }

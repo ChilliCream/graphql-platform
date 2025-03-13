@@ -13,7 +13,7 @@ LIMIT @__p_0
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Reverse().Take(6)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderByDescending(t => t.Name).ThenByDescending(t => t.Id).Take(6)
 ```
 
 ## Result 3
@@ -23,9 +23,11 @@ LIMIT @__p_0
   "HasNextPage": false,
   "HasPreviousPage": true,
   "First": 96,
-  "FirstCursor": "QnJhbmRcOjk1Ojk2",
+  "FirstName": "Brand:95",
+  "FirstCursor": "e31CcmFuZFw6OTU6OTY=",
   "Last": 100,
-  "LastCursor": "QnJhbmRcOjk5OjEwMA=="
+  "LastName": "Brand:99",
+  "LastCursor": "e31CcmFuZFw6OTk6MTAw"
 }
 ```
 
