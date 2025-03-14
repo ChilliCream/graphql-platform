@@ -130,13 +130,13 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 edge.Type,
                                 edgeClass.ClassDeclarations,
                                 edge.Name,
-                                edge.NameFormat)
+                                edge.NameFormat ?? edge.Name)
                             : EdgeTypeInfo.CreateEdge(
                                 compilation,
                                 edge.Type,
                                 null,
                                 edge.Name,
-                                edge.NameFormat);
+                                edge.NameFormat ?? edge.Name);
 
                     connectionTypeInfo =
                         connectionClassLookup.TryGetValue(connection.TypeDefinitionName, out connectionClass)
@@ -146,14 +146,14 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connectionClass.ClassDeclarations,
                                 edgeTypeInfo.Name,
                                 connection.Name,
-                                connection.NameFormat)
+                                connection.NameFormat ?? connection.Name)
                             : ConnectionTypeInfo.CreateConnection(
                                 compilation,
                                 connection.Type,
                                 null,
                                 edgeTypeInfo.Name,
                                 connection.Name,
-                                connection.NameFormat);
+                                connection.NameFormat ?? connection.Name);
 
                     var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
                     var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;

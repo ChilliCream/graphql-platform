@@ -155,8 +155,7 @@ public static class PagingQueryableExtensions
 
         if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
         {
-            if ((arguments.Last is not null && cursor.Offset > 0) ||
-                (arguments.First is not null && cursor.Offset < 0))
+            if ((arguments.Last is not null && cursor.Offset > 0) || (arguments.First is not null && cursor.Offset < 0))
             {
                 throw new ArgumentException(
                     "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",
@@ -237,7 +236,7 @@ public static class PagingQueryableExtensions
         }
 
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
-        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, totalCount);
+        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, requestedCount, totalCount);
     }
 
     /// <summary>
@@ -433,12 +432,6 @@ public static class PagingQueryableExtensions
             includeTotalCount = true;
         }
 
-        Dictionary<TKey, int>? counts = null;
-        if (includeTotalCount)
-        {
-            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
-        }
-
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
@@ -446,6 +439,12 @@ public static class PagingQueryableExtensions
         // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
         // and to create a new expression that will not contain it anymore.
         var ordering = ExtractAndRemoveOrder(source.Expression);
+
+        Dictionary<TKey, int>? counts = null;
+        if (includeTotalCount)
+        {
+            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
+        }
 
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
@@ -503,6 +502,7 @@ public static class PagingQueryableExtensions
                 keys,
                 item.Items.Count,
                 pageIndex,
+                requestedCount,
                 totalCount);
             map.Add(item.Key, page);
         }
@@ -525,8 +525,7 @@ public static class PagingQueryableExtensions
         return await query.ToDictionaryAsync(t => t.Key, t => t.Count, cancellationToken);
     }
 
-    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement,
-        TKey>()
+    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement, TKey>()
     {
         return (Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>>)
             _countExpressionCache.GetOrAdd(
@@ -572,6 +571,7 @@ public static class PagingQueryableExtensions
         CursorKey[] keys,
         int fetchCount,
         int? index,
+        int? requestedPageSize,
         int? totalCount)
     {
         var hasPrevious = false;
@@ -605,7 +605,7 @@ public static class PagingQueryableExtensions
             hasNext = true;
         }
 
-        if (arguments.EnableRelativeCursors && totalCount is not null)
+        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
         {
             return new Page<T>(
                 items,
@@ -613,6 +613,7 @@ public static class PagingQueryableExtensions
                 hasPrevious,
                 (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
                 index ?? 1,
+                requestedPageSize.Value,
                 totalCount.Value);
         }
 

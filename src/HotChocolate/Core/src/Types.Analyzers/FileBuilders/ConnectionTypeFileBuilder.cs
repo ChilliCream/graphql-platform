@@ -51,7 +51,8 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             }
 
             if (connectionType.RuntimeType.IsGenericType
-                && !string.IsNullOrEmpty(connectionType.NameFormat))
+                && !string.IsNullOrEmpty(connectionType.NameFormat)
+                && connectionType.NameFormat!.Contains("{0}"))
             {
                 var nodeTypeName = connectionType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
@@ -68,8 +69,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                         ".DependsOn(nodeTypeRef);");
                 }
             }
-            else if (!string.IsNullOrEmpty(connectionType.NameFormat)
-                && !connectionType.NameFormat!.Contains("{0}"))
+            else if (!string.IsNullOrEmpty(connectionType.NameFormat))
             {
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(

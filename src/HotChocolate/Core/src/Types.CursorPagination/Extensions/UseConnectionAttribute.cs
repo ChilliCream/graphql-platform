@@ -98,7 +98,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         set => _EnableRelativeCursors = value;
     }
 
-    public string? ConnectionName { get; set; }
+    public string? Name { get; set; }
 
     protected internal override void TryConfigure(
         IDescriptorContext context,
@@ -118,7 +118,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             AllowBackwardPagination = _allowBackwardPagination,
             RequirePagingBoundaries = _requirePagingBoundaries,
             InferConnectionNameFromField = _inferConnectionNameFromField,
-            ProviderName = ConnectionName,
+            ProviderName = Name,
             EnableRelativeCursors = _EnableRelativeCursors,
         };
 
