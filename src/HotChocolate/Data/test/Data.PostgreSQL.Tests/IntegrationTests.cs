@@ -39,8 +39,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -63,8 +62,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -93,8 +91,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -123,8 +120,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -155,8 +151,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -179,8 +174,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -203,8 +197,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -230,8 +223,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                 }
             }
 
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -258,8 +250,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                 }
             }
 
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -286,8 +277,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                 }
             }
 
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -311,8 +301,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                 }
             }
 
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -335,8 +324,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                 }
             }
 
-            """,
-            interceptor);
+            """);
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -368,9 +356,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         return services.BuildServiceProvider();
     }
 
-    private async Task<IExecutionResult> ExecuteAsync(
-        string sourceText,
-        TestQueryInterceptor queryInterceptor)
+    private async Task<IExecutionResult> ExecuteAsync(string sourceText)
     {
         var db = "db_" + Guid.NewGuid().ToString("N");
         var connectionString = resource.GetConnectionString(db);

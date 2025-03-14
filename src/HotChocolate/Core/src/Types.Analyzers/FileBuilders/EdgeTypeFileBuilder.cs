@@ -50,7 +50,8 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
             }
 
             if (edgeType.RuntimeType.IsGenericType
-                && !string.IsNullOrEmpty(edgeType.NameFormat))
+                && !string.IsNullOrEmpty(edgeType.NameFormat)
+                && edgeType.NameFormat!.Contains("{0}"))
             {
                 var nodeTypeName = edgeType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
@@ -67,8 +68,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                         ".DependsOn(nodeTypeRef);");
                 }
             }
-            else if (!string.IsNullOrEmpty(edgeType.NameFormat)
-                && !edgeType.NameFormat!.Contains("{0}"))
+            else if (!string.IsNullOrEmpty(edgeType.NameFormat))
             {
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(

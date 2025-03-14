@@ -3,16 +3,17 @@ using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Data.Types.Products;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Types.Brands;
 
 [ObjectType<Brand>]
 public static partial class BrandNode
 {
-    [UseConnection]
+    [UseConnection(Name = "BrandProducts")]
     [UseFiltering]
     [UseSorting]
-    public static async Task<ProductConnection> GetProductsAsync(
+    public static async Task<PageConnection<Product>> GetProductsAsync(
         [Parent(requires: nameof(Brand.Id))] Brand brand,
         PagingArguments pagingArgs,
         QueryContext<Product> query,
@@ -20,6 +21,6 @@ public static partial class BrandNode
         CancellationToken cancellationToken)
     {
         var page = await productService.GetProductsByBrandAsync(brand.Id, pagingArgs, query, cancellationToken);
-        return new ProductConnection(page);
+        return new PageConnection<Product>(page);
     }
 }
