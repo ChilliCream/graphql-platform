@@ -284,6 +284,36 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Query_Brands_First_2_Products_First_2_ForwardCursors()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 1) {
+                    nodes {
+                        name
+                        products(first: 2) {
+                            nodes {
+                                name
+                            }
+                            pageInfo {
+                                forwardCursors { page cursor }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
     public async Task Query_Products_Include_TotalCount()
     {
         // arrange

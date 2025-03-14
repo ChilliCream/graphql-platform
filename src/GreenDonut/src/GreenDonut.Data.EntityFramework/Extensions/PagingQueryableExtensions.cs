@@ -432,12 +432,6 @@ public static class PagingQueryableExtensions
             includeTotalCount = true;
         }
 
-        Dictionary<TKey, int>? counts = null;
-        if (includeTotalCount)
-        {
-            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
-        }
-
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
@@ -445,6 +439,12 @@ public static class PagingQueryableExtensions
         // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
         // and to create a new expression that will not contain it anymore.
         var ordering = ExtractAndRemoveOrder(source.Expression);
+
+        Dictionary<TKey, int>? counts = null;
+        if (includeTotalCount)
+        {
+            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
+        }
 
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
@@ -525,8 +525,7 @@ public static class PagingQueryableExtensions
         return await query.ToDictionaryAsync(t => t.Key, t => t.Count, cancellationToken);
     }
 
-    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement,
-        TKey>()
+    private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement, TKey>()
     {
         return (Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>>)
             _countExpressionCache.GetOrAdd(
