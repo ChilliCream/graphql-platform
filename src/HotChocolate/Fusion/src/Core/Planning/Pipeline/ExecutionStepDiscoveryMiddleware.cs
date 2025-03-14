@@ -797,9 +797,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         while (current is not null)
         {
-            var typeMetadata = _config.GetType<ObjectTypeMetadata>(path.Selection.DeclaringType.Name);
+            var typeMetadata = _config.GetType<ObjectTypeMetadata>(current.Selection.DeclaringType.Name);
 
-            if (!typeMetadata.Fields[path.Selection.Field.Name].Bindings.ContainsSubgraph(subgraphName))
+            if (!typeMetadata.Fields[current.Selection.Field.Name].Bindings.ContainsSubgraph(subgraphName))
             {
                 return false;
             }
