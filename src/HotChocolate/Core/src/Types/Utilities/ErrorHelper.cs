@@ -1,4 +1,5 @@
 using System.Globalization;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -538,4 +539,12 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
     }
+
+    public static IError CreateSemanticNonNullViolationError(Path path, ISelection selection)
+        => ErrorBuilder.New()
+            .SetMessage("Cannot return null for semantic non-null field.")
+            .SetCode(ErrorCodes.Execution.SemanticNonNullViolation)
+            .AddLocation(selection.SyntaxNode)
+            .SetPath(path)
+            .Build();
 }

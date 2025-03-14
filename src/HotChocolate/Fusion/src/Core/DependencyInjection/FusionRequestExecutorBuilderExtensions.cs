@@ -62,6 +62,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseField(next => next)
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
+            .AddOperationCompilerOptimizer<SemanticNonNullOptimizer>()
             .AddConvention<INamingConventions>(_ => new DefaultNamingConventions())
             .ModifyCostOptions(o => o.ApplyCostDefaults = false)
             .Configure(
