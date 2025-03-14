@@ -474,6 +474,8 @@ namespace TestNamespace
             var bindingResolver = extend.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
+            descriptor.Name("Authors2Connection");
+
             descriptor
                 .Field(thisType.GetMember("Edges", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
                 .Type<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::TestNamespace.Authors2EdgeType>>>()
@@ -585,6 +587,8 @@ namespace TestNamespace
             var extend = descriptor.Extend();
             var bindingResolver = extend.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
+
+            descriptor.Name("Authors2Edge");
 
             descriptor
                 .Field(thisType.GetMember("Node", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])

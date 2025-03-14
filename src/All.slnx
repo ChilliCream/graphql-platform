@@ -91,6 +91,7 @@
     <Project Path="HotChocolate/Core/src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Analyzers/HotChocolate.Types.Analyzers.csproj" />
     <Project Path="HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Errors/HotChocolate.Types.Errors.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Json/HotChocolate.Types.Json.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Mutations/HotChocolate.Types.Mutations.csproj" />

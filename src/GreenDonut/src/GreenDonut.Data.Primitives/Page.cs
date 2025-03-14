@@ -15,8 +15,9 @@ public sealed class Page<T> : IEnumerable<T>
     private readonly bool _hasNextPage;
     private readonly bool _hasPreviousPage;
     private readonly Func<T, int, int, int, string> _createCursor;
-    private readonly int? _totalCount;
+    private readonly int? _requestedPageSize;
     private readonly int? _index;
+    private readonly int? _totalCount;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Page{T}"/> class.
@@ -46,7 +47,7 @@ public sealed class Page<T> : IEnumerable<T>
         _items = items;
         _hasNextPage = hasNextPage;
         _hasPreviousPage = hasPreviousPage;
-        _createCursor = (item, _, _, _) =>  createCursor(item);
+        _createCursor = (item, _, _, _) => createCursor(item);
         _totalCount = totalCount;
     }
 
@@ -71,20 +72,25 @@ public sealed class Page<T> : IEnumerable<T>
     /// <param name="index">
     /// The index number of this page.
     ///</param>
+    /// <param name="requestedPageSize">
+    /// The requested page size.
+    /// </param>
     internal Page(
         ImmutableArray<T> items,
         bool hasNextPage,
         bool hasPreviousPage,
         Func<T, int, int, int, string> createCursor,
         int index,
+        int requestedPageSize,
         int totalCount)
     {
         _items = items;
         _hasNextPage = hasNextPage;
         _hasPreviousPage = hasPreviousPage;
         _createCursor = createCursor;
-        _totalCount = totalCount;
         _index = index;
+        _requestedPageSize = requestedPageSize;
+        _totalCount = totalCount;
     }
 
     /// <summary>
@@ -113,15 +119,21 @@ public sealed class Page<T> : IEnumerable<T>
     public bool HasPreviousPage => _hasPreviousPage;
 
     /// <summary>
+    /// Gets the index number of this page.
+    /// </summary>
+    public int? Index => _index;
+
+    /// <summary>
+    /// Gets the requested page size.
+    /// This value can be null if the page size is unknown.
+    /// </summary>
+    internal int? RequestedSize => _requestedPageSize;
+
+    /// <summary>
     /// Gets the total count of items in the dataset.
     /// This value can be null if the total count is unknown.
     /// </summary>
     public int? TotalCount => _totalCount;
-
-    /// <summary>
-    /// Gets the index number of this page.
-    /// </summary>
-    public int? Index => _index;
 
     /// <summary>
     /// Creates a cursor for an item of this page.
@@ -136,7 +148,7 @@ public sealed class Page<T> : IEnumerable<T>
 
     public string CreateCursor(T item, int offset)
     {
-        if(_index is null || _totalCount is null)
+        if (_index is null || _totalCount is null)
         {
             throw new InvalidOperationException("This page does not allow relative cursors.");
         }

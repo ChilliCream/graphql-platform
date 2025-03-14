@@ -18,7 +18,7 @@ public static class KnownSymbols
             return false;
         }
 
-        const string connectionName = "ConnectionName";
+        const string connectionName = "Name";
         const string connection = "Connection";
 
         foreach (var attributeData in resolver.GetAttributes())

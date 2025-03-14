@@ -3,33 +3,44 @@ using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public sealed class OriginalRequest
+/// <summary>
+/// The class representing the information about the original GraphQl request.
+/// </summary>
+public sealed class OriginalRequest(
+    IHeaderDictionary headers,
+    string host,
+    string method,
+    string path,
+    IEnumerable<KeyValuePair<string, StringValues>>? query,
+    string scheme)
 {
-    public OriginalRequest(
-        IHeaderDictionary headers,
-        string host,
-        string method,
-        string path,
-        IEnumerable<KeyValuePair<string, StringValues>>? query,
-        string scheme)
-    {
-        Headers = headers ?? throw new ArgumentNullException(nameof(headers));
-        Host = host ?? throw new ArgumentNullException(nameof(host));
-        Method = method ?? throw new ArgumentNullException(nameof(method));
-        Path = path ?? throw new ArgumentNullException(nameof(path));
-        Query = query;
-        Scheme = scheme ?? throw new ArgumentNullException(nameof(scheme));
-    }
+    /// <summary>
+    /// Original request headers.
+    /// </summary>
+    public IHeaderDictionary Headers { get; } = headers ?? throw new ArgumentNullException(nameof(headers));
 
-    public IHeaderDictionary Headers { get; }
+    /// <summary>
+    /// Information about the host sent request.
+    /// </summary>
+    public string Host { get; } = host ?? throw new ArgumentNullException(nameof(host));
 
-    public string Host { get; }
+    /// <summary>
+    /// The HTTP request method.
+    /// </summary>
+    public string Method { get; } = method ?? throw new ArgumentNullException(nameof(method));
 
-    public string Method { get; }
+    /// <summary>
+    /// Path of the request.
+    /// </summary>
+    public string Path { get; } = path ?? throw new ArgumentNullException(nameof(path));
 
-    public string Path { get; }
+    /// <summary>
+    /// The query of the request.
+    /// </summary>
+    public IEnumerable<KeyValuePair<string, StringValues>>? Query { get; } = query;
 
-    public IEnumerable<KeyValuePair<string, StringValues>>? Query { get; }
-
-    public string Scheme { get; }
+    /// <summary>
+    /// GraphQl schema of the request.
+    /// </summary>
+    public string Scheme { get; } = scheme ?? throw new ArgumentNullException(nameof(scheme));
 }
