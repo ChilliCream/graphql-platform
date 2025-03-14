@@ -33,13 +33,14 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_NotFound(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext);
@@ -55,13 +56,14 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
@@ -72,7 +74,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -90,13 +92,14 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_Authorized(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_Authorized(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
@@ -108,7 +111,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -126,13 +129,14 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_Authorized_WithExtensions(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_Authorized_WithExtensions(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
                 builder.AddOpaQueryRequestExtensionsHandler(Policies.HasDefinedAge,
                     context => context.Resource is IMiddlewareContext or AuthorizationContext
@@ -151,7 +155,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
