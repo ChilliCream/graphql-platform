@@ -30,12 +30,13 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         public string GetAfterResolver() => "foo";
     }
 
-    private Action<IRequestExecutorBuilder> CreateSchema() =>
-        builder => builder
+    private Action<IRequestExecutorBuilder, int> CreateSchema() =>
+        (builder, port) => builder
             .AddQueryType<Query>()
             .AddOpaAuthorization(
                 (_, o) =>
                 {
+                    o.BaseAddress = new Uri($"http://127.0.0.1:{port}/v1/data/");
                     o.Timeout = TimeSpan.FromMilliseconds(60000);
                 })
             .AddOpaResultHandler(
