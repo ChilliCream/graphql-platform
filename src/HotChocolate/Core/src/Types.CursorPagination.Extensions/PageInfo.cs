@@ -47,6 +47,7 @@ public abstract class PageInfo : IPageInfo
     /// </summary>
     [GraphQLDescription(
         "A list of cursors to continue paginating forwards.")]
+    [GraphQLType<NonNullType<ListType<NonNullType<PageCursorType>>>>]
     public abstract IReadOnlyList<PageCursor> ForwardCursors { get; }
 
     /// <summary>
@@ -54,6 +55,7 @@ public abstract class PageInfo : IPageInfo
     /// </summary>
     [GraphQLDescription(
         "A list of cursors to continue paginating backwards.")]
+    [GraphQLType<NonNullType<ListType<NonNullType<PageCursorType>>>>]
     public abstract IReadOnlyList<PageCursor> BackwardCursors { get; }
 }
 
