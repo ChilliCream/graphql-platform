@@ -201,4 +201,10 @@ public static partial class RequestExecutorBuilderExtensions
         builder.Services.AddSingleton<INodeIdValueSerializer>(serializer);
         return builder;
     }
+
+    public static IRequestExecutorBuilder AddNodeIdValueSerializerFrom<TFrom>(
+        this IRequestExecutorBuilder builder)
+    {
+        throw new NotImplementedException("HotChocolate.Types.Analyzers is required to use this method.");
+    }
 }

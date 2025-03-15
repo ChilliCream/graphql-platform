@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class ConnectionTypeInfo
     : SyntaxInfo
-        , IOutputTypeInfo
+    , IOutputTypeInfo
 {
     private ConnectionTypeInfo(
         string name,
