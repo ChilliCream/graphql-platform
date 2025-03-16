@@ -92,10 +92,7 @@ internal sealed partial class TypeInfo
             short i = 0;
             var current = type;
 
-            while (IsWrapperType(current) ||
-                IsTaskType(current) ||
-                IsOptional(current) ||
-                IsFieldResult(current))
+            while (IsNonEssentialPart(current))
             {
                 current = type.TypeArguments[0];
 
@@ -109,20 +106,22 @@ internal sealed partial class TypeInfo
             return current;
         }
 
-        private static bool IsWrapperType(IExtendedType type) =>
-            type.IsGeneric &&
-            typeof(NativeType<>) == type.Definition;
+        public static bool IsNonEssentialPart(IExtendedType type)
+        {
+            if (type.IsGeneric)
+            {
+                if (ExtendedType.NonEssentialWrapperTypes.Contains(type.Definition))
+                {
+                    return true;
+                }
 
-        private static bool IsTaskType(IExtendedType type) =>
-            type.IsGeneric &&
-            (typeof(Task<>) == type.Definition ||
-                typeof(ValueTask<>) == type.Definition);
+                if (typeof(IFieldResult).IsAssignableFrom(type))
+                {
+                    return true;
+                }
+            }
 
-        private static bool IsOptional(IExtendedType type) =>
-            type.IsGeneric &&
-            typeof(Optional<>) == type.Definition;
-
-        private static bool IsFieldResult(IExtendedType type) =>
-            type.IsGeneric && typeof(IFieldResult).IsAssignableFrom(type);
+            return false;
+        }
     }
 }

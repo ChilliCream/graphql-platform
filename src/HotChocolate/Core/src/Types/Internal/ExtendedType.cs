@@ -235,11 +235,11 @@ internal sealed partial class ExtendedType : IExtendedType
                 nameof(type));
         }
 
-        if(Helper.NonEssentialWrapperTypes.Contains(type))
+        if(NonEssentialWrapperTypes.Contains(type))
         {
             return;
         }
 
-        Helper.NonEssentialWrapperTypes = Helper.NonEssentialWrapperTypes.Add(type);
+        NonEssentialWrapperTypes = NonEssentialWrapperTypes.Add(type);
     }
 }

@@ -11,12 +11,11 @@ namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType
 {
+    internal static ImmutableArray<Type> NonEssentialWrapperTypes { get; set; } =
+        [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>), typeof(Optional<>)];
+
     private static class Helper
     {
-
-        internal static ImmutableArray<Type> NonEssentialWrapperTypes { get; set; } =
-            [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>)];
-
         internal static bool IsSchemaType(Type type)
         {
             if (BaseTypes.IsNamedType(type))
