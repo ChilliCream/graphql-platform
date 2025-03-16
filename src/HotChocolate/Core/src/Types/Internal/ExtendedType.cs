@@ -220,4 +220,26 @@ internal sealed partial class ExtendedType : IExtendedType
 
         return Members.FromMethod(method, cache);
     }
+
+    public static void RegisterNonEssentialWrapperTypes(Type type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if(!type.IsGenericTypeDefinition)
+        {
+            throw new ArgumentException(
+                "The type must be a generic type definition.",
+                nameof(type));
+        }
+
+        if(Helper.NonEssentialWrapperTypes.Contains(type))
+        {
+            return;
+        }
+
+        Helper.NonEssentialWrapperTypes = Helper.NonEssentialWrapperTypes.Add(type);
+    }
 }

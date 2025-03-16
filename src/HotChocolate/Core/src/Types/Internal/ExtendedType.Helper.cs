@@ -13,6 +13,10 @@ internal sealed partial class ExtendedType
 {
     private static class Helper
     {
+
+        internal static ImmutableArray<Type> NonEssentialWrapperTypes { get; set; } =
+            [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>)];
+
         internal static bool IsSchemaType(Type type)
         {
             if (BaseTypes.IsNamedType(type))
@@ -23,9 +27,8 @@ internal sealed partial class ExtendedType
             if (type.IsGenericType)
             {
                 var definition = type.GetGenericTypeDefinition();
-                if (typeof(ListType<>) == definition
-                    || typeof(NonNullType<>) == definition
-                    || typeof(NativeType<>) == definition)
+                var nonEssentialWrapperTypes = NonEssentialWrapperTypes;
+                if (nonEssentialWrapperTypes.Contains(definition))
                 {
                     return IsSchemaType(type.GetGenericArguments()[0]);
                 }
@@ -36,12 +39,14 @@ internal sealed partial class ExtendedType
 
         internal static Type RemoveNonEssentialTypes(Type type)
         {
-            if (type.IsGenericType
-                && (type.GetGenericTypeDefinition() == typeof(NativeType<>)
-                    || type.GetGenericTypeDefinition() == typeof(ValueTask<>)
-                    || type.GetGenericTypeDefinition() == typeof(Task<>)))
+            if (type.IsGenericType)
             {
-                return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
+                var definition = type.GetGenericTypeDefinition();
+                var nonEssentialWrapperTypes = NonEssentialWrapperTypes;
+                if (nonEssentialWrapperTypes.Contains(definition))
+                {
+                    return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
+                }
             }
 
             return type;
@@ -49,12 +54,13 @@ internal sealed partial class ExtendedType
 
         internal static IExtendedType RemoveNonEssentialTypes(IExtendedType type)
         {
-            if (type.IsGeneric
-                && (type.Definition == typeof(NativeType<>)
-                    || type.Definition == typeof(ValueTask<>)
-                    || type.Definition == typeof(Task<>)))
+            if (type.IsGeneric)
             {
-                return RemoveNonEssentialTypes(type.TypeArguments[0]);
+                var nonEssentialWrapperTypes = NonEssentialWrapperTypes;
+                if (nonEssentialWrapperTypes.Contains(type.Definition))
+                {
+                    return RemoveNonEssentialTypes(type.TypeArguments[0]);
+                }
             }
 
             return type;
@@ -244,7 +250,7 @@ internal sealed partial class ExtendedType
         {
             var position = 0;
             Span<bool> nullability = stackalloc bool[32];
-            CollectNullability(type, nullability, ref position);
+            CollectNullability(type, ref nullability, ref position);
 
             return CreateIdentifier(
                 type.Source,
@@ -258,7 +264,7 @@ internal sealed partial class ExtendedType
         {
             var position = 0;
             Span<bool> nullability = stackalloc bool[32];
-            CollectNullability(type, nullability, ref position);
+            CollectNullability(type, ref nullability, ref position);
             nullability = nullability.Slice(0, position);
 
             var length = nullability.Length < nullabilityChange.Length
@@ -293,7 +299,7 @@ internal sealed partial class ExtendedType
 
         internal static void CollectNullability(
             IExtendedType type,
-            Span<bool> nullability,
+            ref Span<bool> nullability,
             ref int position)
         {
             if (position >= 32)
@@ -306,7 +312,7 @@ internal sealed partial class ExtendedType
 
             foreach (var typeArgument in type.TypeArguments)
             {
-                CollectNullability(typeArgument, nullability, ref position);
+                CollectNullability(typeArgument, ref nullability, ref position);
             }
         }
 

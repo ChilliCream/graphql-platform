@@ -34,6 +34,7 @@ public interface IExtendedType : IEquatable<IExtendedType>
     /// <summary>
     /// Defines that this type is a generic type.
     /// </summary>
+    [MemberNotNullWhen(true, nameof(Definition))]
     bool IsGeneric { get; }
 
     /// <summary>
