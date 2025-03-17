@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets.Client;
@@ -892,6 +894,69 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 socketResult.Dispose();
             });
     }
+
+    [Fact]
+    public Task Subscribe_ReceiveDataOnMutation_StripNull()
+        => TryTest(
+            async ct =>
+            {
+                // arrange
+                var diagnostics = new SubscriptionTestDiagnostics();
+                using var testServer = CreateStarWarsServer(
+                    configureServices: c =>
+                        c.AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics)
+                            .AddWebSocketPayloadFormatter(
+                                _ => new DefaultWebSocketPayloadFormatter(
+                                    new WebSocketPayloadFormatterOptions
+                                    {
+                                        Json = new JsonResultFormatterOptions()
+                                        {
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                        }
+                                    })),
+                    output: _output);
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                var payload = new SubscribePayload(
+                    "subscription { onReview(episode: NEW_HOPE) { stars, commentary } }");
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
+
+                while (diagnostics.Subscribed is not 1)
+                {
+                    await Task.Delay(10, ct);
+                }
+
+                await testServer.SendPostRequestAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            """
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    stars: 5
+                                    commentary: null
+                                }) {
+                                    stars
+                                    commentary
+                                }
+                            }
+                            """,
+                    });
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Next, ct);
+                Assert.NotNull(message);
+                var messagePayload = (Dictionary<string, object?>?)message["payload"];
+                var messageData = (Dictionary<string, object?>?)messagePayload?["data"];
+                var messageOnReview = (Dictionary<string, object?>?)messageData?["onReview"];
+                Assert.NotNull(messageOnReview);
+                Assert.DoesNotContain("commentary", messageOnReview);
+            });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor
     {
