@@ -16,6 +16,8 @@ It helps you to understand which resolver is impacting your system the most, whi
 All the reporting is done on a per API basis. An api represents one of your deployments. To monitor you services you need to create an API in Nitro.
 The api needs to be from type "Api Service" or "Api Gateway".
 
+> **Note:** You can use Nitro to monitor any .NET service, not just GraphQL APIs. This includes REST APIs, gRPC services, and background jobs. Checkout the [Service Monitoring](../service-monitoring) section for more details.
+
 To install the Nitro services, run the following commands in your project's root directory:
 
 ```bash

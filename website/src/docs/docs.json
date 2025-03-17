@@ -70,6 +70,10 @@
                 "path": "operation-monitoring",
                 "title": "Operation Monitoring"
               },
+              {
+                "path": "service-monitoring",
+                "title": "Service Monitoring"
+              },
               { "path": "logging", "title": "Logging" }
             ]
           },
