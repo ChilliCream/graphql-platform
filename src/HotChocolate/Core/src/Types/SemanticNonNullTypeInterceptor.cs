@@ -8,7 +8,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 namespace HotChocolate;
@@ -16,7 +15,6 @@ namespace HotChocolate;
 internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
-    private ExtendedTypeReference _nodeTypeReference = null!;
 
     internal override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableSemanticNonNull;
@@ -29,8 +27,6 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         TypeReferenceResolver typeReferenceResolver)
     {
         _typeInspector = context.TypeInspector;
-
-        _nodeTypeReference = _typeInspector.GetTypeRef(typeof(NodeType));
     }
 
     /// <summary>
@@ -92,8 +88,6 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                 return;
             }
 
-            var implementsNode = objectDef.Interfaces.Any(i => i.Equals(_nodeTypeReference));
-
             foreach (var field in objectDef.Fields)
             {
                 if (field.IsIntrospectionField)
@@ -101,7 +95,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                if (implementsNode && field.Name == "id")
+                if (field.Name == "id")
                 {
                     continue;
                 }
