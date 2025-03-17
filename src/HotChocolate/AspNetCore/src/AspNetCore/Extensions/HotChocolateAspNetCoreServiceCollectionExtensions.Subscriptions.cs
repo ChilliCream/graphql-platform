@@ -61,8 +61,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             {
                 s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
                 s.TryAddSingleton<IWebSocketPayloadFormatter>(
-                    _ =>
-                        new DefaultWebSocketPayloadFormatter(
+                    _ => new DefaultWebSocketPayloadFormatter(
                             new WebSocketPayloadFormatterOptions()));
             })
             .AddApolloProtocol()
@@ -87,7 +86,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <summary>
     /// Adds a custom WebSocket payload formatter to the DI.
     /// </summary>
-    /// <param name="services">
+    /// <param name="builder">
     /// The <see cref="IServiceCollection"/>.
     /// </param>
     /// <typeparam name="T">
@@ -96,20 +95,23 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddWebSocketPayloadFormatter<T>(
-        this IServiceCollection services)
+    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<T>(
+        this IRequestExecutorBuilder builder)
         where T : class, IWebSocketPayloadFormatter
     {
-        services.RemoveAll<IWebSocketPayloadFormatter>();
-        services.AddSingleton<IWebSocketPayloadFormatter, T>();
-        return services;
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.RemoveAll<IWebSocketPayloadFormatter>();
+            services.AddSingleton<IWebSocketPayloadFormatter>(factory);
+        });
+        return builder;
     }
 
     /// <summary>
     /// Adds a custom WebSocket payload formatter to the DI.
     /// </summary>
-    /// <param name="services">
-    /// The <see cref="IServiceCollection"/>.
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="factory">
     /// The service factory.
@@ -118,15 +120,18 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// The type of the custom <see cref="IWebSocketPayloadFormatter"/>.
     /// </typeparam>
     /// <returns>
-    /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddWebSocketPayloadFormatter<T>(
-        this IServiceCollection services,
+    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<T>(
+        this IRequestExecutorBuilder builder,
         Func<IServiceProvider, T> factory)
         where T : class, IWebSocketPayloadFormatter
     {
-        services.RemoveAll<IWebSocketPayloadFormatter>();
-        services.AddSingleton<IWebSocketPayloadFormatter>(factory);
-        return services;
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.RemoveAll<IWebSocketPayloadFormatter>();
+            services.AddSingleton<IWebSocketPayloadFormatter>(factory);
+        });
+        return builder;
     }
 }

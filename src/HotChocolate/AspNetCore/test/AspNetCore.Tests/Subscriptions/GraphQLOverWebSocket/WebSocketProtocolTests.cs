@@ -905,8 +905,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 using var testServer = CreateStarWarsServer(
                     configureServices: c =>
                     {
-                        c.AddGraphQL().AddDiagnosticEventListener(_ => diagnostics);
-                        c.AddWebSocketPayloadFormatter(
+                        c.AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics)
+                            .AddWebSocketPayloadFormatter(
                             _ => new DefaultWebSocketPayloadFormatter(
                                 new WebSocketPayloadFormatterOptions
                                 {
