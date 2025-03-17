@@ -3,6 +3,9 @@ using HotChocolate.Execution.Serialization;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
+/// <summary>
+/// This represents the default implementation for the <see cref="IWebSocketPayloadFormatter" />.
+/// </summary>
 public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions options)
     : IWebSocketPayloadFormatter
 {
