@@ -527,15 +527,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             {
                 // arrange
                 using var testServer = CreateStarWarsServer(
-                    configureServices: c => c.AddWebSocketPayloadFormatter(
-                        _ => new DefaultWebSocketPayloadFormatter(
-                            new WebSocketPayloadFormatterOptions
-                            {
-                                Json = new JsonResultFormatterOptions()
-                                {
-                                    NullIgnoreCondition = JsonNullIgnoreCondition.All
-                                }
-                            })));
+                    configureServices: c =>
+                        c.AddGraphQL()
+                            .AddWebSocketPayloadFormatter(
+                                _ => new DefaultWebSocketPayloadFormatter(
+                                    new WebSocketPayloadFormatterOptions
+                                    {
+                                        Json = new JsonResultFormatterOptions()
+                                        {
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                        }
+                                    })));
                 var client = CreateWebSocketClient(testServer);
                 var webSocket = await ConnectToServerAsync(client, ct);
 

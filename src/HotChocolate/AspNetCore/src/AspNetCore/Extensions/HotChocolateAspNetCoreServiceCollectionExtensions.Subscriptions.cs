@@ -87,13 +87,13 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// Adds a custom WebSocket payload formatter to the DI.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="IServiceCollection"/>.
+    /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <typeparam name="T">
     /// The type of the custom <see cref="IWebSocketPayloadFormatter"/>.
     /// </typeparam>
     /// <returns>
-    /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<T>(
         this IRequestExecutorBuilder builder)
@@ -102,8 +102,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         builder.ConfigureSchemaServices(services =>
         {
             services.RemoveAll<IWebSocketPayloadFormatter>();
-            services.AddSingleton<IWebSocketPayloadFormatter>(factory);
+            services.AddSingleton<IWebSocketPayloadFormatter, T>();
         });
+
         return builder;
     }
 
@@ -132,6 +133,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             services.RemoveAll<IWebSocketPayloadFormatter>();
             services.AddSingleton<IWebSocketPayloadFormatter>(factory);
         });
+
         return builder;
     }
 }

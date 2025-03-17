@@ -904,19 +904,17 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 var diagnostics = new SubscriptionTestDiagnostics();
                 using var testServer = CreateStarWarsServer(
                     configureServices: c =>
-                    {
                         c.AddGraphQL()
                             .AddDiagnosticEventListener(_ => diagnostics)
                             .AddWebSocketPayloadFormatter(
-                            _ => new DefaultWebSocketPayloadFormatter(
-                                new WebSocketPayloadFormatterOptions
-                                {
-                                    Json = new JsonResultFormatterOptions()
+                                _ => new DefaultWebSocketPayloadFormatter(
+                                    new WebSocketPayloadFormatterOptions
                                     {
-                                        NullIgnoreCondition = JsonNullIgnoreCondition.All
-                                    }
-                                }));
-                    },
+                                        Json = new JsonResultFormatterOptions()
+                                        {
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                        }
+                                    })),
                     output: _output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
