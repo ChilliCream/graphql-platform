@@ -360,6 +360,48 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         MatchSnapshot(result, interceptor);
     }
 
+    [Fact]
+    public async Task Ensure_That_Self_Requirement_Is_Honored()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                singleProperties {
+                    id
+                }
+            }
+
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Fallback_To_Runtime_Properties_When_No_Field_Is_Bindable()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                singleProperties {
+                    __typename
+                }
+            }
+
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();
