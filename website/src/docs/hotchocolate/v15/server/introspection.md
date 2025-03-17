@@ -65,17 +65,17 @@ We can disable introspection by calling `AllowIntrospection()` with a `false` ar
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .AllowIntrospection(false);
+    .DisableIntrospection(false);
 ```
 
 While clients can still issue introspection queries, Hot Chocolate will now return an error response.
 
-But we most likely do not want to disable introspection while developing, so we can toggle it based on the current hosting environment.
+But we most likely do not want to disable introspection while developing, so we can toggle it based on the current hosting environment. This is also the default behaviour.
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .AllowIntrospection(builder.Environment.IsDevelopment());
+    .DisableIntrospection(!builder.Environment.IsDevelopment());
 ```
 
 ## Allowlisting requests
@@ -91,7 +91,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
     {
         if (context.Request.Headers.ContainsKey("X-Allow-Introspection"))
         {
-            requestBuilder.AllowIntrospection();
+            requestBuilder.DisableIntrospection(false);
         }
 
         return base.OnCreateAsync(context, requestExecutor, requestBuilder,
@@ -104,7 +104,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 builder.Services
     .AddGraphQLServer()
     // We disable introspection per default
-    .AllowIntrospection(false)
+    .DisableIntrospection()
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
 
@@ -145,7 +145,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
     {
         if (context.Request.Headers.ContainsKey("X-Allow-Introspection"))
         {
-            requestBuilder.AllowIntrospection();
+            requestBuilder.DisableIntrospection(false);
         }
         else
         {
