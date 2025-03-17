@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
@@ -15,12 +14,15 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocketProtocolHandler
 {
-    private readonly JsonResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
+    private readonly IWebSocketPayloadFormatter _formatter;
 
-    public GraphQLOverWebSocketProtocolHandler(ISocketSessionInterceptor interceptor)
+    public GraphQLOverWebSocketProtocolHandler(
+        ISocketSessionInterceptor interceptor,
+        IWebSocketPayloadFormatter formatter)
     {
         _interceptor = interceptor;
+        _formatter = formatter;
     }
 
     public string Name => GraphQL_Transport_WS;
@@ -239,7 +241,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.FormatErrors(errors, jsonWriter);
+        _formatter.Format(errors, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
