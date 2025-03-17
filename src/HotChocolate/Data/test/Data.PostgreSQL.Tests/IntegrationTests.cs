@@ -421,6 +421,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
+            .AddNodeIdValueSerializerFrom<Foo>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
 
         services.AddSingleton<IDbSeeder<CatalogContext>, CatalogContextSeed>();
