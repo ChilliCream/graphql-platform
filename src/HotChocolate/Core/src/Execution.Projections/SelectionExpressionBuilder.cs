@@ -11,6 +11,32 @@ namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
+    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
+    private static readonly HashSet<Type> _runtimeLeafTypes =
+    [
+        typeof(string),
+        typeof(byte),
+        typeof(short),
+        typeof(int),
+        typeof(long),
+        typeof(float),
+        typeof(byte),
+        typeof(decimal),
+        typeof(Guid),
+        typeof(bool),
+        typeof(char),
+        typeof(byte?),
+        typeof(short?),
+        typeof(int?),
+        typeof(long?),
+        typeof(float?),
+        typeof(byte?),
+        typeof(decimal?),
+        typeof(Guid?),
+        typeof(bool?),
+        typeof(char?)
+    ];
+
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
     {
         var rootType = typeof(TRoot);
@@ -214,10 +240,26 @@ internal sealed class SelectionExpressionBuilder
         }
         else
         {
+            // if id does not exist we will try to select any leaf field from the type.
             var anyProperty = selectionType.Fields.FirstOrDefault(t => t.Type.IsLeafType() && t.Member is PropertyInfo);
+
             if (anyProperty?.Member is PropertyInfo anyPropertyInfo)
             {
                 parent.AddOrGetNode(anyPropertyInfo);
+            }
+            else
+            {
+                // if we still have not found any leaf we will inspect the runtime type and
+                // try to select any leaf property.
+                var properties = selectionType.RuntimeType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var property in properties)
+                {
+                    if (_runtimeLeafTypes.Contains(property.PropertyType))
+                    {
+                        parent.AddOrGetNode(property);
+                        break;
+                    }
+                }
             }
         }
     }

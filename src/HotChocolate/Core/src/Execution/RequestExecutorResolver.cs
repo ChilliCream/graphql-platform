@@ -107,29 +107,36 @@ internal sealed partial class RequestExecutorResolver
         ChannelReader<string> reader,
         CancellationToken cancellationToken)
     {
-        while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
-            while (reader.TryRead(out var schemaName))
+            while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                var semaphore = GetSemaphoreForSchema(schemaName);
-                await semaphore.WaitAsync(cancellationToken);
-
-                try
+                while (reader.TryRead(out var schemaName))
                 {
-                    if (_executors.TryGetValue(schemaName, out var previousExecutor))
+                    var semaphore = GetSemaphoreForSchema(schemaName);
+                    await semaphore.WaitAsync(cancellationToken);
+
+                    try
                     {
-                        await UpdateRequestExecutorAsync(schemaName, previousExecutor);
+                        if (_executors.TryGetValue(schemaName, out var previousExecutor))
+                        {
+                            await UpdateRequestExecutorAsync(schemaName, previousExecutor);
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore
+                    }
+                    finally
+                    {
+                        semaphore.Release();
                     }
                 }
-                catch
-                {
-                    // Ignore
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore
         }
     }
 
