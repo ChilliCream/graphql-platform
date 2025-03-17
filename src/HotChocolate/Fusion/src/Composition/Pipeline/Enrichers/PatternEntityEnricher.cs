@@ -17,60 +17,82 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         EntityGroup entity,
         CancellationToken cancellationToken = default)
     {
+        var completed = new HashSet<(string, string)>();
         var regex = CreateRegex();
 
-        foreach (var (type, schema) in entity.Parts)
+        foreach (var entitySchema in entity.Parts.Select(t => t.Schema))
         {
-            if (schema.QueryType is null)
+            if (entitySchema.QueryType is null)
             {
                 continue;
             }
 
-            foreach (var entityResolver in schema.QueryType.Fields)
+            foreach (var entityType in entity.Parts.Select(t => t.Type))
             {
-                var originalTypeName = type.GetOriginalName();
-                if (entityResolver.Name.AsSpan().StartsWith(originalTypeName, OrdinalIgnoreCase))
+                var localTypeName = entity.Parts.First(t => t.Schema == entitySchema).Type.GetOriginalName();
+
+                foreach (var entityResolver in entitySchema.QueryType.Fields)
                 {
-                    var splits = regex.Split(entityResolver.Name);
-                    if (splits.Length == 5)
+                    if (completed.Contains((entitySchema.Name, entityResolver.Name)))
                     {
-                        var typeName = splits[1];
-                        var fieldName = splits[3];
-                        var isList = entityResolver.Type.IsListType();
+                        continue;
+                    }
 
-                        if (!isList && typeName.Equals(originalTypeName, OrdinalIgnoreCase))
+
+                    if (entityResolver.Name.StartsWith(localTypeName, OrdinalIgnoreCase))
+                    {
+                        var splits = regex.Split(entityResolver.Name);
+                        if (splits.Length == 5)
                         {
-                            var field = type.Fields.FirstOrDefault(f => f.Name.Equals(fieldName, OrdinalIgnoreCase));
-                            if (field is not null)
-                            {
-                                TryRegisterEntityResolver(entity, type, entityResolver, field, schema);
-                            }
-                        }
-                        else if (isList && typeName.Equals(originalTypeName, OrdinalIgnoreCase) ||
-                            (typeName.Length - 1 == originalTypeName.Length &&
-                                typeName.AsSpan()[typeName.Length - 1] == 's'))
-                        {
-                            var field = type.Fields.FirstOrDefault(f => f.Name.Equals(fieldName, OrdinalIgnoreCase));
+                            var typeName = splits[1];
+                            var fieldName = splits[3];
+                            var isList = entityResolver.Type.IsListType();
 
-                            if (field is null)
+                            if (!isList && typeName.Equals(localTypeName, OrdinalIgnoreCase))
                             {
-                                var fieldPlural = fieldName[..^1];
-                                field = type.Fields.FirstOrDefault(f => f.Name.Equals(fieldPlural, OrdinalIgnoreCase));
+                                var field = entityType.Fields.FirstOrDefault(
+                                    f => f.Name.Equals(fieldName, OrdinalIgnoreCase));
+                                if (field is not null &&
+                                    TryRegisterEntityResolver(entity, entityType, entityResolver, field, entitySchema))
+                                {
+                                    completed.Add((entitySchema.Name, entityResolver.Name));
+                                }
                             }
-
-                            if (field is not null)
+                            else if ((isList && typeName.Equals(localTypeName, OrdinalIgnoreCase)) ||
+                                (typeName.Length - 1 == localTypeName.Length &&
+                                    typeName.AsSpan()[typeName.Length - 1] == 's'))
                             {
-                                TryRegisterBatchEntityResolver(entity, type, entityResolver, field, schema);
+                                var field = entityType.Fields.FirstOrDefault(
+                                    f => f.Name.Equals(fieldName, OrdinalIgnoreCase));
+
+                                if (field is null)
+                                {
+                                    var fieldPlural = fieldName[..^1];
+                                    field = entityType.Fields.FirstOrDefault(
+                                        f => f.Name.Equals(fieldPlural, OrdinalIgnoreCase));
+                                }
+
+                                if (field is not null &&
+                                    TryRegisterBatchEntityResolver(
+                                        entity,
+                                        entityType,
+                                        entityResolver,
+                                        field,
+                                        entitySchema))
+                                {
+                                    completed.Add((entitySchema.Name, entityResolver.Name));
+                                }
                             }
                         }
                     }
                 }
             }
         }
+
         return default;
     }
 
-    private static void TryRegisterEntityResolver(
+    private static bool TryRegisterEntityResolver(
         EntityGroup entity,
         ObjectTypeDefinition entityType,
         OutputFieldDefinition entityResolverField,
@@ -79,12 +101,12 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     {
         if (!TryResolveKeyArgument(entityResolverField, keyField, out var keyArg))
         {
-            return;
+            return false;
         }
 
-        if (entityResolverField.Type == entityType ||
+        if (entityResolverField.Type.Equals(entityType, TypeComparison.Structural) ||
             (entityResolverField.Type.Kind is TypeKind.NonNull &&
-                entityResolverField.Type.InnerType() == entityType))
+                entityResolverField.Type.InnerType().Equals(entityType, TypeComparison.Structural)))
         {
             var arguments = new List<ArgumentNode>();
 
@@ -93,12 +115,12 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null,
                 new NameNode(entityResolverField.GetOriginalName()),
                 null,
-                Array.Empty<DirectiveNode>(),
+                [],
                 arguments,
                 null);
 
             // Create a new SelectionSetNode for the entity resolver
-            var selectionSet = new SelectionSetNode(new[] { selection, });
+            var selectionSet = new SelectionSetNode([selection]);
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(
@@ -111,8 +133,8 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null,
                 new NameNode(keyField.Name),
                 null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
+                [],
+                [],
                 null);
 
             var keyFieldDirective = new IsDirective(keyFieldNode);
@@ -122,7 +144,10 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
 
             // Add the new EntityResolver to the entity metadata
             entity.Metadata.EntityResolvers.TryAdd(resolver);
+            return true;
         }
+
+        return false;
     }
 
     private static bool TryResolveKeyArgument(
@@ -167,7 +192,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             !keyArgument.ContainsIsDirective();
     }
 
-    private static void TryRegisterBatchEntityResolver(
+    private static bool TryRegisterBatchEntityResolver(
         EntityGroup entity,
         ObjectTypeDefinition entityType,
         OutputFieldDefinition entityResolverField,
@@ -176,7 +201,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     {
         if (!TryResolveBatchKeyArgument(entityResolverField, keyField, out var keyArg))
         {
-            return;
+            return false;
         }
 
         var returnType = entityResolverField.Type;
@@ -186,16 +211,16 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             returnType = returnType.InnerType();
         }
 
-        if(returnType.Kind != TypeKind.List)
+        if (returnType.Kind != TypeKind.List)
         {
-            return;
+            return false;
         }
 
         returnType = returnType.InnerType();
 
-        if (returnType == entityType ||
+        if (returnType.Equals(entityType, TypeComparison.Structural) ||
             (returnType.Kind is TypeKind.NonNull &&
-                returnType.InnerType() == entityType))
+                returnType.InnerType().Equals(entityType, TypeComparison.Structural)))
         {
             var arguments = new List<ArgumentNode>();
 
@@ -233,7 +258,10 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
 
             // Add the new EntityResolver to the entity metadata
             entity.Metadata.EntityResolvers.TryAdd(resolver);
+            return true;
         }
+
+        return false;
     }
 
     private static bool TryResolveBatchKeyArgument(
