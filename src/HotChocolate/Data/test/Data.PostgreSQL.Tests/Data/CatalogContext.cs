@@ -12,6 +12,8 @@ public class CatalogContext(DbContextOptions<CatalogContext> options) : DbContex
 
     public DbSet<Brand> Brands => Set<Brand>();
 
+    public DbSet<SingleProperty> SingleProperties => Set<SingleProperty>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfiguration(new BrandEntityTypeConfiguration());

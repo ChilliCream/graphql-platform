@@ -2,20 +2,14 @@ using System.Text.Json;
 using HotChocolate.Data.Data;
 using HotChocolate.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Npgsql;
 
 namespace HotChocolate.Data.Migrations;
 
-public sealed class CatalogContextSeed(
-    ILogger<CatalogContextSeed> logger)
-    : IDbSeeder<CatalogContext>
+public sealed class CatalogContextSeed : IDbSeeder<CatalogContext>
 {
     public async Task SeedAsync(CatalogContext context)
     {
-        // Workaround from https://github.com/npgsql/efcore.pg/issues/292#issuecomment-388608426
-        await context.Database.OpenConnectionAsync();
-        await ((NpgsqlConnection)context.Database.GetDbConnection()).ReloadTypesAsync();
+        await context.Database.EnsureCreatedAsync();
 
         if (!context.Products.Any())
         {
@@ -25,12 +19,10 @@ public sealed class CatalogContextSeed(
             context.Brands.RemoveRange(context.Brands);
             await context.Brands.AddRangeAsync(
                 sourceItems.Select(x => x.Brand).Distinct().Select(brandName => new Brand { Name = brandName, }));
-            logger.LogInformation("Seeded catalog with {NumBrands} brands", context.Brands.Count());
 
             context.ProductTypes.RemoveRange(context.ProductTypes);
             await context.ProductTypes.AddRangeAsync(
                 sourceItems.Select(x => x.Type).Distinct().Select(typeName => new ProductType { Name = typeName, }));
-            logger.LogInformation("Seeded catalog with {NumTypes} types", context.ProductTypes.Count());
 
             await context.SaveChangesAsync();
 
@@ -52,7 +44,15 @@ public sealed class CatalogContextSeed(
                     ImageFileName = $"images/{source.Id}.webp",
                 }));
 
-            logger.LogInformation("Seeded catalog with {NumItems} items", context.Products.Count());
+            for(var i = 0; i < 100; i++)
+            {
+                await context.SingleProperties.AddAsync(
+                    new SingleProperty
+                    {
+                        Id = i.ToString()
+                    });
+            }
+
             await context.SaveChangesAsync();
         }
     }
