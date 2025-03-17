@@ -17,6 +17,7 @@ public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions o
         _jsonFormatter.Format(result, jsonWriter);
     }
 
+    /// <inheritdoc />
     public void Format(IError error, Utf8JsonWriter jsonWriter)
     {
         _jsonFormatter.FormatError(error, jsonWriter);
