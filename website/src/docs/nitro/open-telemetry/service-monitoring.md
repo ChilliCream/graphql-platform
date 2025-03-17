@@ -4,7 +4,7 @@ title: "Service Monitoring"
 
 Nitro’s OpenTelemetry support extends beyond GraphQL, allowing you to gather and analyze telemetry data from any .NET application. Whether you have REST APIs, background workers, or other services, you can seamlessly centralize logging and tracing in Nitro for a unified observability experience.
 
-> **Note**: If you are looking specifically for GraphQL telemetry, please refer to the [Operation Monitoring](../operation-monitoring/#connect-your-service-to-the-telemetry-system) section.
+> **Note**: If you are looking specifically for GraphQL telemetry, please refer to the [Operation Monitoring](https://chillicream.com/docs/nitro/open-telemetry/operation-monitoring/#connect-your-service-to-the-telemetry-system) section.
 
 ## Prerequisites
 

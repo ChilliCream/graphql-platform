@@ -128,9 +128,9 @@ With **expanded OpenTelemetry integration**, **personal access tokens**, and **f
 
 ### Need Help? We’ve Got You Covered!
 
-Whether you’re integrating OpenTelemetry for the first time or looking to streamline your API automation, our **support contracts** provide expert guidance to help you get up and running quickly. From troubleshooting to best practices, our team is here to ensure your success. [Learn more about our support plans](/services/support) and get tailored assistance for your specific needs.
+Whether you’re integrating OpenTelemetry for the first time or looking to streamline your API automation, our **support contracts** provide expert guidance to help you get up and running quickly. From troubleshooting to best practices, our team is here to ensure your success. [Learn more about our support plans](https://chillicream.com/services/support) and get tailored assistance for your specific needs.
 
 ### Resources
 
-- **Documentation**: Check out our [updated documentation](../../../../docs/nitro) for a deeper look at the new commands and options.
+- **Documentation**: Check out our [updated documentation](https://chillicream.com/docs/nitro) for a deeper look at the new commands and options.
 - **Support**: If you have any questions or need assistance, feel free to reach out to our support team on slack!
