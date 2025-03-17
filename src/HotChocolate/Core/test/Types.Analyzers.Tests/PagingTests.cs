@@ -169,7 +169,7 @@ public class PagingTests
             [QueryType]
             public static partial class AuthorQueries
             {
-                [UseConnection(ConnectionName = "Authors123")]
+                [UseConnection(Name = "Authors123")]
                 public static Task<AuthorConnection> GetAuthorsAsync(
                     GreenDonut.Data.PagingArguments pagingArgs,
                     CancellationToken cancellationToken)
@@ -384,7 +384,7 @@ public class PagingTests
                         CancellationToken cancellationToken)
                         => default!;
 
-                    [UseConnection(ConnectionName = "Authors2")]
+                    [UseConnection(Name = "Authors2")]
                     public static Task<CustomConnection<Author>> GetAuthors2Async(
                         GreenDonut.Data.PagingArguments pagingArgs,
                         CancellationToken cancellationToken)
