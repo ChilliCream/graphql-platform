@@ -33,7 +33,8 @@ public class AutoUpdateRequestExecutorProxyTests
     public async Task Ensure_Executor_Is_Correctly_Swapped_When_Evicted()
     {
         // arrange
-        var executorUpdatedResetEvent = new AutoResetEvent(false);
+        var executorUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var resolver =
             new ServiceCollection()
                 .AddGraphQL()
@@ -58,7 +59,7 @@ public class AutoUpdateRequestExecutorProxyTests
         // act
         var a = proxy.InnerExecutor;
         resolver.EvictRequestExecutor();
-        executorUpdatedResetEvent.WaitOne(1000);
+        executorUpdatedResetEvent.Wait(cts.Token);
 
         var b = proxy.InnerExecutor;
 

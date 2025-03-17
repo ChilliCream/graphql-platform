@@ -91,6 +91,7 @@
     <Project Path="HotChocolate/Core/src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Analyzers/HotChocolate.Types.Analyzers.csproj" />
     <Project Path="HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Errors/HotChocolate.Types.Errors.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Json/HotChocolate.Types.Json.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Mutations/HotChocolate.Types.Mutations.csproj" />
@@ -129,6 +130,9 @@
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Core/test/Types.Analyzer.Integration.Tests/">
+    <Project Path="HotChocolate/Core/test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/" />
   <Folder Name="/HotChocolate/CostAnalysis/src/">

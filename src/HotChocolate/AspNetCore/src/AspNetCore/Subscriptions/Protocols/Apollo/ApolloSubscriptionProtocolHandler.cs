@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
-using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.AspNetCore.Subscriptions.ConnectionContextKeys;
@@ -16,12 +15,15 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
-    private readonly JsonResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
+    private readonly IWebSocketPayloadFormatter _formatter;
 
-    public ApolloSubscriptionProtocolHandler(ISocketSessionInterceptor interceptor)
+    public ApolloSubscriptionProtocolHandler(
+        ISocketSessionInterceptor interceptor,
+        IWebSocketPayloadFormatter formatter)
     {
         _interceptor = interceptor;
+        _formatter = formatter;
     }
 
     public string Name => GraphQL_WS;
@@ -263,7 +265,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.FormatError(errors[0], jsonWriter);
+        _formatter.Format(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);

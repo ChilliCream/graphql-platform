@@ -1303,6 +1303,26 @@ public class AnnotationBasedMutations
         schema.Print().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task MutationWithError_MutationConventionsNotEnabled_ThrowsSchemaException()
+    {
+        // arrange
+        async Task Act() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult1>()
+                .BuildSchemaAsync();
+
+        // act & assert
+        var exception =
+            (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
+
+        Assert.Equal(
+            "Adding an error type `CustomException` to field `doSomething` failed as query or "
+            + "mutation conventions were not enabled.",
+            exception?.Errors[0].Message);
+    }
+
     public class ExplicitMutation
     {
         public FieldResult<int, ExplicitCustomError> DoSomething(int status)
