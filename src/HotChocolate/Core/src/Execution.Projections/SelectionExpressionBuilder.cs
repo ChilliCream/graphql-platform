@@ -11,8 +11,6 @@ namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
-<<<<<<< Updated upstream
-=======
     private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
     private static readonly HashSet<Type> _runtimeLeafTypes =
     [
@@ -39,7 +37,6 @@ internal sealed class SelectionExpressionBuilder
         typeof(char?)
     ];
 
->>>>>>> Stashed changes
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
     {
         var rootType = typeof(TRoot);

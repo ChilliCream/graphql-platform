@@ -278,7 +278,6 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             }
 
             """);
-<<<<<<< Updated upstream
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -309,8 +308,6 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                 }
             }
             """);
-=======
->>>>>>> Stashed changes
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -358,8 +355,6 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             }
 
             """);
-<<<<<<< Updated upstream
-=======
 
         // assert
         MatchSnapshot(result, interceptor);
@@ -402,7 +397,6 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             }
 
             """);
->>>>>>> Stashed changes
 
         // assert
         MatchSnapshot(result, interceptor);
