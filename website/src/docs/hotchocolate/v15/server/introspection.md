@@ -60,7 +60,7 @@ While these fields can be useful to us, they are mainly intended for use in deve
 
 While introspection is a powerful feature that can tremendously improve our development workflow, it can also be used as an attack vector. A malicious user could for example request all details about all the types of our GraphQL server. Depending on the number of types this can degrade the performance of our GraphQL server. If our API should not be browsed by other developers we have the option to disable the introspection feature.
 
-We can disable introspection by calling `DisableIntrospection()` on the `IRequestExecutorBuilder`.
+We can disable introspection by calling `DisableIntrospection()` on the `IRequestExecutorBuilder`. Note that despite this, introspection is still enabled in the "Development" environment.
 
 ```csharp
 builder.Services
