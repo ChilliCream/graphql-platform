@@ -2650,6 +2650,80 @@ public class RequestPlannerTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Throw_Instead_Of_Creating_Faulty_QueryPlan()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              productById(id: ID!): Product
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              review: Review
+            }
+
+            type Review implements Node {
+              id: ID!
+              ratings: Ratings
+            }
+
+            type Ratings {
+              upvotes: Int!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Review implements Node {
+              id: ID!
+              ratings: Ratings
+            }
+
+            type Ratings {
+              downvotes: Int!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var act = () => CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query {
+              productById(id: "1") {
+                review {
+                  ratings {
+                    upvotes
+                    downvotes
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Equal(FusionResources.ThrowHelper_NoResolverInContext, exception.Message);
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.SchemaDefinition fusionGraph,
         [StringSyntax("graphql")] string query)
