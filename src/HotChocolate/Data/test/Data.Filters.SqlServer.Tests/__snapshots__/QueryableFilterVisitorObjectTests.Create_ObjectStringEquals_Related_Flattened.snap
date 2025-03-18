@@ -1,0 +1,73 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": {
+          "foo": {
+            "barString": "testatest"
+          }
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+.param set @__p_0 'testatest'
+
+SELECT "d"."Id", "d"."BarId"
+FROM "Data" AS "d"
+INNER JOIN "Bar" AS "b" ON "d"."BarId" = "b"."Id"
+INNER JOIN "Foo" AS "f" ON "b"."FooId" = "f"."Id"
+WHERE "f"."BarString" = @__p_0
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": {
+          "foo": {
+            "barString": "testbtest"
+          }
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testbtest SQL:
+---------------
+.param set @__p_0 'testbtest'
+
+SELECT "d"."Id", "d"."BarId"
+FROM "Data" AS "d"
+INNER JOIN "Bar" AS "b" ON "d"."BarId" = "b"."Id"
+INNER JOIN "Foo" AS "f" ON "b"."FooId" = "f"."Id"
+WHERE "f"."BarString" = @__p_0
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+null SQL:
+---------------
+SELECT "d"."Id", "d"."BarId"
+FROM "Data" AS "d"
+INNER JOIN "Bar" AS "b" ON "d"."BarId" = "b"."Id"
+INNER JOIN "Foo" AS "f" ON "b"."FooId" = "f"."Id"
+WHERE 0
+---------------
