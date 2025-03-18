@@ -3,6 +3,7 @@ using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -11,7 +12,8 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         string assemblyName,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         var module = GetDataLoaderModuleInfo(syntaxInfos);
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
@@ -71,7 +73,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
         generator.WriteEndClass();
         generator.WriteEndNamespace();
 
-        context.AddSource(WellKnownFileNames.DataLoaderModuleFile, generator.ToSourceText());
+        addSource(WellKnownFileNames.DataLoaderModuleFile, generator.ToSourceText());
     }
 
     private static DataLoaderModuleInfo? GetDataLoaderModuleInfo(

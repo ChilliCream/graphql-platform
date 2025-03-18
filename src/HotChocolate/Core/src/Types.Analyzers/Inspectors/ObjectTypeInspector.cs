@@ -256,9 +256,9 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverTypeName,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            [..resolverParameters],
             resolverMethod.GetMemberBindings(),
-            kind: resolverMethod.ReturnType.IsConnectionBase()
+            kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
     }

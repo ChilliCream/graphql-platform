@@ -90,7 +90,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             {
                 foreach (var method in MethodSymbol.ContainingType.GetMembers()
                     .OfType<IMethodSymbol>()
-                    .Where(m => m.Name == lookup))
+                    .Where(m => m.Name == lookup && m.MethodKind is MethodKind.Ordinary))
                 {
                     if (method.Parameters.Length == 1
                         && method.Parameters[0].Type.Equals(valueType, SymbolEqualityComparer.Default)
