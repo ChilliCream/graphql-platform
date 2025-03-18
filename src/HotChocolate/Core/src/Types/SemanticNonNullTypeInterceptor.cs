@@ -16,7 +16,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
 
-    internal override bool IsEnabled(IDescriptorContext context)
+    public override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableSemanticNonNull;
 
     internal override void InitializeContext(
