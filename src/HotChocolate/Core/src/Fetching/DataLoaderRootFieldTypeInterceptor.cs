@@ -26,7 +26,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         _services = context.Services.GetService<IApplicationServiceProvider>();
     }
 
-    internal override bool IsEnabled(IDescriptorContext context)
+    public override bool IsEnabled(IDescriptorContext context)
         => context.Options.PublishRootFieldPagesToPromiseCache;
 
     public override void OnAfterResolveRootType(

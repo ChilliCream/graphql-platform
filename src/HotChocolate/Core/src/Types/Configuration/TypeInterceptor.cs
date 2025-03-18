@@ -22,7 +22,7 @@ public abstract class TypeInterceptor
     /// </summary>
     internal virtual uint Position => _defaultPosition;
 
-    internal virtual bool IsEnabled(IDescriptorContext context) => true;
+    public virtual bool IsEnabled(IDescriptorContext context) => true;
 
     internal virtual bool IsMutationAggregator(IDescriptorContext context) => false;
 
