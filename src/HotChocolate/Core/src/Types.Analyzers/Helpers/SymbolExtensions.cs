@@ -576,39 +576,6 @@ public static class SymbolExtensions
             s => SymbolEqualityComparer.Default.Equals(s.OriginalDefinition, connectionInterface));
     }
 
-    public static bool IsConnectionBase(this ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
-        {
-            var definitionName = namedType.ConstructedFrom.ToDisplayString();
-
-            if (definitionName.StartsWith("System.Threading.Tasks.Task<")
-                || definitionName.StartsWith("System.Threading.Tasks.ValueTask<"))
-            {
-                typeSymbol = namedType.TypeArguments[0];
-            }
-        }
-
-        var current = typeSymbol;
-
-        while (current != null)
-        {
-            if (current is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
-            {
-                var baseType = namedTypeSymbol.ConstructedFrom;
-
-                if (baseType.ToDisplayString().StartsWith("HotChocolate.Types.Pagination.ConnectionBase<"))
-                {
-                    return true;
-                }
-            }
-
-            current = current.BaseType;
-        }
-
-        return false;
-    }
-
     public static ITypeSymbol UnwrapTaskOrValueTask(this ITypeSymbol typeSymbol)
     {
         if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
@@ -665,4 +632,30 @@ public static class SymbolExtensions
             .GetAttributes()
             .Any(attr => attr.AttributeClass?.ToDisplayString()
                 == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
+
+    public static IEnumerable<ISymbol> AllPublicInstanceMembers(this ITypeSymbol type)
+    {
+        var processed = PooledObjects.GetStringSet();
+        var current = type;
+
+        while (current is not null && current.SpecialType != SpecialType.System_Object)
+        {
+            foreach (var member in current.GetMembers())
+            {
+                if (member.DeclaredAccessibility == Accessibility.Public
+                    && member.Kind is SymbolKind.Property or SymbolKind.Method
+                    && !member.IsStatic
+                    && !member.IsIgnored()
+                    && processed.Add(member.Name))
+                {
+                    yield return member;
+                }
+            }
+
+            current = current.BaseType;
+        }
+
+        processed.Clear();
+        PooledObjects.Return(processed);
+    }
 }
