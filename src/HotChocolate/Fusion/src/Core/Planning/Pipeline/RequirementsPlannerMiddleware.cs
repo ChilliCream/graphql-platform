@@ -157,7 +157,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
             // to evaluate the schemas that we did skip for efficiency reasons.
             if (requires.Count > 0)
             {
-                // if the schema meta data are not consistent we could end up with no way to
+                // if the schema metadata are not consistent we could end up with no way to
                 // execute the current execution step. In this case we will fail here.
                 throw new InvalidOperationException("The schema metadata are not consistent.");
             }

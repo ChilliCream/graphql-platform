@@ -2724,6 +2724,76 @@ public class RequestPlannerTests(ITestOutputHelper output)
         Assert.Equal(FusionResources.ThrowHelper_NoResolverInContext, exception.Message);
     }
 
+    [Fact]
+    public async Task Ensure_Subgraphs_In_Context_Are_Preferred()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            schema {
+              query: Query
+            }
+
+            type Foo {
+              id: Int!
+              code: String!
+              name: String!
+            }
+
+            type Query {
+              fooById(id: Int!): Foo!
+              fooByCode(code: String!): Foo!
+            }
+            """
+        );
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            schema {
+              query: Query
+            }
+
+            type Foo {
+              id: Int!
+            }
+
+            type Query {
+              subgraph2Foo: Foo!
+            }
+            """
+        );
+
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            schema {
+              query: Query
+            }
+
+            type Foo {
+              code: String!
+            }
+
+            type Query {
+              subgraph3Foo: Foo!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            //"query { subgraph2Foo { name } }");
+            "query { subgraph3Foo { name } }");
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.SchemaDefinition fusionGraph,
         [StringSyntax("graphql")] string query)

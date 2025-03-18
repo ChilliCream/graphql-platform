@@ -34,6 +34,8 @@ internal sealed class QueryPlanContext(IOperation operation)
 
     public Dictionary<ISelection, ISelection> ParentSelections { get; } = new();
 
+    public Dictionary<SelectionPath, HashSet<string>> SubgraphInContext { get; } = new();
+
     public bool HasIntrospectionSelections { get; set; }
 
     public bool HasHandledSpecialQueryFields { get; set; }
