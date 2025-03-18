@@ -117,27 +117,11 @@ public sealed class EdgeTypeInfo
 
         var resolvers = ImmutableArray.CreateBuilder<Resolver>();
 
-        foreach (var member in runtimeType.GetMembers())
+        foreach (var member in runtimeType.AllPublicInstanceMembers())
         {
-            if (member.DeclaredAccessibility is not Accessibility.Public
-                || member.IsStatic
-                || member.IsIgnored())
-            {
-                continue;
-            }
-
             switch (member)
             {
-                case IMethodSymbol method:
-                    if (method.IsPropertyOrEventAccessor()
-                        || method.IsOperator()
-                        || method.IsConstructor()
-                        || method.IsSpecialMethod()
-                        || method.IsCompilerGenerated())
-                    {
-                        continue;
-                    }
-
+                case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
                     resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, edgeName));
                     break;
 
