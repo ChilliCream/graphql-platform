@@ -48,7 +48,7 @@
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
     <PackageVersion Include="Squadron.Mongo" Version="0.24.0" />
     <PackageVersion Include="Squadron.Nats" Version="0.24.0" />
-    <PackageVersion Include="Squadron.PostgreSql" Version="0.23.0" />
+    <PackageVersion Include="Squadron.PostgreSql" Version="0.23.1" />
     <PackageVersion Include="Squadron.RabbitMQ" Version="0.24.0" />
     <PackageVersion Include="Squadron.RavenDB" Version="0.24.0" />
     <PackageVersion Include="Squadron.Redis" Version="0.24.0" />
