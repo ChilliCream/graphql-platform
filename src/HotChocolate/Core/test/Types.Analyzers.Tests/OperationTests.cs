@@ -119,4 +119,25 @@ public class OperationTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Root_Empty()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using GreenDonut.Data;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+
+            }
+            """).MatchMarkdownAsync();
+    }
 }

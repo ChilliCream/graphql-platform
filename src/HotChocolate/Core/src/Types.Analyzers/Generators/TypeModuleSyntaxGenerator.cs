@@ -3,6 +3,7 @@ using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Generators;
@@ -12,13 +13,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         string assemblyName,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
-        => Execute(context, assemblyName, syntaxInfos);
-
-    private static void Execute(
-        SourceProductionContext context,
-        string assemblyName,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -40,14 +36,14 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         }
 
         var syntaxInfoList = syntaxInfos.ToList();
-        WriteOperationTypes(context, syntaxInfoList, module);
-        WriteConfiguration(context, syntaxInfoList, module);
+        WriteOperationTypes(syntaxInfoList, module, addSource);
+        WriteConfiguration(syntaxInfoList, module, addSource);
     }
 
     private static void WriteConfiguration(
-        SourceProductionContext context,
         List<SyntaxInfo> syntaxInfos,
-        ModuleInfo module)
+        ModuleInfo module,
+        Action<string, SourceText> addSource)
     {
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
         HashSet<(string InterfaceName, string ClassName)>? groups = null;
@@ -78,6 +74,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         generator.WriteRegisterType(type.Name);
                         hasConfigurations = true;
                     }
+
                     break;
 
                 case TypeExtensionInfo extension:
@@ -91,6 +88,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                             operations |= extension.Type;
                         }
                     }
+
                     break;
 
                 case RegisterDataLoaderInfo dataLoader:
@@ -99,6 +97,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         generator.WriteRegisterDataLoader(dataLoader.Name);
                         hasConfigurations = true;
                     }
+
                     break;
 
                 case DataLoaderInfo dataLoader:
@@ -124,6 +123,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                             }
                         }
                     }
+
                     break;
 
                 case OperationRegistrationInfo operation:
@@ -137,6 +137,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                             operations |= operation.Type;
                         }
                     }
+
                     break;
 
                 case ObjectTypeInfo objectTypeExtension:
@@ -152,6 +153,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                             objectTypeExtension.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
                     }
+
                     break;
 
                 case ConnectionTypeInfo connectionType:
@@ -161,6 +163,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         generator.WriteRegisterType($"{connectionType.Namespace}.{connectionType.Name}");
                         hasConfigurations = true;
                     }
+
                     break;
 
                 case EdgeTypeInfo edgeType:
@@ -170,6 +173,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         generator.WriteRegisterType($"{edgeType.Namespace}.{edgeType.Name}");
                         hasConfigurations = true;
                     }
+
                     break;
 
                 case InterfaceTypeInfo interfaceType:
@@ -185,6 +189,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                             interfaceType.SchemaSchemaType.ToFullyQualified());
                         hasConfigurations = true;
                     }
+
                     break;
 
                 case RootTypeInfo rootType:
@@ -204,6 +209,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                             operations |= operationType;
                         }
                     }
+
                     break;
             }
         }
@@ -256,14 +262,14 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         if (hasConfigurations)
         {
-            context.AddSource(WellKnownFileNames.TypeModuleFile, generator.ToSourceText());
+            addSource(WellKnownFileNames.TypeModuleFile, generator.ToSourceText());
         }
     }
 
     private static void WriteOperationTypes(
-        SourceProductionContext context,
         List<SyntaxInfo> syntaxInfos,
-        ModuleInfo module)
+        ModuleInfo module,
+        Action<string, SourceText> addSource)
     {
         var operations = new List<OperationInfo>();
 
@@ -299,7 +305,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         generator.WriteEndNamespace();
 
-        context.AddSource(WellKnownFileNames.RootTypesFile, generator.ToSourceText());
+        addSource(WellKnownFileNames.RootTypesFile, generator.ToSourceText());
     }
 
     public static string GetAssemblyQualifiedName(ITypeSymbol typeSymbol)

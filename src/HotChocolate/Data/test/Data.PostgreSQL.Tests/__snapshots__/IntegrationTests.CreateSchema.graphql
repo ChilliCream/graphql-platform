@@ -107,7 +107,7 @@ type Product implements Node {
 "A connection to a list of items."
 type ProductConnection {
   "A list of edges."
-  edges: [ProductsEdge!]
+  edges: [ProductEdge!]
   "A flattened list of the nodes."
   nodes: [Product!]
   "Information to aid in pagination."
@@ -117,18 +117,18 @@ type ProductConnection {
   endCursors(count: Int!): [String!]!
 }
 
-type ProductType {
-  id: Int!
-  name: String!
-  products: [Product!]!
-}
-
 "An edge in a connection."
-type ProductsEdge {
+type ProductEdge {
   "The item at the end of the edge."
   node: Product!
   "A cursor for use in pagination."
   cursor: String!
+}
+
+type ProductType {
+  id: Int!
+  name: String!
+  products: [Product!]!
 }
 
 type Query {
