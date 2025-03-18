@@ -3,7 +3,7 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class SelectionPath
+internal sealed class SelectionPath : IEquatable<SelectionPath>
 {
     public SelectionPath(ISelection selection)
         : this(selection, null)
@@ -22,6 +22,43 @@ internal sealed class SelectionPath
 
     public SelectionPath Append(ISelection selection)
         => new(selection, this);
+
+    public bool Equals(SelectionPath? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        if(Parent is null)
+        {
+            if(other.Parent is not null)
+            {
+                return false;
+            }
+
+            return other.Selection.ResponseName.Equals(Selection.ResponseName);
+        }
+
+        if (other.Parent is null)
+        {
+            return false;
+        }
+
+        return Parent.Equals(other.Parent)
+            && other.Selection.ResponseName.Equals(Selection.ResponseName);
+    }
+
+    public override bool Equals(object? obj)
+        => obj is SelectionPath other && Equals(other);
+
+    public override int GetHashCode()
+        => HashCode.Combine(Selection.ResponseName, Parent?.GetHashCode());
 
     public override string ToString()
     {

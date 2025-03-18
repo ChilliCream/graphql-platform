@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Components.Forms;
 using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning.Pipeline;
@@ -34,6 +35,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 {
     private readonly FusionGraphConfiguration _config = configuration
         ?? throw new ArgumentNullException(nameof(configuration));
+
     private readonly ISchema _schema = schema
         ?? throw new ArgumentNullException(nameof(schema));
 
@@ -92,6 +94,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         List<ISelection>? leftovers = null;
         var path = new List<ISelection>();
 
+        var subgraphsInContext =
+            parentSelectionPath is null
+                ? new HashSet<string>()
+                : context.SubgraphInContext[parentSelectionPath];
+
         // if this is the root selection set of a query we will
         // look for some special selections.
         if (!context.HasHandledSpecialQueryFields && parentSelection is null)
@@ -101,7 +108,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 operation,
                 ref selections,
                 selectionSetTypeMetadata,
-                backlog);
+                backlog,
+                subgraphsInContext);
             context.HasHandledSpecialQueryFields = true;
 
             if (selections.Count == 0)
@@ -135,7 +143,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 preferBatching,
                 variablesInContext,
                 subgraph,
-                executionStep);
+                executionStep,
+                subgraphsInContext);
 
             foreach (var selection in current)
             {
@@ -154,6 +163,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 ResolverDefinition? resolver = null;
 
                 GatherVariablesInContext(
+                    subgraphsInContext,
                     selection,
                     selectionSetTypeMetadata,
                     parentSelection,
@@ -196,6 +206,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 if (selection.SelectionSet is not null)
                 {
                     CollectNestedSelections(
+                        context,
                         backlog,
                         operation,
                         selection,
@@ -203,7 +214,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         path,
                         executionStep,
                         preferBatching,
-                        context.ParentSelections);
+                        context.ParentSelections,
+                        subgraphsInContext);
                 }
 
                 path.RemoveAt(pathIndex);
@@ -211,10 +223,10 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
             // if the current execution step has now way to resolve the data
             // we will try to resolve it from the root.
-            if(executionStep.ParentSelection is not null &&
-                executionStep.ParentSelectionPath is not null &&
-                executionStep.Resolver is null &&
-                executionStep.SelectionResolvers.Count == 0)
+            if (executionStep.ParentSelection is not null
+                && executionStep.ParentSelectionPath is not null
+                && executionStep.Resolver is null
+                && executionStep.SelectionResolvers.Count == 0)
             {
                 if (!EnsureStepCanBeResolvedFromRoot(
                     executionStep.SubgraphName,
@@ -233,7 +245,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         IOperation operation,
         ref IReadOnlyList<ISelection> selections,
         ObjectTypeMetadata selectionSetTypeMetadata,
-        Queue<BacklogItem> backlog)
+        Queue<BacklogItem> backlog,
+        HashSet<string> subgraphsInContext)
     {
         if (operation.Type is OperationType.Query)
         {
@@ -262,7 +275,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         backlog,
                         selection,
                         selectionSetTypeMetadata,
-                        context.ParentSelections);
+                        context.ParentSelections,
+                        subgraphsInContext);
                     (processed ??= []).Add(i);
                 }
             }
@@ -282,6 +296,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
     }
 
     private void CollectNestedSelections(
+        QueryPlanContext context,
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
@@ -289,7 +304,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         List<ISelection> path,
         SelectionExecutionStep executionStep,
         bool preferBatching,
-        Dictionary<ISelection, ISelection> parentSelectionLookup)
+        Dictionary<ISelection, ISelection> parentSelectionLookup,
+        HashSet<string> subgraphsInContext)
     {
         if (!preferBatching)
         {
@@ -299,6 +315,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
             CollectNestedSelections(
+                context,
                 backlog,
                 operation,
                 parentSelection,
@@ -307,11 +324,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 executionStep,
                 possibleType,
                 preferBatching,
-                parentSelectionLookup);
+                parentSelectionLookup,
+                subgraphsInContext);
         }
     }
 
     private void CollectNestedSelections(
+        QueryPlanContext context,
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
@@ -320,7 +339,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         SelectionExecutionStep executionStep,
         IObjectType possibleType,
         bool preferBatching,
-        Dictionary<ISelection, ISelection> parentSelectionLookup)
+        Dictionary<ISelection, ISelection> parentSelectionLookup,
+        HashSet<string> subgraphsInContext)
     {
         var declaringType = _config.GetType<ObjectTypeMetadata>(possibleType.Name);
         var selectionSet = operation.GetSelectionSet(parentSelection, possibleType);
@@ -345,6 +365,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                     var variablesInContext = new HashSet<string>();
 
                     GatherVariablesInContext(
+                        subgraphsInContext,
                         selection,
                         declaringType,
                         parentSelection,
@@ -379,6 +400,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 if (selection.SelectionSet is not null)
                 {
                     CollectNestedSelections(
+                        context,
                         backlog,
                         operation,
                         selection,
@@ -386,7 +408,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         path,
                         executionStep,
                         preferBatching,
-                        parentSelectionLookup);
+                        parentSelectionLookup,
+                        subgraphsInContext);
                 }
             }
             else
@@ -399,10 +422,23 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         if (leftovers is not null)
         {
+            var selectionSetPath = CreateSelectionPath(rootSelectionPath, path);
+
+            if (selectionSetPath is not null)
+            {
+                if (!context.SubgraphInContext.TryGetValue(selectionSetPath, out var subgraph))
+                {
+                    subgraph = [];
+                    context.SubgraphInContext[selectionSetPath] = subgraph;
+                }
+
+                subgraph.Add(executionStep.SubgraphName);
+            }
+
             backlog.Enqueue(
                 new BacklogItem(
                     parentSelection,
-                    CreateSelectionPath(rootSelectionPath, path),
+                    selectionSetPath,
                     declaringType,
                     leftovers,
                     preferBatching));
@@ -429,10 +465,10 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         IObjectType queryType,
         ObjectTypeMetadata queryTypeMetadata)
     {
-        if (!context.HasIntrospectionSelections &&
-            (field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
-                field.Name.EqualsOrdinal(IntrospectionFields.Type) ||
-                field.Name.EqualsOrdinal(IntrospectionFields.TypeName)))
+        if (!context.HasIntrospectionSelections
+            && (field.Name.EqualsOrdinal(IntrospectionFields.Schema)
+                || field.Name.EqualsOrdinal(IntrospectionFields.Type)
+                || field.Name.EqualsOrdinal(IntrospectionFields.TypeName)))
         {
             var step = new IntrospectionExecutionStep(
                 context.NextStepId(),
@@ -449,7 +485,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         Queue<BacklogItem> backlog,
         ISelection nodeSelection,
         ObjectTypeMetadata queryTypeMetadata,
-        Dictionary<ISelection, ISelection> parentSelectionLookup)
+        Dictionary<ISelection, ISelection> parentSelectionLookup,
+        HashSet<string> subgraphsInContext)
     {
         var operation = context.Operation;
         var queryType = operation.RootType;
@@ -475,7 +512,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                     entityTypeInfo,
                     selectionSet,
                     preferBatching: false,
-                    parentSelectionLookup: parentSelectionLookup);
+                    parentSelectionLookup: parentSelectionLookup,
+                    subgraphsInContext);
 
             var nodeEntityExecutionStep =
                 new NodeEntityExecutionStep(
@@ -504,7 +542,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         ObjectTypeMetadata entityTypeMetadata,
         ISelectionSet entityTypeSelectionSet,
         bool preferBatching,
-        Dictionary<ISelection, ISelection> parentSelectionLookup)
+        Dictionary<ISelection, ISelection> parentSelectionLookup,
+        HashSet<string> subgraphsInContext)
     {
         var variablesInContext = new HashSet<string>();
         var operation = context.Operation;
@@ -532,12 +571,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             queryTypeMetadata);
 
         var preference = ChoosePreferredResolverKind(operation, null, preferBatching);
-        GatherVariablesInContext(nodeSelection, queryTypeMetadata, null, variablesInContext);
+        GatherVariablesInContext(subgraphsInContext, nodeSelection, queryTypeMetadata, null, variablesInContext);
 
         if (!TryGetResolver(fieldInfo, subgraph, variablesInContext, preference, out var resolver))
         {
             throw ThrowHelper.NoResolverInContext();
         }
+
         executionStep.AllSelections.Add(nodeSelection);
         executionStep.RootSelections.Add(new RootSelection(nodeSelection, resolver));
 
@@ -549,6 +589,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             executionStep.Requires);
 
         CollectNestedSelections(
+            context,
             backlog,
             operation,
             nodeSelection,
@@ -557,7 +598,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             executionStep,
             entityType,
             preferBatching,
-            parentSelectionLookup);
+            parentSelectionLookup,
+            subgraphsInContext);
 
         context.Steps.Add(executionStep);
 
@@ -570,14 +612,20 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         bool preferBatching,
         HashSet<string> variablesInContext,
         string subgraph,
-        SelectionExecutionStep executionStep)
+        SelectionExecutionStep executionStep,
+        HashSet<string> subgraphsInContext)
+
     {
         if (parentSelection is null || !selectionSetTypeMetadata.Resolvers.ContainsResolvers(subgraph))
         {
             return;
         }
 
-        GatherVariablesInContext(selectionSetTypeMetadata, parentSelection, variablesInContext);
+        GatherVariablesInContext(
+            subgraphsInContext,
+            selectionSetTypeMetadata,
+            parentSelection,
+            variablesInContext);
 
         if (TryGetResolver(
             selectionSetTypeMetadata,
@@ -595,12 +643,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         IOperation operation,
         ISelection? parentSelection,
         bool preferBatching)
-        => operation.Type is OperationType.Subscription &&
-            parentSelection is null
-                ? PreferredResolverKind.Subscription
-                : preferBatching
-                    ? PreferredResolverKind.Batch
-                    : PreferredResolverKind.Query;
+        => operation.Type is OperationType.Subscription && parentSelection is null
+            ? PreferredResolverKind.Subscription
+            : preferBatching
+                ? PreferredResolverKind.Batch
+                : PreferredResolverKind.Query;
 
     private static bool TryGetResolver(
         ObjectFieldInfo fieldInfo,
@@ -693,6 +740,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
     }
 
     private void GatherVariablesInContext(
+        HashSet<string> subgraphsInContext,
         ISelection selection,
         ObjectTypeMetadata declaringTypeMetadata,
         ISelection? parent,
@@ -713,7 +761,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         foreach (var variable in declaringTypeMetadata.Variables)
         {
-            variablesInContext.Add(variable.Name);
+            if (subgraphsInContext.Count == 0
+                || subgraphsInContext.Contains(variable.SubgraphName))
+            {
+                variablesInContext.Add(variable.Name);
+            }
         }
 
         var field = declaringTypeMetadata.Fields[selection.Field.Name];
@@ -725,6 +777,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
     }
 
     private void GatherVariablesInContext(
+        HashSet<string> subgraphsInContext,
         ObjectTypeMetadata declaringTypeMetadata,
         ISelection parent,
         HashSet<string> variablesInContext)
@@ -741,7 +794,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         foreach (var variable in declaringTypeMetadata.Variables)
         {
-            variablesInContext.Add(variable.Name);
+            if (subgraphsInContext.Count == 0
+                || subgraphsInContext.Contains(variable.SubgraphName))
+            {
+                variablesInContext.Add(variable.Name);
+            }
         }
     }
 
@@ -785,9 +842,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsNodeField(IObjectField field, IOperation operation)
-        => operation.Type is OperationType.Query &&
-            field.DeclaringType.Equals(operation.RootType) &&
-            (field.Name.EqualsOrdinal("node") || field.Name.EqualsOrdinal("nodes"));
+        => operation.Type is OperationType.Query
+            && field.DeclaringType.Equals(operation.RootType)
+            && (field.Name.EqualsOrdinal("node") || field.Name.EqualsOrdinal("nodes"));
 
     private bool EnsureStepCanBeResolvedFromRoot(
         string subgraphName,
