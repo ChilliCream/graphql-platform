@@ -116,7 +116,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                         edgeTypeInfo = EdgeTypeInfo.CreateEdge(
                             compilation,
                             connectionType,
-                            null);
+                            null,
+                            connectionType.ContainingNamespace.ToDisplayString());
                         edgeTypeInfo.AddDiagnosticRange(diagnostics);
                         connectionTypeInfos ??= [];
                         connectionTypeInfos.Add(edgeTypeInfo);
@@ -129,12 +130,14 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 compilation,
                                 edge.Type,
                                 edgeClass.ClassDeclarations,
+                                connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
                                 edge.NameFormat ?? edge.Name)
                             : EdgeTypeInfo.CreateEdge(
                                 compilation,
                                 edge.Type,
                                 null,
+                                connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
                                 edge.NameFormat ?? edge.Name);
 
@@ -180,7 +183,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                         continue;
                     }
 
-                    string connectionFullTypeName = connectionType.ToFullyQualified();
+                    var connectionFullTypeName = connectionType.ToFullyQualified();
                     string? connectionName = null;
                     string? edgeName = null;
 
@@ -205,8 +208,15 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
                     edgeTypeInfo =
                         connectionClassLookup.TryGetValue(edgeType.ToFullyQualified(), out edgeClass)
-                            ? EdgeTypeInfo.CreateEdgeFrom(edgeClass, edgeName, edgeName)
-                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null, edgeName, edgeName);
+                            ? EdgeTypeInfo.CreateEdgeFrom(
+                                edgeClass,
+                                connectionType.ContainingNamespace.ToDisplayString(),
+                                edgeName,
+                                edgeName)
+                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null,
+                                connectionType.ContainingNamespace.ToDisplayString(),
+                                edgeName,
+                                edgeName);
 
                     connectionTypeInfo =
                         connectionClassLookup.TryGetValue(connectionFullTypeName, out connectionClass)
