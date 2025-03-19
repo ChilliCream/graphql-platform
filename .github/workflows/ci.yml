@@ -163,7 +163,7 @@ jobs:
     needs: [configure, check-changes]
     if: needs.check-changes.outputs.library_changes == 'true'
     env:
-      DOCKER_CONFIG: $HOME/.docker
+      DOCKER_CONFIG: ${{ github.workspace }}/.docker
 
     strategy:
       fail-fast: false
@@ -197,6 +197,9 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Debug Docker config
+        run: test -f $DOCKER_CONFIG/config.json && echo "Docker config exists"
 
       - name: Run tests
         id: run-tests
