@@ -616,6 +616,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             return;
         }
 
+        var bindingIndex = 0;
+
         for (var i = 0; i < resolver.Parameters.Length; i++)
         {
             var parameter = resolver.Parameters[i];
@@ -966,6 +968,15 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         i,
                         WellKnownTypes.ConnectionFlagsHelper);
                     break;
+
+                case ResolverParameterKind.Unknown:
+                    Writer.WriteIndentedLine(
+                        "var args{0} = _args_{1}[{2}].Execute<{3}>(context);",
+                        i,
+                        resolver.Member.Name,
+                        bindingIndex++,
+                        ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
+                        break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
