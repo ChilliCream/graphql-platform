@@ -51,4 +51,16 @@
   <data name="FieldSelectionMapValidator_TypeMustBeObjectOrInterface" xml:space="preserve">
     <value>The type '{0}' must be an object or interface.</value>
   </data>
+  <data name="SelectionSetValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="SelectionSetValidator_InvalidTypeCondition" xml:space="preserve">
+    <value>The type '{0}' is not a possible type of type '{1}'.</value>
+  </data>
+  <data name="SelectionSetValidator_InvalidTypeConditionInSelectionSet" xml:space="preserve">
+    <value>The type condition in the selection set is invalid. Type '{0}' does not exist.</value>
+  </data>
+  <data name="SelectionSetValidator_TypeMustBeObjectOrInterface" xml:space="preserve">
+    <value>The type '{0}' must be an object or interface.</value>
+  </data>
 </root>

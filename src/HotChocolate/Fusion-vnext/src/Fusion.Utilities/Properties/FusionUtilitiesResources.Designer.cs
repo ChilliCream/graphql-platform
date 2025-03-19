@@ -157,5 +157,41 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("FieldSelectionMapValidator_TypeMustBeObjectOrInterface", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SelectionSetValidator_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not a possible type of type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SelectionSetValidator_InvalidTypeCondition {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_InvalidTypeCondition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type condition in the selection set is invalid. Type &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string SelectionSetValidator_InvalidTypeConditionInSelectionSet {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_InvalidTypeConditionInSelectionSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; must be an object or interface..
+        /// </summary>
+        internal static string SelectionSetValidator_TypeMustBeObjectOrInterface {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_TypeMustBeObjectOrInterface", resourceCulture);
+            }
+        }
     }
 }

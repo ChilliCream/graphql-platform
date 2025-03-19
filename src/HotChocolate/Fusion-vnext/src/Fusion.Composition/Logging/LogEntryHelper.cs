@@ -689,6 +689,25 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ProvidesInvalidFields(
+        Directive providesDirective,
+        string fieldName,
+        string typeName,
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ProvidesInvalidFields, coordinate, schema.Name),
+            LogEntryCodes.ProvidesInvalidFields,
+            LogSeverity.Error,
+            coordinate,
+            providesDirective,
+            schema,
+            errors);
+    }
+
     public static LogEntry ProvidesInvalidFieldsType(
         Directive providesDirective,
         string fieldName,

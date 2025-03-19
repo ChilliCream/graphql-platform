@@ -90,6 +90,13 @@ internal record ProvidesFieldNodeEvent(
     MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
+internal record ProvidesFieldsEvent(
+    SelectionSetNode SelectionSet,
+    Directive ProvidesDirective,
+    MutableOutputFieldDefinition Field,
+    MutableComplexTypeDefinition Type,
+    MutableSchemaDefinition Schema) : IEvent;
+
 internal record ProvidesFieldsInvalidSyntaxEvent(
     Directive ProvidesDirective,
     MutableOutputFieldDefinition Field,
