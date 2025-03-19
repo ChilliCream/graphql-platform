@@ -11,7 +11,7 @@ namespace HotChocolate;
 public class SemanticNonNullTests
 {
     [Fact]
-    public async Task Object_Implementing_Node()
+    public async Task Object_With_Id_Field()
     {
         await new ServiceCollection()
             .AddGraphQL()
@@ -20,8 +20,7 @@ public class SemanticNonNullTests
                 o.EnableSemanticNonNull = true;
                 o.EnsureAllNodesCanBeResolved = false;
             })
-            .AddQueryType<QueryWithNode>()
-            .AddGlobalObjectIdentification()
+            .AddQueryType<QueryWithTypeWithId>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -306,13 +305,12 @@ public class SemanticNonNullTests
     }
 
     [ObjectType("Query")]
-    public class QueryWithNode
+    public class QueryWithTypeWithId
     {
-        public MyNode GetMyNode() => new(1);
+        public MyType GetMyNode() => new(1);
     }
 
-    [Node]
-    public record MyNode([property: ID] int Id);
+    public record MyType([property: ID] int Id);
 
     public class Mutation
     {

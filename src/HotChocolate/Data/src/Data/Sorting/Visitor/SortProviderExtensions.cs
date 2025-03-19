@@ -22,7 +22,7 @@ public abstract class SortProviderExtensions<TContext>
             throw new ArgumentNullException(nameof(configure));
     }
 
-    void ISortProviderConvention.Initialize(IConventionContext context)
+    void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
     {
         base.Initialize(context);
     }

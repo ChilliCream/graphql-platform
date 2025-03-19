@@ -103,10 +103,48 @@ public class Argument : FieldBase, IInputField
         Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.GetRuntimeType()!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
-        DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         IsOptional = isOptional;
         DeclaringMember = declaringMember;
     }
+
+    protected sealed override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+        => OnCompleteMetadata(context, declaringMember, (ArgumentDefinition)definition);
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        ArgumentDefinition definition)
+    {
+        DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
+        base.OnCompleteMetadata(context, declaringMember, definition);
+    }
+
+    protected sealed override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+        => OnMakeExecutable(context, declaringMember, (ArgumentDefinition)definition);
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        ArgumentDefinition definition) =>
+        base.OnMakeExecutable(context, declaringMember, definition);
+
+    protected sealed override void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+        => OnFinalizeField(context, declaringMember, (ArgumentDefinition)definition);
+
+    protected virtual void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        ArgumentDefinition definition) =>
+        base.OnFinalizeField(context, declaringMember, definition);
 
     /// <summary>
     /// Returns a string that represents the current argument.

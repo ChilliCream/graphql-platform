@@ -1000,4 +1000,16 @@ Type: `{0}`</value>
   <data name="ObjectToDictionaryConverter_CycleInObjectGraph" xml:space="preserve">
     <value>Cycle in object graph detected.</value>
   </data>
+  <data name="LocalDateTimeType_Description" xml:space="preserve">
+    <value>The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`.</value>
+  </data>
+  <data name="LocalDateType_Description" xml:space="preserve">
+    <value>The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
+  </data>
+  <data name="LocalTimeType_Description" xml:space="preserve">
+    <value>The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss.</value>
+  </data>
+  <data name="SchemaBuilder_BindRuntimeType_ObjectNotAllowed" xml:space="preserve">
+    <value>The type `System.Object` cannot be implicitly bound to a schema type.</value>
+  </data>
 </root>

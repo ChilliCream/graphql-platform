@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -34,11 +35,7 @@ internal sealed class OperationSession : IOperationSession
     public bool IsCompleted { get; private set; }
 
     public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
-        => Task.Factory.StartNew(
-            () => SendResultsAsync(request, cancellationToken),
-            default,
-            TaskCreationOptions.None,
-            TaskScheduler.Default);
+        => SendResultsAsync(request, cancellationToken).FireAndForget();
 
     private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {

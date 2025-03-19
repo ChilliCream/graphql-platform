@@ -49,6 +49,7 @@ type Product
   id: ID!
     @fusion__field(schema: PRODUCTS)
     @fusion__field(schema: SHIPPING)
+    @fusion__field(schema: REVIEWS)
   name: String!
     @fusion__field(schema: PRODUCTS)
   description: String
@@ -92,6 +93,8 @@ type Review
   stars: Int!
     @fusion__field(schema: REVIEWS)
   author: UserProfile
+    @fusion__field(schema: REVIEWS)
+  product: Product
     @fusion__field(schema: REVIEWS)
 }
 

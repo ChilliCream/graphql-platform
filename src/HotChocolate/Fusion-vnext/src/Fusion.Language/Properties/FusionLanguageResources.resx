@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CodeIsNotPunctuator" xml:space="preserve">
+    <value>Code is not a punctuator.</value>
+  </data>
+  <data name="InvalidToken" xml:space="preserve">
+    <value>Expected a `{0}`-token, but found a `{1}`-token.</value>
+  </data>
+  <data name="MaxAllowedNodesExceeded" xml:space="preserve">
+    <value>Source text contains more than {0} nodes. Parsing aborted.</value>
+  </data>
+  <data name="MaxAllowedTokensExceeded" xml:space="preserve">
+    <value>Source text contains more than {0} tokens. Parsing aborted.</value>
+  </data>
+  <data name="NewLineMustBeGreaterThanOrEqualToOne" xml:space="preserve">
+    <value>Must be greater than or equal to 1.</value>
+  </data>
+  <data name="SourceTextCannotBeEmpty" xml:space="preserve">
+    <value>The source text cannot be empty.</value>
+  </data>
+  <data name="UnexpectedCharacter" xml:space="preserve">
+    <value>Unexpected character `{0}`.</value>
+  </data>
+  <data name="UnexpectedToken" xml:space="preserve">
+    <value>Unexpected token: {0}.</value>
+  </data>
+
+
+
+</root>

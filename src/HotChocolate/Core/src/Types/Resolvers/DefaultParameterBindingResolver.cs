@@ -54,6 +54,7 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
         bindingFactories.Add(new FieldParameterExpressionBuilder());
         bindingFactories.Add(new ClaimsPrincipalParameterExpressionBuilder());
         bindingFactories.Add(new PathParameterExpressionBuilder());
+        bindingFactories.Add(new ConnectionFlagsParameterExpressionBuilder());
 
          if (customBindingFactories is not null)
         {

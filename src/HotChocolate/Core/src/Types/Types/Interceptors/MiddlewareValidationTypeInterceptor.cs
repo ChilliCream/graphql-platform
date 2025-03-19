@@ -17,11 +17,11 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
     private readonly HashSet<string> _names = [];
 
-    public override void OnValidateType(
-        ITypeSystemObjectContext validationContext,
+    public override void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (validationContext.DescriptorContext.Options.ValidatePipelineOrder &&
+        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
             definition is ObjectTypeDefinition objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
@@ -29,8 +29,8 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                 if (field.MiddlewareDefinitions.Count > 1)
                 {
                     ValidatePipeline(
-                        validationContext.Type,
-                        new SchemaCoordinate(validationContext.Type.Name, field.Name),
+                        completionContext.Type,
+                        new SchemaCoordinate(completionContext.Type.Name, field.Name),
                         field.MiddlewareDefinitions);
                 }
             }

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
@@ -12,7 +13,15 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class TypeAttributeInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } =
+    [
+        SyntaxKind.ClassDeclaration,
+        SyntaxKind.RecordDeclaration,
+        SyntaxKind.InterfaceDeclaration,
+        SyntaxKind.EnumDeclaration
+    ];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
@@ -51,6 +60,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                     {
                         if (fullName.Equals(QueryTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
@@ -60,6 +75,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
                         if (fullName.Equals(MutationTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
@@ -69,6 +90,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
                         if (fullName.Equals(SubscriptionTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),

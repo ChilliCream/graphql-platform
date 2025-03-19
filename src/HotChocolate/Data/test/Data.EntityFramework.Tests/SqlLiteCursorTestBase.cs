@@ -32,7 +32,10 @@ public class SqlLiteCursorTestBase
     protected IRequestExecutor CreateSchema<TEntity>(TEntity[] entities)
         where TEntity : class
     {
-        var builder = SchemaBuilder.New()
+        return new ServiceCollection()
+            .AddDbContextPool<DatabaseContext<TEntity>>(
+                b => b.UseSqlite($"Data Source={Guid.NewGuid():N}.db"))
+            .AddGraphQL()
             .AddQueryType(
                 c =>
                 {
@@ -64,10 +67,7 @@ public class SqlLiteCursorTestBase
                                 }
                             })
                         .UsePaging<ObjectType<TEntity>>(
-                            options: new()
-                            {
-                                IncludeTotalCount = true,
-                            });
+                            options: new() { IncludeTotalCount = true, });
 
                     c.Field("root1")
                         .Resolve(
@@ -94,17 +94,8 @@ public class SqlLiteCursorTestBase
                                     }
                                 }
                             });
-                });
-
-        var schema = builder.Create();
-
-        return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
-                o => o.Schema = schema)
-            .AddDbContextPool<DatabaseContext<TEntity>>(
-                b => b.UseSqlite($"Data Source={Guid.NewGuid():N}.db"))
-            .AddGraphQL()
+                })
+            .AddQueryableCursorPagingProvider(inlineTotalCount: true)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()

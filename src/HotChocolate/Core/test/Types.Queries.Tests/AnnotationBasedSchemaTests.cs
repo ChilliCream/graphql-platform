@@ -394,6 +394,26 @@ public class AnnotationBasedSchemaTests
         exception.Errors[0].Message.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task QueryWithError_QueryConventionsNotEnabled_ThrowsSchemaException()
+    {
+        // arrange
+        async Task Act() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithFieldResultAndException>()
+                .BuildSchemaAsync();
+
+        // act & assert
+        var exception =
+            (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
+
+        Assert.Equal(
+            "Adding an error type `InvalidUserIdException` to field `userById` failed as query or "
+            + "mutation conventions were not enabled.",
+            exception?.Errors[0].Message);
+    }
+
     public class QueryWithException
     {
         [Error<UserNotFoundException>]

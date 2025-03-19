@@ -435,6 +435,7 @@ public class DataLoaderTests
             using System.Threading.Tasks;
             using HotChocolate;
             using GreenDonut;
+            using GreenDonut.Data;
 
             namespace TestNamespace;
 
@@ -443,7 +444,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    HotChocolate.Pagination.PagingArguments pagingArgs,
+                    PagingArguments pagingArgs,
                     CancellationToken cancellationToken)
                     => default!;
             }
@@ -468,7 +469,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Selectors.ISelectorBuilder selector,
+                    GreenDonut.Data.ISelectorBuilder selector,
                     CancellationToken cancellationToken)
                     => default!;
             }
@@ -493,7 +494,7 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Predicates.IPredicateBuilder predicate,
+                    GreenDonut.Data.IPredicateBuilder predicate,
                     CancellationToken cancellationToken)
                     => default!;
             }
@@ -520,7 +521,145 @@ public class DataLoaderTests
                 [DataLoader]
                 public static Task<IDictionary<int, string>> GetEntityByIdAsync(
                     IReadOnlyList<int> entityIds,
-                    GreenDonut.Predicates.IPredicateBuilder predicate,
+                    GreenDonut.Data.IPredicateBuilder predicate,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_With_QueryContext()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+            using GreenDonut.Data;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    QueryContext<string> queryContext,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_With_SortDefinition()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+            using GreenDonut.Data;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    SortDefinition<string> queryContext,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_DataLoader_Module_As_Internal()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            [assembly: GreenDonut.DataLoaderModule("Abc", IsInternal = true)]
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    GreenDonut.Data.IPredicateBuilder predicate,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_DataLoader_Module_As_Internal_Implementation_As_Internal()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            [assembly: GreenDonut.DataLoaderModule("Abc", IsInternal = true)]
+            [assembly: GreenDonut.DataLoaderDefaults(
+                AccessModifier = GreenDonut.DataLoaderAccessModifier.PublicInterface)]
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    GreenDonut.Data.IPredicateBuilder predicate,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_DataLoader_Module_As_Internal_Implementation_As_Internal_With_Group()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            [assembly: GreenDonut.DataLoaderModule("Abc", IsInternal = true)]
+            [assembly: GreenDonut.DataLoaderDefaults(
+                AccessModifier = GreenDonut.DataLoaderAccessModifier.PublicInterface)]
+
+            namespace TestNamespace;
+
+            [DataLoaderGroup("Test123")]
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    GreenDonut.Data.IPredicateBuilder predicate,
                     CancellationToken cancellationToken)
                     => default!;
             }

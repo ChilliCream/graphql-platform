@@ -11,7 +11,7 @@ public sealed class ModuleInfo(string moduleName, ModuleOptions options) : Synta
     public override bool Equals(object? obj)
         => obj is ModuleInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is ModuleInfo other && Equals(other);
 
     private bool Equals(ModuleInfo other)

@@ -15,13 +15,13 @@
       "pageInfo": {
         "hasNextPage": true,
         "hasPreviousPage": true,
-        "endCursor": "Mw==",
-        "startCursor": "Mg=="
+        "endCursor": "e30z",
+        "startCursor": "e30y"
       }
     }
   },
   "extensions": {
-    "sql": "-- @__p_0='1'\n-- @__p_1='4'\n-- @__p_2='3'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nWHERE b.\"Id\" > @__p_0 AND b.\"Id\" < @__p_1\nORDER BY b.\"Id\"\nLIMIT @__p_2"
+    "sql": "-- @__value_0='1'\n-- @__value_1='4'\n-- @__p_2='3'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nWHERE b.\"Id\" > @__value_0 AND b.\"Id\" < @__value_1\nORDER BY b.\"Id\"\nLIMIT @__p_2"
   }
 }
 ```

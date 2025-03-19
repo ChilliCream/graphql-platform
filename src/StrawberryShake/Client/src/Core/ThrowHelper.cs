@@ -34,6 +34,33 @@ internal static class ThrowHelper
                     { "serializedValue", serializedValue },
             }));
 
+    internal static GraphQLClientException LocalDateSerializer_InvalidFormat(
+        string serializedValue) =>
+        new(new ClientError(
+            "The serialized format for LocalDate must be `yyyy-MM-dd`.",
+            extensions: new Dictionary<string, object?>
+            {
+                { "serializedValue", serializedValue },
+            }));
+
+    internal static GraphQLClientException LocalDateTimeSerializer_InvalidFormat(
+        string serializedValue) =>
+        new(new ClientError(
+            "The serialized format for LocalDateTime must be `yyyy-MM-ddTHH:mm:ss`.",
+            extensions: new Dictionary<string, object?>
+            {
+                { "serializedValue", serializedValue },
+            }));
+
+    internal static GraphQLClientException LocalTimeSerializer_InvalidFormat(
+        string serializedValue) =>
+        new(new ClientError(
+            "The serialized format for LocalTime must be `HH:mm:ss`.",
+            extensions: new Dictionary<string, object?>
+            {
+                { "serializedValue", serializedValue },
+            }));
+
     internal static GraphQLClientException UrlFormatter_CouldNotParseUri(string value) =>
         new(new ClientError(
             $"The URL serializer could not parse value{value}. Invalid format. "));

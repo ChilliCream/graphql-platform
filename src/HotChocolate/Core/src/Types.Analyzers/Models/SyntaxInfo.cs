@@ -17,5 +17,5 @@ public abstract class SyntaxInfo : IEquatable<SyntaxInfo>
             ? diagnostics
             : Diagnostics.AddRange(diagnostics);
 
-    public abstract bool Equals(SyntaxInfo other);
+    public abstract bool Equals(SyntaxInfo? other);
 }

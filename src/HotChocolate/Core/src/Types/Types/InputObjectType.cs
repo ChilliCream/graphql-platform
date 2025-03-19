@@ -61,6 +61,11 @@ public partial class InputObjectType
     public override TypeKind Kind => TypeKind.InputObject;
 
     /// <summary>
+    /// Defines if this input object type is a oneOf input object.
+    /// </summary>
+    public bool IsOneOf { get; private set; }
+
+    /// <summary>
     /// Gets the fields of this type.
     /// </summary>
     public FieldCollection<InputField> Fields { get; private set; } = default!;

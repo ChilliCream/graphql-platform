@@ -1988,5 +1988,29 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ObjectToDictionaryConverter_CycleInObjectGraph", resourceCulture);
             }
         }
+        
+        internal static string LocalDateTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilder_BindRuntimeType_ObjectNotAllowed {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_BindRuntimeType_ObjectNotAllowed", resourceCulture);
+            }
+        }
     }
 }
