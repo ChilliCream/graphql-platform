@@ -1,6 +1,7 @@
 using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
@@ -17,6 +18,8 @@ public static partial class BrandNode
         PagingArguments pagingArgs,
         QueryContext<Product> query,
         ProductService productService,
+        ConnectionFlags connectionFlags,
+        ISelection selection,
         CancellationToken cancellationToken)
     {
         var page = await productService.GetProductsByBrandAsync(brand.Id, pagingArgs, query, cancellationToken);

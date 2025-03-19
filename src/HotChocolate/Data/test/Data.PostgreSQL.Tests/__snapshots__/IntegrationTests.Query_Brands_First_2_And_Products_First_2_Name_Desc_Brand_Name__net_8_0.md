@@ -69,16 +69,6 @@ LIMIT @__p_0
 
 ```sql
 -- @__brandIds_0={ '11', '13' } (DbType = Object)
-SELECT p."BrandId" AS "Key", count(*)::int AS "Count"
-FROM "Products" AS p
-WHERE p."BrandId" = ANY (@__brandIds_0)
-GROUP BY p."BrandId"
-```
-
-## Query 3
-
-```sql
--- @__brandIds_0={ '11', '13' } (DbType = Object)
 SELECT t."BrandId", t0."Id", t0."Name", t0."BrandId"
 FROM (
     SELECT p."BrandId"
@@ -98,7 +88,7 @@ LEFT JOIN (
 ORDER BY t."BrandId", t0."BrandId", t0."Name" DESC, t0."Id"
 ```
 
-## Query 4
+## Query 3
 
 ```sql
 -- @__ids_0={ '11', '13' } (DbType = Object)

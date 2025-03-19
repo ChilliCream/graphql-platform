@@ -880,6 +880,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         "var args{0}_options = global::{1}.GetPagingOptions(context.Schema, context.Selection.Field);",
                         i,
                         WellKnownTypes.PagingHelper);
+                    Writer.WriteIndentedLine(
+                        "var args{0}_flags = global::{1}.GetConnectionFlags(context);",
+                        i,
+                        WellKnownTypes.ConnectionFlagsHelper);
                     Writer.WriteIndentedLine("var args{0}_first = context.ArgumentValue<int?>(\"first\");", i);
                     Writer.WriteIndentedLine("var args{0}_after = context.ArgumentValue<string?>(\"after\");", i);
                     Writer.WriteIndentedLine("int? args{0}_last = null;", i);
@@ -920,7 +924,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     Writer.WriteIndentedLine("{");
                     using (Writer.IncreaseIndent())
                     {
-                        Writer.WriteIndentedLine("args{0}_includeTotalCount = context.IsSelected(\"totalCount\");", i);
+                        Writer.WriteIndentedLine(
+                            "args{0}_includeTotalCount = args{0}_flags.HasFlag(global::{1}.TotalCount);",
+                            i,
+                            WellKnownTypes.ConnectionFlags);
                     }
 
                     Writer.WriteIndentedLine("}");
@@ -940,14 +947,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "EnableRelativeCursors = args{0}_options.EnableRelativeCursors",
-                                i);
-                            using (Writer.IncreaseIndent())
-                            {
-                                Writer.WriteIndentedLine(
-                                    "?? global::{0}.EnableRelativeCursors",
-                                    WellKnownTypes.PagingDefaults);
-                            }
+                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor)",
+                                i,
+                                WellKnownTypes.ConnectionFlags);
                         }
 
                         Writer.WriteIndentedLine("};");
@@ -956,48 +958,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 case ResolverParameterKind.ConnectionFlags:
                     Writer.WriteIndentedLine(
-                        "var args{0} = global::{1}.Nothing;",
+                        "var args{0} = global::{1}.GetConnectionFlags(context);",
                         i,
-                        WellKnownTypes.ConnectionFlags);
-                    Writer.WriteLine();
-
-                    Writer.WriteIndentedLine(
-                        "if(context.IsSelected(\"edges\"))");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine(
-                            "args{0} |= global::{1}.Edges;",
-                            i,
-                            WellKnownTypes.ConnectionFlags);
-                    }
-                    Writer.WriteIndentedLine("}");
-                    Writer.WriteLine();
-
-                    Writer.WriteIndentedLine(
-                        "if(context.IsSelected(\"nodes\"))");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine(
-                            "args{0} |= global::{1}.Nodes;",
-                            i,
-                            WellKnownTypes.ConnectionFlags);
-                    }
-                    Writer.WriteIndentedLine("}");
-                    Writer.WriteLine();
-
-                    Writer.WriteIndentedLine(
-                        "if(context.IsSelected(\"totalCount\"))");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine(
-                            "args{0} |= global::{1}.TotalCount;",
-                            i,
-                            WellKnownTypes.ConnectionFlags);
-                    }
-                    Writer.WriteIndentedLine("}");
+                        WellKnownTypes.ConnectionFlagsHelper);
                     break;
 
                 case ResolverParameterKind.Unknown:
@@ -1007,7 +970,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         resolver.Member.Name,
                         bindingIndex++,
                         ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
-                    break;
+                        break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
