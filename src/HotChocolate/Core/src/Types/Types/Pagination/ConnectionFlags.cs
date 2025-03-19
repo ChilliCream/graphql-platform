@@ -9,7 +9,7 @@ public enum ConnectionFlags
     /// <summary>
     /// No flags are set.
     /// </summary>
-    Nothing = 0,
+    None = 0,
 
     /// <summary>
     /// The edges field was requested by the user.
@@ -27,6 +27,11 @@ public enum ConnectionFlags
     TotalCount = 4,
 
     /// <summary>
+    /// The relative cursor field was requested by the user.
+    /// </summary>
+    RelativeCursor = 8,
+
+    /// <summary>
     /// The nodes or edges field was requested by the user.
     /// </summary>
     NodesOrEdges = Edges | Nodes,
@@ -34,5 +39,5 @@ public enum ConnectionFlags
     /// <summary>
     /// All fields were requested by the user.
     /// </summary>
-    All = Edges | Nodes | TotalCount
+    All = Edges | Nodes | TotalCount | RelativeCursor
 }

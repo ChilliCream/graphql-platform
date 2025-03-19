@@ -260,6 +260,7 @@ namespace TestNamespace.Types.Root
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorsAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
                 var args0_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                var args0_flags = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(context);
                 var args0_first = context.ArgumentValue<int?>("first");
                 var args0_after = context.ArgumentValue<string?>("after");
                 int? args0_last = null;
@@ -279,7 +280,7 @@ namespace TestNamespace.Types.Root
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
-                    args0_includeTotalCount = context.IsSelected("totalCount");
+                    args0_includeTotalCount = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount);
                 }
 
                 var args0 = new global::GreenDonut.Data.PagingArguments(
@@ -289,25 +290,9 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_options.EnableRelativeCursors
-                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.EnableRelativeCursors
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
                     };
-                var args1 = global::HotChocolate.Types.Paging.ConnectionFlags.Nothing;
-
-                if(context.IsSelected("edges"))
-                {
-                    args1 |= global::HotChocolate.Types.Paging.ConnectionFlags.Edges;
-                }
-
-                if(context.IsSelected("nodes"))
-                {
-                    args1 |= global::HotChocolate.Types.Paging.ConnectionFlags.Nodes;
-                }
-
-                if(context.IsSelected("totalCount"))
-                {
-                    args1 |= global::HotChocolate.Types.Paging.ConnectionFlags.TotalCount;
-                }
+                var args1 = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(context);
                 var args2 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthorsAsync(args0, args1, args2);
                 return result;

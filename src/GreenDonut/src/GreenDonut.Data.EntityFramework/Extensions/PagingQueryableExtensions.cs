@@ -100,6 +100,8 @@ public static class PagingQueryableExtensions
             arguments = arguments with { First = 10 };
         }
 
+        // if relative cursors are enabled and no cursor is provided
+        // we must do an initial count of the dataset.
         if (arguments.EnableRelativeCursors
             && string.IsNullOrEmpty(arguments.After)
             && string.IsNullOrEmpty(arguments.Before))
@@ -153,9 +155,10 @@ public static class PagingQueryableExtensions
             }
         }
 
-        if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
+        if (cursor?.IsRelative == true)
         {
-            if ((arguments.Last is not null && cursor.Offset > 0) || (arguments.First is not null && cursor.Offset < 0))
+            if ((arguments.Last is not null && cursor.Offset > 0)
+                || (arguments.First is not null && cursor.Offset < 0))
             {
                 throw new ArgumentException(
                     "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",

@@ -220,7 +220,7 @@ internal static class ExpressionHelpers
             requestedCount = arguments.Last.Value;
         }
 
-        if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
+        if (cursor?.IsRelative == true)
         {
             if ((arguments.Last is not null && cursor.Offset > 0) || (arguments.First is not null && cursor.Offset < 0))
             {
