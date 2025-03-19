@@ -925,7 +925,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     using (Writer.IncreaseIndent())
                     {
                         Writer.WriteIndentedLine(
-                            "args{0}_includeTotalCount = args0_flags.HasFlag(global::{1}.TotalCount);",
+                            "args{0}_includeTotalCount = args{0}_flags.HasFlag(global::{1}.TotalCount);",
                             i,
                             WellKnownTypes.ConnectionFlags);
                     }
@@ -950,12 +950,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                                 "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor)",
                                 i,
                                 WellKnownTypes.ConnectionFlags);
-                            using (Writer.IncreaseIndent())
-                            {
-                                Writer.WriteIndentedLine(
-                                    "?? global::{0}.EnableRelativeCursors",
-                                    WellKnownTypes.PagingDefaults);
-                            }
                         }
 
                         Writer.WriteIndentedLine("};");
