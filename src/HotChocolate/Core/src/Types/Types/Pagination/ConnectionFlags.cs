@@ -39,5 +39,5 @@ public enum ConnectionFlags
     /// <summary>
     /// All fields were requested by the user.
     /// </summary>
-    All = Edges | Nodes | TotalCount
+    All = Edges | Nodes | TotalCount | RelativeCursor
 }
