@@ -421,7 +421,8 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ModifyPagingOptions(o => o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors"));
 
         services.AddSingleton<IDbSeeder<CatalogContext>, CatalogContextSeed>();
 

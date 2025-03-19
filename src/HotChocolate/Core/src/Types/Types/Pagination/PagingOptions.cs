@@ -91,6 +91,7 @@ public class PagingOptions
         ProviderName ??= other.ProviderName;
         IncludeNodesField ??= other.IncludeNodesField;
         EnableRelativeCursors ??= other.EnableRelativeCursors;
+        RelativeCursorFields = RelativeCursorFields.Union(other.RelativeCursorFields);
     }
 
     /// <summary>
@@ -108,6 +109,7 @@ public class PagingOptions
             InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
             ProviderName = ProviderName,
             IncludeNodesField = IncludeNodesField,
-            EnableRelativeCursors = EnableRelativeCursors
+            EnableRelativeCursors = EnableRelativeCursors,
+            RelativeCursorFields = RelativeCursorFields
         };
 }
