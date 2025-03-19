@@ -94,6 +94,7 @@ public static class WellKnownTypes
     public const string NonNullType = "HotChocolate.Types.NonNullType";
     public const string ListType = "HotChocolate.Types.ListType";
     public const string ConnectionFlags = "HotChocolate.Types.Paging.ConnectionFlags";
+    public const string ConnectionFlagsHelper = "HotChocolate.Types.Paging.ConnectionFlagsHelper";
 
     public static HashSet<string> TypeClass { get; } =
     [

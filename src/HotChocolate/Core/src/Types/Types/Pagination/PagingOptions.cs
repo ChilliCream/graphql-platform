@@ -1,5 +1,7 @@
 #nullable enable
 
+using System.Collections.Immutable;
+
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
@@ -63,6 +65,12 @@ public class PagingOptions
     /// Defines whether relative cursors are allowed.
     /// </summary>
     public bool? EnableRelativeCursors { get; set; }
+
+    /// <summary>
+    /// Gets or sets the fields that represent relative cursors.
+    /// </summary>
+    public ImmutableHashSet<string> RelativeCursorFields { get; set; } =
+        ["pageInfo { forwardCursors }", "pageInfo { backwardCursors }"];
 
     /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever

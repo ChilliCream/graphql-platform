@@ -35,7 +35,7 @@ internal sealed class ConnectionFlagsParameterExpressionBuilder
 
     private static ConnectionFlags Execute(IResolverContext context)
     {
-        var flags = ConnectionFlags.Nothing;
+        var flags = ConnectionFlags.None;
 
         if (context.IsSelected("totalCount"))
         {
