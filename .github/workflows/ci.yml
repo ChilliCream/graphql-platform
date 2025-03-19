@@ -198,9 +198,6 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Debug Docker config
-        run: test -f $DOCKER_CONFIG/config.json && echo "Docker config exists"
-
       - name: Run tests
         id: run-tests
         timeout-minutes: 15
