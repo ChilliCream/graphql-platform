@@ -27,17 +27,17 @@ public enum ConnectionFlags
     TotalCount = 4,
 
     /// <summary>
-    /// The relative cursor field was requested by the user.
+    /// The page info field was requested by the user.
     /// </summary>
-    RelativeCursor = 8,
+    PageInfo = 8,
 
     /// <summary>
-    /// The nodes or edges field was requested by the user.
+    /// The relative cursor field was requested by the user.
     /// </summary>
-    NodesOrEdges = Edges | Nodes,
+    RelativeCursor = 16,
 
     /// <summary>
     /// All fields were requested by the user.
     /// </summary>
-    All = Edges | Nodes | TotalCount | RelativeCursor
+    All = Edges | Nodes | TotalCount | PageInfo | RelativeCursor
 }

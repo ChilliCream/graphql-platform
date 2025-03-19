@@ -70,7 +70,21 @@ public class PagingOptions
     /// Gets or sets the fields that represent relative cursors.
     /// </summary>
     public ImmutableHashSet<string> RelativeCursorFields { get; set; } =
-        ["pageInfo { forwardCursors }", "pageInfo { backwardCursors }"];
+        [
+            "pageInfo { forwardCursors }",
+            "pageInfo { backwardCursors }"
+        ];
+
+    /// <summary>
+    /// Gets or sets the fields that represent page infos like hasNextPage or startCursor.
+    /// </summary>
+    public ImmutableHashSet<string> PageInfoFields { get; set; } =
+        [
+            "pageInfo { startCursor }",
+            "pageInfo { endCursor }" ,
+            "pageInfo { hasNextPage }" ,
+            "pageInfo { hasPreviousPage }"
+        ];
 
     /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever
@@ -92,6 +106,7 @@ public class PagingOptions
         IncludeNodesField ??= other.IncludeNodesField;
         EnableRelativeCursors ??= other.EnableRelativeCursors;
         RelativeCursorFields = RelativeCursorFields.Union(other.RelativeCursorFields);
+        PageInfoFields = PageInfoFields.Union(other.PageInfoFields);
     }
 
     /// <summary>
@@ -110,6 +125,7 @@ public class PagingOptions
             ProviderName = ProviderName,
             IncludeNodesField = IncludeNodesField,
             EnableRelativeCursors = EnableRelativeCursors,
-            RelativeCursorFields = RelativeCursorFields
+            RelativeCursorFields = RelativeCursorFields,
+            PageInfoFields = PageInfoFields
         };
 }
