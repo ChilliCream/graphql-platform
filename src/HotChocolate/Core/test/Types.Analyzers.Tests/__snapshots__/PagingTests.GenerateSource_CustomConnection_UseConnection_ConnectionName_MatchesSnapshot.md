@@ -54,6 +54,7 @@ namespace TestNamespace
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorsAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
                 var args0_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                var args0_flags = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(context);
                 var args0_first = context.ArgumentValue<int?>("first");
                 var args0_after = context.ArgumentValue<string?>("after");
                 int? args0_last = null;
@@ -73,7 +74,7 @@ namespace TestNamespace
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
-                    args0_includeTotalCount = context.IsSelected("totalCount");
+                    args0_includeTotalCount = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount);
                 }
 
                 var args0 = new global::GreenDonut.Data.PagingArguments(
@@ -83,8 +84,7 @@ namespace TestNamespace
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_options.EnableRelativeCursors
-                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.EnableRelativeCursors
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.AuthorQueries.GetAuthorsAsync(args0, args1);

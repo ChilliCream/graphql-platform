@@ -314,6 +314,32 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Verify_That_PageInfo_Flag_Is_Correctly_Inferred()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                brands(first: 1) {
+                    nodes {
+                        products(first: 2) {
+                            pageInfo {
+                                endCursor
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
     public async Task Query_Products_Include_TotalCount()
     {
         // arrange
@@ -421,7 +447,8 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             .AddPagingArguments()
             .AddFiltering()
             .AddSorting()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ModifyPagingOptions(o => o.RelativeCursorFields = o.RelativeCursorFields.Add("endCursors"));
 
         services.AddSingleton<IDbSeeder<CatalogContext>, CatalogContextSeed>();
 

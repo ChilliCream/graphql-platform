@@ -34,24 +34,5 @@ internal sealed class ConnectionFlagsParameterExpressionBuilder
         => (T)(object)Execute(context);
 
     private static ConnectionFlags Execute(IResolverContext context)
-    {
-        var flags = ConnectionFlags.Nothing;
-
-        if (context.IsSelected("totalCount"))
-        {
-            flags |= ConnectionFlags.TotalCount;
-        }
-
-        if (context.IsSelected("edges"))
-        {
-            flags |= ConnectionFlags.Edges;
-        }
-
-        if (context.IsSelected("nodes"))
-        {
-            flags |= ConnectionFlags.Nodes;
-        }
-
-        return flags;
-    }
+        => ConnectionFlagsHelper.GetConnectionFlags(context);
 }
