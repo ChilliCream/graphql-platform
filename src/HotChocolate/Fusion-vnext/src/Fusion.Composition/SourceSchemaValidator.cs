@@ -235,6 +235,15 @@ internal sealed class SourceSchemaValidator(
         {
             var selectionSet = Syntax.ParseSelectionSet($"{{{fieldsArgument.Value}}}");
 
+            PublishEvent(
+                new ProvidesFieldsEvent(
+                    selectionSet,
+                    providesDirective,
+                    field,
+                    type,
+                    schema),
+                context);
+
             PublishProvidesFieldEvents(
                 selectionSet,
                 field,

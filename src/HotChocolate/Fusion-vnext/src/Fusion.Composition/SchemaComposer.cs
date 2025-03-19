@@ -93,6 +93,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),
+        new ProvidesInvalidFieldsRule(),
         new ProvidesInvalidFieldsTypeRule(),
         new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
