@@ -22,6 +22,12 @@ public static partial class BrandNode
         ISelection selection,
         CancellationToken cancellationToken)
     {
+        // we for test purposes only return an empty page if the connection flags are set to PageInfo
+        if(connectionFlags == ConnectionFlags.PageInfo)
+        {
+            return new PageConnection<Product>(Page<Product>.Empty);
+        }
+
         var page = await productService.GetProductsByBrandAsync(brand.Id, pagingArgs, query, cancellationToken);
         return new PageConnection<Product>(page);
     }
