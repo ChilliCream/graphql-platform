@@ -10,11 +10,11 @@ namespace HotChocolate.Fusion.Validators;
 public sealed class SelectionSetValidator(MutableSchemaDefinition schema)
     : SyntaxWalker<SelectionSetValidatorContext>
 {
-    public ImmutableArray<string> Validate(SelectionSetNode selectedSet, ITypeDefinition type)
+    public ImmutableArray<string> Validate(SelectionSetNode selectionSet, ITypeDefinition type)
     {
         var context = new SelectionSetValidatorContext(type);
 
-        Visit(selectedSet, context);
+        Visit(selectionSet, context);
 
         return [.. context.Errors];
     }
