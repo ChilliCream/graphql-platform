@@ -3,6 +3,7 @@ using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.ApolloFederation.TestHelper;
@@ -68,6 +69,36 @@ public class EntitiesResolverTests
         var obj = Assert.IsType<MixedFieldTypes>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal(25, obj.IntField);
+        Assert.Equal("InternalValue", obj.InternalField);
+    }
+
+    [Fact]
+    public async Task TestResolveViaForeignServiceType_ListType()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildSchemaAsync();
+
+        var context = CreateResolverContext(schema);
+
+        // act
+        var representations = new List<Representation>
+        {
+            new("ListFieldType",
+                new ObjectValueNode(
+                    new ObjectFieldNode("id", "1"),
+                    new ObjectFieldNode("listField", new ListValueNode(new List<IntValueNode> { new(1), new(2), new(3) })))),
+        };
+
+        // assert
+        var result =
+            await EntitiesResolver.ResolveAsync(schema, representations, context);
+        var obj = Assert.IsType<ListFieldType>(result[0]);
+        Assert.Equal("1", obj.Id);
+        Assert.Equal([1, 2, 3], obj.ListField);
         Assert.Equal("InternalValue", obj.InternalField);
     }
 
@@ -249,6 +280,7 @@ public class EntitiesResolverTests
         public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; } = default!;
         public MixedFieldTypes MixedFieldTypes { get; set; } = default!;
         public FederatedType TypeWithReferenceResolverMany { get; set; } = default!;
+        public ListFieldType ListFieldType { get; set; } = default!;
     }
 
     public class TypeWithoutRefResolver
@@ -332,6 +364,31 @@ public class EntitiesResolverTests
                 string.Empty;
 
             return await loader.LoadAsync(id);
+        }
+    }
+
+    [ExtendServiceType]
+    public class ListFieldType
+    {
+        public ListFieldType(string id, List<double> listField)
+        {
+            Id = id;
+            ListField = listField;
+        }
+
+        [Key]
+        [External]
+        public string Id { get; }
+
+        [External]
+        public List<double> ListField { get; }
+
+        public string InternalField { get; set; } = "InternalValue";
+
+        [ReferenceResolver]
+        public static ListFieldType GetByExternal(string id, List<double> listField, IResolverContext context)
+        {
+            return new(id, listField);
         }
     }
 
