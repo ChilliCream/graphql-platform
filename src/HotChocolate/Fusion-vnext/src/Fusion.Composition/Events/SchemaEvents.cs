@@ -123,15 +123,6 @@ internal record RequireFieldInvalidTypeEvent(
     MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
-internal record RequireFieldNodeEvent(
-    FieldNode FieldNode,
-    ImmutableArray<string> FieldNamePath,
-    Directive RequireDirective,
-    MutableInputFieldDefinition Argument,
-    MutableOutputFieldDefinition Field,
-    MutableComplexTypeDefinition Type,
-    MutableSchemaDefinition Schema) : IEvent;
-
 internal record SchemaEvent(MutableSchemaDefinition Schema) : IEvent;
 
 internal record TypeEvent(
