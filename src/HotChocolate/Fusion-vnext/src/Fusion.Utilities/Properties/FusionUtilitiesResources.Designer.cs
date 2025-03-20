@@ -168,6 +168,24 @@ namespace HotChocolate.Fusion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not return a composite type and cannot have subselections..
+        /// </summary>
+        internal static string SelectionSetValidator_FieldInvalidSubselections {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_FieldInvalidSubselections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; returns a composite type and must have subselections..
+        /// </summary>
+        internal static string SelectionSetValidator_FieldMissingSubselections {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_FieldMissingSubselections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; is not a possible type of type &apos;{1}&apos;..
         /// </summary>
         internal static string SelectionSetValidator_InvalidTypeCondition {
@@ -191,6 +209,15 @@ namespace HotChocolate.Fusion {
         internal static string SelectionSetValidator_TypeMustBeObjectOrInterface {
             get {
                 return ResourceManager.GetString("SelectionSetValidator_TypeMustBeObjectOrInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; returns a union type and must only include inline fragment selections..
+        /// </summary>
+        internal static string SelectionSetValidator_UnionFieldInvalidSelections {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_UnionFieldInvalidSelections", resourceCulture);
             }
         }
     }

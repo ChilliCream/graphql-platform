@@ -29,9 +29,41 @@ public sealed class SelectionSetValidator(MutableSchemaDefinition schema)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))
             {
-                if (field.Type.NullableType() is MutableComplexTypeDefinition fieldType)
+                var fieldType = field.Type.NullableType();
+
+                if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
                 {
-                    context.TypeContext.Push(fieldType);
+                    if (node.SelectionSet?.Selections.Any() != true)
+                    {
+                        context.Errors.Add(
+                            string.Format(
+                                SelectionSetValidator_FieldMissingSubselections,
+                                field.Name));
+
+                        return Break;
+                    }
+
+                    if (fieldType is MutableUnionTypeDefinition
+                        && node.SelectionSet.Selections.Any(s => s is not InlineFragmentNode))
+                    {
+                        context.Errors.Add(
+                            string.Format(
+                                SelectionSetValidator_UnionFieldInvalidSelections,
+                                field.Name));
+
+                        return Break;
+                    }
+
+                    context.TypeContext.Push(fieldType.AsTypeDefinition());
+                }
+                else if (node.SelectionSet is not null)
+                {
+                    context.Errors.Add(
+                        string.Format(
+                            SelectionSetValidator_FieldInvalidSubselections,
+                            node.Name.Value));
+
+                    return Break;
                 }
                 else
                 {

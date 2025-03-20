@@ -319,6 +319,111 @@ public sealed class SelectionSetValidatorTests
                 [
                     "The type 'Book' must be an object or interface."
                 ]
+            },
+            // Empty selection set on field returning object type.
+            {
+                """
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "sku variation")
+                }
+
+                type Product @key(fields: "sku variation { id }") {
+                    sku: String! @external
+                    variation: ProductVariation!
+                    name: String!
+                }
+
+                type ProductVariation {
+                    id: String!
+                    size: String! @external
+                }
+                """,
+                "Review.product",
+                [
+                    "The field 'variation' returns a composite type and must have subselections."
+                ]
+            },
+            // Empty selection set on field returning union type.
+            {
+                """
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "category")
+                }
+
+                type Product {
+                    id: ID!
+                    name: String!
+                    category: Category!
+                }
+
+                union Category = Books | Clothing
+
+                type Books {
+                    id: ID!
+                    name: String!
+                }
+
+                type Clothing {
+                    id: ID!
+                    name: String!
+                }
+                """,
+                "Review.product",
+                [
+                    "The field 'category' returns a composite type and must have subselections."
+                ]
+            },
+            // Invalid selection set on field returning union type.
+            {
+                """
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "category { name }")
+                }
+
+                type Product {
+                    id: ID!
+                    name: String!
+                    category: Category!
+                }
+
+                union Category = Books | Clothing
+
+                type Books {
+                    id: ID!
+                    name: String!
+                }
+
+                type Clothing {
+                    id: ID!
+                    name: String!
+                }
+                """,
+                "Review.product",
+                [
+                    "The field 'category' returns a union type and must only include inline " +
+                    "fragment selections."
+                ]
+            },
+            // Selection on field returning scalar type.
+            {
+                """
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "id { name }")
+                }
+
+                type Product {
+                    id: ID!
+                    name: String!
+                }
+                """,
+                "Review.product",
+                [
+                    "The field 'id' does not return a composite type and cannot have subselections."
+                ]
             }
         };
     }
