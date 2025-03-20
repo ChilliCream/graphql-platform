@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
@@ -356,19 +357,9 @@ internal sealed class SourceSchemaValidator(
 
         try
         {
-            var selectionSet = Syntax.ParseSelectionSet($"{{{fieldArgument.Value}}}");
-
-            PublishRequireFieldEvents(
-                selectionSet,
-                argument,
-                field,
-                type,
-                requireDirective,
-                [],
-                schema,
-                context);
+            new FieldSelectionMapParser(fieldArgument.Value).Parse();
         }
-        catch (SyntaxException)
+        catch (FieldSelectionMapSyntaxException)
         {
             PublishEvent(
                 new RequireFieldInvalidSyntaxEvent(
@@ -378,51 +369,6 @@ internal sealed class SourceSchemaValidator(
                     type,
                     schema),
                 context);
-        }
-    }
-
-    private void PublishRequireFieldEvents(
-        SelectionSetNode selectionSet,
-        MutableInputFieldDefinition argument,
-        MutableOutputFieldDefinition field,
-        MutableComplexTypeDefinition type,
-        Directive requireDirective,
-        List<string> fieldNamePath,
-        MutableSchemaDefinition schema,
-        CompositionContext context)
-    {
-        foreach (var selection in selectionSet.Selections)
-        {
-            if (selection is FieldNode fieldNode)
-            {
-                fieldNamePath.Add(fieldNode.Name.Value);
-
-                PublishEvent(
-                    new RequireFieldNodeEvent(
-                        fieldNode,
-                        [.. fieldNamePath],
-                        requireDirective,
-                        argument,
-                        field,
-                        type,
-                        schema),
-                    context);
-
-                if (fieldNode.SelectionSet is not null)
-                {
-                    PublishRequireFieldEvents(
-                        fieldNode.SelectionSet,
-                        argument,
-                        field,
-                        type,
-                        requireDirective,
-                        fieldNamePath,
-                        schema,
-                        context);
-                }
-
-                fieldNamePath = [];
-            }
         }
     }
 }
