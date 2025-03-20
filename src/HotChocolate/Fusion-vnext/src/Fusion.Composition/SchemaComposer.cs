@@ -98,7 +98,6 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
-        new RequireDirectiveInFieldArgumentRule(),
         new RequireInvalidFieldTypeRule(),
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
