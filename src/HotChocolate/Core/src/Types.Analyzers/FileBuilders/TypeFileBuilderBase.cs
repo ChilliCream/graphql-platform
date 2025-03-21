@@ -282,7 +282,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         using (Writer.IncreaseIndent())
         {
-            Writer.WriteIndentedLine("var type = typeof(global::{0});", resolverTypeName);
+            Writer.WriteIndentedLine("var type = typeof({0});", resolverTypeName);
             Writer.WriteIndentedLine("global::System.Reflection.MethodInfo resolver = default!;");
             Writer.WriteIndentedLine("global::System.Reflection.ParameterInfo[] parameters = default!;");
 
