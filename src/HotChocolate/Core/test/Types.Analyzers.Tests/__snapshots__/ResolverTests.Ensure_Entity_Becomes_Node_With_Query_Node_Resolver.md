@@ -164,7 +164,7 @@ namespace TestNamespace
 
             public __Resolvers(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
             {
-                var type = typeof(TestNamespace.TestType);
+                var type = typeof(global::TestNamespace.TestType);
                 global::System.Reflection.MethodInfo resolver = default!;
                 global::System.Reflection.ParameterInfo[] parameters = default!;
 
