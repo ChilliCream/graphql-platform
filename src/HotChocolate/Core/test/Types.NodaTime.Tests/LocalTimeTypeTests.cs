@@ -1,5 +1,6 @@
 using System.Globalization;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Text;
 
@@ -158,5 +159,63 @@ public class LocalTimeTypeIntegrationTests
 
         localTimeType.Description.MatchInlineSnapshot(
             "LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.");
+    }
+
+    [Fact]
+    public async Task Ensure_Schema_First_Can_Override_Type()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: LocalTime
+                }
+
+                scalar LocalTime
+                """)
+            .AddType<LocalTimeType>()
+            .UseField(next => next)
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_Schema_First_Can_Override_Type_2()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: LocalTime
+                }
+
+                scalar LocalTime
+                """)
+            .BindScalarType<LocalTimeType>("LocalTime")
+            .UseField(next => next)
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_Schema_First_Obverride_Is_Lazy()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String
+                }
+                """)
+            .BindScalarType<LocalTimeType>("LocalTime")
+            .UseField(next => next)
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 }

@@ -14,12 +14,20 @@ public static class NodaTimeRequestExecutorBuilderExtensions
         return schemaBuilder;
     }
 
-    private static readonly IReadOnlyList<Type> _nodaTimeTypes = new[]
-    {
-        typeof(DateTimeZoneType), typeof(DurationType), typeof(InstantType),
-        typeof(IsoDayOfWeekType), typeof(LocalDateTimeType), typeof(LocalDateType),
-        typeof(LocalTimeType), typeof(OffsetDateTimeType), typeof(OffsetDateType),
-        typeof(OffsetTimeType), typeof(OffsetType), typeof(PeriodType),
-        typeof(ZonedDateTimeType),
-    };
+    private static readonly IReadOnlyList<Type> _nodaTimeTypes =
+    [
+        typeof(DateTimeZoneType),
+        typeof(DurationType),
+        typeof(InstantType),
+        typeof(IsoDayOfWeekType),
+        typeof(LocalDateTimeType),
+        typeof(LocalDateType),
+        typeof(LocalTimeType),
+        typeof(OffsetDateTimeType),
+        typeof(OffsetDateType),
+        typeof(OffsetTimeType),
+        typeof(OffsetType),
+        typeof(PeriodType),
+        typeof(ZonedDateTimeType)
+    ];
 }
