@@ -343,4 +343,9 @@ public static class WellKnownContextData
     /// The key to determine whether the @authorize directive was already registered.
     /// </summary>
     public const string AreAuthorizeDirectivesRegistered = "HotChocolate.Authorization.AuthDirectivesRegistered";
+
+    /// <summary>
+    /// he key to get the scalar name overrides.
+    /// </summary>
+    public const string ScalarNameOverrides = "HotChocolate.Types.Scalars.Overrides";
 }

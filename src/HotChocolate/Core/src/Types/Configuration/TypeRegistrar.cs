@@ -40,6 +40,8 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
             : new CombinedServiceProvider(_schemaServices, _applicationServices);
     }
 
+    public ISet<string> Scalars { get; } = new HashSet<string>();
+
     public void Register(
         TypeSystemObjectBase obj,
         string? scope,
@@ -49,6 +51,11 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         if (obj is null)
         {
             throw new ArgumentNullException(nameof(obj));
+        }
+
+        if (obj is ScalarType scalar)
+        {
+            Scalars.Add(scalar.Name);
         }
 
         var registeredType = InitializeType(obj, scope, inferred);
