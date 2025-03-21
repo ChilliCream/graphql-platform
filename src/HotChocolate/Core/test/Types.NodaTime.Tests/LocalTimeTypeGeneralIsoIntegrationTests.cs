@@ -25,7 +25,7 @@ public class LocalTimeTypeGeneralIsoIntegrationTests
     [Fact]
     public void ParsesVariable()
     {
-        IExecutionResult? result = _testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "12:42:13" }, })
@@ -37,7 +37,7 @@ public class LocalTimeTypeGeneralIsoIntegrationTests
     [Fact]
     public void DoesntParseAnIncorrectVariable()
     {
-        IExecutionResult? result = _testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { {"arg", "12:42" }, })
