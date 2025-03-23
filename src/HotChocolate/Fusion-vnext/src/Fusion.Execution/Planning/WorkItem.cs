@@ -10,5 +10,3 @@ public sealed record WorkItem(
 {
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 }
-
-
