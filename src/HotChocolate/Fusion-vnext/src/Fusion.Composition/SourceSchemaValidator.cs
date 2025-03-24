@@ -120,6 +120,14 @@ internal sealed class SourceSchemaValidator(
             {
                 var selectionSet = Syntax.ParseSelectionSet($"{{{fieldsArgument.Value}}}");
 
+                PublishEvent(
+                    new KeyFieldsEvent(
+                        selectionSet,
+                        keyDirective,
+                        entityType,
+                        schema),
+                    context);
+
                 PublishKeyFieldEvents(
                     selectionSet,
                     entityType,
@@ -184,15 +192,6 @@ internal sealed class SourceSchemaValidator(
                     }
                     else
                     {
-                        PublishEvent(
-                            new KeyFieldsInvalidReferenceEvent(
-                                fieldNode,
-                                parentType,
-                                keyDirective,
-                                entityType,
-                                schema),
-                            context);
-
                         nextParentType = null;
                     }
                 }

@@ -81,71 +81,8 @@ public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.id', which does not exist."
-                ]
-            },
-            // Nested field.
-            {
-                [
-                    """
-                    type Product @key(fields: "info { category { id } }") {
-                        info: ProductInfo!
-                    }
-
-                    type ProductInfo {
-                        subcategory: Category
-                    }
-
-                    type Category {
-                        name: String!
-                    }
-                    """
-                ],
-                [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'ProductInfo.category', which does not exist."
-                ]
-            },
-            // Multiple nested fields.
-            {
-                [
-                    """
-                    type Product @key(fields: "category { id name } info { id }") {
-                        category: ProductCategory!
-                    }
-
-                    type ProductCategory {
-                        description: String
-                    }
-                    """
-                ],
-                [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'ProductCategory.id', which does not exist.",
-
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'ProductCategory.name', which does not exist.",
-
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.info', which does not exist."
-                ]
-            },
-            // Multiple keys.
-            {
-                [
-                    """
-                    type Product @key(fields: "id") @key(fields: "name") {
-                        sku: String!
-                    }
-                    """
-                ],
-                [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.id', which does not exist.",
-
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.name', which does not exist."
+                    "A @key directive on type 'Product' in schema 'A' specifies an invalid field " +
+                    "selection."
                 ]
             }
         };

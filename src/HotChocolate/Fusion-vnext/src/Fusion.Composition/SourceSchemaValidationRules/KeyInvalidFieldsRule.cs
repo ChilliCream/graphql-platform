@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Validators;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -14,18 +15,23 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Fields">
 /// Specification
 /// </seealso>
-internal sealed class KeyInvalidFieldsRule : IEventHandler<KeyFieldsInvalidReferenceEvent>
+internal sealed class KeyInvalidFieldsRule : IEventHandler<KeyFieldsEvent>
 {
-    public void Handle(KeyFieldsInvalidReferenceEvent @event, CompositionContext context)
+    public void Handle(KeyFieldsEvent @event, CompositionContext context)
     {
-        var (fieldNode, type, keyDirective, entityType, schema) = @event;
+        var (selectionSet, keyDirective, entityType, schema) = @event;
 
-        context.Log.Write(
-            KeyInvalidFields(
-                entityType.Name,
-                keyDirective,
-                fieldNode.Name.Value,
-                type.Name,
-                schema));
+        var validator = new SelectionSetValidator(schema);
+        var errors = validator.Validate(selectionSet, entityType);
+
+        if (errors.Any())
+        {
+            context.Log.Write(
+                KeyInvalidFields(
+                    keyDirective,
+                    entityType.Name,
+                    schema,
+                    errors));
+        }
     }
 }

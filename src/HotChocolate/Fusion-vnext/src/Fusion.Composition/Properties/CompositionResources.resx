@@ -214,7 +214,7 @@
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not be a list, interface, or union type.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFields" xml:space="preserve">
-    <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which does not exist.</value>
+    <value>A @key directive on type '{0}' in schema '{1}' specifies an invalid field selection.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFieldsType" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
