@@ -452,23 +452,19 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyInvalidFields(
-        string entityTypeName,
         Directive keyDirective,
-        string fieldName,
-        string typeName,
-        MutableSchemaDefinition schema)
+        string entityTypeName,
+        MutableSchemaDefinition schema,
+        ImmutableArray<string> errors)
     {
         return new LogEntry(
-            string.Format(
-                LogEntryHelper_KeyInvalidFields,
-                entityTypeName,
-                schema.Name,
-                new SchemaCoordinate(typeName, fieldName)),
+            string.Format(LogEntryHelper_KeyInvalidFields, entityTypeName, schema.Name),
             LogEntryCodes.KeyInvalidFields,
             LogSeverity.Error,
             new SchemaCoordinate(entityTypeName),
             keyDirective,
-            schema);
+            schema,
+            errors);
     }
 
     public static LogEntry KeyInvalidFieldsType(

@@ -48,9 +48,8 @@ internal record KeyFieldNodeEvent(
     MutableComplexTypeDefinition EntityType,
     MutableSchemaDefinition Schema) : IEvent;
 
-internal record KeyFieldsInvalidReferenceEvent(
-    FieldNode FieldNode,
-    MutableComplexTypeDefinition Type,
+internal record KeyFieldsEvent(
+    SelectionSetNode SelectionSet,
     Directive KeyDirective,
     MutableComplexTypeDefinition EntityType,
     MutableSchemaDefinition Schema) : IEvent;
