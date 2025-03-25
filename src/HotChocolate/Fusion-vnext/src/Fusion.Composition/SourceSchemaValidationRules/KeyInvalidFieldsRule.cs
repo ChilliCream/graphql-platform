@@ -19,17 +19,17 @@ internal sealed class KeyInvalidFieldsRule : IEventHandler<KeyFieldsEvent>
 {
     public void Handle(KeyFieldsEvent @event, CompositionContext context)
     {
-        var (selectionSet, keyDirective, entityType, schema) = @event;
+        var (selectionSet, keyDirective, type, schema) = @event;
 
         var validator = new SelectionSetValidator(schema);
-        var errors = validator.Validate(selectionSet, entityType);
+        var errors = validator.Validate(selectionSet, type);
 
         if (errors.Any())
         {
             context.Log.Write(
                 KeyInvalidFields(
                     keyDirective,
-                    entityType.Name,
+                    type.Name,
                     schema,
                     errors));
         }

@@ -35,9 +35,9 @@ internal record InterfaceTypeEvent(
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldEvent(
+    MutableOutputFieldDefinition KeyField,
+    MutableComplexTypeDefinition KeyFieldDeclaringType,
     Directive KeyDirective,
-    MutableComplexTypeDefinition EntityType,
-    MutableOutputFieldDefinition Field,
     MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
@@ -45,23 +45,23 @@ internal record KeyFieldNodeEvent(
     FieldNode FieldNode,
     ImmutableArray<string> FieldNamePath,
     Directive KeyDirective,
-    MutableComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldsEvent(
     SelectionSetNode SelectionSet,
     Directive KeyDirective,
-    MutableComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldsInvalidSyntaxEvent(
     Directive KeyDirective,
-    MutableComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record KeyFieldsInvalidTypeEvent(
     Directive KeyDirective,
-    MutableComplexTypeDefinition EntityType,
+    MutableComplexTypeDefinition Type,
     MutableSchemaDefinition Schema) : IEvent;
 
 internal record ObjectTypeEvent(

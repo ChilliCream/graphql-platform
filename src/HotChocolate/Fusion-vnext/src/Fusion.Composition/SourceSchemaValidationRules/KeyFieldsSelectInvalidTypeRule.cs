@@ -20,17 +20,17 @@ internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<KeyFieldEve
 {
     public void Handle(KeyFieldEvent @event, CompositionContext context)
     {
-        var (keyDirective, entityType, field, type, schema) = @event;
+        var (keyField, keyFieldDeclaringType, keyDirective, type, schema) = @event;
 
-        var fieldType = field.Type.NullableType();
+        var fieldType = keyField.Type.NullableType();
 
         if (fieldType is MutableInterfaceTypeDefinition or ListType or MutableUnionTypeDefinition)
         {
             context.Log.Write(
                 KeyFieldsSelectInvalidType(
-                    entityType.Name,
+                    keyField.Name,
+                    keyFieldDeclaringType.Name,
                     keyDirective,
-                    field.Name,
                     type.Name,
                     schema));
         }
