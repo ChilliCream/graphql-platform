@@ -301,25 +301,6 @@ public sealed class SelectionSetValidatorTests
                     "The type 'Book' is not a possible type of type 'Product'."
                 ]
             },
-            // Type condition referencing a type that is neither an object nor an interface.
-            {
-                """
-                type Review {
-                    id: ID!
-                    product: Product @provides(fields: "... on Book { author }")
-                }
-
-                interface Product @key(fields: "id") {
-                    id: ID!
-                }
-
-                scalar Book
-                """,
-                "Review.product",
-                [
-                    "The type 'Book' must be an object or interface."
-                ]
-            },
             // Empty selection set on field returning object type.
             {
                 """

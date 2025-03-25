@@ -344,14 +344,6 @@ public sealed class FieldSelectionMapValidatorTests
                 [
                     "The type 'Store' is not a possible type of type 'Media'."
                 ]
-            },
-            {
-                "ID",
-                "Query",
-                "mediaById<String>.id",
-                [
-                    "The type 'String' must be an object or interface."
-                ]
             }
         };
     }

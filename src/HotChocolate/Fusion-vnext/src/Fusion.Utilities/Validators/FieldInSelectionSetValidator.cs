@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -102,12 +101,15 @@ public sealed class FieldInSelectionSetValidator(MutableSchemaDefinition schema)
                 return Break;
             }
 
-            if (ValidateConcreteType(concreteType, context))
+            var type = context.TypeContext.Peek();
+
+            if (schema.GetPossibleTypes(type).Contains(concreteType))
             {
                 context.TypeContext.Push(concreteType);
             }
             else
             {
+                // The concrete type is not a possible type of the abstract type.
                 return Break;
             }
         }
@@ -125,65 +127,6 @@ public sealed class FieldInSelectionSetValidator(MutableSchemaDefinition schema)
         }
 
         return Continue;
-    }
-
-    private static bool ValidateConcreteType(
-        ITypeDefinition concreteType,
-        FieldInSelectionSetValidatorContext context)
-    {
-        var type = context.TypeContext.Peek();
-
-        switch (type)
-        {
-            case MutableInterfaceTypeDefinition interfaceType:
-                if (concreteType is MutableComplexTypeDefinition complexType
-                    && complexType.Implements.Contains(interfaceType))
-                {
-                    return true;
-                }
-
-                break;
-            case MutableObjectTypeDefinition:
-            case MutableUnionTypeDefinition:
-                var possibleTypes = GetPossibleTypes(type);
-
-                if (possibleTypes.Contains(concreteType))
-                {
-                    return true;
-                }
-
-                break;
-        }
-
-        return false;
-    }
-
-    private static ImmutableHashSet<MutableComplexTypeDefinition> GetPossibleTypes(
-        ITypeDefinition type)
-    {
-        switch (type)
-        {
-            case MutableObjectTypeDefinition objectType:
-                return [objectType];
-
-            case MutableUnionTypeDefinition unionType:
-                var builder = ImmutableHashSet.CreateBuilder<MutableComplexTypeDefinition>();
-
-                foreach (var memberType in unionType.Types)
-                {
-                    builder.Add(memberType);
-
-                    foreach (var memberInterface in memberType.Implements)
-                    {
-                        builder.Add(memberInterface);
-                    }
-                }
-
-                return builder.ToImmutable();
-
-            default:
-                throw new InvalidOperationException();
-        }
     }
 }
 
