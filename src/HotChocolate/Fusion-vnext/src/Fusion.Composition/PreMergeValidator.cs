@@ -3,6 +3,7 @@ using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
@@ -33,6 +34,11 @@ internal sealed class PreMergeValidator(
         {
             foreach (var type in schema.Types)
             {
+                if (type is MutableObjectTypeDefinition t && t.HasInternalDirective())
+                {
+                    continue;
+                }
+
                 typeGroupByName.Add(type.Name, new TypeInfo(type, schema));
             }
         }
@@ -67,6 +73,11 @@ internal sealed class PreMergeValidator(
                     case MutableComplexTypeDefinition complexType:
                         foreach (var field in complexType.Fields)
                         {
+                            if (field.HasInternalDirective())
+                            {
+                                continue;
+                            }
+
                             outputFieldGroupByName.Add(
                                 field.Name,
                                 new OutputFieldInfo(field, complexType, schema));

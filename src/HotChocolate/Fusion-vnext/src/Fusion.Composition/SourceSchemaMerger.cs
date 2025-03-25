@@ -429,7 +429,11 @@ internal sealed class SourceSchemaMerger
         MutableSchemaDefinition mergedSchema)
     {
         // Filter out all types marked with @internal.
-        typeGroup = [.. typeGroup.Where(i => !i.Type.HasInternalDirective())];
+        typeGroup =
+            [
+                .. typeGroup.Where(
+                    i => !((MutableObjectTypeDefinition)i.Type).HasInternalDirective())
+            ];
 
         if (typeGroup.Length == 0)
         {
