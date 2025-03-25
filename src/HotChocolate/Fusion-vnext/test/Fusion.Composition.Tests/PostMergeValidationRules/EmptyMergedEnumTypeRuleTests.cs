@@ -51,41 +51,45 @@ public sealed class EmptyMergedEnumTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // TODO: Use examples from spec
+            // In the following example, the merged enum type "DeliveryStatus" is valid. It includes
+            // all values from both source schemas, with PENDING being hidden due to the
+            // @inaccessible directive in one of the source schemas.
             {
                 [
                     """
                     # Schema A
-                    enum Genre {
-                        FANTASY
-                        SCIENCE_FICTION @inaccessible
+                    enum DeliveryStatus {
+                        PENDING @inaccessible
+                        SHIPPED
+                        DELIVERED
                     }
                     """,
                     """
                     # Schema B
-                    enum Genre {
-                        FANTASY
+                    enum DeliveryStatus {
+                        SHIPPED
+                        DELIVERED
                     }
                     """
                 ]
             },
-            // TODO: Check spec text
             // If the @inaccessible directive is applied to an enum type itself, the entire merged
-            // enum type is excluded from the composite schema, and it is not required to contain
-            // any values.
+            // enum type is excluded from the composite execution schema, and it is not required to
+            // contain any values.
             {
                 [
                     """
                     # Schema A
-                    enum Genre @inaccessible {
-                        FANTASY
-                        SCIENCE_FICTION
+                    enum DeliveryStatus @inaccessible {
+                        SHIPPED
+                        DELIVERED
                     }
                     """,
                     """
                     # Schema B
-                    enum Genre {
-                        FANTASY
+                    enum DeliveryStatus {
+                        SHIPPED
+                        DELIVERED
                     }
                     """
                 ]
@@ -97,28 +101,28 @@ public sealed class EmptyMergedEnumTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // This example demonstrates an invalid merged enum type. In this case, "Genre" is
-            // defined in two source schemas, but all values are marked as @inaccessible in at least
-            // one of the source schemas, resulting in an empty merged enum type.
+            // This example demonstrates an invalid merged enum type. In this case, "DeliveryStatus"
+            // is defined in two source schemas, but all values are marked as @inaccessible in at
+            // least one of the source schemas, resulting in an empty merged enum type.
             {
                 [
                     """
                     # Schema A
-                    enum Genre {
-                        FANTASY
-                        SCIENCE_FICTION @inaccessible
+                    enum DeliveryStatus {
+                        PENDING @inaccessible
+                        DELIVERED
                     }
                     """,
                     """
                     # Schema B
-                    enum Genre {
-                        FANTASY @inaccessible
-                        SCIENCE_FICTION
+                    enum DeliveryStatus {
+                        PENDING
+                        DELIVERED @inaccessible
                     }
                     """
                 ],
                 [
-                    "The merged enum type 'Genre' is empty."
+                    "The merged enum type 'DeliveryStatus' is empty."
                 ]
             }
         };

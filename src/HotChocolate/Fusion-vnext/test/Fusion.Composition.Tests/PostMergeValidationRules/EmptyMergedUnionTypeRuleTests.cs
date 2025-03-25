@@ -51,55 +51,65 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // TODO: Use examples from spec
+            // In the following example, the merged union type "SearchResult" is valid. It includes
+            // all member types from both source schemas, with "User" being hidden due to the
+            // @inaccessible directive in one of the source schemas.
             {
                 [
                     """
                     # Schema A
-                    type A {
-                        name: String
+                    union SearchResult = User | Product
+
+                    type User @inaccessible {
+                        id: ID!
                     }
 
-                    type B {
-                        id: Int!
+                    type Product {
+                        id: ID!
                     }
-
-                    union C = A | B
                     """,
                     """
                     # Schema B
-                    type A {
-                        name: String
+                    union SearchResult = Product | Order
+
+                    type Product {
+                        id: ID!
                     }
 
-                    union C = A
+                    type Order {
+                        id: ID!
+                    }
                     """
                 ]
             },
             // If the @inaccessible directive is applied to a union type itself, the entire merged
-            // union type is excluded from the composite schema, and it is not required to contain
-            // any types.
+            // union type is excluded from the composite execution schema, and it is not required to
+            // contain any members.
             {
                 [
                     """
                     # Schema A
-                    type A {
-                        name: String
+                    union SearchResult @inaccessible = User | Product
+
+                    type User {
+                        id: ID!
                     }
 
-                    type B {
-                        id: Int!
+                    type Product {
+                        id: ID!
                     }
-
-                    union C @inaccessible = A | B
                     """,
                     """
                     # Schema B
-                    type A {
-                        name: String
+                    union SearchResult = Product | Order
+
+                    type Product {
+                        id: ID!
                     }
 
-                    union C = A
+                    type Order {
+                        id: ID!
+                    }
                     """
                 ]
             }
@@ -110,34 +120,38 @@ public sealed class EmptyMergedUnionTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // This example demonstrates an invalid merged union type. In this case, "C" is defined
-            // in two source schemas, but all member types are marked as @inaccessible in at least
-            // one of the source schemas, resulting in an empty merged union type.
+            // This example demonstrates an invalid merged union type. In this case, "SearchResult"
+            // is defined in two source schemas, but all member types are marked as @inaccessible in
+            // at least one of the source schemas, resulting in an empty merged union type.
             {
                 [
                     """
                     # Schema A
-                    type A {
-                        name: String
+                    union SearchResult = User | Product
+
+                    type User @inaccessible {
+                        id: ID!
                     }
 
-                    type B @inaccessible {
-                        id: Int!
+                    type Product {
+                        id: ID!
                     }
-
-                    union C = A | B
                     """,
                     """
                     # Schema B
-                    type A @inaccessible {
-                        name: String
+                    union SearchResult = User | Product
+
+                    type User {
+                        id: ID!
                     }
 
-                    union C = A
+                    type Product @inaccessible {
+                        id: ID!
+                    }
                     """
                 ],
                 [
-                    "The merged union type 'C' is empty."
+                    "The merged union type 'SearchResult' is empty."
                 ]
             }
         };
