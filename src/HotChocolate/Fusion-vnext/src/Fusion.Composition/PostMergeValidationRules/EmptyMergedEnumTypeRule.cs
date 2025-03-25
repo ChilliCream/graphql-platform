@@ -6,7 +6,10 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 /// <summary>
-/// TODO: Summary
+/// Enum values have to be an exact match across all source schemas. If an enum value only exists in
+/// one source schema, it has to be marked as <c>@inaccessible</c>. Enum members that are marked as
+/// <c>@inaccessible</c> are not included in the merged enum type. An enum type with no values is
+/// considered empty and invalid.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Empty-Merged-Enum-Type">
 /// Specification
