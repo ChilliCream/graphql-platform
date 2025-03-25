@@ -393,7 +393,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyDirectiveInFieldsArgument(
-        string entityTypeName,
+        string typeName,
         Directive keyDirective,
         ImmutableArray<string> fieldNamePath,
         MutableSchemaDefinition schema)
@@ -401,67 +401,67 @@ internal static class LogEntryHelper
         return new LogEntry(
             string.Format(
                 LogEntryHelper_KeyDirectiveInFieldsArgument,
-                entityTypeName,
+                typeName,
                 schema.Name,
                 string.Join(".", fieldNamePath)),
             LogEntryCodes.KeyDirectiveInFieldsArg,
             LogSeverity.Error,
-            new SchemaCoordinate(entityTypeName),
+            new SchemaCoordinate(typeName),
             keyDirective,
             schema);
     }
 
     public static LogEntry KeyFieldsHasArguments(
-        string entityTypeName,
+        string keyFieldName,
+        string keyFieldDeclaringTypeName,
         Directive keyDirective,
-        string fieldName,
         string typeName,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(
                 LogEntryHelper_KeyFieldsHasArguments,
-                entityTypeName,
+                typeName,
                 schema.Name,
-                new SchemaCoordinate(typeName, fieldName)),
+                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName)),
             LogEntryCodes.KeyFieldsHasArgs,
             LogSeverity.Error,
-            new SchemaCoordinate(entityTypeName),
+            new SchemaCoordinate(typeName),
             keyDirective,
             schema);
     }
 
     public static LogEntry KeyFieldsSelectInvalidType(
-        string entityTypeName,
+        string keyFieldName,
+        string keyFieldDeclaringTypeName,
         Directive keyDirective,
-        string fieldName,
         string typeName,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(
                 LogEntryHelper_KeyFieldsSelectInvalidType,
-                entityTypeName,
+                typeName,
                 schema.Name,
-                new SchemaCoordinate(typeName, fieldName)),
+                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName)),
             LogEntryCodes.KeyFieldsSelectInvalidType,
             LogSeverity.Error,
-            new SchemaCoordinate(entityTypeName),
+            new SchemaCoordinate(typeName),
             keyDirective,
             schema);
     }
 
     public static LogEntry KeyInvalidFields(
         Directive keyDirective,
-        string entityTypeName,
+        string typeName,
         MutableSchemaDefinition schema,
         ImmutableArray<string> errors)
     {
         return new LogEntry(
-            string.Format(LogEntryHelper_KeyInvalidFields, entityTypeName, schema.Name),
+            string.Format(LogEntryHelper_KeyInvalidFields, typeName, schema.Name),
             LogEntryCodes.KeyInvalidFields,
             LogSeverity.Error,
-            new SchemaCoordinate(entityTypeName),
+            new SchemaCoordinate(typeName),
             keyDirective,
             schema,
             errors);
@@ -469,10 +469,10 @@ internal static class LogEntryHelper
 
     public static LogEntry KeyInvalidFieldsType(
         Directive keyDirective,
-        string entityTypeName,
+        string typeName,
         MutableSchemaDefinition schema)
     {
-        var coordinate = new SchemaCoordinate(entityTypeName);
+        var coordinate = new SchemaCoordinate(typeName);
 
         return new LogEntry(
             string.Format(LogEntryHelper_KeyInvalidFieldsType, coordinate, schema.Name),
@@ -484,18 +484,18 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyInvalidSyntax(
-        string entityTypeName,
+        string typeName,
         Directive keyDirective,
         MutableSchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(
                 LogEntryHelper_KeyInvalidSyntax,
-                entityTypeName,
+                typeName,
                 schema.Name),
             LogEntryCodes.KeyInvalidSyntax,
             LogSeverity.Error,
-            new SchemaCoordinate(entityTypeName),
+            new SchemaCoordinate(typeName),
             keyDirective,
             schema);
     }

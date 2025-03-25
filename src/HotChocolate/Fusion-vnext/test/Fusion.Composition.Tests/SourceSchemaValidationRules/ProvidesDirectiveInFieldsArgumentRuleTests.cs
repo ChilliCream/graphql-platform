@@ -134,6 +134,11 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : CompositionTest
                         name: String
                         profile: Profile @provides(fields: "id @example name @example")
                     }
+
+                    type Profile {
+                        id: ID!
+                        name: String
+                    }
                     """
                 ],
                 [
