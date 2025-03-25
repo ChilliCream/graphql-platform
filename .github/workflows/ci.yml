@@ -163,7 +163,7 @@ jobs:
     needs: [configure, check-changes]
     if: needs.check-changes.outputs.library_changes == 'true'
     env:
-      DOCKER_CONFIG: $HOME/.docker
+      DOCKER_CONFIG: ${{ github.workspace }}/.docker
 
     strategy:
       fail-fast: false
