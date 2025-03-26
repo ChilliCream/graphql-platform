@@ -85,7 +85,7 @@ public readonly record struct CompositionResult<TValue>
     {
         isSuccess = IsSuccess;
         isFailure = IsFailure;
-        value = Value;
+        value = _value;
         errors = Errors;
     }
 }
