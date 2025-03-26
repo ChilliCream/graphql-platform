@@ -20,7 +20,8 @@ public class NatsIntegrationTests : SubscriptionIntegrationTestBase, IClassFixtu
 
         if (dockerConfig is not null)
         {
-            output.WriteLine($"DOCKER_CONFIG file exists: {(File.Exists(dockerConfig) ? "Yes" : "No")}");
+            var file = System.IO.Path.Combine(dockerConfig, "config.json");
+            output.WriteLine($"DOCKER_CONFIG file exists: {(File.Exists(file) ? "Yes" : "No")}");
         }
         // --
 
