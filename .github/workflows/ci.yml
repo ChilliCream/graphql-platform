@@ -197,6 +197,8 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          DOCKER_CONFIG: ${{ env.DOCKER_CONFIG }}
 
       - name: Run tests
         id: run-tests
