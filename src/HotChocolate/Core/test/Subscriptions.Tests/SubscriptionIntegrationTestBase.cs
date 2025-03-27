@@ -33,7 +33,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        var results = responseStream.ReadResultsAsync();
 
         // assert
         await sender.SendAsync("OnMessage", "bar", cts.Token);
@@ -41,7 +41,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results.WithCancellation(cts.Token))
         {
             snapshot.Add(response);
         }
@@ -69,7 +69,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        var results = responseStream.ReadResultsAsync();
 
         // assert
         await sender.SendAsync("OnMessage", new Foo { Bar = "Hello", }, cts.Token);
@@ -77,7 +77,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results.WithCancellation(cts.Token))
         {
             snapshot.Add(response);
         }
@@ -107,7 +107,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        var results = responseStream.ReadResultsAsync();
 
         // assert
         await sender.SendAsync("OnMessage_a", "abc", cts.Token);
@@ -115,7 +115,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results.WithCancellation(cts.Token))
         {
             snapshot.Add(response, name: "From Stream A");
         }
@@ -147,10 +147,10 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream1 = result1.ExpectResponseStream();
-        var results1 = responseStream1.ReadResultsAsync().ConfigureAwait(false);
+        var results1 = responseStream1.ReadResultsAsync();
 
         await using var responseStream2 = result2.ExpectResponseStream();
-        var results2 = responseStream2.ReadResultsAsync().ConfigureAwait(false);
+        var results2 = responseStream2.ReadResultsAsync();
 
         // assert
         await sender.SendAsync("OnMessage_a", "abc", cts.Token);
@@ -158,12 +158,12 @@ public abstract class SubscriptionIntegrationTestBase
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results1.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results1.WithCancellation(cts.Token))
         {
             snapshot.Add(response, name: "From Stream 1");
         }
 
-        await foreach (var response in results2.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results2.WithCancellation(cts.Token))
         {
             snapshot.Add(response, name: "From Stream 2");
         }
@@ -208,10 +208,10 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream1 = result1.ExpectResponseStream();
-        var results1 = responseStream1.ReadResultsAsync().ConfigureAwait(false);
+        var results1 = responseStream1.ReadResultsAsync();
 
         await using var responseStream2 = result2.ExpectResponseStream();
-        var results2 = responseStream2.ReadResultsAsync().ConfigureAwait(false);
+        var results2 = responseStream2.ReadResultsAsync();
 
         // assert
         await sender.SendAsync("OnMessage_a", "abc", cts.Token);
@@ -222,12 +222,12 @@ public abstract class SubscriptionIntegrationTestBase
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results1.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results1.WithCancellation(cts.Token))
         {
             snapshot.Add(response, name: "From Stream 1");
         }
 
-        await foreach (var response in results2.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results2.WithCancellation(cts.Token))
         {
             snapshot.Add(response, name: "From Stream 2");
         }
@@ -268,7 +268,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        var results = responseStream.ReadResultsAsync();
 
         // assert
         await sender.SendAsync("OnMessage2_a_b", "abc", cts.Token);
@@ -276,7 +276,7 @@ public abstract class SubscriptionIntegrationTestBase
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results.WithCancellation(cts.Token))
         {
             snapshot.Add(response, name: "From Stream A");
         }
@@ -304,13 +304,13 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        var results = responseStream.ReadResultsAsync();
 
         // assert
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var unused in results.WithCancellation(cts.Token))
         {
             Assert.Fail("Should not have any messages.");
         }
@@ -331,13 +331,13 @@ public abstract class SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        var results = responseStream.ReadResultsAsync();
 
         // assert
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage3");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var unused in results.WithCancellation(cts.Token))
         {
             Assert.Fail("Should not have any messages.");
         }
