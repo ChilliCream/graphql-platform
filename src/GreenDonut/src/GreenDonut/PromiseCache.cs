@@ -38,6 +38,8 @@ public sealed class PromiseCache : IPromiseCache
     /// <inheritdoc />
     public int Usage => _usage;
 
+    public IPromiseCacheInterceptor? Interceptor { get; set; }
+
     /// <inheritdoc />
     public Task<T> GetOrAddTask<T>(PromiseCacheKey key, Func<PromiseCacheKey, Promise<T>> createPromise)
     {
@@ -51,12 +53,15 @@ public sealed class PromiseCache : IPromiseCache
             throw new ArgumentNullException(nameof(createPromise));
         }
 
+        var interceptor = Interceptor;
         var read = true;
 
         var entry = _map.GetOrAdd(key, k =>
         {
             read = false;
-            return AddNewEntry(k, createPromise(k));
+            return interceptor is null
+                ? AddNewEntry(k, createPromise(k))
+                : new Entry(k, interceptor.GetOrAddPromise(k, createPromise));
         });
 
         if (read)
@@ -95,6 +100,11 @@ public sealed class PromiseCache : IPromiseCache
             return AddNewEntry(k, promise);
         });
 
+        if(!read)
+        {
+            Interceptor?.TryAdd(key, promise);
+        }
+
         if (!promise.IsClone)
         {
             promise.OnComplete(NotifySubscribers, new CacheAndKey(this, key));
@@ -123,6 +133,11 @@ public sealed class PromiseCache : IPromiseCache
             read = false;
             return AddNewEntry(k, createPromise());
         });
+
+        if(!read)
+        {
+            Interceptor?.TryAdd(key, (Promise<T>)entry.Value);
+        }
 
         var promise = (Promise<T>)entry.Value;
 
