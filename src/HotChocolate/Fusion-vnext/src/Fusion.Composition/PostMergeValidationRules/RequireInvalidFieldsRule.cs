@@ -57,9 +57,14 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<OutputFieldEvent>
                 var fieldSelectionMap = fieldSelectionMapParser.Parse();
                 var argument = arguments[i];
                 var inputType = schema.Types[argument.Type.NamedType().Name.Value];
-                var errors = validator.Validate(fieldSelectionMap, inputType, type);
+                var errors =
+                    validator.Validate(fieldSelectionMap, inputType, type, out var selectedFields);
 
-                if (errors.Any())
+                // A selected field is defined in the same schema as the `require` directive.
+                var selectedFieldSameSchema =
+                    selectedFields.Any(f => f.GetSchemaNames().Contains(sourceSchemaName));
+
+                if (errors.Any() || selectedFieldSameSchema)
                 {
                     context.Log.Write(
                         RequireInvalidFields(
