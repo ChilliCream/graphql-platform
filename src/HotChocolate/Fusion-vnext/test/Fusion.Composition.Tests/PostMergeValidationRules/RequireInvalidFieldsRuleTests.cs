@@ -127,6 +127,45 @@ public sealed class RequireInvalidFieldsRuleTests : CompositionTestBase
                     "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
                     "specifies an invalid field selection against the composed schema."
                 ]
+            },
+            // In the following example, the @require directive references a field from itself
+            // (Book.size) which is not allowed. This results in a REQUIRE_INVALID_FIELDS error.
+            {
+                [
+                    """
+                    type Book {
+                        id: ID!
+                        size: Int
+                        pages(pageSize: Int @require(field: "size")): Int
+                    }
+                    """
+                ],
+                [
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
+                    "specifies an invalid field selection against the composed schema."
+                ]
+            },
+            // Referencing a field that exists in both the current schema and another schema.
+            {
+                [
+                    """
+                    type Book {
+                        id: ID!
+                        size: Int
+                        pages(pageSize: Int @require(field: "size")): Int
+                    }
+                    """,
+                    """
+                    type Book {
+                        id: ID!
+                        size: Int
+                    }
+                    """
+                ],
+                [
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
+                    "specifies an invalid field selection against the composed schema."
+                ]
             }
         };
     }

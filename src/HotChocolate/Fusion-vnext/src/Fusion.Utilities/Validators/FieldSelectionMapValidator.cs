@@ -23,6 +23,21 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
         return [.. context.Errors];
     }
 
+    public ImmutableArray<string> Validate(
+        SelectedValueNode selectedValue,
+        ITypeDefinition inputType,
+        ITypeDefinition outputType,
+        out ImmutableHashSet<MutableOutputFieldDefinition> selectedFields)
+    {
+        var context = new FieldSelectionMapValidatorContext(inputType, outputType);
+
+        Visit(selectedValue, context);
+
+        selectedFields = [.. context.SelectedFields];
+
+        return [.. context.Errors];
+    }
+
     protected override ISyntaxVisitorAction Enter(
         PathNode node,
         FieldSelectionMapValidatorContext context)
@@ -89,6 +104,8 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
 
                 return Break;
             }
+
+            context.SelectedFields.Add(field);
 
             var fieldType = field.Type.NullableType();
 
@@ -293,6 +310,8 @@ public sealed class FieldSelectionMapValidatorContext
     public Stack<ITypeDefinition> InputTypes { get; } = [];
 
     public Stack<ITypeDefinition> OutputTypes { get; } = [];
+
+    public HashSet<MutableOutputFieldDefinition> SelectedFields { get; } = [];
 
     public List<string> Errors { get; } = [];
 }
