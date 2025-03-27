@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
@@ -51,16 +50,6 @@ internal static class DirectivesProviderExtensions
     public static bool HasInaccessibleDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(DirectiveNames.Inaccessible);
-    }
-
-    public static bool HasInternalDirective(this MutableObjectTypeDefinition type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Internal);
-    }
-
-    public static bool HasInternalDirective(this MutableOutputFieldDefinition type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Internal);
     }
 
     public static bool HasLookupDirective(this IDirectivesProvider type)

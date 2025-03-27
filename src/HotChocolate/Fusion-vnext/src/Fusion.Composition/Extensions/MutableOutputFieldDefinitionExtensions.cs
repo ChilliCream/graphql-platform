@@ -5,7 +5,7 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
-public static class ObjectFieldDefinitionExtensions
+internal static class MutableOutputFieldDefinitionExtensions
 {
     public static void ApplyLookupDirective(this MutableOutputFieldDefinition field)
     {
@@ -18,5 +18,10 @@ public static class ObjectFieldDefinitionExtensions
             field.Directives.AsEnumerable().Where(d => d.Name == FusionField);
 
         return [.. fusionFieldDirectives.Select(d => (string)d.Arguments[Schema].Value!)];
+    }
+
+    public static bool HasInternalDirective(this MutableOutputFieldDefinition type)
+    {
+        return type.Directives.ContainsName(Internal);
     }
 }
