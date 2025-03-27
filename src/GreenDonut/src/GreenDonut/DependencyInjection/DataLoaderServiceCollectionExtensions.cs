@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DataLoaderServiceCollectionExtensions
@@ -66,7 +66,12 @@ public static class DataLoaderServiceCollectionExtensions
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
 
         services.TryAddSingleton(sp => PromiseCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
-        services.TryAddScoped(sp => new PromiseCacheOwner(sp.GetRequiredService<ObjectPool<PromiseCache>>()));
+        services.TryAddScoped(sp =>
+        {
+            var pool = sp.GetRequiredService<ObjectPool<PromiseCache>>();
+            var interceptor = sp.GetService<IPromiseCacheInterceptor>();
+            return new PromiseCacheOwner(pool, interceptor);
+        });
 
         services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
             sp =>
