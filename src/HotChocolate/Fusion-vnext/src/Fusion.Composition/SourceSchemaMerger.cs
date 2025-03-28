@@ -151,8 +151,7 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<FieldArgumentInfo> argumentGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        // Remove all arguments marked with @require.
-        argumentGroup = [.. argumentGroup.Where(i => !i.Argument.HasRequireDirective())];
+        Assert(!argumentGroup.Any(i => i.Argument.HasRequireDirective()));
 
         var mergedArgument = argumentGroup.Select(i => i.Argument).FirstOrDefault();
 
