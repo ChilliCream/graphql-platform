@@ -203,17 +203,29 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry ExternalArgumentDefaultMismatch(
-        string argumentName,
+        IValueNode? externalDefaultValue,
+        MutableInputFieldDefinition externalArgument,
         string fieldName,
-        string typeName)
+        string typeName,
+        MutableSchemaDefinition externalSchema,
+        IValueNode? defaultValue,
+        string schemaName)
     {
-        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+        var coordinate = new SchemaCoordinate(typeName, fieldName, externalArgument.Name);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_ExternalArgumentDefaultMismatch, coordinate),
+            string.Format(
+                LogEntryHelper_ExternalArgumentDefaultMismatch,
+                externalDefaultValue is null ? "(null)" : externalDefaultValue.ToString(),
+                coordinate,
+                externalSchema.Name,
+                defaultValue is null ? "(null)" : defaultValue.ToString(),
+                schemaName),
             LogEntryCodes.ExternalArgumentDefaultMismatch,
             LogSeverity.Error,
-            coordinate);
+            coordinate,
+            externalArgument,
+            externalSchema);
     }
 
     public static LogEntry ExternalMissingOnBase(
