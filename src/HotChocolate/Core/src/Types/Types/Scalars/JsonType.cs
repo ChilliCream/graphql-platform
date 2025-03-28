@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 ///
 /// The runtime representation of the JSON scalar is an <see cref="JsonElement"/>.
 /// </summary>
-public sealed class JsonType : ScalarType<JsonElement>
+public class JsonType : ScalarType<JsonElement>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
