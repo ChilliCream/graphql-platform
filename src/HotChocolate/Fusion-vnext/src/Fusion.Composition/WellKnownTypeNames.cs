@@ -2,6 +2,8 @@ namespace HotChocolate.Fusion;
 
 internal static class WellKnownTypeNames
 {
+    public const string FieldSelectionMap = "FieldSelectionMap";
+    public const string FieldSelectionSet = "FieldSelectionSet";
     public const string FusionFieldDefinition = "fusion__FieldDefinition";
     public const string FusionFieldSelectionMap = "fusion__FieldSelectionMap";
     public const string FusionFieldSelectionPath = "fusion__FieldSelectionPath";

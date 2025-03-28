@@ -102,7 +102,8 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new TypeDefinitionInvalidRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =
