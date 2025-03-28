@@ -126,6 +126,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new EmptyMergedInterfaceTypeRule(),
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
+        new EnumTypeDefaultValueInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),

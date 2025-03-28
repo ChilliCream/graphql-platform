@@ -501,6 +501,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value of &apos;{0}&apos; references the inaccessible enum value &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_EnumTypeDefaultValueInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EnumTypeDefaultValueInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_EnumValuesMismatch {
