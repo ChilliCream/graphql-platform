@@ -875,6 +875,21 @@ internal static class LogEntryHelper
             schema: schema);
     }
 
+    public static LogEntry TypeDefinitionInvalid(
+        INameProvider member,
+        MutableSchemaDefinition schema,
+        string? details = null)
+    {
+        return new LogEntry(
+            string.Format(LogEntryHelper_TypeDefinitionInvalid, member.Name, schema.Name),
+            LogEntryCodes.TypeDefinitionInvalid,
+            LogSeverity.Error,
+            new SchemaCoordinate(member.Name),
+            member,
+            schema,
+            details);
+    }
+
     public static LogEntry TypeKindMismatch(
         ITypeDefinition type,
         MutableSchemaDefinition schemaA,

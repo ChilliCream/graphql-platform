@@ -870,6 +870,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type or directive &apos;{0}&apos; in schema &apos;{1}&apos; is incompatible with the built-in type or directive of the same name..
+        /// </summary>
+        internal static string LogEntryHelper_TypeDefinitionInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_TypeDefinitionInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; has a different kind in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
         /// </summary>
         internal static string LogEntryHelper_TypeKindMismatch {
@@ -965,6 +974,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ShareableMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string TypeDefinitionInvalidRule_ArgumentMissing {
+            get {
+                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type..
+        /// </summary>
+        internal static string TypeDefinitionInvalidRule_ArgumentTypeDifferent {
+            get {
+                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentTypeDifferent", resourceCulture);
             }
         }
     }

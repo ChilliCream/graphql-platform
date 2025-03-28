@@ -49,5 +49,6 @@ public static class LogEntryCodes
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
+    public const string TypeDefinitionInvalid = "TYPE_DEFINITION_INVALID";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
 }
