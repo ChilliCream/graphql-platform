@@ -172,7 +172,7 @@
     <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>
   </data>
   <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
-    <value>The argument with schema coordinate '{0}' has inconsistent default values.</value>
+    <value>The default value '{0}' of external argument '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
