@@ -13,6 +13,18 @@ public class NatsIntegrationTests : SubscriptionIntegrationTestBase, IClassFixtu
     public NatsIntegrationTests(NatsResource natsResource, ITestOutputHelper output)
         : base(output)
     {
+        // tmp
+        var dockerConfig = Environment.GetEnvironmentVariable("DOCKER_CONFIG");
+
+        output.WriteLine($"DOCKER_CONFIG: {dockerConfig ?? "(empty)"}");
+
+        if (dockerConfig is not null)
+        {
+            var file = System.IO.Path.Combine(dockerConfig, "config.json");
+            output.WriteLine($"DOCKER_CONFIG file exists: {(File.Exists(file) ? "Yes" : "No")}");
+        }
+        // --
+
         _natsResource = natsResource;
     }
 
