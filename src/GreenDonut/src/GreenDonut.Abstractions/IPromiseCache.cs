@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace GreenDonut;
 
 /// <summary>
@@ -92,7 +94,7 @@ public interface IPromiseCache
     void Publish<T>(T value);
 
     /// <summary>
-    /// Publishes the values to the cache subscribers without adding it to the cache iself.
+    /// Publishes the values to the cache subscribers without adding it to the cache itself.
     /// This allows the subscribers to decide if they want to cache the values.
     /// </summary>
     /// <param name="values">
