@@ -165,6 +165,9 @@
   <data name="LogEntryHelper_EmptyMergedUnionType" xml:space="preserve">
     <value>The merged union type '{0}' is empty.</value>
   </data>
+  <data name="LogEntryHelper_EnumTypeDefaultValueInaccessible" xml:space="preserve">
+    <value>The default value of '{0}' references the inaccessible enum value '{1}'.</value>
+  </data>
   <data name="LogEntryHelper_EnumValuesMismatch" xml:space="preserve">
     <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>
   </data>

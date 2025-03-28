@@ -166,6 +166,24 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry EnumTypeDefaultValueInaccessible(
+        SchemaCoordinate coordinate,
+        SchemaCoordinate inaccessibleCoordinate,
+        ITypeSystemMember type,
+        MutableSchemaDefinition schema)
+    {
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_EnumTypeDefaultValueInaccessible,
+                coordinate,
+                inaccessibleCoordinate),
+            LogEntryCodes.EnumTypeDefaultValueInaccessible,
+            LogSeverity.Error,
+            coordinate,
+            type,
+            schema);
+    }
+
     public static LogEntry EnumValuesMismatch(
         MutableEnumTypeDefinition enumType,
         string enumValue,

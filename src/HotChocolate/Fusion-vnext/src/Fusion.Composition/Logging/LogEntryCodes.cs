@@ -8,6 +8,7 @@ public static class LogEntryCodes
     public const string EmptyMergedInterfaceType = "EMPTY_MERGED_INTERFACE_TYPE";
     public const string EmptyMergedObjectType = "EMPTY_MERGED_OBJECT_TYPE";
     public const string EmptyMergedUnionType = "EMPTY_MERGED_UNION_TYPE";
+    public const string EnumTypeDefaultValueInaccessible = "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE";
     public const string EnumValuesMismatch = "ENUM_VALUES_MISMATCH";
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
