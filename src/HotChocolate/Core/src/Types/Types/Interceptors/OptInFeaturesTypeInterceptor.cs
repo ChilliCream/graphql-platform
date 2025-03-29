@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class OptInFeaturesTypeInterceptor : TypeInterceptor
 {
-    internal override bool IsEnabled(IDescriptorContext context)
+    public override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableOptInFeatures;
 
     private readonly OptInFeatures _optInFeatures = [];
