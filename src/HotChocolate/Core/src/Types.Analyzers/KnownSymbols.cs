@@ -18,7 +18,7 @@ public static class KnownSymbols
             return false;
         }
 
-        const string connectionName = "ConnectionName";
+        const string connectionName = "Name";
         const string connection = "Connection";
 
         foreach (var attributeData in resolver.GetAttributes())
@@ -34,7 +34,11 @@ public static class KnownSymbols
                 {
                     if (namedValue.EndsWith(connection))
                     {
+#if NET8_0_OR_GREATER
                         namedValue = namedValue[..^connection.Length];
+#else
+                        namedValue = namedValue.Substring(0, namedValue.Length - connection.Length);
+#endif
                     }
 
                     name = namedValue;
@@ -79,23 +83,29 @@ public static class KnownSymbols
         return false;
     }
 
-    public static INamedTypeSymbol GetConnectionBaseSymbol(this GeneratorSyntaxContext context)
+    public static INamedTypeSymbol? GetConnectionBaseSymbol(this GeneratorSyntaxContext context)
         => context.SemanticModel.Compilation.GetConnectionBaseSymbol();
 
-    public static INamedTypeSymbol GetConnectionBaseSymbol(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.ConnectionBase`3")
-            ?? throw new InvalidOperationException("Could not resolve connection base type.");
+    public static INamedTypeSymbol? GetConnectionBaseSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.ConnectionBase`3");
 
-    public static INamedTypeSymbol GetTaskSymbol(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1")
-            ?? throw new InvalidOperationException("Could not resolve connection base type.");
+    public static INamedTypeSymbol? GetEdgeInterfaceSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.IEdge`1");
 
-    public static INamedTypeSymbol GetValueTaskSymbol(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1")
-            ?? throw new InvalidOperationException("Could not resolve connection base type.");
+    public static INamedTypeSymbol? GetTaskSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
 
-    public static bool IsConnectionBase(this GeneratorSyntaxContext context, ITypeSymbol possibleConnectionType)
-        => context.SemanticModel.Compilation.IsConnectionBase(possibleConnectionType);
+    public static INamedTypeSymbol? GetValueTaskSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+    public static INamedTypeSymbol? GetConnectionFlagsSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.ConnectionFlags");
+
+    public static bool IsConnectionType(this GeneratorSyntaxContext context, ITypeSymbol possibleConnectionType)
+        => context.SemanticModel.Compilation.IsConnectionType(possibleConnectionType);
+
+    public static bool IsEdgeType(this GeneratorSyntaxContext context, ITypeSymbol possibleEdgeType)
+        => context.SemanticModel.Compilation.IsEdgeType(possibleEdgeType);
 
     public static bool IsTaskOrValueTask(
         this Compilation compilation,
@@ -119,7 +129,7 @@ public static class KnownSymbols
         return false;
     }
 
-    public static bool IsConnectionBase(this Compilation compilation, ITypeSymbol possibleConnectionType)
+    public static bool IsConnectionType(this Compilation compilation, ITypeSymbol possibleConnectionType)
     {
         if (compilation.IsTaskOrValueTask(possibleConnectionType, out var innerType))
         {
@@ -134,8 +144,39 @@ public static class KnownSymbols
         return IsDerivedFromGenericBase(namedType, compilation.GetConnectionBaseSymbol());
     }
 
-    private static bool IsDerivedFromGenericBase(INamedTypeSymbol typeSymbol, INamedTypeSymbol baseTypeSymbol)
+    public static bool IsEdgeType(this Compilation compilation, ITypeSymbol possibleEdgeType)
     {
+        if (compilation.IsTaskOrValueTask(possibleEdgeType, out var innerType))
+        {
+            possibleEdgeType = innerType;
+        }
+
+        if (possibleEdgeType is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        return IsDerivedFromGenericBase(namedType, compilation.GetEdgeInterfaceSymbol());
+    }
+
+    public static bool IsConnectionFlagsType(this Compilation compilation, ITypeSymbol possibleConnectionFlagsType)
+    {
+        if (possibleConnectionFlagsType is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        return SymbolEqualityComparer.Default.Equals(namedType, compilation.GetConnectionFlagsSymbol());
+    }
+
+    private static bool IsDerivedFromGenericBase(INamedTypeSymbol? typeSymbol, INamedTypeSymbol? baseTypeSymbol)
+    {
+        // if we are generating only for GreenDonut some base types might not exist.
+        if (baseTypeSymbol is null)
+        {
+            return false;
+        }
+
         var current = typeSymbol;
 
         while (current is not null)

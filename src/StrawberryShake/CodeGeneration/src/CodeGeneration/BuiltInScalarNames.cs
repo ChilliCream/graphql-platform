@@ -27,7 +27,6 @@ public static class BuiltInScalarNames
         ScalarNames.LocalDate,
         ScalarNames.LocalDateTime,
         ScalarNames.LocalTime,
-        ScalarNames.Name,
         ScalarNames.ByteArray,
         ScalarNames.Any,
         ScalarNames.JSON,

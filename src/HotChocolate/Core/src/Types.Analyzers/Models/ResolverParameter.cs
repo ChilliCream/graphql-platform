@@ -42,7 +42,9 @@ public sealed class ResolverParameter
             or ResolverParameterKind.EventMessage
             or ResolverParameterKind.FieldNode
             or ResolverParameterKind.OutputField
-            or ResolverParameterKind.ClaimsPrincipal;
+            or ResolverParameterKind.ClaimsPrincipal
+            or ResolverParameterKind.ConnectionFlags;
+
     public bool RequiresBinding
         => Kind == ResolverParameterKind.Unknown;
 
@@ -150,6 +152,11 @@ public sealed class ResolverParameter
         if(parameter.IsPagingArguments())
         {
             return ResolverParameterKind.PagingArguments;
+        }
+
+        if(compilation.IsConnectionFlagsType(parameter.Type))
+        {
+            return ResolverParameterKind.ConnectionFlags;
         }
 
         return ResolverParameterKind.Unknown;

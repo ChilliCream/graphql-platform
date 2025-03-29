@@ -19,7 +19,6 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        var booleanType = Parse($"{ScalarNames.Boolean}");
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
@@ -37,7 +36,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 {
                     Arguments =
                     {
-                        new(Names.IncludeDeprecated, type: booleanType)
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,

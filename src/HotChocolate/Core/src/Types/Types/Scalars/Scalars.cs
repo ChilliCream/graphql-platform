@@ -92,6 +92,15 @@ public static class Scalars
         { typeof(bool?), ValueKind.Float },
     };
 
+    private static readonly HashSet<string> _specScalars =
+    [
+        ScalarNames.ID,
+        ScalarNames.String,
+        ScalarNames.Int,
+        ScalarNames.Float,
+        ScalarNames.Boolean,
+    ];
+
     internal static bool TryGetScalar(
         Type runtimeType,
         [NotNullWhen(true)] out Type? schemaType) =>
@@ -173,4 +182,7 @@ public static class Scalars
         kind = ValueKind.Unknown;
         return false;
     }
+
+    internal static bool IsSpec(string typeName)
+        => _specScalars.Contains(typeName);
 }

@@ -13,7 +13,7 @@ LIMIT @__p_0
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Reverse().Take(6)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderByDescending(t => t.Name).ThenByDescending(t => t.Id).Take(6)
 ```
 
 ## Result 3

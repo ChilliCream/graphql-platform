@@ -4,11 +4,10 @@ using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Validators;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
+using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
@@ -40,15 +39,9 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<OutputFieldEvent>
         foreach (var fusionRequiresDirective in fusionRequiresDirectives)
         {
             var sourceSchemaName = (string)fusionRequiresDirective.Arguments[Schema].Value!;
-            var sourceSchema = context.SchemaDefinitionsByName[sourceSchemaName];
-
-            if (!(sourceSchema.Types.TryGetType(type.Name, out var sourceType)
-                && sourceType is MutableComplexTypeDefinition sourceComplexType))
-            {
-                return;
-            }
-
-            var arguments = sourceComplexType.Fields[field.Name].Arguments;
+            var fieldArgumentValue = (string)fusionRequiresDirective.Arguments[Field].Value!;
+            var fieldDefinition = ParseFieldDefinition(fieldArgumentValue);
+            var arguments = fieldDefinition.Arguments;
             var map = (ListValueNode)fusionRequiresDirective.Arguments[Map];
 
             for (var i = 0; i < arguments.Count; i++)
@@ -62,16 +55,21 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<OutputFieldEvent>
 
                 var fieldSelectionMapParser = new FieldSelectionMapParser(selectionMap);
                 var fieldSelectionMap = fieldSelectionMapParser.Parse();
-                var argument = arguments.AsEnumerable().ElementAt(i);
-                var inputType = schema.Types[argument.Type.AsTypeDefinition().Name];
-                var errors = validator.Validate(fieldSelectionMap, inputType, type);
+                var argument = arguments[i];
+                var inputType = schema.Types[argument.Type.NamedType().Name.Value];
+                var errors =
+                    validator.Validate(fieldSelectionMap, inputType, type, out var selectedFields);
 
-                if (errors.Any())
+                // A selected field is defined in the same schema as the `require` directive.
+                var selectedFieldSameSchema =
+                    selectedFields.Any(f => f.GetSchemaNames().Contains(sourceSchemaName));
+
+                if (errors.Any() || selectedFieldSameSchema)
                 {
                     context.Log.Write(
                         RequireInvalidFields(
                             fusionRequiresDirective,
-                            argument.Name,
+                            argument.Name.Value,
                             field.Name,
                             type.Name,
                             sourceSchemaName,

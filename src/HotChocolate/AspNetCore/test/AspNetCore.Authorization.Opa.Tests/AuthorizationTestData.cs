@@ -27,38 +27,44 @@ public class AuthorizationTestData : IEnumerable<object[]>
         return next.Invoke(context);
     };
 
-    private Action<IRequestExecutorBuilder> CreateSchema() =>
-        sb => sb
+    private Action<IRequestExecutorBuilder, int> CreateSchema() =>
+        (builder, port) => builder
             .AddDocumentFromString(_sdl)
             .AddOpaAuthorization(
                 (_, o) =>
                 {
+                    o.BaseAddress = new Uri($"http://127.0.0.1:{port}/v1/data/");
                     o.Timeout = TimeSpan.FromMilliseconds(60000);
                 })
             .AddOpaResultHandler(
                 Policies.HasDefinedAge,
-                response => response.GetResult<HasAgeDefinedResponse>() switch
-                {
-                    { Allow: true, } => AuthorizeResult.Allowed,
-                    _ => AuthorizeResult.NotAllowed,
-                })
+                response => response.DecisionId is null
+                    ? AuthorizeResult.NotAllowed
+                    : response.GetResult<HasAgeDefinedResponse>() switch
+                    {
+                        { Allow: true, } => AuthorizeResult.Allowed,
+                        _ => AuthorizeResult.NotAllowed,
+                    })
             .UseField(_schemaMiddleware);
 
-    private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
-        sb => sb
+    private Action<IRequestExecutorBuilder, int> CreateSchemaWithBuilder() =>
+        (builder, port) => builder
             .AddDocumentFromString(_sdl)
             .AddOpaAuthorization(
                 (_, o) =>
                 {
+                    o.BaseAddress = new Uri($"http://127.0.0.1:{port}/v1/data/");
                     o.Timeout = TimeSpan.FromMilliseconds(60000);
                 })
             .AddOpaResultHandler(
                 Policies.HasDefinedAge,
-                response => response.GetResult<HasAgeDefinedResponse>() switch
-                {
-                    { Allow: true, } => AuthorizeResult.Allowed,
-                    _ => AuthorizeResult.NotAllowed,
-                })
+                response => response.DecisionId is null
+                    ? AuthorizeResult.NotAllowed
+                    : response.GetResult<HasAgeDefinedResponse>() switch
+                    {
+                        { Allow: true, } => AuthorizeResult.Allowed,
+                        _ => AuthorizeResult.NotAllowed,
+                    })
             .UseField(_schemaMiddleware);
 
     public IEnumerator<object[]> GetEnumerator()

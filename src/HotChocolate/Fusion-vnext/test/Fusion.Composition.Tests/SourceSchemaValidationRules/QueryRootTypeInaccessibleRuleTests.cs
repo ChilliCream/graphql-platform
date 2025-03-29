@@ -52,7 +52,7 @@ public sealed class QueryRootTypeInaccessibleRuleTests : CompositionTestBase
             {
                 [
                     """
-                    extend schema {
+                    schema {
                         query: Query
                     }
 
@@ -80,7 +80,7 @@ public sealed class QueryRootTypeInaccessibleRuleTests : CompositionTestBase
             {
                 [
                     """
-                    extend schema {
+                    schema {
                         query: Query
                     }
 

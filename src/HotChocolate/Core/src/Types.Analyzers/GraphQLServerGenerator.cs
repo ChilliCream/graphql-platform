@@ -2,10 +2,12 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Generators;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers;
 
@@ -57,11 +59,12 @@ public class GraphQLServerGenerator : IIncrementalGenerator
 
             foreach (var supportedKind in inspector.SupportedKinds)
             {
-                if(!inspectorLookup.TryGetValue(supportedKind, out var inspectors))
+                if (!inspectorLookup.TryGetValue(supportedKind, out var inspectors))
                 {
                     inspectors = [];
                     inspectorLookup[supportedKind] = inspectors;
                 }
+
                 inspectors.Add(inspector);
             }
         }
@@ -134,20 +137,37 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        foreach (var syntaxInfo in syntaxInfos.AsSpan())
+        var processedFiles = PooledObjects.GetStringSet();
+
+        try
         {
-            if (syntaxInfo.Diagnostics.Length > 0)
+            foreach (var syntaxInfo in syntaxInfos.AsSpan())
             {
-                foreach (var diagnostic in syntaxInfo.Diagnostics.AsSpan())
+                if (syntaxInfo.Diagnostics.Length > 0)
                 {
-                    context.ReportDiagnostic(diagnostic);
+                    foreach (var diagnostic in syntaxInfo.Diagnostics.AsSpan())
+                    {
+                        context.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
+
+            foreach (var generator in _generators.AsSpan())
+            {
+                generator.Generate(context, assemblyName, syntaxInfos, AddSource);
+            }
+        }
+        finally
+        {
+            PooledObjects.Return(processedFiles);
         }
 
-        foreach (var generator in _generators.AsSpan())
+        void AddSource(string fileName, SourceText sourceText)
         {
-            generator.Generate(context, assemblyName, syntaxInfos);
+            if (processedFiles.Add(fileName))
+            {
+                context.AddSource(fileName, sourceText);
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.Analyzers.Models;
 using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
@@ -49,12 +49,23 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
             {
                 if (syntaxInfo is IOutputTypeInfo { HasRuntimeType: true } typeInfo)
                 {
+#if NET8_0_OR_GREATER
                     connectionTypeLookup[typeInfo.RuntimeTypeFullName] = typeInfo;
+#else
+                    connectionTypeLookup[typeInfo.RuntimeTypeFullName!] = typeInfo;
+#endif
                 }
             }
 
+#if NET8_0_OR_GREATER
             foreach (var (connectionResolver, owner) in connectionResolvers)
             {
+#else
+            foreach (var item in connectionResolvers.ToImmutableArray())
+            {
+                var connectionResolver = item.Key;
+                var owner = item.Value;
+#endif
                 var connectionType = GetConnectionType(compilation, connectionResolver.Member.GetReturnType());
                 ConnectionTypeInfo connectionTypeInfo;
                 ConnectionClassInfo? connectionClass;
@@ -105,7 +116,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                         edgeTypeInfo = EdgeTypeInfo.CreateEdge(
                             compilation,
                             connectionType,
-                            null);
+                            null,
+                            connectionType.ContainingNamespace.ToDisplayString());
                         edgeTypeInfo.AddDiagnosticRange(diagnostics);
                         connectionTypeInfos ??= [];
                         connectionTypeInfos.Add(edgeTypeInfo);
@@ -118,14 +130,16 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 compilation,
                                 edge.Type,
                                 edgeClass.ClassDeclarations,
+                                connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
-                                edge.NameFormat)
+                                edge.NameFormat ?? edge.Name)
                             : EdgeTypeInfo.CreateEdge(
                                 compilation,
                                 edge.Type,
                                 null,
+                                connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
-                                edge.NameFormat);
+                                edge.NameFormat ?? edge.Name);
 
                     connectionTypeInfo =
                         connectionClassLookup.TryGetValue(connection.TypeDefinitionName, out connectionClass)
@@ -135,14 +149,14 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connectionClass.ClassDeclarations,
                                 edgeTypeInfo.Name,
                                 connection.Name,
-                                connection.NameFormat)
+                                connection.NameFormat ?? connection.Name)
                             : ConnectionTypeInfo.CreateConnection(
                                 compilation,
                                 connection.Type,
                                 null,
                                 edgeTypeInfo.Name,
                                 connection.Name,
-                                connection.NameFormat);
+                                connection.NameFormat ?? connection.Name);
 
                     var connectionTypeName = "global::" + connectionTypeInfo.Namespace + "." + connectionTypeInfo.Name;
                     var edgeTypeName = "global::" + edgeTypeInfo.Namespace + "." + edgeTypeInfo.Name;
@@ -169,6 +183,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                         continue;
                     }
 
+                    var connectionFullTypeName = connectionType.ToFullyQualified();
                     string? connectionName = null;
                     string? edgeName = null;
 
@@ -177,14 +192,34 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                         connectionName = $"{name}Connection";
                         edgeName = $"{name}Edge";
                     }
+                    else
+                    {
+                        name =
+                            connectionClassLookup.TryGetValue(connectionFullTypeName, out connectionClass)
+                                ? connectionClass.RuntimeType.Name
+                                : connectionType.Name;
+                        if (name.EndsWith("Connection"))
+                        {
+                            name = name.Substring(0, name.Length - "Connection".Length);
+                            connectionName = name + "Connection";
+                            edgeName = name + "Edge";
+                        }
+                    }
 
                     edgeTypeInfo =
                         connectionClassLookup.TryGetValue(edgeType.ToFullyQualified(), out edgeClass)
-                            ? EdgeTypeInfo.CreateEdgeFrom(edgeClass, edgeName, edgeName)
-                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null, edgeName, edgeName);
+                            ? EdgeTypeInfo.CreateEdgeFrom(
+                                edgeClass,
+                                connectionType.ContainingNamespace.ToDisplayString(),
+                                edgeName,
+                                edgeName)
+                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null,
+                                connectionType.ContainingNamespace.ToDisplayString(),
+                                edgeName,
+                                edgeName);
 
                     connectionTypeInfo =
-                        connectionClassLookup.TryGetValue(connectionType.ToFullyQualified(), out connectionClass)
+                        connectionClassLookup.TryGetValue(connectionFullTypeName, out connectionClass)
                             ? ConnectionTypeInfo.CreateConnectionFrom(
                                 connectionClass,
                                 edgeTypeInfo.Name,
@@ -231,7 +266,9 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         return syntaxInfos;
     }
 
-    private static INamedTypeSymbol GetConnectionType(Compilation compilation, ITypeSymbol? possibleConnectionType)
+    private static INamedTypeSymbol GetConnectionType(
+        Compilation compilation,
+        ITypeSymbol? possibleConnectionType)
     {
         if (possibleConnectionType is null)
         {
@@ -330,24 +367,12 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         return new GenericTypeInfo(typeDefinitionName, genericType, name, nameFormat);
     }
 
-    private record GenericTypeInfo(
-        string TypeDefinitionName,
-        INamedTypeSymbol Type,
-        string Name,
-        string? NameFormat);
-
-    private static INamedTypeSymbol? GetEdgeType(INamedTypeSymbol connectionType)
+    private static INamedTypeSymbol? GetEdgeType(
+        INamedTypeSymbol connectionType)
     {
-        var property = connectionType.GetMembers()
-            .OfType<IPropertySymbol>()
-            .FirstOrDefault(p => p.Name == "Edges");
+        var property = GetEdgesProperty(connectionType);
+        var returnType = property?.GetReturnType();
 
-        if (property is null)
-        {
-            return null;
-        }
-
-        var returnType = property.GetReturnType();
         if (returnType is not INamedTypeSymbol namedType
             || !namedType.IsGenericType
             || namedType.TypeArguments.Length != 1
@@ -357,5 +382,30 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         }
 
         return (INamedTypeSymbol)namedType.TypeArguments[0];
+    }
+
+    private static IPropertySymbol? GetEdgesProperty(
+        INamedTypeSymbol connectionType)
+    {
+        var member = connectionType.AllPublicInstanceMembers().FirstOrDefault(p => p.Name == "Edges");
+
+        if (member is IPropertySymbol property)
+        {
+            return property;
+        }
+
+        return null;
+    }
+
+    private sealed class GenericTypeInfo(
+        string typeDefinitionName,
+        INamedTypeSymbol type,
+        string name,
+        string? nameFormat)
+    {
+        public string TypeDefinitionName { get; } = typeDefinitionName;
+        public INamedTypeSymbol Type { get; } = type;
+        public string Name { get; } = name;
+        public string? NameFormat { get; } = nameFormat;
     }
 }

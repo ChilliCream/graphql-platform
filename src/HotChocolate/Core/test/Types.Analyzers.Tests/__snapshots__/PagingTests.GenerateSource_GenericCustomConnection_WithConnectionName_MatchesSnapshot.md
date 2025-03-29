@@ -249,6 +249,7 @@ namespace TestNamespace.Types.Nodes
             {
                 var args0 = context.Parent<global::TestNamespace.Author>();
                 var args1_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                var args1_flags = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(context);
                 var args1_first = context.ArgumentValue<int?>("first");
                 var args1_after = context.ArgumentValue<string?>("after");
                 int? args1_last = null;
@@ -268,7 +269,7 @@ namespace TestNamespace.Types.Nodes
 
                 if(args1_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
-                    args1_includeTotalCount = context.IsSelected("totalCount");
+                    args1_includeTotalCount = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount);
                 }
 
                 var args1 = new global::GreenDonut.Data.PagingArguments(
@@ -278,8 +279,7 @@ namespace TestNamespace.Types.Nodes
                     args1_before,
                     args1_includeTotalCount)
                     {
-                        EnableRelativeCursors = args1_options.EnableRelativeCursors
-                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.EnableRelativeCursors
+                        EnableRelativeCursors = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
                     };
                 var args2 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Nodes.AuthorNode.GetAuthorsAsync(args0, args1, args2);
@@ -361,6 +361,7 @@ namespace TestNamespace.Types.Root
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorsAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
                 var args0_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                var args0_flags = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(context);
                 var args0_first = context.ArgumentValue<int?>("first");
                 var args0_after = context.ArgumentValue<string?>("after");
                 int? args0_last = null;
@@ -380,7 +381,7 @@ namespace TestNamespace.Types.Root
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
-                    args0_includeTotalCount = context.IsSelected("totalCount");
+                    args0_includeTotalCount = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount);
                 }
 
                 var args0 = new global::GreenDonut.Data.PagingArguments(
@@ -390,8 +391,7 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_options.EnableRelativeCursors
-                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.EnableRelativeCursors
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthorsAsync(args0, args1);
@@ -404,6 +404,7 @@ namespace TestNamespace.Types.Root
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthors2Async(global::HotChocolate.Resolvers.IResolverContext context)
             {
                 var args0_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                var args0_flags = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(context);
                 var args0_first = context.ArgumentValue<int?>("first");
                 var args0_after = context.ArgumentValue<string?>("after");
                 int? args0_last = null;
@@ -423,7 +424,7 @@ namespace TestNamespace.Types.Root
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
                 {
-                    args0_includeTotalCount = context.IsSelected("totalCount");
+                    args0_includeTotalCount = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount);
                 }
 
                 var args0 = new global::GreenDonut.Data.PagingArguments(
@@ -433,8 +434,7 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_options.EnableRelativeCursors
-                            ?? global::HotChocolate.Types.Pagination.PagingDefaults.EnableRelativeCursors
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthors2Async(args0, args1);
@@ -473,6 +473,8 @@ namespace TestNamespace
             var extend = descriptor.Extend();
             var bindingResolver = extend.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
+
+            descriptor.Name("Authors2Connection");
 
             descriptor
                 .Field(thisType.GetMember("Edges", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
@@ -585,6 +587,8 @@ namespace TestNamespace
             var extend = descriptor.Extend();
             var bindingResolver = extend.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
+
+            descriptor.Name("Authors2Edge");
 
             descriptor
                 .Field(thisType.GetMember("Node", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])

@@ -8,6 +8,7 @@ public static class LogEntryCodes
     public const string EmptyMergedInterfaceType = "EMPTY_MERGED_INTERFACE_TYPE";
     public const string EmptyMergedObjectType = "EMPTY_MERGED_OBJECT_TYPE";
     public const string EmptyMergedUnionType = "EMPTY_MERGED_UNION_TYPE";
+    public const string EnumTypeDefaultValueInaccessible = "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE";
     public const string EnumValuesMismatch = "ENUM_VALUES_MISMATCH";
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
@@ -37,16 +38,17 @@ public static class LogEntryCodes
     public const string ProvidesDirectiveInFieldsArg = "PROVIDES_DIRECTIVE_IN_FIELDS_ARG";
     public const string ProvidesFieldsHasArgs = "PROVIDES_FIELDS_HAS_ARGS";
     public const string ProvidesFieldsMissingExternal = "PROVIDES_FIELDS_MISSING_EXTERNAL";
+    public const string ProvidesInvalidFields = "PROVIDES_INVALID_FIELDS";
     public const string ProvidesInvalidFieldsType = "PROVIDES_INVALID_FIELDS_TYPE";
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
-    public const string RequireDirectiveInFieldArg = "REQUIRE_DIRECTIVE_IN_FIELD_ARG";
     public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";
     public const string RequireInvalidFieldType = "REQUIRE_INVALID_FIELD_TYPE";
     public const string RequireInvalidSyntax = "REQUIRE_INVALID_SYNTAX";
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
+    public const string TypeDefinitionInvalid = "TYPE_DEFINITION_INVALID";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
 }

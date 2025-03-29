@@ -3,6 +3,7 @@ using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -13,7 +14,8 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         string assemblyName,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -63,6 +65,6 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
 
         generator.WriteEndNamespace();
 
-        context.AddSource(WellKnownFileNames.MiddlewareFile, generator.ToSourceText());
+        addSource(WellKnownFileNames.MiddlewareFile, generator.ToSourceText());
     }
 }

@@ -93,16 +93,17 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),
+        new ProvidesInvalidFieldsRule(),
         new ProvidesInvalidFieldsTypeRule(),
         new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
-        new RequireDirectiveInFieldArgumentRule(),
         new RequireInvalidFieldTypeRule(),
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new TypeDefinitionInvalidRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =
@@ -126,6 +127,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new EmptyMergedInterfaceTypeRule(),
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
+        new EnumTypeDefaultValueInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),

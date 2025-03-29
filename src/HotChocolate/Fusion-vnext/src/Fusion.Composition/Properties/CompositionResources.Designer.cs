@@ -501,6 +501,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value of &apos;{0}&apos; references the inaccessible enum value &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_EnumTypeDefaultValueInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EnumTypeDefaultValueInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_EnumValuesMismatch {
@@ -510,7 +519,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument with schema coordinate &apos;{0}&apos; has inconsistent default values..
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of external argument &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
         internal static string LogEntryHelper_ExternalArgumentDefaultMismatch {
             get {
@@ -645,7 +654,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which does not exist..
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection..
         /// </summary>
         internal static string LogEntryHelper_KeyInvalidFields {
             get {
@@ -762,6 +771,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection..
+        /// </summary>
+        internal static string LogEntryHelper_ProvidesInvalidFields {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ProvidesInvalidFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @provides directive on field &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;fields&apos; argument..
         /// </summary>
         internal static string LogEntryHelper_ProvidesInvalidFieldsType {
@@ -794,15 +812,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_QueryRootTypeInaccessible {
             get {
                 return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
-        /// </summary>
-        internal static string LogEntryHelper_RequireDirectiveInFieldArgument {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_RequireDirectiveInFieldArgument", resourceCulture);
             }
         }
         
@@ -857,6 +866,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_RootSubscriptionUsed {
             get {
                 return ResourceManager.GetString("LogEntryHelper_RootSubscriptionUsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type or directive &apos;{0}&apos; in schema &apos;{1}&apos; is incompatible with the built-in type or directive of the same name..
+        /// </summary>
+        internal static string LogEntryHelper_TypeDefinitionInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_TypeDefinitionInvalid", resourceCulture);
             }
         }
         
@@ -956,6 +974,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ShareableMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string TypeDefinitionInvalidRule_ArgumentMissing {
+            get {
+                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type..
+        /// </summary>
+        internal static string TypeDefinitionInvalidRule_ArgumentTypeDifferent {
+            get {
+                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentTypeDifferent", resourceCulture);
             }
         }
     }

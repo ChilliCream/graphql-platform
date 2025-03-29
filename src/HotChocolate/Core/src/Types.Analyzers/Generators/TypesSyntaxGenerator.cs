@@ -6,6 +6,7 @@ using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -14,7 +15,8 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         string assemblyName,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -31,16 +33,16 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         var sb = PooledObjects.GetStringBuilder();
 
-        WriteTypes(context, syntaxInfos, sb);
+        WriteTypes(syntaxInfos, sb, addSource);
 
         sb.Clear();
         PooledObjects.Return(sb);
     }
 
     private static void WriteTypes(
-        SourceProductionContext context,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        StringBuilder sb)
+        StringBuilder sb,
+        Action<string, SourceText> addSource)
     {
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
@@ -52,40 +54,41 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             {
                 var file = new ObjectTypeFileBuilder(sb);
                 WriteFile(file, objectType, typeLookup);
-                context.AddSource(CreateFileName(objectType), sb.ToString());
+                addSource(CreateFileName(objectType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
             if(type is InterfaceTypeInfo interfaceType)
             {
                 var file = new InterfaceTypeFileBuilder(sb);
                 WriteFile(file, interfaceType, typeLookup);
-                context.AddSource(CreateFileName(interfaceType), sb.ToString());
+                addSource(CreateFileName(interfaceType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
             if(type is RootTypeInfo rootType)
             {
                 var file = new RootTypeFileBuilder(sb);
                 WriteFile(file, rootType, typeLookup);
-                context.AddSource(CreateFileName(rootType), sb.ToString());
+                addSource(CreateFileName(rootType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
             if(type is ConnectionTypeInfo connectionType)
             {
                 var file = new ConnectionTypeFileBuilder(sb);
                 WriteFile(file, connectionType, typeLookup);
-                context.AddSource(CreateFileName(connectionType), sb.ToString());
+                addSource(CreateFileName(connectionType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
             if(type is EdgeTypeInfo edgeType)
             {
                 var file = new EdgeTypeFileBuilder(sb);
                 WriteFile(file, edgeType, typeLookup);
-                context.AddSource(CreateFileName(edgeType), sb.ToString());
+                addSource(CreateFileName(edgeType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
         }
 
         static string CreateFileName(IOutputTypeInfo type)
         {
+#if NET8_0_OR_GREATER
             Span<byte> hash = stackalloc byte[64];
             var bytes = Encoding.UTF8.GetBytes(type.Namespace);
             MD5.HashData(bytes, hash);
@@ -110,6 +113,14 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             }
 
             return $"{type.Name}.{Encoding.UTF8.GetString(hash)}.hc.g.cs";
+#else
+            var bytes = Encoding.UTF8.GetBytes(type.Namespace);
+            var md5 = MD5.Create();
+            var hash = md5.ComputeHash(bytes);
+            var hashString = Convert.ToBase64String(hash, Base64FormattingOptions.None);
+            hashString = hashString.Replace("+", "-").Replace("/", "_").TrimEnd('=');
+            return $"{type.Name}.{hashString}.hc.g.cs";
+#endif
         }
     }
 

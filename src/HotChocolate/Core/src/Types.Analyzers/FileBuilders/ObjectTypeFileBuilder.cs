@@ -90,7 +90,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         WriteResolverConstructor(
             objectType,
             typeLookup,
-            $"{objectType.SchemaTypeFullName}",
+            $"global::{objectType.SchemaTypeFullName}",
             type.Resolvers.Any(t => t.RequiresParameterBindings)
             || (objectType.NodeResolver?.RequiresParameterBindings ?? false));
     }

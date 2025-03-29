@@ -13,6 +13,7 @@ public sealed class EdgeTypeInfo
     private EdgeTypeInfo(
         string name,
         string? nameFormat,
+        string @namespace,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
         ImmutableArray<Resolver> resolvers)
@@ -21,7 +22,7 @@ public sealed class EdgeTypeInfo
         NameFormat = nameFormat;
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         RuntimeType = runtimeType;
-        Namespace = runtimeType.ContainingNamespace.ToDisplayString();
+        Namespace = @namespace;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
     }
@@ -87,12 +88,14 @@ public sealed class EdgeTypeInfo
 
     public static EdgeTypeInfo CreateEdgeFrom(
         ConnectionClassInfo connectionClass,
+        string @namespace,
         string? name = null,
         string? nameFormat = null)
     {
         return new EdgeTypeInfo(
             (name ?? connectionClass.RuntimeType.Name) + "Type",
             nameFormat,
+            @namespace,
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
             connectionClass.Resolvers);
@@ -102,14 +105,16 @@ public sealed class EdgeTypeInfo
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        string @namespace,
         string? name = null,
         string? nameFormat = null)
-        => Create(compilation, runtimeType, classDeclaration, name, nameFormat);
+        => Create(compilation, runtimeType, classDeclaration, @namespace, name, nameFormat);
 
     private static EdgeTypeInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        string @namespace,
         string? name = null,
         string? nameFormat = null)
     {
@@ -117,27 +122,11 @@ public sealed class EdgeTypeInfo
 
         var resolvers = ImmutableArray.CreateBuilder<Resolver>();
 
-        foreach (var member in runtimeType.GetMembers())
+        foreach (var member in runtimeType.AllPublicInstanceMembers())
         {
-            if (member.DeclaredAccessibility is not Accessibility.Public
-                || member.IsStatic
-                || member.IsIgnored())
-            {
-                continue;
-            }
-
             switch (member)
             {
-                case IMethodSymbol method:
-                    if (method.IsPropertyOrEventAccessor()
-                        || method.IsOperator()
-                        || method.IsConstructor()
-                        || method.IsSpecialMethod()
-                        || method.IsCompilerGenerated())
-                    {
-                        continue;
-                    }
-
+                case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
                     resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, edgeName));
                     break;
 
@@ -157,6 +146,7 @@ public sealed class EdgeTypeInfo
         return new EdgeTypeInfo(
             edgeName,
             nameFormat,
+            @namespace,
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable());
