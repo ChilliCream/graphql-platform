@@ -204,7 +204,7 @@ public interface IReadOnlySchemaOptions
 
     /// <summary>
     /// Specifies if the elements of paginated root fields should be published
-    /// to the DataLOader promise cache.
+    /// to the DataLoader promise cache.
     /// </summary>
     bool PublishRootFieldPagesToPromiseCache { get; }
 }

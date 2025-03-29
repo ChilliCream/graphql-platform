@@ -7,6 +7,8 @@ namespace HotChocolate.Configuration;
 
 internal interface ITypeRegistrar
 {
+    ISet<string> Scalars { get; }
+
     void Register(
         TypeSystemObjectBase obj,
         string? scope,

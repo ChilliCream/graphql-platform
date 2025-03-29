@@ -293,6 +293,46 @@ public class EnumTypeTests : TypeTestBase
     }
 
     [Fact]
+    public void EnumValue_ImplicitInvalidName_SchemaException()
+    {
+        // arrange
+        // act
+        static void Action() =>
+            SchemaBuilder.New()
+                .AddQueryType<Bar>()
+                .AddType(new EnumType<UnitsEnum>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        // assert
+        Assert.Throws<SchemaException>(Action)
+            .Errors.Single().Message.MatchInlineSnapshot(
+                """
+                `SÆT` is not a valid GraphQL name.
+                https://spec.graphql.org/October2021/#sec-Names
+                 (Parameter 'value')
+                """);
+    }
+
+    [Fact]
+    public void EnumValue_ExplicitName()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<Bar>()
+            .AddType(new EnumType<UnitsEnum>(d => d.Value(UnitsEnum.SÆT).Name("SAT")))
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var enumType = schema.Types.OfType<EnumType>().Last();
+
+        // assert
+        Assert.Equal("SAT", enumType.Values[0].Name);
+        Assert.Equal("ANOTHER_VALUE", enumType.Values[1].Name);
+    }
+
+    [Fact]
     public void EnumValueT_ValueIsNull_SchemaException()
     {
         // arrange
@@ -456,21 +496,8 @@ public class EnumTypeTests : TypeTestBase
     public void EnumValue_DefinitionIsNull_ArgumentNullException()
     {
         // arrange
-        var completionContext = new Mock<ITypeCompletionContext>();
-
         // act
-        void Action() => new EnumValue(completionContext.Object, null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void EnumValue_ContextIsNull_ArgumentNullException()
-    {
-        // arrange
-        // act
-        void Action() => new EnumValue(null!, new EnumValueDefinition());
+        void Action() => new EnumValue(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -480,10 +507,8 @@ public class EnumTypeTests : TypeTestBase
     public void EnumValue_DefinitionValueIsNull_ArgumentNullException()
     {
         // arrange
-        var completionContext = new Mock<ITypeCompletionContext>();
-
         // act
-        void Action() => new EnumValue(completionContext.Object, new EnumValueDefinition());
+        void Action() => new EnumValue(new EnumValueDefinition());
 
         // assert
         Assert.Throws<ArgumentException>(Action);
@@ -717,6 +742,14 @@ public class EnumTypeTests : TypeTestBase
         Info,
         Warning,
         Critical
+    }
+
+    private enum UnitsEnum
+    {
+        // ReSharper disable once InconsistentNaming
+        SÆT,
+        // ReSharper disable once UnusedMember.Local
+        AnotherValue
     }
 
     public class QueryWithEnum

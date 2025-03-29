@@ -4,13 +4,16 @@ using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [MiddlewareMethod.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [MiddlewareMethod.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.InvocationExpression];
 
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
@@ -27,7 +30,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
             } node)
         {
             var semanticModel = context.SemanticModel;
-            var middlewareType = semanticModel.GetTypeInfo(args.Arguments[0]).Type;
+            var middlewareType = ModelExtensions.GetTypeInfo(semanticModel, args.Arguments[0]).Type;
 
             if (middlewareType is null)
             {

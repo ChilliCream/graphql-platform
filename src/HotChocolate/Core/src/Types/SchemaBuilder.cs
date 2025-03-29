@@ -22,13 +22,13 @@ public partial class SchemaBuilder : ISchemaBuilder
 {
     private delegate TypeReference CreateRef(ITypeInspector typeInspector);
 
-    private readonly Dictionary<string, object?> _contextData = new();
+    private readonly Dictionary<string, object?> _contextData = [];
     private readonly List<FieldMiddleware> _globalComponents = [];
     private readonly List<LoadSchemaDocument> _documents = [];
     private readonly List<CreateRef> _types = [];
-    private readonly Dictionary<OperationType, CreateRef> _operations = new();
-    private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
-    private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
+    private readonly Dictionary<OperationType, CreateRef> _operations = [];
+    private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = [];
+    private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = [];
     private SchemaFirstTypeInterceptor? _schemaFirstTypeInterceptor;
 
     private readonly List<object> _typeInterceptors =
@@ -37,6 +37,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor),
         typeof(SemanticNonNullTypeInterceptor),
+        typeof(StoreGlobalPagingOptionsTypeInterceptor),
         typeof(OptInFeaturesTypeInterceptor)
     ];
 
@@ -252,6 +253,13 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentException(
                 TypeResources.SchemaBuilder_MustBeSchemaType,
                 nameof(schemaType));
+        }
+
+        if (runtimeType == typeof(object))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_BindRuntimeType_ObjectNotAllowed,
+                nameof(runtimeType));
         }
 
         var context = SchemaTypeReference.InferTypeContext(schemaType);

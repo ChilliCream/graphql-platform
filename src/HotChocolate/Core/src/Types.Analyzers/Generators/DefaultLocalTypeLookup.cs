@@ -9,7 +9,6 @@ namespace HotChocolate.Types.Analyzers.Generators;
 public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfos) : ILocalTypeLookup
 {
     private Dictionary<string, List<string>>? _typeNameLookup;
-    private readonly ImmutableArray<SyntaxInfo> _syntaxInfos = syntaxInfos;
 
     public bool TryGetTypeName(
         ITypeSymbol type,
@@ -48,7 +47,7 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
         if (_typeNameLookup is null)
         {
             _typeNameLookup = new Dictionary<string, List<string>>();
-            foreach (var syntaxInfo in _syntaxInfos)
+            foreach (var syntaxInfo in syntaxInfos)
             {
                 if(syntaxInfo is not DataLoaderInfo dataLoaderInfo)
                 {

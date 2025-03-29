@@ -56,12 +56,14 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                             requestOptions.MaxFieldCost,
                             requestOptions.MaxTypeCost,
                             requestOptions.EnforceCostLimits,
+                            requestOptions.SkipAnalyzer,
                             requestOptions.Filtering.VariableMultiplier);
                     });
                 })
             .AddDirectiveType<CostDirectiveType>()
             .AddDirectiveType<ListSizeDirectiveType>()
             .TryAddTypeInterceptor<CostTypeInterceptor>()
+            .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
 
             // we are replacing the default pipeline if the cost analyzer is added.
             .Configure(c => c.DefaultPipelineFactory = AddDefaultPipeline);

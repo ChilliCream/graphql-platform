@@ -1,9 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Execution.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
@@ -12,10 +17,6 @@
     <None Update="__resources__\fusion2.graphql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
   </ItemGroup>
 
 </Project>

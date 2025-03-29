@@ -16,6 +16,37 @@ public class TestGeneration
                 }
             }");
 
+
+    [Fact]
+    public void StarWarsGetHeroWithFragmentIncludeAndSkipDirective() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+                hero(episode: NEW_HOPE) {
+                    ...HeroFragment
+                }
+            }
+
+            fragment HeroFragment on Character {
+                id
+                friends {
+                    ...FriendsFragment
+                }
+            }
+
+            fragment FriendsFragment on FriendsConnection {
+                includedPageInfo: pageInfo @include(if: $includePageInfo) {
+                    ...PageInfoFragment
+                }
+                skippedPageInfo: pageInfo @skip(if: $skipPageInfo) {
+                    ...PageInfoFragment
+                }
+            }
+
+            fragment PageInfoFragment on PageInfo {
+                hasNextPage
+            }");
+
     [Fact]
     public void StarWarsGetFriendsNoStore() =>
         AssertStarWarsResult(
@@ -367,4 +398,28 @@ public class TestGeneration
             UploadQueries,
             UploadSchema,
             "extend schema @key(fields: \"id\")");
+
+    [Fact]
+    public void LocalTypes() =>
+        AssertResult(
+            CreateIntegrationTest(),
+            skipWarnings: true,
+            """
+            query LocalTypes {
+                localDate(input: "2021-10-10")
+                localDateTime(input: "2021-10-10T10:10:10")
+                localTime(input: "10:10:10")
+            }
+            """,
+            """
+            type Query {
+                localDate(input: LocalDate!): LocalDate!
+                localDateTime(input: LocalDateTime!): LocalDateTime!
+                localTime(input: LocalTime!): LocalTime!
+            }
+
+            scalar LocalDate
+            scalar LocalDateTime
+            scalar LocalTime
+            """);
 }

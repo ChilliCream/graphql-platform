@@ -13,7 +13,7 @@ public sealed class OperationInfo(OperationType type, string typeName, string me
     public override bool Equals(object? obj)
         => obj is OperationInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is OperationInfo info && Equals(info);
 
     private bool Equals(OperationInfo other)

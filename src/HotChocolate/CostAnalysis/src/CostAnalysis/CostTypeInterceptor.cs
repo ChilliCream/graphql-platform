@@ -14,25 +14,25 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostTypeInterceptor : TypeInterceptor
 {
     private readonly ImmutableArray<string> _forwardAndBackwardSlicingArgs
-        = ImmutableArray.Create<string>("first", "last");
+        = ["first", "last"];
 
     private readonly ImmutableArray<string> _forwardSlicingArgs
-        = ImmutableArray.Create<string>("first");
+        = ["first"];
 
     private readonly ImmutableArray<string> _sizedFields
-        = ImmutableArray.Create<string>("edges", "nodes");
+        = ["edges", "nodes"];
 
     private readonly ImmutableArray<string> _offSetSlicingArgs
-        = ImmutableArray.Create<string>("take");
+        = ["take"];
 
     private readonly ImmutableArray<string> _offsetSizedFields
-        = ImmutableArray.Create<string>("items");
+        = ["items"];
 
-    private CostOptions _options = default!;
+    private CostOptions _options = null!;
 
     internal override uint Position => int.MaxValue;
 
-    internal override bool IsEnabled(IDescriptorContext context)
+    public override bool IsEnabled(IDescriptorContext context)
         => context.Services.GetRequiredService<CostOptions>().ApplyCostDefaults;
 
     internal override void InitializeContext(
@@ -169,6 +169,13 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
             }
         }
     }
+}
+
+internal sealed class CostDirectiveTypeInterceptor : TypeInterceptor
+{
+    internal override bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+        => node.Name.Value.Equals("cost", StringComparison.Ordinal)
+            || node.Name.Value.Equals("listSize", StringComparison.Ordinal);
 }
 
 file static class Extensions

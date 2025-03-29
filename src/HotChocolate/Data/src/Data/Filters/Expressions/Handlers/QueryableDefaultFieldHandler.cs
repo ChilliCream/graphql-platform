@@ -65,8 +65,7 @@ public class QueryableDefaultFieldHandler
             }
 
             nestedProperty = ReplaceVariableExpressionVisitor
-                .ReplaceParameter(expression, expression.Parameters[0], context.GetInstance())
-                .Body;
+                .ReplaceParameter(expression.Body, expression.Parameters[0], context.GetInstance());
         }
         else
         {
@@ -172,12 +171,11 @@ public class QueryableDefaultFieldHandler
             return base.VisitParameter(node);
         }
 
-        public static LambdaExpression ReplaceParameter(
-            LambdaExpression lambda,
+        public static Expression ReplaceParameter(
+            Expression lambdaBody,
             ParameterExpression parameter,
             Expression replacement)
-            => (LambdaExpression)
-                new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambda);
+            => new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambdaBody);
     }
 }
 

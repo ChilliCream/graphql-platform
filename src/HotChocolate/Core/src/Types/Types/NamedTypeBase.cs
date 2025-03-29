@@ -94,6 +94,13 @@ public abstract class NamedTypeBase<TDefinition>
         base.OnCompleteType(context, definition);
 
         UpdateRuntimeType(definition);
+    }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        TDefinition definition)
+    {
+        base.OnCompleteMetadata(context, definition);
 
         _directives ??= DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
@@ -127,4 +134,7 @@ public abstract class NamedTypeBase<TDefinition>
 
     private void UpdateRuntimeType(ITypeDefinition definition)
         => _runtimeType = definition.RuntimeType ?? typeof(object);
+
+    public bool Equals(IType? other)
+        => ReferenceEquals(this, other);
 }

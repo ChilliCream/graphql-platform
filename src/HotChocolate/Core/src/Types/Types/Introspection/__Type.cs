@@ -18,6 +18,7 @@ internal sealed class __Type : ObjectType
     {
         var stringType = Create(ScalarNames.String);
         var booleanType = Create(ScalarNames.Boolean);
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var kindType = Parse($"{nameof(__TypeKind)}!");
         var typeType = Create(nameof(__Type));
         var fieldListType = Parse($"[{nameof(__Field)}!]");
@@ -48,7 +49,7 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new(Names.IncludeDeprecated, type: booleanType)
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,
@@ -66,10 +67,8 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new()
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
-                            Name = Names.IncludeDeprecated,
-                            Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,
                         },
@@ -84,10 +83,8 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new()
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
-                            Name = Names.IncludeDeprecated,
-                            Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,
                         },

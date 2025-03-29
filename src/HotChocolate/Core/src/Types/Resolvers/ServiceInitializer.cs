@@ -9,8 +9,13 @@ namespace HotChocolate.Resolvers;
 /// </typeparam>
 public abstract class ServiceInitializer<TService> : IServiceScopeInitializer
 {
-    public void Initialize(IServiceProvider requestScope, IServiceProvider resolverScope)
+    public void Initialize(
+        IMiddlewareContext context,
+        IServiceProvider requestScope,
+        IServiceProvider resolverScope)
         => Initialize(requestScope.GetRequiredService<TService>(), resolverScope.GetRequiredService<TService>());
 
-    protected abstract void Initialize(TService requestScopeService, TService resolverScopeService);
+    protected abstract void Initialize(
+        TService requestScopeService,
+        TService resolverScopeService);
 }

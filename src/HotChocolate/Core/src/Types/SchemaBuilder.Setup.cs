@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
@@ -37,29 +38,30 @@ public partial class SchemaBuilder
             {
                 var typeInterceptors = new List<TypeInterceptor>();
 
-                if (context.Options.StrictRuntimeTypeValidation &&
-                    !builder._typeInterceptors.Contains(typeof(TypeValidationTypeInterceptor)))
+                if (context.Options.StrictRuntimeTypeValidation
+                    && !builder._typeInterceptors.Contains(typeof(TypeValidationTypeInterceptor)))
                 {
                     builder._typeInterceptors.Add(typeof(TypeValidationTypeInterceptor));
                 }
 
-                if (context.Options.EnableFlagEnums &&
-                    !builder._typeInterceptors.Contains(typeof(FlagsEnumInterceptor)))
+                if (context.Options.EnableFlagEnums
+                    && !builder._typeInterceptors.Contains(typeof(FlagsEnumInterceptor)))
                 {
                     builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
                 }
 
-                if (context.Options.RemoveUnusedTypeSystemDirectives &&
-                    !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
+                if (context.Options.RemoveUnusedTypeSystemDirectives
+                    && !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
                 {
                     builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
                 }
 
-                if(builder._schemaFirstTypeInterceptor is not null)
+                if (builder._schemaFirstTypeInterceptor is not null)
                 {
                     typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
                 }
 
+                PagingDefaults.Apply(builder._pagingOptions);
                 context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
 
                 InitializeInterceptors(
@@ -258,8 +260,7 @@ public partial class SchemaBuilder
             List<T> interceptors)
             where T : class
         {
-            if (services is not EmptyServiceProvider &&
-                services.GetService<IEnumerable<T>>() is { } fromService)
+            if (services is not EmptyServiceProvider && services.GetService<IEnumerable<T>>() is { } fromService)
             {
                 interceptors.AddRange(fromService);
             }
@@ -292,28 +293,28 @@ public partial class SchemaBuilder
             if (type is ObjectType objectType)
             {
                 if (IsOperationType(
-                        objectType,
-                        OperationType.Query,
-                        typeInspector,
-                        operations))
+                    objectType,
+                    OperationType.Query,
+                    typeInspector,
+                    operations))
                 {
                     return RootTypeKind.Query;
                 }
 
                 if (IsOperationType(
-                        objectType,
-                        OperationType.Mutation,
-                        typeInspector,
-                        operations))
+                    objectType,
+                    OperationType.Mutation,
+                    typeInspector,
+                    operations))
                 {
                     return RootTypeKind.Mutation;
                 }
 
                 if (IsOperationType(
-                        objectType,
-                        OperationType.Subscription,
-                        typeInspector,
-                        operations))
+                    objectType,
+                    OperationType.Subscription,
+                    typeInspector,
+                    operations))
                 {
                     return RootTypeKind.Subscription;
                 }
@@ -337,8 +338,8 @@ public partial class SchemaBuilder
 
                 if (typeRef is ExtendedTypeReference cr)
                 {
-                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType())) ||
-                        cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
+                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType()))
+                        || cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
                 }
 
                 if (typeRef is SyntaxTypeReference str)
@@ -436,9 +437,9 @@ public partial class SchemaBuilder
         {
             if (operations.Count == 0)
             {
-                schemaDef.QueryType = GetObjectType(OperationTypeNames.Query);
-                schemaDef.MutationType = GetObjectType(OperationTypeNames.Mutation);
-                schemaDef.SubscriptionType = GetObjectType(OperationTypeNames.Subscription);
+                schemaDef.QueryType = GetObjectType(OperationTypeNames.Query, OperationType.Query);
+                schemaDef.MutationType = GetObjectType(OperationTypeNames.Mutation, OperationType.Mutation);
+                schemaDef.SubscriptionType = GetObjectType(OperationTypeNames.Subscription, OperationType.Subscription);
             }
             else
             {
@@ -446,16 +447,19 @@ public partial class SchemaBuilder
                 schemaDef.MutationType = GetOperationType(OperationType.Mutation);
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }
-
             return;
 
-            ObjectType? GetObjectType(string typeName)
+            ObjectType? GetObjectType(string typeName, OperationType expectedOperation)
             {
                 foreach (var registeredType in typeRegistry.Types)
                 {
-                    if (registeredType.Type is ObjectType objectType &&
-                        objectType.Name.EqualsOrdinal(typeName))
+                    if (registeredType.Type.Name.EqualsOrdinal(typeName))
                     {
+                        if (registeredType.Type is not ObjectType objectType)
+                        {
+                            Throw((INamedType)registeredType.Type, expectedOperation);
+                        }
+
                         return objectType;
                     }
                 }
@@ -465,30 +469,69 @@ public partial class SchemaBuilder
 
             ObjectType? GetOperationType(OperationType operation)
             {
-                if (operations.TryGetValue(operation, out var reference))
+                if (!operations.TryGetValue(operation, out var reference))
                 {
-                    if (reference is SchemaTypeReference sr)
-                    {
-                        return (ObjectType)sr.Type;
-                    }
-
-                    if (reference is ExtendedTypeReference cr &&
-                        typeRegistry.TryGetType(cr, out var registeredType))
-                    {
-                        return (ObjectType)registeredType.Type;
-                    }
-
-                    if (reference is SyntaxTypeReference str)
-                    {
-                        var namedType = str.Type.NamedType();
-                        return typeRegistry.Types
-                            .Select(t => t.Type)
-                            .OfType<ObjectType>()
-                            .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
-                    }
+                    return null;
                 }
 
-                return null;
+                switch (reference)
+                {
+                    case SchemaTypeReference str:
+                    {
+                        if (str.Type is not ObjectType ot)
+                        {
+                            Throw((INamedType)str.Type, operation);
+                        }
+
+                        return ot;
+                    }
+
+                    case ExtendedTypeReference cr when typeRegistry.TryGetType(cr, out var registeredType):
+                    {
+                        if (registeredType.Type is not ObjectType ot)
+                        {
+                            Throw((INamedType)registeredType.Type, operation);
+                        }
+
+                        return ot;
+                    }
+
+                    case SyntaxTypeReference str:
+                    {
+                        var namedType = str.Type.NamedType();
+                        var type = typeRegistry.Types
+                            .Select(t => t.Type)
+                            .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
+
+                        if (type is null)
+                        {
+                            return null;
+                        }
+
+                        if (type is not ObjectType ot)
+                        {
+                            Throw((INamedType)type, operation);
+                        }
+
+                        return ot;
+                    }
+
+                    default:
+                        return null;
+                }
+            }
+
+            [DoesNotReturn]
+            static void Throw(INamedType namedType, OperationType operation)
+            {
+                throw SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Cannot register `{0}` as {1} type as it is not an object type. `{0}` is of type `{2}`.",
+                        namedType.Name,
+                        operation,
+                        namedType.GetType().FullName)
+                    .SetTypeSystemObject((TypeSystemObjectBase)namedType)
+                    .BuildException();
             }
         }
 
@@ -528,7 +571,7 @@ public partial class SchemaBuilder
                     .ToArray();
             }
 
-            if(allSerializers is null || allSerializers.Length == 0)
+            if (allSerializers is null || allSerializers.Length == 0)
             {
                 allSerializers =
                 [

@@ -1349,6 +1349,33 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`..
+        /// </summary>
+        internal static string LocalDateTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateTimeType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
+        /// </summary>
+        internal static string LocalDateType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss..
+        /// </summary>
+        internal static string LocalTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1..
         /// </summary>
         internal static string LongType_Description {
@@ -1880,6 +1907,15 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_Binding_Invalid {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Binding_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type `System.Object` cannot be implicitly bound to a schema type..
+        /// </summary>
+        internal static string SchemaBuilder_BindRuntimeType_ObjectNotAllowed {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_BindRuntimeType_ObjectNotAllowed", resourceCulture);
             }
         }
         

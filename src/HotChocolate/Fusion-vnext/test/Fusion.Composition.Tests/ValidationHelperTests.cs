@@ -1,8 +1,7 @@
-using HotChocolate.Fusion;
-using HotChocolate.Skimmed;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 
-namespace HotChocolate.Composition;
+namespace HotChocolate.Fusion;
 
 public sealed class ValidationHelperTests
 {
@@ -22,8 +21,8 @@ public sealed class ValidationHelperTests
         // arrange
         var schema1 = SchemaParser.Parse($$"""type Test { field: {{sdlTypeA}} }""");
         var schema2 = SchemaParser.Parse($$"""type Test { field: {{sdlTypeB}} }""");
-        var typeA = ((ObjectTypeDefinition)schema1.Types["Test"]).Fields["field"].Type;
-        var typeB = ((ObjectTypeDefinition)schema2.Types["Test"]).Fields["field"].Type;
+        var typeA = ((MutableObjectTypeDefinition)schema1.Types["Test"]).Fields["field"].Type;
+        var typeB = ((MutableObjectTypeDefinition)schema2.Types["Test"]).Fields["field"].Type;
 
         // act
         var result = ValidationHelper.SameTypeShape(typeA, typeB);
@@ -66,8 +65,8 @@ public sealed class ValidationHelperTests
               scalar Tag
               """);
 
-        var typeA = ((ObjectTypeDefinition)schema1.Types["Test"]).Fields["field"].Type;
-        var typeB = ((ObjectTypeDefinition)schema2.Types["Test"]).Fields["field"].Type;
+        var typeA = ((MutableObjectTypeDefinition)schema1.Types["Test"]).Fields["field"].Type;
+        var typeB = ((MutableObjectTypeDefinition)schema2.Types["Test"]).Fields["field"].Type;
 
         // act
         var result = ValidationHelper.SameTypeShape(typeA, typeB);

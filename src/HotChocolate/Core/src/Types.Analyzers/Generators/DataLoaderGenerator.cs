@@ -4,6 +4,7 @@ using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -11,17 +12,18 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        string assemblyName,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
-        WriteDataLoader(context, syntaxInfos, dataLoaderDefaults);
+        WriteDataLoader(syntaxInfos, dataLoaderDefaults, addSource);
     }
 
     private static void WriteDataLoader(
-        SourceProductionContext context,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        DataLoaderDefaultsInfo defaults)
+        DataLoaderDefaultsInfo defaults,
+        Action<string, SourceText> addSource)
     {
         var dataLoaders = new List<DataLoaderInfo>();
 
@@ -106,10 +108,15 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                         t.InterfaceName,
                         t.IsInterfacePublic ?? isPublic));
 
-                buffer ??= new();
+                buffer ??= [];
                 buffer.Clear();
                 buffer.AddRange(dataLoaderGroups);
-                generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer, defaults.GenerateInterfaces);
+                generator.WriteDataLoaderGroupClass(
+                    dataLoaderGroup.Key,
+                    buffer,
+                    defaults.GenerateInterfaces,
+                    defaults.IsInterfacePublic ?? true,
+                    defaults.IsPublic ?? true);
             }
 
             generator.WriteEndNamespace();
@@ -117,7 +124,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
         if (hasDataLoaders)
         {
-            context.AddSource(WellKnownFileNames.DataLoaderFile, generator.ToSourceText());
+            addSource(WellKnownFileNames.DataLoaderFile, generator.ToSourceText());
         }
     }
 

@@ -91,6 +91,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new FieldParameterExpressionBuilder());
         expressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
         expressionBuilders.Add(new PathParameterExpressionBuilder());
+        expressionBuilders.Add(new ConnectionFlagsParameterExpressionBuilder());
 
         if (serviceInspector is not null)
         {

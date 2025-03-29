@@ -1,17 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-<ItemGroup>
-  <PackageReference Include="Xunit" />
-</ItemGroup>
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.Xunit</AssemblyName>
+    <RootNamespace>CookieCrumble.Xunit</RootNamespace>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
 
-<ItemGroup>
-  <ProjectReference Include="../CookieCrumble/CookieCrumble.csproj" />
-  <ProjectReference Include="../CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj" PrivateAssets="All" ExcludeAssets="compile;runtime" />
-</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.extensibility.execution" />
+  </ItemGroup>
 
-<ItemGroup>
-  <!-- Package the generator in the analyzer directory of the nuget package -->
-  <None Include="$(OutputPath)\net9.0\CookieCrumble.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../CookieCrumble/CookieCrumble.csproj" />
+    <ProjectReference Include="../CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj" PrivateAssets="All" ExcludeAssets="compile;runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\net9.0\CookieCrumble.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
 </Project>

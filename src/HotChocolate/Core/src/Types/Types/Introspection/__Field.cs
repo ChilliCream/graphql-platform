@@ -21,7 +21,6 @@ internal sealed class __Field : ObjectType<IOutputField>
         var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
         var nonNullTypeType = Parse($"{nameof(__Type)}!");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        var booleanType = Parse($"{ScalarNames.Boolean}");
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
@@ -45,7 +44,7 @@ internal sealed class __Field : ObjectType<IOutputField>
                 {
                     Arguments =
                     {
-                        new(Names.IncludeDeprecated, type: booleanType)
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,

@@ -1,0 +1,13 @@
+{
+  "data": {
+    "products": {
+      "edges": [
+        {
+          "node": {
+            "name": "Abc"
+          }
+        }
+      ]
+    }
+  }
+}

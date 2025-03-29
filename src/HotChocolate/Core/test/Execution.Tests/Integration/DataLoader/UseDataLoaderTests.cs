@@ -256,7 +256,7 @@ public class UseDataLoaderTests
     {
         public TestGroupedLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions? options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
         }

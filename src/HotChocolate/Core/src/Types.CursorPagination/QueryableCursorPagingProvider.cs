@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using HotChocolate.Internal;
 
@@ -8,10 +9,20 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public class QueryableCursorPagingProvider : CursorPagingProvider
 {
+    private static readonly ConcurrentDictionary<Type, MethodInfo> _factoryCache = new();
+    private readonly bool? _inlineTotalCount;
+
     private static readonly MethodInfo _createHandler =
         typeof(QueryableCursorPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
+
+    public QueryableCursorPagingProvider() { }
+
+    public QueryableCursorPagingProvider(bool? inlineTotalCount)
+    {
+        _inlineTotalCount = inlineTotalCount;
+    }
 
     /// <inheritdoc />
     public override bool CanHandle(IExtendedType source)
@@ -34,12 +45,12 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
             throw new ArgumentNullException(nameof(source));
         }
 
-        return (CursorPagingHandler)_createHandler
-            .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, [options,])!;
+        var key = source.ElementType?.Source ?? source.Source;
+        var factory = _factoryCache.GetOrAdd(key, static type => _createHandler.MakeGenericMethod(type));
+        return (CursorPagingHandler)factory.Invoke(null, [options, _inlineTotalCount])!;
     }
 
     private static QueryableCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
-        PagingOptions options) =>
-        new(options);
+        PagingOptions options, bool? inlineTotalCount)
+        => new(options, inlineTotalCount);
 }
