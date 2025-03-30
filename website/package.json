@@ -108,5 +108,5 @@
       "pre-commit": "pretty-quick --pattern \"./**/*\" --staged"
     }
   },
-  "packageManager": "yarn@3.3.0"
+  "packageManager": "yarn@4.8.1"
 }
