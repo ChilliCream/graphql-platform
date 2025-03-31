@@ -97,9 +97,17 @@ public ref struct FieldSelectionMapParser
             case TokenKind.LeftAngleBracket: // For a <TypeName>.
                 path = ParsePath();
 
-                if (_reader.TokenKind == TokenKind.LeftSquareBracket)
+                // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+                switch (_reader.TokenKind)
                 {
-                    selectedListValue = ParseSelectedListValue();
+                    case TokenKind.Period:
+                        MoveNext(); // skip "."
+                        selectedObjectValue = ParseSelectedObjectValue();
+                        break;
+
+                    case TokenKind.LeftSquareBracket:
+                        selectedListValue = ParseSelectedListValue();
+                        break;
                 }
 
                 break;
@@ -202,7 +210,8 @@ public ref struct FieldSelectionMapParser
             Expect(TokenKind.Period);
             pathSegment = ParsePathSegment();
         }
-        else if (_reader.TokenKind == TokenKind.Period)
+        else if (_reader.TokenKind == TokenKind.Period
+            && _reader.GetNextTokenKind() != TokenKind.LeftBrace)
         {
             MoveNext(); // skip "."
             pathSegment = ParsePathSegment();
