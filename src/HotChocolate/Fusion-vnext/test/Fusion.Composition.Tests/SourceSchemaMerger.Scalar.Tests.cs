@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerScalarTests : CompositionTestBase
+public sealed class SourceSchemaMergerScalarTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
