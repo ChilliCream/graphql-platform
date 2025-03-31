@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class KeyInvalidFieldsRuleTests : CompositionTestBase
+public sealed class KeyInvalidFieldsRuleTests
 {
     private static readonly object s_rule = new KeyInvalidFieldsRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
