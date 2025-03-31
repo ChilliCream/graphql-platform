@@ -193,10 +193,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private void BeginProcessing(IDisposable session)
+    private void BeginProcessing(IAsyncDisposable session)
         => ProcessMessagesSessionAsync(session).FireAndForget();
 
-    private async Task ProcessMessagesSessionAsync(IDisposable session)
+    private async Task ProcessMessagesSessionAsync(IAsyncDisposable session)
     {
         try
         {
@@ -208,7 +208,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
         finally
         {
-            session.Dispose();
+            await session.DisposeAsync().ConfigureAwait(false);
             DiagnosticEvents.Disconnected(Name);
         }
     }
@@ -372,7 +372,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <returns>
     /// Returns a session to dispose the subscription session.
     /// </returns>
-    protected virtual ValueTask<IDisposable> OnConnectAsync(
+    protected virtual ValueTask<IAsyncDisposable> OnConnectAsync(
         CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
@@ -407,10 +407,11 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private sealed class DefaultSession : IDisposable
+    private sealed class DefaultSession : IAsyncDisposable
     {
         private DefaultSession() { }
-        public void Dispose() { }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
         public static readonly DefaultSession Instance = new();
     }

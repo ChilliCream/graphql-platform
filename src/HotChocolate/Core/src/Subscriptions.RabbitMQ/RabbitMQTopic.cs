@@ -25,7 +25,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
     }
 
-    protected override async ValueTask<IDisposable> OnConnectAsync(
+    protected override async ValueTask<IAsyncDisposable> OnConnectAsync(
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -85,7 +85,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         return new AsyncEventingBasicConsumer(channel);
     }
 
-    private sealed class Subscription : IDisposable
+    private sealed class Subscription : IAsyncDisposable
     {
         private readonly Action _unsubscribe;
         private bool _disposed;
@@ -95,15 +95,17 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             _unsubscribe = unsubscribe;
         }
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
             if (_disposed)
             {
-                return;
+                return ValueTask.CompletedTask;
             }
 
             _unsubscribe();
             _disposed = true;
+
+            return ValueTask.CompletedTask;
         }
     }
 }

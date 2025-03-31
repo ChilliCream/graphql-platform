@@ -23,7 +23,7 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
     }
 
-    protected override async ValueTask<IDisposable> OnConnectAsync(
+    protected override async ValueTask<IAsyncDisposable> OnConnectAsync(
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -37,7 +37,7 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
         return new Session(Name, _connection, DiagnosticEvents);
     }
 
-    private sealed class Session : IDisposable
+    private sealed class Session : IAsyncDisposable
     {
         private readonly string _name;
         private readonly IConnectionMultiplexer _connection;
@@ -54,11 +54,11 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
             _diagnosticEvents = diagnosticEvents;
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (!_disposed)
             {
-                _connection.GetSubscriber().Unsubscribe(_name);
+                await _connection.GetSubscriber().UnsubscribeAsync(_name).ConfigureAwait(false);
                 _diagnosticEvents.ProviderTopicInfo(_name, RedisTopic_UnsubscribedFromRedis);
                 _disposed = true;
             }
