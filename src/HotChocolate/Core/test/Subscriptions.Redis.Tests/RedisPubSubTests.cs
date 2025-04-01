@@ -33,15 +33,11 @@ public class RedisPubSubTests : IClassFixture<RedisResource>
     public async Task Unsubscribe_Should_UnsubscribeAsync()
     {
         // Have to use the real implementation since ChannelMessageQueue is internal
-        var connectionMultiplexer = _redisResource.GetConnection();
+        await using var connectionMultiplexer = _redisResource.GetConnection();
 
         _subscriberMock
             .Setup(x => x.SubscribeAsync(It.IsAny<RedisChannel>(), CommandFlags.None))
             .Returns((RedisChannel channel, CommandFlags flags) => connectionMultiplexer.GetSubscriber().SubscribeAsync(channel, flags));
-
-        _subscriberMock
-            .Setup(x => x.UnsubscribeAsync(It.IsAny<RedisChannel>(), It.IsAny<Action<RedisChannel,RedisValue>?>(), CommandFlags.None))
-            .Returns((RedisChannel channel,  Action<RedisChannel,RedisValue>? handler, CommandFlags cf) => connectionMultiplexer.GetSubscriber().UnsubscribeAsync(channel, handler, cf));
 
         var subscription = await _redisPubSub.SubscribeAsync<TestMessage>("test_topic");
 
@@ -50,6 +46,8 @@ public class RedisPubSubTests : IClassFixture<RedisResource>
         _subscriberMock.Verify(
             x => x.UnsubscribeAsync(It.IsAny<RedisChannel>(), It.IsAny<Action<RedisChannel,RedisValue>?>(), CommandFlags.None),
             Times.Once);
+
+        await connectionMultiplexer.GetSubscriber().UnsubscribeAllAsync();
     }
 
     private record TestMessage();
