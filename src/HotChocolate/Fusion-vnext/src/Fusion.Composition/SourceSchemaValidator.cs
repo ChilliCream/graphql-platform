@@ -263,10 +263,28 @@ internal sealed class SourceSchemaValidator(
             argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Is);
 
         if (!isDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
-            || f is not StringValueNode)
+            || f is not StringValueNode fieldArgument)
         {
             PublishEvent(
                 new IsFieldInvalidTypeEvent(isDirective, argument, field, type, schema),
+                context);
+
+            return;
+        }
+
+        try
+        {
+            new FieldSelectionMapParser(fieldArgument.Value).Parse();
+        }
+        catch (FieldSelectionMapSyntaxException)
+        {
+            PublishEvent(
+                new IsFieldInvalidSyntaxEvent(
+                    isDirective,
+                    argument,
+                    field,
+                    type,
+                    schema),
                 context);
         }
     }
