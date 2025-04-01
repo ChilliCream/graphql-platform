@@ -53,12 +53,11 @@ public sealed class IsInvalidSyntaxRuleTests
             {
                 [
                     """
-                    type User @key(fields: "id") {
-                        id: ID!
-                        profile(name: String! @is(field: "name")): Profile
+                    type Query {
+                        personById(id: ID! @is(field: "id")): Person @lookup
                     }
 
-                    type Profile {
+                    type Person {
                         id: ID!
                         name: String
                     }
@@ -77,20 +76,19 @@ public sealed class IsInvalidSyntaxRuleTests
             {
                 [
                     """
-                    type User @key(fields: "id") {
-                        id: ID!
-                        profile(name: String! @is(field: "{ name ")): Profile
+                    type Query {
+                        personById(id: ID! @is(field: "{ id ")): Person @lookup
                     }
 
-                    type Profile {
+                    type Person {
                         id: ID!
                         name: String
                     }
                     """
                 ],
                 [
-                    "The @is directive on argument 'User.profile(name:)' in schema 'A' contains " +
-                    "invalid syntax in the 'field' argument."
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' " +
+                    "contains invalid syntax in the 'field' argument."
                 ]
             }
         };
