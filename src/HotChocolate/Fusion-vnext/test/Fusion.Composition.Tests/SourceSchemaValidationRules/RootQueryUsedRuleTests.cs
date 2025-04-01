@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class RootQueryUsedRuleTests : CompositionTestBase
+public sealed class RootQueryUsedRuleTests
 {
     private static readonly object s_rule = new RootQueryUsedRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];

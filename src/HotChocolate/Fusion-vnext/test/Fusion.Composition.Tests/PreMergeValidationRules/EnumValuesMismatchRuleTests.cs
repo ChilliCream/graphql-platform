@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class EnumValuesMismatchRuleTests : CompositionTestBase
+public sealed class EnumValuesMismatchRuleTests
 {
     private static readonly object s_rule = new EnumValuesMismatchRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
