@@ -77,18 +77,19 @@ public sealed class RequireInvalidSyntaxRuleTests
             {
                 [
                     """
-                    type Book {
+                    type User @key(fields: "id") {
                         id: ID!
-                        title(lang: String! @require(field: "author { name ")): String
+                        profile(name: String! @require(field: "{ name ")): Profile
                     }
 
-                    type Author {
+                    type Profile {
+                        id: ID!
                         name: String
                     }
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.title(lang:)' in schema 'A' " +
+                    "The @require directive on argument 'User.profile(name:)' in schema 'A' " +
                     "contains invalid syntax in the 'field' argument."
                 ]
             }
