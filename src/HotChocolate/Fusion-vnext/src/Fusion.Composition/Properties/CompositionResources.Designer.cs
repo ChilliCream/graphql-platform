@@ -636,6 +636,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;field&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
