@@ -80,6 +80,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ExternalOnInterfaceRule(),
         new ExternalUnusedRule(),
         new InvalidShareableUsageRule(),
+        new IsInvalidFieldTypeRule(),
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),

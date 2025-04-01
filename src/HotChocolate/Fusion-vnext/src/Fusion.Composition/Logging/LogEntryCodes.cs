@@ -22,6 +22,7 @@ public static class LogEntryCodes
     public const string InterfaceFieldNoImplementation = "INTERFACE_FIELD_NO_IMPLEMENTATION";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
+    public const string IsInvalidFieldType = "IS_INVALID_FIELD_TYPE";
     public const string KeyDirectiveInFieldsArg = "KEY_DIRECTIVE_IN_FIELDS_ARG";
     public const string KeyFieldsHasArgs = "KEY_FIELDS_HAS_ARGS";
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";
