@@ -262,6 +262,8 @@ internal sealed class SourceSchemaValidator(
         var isDirective =
             argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Is);
 
+        PublishEvent(new IsDirectiveEvent(isDirective, argument, field, type, schema), context);
+
         if (!isDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
             || f is not StringValueNode fieldArgument)
         {

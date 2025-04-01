@@ -34,6 +34,13 @@ internal record InterfaceTypeEvent(
     MutableInterfaceTypeDefinition InterfaceType,
     MutableSchemaDefinition Schema) : IEvent;
 
+internal record IsDirectiveEvent(
+    Directive IsDirective,
+    MutableInputFieldDefinition Argument,
+    MutableOutputFieldDefinition Field,
+    MutableComplexTypeDefinition Type,
+    MutableSchemaDefinition Schema) : IEvent;
+
 internal record IsFieldInvalidSyntaxEvent(
     Directive IsDirective,
     MutableInputFieldDefinition Argument,
