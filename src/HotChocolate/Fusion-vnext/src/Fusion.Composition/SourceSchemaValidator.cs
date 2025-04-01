@@ -73,6 +73,16 @@ internal sealed class SourceSchemaValidator(
                             PublishEvent(
                                 new FieldArgumentEvent(argument, field, type, schema), context);
 
+                            if (argument.Directives.ContainsName(DirectiveNames.Is))
+                            {
+                                PublishIsEvents(
+                                    argument,
+                                    field,
+                                    complexType,
+                                    schema,
+                                    context);
+                            }
+
                             if (argument.Directives.ContainsName(DirectiveNames.Require))
                             {
                                 PublishRequireEvents(
@@ -238,6 +248,25 @@ internal sealed class SourceSchemaValidator(
         {
             PublishEvent(
                 new ProvidesFieldsInvalidSyntaxEvent(providesDirective, field, type, schema),
+                context);
+        }
+    }
+
+    private void PublishIsEvents(
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema,
+        CompositionContext context)
+    {
+        var isDirective =
+            argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Is);
+
+        if (!isDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
+            || f is not StringValueNode)
+        {
+            PublishEvent(
+                new IsFieldInvalidTypeEvent(isDirective, argument, field, type, schema),
                 context);
         }
     }

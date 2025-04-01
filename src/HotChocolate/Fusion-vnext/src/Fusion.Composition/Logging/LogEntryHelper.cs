@@ -422,6 +422,24 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry IsInvalidFieldType(
+        Directive isDirective,
+        string argumentName,
+        string fieldName,
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_IsInvalidFieldType, coordinate, schema.Name),
+            LogEntryCodes.IsInvalidFieldType,
+            LogSeverity.Error,
+            coordinate,
+            isDirective,
+            schema);
+    }
+
     public static LogEntry KeyDirectiveInFieldsArgument(
         string typeName,
         Directive keyDirective,
