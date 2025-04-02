@@ -207,6 +207,9 @@
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be marked as shareable.</value>
   </data>
+  <data name="LogEntryHelper_IsInvalidField" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
+  </data>
   <data name="LogEntryHelper_IsInvalidFieldType" xml:space="preserve">
     <value>The @is directive on argument '{0}' in schema '{1}' must specify a string value for the 'field' argument.</value>
   </data>
