@@ -73,6 +73,16 @@ internal sealed class SourceSchemaValidator(
                             PublishEvent(
                                 new FieldArgumentEvent(argument, field, type, schema), context);
 
+                            if (argument.Directives.ContainsName(DirectiveNames.Is))
+                            {
+                                PublishIsEvents(
+                                    argument,
+                                    field,
+                                    complexType,
+                                    schema,
+                                    context);
+                            }
+
                             if (argument.Directives.ContainsName(DirectiveNames.Require))
                             {
                                 PublishRequireEvents(
@@ -238,6 +248,45 @@ internal sealed class SourceSchemaValidator(
         {
             PublishEvent(
                 new ProvidesFieldsInvalidSyntaxEvent(providesDirective, field, type, schema),
+                context);
+        }
+    }
+
+    private void PublishIsEvents(
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema,
+        CompositionContext context)
+    {
+        var isDirective =
+            argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Is);
+
+        PublishEvent(new IsDirectiveEvent(isDirective, argument, field, type, schema), context);
+
+        if (!isDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
+            || f is not StringValueNode fieldArgument)
+        {
+            PublishEvent(
+                new IsFieldInvalidTypeEvent(isDirective, argument, field, type, schema),
+                context);
+
+            return;
+        }
+
+        try
+        {
+            new FieldSelectionMapParser(fieldArgument.Value).Parse();
+        }
+        catch (FieldSelectionMapSyntaxException)
+        {
+            PublishEvent(
+                new IsFieldInvalidSyntaxEvent(
+                    isDirective,
+                    argument,
+                    field,
+                    type,
+                    schema),
                 context);
         }
     }

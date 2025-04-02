@@ -4,9 +4,9 @@ using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class KeyInvalidFieldsTypeRuleTests
+public sealed class IsInvalidUsageRuleTests
 {
-    private static readonly object s_rule = new KeyInvalidFieldsTypeRule();
+    private static readonly object s_rule = new IsInvalidUsageRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
     private readonly CompositionLog _log = new();
 
@@ -40,7 +40,7 @@ public sealed class KeyInvalidFieldsTypeRuleTests
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "KEY_INVALID_FIELDS_TYPE"));
+        Assert.True(_log.All(e => e.Code == "IS_INVALID_USAGE"));
         Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
 
@@ -48,19 +48,18 @@ public sealed class KeyInvalidFieldsTypeRuleTests
     {
         return new TheoryData<string[]>
         {
-            // In this example, the @key directive’s "fields" argument is the string "id uuid",
-            // identifying two fields that form the object key. This usage is valid.
+            // In the following example, the @is directive is applied to an argument declared on a
+            // field with the @lookup directive, satisfying the rule.
             {
                 [
                     """
-                    type User @key(fields: "id uuid") {
-                        id: ID!
-                        uuid: ID!
-                        name: String
+                    type Query {
+                        personById(id: ID! @is(field: "id")): Person @lookup
                     }
 
-                    type Query {
-                        users: [User]
+                    type Person {
+                        id: ID!
+                        name: String
                     }
                     """
                 ]
@@ -72,36 +71,24 @@ public sealed class KeyInvalidFieldsTypeRuleTests
     {
         return new TheoryData<string[], string[]>
         {
-            // Here, the "fields" argument is provided as a boolean (true) instead of a string. This
-            // violates the directive requirement and triggers a KEY_INVALID_FIELDS_TYPE error.
+            // In the following example, the @is directive is applied to an argument declared on a
+            // field without the @lookup directive, violating the rule.
             {
                 [
                     """
-                    type User @key(fields: true) {
-                        id: ID
+                    type Query {
+                        personById(id: ID! @is(field: "id")): Person
                     }
-                    """
-                ],
-                [
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument."
-                ]
-            },
-            // Multiple keys.
-            {
-                [
-                    """
-                    type User @key(fields: true) @key(fields: false) {
-                        id: ID
-                    }
-                    """
-                ],
-                [
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument.",
 
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument."
+                    type Person {
+                        id: ID!
+                        name: String
+                    }
+                    """
+                ],
+                [
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' is " +
+                    "invalid because the declaring field is not a lookup field."
                 ]
             }
         };

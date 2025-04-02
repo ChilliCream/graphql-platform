@@ -13,15 +13,15 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 /// <summary>
-/// Even if the selection map for <c>@require(field: "…")</c> is syntactically valid, its contents
+/// Even if the field selection map for <c>@is(field: "…")</c> is syntactically valid, its contents
 /// must also be valid within the composed schema. Fields must exist on the parent type for them to
-/// be referenced by <c>@require</c>. In addition, fields requiring unknown fields break the valid
-/// usage of <c>@require</c>, leading to a <c>REQUIRE_INVALID_FIELDS</c> error.
+/// be referenced by <c>@is</c>. In addition, fields referencing unknown fields break the valid
+/// usage of <c>@is</c>, leading to an <c>IS_INVALID_FIELD</c> error.
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Require-Invalid-Fields">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Field">
 /// Specification
 /// </seealso>
-internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
+internal sealed class IsInvalidFieldRule : IEventHandler<SchemaEvent>
 {
     public void Handle(SchemaEvent @event, CompositionContext context)
     {
@@ -31,35 +31,27 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
             .SelectMany(s => s.Types.OfType<MutableObjectTypeDefinition>(), (s, o) => (s, o))
             .SelectMany(x => x.o.Fields.AsEnumerable(), (x, f) => (x.s, x.o, f))
             .SelectMany(
-                x => x.f.Arguments.AsEnumerable().Where(a => a.HasRequireDirective()),
+                x => x.f.Arguments.AsEnumerable().Where(a => a.HasIsDirective()),
                 (x, a) => new FieldArgumentInfo(a, x.f, x.o, x.s));
 
         var validator = new FieldSelectionMapValidator(schema);
 
         foreach (var (sourceArgument, sourceField, sourceType, sourceSchema) in sourceArgumentGroup)
         {
-            var requireDirective = sourceArgument.Directives[Require].First();
-            var fieldArgumentValue = (string)requireDirective.Arguments[Field].Value!;
+            var isDirective = sourceArgument.Directives[Is].First();
+            var fieldArgumentValue = (string)isDirective.Arguments[Field].Value!;
             var fieldSelectionMapParser = new FieldSelectionMapParser(fieldArgumentValue);
             var fieldSelectionMap = fieldSelectionMapParser.Parse();
             var inputType = schema.Types[sourceArgument.Type.AsTypeDefinition().Name];
-            var outputType = schema.Types[sourceType.Name];
-            var errors =
-                validator.Validate(
-                    fieldSelectionMap,
-                    inputType,
-                    outputType,
-                    out var selectedFields);
+            var outputType = schema.Types[sourceField.Type.AsTypeDefinition().Name];
 
-            // A selected field is defined in the same schema as the `require` directive.
-            var selectedFieldSameSchema =
-                selectedFields.Any(f => f.GetSchemaNames().Contains(sourceSchema.Name));
+            var errors = validator.Validate(fieldSelectionMap, inputType, outputType);
 
-            if (errors.Any() || selectedFieldSameSchema)
+            if (errors.Any())
             {
                 context.Log.Write(
-                    RequireInvalidFields(
-                        requireDirective,
+                    IsInvalidField(
+                        isDirective,
                         sourceArgument.Name,
                         sourceField.Name,
                         sourceType.Name,

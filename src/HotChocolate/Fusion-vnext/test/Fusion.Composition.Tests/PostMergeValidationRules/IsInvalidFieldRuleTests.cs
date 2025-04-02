@@ -2,11 +2,11 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
-namespace HotChocolate.Fusion.PreMergeValidationRules;
+namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class TypeKindMismatchRuleTests
+public sealed class IsInvalidFieldRuleTests
 {
-    private static readonly object s_rule = new TypeKindMismatchRule();
+    private static readonly object s_rule = new IsInvalidFieldRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
     private readonly CompositionLog _log = new();
 
@@ -16,7 +16,9 @@ public sealed class TypeKindMismatchRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new PreMergeValidator(schemas, s_rules, _log);
+        var merger = new SourceSchemaMerger(schemas);
+        var mergeResult = merger.Merge();
+        var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
         // act
         var result = validator.Validate();
@@ -32,7 +34,9 @@ public sealed class TypeKindMismatchRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new PreMergeValidator(schemas, s_rules, _log);
+        var merger = new SourceSchemaMerger(schemas);
+        var mergeResult = merger.Merge();
+        var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
         // act
         var result = validator.Validate();
@@ -40,7 +44,7 @@ public sealed class TypeKindMismatchRuleTests
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "TYPE_KIND_MISMATCH"));
+        Assert.True(_log.All(e => e.Code == "IS_INVALID_FIELD"));
         Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
 
@@ -48,21 +52,19 @@ public sealed class TypeKindMismatchRuleTests
     {
         return new TheoryData<string[]>
         {
-            // All schemas agree that "User" is an object type.
+            // In the following example, the @is directive’s "field" argument is a valid field
+            // selection map and satisfies the rule.
             {
                 [
                     """
                     # Schema A
-                    type User {
+                    type Query {
+                        personById(id: ID! @is(field: "id")): Person @lookup
+                    }
+
+                    type Person {
                         id: ID!
                         name: String
-                    }
-                    """,
-                    """
-                    # Schema B
-                    type User {
-                        id: ID!
-                        email: String
                     }
                     """
                 ]
@@ -74,29 +76,25 @@ public sealed class TypeKindMismatchRuleTests
     {
         return new TheoryData<string[], string[]>
         {
-            // In the following example, "User" is defined as an object type in one of the schemas
-            // and as an interface in another. This violates the rule and results in a
-            // TYPE_KIND_MISMATCH error.
+            // In this example, the @is directive references a field ("unknownField") that does
+            // not exist on the return type ("Person"), causing an IS_INVALID_FIELD error.
             {
                 [
                     """
                     # Schema A
-                    type User {
+                    type Query {
+                        personById(id: ID! @is(field: "unknownField")): Person @lookup
+                    }
+
+                    type Person {
                         id: ID!
                         name: String
-                    }
-                    """,
-                    """
-                    # Schema B
-                    interface User {
-                        id: ID!
-                        friends: [User!]!
                     }
                     """
                 ],
                 [
-                    "The type 'User' has a different kind in schema 'A' (Object) than it does in " +
-                    "schema 'B' (Interface)."
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' " +
+                    "specifies an invalid field selection against the composed schema."
                 ]
             }
         };

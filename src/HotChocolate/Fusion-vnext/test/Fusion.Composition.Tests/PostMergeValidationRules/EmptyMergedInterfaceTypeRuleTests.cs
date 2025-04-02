@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
+public sealed class EmptyMergedInterfaceTypeRuleTests
 {
     private static readonly object s_rule = new EmptyMergedInterfaceTypeRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
