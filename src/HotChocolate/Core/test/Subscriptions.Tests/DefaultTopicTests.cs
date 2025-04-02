@@ -1,6 +1,5 @@
 ﻿using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Tests;
-using Moq;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions;
@@ -10,26 +9,26 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
     [Fact]
     public async Task Unsubscribe_ForAsyncDisposableSession_DisposesAsync()
     {
-        var sessionMock = new Mock<IAsyncAndSyncDisposable>();
-        var pubSub = new NoOpPubSub(sessionMock.Object, new SubscriptionTestDiagnostics(outputHelper));
+        var sessionMock = new StubAsyncDisposableSession();
+        var pubSub = new NoOpPubSub(sessionMock, new SubscriptionTestDiagnostics(outputHelper));
 
         var sourceStream = await pubSub.SubscribeAsync<string>("topic");
         await sourceStream.DisposeAsync();
 
-        sessionMock.Verify(x => x.DisposeAsync(), Times.Once);
-        sessionMock.Verify(x => x.Dispose(), Times.Never);
+        SpinWait.SpinUntil(() => sessionMock.AsyncDisposableCalled, TimeSpan.FromSeconds(5));
+        Assert.False(sessionMock.DisposableCalled);
     }
 
     [Fact]
     public async Task Unsubscribe_ForSyncDisposableSession_DisposesSync()
     {
-        var sessionMock = new Mock<IDisposable>();
-        var pubSub = new NoOpPubSub(sessionMock.Object, new SubscriptionTestDiagnostics(outputHelper));
+        var sessionMock = new StubDisposableSession();
+        var pubSub = new NoOpPubSub(sessionMock, new SubscriptionTestDiagnostics(outputHelper));
 
         var sourceStream = await pubSub.SubscribeAsync<string>("topic");
         await sourceStream.DisposeAsync();
 
-        sessionMock.Verify(x => x.Dispose(), Times.Once);
+        SpinWait.SpinUntil(() => sessionMock.DisposableCalled, TimeSpan.FromSeconds(5));
     }
 
     private sealed class NoOpPubSub(IDisposable session, ISubscriptionDiagnosticEvents diagnosticEvents)
@@ -70,5 +69,24 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
         }
     }
 
-    public interface IAsyncAndSyncDisposable : IAsyncDisposable, IDisposable;
+    private class StubDisposableSession : IDisposable
+    {
+        public bool DisposableCalled { get; private set; } = false;
+
+        public void Dispose()
+        {
+            DisposableCalled = true;
+        }
+    }
+
+    private class StubAsyncDisposableSession : StubDisposableSession, IAsyncDisposable
+    {
+        public bool AsyncDisposableCalled { get; private set; } = false;
+
+        public ValueTask DisposeAsync()
+        {
+            AsyncDisposableCalled = true;
+            return ValueTask.CompletedTask;
+        }
+    }
 }
