@@ -627,6 +627,33 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;field&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidFieldType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidFieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;field&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; is invalid because the declaring field is not a lookup field..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidUsage {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {

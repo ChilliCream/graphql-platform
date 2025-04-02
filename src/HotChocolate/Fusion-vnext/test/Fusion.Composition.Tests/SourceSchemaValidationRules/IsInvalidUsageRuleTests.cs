@@ -4,9 +4,9 @@ using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class RequireInvalidSyntaxRuleTests
+public sealed class IsInvalidUsageRuleTests
 {
-    private static readonly object s_rule = new RequireInvalidSyntaxRule();
+    private static readonly object s_rule = new IsInvalidUsageRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
     private readonly CompositionLog _log = new();
 
@@ -40,7 +40,7 @@ public sealed class RequireInvalidSyntaxRuleTests
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "REQUIRE_INVALID_SYNTAX"));
+        Assert.True(_log.All(e => e.Code == "IS_INVALID_USAGE"));
         Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
 
@@ -48,17 +48,16 @@ public sealed class RequireInvalidSyntaxRuleTests
     {
         return new TheoryData<string[]>
         {
-            // In the following example, the @require directive’s "field" argument is a valid
-            // selection map and satisfies the rule.
+            // In the following example, the @is directive is applied to an argument declared on a
+            // field with the @lookup directive, satisfying the rule.
             {
                 [
                     """
-                    type User @key(fields: "id") {
-                        id: ID!
-                        profile(name: String! @require(field: "name")): Profile
+                    type Query {
+                        personById(id: ID! @is(field: "id")): Person @lookup
                     }
 
-                    type Profile {
+                    type Person {
                         id: ID!
                         name: String
                     }
@@ -72,25 +71,24 @@ public sealed class RequireInvalidSyntaxRuleTests
     {
         return new TheoryData<string[], string[]>
         {
-            // In the following example, the @require directive’s "field" argument has invalid
-            // syntax because it is missing a closing brace.
+            // In the following example, the @is directive is applied to an argument declared on a
+            // field without the @lookup directive, violating the rule.
             {
                 [
                     """
-                    type User @key(fields: "id") {
-                        id: ID!
-                        profile(name: String! @require(field: "{ name ")): Profile
+                    type Query {
+                        personById(id: ID! @is(field: "id")): Person
                     }
 
-                    type Profile {
+                    type Person {
                         id: ID!
                         name: String
                     }
                     """
                 ],
                 [
-                    "The @require directive on argument 'User.profile(name:)' in schema 'A' " +
-                    "contains invalid syntax in the 'field' argument."
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' is " +
+                    "invalid because the declaring field is not a lookup field."
                 ]
             }
         };
