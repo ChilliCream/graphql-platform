@@ -875,23 +875,22 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry RequireInvalidFields(
-        Directive fusionRequiresDirective,
+        Directive requireDirective,
         string argumentName,
         string fieldName,
         string typeName,
-        string sourceSchemaName,
-        MutableSchemaDefinition schema,
+        MutableSchemaDefinition sourceSchema,
         ImmutableArray<string> errors)
     {
         var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_RequireInvalidFields, coordinate, sourceSchemaName),
+            string.Format(LogEntryHelper_RequireInvalidFields, coordinate, sourceSchema.Name),
             LogEntryCodes.RequireInvalidFields,
             LogSeverity.Error,
             coordinate,
-            fusionRequiresDirective,
-            schema,
+            requireDirective,
+            sourceSchema,
             errors);
     }
 
