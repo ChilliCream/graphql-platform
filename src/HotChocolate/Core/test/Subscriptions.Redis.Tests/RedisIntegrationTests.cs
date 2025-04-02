@@ -67,7 +67,7 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
 
         _ = Task.Run(async () =>
         {
-            while (cts.Token.IsCancellationRequested)
+            while (!cts.Token.IsCancellationRequested)
             {
                 var activeChannels = await GetActiveChannelsAsync();
                 if (activeChannels.Length < activeChannelsAfterSubscribe.Length)
