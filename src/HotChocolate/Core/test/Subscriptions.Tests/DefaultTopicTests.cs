@@ -20,7 +20,19 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
         sessionMock.Verify(x => x.Dispose(), Times.Never);
     }
 
-    private sealed class NoOpPubSub(IAsyncAndSyncDisposable session, ISubscriptionDiagnosticEvents diagnosticEvents)
+    [Fact]
+    public async Task Unsubscribe_ForSyncDisposableSession_DisposesSync()
+    {
+        var sessionMock = new Mock<IDisposable>();
+        var pubSub = new NoOpPubSub(sessionMock.Object, new SubscriptionTestDiagnostics(outputHelper));
+
+        var sourceStream = await pubSub.SubscribeAsync<string>("topic");
+        await sourceStream.DisposeAsync();
+
+        sessionMock.Verify(x => x.Dispose(), Times.Once);
+    }
+
+    private sealed class NoOpPubSub(IDisposable session, ISubscriptionDiagnosticEvents diagnosticEvents)
         : DefaultPubSub(new SubscriptionOptions(), diagnosticEvents)
     {
         protected override ValueTask OnSendAsync<TMessage>(string formattedTopic, TMessage message, CancellationToken cancellationToken = default)
@@ -48,7 +60,7 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
             int capacity,
             TopicBufferFullMode fullMode,
             ISubscriptionDiagnosticEvents diagnosticEvents,
-            IAsyncAndSyncDisposable session)
+            IDisposable session)
             : DefaultTopic<TMessage>(name, capacity, fullMode, diagnosticEvents)
         {
             protected override ValueTask<IDisposable> OnConnectAsync(CancellationToken cancellationToken)
