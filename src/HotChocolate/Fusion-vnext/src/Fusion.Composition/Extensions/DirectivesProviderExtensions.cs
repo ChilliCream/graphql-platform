@@ -52,6 +52,11 @@ internal static class DirectivesProviderExtensions
         return type.Directives.ContainsName(DirectiveNames.Inaccessible);
     }
 
+    public static bool HasIsDirective(this IDirectivesProvider type)
+    {
+        return type.Directives.ContainsName(DirectiveNames.Is);
+    }
+
     public static bool HasLookupDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(DirectiveNames.Lookup);
