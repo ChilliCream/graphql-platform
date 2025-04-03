@@ -315,6 +315,27 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ImplementedByInaccessible(
+        MutableOutputFieldDefinition field,
+        string typeName,
+        string interfaceFieldName,
+        string interfaceTypeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ImplementedByInaccessible,
+                coordinate,
+                new SchemaCoordinate(interfaceTypeName, interfaceFieldName)),
+            LogEntryCodes.ImplementedByInaccessible,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry InputFieldDefaultMismatch(
         IValueNode defaultValueA,
         IValueNode defaultValueB,
