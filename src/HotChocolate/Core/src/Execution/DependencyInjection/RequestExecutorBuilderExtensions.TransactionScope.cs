@@ -39,10 +39,50 @@ public static partial class RequestExecutorBuilderExtensions
             services =>
             {
                 // we remove all handlers from the schema DI
-                services.RemoveAll(typeof(ITransactionScopeHandler));
+                services.RemoveAll(typeof(IAsyncTransactionScopeHandler));
 
                 // and then reference the transaction scope handler from the global DI.
-                services.AddSingleton<ITransactionScopeHandler>(
+                services.AddSingleton<IAsyncTransactionScopeHandler>(
+                s => new TransactionScopeHandlerAsyncAdapter(s.GetApplicationServices().GetRequiredService<T>()));
+            });
+    }
+
+    /// <summary>
+    /// Adds a custom transaction scope handler to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <typeparam name="T">
+    /// The concrete type of the transaction scope handler.
+    /// </typeparam>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder AddAsyncTransactionScopeHandler<T>(
+        this IRequestExecutorBuilder builder)
+        where T : class, IAsyncTransactionScopeHandler
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        // we host the transaction scope in the global DI.
+        builder.Services.TryAddSingleton<T>();
+
+        return ConfigureSchemaServices(
+            builder,
+            services =>
+            {
+                // we remove all handlers from the schema DI
+                services.RemoveAll(typeof(IAsyncTransactionScopeHandler));
+
+                // and then reference the transaction scope handler from the global DI.
+                services.AddSingleton<IAsyncTransactionScopeHandler>(
                 s => s.GetApplicationServices().GetRequiredService<T>());
             });
     }
@@ -74,6 +114,7 @@ public static partial class RequestExecutorBuilderExtensions
             services =>
             {
                 services.RemoveAll(typeof(ITransactionScopeHandler));
+                services.RemoveAll(typeof(IAsyncTransactionScopeHandler));
                 services.AddSingleton(sp => create(sp.GetCombinedServices()));
             });
     }
@@ -111,7 +152,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             services =>
             {
-                services.TryAddSingleton<ITransactionScopeHandler>(
+                services.TryAddSingleton<IAsyncTransactionScopeHandler>(
                     sp => sp.GetApplicationService<NoOpTransactionScopeHandler>());
             });
     }
