@@ -113,7 +113,38 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             services =>
             {
-                services.RemoveAll(typeof(ITransactionScopeHandler));
+                services.RemoveAll(typeof(IAsyncTransactionScopeHandler));
+                services.AddSingleton<IAsyncTransactionScopeHandler>(sp
+                    => new TransactionScopeHandlerAsyncAdapter(create(sp.GetCombinedServices())));
+            });
+    }
+
+    /// <summary>
+    /// Adds a custom transaction scope handler to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="create">
+    /// A factory to create the transaction scope.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static IRequestExecutorBuilder AddAsyncTransactionScopeHandler(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, IAsyncTransactionScopeHandler> create)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return ConfigureSchemaServices(
+            builder,
+            services =>
+            {
                 services.RemoveAll(typeof(IAsyncTransactionScopeHandler));
                 services.AddSingleton(sp => create(sp.GetCombinedServices()));
             });
