@@ -573,6 +573,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; implementing interface field &apos;{1}&apos; is inaccessible in the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_ImplementedByInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ImplementedByInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputFieldDefaultMismatch {
