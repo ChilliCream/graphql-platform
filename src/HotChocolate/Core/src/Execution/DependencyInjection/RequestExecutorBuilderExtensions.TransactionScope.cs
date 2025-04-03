@@ -114,8 +114,8 @@ public static partial class RequestExecutorBuilderExtensions
             services =>
             {
                 services.RemoveAll(typeof(IAsyncTransactionScopeHandler));
-                services.AddSingleton<IAsyncTransactionScopeHandler>(sp
-                    => new TransactionScopeHandlerAsyncAdapter(create(sp.GetCombinedServices())));
+                services.AddSingleton<IAsyncTransactionScopeHandler>(
+                    sp => new TransactionScopeHandlerAsyncAdapter(create(sp.GetCombinedServices())));
             });
     }
 
