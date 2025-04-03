@@ -110,7 +110,11 @@ internal ref struct GraphQLWebSocketMessageParser
             case _i:
                 if (fieldName.SequenceEqual(Id))
                 {
-                    Expect(JsonTokenType.String);
+                    if (_reader.TokenType != JsonTokenType.Null)
+                    {
+                        Expect(JsonTokenType.String);
+                    }
+
                     message.Id = _reader.GetString();
                 }
 
