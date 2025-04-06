@@ -58,47 +58,97 @@ internal static class ExpressionHelpers
         var cursorExpr = new Expression[cursor.Values.Length];
         for (var i = 0; i < cursor.Values.Length; i++)
         {
-            cursorExpr[i] = CreateParameter(cursor.Values[i], keys[i].Expression.ReturnType);
+            cursorExpr[i] = CreateParameter(cursor.Values[i], keys[i].CompareMethod.Type);
         }
 
-        var handled = new List<CursorKey>();
         Expression? expression = null;
 
         var parameter = Expression.Parameter(typeof(T), "t");
         var zero = Expression.Constant(0);
 
-        for (var i = 0; i < keys.Length; i++)
+        for (var i = keys.Length - 1; i >= 0; i--)
         {
             var key = keys[i];
-            Expression? current = null;
-            Expression keyExpr;
-
-            for (var j = 0; j < handled.Count; j++)
-            {
-                var handledKey = handled[j];
-
-                keyExpr = Expression.Equal(
-                    Expression.Call(ReplaceParameter(handledKey.Expression, parameter), handledKey.CompareMethod,
-                        cursorExpr[j]), zero);
-
-                current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
-            }
+            Expression keyExpr, mainKeyExpr, secondaryKeyExpr;
 
             var greaterThan = forward
                 ? key.Direction == CursorKeyDirection.Ascending
                 : key.Direction == CursorKeyDirection.Descending;
 
-            keyExpr = greaterThan
-                ? Expression.GreaterThan(
-                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
-                    zero)
-                : Expression.LessThan(
-                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
-                    zero);
+            keyExpr = ReplaceParameter(key.Expression, parameter);
+            if (key.IsNullable)
+            {
+                if (expression is null)
+                {
+                    throw new ArgumentException("The last key must be non-nullable.", nameof(keys));
+                }
 
-            current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
-            expression = expression is null ? current : Expression.OrElse(expression, current);
-            handled.Add(key);
+                var nullConstant =  Expression.Constant(null, keyExpr.Type);
+
+                if (cursor.Values[i] is null)
+                {
+                    if (greaterThan)
+                    {
+                        mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
+
+                        secondaryKeyExpr = Expression.NotEqual(keyExpr, nullConstant);
+
+                        expression = Expression.OrElse(secondaryKeyExpr, Expression.AndAlso(mainKeyExpr, expression!));
+                    }
+                    else
+                    {
+                        mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
+
+                        expression = Expression.AndAlso(mainKeyExpr, expression!);
+                    }
+                }
+                else
+                {
+                    var nonNullKeyExpr = Expression.Property(keyExpr, "Value");
+                    var isNullExpression = Expression.Equal(keyExpr, nullConstant);
+
+                    mainKeyExpr = greaterThan
+                        ? Expression.GreaterThan(
+                            Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                            zero)
+                        : Expression.OrElse(
+                            Expression.LessThan(
+                                Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                                zero), isNullExpression);
+
+                    secondaryKeyExpr = greaterThan
+                        ? Expression.GreaterThanOrEqual(
+                            Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                            zero)
+                        : Expression.OrElse(
+                            Expression.LessThanOrEqual(
+                                Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                                zero), isNullExpression);
+
+                    expression = Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, expression!));
+                }
+            }
+            else
+            {
+                mainKeyExpr = greaterThan
+                    ? Expression.GreaterThan(
+                       Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                       zero)
+                    : Expression.LessThan(
+                       Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                       zero);
+
+                secondaryKeyExpr = greaterThan
+                    ? Expression.GreaterThanOrEqual(
+                        Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                        zero)
+                    : Expression.LessThanOrEqual(
+                        Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
+                        zero);
+
+                expression = expression is null ? mainKeyExpr :
+                    Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, expression));
+            }
         }
 
         return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);

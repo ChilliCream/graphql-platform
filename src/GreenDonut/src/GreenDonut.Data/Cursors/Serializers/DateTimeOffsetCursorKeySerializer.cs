@@ -7,16 +7,19 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo _compareTo =
+    private static readonly CursorKeyCompareMethod _compareTo =
         CompareToResolver.GetCompareToMethod<DateTimeOffset>();
 
     private const string _dateTimeFormat = "yyyyMMddHHmmssfffffff";
     private const string _offsetFormat = "hhmm";
 
     public bool IsSupported(Type type)
-        => type == typeof(DateTimeOffset);
+        => type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => type == typeof(DateTimeOffset?);
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => _compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)

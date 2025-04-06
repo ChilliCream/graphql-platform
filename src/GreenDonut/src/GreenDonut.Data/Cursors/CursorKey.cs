@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Reflection;
 using GreenDonut.Data.Cursors.Serializers;
 
 namespace GreenDonut.Data.Cursors;
@@ -31,7 +30,12 @@ public sealed class CursorKey(
     /// <summary>
     /// Gets the compare method that is applicable to the key value.
     /// </summary>
-    public MethodInfo CompareMethod { get; } = serializer.GetCompareToMethod(expression.ReturnType);
+    public CursorKeyCompareMethod CompareMethod { get; } = serializer.GetCompareToMethod(expression.ReturnType);
+
+    /// <summary>
+    /// Gets a value indicating whether the key value is nullable.
+    /// </summary>
+    public bool IsNullable { get; } = serializer.IsNullable(expression.ReturnType);
 
     /// <summary>
     /// Gets a value defining the sort direction of this key in dataset.

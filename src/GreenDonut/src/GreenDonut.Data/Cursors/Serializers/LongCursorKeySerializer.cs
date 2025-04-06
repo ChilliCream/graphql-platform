@@ -5,12 +5,15 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class LongCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo _compareTo = CompareToResolver.GetCompareToMethod<long>();
+    private static readonly CursorKeyCompareMethod _compareTo = CompareToResolver.GetCompareToMethod<long>();
 
     public bool IsSupported(Type type)
-        => type == typeof(long);
+        => type == typeof(long) || type == typeof(long?);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => type == typeof(long?);
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => _compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
