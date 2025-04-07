@@ -121,15 +121,16 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             fieldMap[responseName] = fields;
         }
 
-        if (parentType.NamedType() is IComplexOutputType namedType
-            && namedType.Fields.TryGetField(field.Name.Value, out var fieldDef))
+        var unwrappedParentType = parentType.NamedType();
+
+        if (unwrappedParentType is IComplexOutputType complexType
+            && complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
         {
-            fields.Add(new FieldAndType(field, fieldDef.Type, namedType));
+            fields.Add(new FieldAndType(field, fieldDef.Type, complexType));
         }
         else
         {
-            throw new InvalidOperationException(
-                $"The field `{field.Name.Value}` is not defined on the parent type `{parentType}`.");
+            fields.Add(new FieldAndType(field, null, unwrappedParentType));
         }
     }
 
@@ -322,7 +323,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         foreach (var item in fields)
         {
-            if (item.Field.SelectionSet is null)
+            if (item.Field.SelectionSet is null || item.Type is null)
             {
                 continue;
             }
@@ -487,7 +488,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     private sealed class FieldAndType
     {
-        public FieldAndType(FieldNode field, IType type, IType parentType)
+        public FieldAndType(FieldNode field, IType? type, IType parentType)
         {
             Field = field;
             Type = type;
@@ -496,7 +497,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         public FieldNode Field { get; }
 
-        public IType Type { get; }
+        public IType? Type { get; }
 
         public IType ParentType { get; }
 
