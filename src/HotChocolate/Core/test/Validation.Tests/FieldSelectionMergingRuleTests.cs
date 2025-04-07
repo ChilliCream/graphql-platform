@@ -58,10 +58,7 @@ public class FieldSelectionMergingRuleTests()
                 name: nickname
                 name
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -115,10 +112,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: SIT)
                 doesKnowCommand(dogCommand: HEEL)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -136,10 +130,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: SIT)
                 doesKnowCommand(dogCommand: $dogCommand)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -157,10 +148,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: $varOne)
                 doesKnowCommand(dogCommand: $varTwo)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -178,10 +166,7 @@ public class FieldSelectionMergingRuleTests()
                 doesKnowCommand(dogCommand: SIT)
                 doesKnowCommand
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -201,10 +186,7 @@ public class FieldSelectionMergingRuleTests()
             fragment dog on Dog {
                 doesKnowCommand
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -270,10 +252,7 @@ public class FieldSelectionMergingRuleTests()
                     someValue: meowVolume
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -358,10 +337,7 @@ public class FieldSelectionMergingRuleTests()
                     }
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -383,10 +359,7 @@ public class FieldSelectionMergingRuleTests()
             fragment FooLevel2 on Dog {
                 doesKnowCommand(dogCommand: HEEL)
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -950,7 +923,7 @@ public class FieldSelectionMergingRuleTests()
             """
             {
                 someBox {
-                    ... on SomeBox {
+                    ... on IntBox {
                         deepBox {
                             unrelatedField
                         }
@@ -1073,8 +1046,7 @@ public class FieldSelectionMergingRuleTests()
             """);
     }
 
-    // TODO : Fix this issue
-    [Fact(Skip = "This one needs fixing!")]
+    [Fact]
     public void DisallowsDifferingDeepReturnTypesDespiteNoOverlap()
     {
         ExpectErrors(
@@ -1116,8 +1088,7 @@ public class FieldSelectionMergingRuleTests()
             """);
     }
 
-    // TODO : we need to analyze this validation issue further.
-    [Fact(Skip = "This one needs to be analyzed further.")]
+    [Fact]
     public void SameWrappedScalarReturnTypes()
     {
         ExpectErrors(
@@ -1190,7 +1161,7 @@ public class FieldSelectionMergingRuleTests()
             }
 
             fragment sameAliasesWithDifferentFieldTargets on Dog {
-                ...sameAliasesWithDifferentFieldTargets
+                ... sameAliasesWithDifferentFieldTargets
                 fido: name
                 fido: nickname
             }

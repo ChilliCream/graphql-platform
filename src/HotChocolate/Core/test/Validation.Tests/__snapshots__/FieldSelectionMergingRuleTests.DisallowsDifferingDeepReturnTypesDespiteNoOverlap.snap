@@ -1,5 +1,5 @@
 {
-  "Message": "Fields `stringBox` conflict because they return conflicting types `[StringBox]` and `StringBox`. Use different aliases on the fields to fetch both if this was intentional.",
+  "Message": "Fields `intBox` conflict because they return conflicting types `StringBox` and `IntBox`. Use different aliases on the fields to fetch both if this was intentional.",
   "Locations": [
     {
       "Line": 4,

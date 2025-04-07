@@ -20,6 +20,16 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     public void Validate(IDocumentValidatorContext context, DocumentNode document)
     {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
         ValidateInternal(new MergeContext(context), document);
     }
 
@@ -55,6 +65,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                     ErrorBuilder.New()
                         .SetMessage(conflict.Reason)
                         .SetLocations(conflict.Fields.ToList())
+                        .SetPath(conflict.Path)
+                        .SpecifiedBy("sec-Field-Selection-Merging")
                         .Build());
             }
         }
@@ -92,7 +104,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                         var fragType = context.Schema.GetType<INamedType>(fragment.TypeCondition.Name.Value);
                         CollectFields(context, fieldMap, fragment.SelectionSet, fragType, visitedFragmentSpreads);
                     }
-
                     break;
             }
         }
@@ -100,7 +111,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     private static void CollectFieldsForField(
         Dictionary<string, HashSet<FieldAndType>> fieldMap,
-        IType parentType, FieldNode field)
+        IType parentType,
+        FieldNode field)
     {
         var responseName = field.Alias?.Value ?? field.Name.Value;
         if (!fieldMap.TryGetValue(responseName, out var fields))
@@ -109,14 +121,15 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             fieldMap[responseName] = fields;
         }
 
-        if (parentType is IComplexOutputType namedType
+        if (parentType.NamedType() is IComplexOutputType namedType
             && namedType.Fields.TryGetField(field.Name.Value, out var fieldDef))
         {
             fields.Add(new FieldAndType(field, fieldDef.Type, namedType));
         }
         else
         {
-            fields.Add(new FieldAndType(field, null, parentType));
+            throw new InvalidOperationException(
+                $"The field `{field.Name.Value}` is not defined on the parent type `{parentType}`.");
         }
     }
 
@@ -126,8 +139,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     {
         var result = new List<Conflict>();
 
-        SameResponseShapeByName(context, fieldMap, [], result);
-        SameForCommonParentsByName(context, fieldMap, [], result);
+        SameResponseShapeByName(context, fieldMap, Path.Root, result);
+        SameForCommonParentsByName(context, fieldMap, Path.Root, result);
 
         return result;
     }
@@ -135,7 +148,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private static void SameResponseShapeByName(
         MergeContext context,
         Dictionary<string, HashSet<FieldAndType>> fieldMap,
-        List<string> path,
+        Path path,
         List<Conflict> conflictsResult)
     {
         foreach (var entry in fieldMap)
@@ -147,8 +160,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
             context.SameResponseShapeChecked.Add(entry.Value);
 
-            var newPath = new List<string>(path) { entry.Key };
-            var conflict = RequireSameOutputTypeShape(entry.Value);
+            var newPath = path.Append(entry.Key);
+            var conflict = RequireSameOutputTypeShape(entry.Value, newPath);
 
             if (conflict != null)
             {
@@ -164,13 +177,13 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private static void SameForCommonParentsByName(
         MergeContext context,
         Dictionary<string, HashSet<FieldAndType>> fieldMap,
-        List<string> path,
+        Path path,
         List<Conflict> conflictsResult)
     {
         foreach (var entry in fieldMap)
         {
             var groups = GroupByCommonParents(entry.Value);
-            var newPath = new List<string>(path) { entry.Key };
+            var newPath = path.Append(entry.Key);
 
             foreach (var group in groups)
             {
@@ -196,38 +209,58 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     private static List<HashSet<FieldAndType>> GroupByCommonParents(HashSet<FieldAndType> fields)
     {
-        var concreteGroups = fields
-            .Where(f => f.ParentType is ObjectType)
-            .GroupBy(f => f.ParentType)
-            .ToList();
+        // Separate abstract and concrete parent types
+        var abstractFields = new List<FieldAndType>();
+        var concreteGroups = new Dictionary<IType, List<FieldAndType>>();
 
-        if (concreteGroups.Count == 0)
+        foreach (var field in fields)
         {
-            return [fields];
+            var parent = field.ParentType.NamedType();
+
+            switch (parent.Kind)
+            {
+                case TypeKind.Interface or TypeKind.Union:
+                    abstractFields.Add(field);
+                    break;
+
+                case TypeKind.Object:
+                {
+                    if (!concreteGroups.TryGetValue(parent, out var list))
+                    {
+                        list = [];
+                        concreteGroups[parent] = list;
+                    }
+
+                    list.Add(field);
+                    break;
+                }
+            }
         }
 
-        var abstractTypes = fields
-            .Where(f => f.ParentType.Kind is TypeKind.Interface or TypeKind.Union)
-            .ToList();
+        // If there are no concrete groups, just return one group with all abstract fields
+        if (concreteGroups.Count == 0)
+        {
+            return [new HashSet<FieldAndType>(abstractFields)];
+        }
 
-        var groupByCommonParents = new List<HashSet<FieldAndType>>();
+        var result = new List<HashSet<FieldAndType>>();
 
-        foreach (var group in concreteGroups)
+        foreach (var group in concreteGroups.Values)
         {
             var set = new HashSet<FieldAndType>(group);
 
-            foreach (var abstractType in abstractTypes)
+            foreach (var abstractField in abstractFields)
             {
-                set.Add(abstractType);
+                set.Add(abstractField);
             }
 
-            groupByCommonParents.Add(set);
+            result.Add(set);
         }
 
-        return groupByCommonParents;
+        return result;
     }
 
-    private static Conflict? RequireSameNameAndArguments(List<string> path, HashSet<FieldAndType> fieldGroup)
+    private static Conflict? RequireSameNameAndArguments(Path path, HashSet<FieldAndType> fieldGroup)
     {
         if (fieldGroup.Count <= 1)
         {
@@ -237,14 +270,18 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         var first = fieldGroup.First();
         var name = first.Field.Name.Value;
         var arguments = first.Field.Arguments;
+        var responseName = first.Field.Alias?.Value ?? name;
 
         foreach (var (field, _, _) in fieldGroup.Skip(1))
         {
-            if (field.Name.Value != name || !SameArguments(arguments, field.Arguments))
+            if (field.Name.Value != name)
             {
-                return new Conflict(
-                    $"Fields conflict at {string.Join("/", path)}: different names or arguments.",
-                    fieldGroup.Select(f => f.Field).ToHashSet());
+                return NameMismatchConflict(name, field.Name.Value, path, fieldGroup);
+            }
+
+            if (!SameArguments(arguments, field.Arguments))
+            {
+                return ArgumentMismatchConflict(responseName, path, fieldGroup);
             }
         }
 
@@ -281,6 +318,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         HashSet<FieldAndType> fields)
     {
         var merged = new Dictionary<string, HashSet<FieldAndType>>();
+        HashSet<string>? visited = null;
 
         foreach (var item in fields)
         {
@@ -289,24 +327,27 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 continue;
             }
 
-            var visited = new HashSet<string>();
-            CollectFields(context, merged, item.Field.SelectionSet, item.Type!, visited);
+            visited ??= [];
+            visited.Clear();
+
+            CollectFields(context, merged, item.Field.SelectionSet, item.Type, visited);
         }
 
         return merged;
     }
 
-    private static Conflict? RequireSameOutputTypeShape(HashSet<FieldAndType> fields)
+    private static Conflict? RequireSameOutputTypeShape(
+        HashSet<FieldAndType> fields,
+        Path path)
     {
         if (fields.Count <= 1)
         {
             return null;
         }
 
-        var list = fields.ToList();
-        var baseField = list[0];
+        var baseField = fields.First();
 
-        foreach (var current in list.Skip(1))
+        foreach (var current in fields.Skip(1))
         {
             var a = baseField.Type;
             var b = current.Type;
@@ -317,9 +358,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 {
                     if (a is not NonNullType || b is not NonNullType)
                     {
-                        return new Conflict(
-                            "Fields have different nullability",
-                            fields.Select(f => f.Field).ToHashSet());
+                        return TypeMismatchConflict(
+                            current.Field.Name.Value,
+                            path,
+                            a,
+                            b,
+                            fields);
                     }
                 }
 
@@ -327,9 +371,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 {
                     if (a is not ListType || b is not ListType)
                     {
-                        return new Conflict(
-                            "Fields have different list structure",
-                            fields.Select(f => f.Field).ToHashSet());
+                        return TypeMismatchConflict(
+                            current.Field.Name.Value,
+                            path,
+                            a,
+                            b,
+                            fields);
                     }
                 }
 
@@ -344,9 +391,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
             if (!SameType(a, b))
             {
-                return new Conflict(
-                    "Fields have different base types",
-                    fields.Select(f => f.Field).ToHashSet());
+                return TypeMismatchConflict(
+                    current.Field.Name.Value,
+                    path,
+                    a,
+                    b,
+                    fields);
             }
         }
 
@@ -363,19 +413,98 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         return a.Equals(b);
     }
 
-    private sealed class FieldAndType(FieldNode field, IType? type, IType parentType)
+    private static Conflict TypeMismatchConflict(
+        string responseName,
+        Path path,
+        IType? typeA,
+        IType? typeB,
+        HashSet<FieldAndType> fields)
     {
-        public FieldNode Field { get; } = field;
+        var typeNameA = typeA?.Print() ?? "null";
+        var typeNameB = typeB?.Print() ?? "null";
 
-        public IType? Type { get; } = type;
+        var fieldNodes = new HashSet<FieldNode>(SyntaxComparer.BySyntax);
 
-        public IType ParentType { get; } = parentType;
+        foreach (var field in fields)
+        {
+            fieldNodes.Add(field.Field);
+        }
+
+        return new Conflict(
+            string.Format(
+                "Fields `{0}` conflict because they return conflicting types `{1}` and `{2}`. "
+                + "Use different aliases on the fields to fetch both if this was intentional.",
+                responseName,
+                typeNameA,
+                typeNameB),
+            fieldNodes,
+            path);
+    }
+
+    private static Conflict ArgumentMismatchConflict(
+        string responseName,
+        Path path,
+        HashSet<FieldAndType> fields)
+    {
+        var fieldNodes = new HashSet<FieldNode>(SyntaxComparer.BySyntax);
+
+        foreach (var field in fields)
+        {
+            fieldNodes.Add(field.Field);
+        }
+
+        return new Conflict(
+            string.Format(
+                "Fields `{0}` conflict because they have differing arguments. "
+                + "Use different aliases on the fields to fetch both if this was intentional. ",
+                responseName),
+            fieldNodes,
+            path);
+    }
+
+    private static Conflict NameMismatchConflict(
+        string fieldName1,
+        string fieldName2,
+        Path path,
+        HashSet<FieldAndType> fields)
+    {
+        var fieldNodes = new HashSet<FieldNode>(SyntaxComparer.BySyntax);
+
+        foreach (var field in fields)
+        {
+            fieldNodes.Add(field.Field);
+        }
+
+        return new Conflict(
+            string.Format(
+                "Fields `{0}` and `{1}` conflict because they have differing names. "
+                + "Use different aliases on the fields to fetch both if this was intentional.",
+                fieldName1,
+                fieldName2),
+            fieldNodes,
+            path);
+    }
+
+    private sealed class FieldAndType
+    {
+        public FieldAndType(FieldNode field, IType type, IType parentType)
+        {
+            Field = field;
+            Type = type;
+            ParentType = parentType;
+        }
+
+        public FieldNode Field { get; }
+
+        public IType Type { get; }
+
+        public IType ParentType { get; }
 
         public override bool Equals(object? obj)
-            => obj is FieldAndType other && Field.Equals(other.Field);
+            => obj is FieldAndType other && Field.Equals(other.Field, SyntaxComparison.Syntax);
 
         public override int GetHashCode()
-            => Field.GetHashCode();
+            => SyntaxComparer.BySyntax.GetHashCode(Field);
 
         public void Deconstruct(out FieldNode field, out IType? type, out IType parentType)
         {
@@ -385,11 +514,13 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
     }
 
-    private sealed class Conflict(string reason, HashSet<FieldNode> fields)
+    private sealed class Conflict(string reason, HashSet<FieldNode> fields, Path? path = null)
     {
         public string Reason { get; } = reason;
 
         public HashSet<FieldNode> Fields { get; } = fields;
+
+        public Path? Path { get; } = path;
     }
 
     private class HashSetComparer<T> : IEqualityComparer<HashSet<T>> where T : notnull

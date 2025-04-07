@@ -122,6 +122,14 @@ public static partial class HotChocolateValidationBuilderExtensions
     public static IValidationBuilder AddFieldRules(
         this IValidationBuilder builder)
     {
+        return builder
+            .TryAddValidationRule<LeafFieldSelectionsRule>()
+            .TryAddValidationRule<OverlappingFieldsCanBeMergedRule>();
+    }
+
+    public static IValidationBuilder AddFieldRulesLegacy(
+        this IValidationBuilder builder)
+    {
         return builder.TryAddValidationVisitor<FieldVisitor>();
     }
 
