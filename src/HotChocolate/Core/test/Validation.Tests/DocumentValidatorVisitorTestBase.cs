@@ -37,7 +37,7 @@ public abstract class DocumentValidatorVisitorTestBase
     public void ContextIsNull()
     {
         // arrange
-        var query = Utf8GraphQLParser.Parse(@"{ foo }");
+        var query = Utf8GraphQLParser.Parse("{ foo }");
 
         // act
         var a = () => Rule.Validate(null!, query);

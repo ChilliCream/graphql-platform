@@ -7,7 +7,8 @@ namespace HotChocolate.Validation;
 public class IntrospectionDepthRuleTests()
     : DocumentValidatorVisitorTestBase(b => b.AddIntrospectionDepthRule())
 {
-    [Fact] public void Introspection_With_Cycles_Will_Fail()
+    [Fact]
+    public void Introspection_With_Cycles_Will_Fail()
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();

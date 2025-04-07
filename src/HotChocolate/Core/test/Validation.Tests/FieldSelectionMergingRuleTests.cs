@@ -1,10 +1,11 @@
 using HotChocolate.Types;
+using HotChocolate.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
 public class FieldSelectionMergingRuleTests()
-    : DocumentValidatorVisitorTestBase(builder => builder.AddFieldRules())
+    : DocumentValidatorVisitorTestBase(builder => builder.TryAddValidationRule<OverlappingFieldsCanBeMergedRule>())
 {
     [Fact]
     public void MergeIdenticalFields()
