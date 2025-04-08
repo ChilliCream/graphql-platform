@@ -4,7 +4,6 @@
     <PackageId>HotChocolate.Validation</PackageId>
     <AssemblyName>HotChocolate.Validation</AssemblyName>
     <RootNamespace>HotChocolate.Validation</RootNamespace>
-    <Description></Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Validation.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Validation.Benchmarks" />
   </ItemGroup>
 
   <ItemGroup>

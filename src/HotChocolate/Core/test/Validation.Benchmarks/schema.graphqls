@@ -1,0 +1,786 @@
+schema {
+  query: Query
+}
+
+interface CollabNetDocumentActivity {
+  activityType: CollabNetDocumentActivityTypeEnumType!
+  timestamp: DateTime
+  "Preview text of the activity."
+  preview: String
+  file: DocumentFileType!
+  associatedActors: [CollabNetActorType!]!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+interface OrgExplorerPersonType {
+  id: ID!
+  aadObjectId: UUID
+  fullName: String
+  profilePictureUrl: String
+  email: String
+  jobTitle: String
+  department: String
+  location: String
+  directReportsCount: Int
+  transitiveReportsCount: Int
+  presence: PresenceType
+  "Gets the person highlights data"
+  highlights: [PersonaHighlightType!]
+  "Gets the person's directs with a limit"
+  directsV2("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): DirectsV2Connection
+}
+
+type ActorType {
+  displayName: String!
+}
+
+type BasicUserInfoType implements OrgExplorerPersonType & Node {
+  id: ID!
+  aadObjectId: UUID!
+  fullName: String!
+  email: String
+  jobTitle: String
+  department: String
+  location: String
+  profilePictureUrl: String
+  directReportsCount: Int
+  transitiveReportsCount: Int
+  presence: PresenceType
+  "Gets the person highlights data"
+  highlights: [PersonaHighlightType!]
+  "Gets the person's directs with paging"
+  directsV2("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): DirectsV2Connection
+}
+
+type BirthdayType {
+  day: Int
+  month: Int
+  year: Int
+}
+
+type CalendarDataType {
+  isOutOfOffice: Boolean!
+}
+
+type CollabNetActorType {
+  aadObjectId: String!
+  emailAddress: String!
+  displayName: String!
+}
+
+type CollabNetDocumentCommentType implements CollabNetDocumentActivity {
+  activityType: CollabNetDocumentActivityTypeEnumType!
+  timestamp: DateTime
+  preview: String
+  file: DocumentFileType!
+  associatedActors: [CollabNetActorType!]!
+  "Deep link URL to specific activity in the file."
+  deepLinkUrl: String!
+}
+
+type CollabNetDocumentMentionedMeActivity implements CollabNetDocumentActivity {
+  activityType: CollabNetDocumentActivityTypeEnumType!
+  timestamp: DateTime
+  preview: String
+  file: DocumentFileType!
+  associatedActors: [CollabNetActorType!]!
+  "Deep link URL to specific activity in the file."
+  deepLinkUrl: String!
+}
+
+type CollabNetDocumentModifyType implements CollabNetDocumentActivity {
+  activityType: CollabNetDocumentActivityTypeEnumType!
+  timestamp: DateTime
+  preview: String
+  file: DocumentFileType!
+  associatedActors: [CollabNetActorType!]!
+}
+
+type CollabNetDocumentMultipleModifyType implements CollabNetDocumentActivity {
+  activityType: CollabNetDocumentActivityTypeEnumType!
+  timestamp: DateTime
+  preview: String
+  file: DocumentFileType!
+  associatedActors: [CollabNetActorType!]!
+}
+
+type CollabNetDocumentReplyType implements CollabNetDocumentActivity {
+  activityType: CollabNetDocumentActivityTypeEnumType!
+  timestamp: DateTime
+  preview: String
+  file: DocumentFileType!
+  associatedActors: [CollabNetActorType!]!
+  "Deep link URL to specific activity in the file."
+  deepLinkUrl: String!
+}
+
+type CollabNetDocumentSharingType implements CollabNetDocumentActivity {
+  activityType: CollabNetDocumentActivityTypeEnumType!
+  timestamp: DateTime
+  preview: String
+  file: DocumentFileType!
+  associatedActors: [CollabNetActorType!]!
+}
+
+"A connection to a list of items."
+type DirectsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [DirectsEdge!]
+  "A flattened list of the nodes."
+  nodes: [PersonInFocusV2Type!]
+}
+
+"An edge in a connection."
+type DirectsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PersonInFocusV2Type!
+}
+
+"A connection to a list of items."
+type DirectsV2Connection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [DirectsV2Edge!]
+  "A flattened list of the nodes."
+  nodes: [BasicUserInfoType!]
+}
+
+"An edge in a connection."
+type DirectsV2Edge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: BasicUserInfoType!
+}
+
+type DocumentFileType {
+  name: String!
+  extension: String!
+  webUrl: String!
+}
+
+type EmailMessageType {
+  "This ID is in EWS format."
+  id: String!
+  subject: String!
+  bodyPreview: String!
+}
+
+type EmailWithLotsOfReactionsType {
+  reactionSummary: ReactionSummaryType!
+  actors: [ActorType]!
+  message: EmailMessageType!
+}
+
+type EmploymentType {
+  title: String!
+  startEndDate: TimeframeType
+  company: LinkedInCompanyType
+}
+
+type HighlightMetadataType {
+  occurrenceType: OccurrenceType
+  displayRing: Boolean
+}
+
+type Identity {
+  displayName: String
+  id: String
+}
+
+type IdentitySet {
+  user: Identity
+  application: Identity
+  device: Identity
+}
+
+type InferenceData {
+  confidenceScore: Float!
+  userHasVerifiedAccuracy: Boolean
+}
+
+type LanguageProficiencyType {
+  id: String!
+  displayName: String!
+  tag: String!
+  written: String!
+  reading: String!
+  allowedAudiences: String!
+  inference: InferenceData
+  lastModifiedBy: IdentitySet
+}
+
+type LinkedInCompanyType {
+  companyName: String!
+  companyLocation: String!
+  companyLogo: String!
+  linkedInUrl: String!
+}
+
+type LinkedInDurationType {
+  numDays: Int
+  numMonths: Int
+  numYears: Int
+}
+
+type LinkedInProfileSuggestionType {
+  displayName: String
+  emails: [String]
+  headline: String
+  photoUrl: String
+  linkedInUrl: String
+  linkedInId: String
+}
+
+type LinkedInSchoolType {
+  schoolName: String!
+  linkedInUrl: String
+  schoolLocation: String
+  schoolLogo: String
+}
+
+"A connection to a list of items."
+type ManagerChainTopToBottomConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ManagerChainTopToBottomEdge!]
+  "A flattened list of the nodes."
+  nodes: [PersonInFocusV2Type!]
+}
+
+"An edge in a connection."
+type ManagerChainTopToBottomEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PersonInFocusV2Type!
+}
+
+"A connection to a list of items."
+type ManagersConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ManagersEdge!]
+  "A flattened list of the nodes."
+  nodes: [BasicUserInfoType!]
+}
+
+"An edge in a connection."
+type ManagersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: BasicUserInfoType!
+}
+
+type MediaPostType {
+  title: String!
+  description: String!
+  url: String!
+  createdOn: TimestampType
+  thumbnails: [String]!
+  mediaCategory: ShareMediaCategory
+}
+
+type MissedMeetingType {
+  meetingRecapTeamsUrl: String
+  meetingName: String
+}
+
+type NamePronunciationType {
+  name: String
+  pronunciation: String
+}
+
+type NewHireType {
+  company: LinkedInCompanyType
+  hiredOn: TimestampType
+}
+
+type NewSmartNotesAvailableType {
+  notesCount: Int!
+}
+
+type NotFirstDegreeConnectionType {
+  linkedInMemberId: String
+  connectionStatus: ConnectionStatusEnumType
+  connectionDegree: ConnectionDegreeEnumType
+}
+
+type NoteBasedActionType {
+  text: String
+}
+
+type NoteContent {
+  text: String
+  mri: String
+}
+
+type NoteType {
+  message: String
+  messageV2: [NoteContent]
+  publishTime: DateTime!
+  expiry: DateTime!
+}
+
+type OrgExplorerDebugInformationType {
+  dataSource: OrgExplorerDataSource
+  isYggdrasilCacheEnabled: Boolean
+}
+
+type OrgExplorerType {
+  "Gets the person in focus' data using Yggdrasil"
+  personInFocusV2(aadObjectId: String!): PersonInFocusV2Type
+}
+
+type OverlapInfoDetailType {
+  startEndDate: TimeframeType
+  duration: LinkedInDurationType
+}
+
+type OverlapInfoType {
+  detail: OverlapInfoDetailType
+  overlapType: OverlapType
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+"A connection to a list of items."
+type PeersConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [PeersEdge!]
+  "A flattened list of the nodes."
+  nodes: [PersonInFocusV2Type!]
+}
+
+"An edge in a connection."
+type PeersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PersonInFocusV2Type!
+}
+
+"A connection to a list of items."
+type PeersV2Connection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [PeersV2Edge!]
+  "A flattened list of the nodes."
+  nodes: [BasicUserInfoType!]
+}
+
+"An edge in a connection."
+type PeersV2Edge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: BasicUserInfoType!
+}
+
+type PendingLinkedInInvitationType {
+  linkedInMemberId: String
+  invitationId: String
+  validationToken: String
+}
+
+type PendingRSVPToMeetingType {
+  id: String!
+  meetingId: String!
+  meetingSubject: String!
+  sendResponse: Boolean!
+  meetingStartDateTime: DateTime
+}
+
+type PersonInFocusV2Type implements OrgExplorerPersonType & Node {
+  id: ID!
+  aadObjectId: UUID
+  profilePictureUrl: String
+  fullName: String
+  email: String
+  jobTitle: String
+  department: String
+  location: String
+  phoneNumber: String
+  directReportsCount: Int
+  transitiveReportsCount: Int
+  isMe: Boolean
+  isManager: Boolean
+  "Gets the person in focus' managers chain top to bottom with paging"
+  managerChainTopToBottom("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ManagerChainTopToBottomConnection
+  "Gets the person in focus' managers chain data with paging"
+  managers("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ManagersConnection
+  "Gets the person in focus' directs data with paging"
+  directs("Job titles used as a filter for matching directs" jobTitleFilter: [String] "Viva Skills used as a filter for matching directs" vivaSkillsFilter: [String] "Hybrid location used as a filter for matching directs" hybridLocationFilter: String "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): DirectsConnection
+  "Gets the person in focus' directs data with paging"
+  directsV2("Job titles used as a filter for matching directs" jobTitleFilter: [String] "Hybrid location used as a filter for matching directs" hybridLocationFilter: String "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): DirectsV2Connection
+  "Gets the person in focus' peers data with paging"
+  peers("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): PeersConnection
+  "Gets the person in focus' peers data with paging"
+  peersV2("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): PeersV2Connection
+  presence: PresenceType
+  "Gets the person in focus' highlights data"
+  highlights: [PersonaHighlightType!]
+  "Gets the person in focus' working with data with paging"
+  workingWith("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): WorkingWithConnection
+  "Gets the person in focus' working with data with paging"
+  workingWithV2("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): WorkingWithV2Connection
+  isCallingYggdrasilEnabled: Boolean @deprecated
+  debugInformation: OrgExplorerDebugInformationType
+  "Gets the person in focus' directs' job titles"
+  directsJobTitles: [String!]
+  "Gets the person in focus' directs' Viva Skills"
+  directsVivaSkills: [String!]
+  "Get the Viva Skills for the user. For other users returns only visible and confirmed skills, for the user gives all skills"
+  vivaSkills("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): VivaSkillsConnection
+}
+
+type PersonaHighlightType {
+  vieweeDisplayName: String!
+  vieweeEmail: String!
+  socialDistance: SocialDistance
+  metadata: HighlightMetadataType
+  id: String!
+  hash: String!
+  highlight: HighlightUnionType
+  type: InsightType
+}
+
+type PositionChangeType {
+  newPosition: EmploymentType
+  positionChangeType: PositionChangeTypeEnumType
+  profileUrl: String!
+}
+
+type PostedAnnouncementType {
+  id: String
+  announcementTitle: String
+  subject: String
+  preview: String
+  channelName: String
+  teamName: String
+  clientThreadId: String
+  internetMessageId: String
+  dateTimeCreated: DateTime!
+}
+
+type PresenceType implements Node {
+  id: ID!
+  aadObjectId: String!
+  activity: String!
+  availability: String!
+  lastActiveTime: DateTime!
+  calendarData: CalendarDataType
+  workLocation: WorkLocationType
+  note: NoteType
+}
+
+type PromotePeopleNoteType {
+  text: String
+}
+
+type Query {
+  orgexplorer: OrgExplorerType
+}
+
+type ReactionSummaryType {
+  totalReactionCount: Int!
+  reactionTypeCount: [ReactionTypeCountType]!
+}
+
+type ReactionTypeCountType {
+  reactionType: ReactionEnumType!
+  reactionCount: Int!
+}
+
+type SharedEducationType {
+  school: LinkedInSchoolType
+  overlapInfo: OverlapInfoType
+}
+
+type SharedExperienceType {
+  company: LinkedInCompanyType
+  overlapInfo: OverlapInfoType
+}
+
+type StorylinePostInYammerType {
+  postType: StorylinePostType!
+  deeplinkUrl: String
+  body: String
+}
+
+type SuggestedWorkingHoursType {
+  workingHoursStart: String
+  workingHoursEnd: String
+  currentWorkingHours: WorkingHours
+}
+
+type TimeZoneBase {
+  name: String
+  bias: String
+}
+
+type TimeframeType {
+  start: TimestampType
+  end: TimestampType
+}
+
+type TimestampType {
+  day: Int
+  month: Int
+  year: Int
+}
+
+type UnifiedPresenceLocationDetailsType {
+  id: String
+  name: String
+  idType: String
+}
+
+type UploadPhotoNudgeType {
+  linkedInPhotoUrl: String
+}
+
+type VivaSkillType implements Node {
+  id: ID!
+  displayName: String
+}
+
+"A connection to a list of items."
+type VivaSkillsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [VivaSkillsEdge!]
+  "A flattened list of the nodes."
+  nodes: [VivaSkillType!]
+}
+
+"An edge in a connection."
+type VivaSkillsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: VivaSkillType!
+}
+
+type WorkAnniversaryType {
+  company: LinkedInCompanyType
+  startDate: TimestampType
+  yearsCompleted: Int!
+}
+
+type WorkLocationType {
+  location: String
+  subLocation: String
+  locationSource: String
+  expiry: DateTime!
+  isForced: Boolean!
+  approximateDetails: UnifiedPresenceLocationDetailsType
+}
+
+type WorkingHours {
+  daysOfWeek: [String]
+  startTime: String
+  endTime: String
+  timeZone: TimeZoneBase
+}
+
+"A connection to a list of items."
+type WorkingWithConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [WorkingWithEdge!]
+  "A flattened list of the nodes."
+  nodes: [PersonInFocusV2Type!]
+}
+
+"An edge in a connection."
+type WorkingWithEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PersonInFocusV2Type!
+}
+
+"A connection to a list of items."
+type WorkingWithV2Connection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [WorkingWithV2Edge!]
+  "A flattened list of the nodes."
+  nodes: [BasicUserInfoType!]
+}
+
+"An edge in a connection."
+type WorkingWithV2Edge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: BasicUserInfoType!
+}
+
+union HighlightUnionType = BirthdayType | NewHireType | SharedEducationType | SharedExperienceType | PendingRSVPToMeetingType | PositionChangeType | MediaPostType | WorkAnniversaryType | NotFirstDegreeConnectionType | PendingLinkedInInvitationType | StorylinePostInYammerType | PostedAnnouncementType | SuggestedWorkingHoursType | UploadPhotoNudgeType | CollabNetDocumentCommentType | CollabNetDocumentMentionedMeActivity | CollabNetDocumentModifyType | CollabNetDocumentMultipleModifyType | CollabNetDocumentReplyType | CollabNetDocumentSharingType | EmailWithLotsOfReactionsType | LanguageProficiencyType | LinkedInProfileSuggestionType | NamePronunciationType | NoteBasedActionType | PromotePeopleNoteType | NewSmartNotesAvailableType | MissedMeetingType
+
+enum CollabNetDocumentActivityTypeEnumType {
+  COMMENT
+  MENTIONED_ME
+  MODIFY
+  MULTIPLE_MODIFY
+  REPLY
+  SHARING
+}
+
+enum ConnectionDegreeEnumType {
+  SELF
+  DISTANCE_1
+  DISTANCE_2
+  DISTANCE_3
+  OUT_OF_NETWORK
+}
+
+enum ConnectionStatusEnumType {
+  NOT_CONNECTED
+  CONNECTED
+  INVITATION_SENT_FROM_VIEWER
+  PENDING_INVITATION_SENT_FROM_VIEWEE
+}
+
+enum InsightType {
+  ARTICLE_POST
+  BIRTHDAY
+  NEW_HIRE
+  SHARED_EDUCATION
+  SHARED_EXPERIENCE
+  PENDING_RSVP_TO_MEETING
+  POSITION_CHANGE
+  VIDEO_POST
+  WORK_ANNIVERSARY
+  NOT_FIRST_DEGREE_CONNECTION
+  PENDING_LINKED_IN_INVITATION
+  STORYLINE_POST
+  POSTED_ANNOUNCEMENT
+  PENDING_TASK
+  SUGGESTED_WORKING_HOURS_NUDGE
+  UPLOAD_PHOTO_NUDGE
+  COLLAB_NET_DOCUMENT_COMMENT
+  COLLAB_NET_DOCUMENT_MENTIONED_ME
+  COLLAB_NET_DOCUMENT_MODIFY
+  COLLAB_NET_DOCUMENT_MULTIPLE_MODIFY
+  COLLAB_NET_DOCUMENT_REPLY
+  COLLAB_NET_DOCUMENT_SHARING
+  EMAIL_WITH_LOTS_OF_REACTIONS
+  LANGUAGE_PROFICIENCY
+  LINKED_IN_PROFILE_SUGGESTION
+  NAME_PRONUNCIATION
+  NOTE_BASED_ACTION
+  PROMOTE_PEOPLE_NOTE
+  NEW_SMART_NOTES_AVAILABLE
+  MISSED_MEETING
+}
+
+enum OccurrenceType {
+  NOT_SET
+  NEW
+  REPEAT
+}
+
+enum OrgExplorerDataSource {
+  YGGDRASIL
+  DSAPI
+}
+
+enum OverlapType {
+  BOTH_CURRENT_VIEWER_STARTED_FIRST
+  BOTH_CURRENT_VIEWEE_STARTED_FIRST
+  BOTH_CURRENT_STARTED_IN_SAME_MONTH
+  NOT_BOTH_CURRENT_NO_OVERLAP_VIEWER_STARTED_FIRST
+  NOT_BOTH_CURRENT_NO_OVERLAP_VIEWEE_STARTED_FIRST
+  NOT_BOTH_CURRENT_OVERLAP
+}
+
+enum PositionChangeTypeEnumType {
+  PROMOTION
+  COMPANY_CHANGE
+  POSITION_CHANGE
+  ADDITIONAL_POSITION
+}
+
+enum ReactionEnumType {
+  CELEBRATE
+  HEART
+  LAUGH
+  LIKE
+  SURPRISED
+  SAD
+  UNLIKE
+  NONE
+}
+
+enum ShareMediaCategory {
+  ARTICLE
+  IMAGE
+  NONE
+  RICH
+  VIDEO
+  LEARNING_COURSE
+  JOB
+  QUESTION
+  ANSWER
+  CAROUSEL
+  TOPIC
+  NATIVE_DOCUMENT
+  URN_REFERENCE
+  LIVE_VIDEO
+}
+
+enum SocialDistance {
+  CLOSE_COLLEAGUE
+  FORMER_RECONNECT
+  STRANGER
+  RECENT_RECONNECT
+}
+
+enum StorylinePostType {
+  NONE
+  DISCUSSION
+  QUESTION
+  PRAISE
+  POLL
+}
+
+directive @domain(name: String) on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
+
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")
+
+"The `Upload` scalar type represents a file upload."
+scalar Upload

@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -111,6 +112,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                         var fragType = context.Schema.GetType<INamedType>(fragment.TypeCondition.Name.Value);
                         CollectFields(context, fieldMap, fragment.SelectionSet, fragType, visitedFragmentSpreads);
                     }
+
                     break;
             }
         }
@@ -262,7 +264,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         foreach (var group in concreteGroups.Values)
         {
-            var set = new HashSet<FieldAndType>(group);
+            var set = new HashSet<FieldAndType>();
+
+            foreach (var field in group)
+            {
+                set.Add(field);
+            }
 
             foreach (var abstractField in abstractFields)
             {
@@ -655,7 +662,10 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         public bool IsStreamEnabled { get; } = context.Schema.TryGetDirectiveType(WellKnownDirectives.Stream, out _);
 
-        public void ReportError(IError error) => context.ReportError(error);
+        public void ReportError(IError error)
+        {
+            context.ReportError(error);
+        }
     }
 
     private sealed class FieldLocationComparer : IComparer<FieldNode>
