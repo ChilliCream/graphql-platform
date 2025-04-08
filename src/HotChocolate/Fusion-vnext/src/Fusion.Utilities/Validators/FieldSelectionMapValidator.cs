@@ -286,6 +286,23 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
             context.InputTypes.Push(currentInputType);
         }
 
+        if (node.SelectedValue is null
+            && context.OutputTypes.Peek() is MutableComplexTypeDefinition complexType)
+        {
+            if (!complexType.Fields.TryGetField(node.Name.Value, out var field))
+            {
+                context.Errors.Add(
+                    string.Format(
+                        FieldSelectionMapValidator_FieldDoesNotExistOnType,
+                        node.Name,
+                        complexType.Name));
+
+                return Skip;
+            }
+
+            context.SelectedFields.Add(field);
+        }
+
         return Continue;
     }
 
