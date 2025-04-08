@@ -4,6 +4,10 @@
     {
       "Line": 4,
       "Column": 13
+    },
+    {
+      "Line": 7,
+      "Column": 13
     }
   ],
   "Path": "/someBox/scalar",

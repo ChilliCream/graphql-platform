@@ -1,5 +1,5 @@
 {
-  "Message": "Fields `dogOrHuman` conflict because they return conflicting types `CatOrDog` and `DogOrHuman`. Use different aliases on the fields to fetch both if this was intentional.",
+  "Message": "Fields `catOrDog` and `dogOrHuman` conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
   "Locations": [
     {
       "Line": 2,

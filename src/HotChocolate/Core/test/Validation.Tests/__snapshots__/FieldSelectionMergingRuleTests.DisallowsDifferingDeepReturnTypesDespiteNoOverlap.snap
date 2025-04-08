@@ -1,16 +1,16 @@
 {
-  "Message": "Fields `intBox` conflict because they return conflicting types `StringBox` and `IntBox`. Use different aliases on the fields to fetch both if this was intentional.",
+  "Message": "Fields `scalar` conflict because they return conflicting types `String` and `Int`. Use different aliases on the fields to fetch both if this was intentional.",
   "Locations": [
     {
-      "Line": 4,
-      "Column": 13
+      "Line": 5,
+      "Column": 17
     },
     {
-      "Line": 9,
-      "Column": 13
+      "Line": 10,
+      "Column": 17
     }
   ],
-  "Path": "/someBox/box",
+  "Path": "/someBox/box/scalar",
   "Extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }

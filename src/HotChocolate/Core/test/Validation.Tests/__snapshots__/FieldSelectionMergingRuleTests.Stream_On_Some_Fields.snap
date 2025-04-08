@@ -1,29 +1,17 @@
-﻿[
-  {
-    "Message": "Encountered fields for the same object that cannot be merged.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 4,
-        "Column": 9
-      },
-      {
-        "Line": 9,
-        "Column": 9
-      }
-    ],
-    "Extensions": {
-      "declaringTypeA": "__Type",
-      "declaringTypeB": "__Type",
-      "fieldA": "fields",
-      "fieldB": "fields",
-      "typeA": "[__Field!]",
-      "typeB": "[__Field!]",
-      "responseNameA": "fields",
-      "responseNameB": "fields",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+{
+  "Message": "Fields `fields` conflict because they have differing stream directives. ",
+  "Locations": [
+    {
+      "Line": 4,
+      "Column": 9
     },
-    "Exception": null
+    {
+      "Line": 9,
+      "Column": 9
+    }
+  ],
+  "Path": "/__type/fields",
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
-]
+}

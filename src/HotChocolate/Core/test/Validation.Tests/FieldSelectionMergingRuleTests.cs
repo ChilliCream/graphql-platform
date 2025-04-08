@@ -313,10 +313,7 @@ public class FieldSelectionMergingRuleTests()
                     }
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -1091,8 +1088,7 @@ public class FieldSelectionMergingRuleTests()
     [Fact]
     public void SameWrappedScalarReturnTypes()
     {
-        ExpectErrors(
-            TestSchema,
+        ExpectValid(
             """
             {
                 someBox {

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -51,6 +52,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             var visitedFragmentSpreads = new HashSet<string>();
             CollectFields(context, fieldMap, operationDef.SelectionSet, rootType, visitedFragmentSpreads);
             var conflicts = FindConflicts(context, fieldMap);
+            List<FieldNode>? fieldNodes = null;
 
             foreach (var conflict in conflicts)
             {
@@ -61,10 +63,15 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
                 context.ConflictsReported.Add(conflict.Fields);
 
+                fieldNodes ??= [];
+                fieldNodes.Clear();
+                fieldNodes.AddRange(conflict.Fields);
+                fieldNodes.Order(FieldLocationComparer.Instance);
+
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage(conflict.Reason)
-                        .SetLocations(conflict.Fields.ToList())
+                        .SetLocations(fieldNodes)
                         .SetPath(conflict.Path)
                         .SpecifiedBy("sec-Field-Selection-Merging")
                         .Build());
@@ -196,6 +203,13 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 context.SameForCommonParentsChecked.Add(group);
 
                 var conflict = RequireSameNameAndArguments(newPath, group);
+                if (conflict is not null)
+                {
+                    conflictsResult.Add(conflict);
+                    continue;
+                }
+
+                conflict = RequireStreamDirectiveMergeable(context, group, newPath);
                 if (conflict is not null)
                 {
                     conflictsResult.Add(conflict);
@@ -411,6 +425,18 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             return b is null;
         }
 
+        if (b is null)
+        {
+            return false;
+        }
+
+        // if the return type of field is a union type, interface type or an object type we can merge
+        // the selection set.
+        if (b.Kind is TypeKind.Interface or TypeKind.Union or TypeKind.Object)
+        {
+            return true;
+        }
+
         return a.Equals(b);
     }
 
@@ -424,13 +450,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         var typeNameA = typeA?.Print() ?? "null";
         var typeNameB = typeB?.Print() ?? "null";
 
-        var fieldNodes = new HashSet<FieldNode>(SyntaxComparer.BySyntax);
-
-        foreach (var field in fields)
-        {
-            fieldNodes.Add(field.Field);
-        }
-
         return new Conflict(
             string.Format(
                 "Fields `{0}` conflict because they return conflicting types `{1}` and `{2}`. "
@@ -438,7 +457,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 responseName,
                 typeNameA,
                 typeNameB),
-            fieldNodes,
+            GetFieldNodes(fields),
             path);
     }
 
@@ -447,19 +466,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         Path path,
         HashSet<FieldAndType> fields)
     {
-        var fieldNodes = new HashSet<FieldNode>(SyntaxComparer.BySyntax);
-
-        foreach (var field in fields)
-        {
-            fieldNodes.Add(field.Field);
-        }
-
         return new Conflict(
             string.Format(
                 "Fields `{0}` conflict because they have differing arguments. "
                 + "Use different aliases on the fields to fetch both if this was intentional. ",
                 responseName),
-            fieldNodes,
+            GetFieldNodes(fields),
             path);
     }
 
@@ -469,21 +481,103 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         Path path,
         HashSet<FieldAndType> fields)
     {
-        var fieldNodes = new HashSet<FieldNode>(SyntaxComparer.BySyntax);
-
-        foreach (var field in fields)
-        {
-            fieldNodes.Add(field.Field);
-        }
-
         return new Conflict(
             string.Format(
                 "Fields `{0}` and `{1}` conflict because they have differing names. "
                 + "Use different aliases on the fields to fetch both if this was intentional.",
                 fieldName1,
                 fieldName2),
-            fieldNodes,
+            GetFieldNodes(fields),
             path);
+    }
+
+    private static Conflict? RequireStreamDirectiveMergeable(
+        MergeContext context,
+        HashSet<FieldAndType> fields,
+        Path path)
+    {
+        // if the stream directive is disabled we can skip this check.
+        if (!context.IsStreamEnabled)
+        {
+            return null;
+        }
+
+        var baseField = fields.FirstOrDefault(
+            f => f.Field.Directives.Any(
+                d => d.Name.Value == WellKnownDirectives.Stream));
+
+        // if there is no stream directive on any field in this group we can skip this check.
+        if (baseField is null)
+        {
+            return null;
+        }
+
+        var baseInitialCount = GetStreamInitialCount(baseField.Field);
+
+        foreach (var (field, _, _) in fields)
+        {
+            if (!TryGetStreamDirective(field, out var streamDirective))
+            {
+                return StreamDirectiveMismatch(field.Name.Value, path, fields);
+            }
+
+            var initialCount = GetStreamInitialCount(streamDirective);
+
+            if (!SyntaxComparer.BySyntax.Equals(baseInitialCount, initialCount))
+            {
+                return StreamDirectiveMismatch(field.Name.Value, path, fields);
+            }
+        }
+
+        return null;
+    }
+
+
+    private static IntValueNode? GetStreamInitialCount(FieldNode field)
+    {
+        var streamDirective = field.Directives.First(
+            d => d.Name.Value == WellKnownDirectives.Stream);
+
+        return GetStreamInitialCount(streamDirective);
+    }
+
+    private static bool TryGetStreamDirective(FieldNode field, [NotNullWhen(true)] out DirectiveNode? streamDirective)
+    {
+        streamDirective = field.Directives.FirstOrDefault(
+            d => d.Name.Value == WellKnownDirectives.Stream);
+        return streamDirective is not null;
+    }
+
+    private static IntValueNode? GetStreamInitialCount(DirectiveNode streamDirective)
+    {
+        var initialCountArgument = streamDirective.Arguments.FirstOrDefault(
+            a => a.Name.Value == WellKnownDirectives.InitialCount);
+        return initialCountArgument?.Value as IntValueNode;
+    }
+
+    private static Conflict StreamDirectiveMismatch(
+        string fieldName,
+        Path path,
+        HashSet<FieldAndType> fields)
+    {
+        return new Conflict(
+            string.Format(
+                "Fields `{0}` conflict because they have differing stream directives. ",
+                fieldName),
+            GetFieldNodes(fields),
+            path);
+    }
+
+    private static HashSet<FieldNode> GetFieldNodes(HashSet<FieldAndType> fields)
+    {
+        var fieldNodes = new HashSet<FieldNode>(fields.Count);
+
+        foreach (var field in fields)
+        {
+            fieldNodes.Add(field.Field);
+        }
+
+        return fieldNodes;
     }
 
     private sealed class FieldAndType
@@ -502,7 +596,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         public IType ParentType { get; }
 
         public override bool Equals(object? obj)
-            => obj is FieldAndType other && Field.Equals(other.Field, SyntaxComparison.Syntax);
+            => obj is FieldAndType other && Field.Equals(other.Field);
 
         public override int GetHashCode()
             => SyntaxComparer.BySyntax.GetHashCode(Field);
@@ -559,6 +653,51 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         public IDictionary<string, FragmentDefinitionNode> Fragments => context.Fragments;
 
+        public bool IsStreamEnabled { get; } = context.Schema.TryGetDirectiveType(WellKnownDirectives.Stream, out _);
+
         public void ReportError(IError error) => context.ReportError(error);
+    }
+
+    private sealed class FieldLocationComparer : IComparer<FieldNode>
+    {
+        public static FieldLocationComparer Instance { get; } = new();
+
+        public int Compare(FieldNode? x, FieldNode? y)
+        {
+            if (x is null && y is null)
+            {
+                return 0;
+            }
+
+            if (x is null)
+            {
+                return -1;
+            }
+
+            if (y is null)
+            {
+                return 1;
+            }
+
+            var xLocation = x.Location;
+            var yLocation = y.Location;
+
+            if (xLocation is null && yLocation is null)
+            {
+                return 0;
+            }
+
+            if (xLocation is null)
+            {
+                return -1;
+            }
+
+            if (yLocation is null)
+            {
+                return 1;
+            }
+
+            return xLocation.CompareTo(yLocation);
+        }
     }
 }
