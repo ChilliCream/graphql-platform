@@ -69,9 +69,9 @@ internal sealed class ResolveNode(int id, Selection selection) : QueryPlanNode(i
         {
             typeName = context.ParseTypeNameFromId(formattedId.Value);
         }
-        catch (IdSerializationException ex)
+        catch (Exception exception)
         {
-            context.Result.AddError(InvalidNodeFormat(_selection, ex), _selection);
+            context.Result.AddError(InvalidNodeFormat(_selection, exception), _selection);
             return;
         }
 
