@@ -79,10 +79,10 @@ In the `Program.cs` file, we start by adding the services required by Hot Chocol
 
 ```csharp
 builder.Services
-    .AddGraphQLServer()
+    .AddGraphQL()
 ```
 
-`AddGraphQLServer` returns an `IRequestExecutorBuilder`, which has many extension methods, similar to an `IServiceCollection`, that can be used to configure the GraphQL server.
+`AddGraphQL` returns an `IRequestExecutorBuilder`, which has many extension methods, similar to an `IServiceCollection`, that can be used to configure the GraphQL server.
 
 We then call `AddTypes`, a source-generated extension method that automatically registers all types in the assembly.
 
