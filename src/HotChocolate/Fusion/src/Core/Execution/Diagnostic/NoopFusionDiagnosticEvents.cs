@@ -19,6 +19,10 @@ internal sealed class NoopFusionDiagnosticEvents : IFusionDiagnosticEvents, IDis
     {
     }
 
+    public void SubgraphRequestError(string subgraphName, Exception exception)
+    {
+    }
+
     public void Dispose()
     {
     }

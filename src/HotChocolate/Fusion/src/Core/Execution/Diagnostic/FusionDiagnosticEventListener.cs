@@ -34,6 +34,11 @@ public class FusionDiagnosticEventListener : IFusionDiagnosticEventListener
     {
     }
 
+    /// <inheritdoc />
+    public virtual void SubgraphRequestError(string subgraphName, Exception exception)
+    {
+    }
+
     private sealed class EmptyActivityScope : IDisposable
     {
         public void Dispose()
