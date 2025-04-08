@@ -485,8 +485,8 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 -- @__p_2='11'
                 SELECT b."Id", b."DisplayName", b."FoundedDate", b."GroupId", b."IsActive", b."Name"
                 FROM "Brands" AS b
-                WHERE b."FoundedDate" >= @__value_0 AND (b."FoundedDate" > @__value_0 OR b."Id" > @__value_1)
-                ORDER BY b."FoundedDate" IS NULL, b."FoundedDate", b."Id"
+                WHERE (b."FoundedDate" >= @__value_0 OR b."FoundedDate" IS NULL) AND (b."FoundedDate" > @__value_0 OR b."FoundedDate" IS NULL OR b."Id" > @__value_1)
+                ORDER BY b."FoundedDate", b."Id"
                 LIMIT @__p_2
                 ---------------
 

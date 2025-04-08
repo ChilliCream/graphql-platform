@@ -239,7 +239,7 @@ public static class PagingQueryableExtensions
         }
 
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
-        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, requestedCount, totalCount);
+        return CreatePage(builder.ToImmutable(), arguments, keys, cursor?.NullsFirst, fetchCount, pageIndex, requestedCount, totalCount);
     }
 
     /// <summary>
@@ -503,6 +503,7 @@ public static class PagingQueryableExtensions
                 builder.ToImmutable(),
                 arguments,
                 keys,
+                batchExpression.Cursor?.NullsFirst,
                 item.Items.Count,
                 pageIndex,
                 requestedCount,
@@ -572,6 +573,7 @@ public static class PagingQueryableExtensions
         ImmutableArray<T> items,
         PagingArguments arguments,
         CursorKey[] keys,
+        bool? previousNullsFirst,
         int fetchCount,
         int? index,
         int? requestedPageSize,
@@ -579,27 +581,30 @@ public static class PagingQueryableExtensions
     {
         var hasPrevious = false;
         var hasNext = false;
+        var nullsFirst = false;
 
         // if we skipped over an item, and we have fetched some items
         // than we have a previous page as we skipped over at least
         // one item.
-        if (arguments.After is not null && fetchCount > 0)
+        if (arguments.After is not null)
         {
-            hasPrevious = true;
+            hasPrevious = fetchCount > 0;
         }
 
         // if we required the last 5 items of a dataset and over-fetch by 1
         // than we have a previous page.
-        if (arguments.Last is not null && fetchCount > arguments.Last)
+        if (arguments.Last is not null)
         {
-            hasPrevious = true;
+            hasPrevious = fetchCount > arguments.Last;
+            nullsFirst = previousNullsFirst ?? GetInitialNullsFirst(items.Last(), keys.Last());
         }
 
         // if we request the first 5 items of a dataset with or without cursor
         // and we over-fetched by 1 item we have a next page.
-        if (arguments.First is not null && fetchCount > arguments.First)
+        if (arguments.First is not null)
         {
-            hasNext = true;
+            hasNext = fetchCount > arguments.First;
+            nullsFirst = previousNullsFirst ?? GetInitialNullsFirst(items.First(), keys.First());
         }
 
         // if we fetched anything before an item we know that here is at least one more item.
@@ -614,18 +619,21 @@ public static class PagingQueryableExtensions
                 items,
                 hasNext,
                 hasPrevious,
-                (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
+                (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(nullsFirst, o, p, c)),
                 index ?? 1,
                 requestedPageSize.Value,
-                totalCount.Value);
+            totalCount.Value);
         }
 
         return new Page<T>(
             items,
             hasNext,
             hasPrevious,
-            item => CursorFormatter.Format(item, keys),
+            item => CursorFormatter.Format(item, keys, new CursorPageInfo(nullsFirst)),
             totalCount);
+
+        static bool GetInitialNullsFirst(T item, CursorKey key)
+            => key.IsNullable && item != null && key.GetValue(item) == null;
     }
 
     private static int? CreateIndex(PagingArguments arguments, Cursor? cursor, int? totalCount)

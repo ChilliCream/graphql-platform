@@ -70,7 +70,17 @@ public sealed class CursorKey(
     public bool TryFormat(object entity, Span<byte> buffer, out int written)
         => CursorKeySerializerHelper.TryFormat(GetValue(entity), serializer, buffer, out written);
 
-    private object? GetValue(object entity)
+    /// <summary>
+    /// Extracts the key value from the provided entity by compiling and invoking
+    /// the lambda expression associated with this cursor key.
+    /// </summary>
+    /// <param name="entity">
+    /// The entity from which the key value should be extracted.
+    /// </param>
+    /// <returns>
+    /// The extracted key value, or <c>null</c> if the value cannot be determined.
+    /// </returns>
+    public object? GetValue(object entity)
     {
         _compiled ??= Expression.Compile();
         return _compiled.DynamicInvoke(entity);

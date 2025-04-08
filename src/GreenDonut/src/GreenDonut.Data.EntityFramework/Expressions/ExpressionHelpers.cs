@@ -69,13 +69,13 @@ internal static class ExpressionHelpers
         for (var i = keys.Length - 1; i >= 0; i--)
         {
             var key = keys[i];
-            Expression keyExpr, mainKeyExpr, secondaryKeyExpr;
 
             var greaterThan = forward
                 ? key.Direction == CursorKeyDirection.Ascending
                 : key.Direction == CursorKeyDirection.Descending;
 
-            keyExpr = ReplaceParameter(key.Expression, parameter);
+            Expression keyExpr = ReplaceParameter(key.Expression, parameter);
+
             if (key.IsNullable)
             {
                 if (expression is null)
@@ -83,75 +83,170 @@ internal static class ExpressionHelpers
                     throw new ArgumentException("The last key must be non-nullable.", nameof(keys));
                 }
 
-                var nullConstant =  Expression.Constant(null, keyExpr.Type);
-
-                if (cursor.Values[i] is null)
+                // To avoid skipping any rows, NULL values are significant for the primary sorting condition. 
+                // For all secondary sorting conditions, NULL values are treated as last,
+                // ensuring consistent behavior across different databases.
+                if (i == 0 && cursor.NullsFirst)
                 {
-                    if (greaterThan)
-                    {
-                        mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
-
-                        secondaryKeyExpr = Expression.NotEqual(keyExpr, nullConstant);
-
-                        expression = Expression.OrElse(secondaryKeyExpr, Expression.AndAlso(mainKeyExpr, expression!));
-                    }
-                    else
-                    {
-                        mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
-
-                        expression = Expression.AndAlso(mainKeyExpr, expression!);
-                    }
+                    expression = BuildNullsFirstExpression(expression!, cursor.Values[i], keyExpr, cursorExpr[i], greaterThan, key.CompareMethod.MethodInfo);
                 }
                 else
                 {
-                    var nonNullKeyExpr = Expression.Property(keyExpr, "Value");
-                    var isNullExpression = Expression.Equal(keyExpr, nullConstant);
-
-                    mainKeyExpr = greaterThan
-                        ? Expression.GreaterThan(
-                            Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                            zero)
-                        : Expression.OrElse(
-                            Expression.LessThan(
-                                Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                                zero), isNullExpression);
-
-                    secondaryKeyExpr = greaterThan
-                        ? Expression.GreaterThanOrEqual(
-                            Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                            zero)
-                        : Expression.OrElse(
-                            Expression.LessThanOrEqual(
-                                Expression.Call(nonNullKeyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                                zero), isNullExpression);
-
-                    expression = Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, expression!));
+                    expression = BuildNullsLastExpression(expression!, cursor.Values[i], keyExpr, cursorExpr[i], greaterThan, key.CompareMethod.MethodInfo);
                 }
             }
             else
             {
-                mainKeyExpr = greaterThan
-                    ? Expression.GreaterThan(
-                       Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                       zero)
-                    : Expression.LessThan(
-                       Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                       zero);
-
-                secondaryKeyExpr = greaterThan
-                    ? Expression.GreaterThanOrEqual(
-                        Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                        zero)
-                    : Expression.LessThanOrEqual(
-                        Expression.Call(keyExpr, key.CompareMethod.MethodInfo, cursorExpr[i]),
-                        zero);
-
-                expression = expression is null ? mainKeyExpr :
-                    Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, expression));
+                expression = BuildNonNullExpression(expression!, cursor.Values[i], keyExpr, cursorExpr[i], greaterThan, key.CompareMethod.MethodInfo);
             }
         }
 
         return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
+
+        static Expression BuildNullsFirstExpression(
+            Expression previousExpr,
+            object? keyValue,
+            Expression keyExpr,
+            Expression cursorExpr,
+            bool greaterThan,
+            MethodInfo compareMethod)
+        {
+            Expression mainKeyExpr, secondaryKeyExpr;
+
+            var zero = Expression.Constant(0);
+            var nullConstant = Expression.Constant(null, keyExpr.Type);
+
+            if (keyValue is null)
+            {
+                if (greaterThan)
+                {
+                    mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
+
+                    secondaryKeyExpr = Expression.NotEqual(keyExpr, nullConstant);
+
+                    return Expression.OrElse(secondaryKeyExpr, Expression.AndAlso(mainKeyExpr, previousExpr));
+                }
+                else
+                {
+                    mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
+
+                    return Expression.AndAlso(mainKeyExpr, previousExpr);
+                }
+            }
+            else
+            {
+                var nonNullKeyExpr = Expression.Property(keyExpr, "Value");
+                var isNullExpression = Expression.Equal(keyExpr, nullConstant);
+
+                mainKeyExpr = greaterThan
+                    ? Expression.GreaterThan(
+                        Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                        zero)
+                    : Expression.OrElse(
+                        Expression.LessThan(
+                            Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                            zero), isNullExpression);
+
+                secondaryKeyExpr = greaterThan
+                    ? Expression.GreaterThanOrEqual(
+                        Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                        zero)
+                    : Expression.OrElse(
+                        Expression.LessThanOrEqual(
+                            Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                            zero), isNullExpression);
+
+                return Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, previousExpr));
+            }
+        }
+
+        static Expression BuildNullsLastExpression(
+            Expression previousExpr,
+            object? keyValue,
+            Expression keyExpr,
+            Expression cursorExpr,
+            bool greaterThan,
+            MethodInfo compareMethod)
+        {
+            Expression mainKeyExpr, secondaryKeyExpr;
+
+            var zero = Expression.Constant(0);
+            var nullConstant = Expression.Constant(null, keyExpr.Type);
+
+            if (keyValue is null)
+            {
+                if (greaterThan)
+                {
+                    mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
+
+                    return Expression.AndAlso(mainKeyExpr, previousExpr);
+                }
+                else
+                {
+                    mainKeyExpr = Expression.Equal(keyExpr, nullConstant);
+
+                    secondaryKeyExpr = Expression.NotEqual(keyExpr, nullConstant);
+
+                    return Expression.OrElse(secondaryKeyExpr, Expression.AndAlso(mainKeyExpr, previousExpr));
+                }
+            }
+            else
+            {
+                var nonNullKeyExpr = Expression.Property(keyExpr, "Value");
+                var isNullExpression = Expression.Equal(keyExpr, nullConstant);
+
+                mainKeyExpr = greaterThan
+                    ? Expression.OrElse(
+                        Expression.GreaterThan(
+                            Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                            zero), isNullExpression)
+                    : Expression.LessThan(
+                            Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                            zero);
+
+                secondaryKeyExpr = greaterThan
+                    ? Expression.OrElse(
+                        Expression.GreaterThanOrEqual(
+                            Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                            zero), isNullExpression)
+                    : Expression.LessThanOrEqual(
+                            Expression.Call(nonNullKeyExpr, compareMethod, cursorExpr),
+                            zero);
+
+                return Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, previousExpr));
+            }
+        }
+
+        static Expression BuildNonNullExpression(
+            Expression? previousExpr,
+            object? keyValue,
+            Expression keyExpr,
+            Expression cursorExpr,
+            bool greaterThan,
+            MethodInfo compareMethod)
+        {
+            var zero = Expression.Constant(0);
+            Expression mainKeyExpr, secondaryKeyExpr;
+
+            mainKeyExpr = greaterThan
+                ? Expression.GreaterThan(
+                   Expression.Call(keyExpr, compareMethod, cursorExpr),
+                   zero)
+                : Expression.LessThan(
+                   Expression.Call(keyExpr, compareMethod, cursorExpr),
+                   zero);
+
+            secondaryKeyExpr = greaterThan
+                ? Expression.GreaterThanOrEqual(
+                    Expression.Call(keyExpr, compareMethod, cursorExpr),
+                    zero)
+                : Expression.LessThanOrEqual(
+                    Expression.Call(keyExpr, compareMethod, cursorExpr),
+                    zero);
+
+            return previousExpr is null ? mainKeyExpr :
+                Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, previousExpr));
+        }
     }
 
 
