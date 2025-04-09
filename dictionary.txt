@@ -1,6 +1,7 @@
 -Lsfo
 ABCEGHJKLMNPRSTVWXYZ
 ABCEGHJKLMNPRSTVXY
+accessibilities
 agrc
 Alderaan
 Andi
@@ -133,6 +134,7 @@ reencode
 refetched
 relayjs
 reprojected
+resharper
 resheader
 resmimetype
 resx
