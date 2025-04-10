@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace GreenDonut;
 
 public class PromiseCacheTests
@@ -9,6 +11,7 @@ public class PromiseCacheTests
         var cacheSize = 1;
 
         // act
+        // ReSharper disable once ObjectCreationAsStatement
         void Verify() => new PromiseCache(cacheSize);
 
         // assert
@@ -239,5 +242,91 @@ public class PromiseCacheTests
 
         // assert
         Assert.Equal("Quox", await resolved);
+    }
+
+    [Fact]
+    public async Task GetOrAddTask_When_SecondLevelEntry_Exists()
+    {
+        // arrange
+        var cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "abc");
+
+        // act
+        var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
+
+        // assert
+        Assert.Equal("def", await resolved);
+    }
+
+    [Fact]
+    public async Task GetOrAddTask_When_SecondLevelEntry_Not_Exists()
+    {
+        // arrange
+        var cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "123");
+
+        // act
+        await cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("quox")));
+
+        // assert
+        var secondLevelEntry = (Task<string>)secondLevel.Cache[key];
+        Assert.Equal("quox", await secondLevelEntry);
+    }
+
+    [Fact]
+    public async Task TryAddTask_To_SecondLevelCache_1()
+    {
+        // arrange
+        var cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "123");
+
+        // act
+        cache.TryAdd(key, () => new Promise<string>(Task.FromResult("quox")));
+
+        // assert
+        var secondLevelEntry = (Task<string>)secondLevel.Cache[key];
+        Assert.Equal("quox", await secondLevelEntry);
+    }
+
+    [Fact]
+    public async Task TryAddTask_To_SecondLevelCache_2()
+    {
+        // arrange
+        var cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "123");
+
+        // act
+        cache.TryAdd(key, new Promise<string>(Task.FromResult("quox")));
+
+        // assert
+        var secondLevelEntry = (Task<string>)secondLevel.Cache[key];
+        Assert.Equal("quox", await secondLevelEntry);
+    }
+
+    public class SecondLevelCache : IPromiseCacheInterceptor
+    {
+        private readonly ConcurrentDictionary<PromiseCacheKey, Task> _cache = new()
+        {
+            [new PromiseCacheKey("abc", "abc")] = Task.FromResult("def")
+        };
+
+        public ConcurrentDictionary<PromiseCacheKey, Task> Cache => _cache;
+
+        public Promise<T> GetOrAddPromise<T>(PromiseCacheKey key, Func<PromiseCacheKey, Promise<T>> createPromise)
+        {
+            var entry = _cache.GetOrAdd(key, _ => createPromise(key).Task);
+            return new Promise<T>((Task<T>)entry);
+        }
+
+        public bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise)
+            => _cache.TryAdd(key, promise.Task);
     }
 }

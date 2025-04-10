@@ -146,6 +146,11 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         if (node.Path is not null)
         {
             Visit(node.Path, writer);
+
+            if (node.SelectedObjectValue is not null)
+            {
+                writer.Write(Period);
+            }
         }
 
         if (node.SelectedObjectValue is not null)

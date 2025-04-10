@@ -151,8 +151,7 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<FieldArgumentInfo> argumentGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        // Remove all arguments marked with @require.
-        argumentGroup = [.. argumentGroup.Where(i => !i.Argument.HasRequireDirective())];
+        Assert(!argumentGroup.Any(i => i.Argument.HasRequireDirective()));
 
         var mergedArgument = argumentGroup.Select(i => i.Argument).FirstOrDefault();
 
@@ -429,7 +428,11 @@ internal sealed class SourceSchemaMerger
         MutableSchemaDefinition mergedSchema)
     {
         // Filter out all types marked with @internal.
-        typeGroup = [.. typeGroup.Where(i => !i.Type.HasInternalDirective())];
+        typeGroup =
+            [
+                .. typeGroup.Where(
+                    i => !((MutableObjectTypeDefinition)i.Type).HasInternalDirective())
+            ];
 
         if (typeGroup.Length == 0)
         {

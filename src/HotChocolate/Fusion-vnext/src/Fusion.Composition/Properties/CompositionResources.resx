@@ -165,11 +165,14 @@
   <data name="LogEntryHelper_EmptyMergedUnionType" xml:space="preserve">
     <value>The merged union type '{0}' is empty.</value>
   </data>
+  <data name="LogEntryHelper_EnumTypeDefaultValueInaccessible" xml:space="preserve">
+    <value>The default value of '{0}' references the inaccessible enum value '{1}'.</value>
+  </data>
   <data name="LogEntryHelper_EnumValuesMismatch" xml:space="preserve">
     <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>
   </data>
   <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
-    <value>The argument with schema coordinate '{0}' has inconsistent default values.</value>
+    <value>The default value '{0}' of external argument '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
@@ -185,6 +188,9 @@
   </data>
   <data name="LogEntryHelper_FieldWithMissingRequiredArgument" xml:space="preserve">
     <value>The argument '{0}' must be defined as required in schema '{1}'. Arguments marked with @require are treated as non-required.</value>
+  </data>
+  <data name="LogEntryHelper_ImplementedByInaccessible" xml:space="preserve">
+    <value>The field '{0}' implementing interface field '{1}' is inaccessible in the composed schema.</value>
   </data>
   <data name="LogEntryHelper_InputFieldDefaultMismatch" xml:space="preserve">
     <value>The default value '{0}' of input field '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
@@ -204,6 +210,18 @@
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be marked as shareable.</value>
   </data>
+  <data name="LogEntryHelper_IsInvalidField" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
+  </data>
+  <data name="LogEntryHelper_IsInvalidFieldType" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' must specify a string value for the 'field' argument.</value>
+  </data>
+  <data name="LogEntryHelper_IsInvalidSyntax" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' contains invalid syntax in the 'field' argument.</value>
+  </data>
+  <data name="LogEntryHelper_IsInvalidUsage" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' is invalid because the declaring field is not a lookup field.</value>
+  </data>
   <data name="LogEntryHelper_KeyDirectiveInFieldsArgument" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
   </data>
@@ -214,7 +232,7 @@
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not be a list, interface, or union type.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFields" xml:space="preserve">
-    <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which does not exist.</value>
+    <value>A @key directive on type '{0}' in schema '{1}' specifies an invalid field selection.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFieldsType" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
@@ -285,6 +303,9 @@
   <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
     <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
   </data>
+  <data name="LogEntryHelper_TypeDefinitionInvalid" xml:space="preserve">
+    <value>The type or directive '{0}' in schema '{1}' is incompatible with the built-in type or directive of the same name.</value>
+  </data>
   <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
     <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
@@ -317,5 +338,11 @@
   </data>
   <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
+  </data>
+  <data name="TypeDefinitionInvalidRule_ArgumentMissing" xml:space="preserve">
+    <value>The argument '{0}' is missing.</value>
+  </data>
+  <data name="TypeDefinitionInvalidRule_ArgumentTypeDifferent" xml:space="preserve">
+    <value>The argument '{0}' has a different type.</value>
   </data>
 </root>

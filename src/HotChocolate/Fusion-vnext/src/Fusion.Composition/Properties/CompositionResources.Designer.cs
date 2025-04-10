@@ -501,6 +501,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The default value of &apos;{0}&apos; references the inaccessible enum value &apos;{1}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_EnumTypeDefaultValueInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_EnumTypeDefaultValueInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The enum type &apos;{0}&apos; in schema &apos;{1}&apos; must define the value &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_EnumValuesMismatch {
@@ -510,7 +519,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument with schema coordinate &apos;{0}&apos; has inconsistent default values..
+        ///   Looks up a localized string similar to The default value &apos;{0}&apos; of external argument &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
         internal static string LogEntryHelper_ExternalArgumentDefaultMismatch {
             get {
@@ -560,6 +569,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_FieldWithMissingRequiredArgument {
             get {
                 return ResourceManager.GetString("LogEntryHelper_FieldWithMissingRequiredArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; implementing interface field &apos;{1}&apos; is inaccessible in the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_ImplementedByInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ImplementedByInaccessible", resourceCulture);
             }
         }
         
@@ -618,6 +636,42 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;field&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidFieldType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidFieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;field&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; is invalid because the declaring field is not a lookup field..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidUsage {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which must not include directive applications..
         /// </summary>
         internal static string LogEntryHelper_KeyDirectiveInFieldsArgument {
@@ -645,7 +699,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; references field &apos;{2}&apos;, which does not exist..
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection..
         /// </summary>
         internal static string LogEntryHelper_KeyInvalidFields {
             get {
@@ -861,6 +915,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type or directive &apos;{0}&apos; in schema &apos;{1}&apos; is incompatible with the built-in type or directive of the same name..
+        /// </summary>
+        internal static string LogEntryHelper_TypeDefinitionInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_TypeDefinitionInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; has a different kind in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
         /// </summary>
         internal static string LogEntryHelper_TypeKindMismatch {
@@ -956,6 +1019,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ShareableMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; is missing..
+        /// </summary>
+        internal static string TypeDefinitionInvalidRule_ArgumentMissing {
+            get {
+                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type..
+        /// </summary>
+        internal static string TypeDefinitionInvalidRule_ArgumentTypeDifferent {
+            get {
+                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentTypeDifferent", resourceCulture);
             }
         }
     }

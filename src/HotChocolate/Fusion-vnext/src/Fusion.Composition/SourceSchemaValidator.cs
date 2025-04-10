@@ -2,9 +2,11 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
+using HotChocolate.Fusion.SyntaxWalkers;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -38,17 +40,27 @@ internal sealed class SourceSchemaValidator(
 
             foreach (var type in schema.Types)
             {
+                if (type is MutableObjectTypeDefinition t && t.HasInternalDirective())
+                {
+                    continue;
+                }
+
                 PublishEvent(new TypeEvent(type, schema), context);
 
                 if (type is MutableComplexTypeDefinition complexType)
                 {
                     if (complexType.Directives.ContainsName(DirectiveNames.Key))
                     {
-                        PublishEntityEvents(complexType, schema, context);
+                        PublishKeyEvents(complexType, schema, context);
                     }
 
                     foreach (var field in complexType.Fields)
                     {
+                        if (field.HasInternalDirective())
+                        {
+                            continue;
+                        }
+
                         PublishEvent(new OutputFieldEvent(field, type, schema), context);
 
                         if (field.Directives.ContainsName(DirectiveNames.Provides))
@@ -60,6 +72,16 @@ internal sealed class SourceSchemaValidator(
                         {
                             PublishEvent(
                                 new FieldArgumentEvent(argument, field, type, schema), context);
+
+                            if (argument.Directives.ContainsName(DirectiveNames.Is))
+                            {
+                                PublishIsEvents(
+                                    argument,
+                                    field,
+                                    complexType,
+                                    schema,
+                                    context);
+                            }
 
                             if (argument.Directives.ContainsName(DirectiveNames.Require))
                             {
@@ -97,21 +119,19 @@ internal sealed class SourceSchemaValidator(
         }
     }
 
-    private void PublishEntityEvents(
-        MutableComplexTypeDefinition entityType,
+    private void PublishKeyEvents(
+        MutableComplexTypeDefinition type,
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var keyDirectives = entityType.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key);
+        var keyDirectives = type.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key);
 
         foreach (var keyDirective in keyDirectives)
         {
             if (!keyDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
                 || f is not StringValueNode fieldsArgument)
             {
-                PublishEvent(
-                    new KeyFieldsInvalidTypeEvent(keyDirective, entityType, schema),
-                    context);
+                PublishEvent(new KeyFieldsInvalidTypeEvent(keyDirective, type, schema), context);
 
                 continue;
             }
@@ -120,96 +140,41 @@ internal sealed class SourceSchemaValidator(
             {
                 var selectionSet = Syntax.ParseSelectionSet($"{{{fieldsArgument.Value}}}");
 
-                PublishKeyFieldEvents(
-                    selectionSet,
-                    entityType,
-                    keyDirective,
-                    [],
-                    entityType,
-                    schema,
-                    context);
-            }
-            catch (SyntaxException)
-            {
-                PublishEvent(
-                    new KeyFieldsInvalidSyntaxEvent(keyDirective, entityType, schema),
-                    context);
-            }
-        }
-    }
+                PublishEvent(new KeyFieldsEvent(selectionSet, keyDirective, type, schema), context);
 
-    private void PublishKeyFieldEvents(
-        SelectionSetNode selectionSet,
-        MutableComplexTypeDefinition entityType,
-        Directive keyDirective,
-        List<string> fieldNamePath,
-        MutableComplexTypeDefinition? parentType,
-        MutableSchemaDefinition schema,
-        CompositionContext context)
-    {
-        MutableComplexTypeDefinition? nextParentType = null;
+                var keyFieldNodes =
+                    new SelectionSetFieldNodesExtractor().ExtractFieldNodes(selectionSet);
 
-        foreach (var selection in selectionSet.Selections)
-        {
-            if (selection is FieldNode fieldNode)
-            {
-                fieldNamePath.Add(fieldNode.Name.Value);
-
-                PublishEvent(
-                    new KeyFieldNodeEvent(
-                        fieldNode,
-                        [.. fieldNamePath],
-                        keyDirective,
-                        entityType,
-                        schema),
-                    context);
-
-                if (parentType is not null)
+                foreach (var (fieldNode, fieldNamePath) in keyFieldNodes)
                 {
-                    if (parentType.Fields.TryGetField(fieldNode.Name.Value, out var field))
-                    {
-                        PublishEvent(
-                            new KeyFieldEvent(
-                                keyDirective,
-                                entityType,
-                                field,
-                                parentType,
-                                schema),
-                            context);
-
-                        if (field.Type.NullableType() is MutableComplexTypeDefinition fieldType)
-                        {
-                            nextParentType = fieldType;
-                        }
-                    }
-                    else
-                    {
-                        PublishEvent(
-                            new KeyFieldsInvalidReferenceEvent(
-                                fieldNode,
-                                parentType,
-                                keyDirective,
-                                entityType,
-                                schema),
-                            context);
-
-                        nextParentType = null;
-                    }
-                }
-
-                if (fieldNode.SelectionSet is not null)
-                {
-                    PublishKeyFieldEvents(
-                        fieldNode.SelectionSet,
-                        entityType,
-                        keyDirective,
-                        fieldNamePath,
-                        nextParentType,
-                        schema,
+                    PublishEvent(
+                        new KeyFieldNodeEvent(
+                            fieldNode,
+                            fieldNamePath,
+                            keyDirective,
+                            type,
+                            schema),
                         context);
                 }
 
-                fieldNamePath = [];
+                var keyFields =
+                    new SelectionSetFieldsExtractor(schema).ExtractFields(selectionSet, type);
+
+                foreach (var (keyField, keyFieldDeclaringType, _) in keyFields)
+                {
+                    PublishEvent(
+                        new KeyFieldEvent(
+                            keyField,
+                            keyFieldDeclaringType,
+                            keyDirective,
+                            type,
+                            schema),
+                        context);
+                }
+            }
+            catch (SyntaxException)
+            {
+                PublishEvent(new KeyFieldsInvalidSyntaxEvent(keyDirective, type, schema), context);
             }
         }
     }
@@ -245,15 +210,39 @@ internal sealed class SourceSchemaValidator(
                     schema),
                 context);
 
-            PublishProvidesFieldEvents(
-                selectionSet,
-                field,
-                type,
-                providesDirective,
-                [],
-                field.Type,
-                schema,
-                context);
+            var providesFieldNodes =
+                new SelectionSetFieldNodesExtractor().ExtractFieldNodes(selectionSet);
+
+            foreach (var (fieldNode, fieldNamePath) in providesFieldNodes)
+            {
+                PublishEvent(
+                    new ProvidesFieldNodeEvent(
+                        fieldNode,
+                        fieldNamePath,
+                        providesDirective,
+                        field,
+                        type,
+                        schema),
+                    context);
+            }
+
+            var providesFields =
+                new SelectionSetFieldsExtractor(schema).ExtractFields(
+                    selectionSet,
+                    field.Type.AsTypeDefinition());
+
+            foreach (var (providesField, providesFieldDeclaringType, _) in providesFields)
+            {
+                PublishEvent(
+                    new ProvidesFieldEvent(
+                        providesField,
+                        providesFieldDeclaringType,
+                        providesDirective,
+                        field,
+                        type,
+                        schema),
+                    context);
+            }
         }
         catch (SyntaxException)
         {
@@ -263,76 +252,42 @@ internal sealed class SourceSchemaValidator(
         }
     }
 
-    private void PublishProvidesFieldEvents(
-        SelectionSetNode selectionSet,
+    private void PublishIsEvents(
+        MutableInputFieldDefinition argument,
         MutableOutputFieldDefinition field,
         MutableComplexTypeDefinition type,
-        Directive providesDirective,
-        List<string> fieldNamePath,
-        IType? parentType,
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        MutableComplexTypeDefinition? nextParentType = null;
+        var isDirective =
+            argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Is);
 
-        foreach (var selection in selectionSet.Selections)
+        PublishEvent(new IsDirectiveEvent(isDirective, argument, field, type, schema), context);
+
+        if (!isDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
+            || f is not StringValueNode fieldArgument)
         {
-            if (selection is FieldNode fieldNode)
-            {
-                fieldNamePath.Add(fieldNode.Name.Value);
+            PublishEvent(
+                new IsFieldInvalidTypeEvent(isDirective, argument, field, type, schema),
+                context);
 
-                PublishEvent(
-                    new ProvidesFieldNodeEvent(
-                        fieldNode,
-                        [.. fieldNamePath],
-                        providesDirective,
-                        field,
-                        type,
-                        schema),
-                    context);
+            return;
+        }
 
-                if (parentType?.NullableType() is MutableComplexTypeDefinition providedType)
-                {
-                    if (providedType.Fields.TryGetField(
-                            fieldNode.Name.Value,
-                            out var providedField))
-                    {
-                        PublishEvent(
-                            new ProvidesFieldEvent(
-                                providedField,
-                                providedType,
-                                providesDirective,
-                                field,
-                                type,
-                                schema),
-                            context);
-
-                        if (providedField.Type.NullableType() is MutableComplexTypeDefinition fieldType)
-                        {
-                            nextParentType = fieldType;
-                        }
-                    }
-                    else
-                    {
-                        nextParentType = null;
-                    }
-                }
-
-                if (fieldNode.SelectionSet is not null)
-                {
-                    PublishProvidesFieldEvents(
-                        fieldNode.SelectionSet,
-                        field,
-                        type,
-                        providesDirective,
-                        fieldNamePath,
-                        nextParentType,
-                        schema,
-                        context);
-                }
-
-                fieldNamePath = [];
-            }
+        try
+        {
+            new FieldSelectionMapParser(fieldArgument.Value).Parse();
+        }
+        catch (FieldSelectionMapSyntaxException)
+        {
+            PublishEvent(
+                new IsFieldInvalidSyntaxEvent(
+                    isDirective,
+                    argument,
+                    field,
+                    type,
+                    schema),
+                context);
         }
     }
 

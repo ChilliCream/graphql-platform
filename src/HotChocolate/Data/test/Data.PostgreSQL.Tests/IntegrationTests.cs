@@ -1,8 +1,11 @@
+using GreenDonut;
 using HotChocolate.Data.Data;
 using HotChocolate.Data.Migrations;
+using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
@@ -428,6 +431,86 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         MatchSnapshot(result, interceptor);
     }
 
+    [Fact]
+    public async Task SecondLevelCache_Is_Used()
+    {
+        // arrange
+        var db = "db_" + Guid.NewGuid().ToString("N");
+        var connectionString = resource.GetConnectionString(db);
+        await using var services = CreateServer(connectionString);
+        await using var scope = services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
+        var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
+        await context.Database.EnsureCreatedAsync();
+        await seeder.SeedAsync(context);
+
+        // act
+        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        await executor.ExecuteAsync(
+            """
+            {
+                node(id: "QnJhbmQ6MQ==") {
+                    ... on Brand {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var cache = services.GetRequiredService<IMemoryCache>();
+        var entry = cache.Get<Promise<Brand>>(new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader", 1));
+        var brand = await entry.Task;
+        Assert.Equal("Daybird", brand.Name);
+    }
+
+    [Fact]
+    public async Task SecondLevelCache_Resolve_Entry()
+    {
+        // arrange
+        var db = "db_" + Guid.NewGuid().ToString("N");
+        var connectionString = resource.GetConnectionString(db);
+        await using var services = CreateServer(connectionString);
+        await using var scope = services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
+        var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
+        await context.Database.EnsureCreatedAsync();
+        await seeder.SeedAsync(context);
+
+        var cache = services.GetRequiredService<IMemoryCache>();
+        cache.Set(
+            new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader", 1),
+            new Promise<Brand>(new Brand { Id = 1, Name = "Test" }));
+
+        // act
+        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                node(id: "QnJhbmQ6MQ==") {
+                    ... on Brand {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "id": "QnJhbmQ6MQ==",
+                  "name": "Test"
+                }
+              }
+            }
+            """);
+    }
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();
@@ -439,6 +522,10 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         services
             .AddSingleton<BrandService>()
             .AddSingleton<ProductService>();
+
+        services
+            .AddMemoryCache()
+            .AddSingleton<IPromiseCacheInterceptor, DataLoaderSecondLevelCache>();
 
         services
             .AddGraphQLServer()
@@ -488,5 +575,26 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         }
 
         snapshot.MatchMarkdown();
+    }
+
+    private class DataLoaderSecondLevelCache : IPromiseCacheInterceptor
+    {
+        private readonly IMemoryCache _memoryCache;
+
+        public DataLoaderSecondLevelCache(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
+
+        public Promise<T> GetOrAddPromise<T>(PromiseCacheKey key, Func<PromiseCacheKey, Promise<T>> createPromise)
+        {
+            return _memoryCache.GetOrCreate(key, k => createPromise((PromiseCacheKey)k.Key));
+        }
+
+        public bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise)
+        {
+            _memoryCache.Set(key, promise);
+            return true;
+        }
     }
 }

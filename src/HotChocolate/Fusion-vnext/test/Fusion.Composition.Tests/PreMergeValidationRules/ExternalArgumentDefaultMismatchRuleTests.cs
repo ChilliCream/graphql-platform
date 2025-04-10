@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBase
+public sealed class ExternalArgumentDefaultMismatchRuleTests
 {
     private static readonly object s_rule = new ExternalArgumentDefaultMismatchRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -109,8 +110,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     """
                 ],
                 [
-                    "The argument with schema coordinate 'Product.name(language:)' has " +
-                    "inconsistent default values."
+                    "The default value '\"de\"' of external argument 'Product.name(language:)' " +
+                    "in schema 'B' differs from the default value of '\"en\"' in schema 'A'."
                 ]
             },
             // In the following example, the "name" field on "Product" is defined in one source
@@ -132,12 +133,12 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     """
                 ],
                 [
-                    "The argument with schema coordinate 'Product.name(language:)' has " +
-                    "inconsistent default values."
+                    "The default value '(null)' of external argument 'Product.name(language:)' " +
+                    "in schema 'B' differs from the default value of '\"en\"' in schema 'A'."
                 ]
             },
-            // Here, the "name" field on "Product" is defined without a default value in the
-            // non-external source schema, violating the rule.
+            // Here, the "name" field on "Product" is defined without a default value for the
+            // "language" argument in the non-external source schema, violating the rule.
             {
                 [
                     """
@@ -152,8 +153,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     """
                 ],
                 [
-                    "The argument with schema coordinate 'Product.name(language:)' has " +
-                    "inconsistent default values."
+                    "The default value '\"en\"' of external argument 'Product.name(language:)' " +
+                    "in schema 'B' differs from the default value of '(null)' in schema 'A'."
                 ]
             },
             // Here, the "name" field on "Product" is defined with multiple arguments. One argument
@@ -172,8 +173,9 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     """
                 ],
                 [
-                    "The argument with schema coordinate 'Product.name(localization:)' has " +
-                    "inconsistent default values."
+                    "The default value '\"sa\"' of external argument " +
+                    "'Product.name(localization:)' in schema 'B' differs from the default value " +
+                    "of '\"sr\"' in schema 'A'."
                 ]
             },
             // Here, the "name" field on "Product" is defined with multiple arguments. One argument
@@ -193,8 +195,9 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : CompositionTestBa
                     """
                 ],
                 [
-                    "The argument with schema coordinate 'Product.name(localization:)' has " +
-                    "inconsistent default values."
+                    "The default value '(null)' of external argument " +
+                    "'Product.name(localization:)' in schema 'B' differs from the default value " +
+                    "of '\"sr\"' in schema 'A'."
                 ]
             }
         };

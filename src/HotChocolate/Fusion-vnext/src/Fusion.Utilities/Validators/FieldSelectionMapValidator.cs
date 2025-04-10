@@ -23,6 +23,21 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
         return [.. context.Errors];
     }
 
+    public ImmutableArray<string> Validate(
+        SelectedValueNode selectedValue,
+        ITypeDefinition inputType,
+        ITypeDefinition outputType,
+        out ImmutableHashSet<MutableOutputFieldDefinition> selectedFields)
+    {
+        var context = new FieldSelectionMapValidatorContext(inputType, outputType);
+
+        Visit(selectedValue, context);
+
+        selectedFields = [.. context.SelectedFields];
+
+        return [.. context.Errors];
+    }
+
     protected override ISyntaxVisitorAction Enter(
         PathNode node,
         FieldSelectionMapValidatorContext context)
@@ -40,12 +55,20 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                 return Break;
             }
 
-            if (ValidateConcreteType(concreteType, context))
+            var type = context.OutputTypes.Peek();
+
+            if (schema.GetPossibleTypes(type).Contains(concreteType))
             {
                 context.OutputTypes.Push(concreteType);
             }
             else
             {
+                context.Errors.Add(
+                    string.Format(
+                        FieldSelectionMapValidator_InvalidTypeCondition,
+                        concreteType.Name,
+                        type.Name));
+
                 return Break;
             }
         }
@@ -81,6 +104,8 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
 
                 return Break;
             }
+
+            context.SelectedFields.Add(field);
 
             var fieldType = field.Type.NullableType();
 
@@ -156,13 +181,21 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                 return Break;
             }
 
-            if (ValidateConcreteType(concreteType, context))
+            var type = context.OutputTypes.Peek();
+
+            if (schema.GetPossibleTypes(type).Contains(concreteType))
             {
                 context.OutputTypes.Pop();
                 context.OutputTypes.Push(concreteType);
             }
             else
             {
+                context.Errors.Add(
+                    string.Format(
+                        FieldSelectionMapValidator_InvalidTypeCondition,
+                        concreteType.Name,
+                        type.Name));
+
                 return Break;
             }
         }
@@ -253,6 +286,23 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
             context.InputTypes.Push(currentInputType);
         }
 
+        if (node.SelectedValue is null
+            && context.OutputTypes.Peek() is MutableComplexTypeDefinition complexType)
+        {
+            if (!complexType.Fields.TryGetField(node.Name.Value, out var field))
+            {
+                context.Errors.Add(
+                    string.Format(
+                        FieldSelectionMapValidator_FieldDoesNotExistOnType,
+                        node.Name,
+                        complexType.Name));
+
+                return Skip;
+            }
+
+            context.SelectedFields.Add(field);
+        }
+
         return Continue;
     }
 
@@ -263,86 +313,6 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
         context.InputTypes.Pop();
 
         return Continue;
-    }
-
-    private static bool ValidateConcreteType(
-        ITypeDefinition concreteType,
-        FieldSelectionMapValidatorContext context)
-    {
-        var outputType = context.OutputTypes.Peek();
-
-        switch (outputType)
-        {
-            case MutableInterfaceTypeDefinition interfaceType:
-                if (concreteType is MutableComplexTypeDefinition complexType)
-                {
-                    if (complexType.Implements.Contains(interfaceType))
-                    {
-                        return true;
-                    }
-
-                    context.Errors.Add(
-                        string.Format(
-                            FieldSelectionMapValidator_InvalidTypeCondition,
-                            concreteType.Name,
-                            interfaceType.Name));
-                }
-                else
-                {
-                    context.Errors.Add(
-                        string.Format(
-                            FieldSelectionMapValidator_TypeMustBeObjectOrInterface,
-                            concreteType.Name));
-                }
-
-                break;
-            case MutableObjectTypeDefinition:
-            case MutableUnionTypeDefinition:
-                var possibleTypes = GetPossibleTypes(outputType);
-
-                if (possibleTypes.Contains(concreteType))
-                {
-                    return true;
-                }
-
-                context.Errors.Add(
-                    string.Format(
-                        FieldSelectionMapValidator_InvalidTypeCondition,
-                        concreteType.Name,
-                        outputType.Name));
-
-                break;
-        }
-
-        return false;
-    }
-
-    private static ImmutableHashSet<MutableComplexTypeDefinition> GetPossibleTypes(
-        ITypeDefinition type)
-    {
-        switch (type)
-        {
-            case MutableObjectTypeDefinition objectType:
-                return [objectType];
-
-            case MutableUnionTypeDefinition unionType:
-                var builder = ImmutableHashSet.CreateBuilder<MutableComplexTypeDefinition>();
-
-                foreach (var memberType in unionType.Types)
-                {
-                    builder.Add(memberType);
-
-                    foreach (var memberInterface in memberType.Implements)
-                    {
-                        builder.Add(memberInterface);
-                    }
-                }
-
-                return builder.ToImmutable();
-
-            default:
-                throw new InvalidOperationException();
-        }
     }
 }
 
@@ -357,6 +327,8 @@ public sealed class FieldSelectionMapValidatorContext
     public Stack<ITypeDefinition> InputTypes { get; } = [];
 
     public Stack<ITypeDefinition> OutputTypes { get; } = [];
+
+    public HashSet<MutableOutputFieldDefinition> SelectedFields { get; } = [];
 
     public List<string> Errors { get; } = [];
 }
