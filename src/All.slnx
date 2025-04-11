@@ -118,6 +118,7 @@
     <Project Path="HotChocolate/Core/test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzer.Integration.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Mutations.Tests/HotChocolate.Types.Mutations.Tests.csproj" />
@@ -130,9 +131,7 @@
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
-  </Folder>
-  <Folder Name="/HotChocolate/Core/test/Types.Analyzer.Integration.Tests/">
-    <Project Path="HotChocolate/Core/test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Validation.Benchmarks/HotChocolate.Validation.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/" />
   <Folder Name="/HotChocolate/CostAnalysis/src/">

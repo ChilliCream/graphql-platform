@@ -1,29 +1,17 @@
-﻿[
-  {
-    "Message": "Encountered fields for the same object that cannot be merged.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 9
-      },
-      {
-        "Line": 6,
-        "Column": 9
-      }
-    ],
-    "Extensions": {
-      "declaringTypeA": "Query",
-      "declaringTypeB": "Query",
-      "fieldA": "a",
-      "fieldB": "b",
-      "typeA": "String",
-      "typeB": "String",
-      "responseNameA": "x",
-      "responseNameB": "x",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+{
+  "Message": "Fields `a` and `b` conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
+  "Locations": [
+    {
+      "Line": 3,
+      "Column": 9
     },
-    "Exception": null
+    {
+      "Line": 6,
+      "Column": 9
+    }
+  ],
+  "Path": "/f1/x",
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
-]
+}
