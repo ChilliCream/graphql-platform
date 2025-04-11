@@ -64,9 +64,7 @@ public class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         for (var i = 0; i < selectionSetNode.Selections.Count; i++)
         {
-            var selection = selectionSetNode.Selections[i];
-
-            switch (selection)
+            switch (selectionSetNode.Selections[i])
             {
                 case FieldNode fieldNode:
                 {
@@ -319,11 +317,9 @@ public class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
         }
 
-        public ImmutableStack<SelectionSet> Unresolvable { get; set; }
-            = ImmutableStack<SelectionSet>.Empty;
+        public ImmutableStack<SelectionSet> Unresolvable { get; set; } = [];
 
-        public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; }
-            = ImmutableStack<FieldSelection>.Empty;
+        public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; } = [];
 
         public Stack<ISyntaxNode> Nodes { get; } = new();
 

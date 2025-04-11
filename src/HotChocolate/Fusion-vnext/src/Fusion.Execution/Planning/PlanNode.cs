@@ -15,6 +15,10 @@ public record PlanNode
 
     public ImmutableList<PlanStep> Steps { get; init; } = ImmutableList<PlanStep>.Empty;
 
+    public ImmutableList<StepRequirement> Requirements { get; init; } = ImmutableList<StepRequirement>.Empty;
+
+    public uint LastRequirementId { get; init; }
+
     public double PathCost { get; init; }
 
     public double BacklogCost { get; init; }

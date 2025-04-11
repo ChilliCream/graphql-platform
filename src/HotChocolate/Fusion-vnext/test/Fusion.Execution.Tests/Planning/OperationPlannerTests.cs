@@ -32,7 +32,16 @@ public class OperationPlannerTests : FusionTestBase
         var plan = PlanOperation(request, schema);
 
         // assert
-        Match(plan);
+        MatchInline(
+            plan,
+            """
+            {
+              productBySlug(slug: "1") {
+                id
+                name
+              }
+            }
+            """);
     }
 
     [Fact]
@@ -60,7 +69,33 @@ public class OperationPlannerTests : FusionTestBase
         var plan = PlanOperation(request, compositeSchema);
 
         // assert
-        Match(plan);
+        MatchInline(
+            plan,
+            """
+            1 PRODUCTS
+            ---------------
+            {
+              productBySlug(slug: "1") {
+                id
+                name
+                dimension {
+                  height
+                  width
+                }
+              }
+            }
+            ---------------
+
+            2 SHIPPING
+            ---------------
+            {
+              productById {
+                estimatedDelivery(postCode: "12345", height: $__fusion_1_height, width: $__fusion_1_width)
+              }
+            }
+            ---------------
+
+            """);
     }
 
     [Fact]
@@ -103,7 +138,46 @@ public class OperationPlannerTests : FusionTestBase
         var plan = PlanOperation(request, compositeSchema);
 
         // assert
-        Match(plan);
+        MatchInline(
+            plan,
+            """
+            1 PRODUCTS
+            ---------------
+            {
+              productBySlug(slug: "1") {
+                name
+                id
+              }
+            }
+            ---------------
+
+            2 REVIEWS
+            ---------------
+            {
+              productById {
+                reviews(first: 10) {
+                  nodes {
+                    body
+                    stars
+                    author {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+            ---------------
+
+            3 ACCOUNTS
+            ---------------
+            {
+              userById {
+                displayName
+              }
+            }
+            ---------------
+
+            """);
     }
 
     [Fact]
@@ -179,6 +253,7 @@ public class OperationPlannerTests : FusionTestBase
               }
             }
             ---------------
+
             """);
     }
 
@@ -217,13 +292,12 @@ public class OperationPlannerTests : FusionTestBase
                   map: ["region"]
                 )
               region: String!
-                @fusion__field(schema: C)
+                @fusion__field(schema: A)
             }
 
             enum fusion__Schema {
               A
               B
-              C
             }
             """);
 
@@ -251,6 +325,7 @@ public class OperationPlannerTests : FusionTestBase
               topProducts {
                 id
                 name
+                region
               }
             }
             ---------------
@@ -259,10 +334,11 @@ public class OperationPlannerTests : FusionTestBase
             ---------------
             {
               productById {
-                price
+                price(region: $__fusion_1_region)
               }
             }
             ---------------
+
             """);
     }
 

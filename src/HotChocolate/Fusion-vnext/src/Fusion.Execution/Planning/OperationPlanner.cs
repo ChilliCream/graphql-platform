@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -7,7 +8,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public class OperationPlanner(FusionSchemaDefinition schema)
+public sealed class OperationPlanner(FusionSchemaDefinition schema)
 {
     private readonly MergeSelectionSetRewriter _mergeRewriter = new(schema);
     private readonly SelectionSetPartitioner _partitioner = new(schema);
@@ -24,9 +25,7 @@ public class OperationPlanner(FusionSchemaDefinition schema)
             schema.GetOperationType(operation.Operation),
             SelectionPath.Root);
 
-        var workItem = new WorkItem(
-            WorkItemKind.Root,
-            selectionSet);
+        var workItem = OperationWorkItem.CreateRoot(selectionSet);
 
         var node = new PlanNode
         {
@@ -60,20 +59,30 @@ public class OperationPlanner(FusionSchemaDefinition schema)
 
             backlog = current.Backlog.Pop(out var workItem);
 
-            switch (workItem.Kind)
+            switch (workItem)
             {
-                case WorkItemKind.Root:
-                    PlanSelections(openSet, backlog, current, workItem);
+                case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
+                    PlanSelections(openSet, backlog, current, wi, null);
                     break;
 
-                case WorkItemKind.Lookup:
-                    current = InlineLookupRequirements(backlog, current, workItem, workItem.Lookup!);
-                    PlanSelections(openSet, backlog, current, workItem);
+                case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
+                    current = InlineLookupRequirements(backlog, current, wi, lookup);
+                    PlanSelections(openSet, backlog, current, wi, lookup);
                     break;
 
-                case WorkItemKind.Requirement:
-                    InlineFieldRequirement(backlog, current, workItem);
+                case FieldWithRequirementWorkItem { Lookup: null } wi:
+                    TryInlineFieldWithRequirements(openSet, backlog, current, wi);
                     break;
+
+                case FieldWithRequirementWorkItem wi:
+                    break;
+
+                case FieldRequirementsWorkItem wi:
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        "The work item type is not supported.");
             }
         }
 
@@ -84,36 +93,40 @@ public class OperationPlanner(FusionSchemaDefinition schema)
         SortedSet<PlanNode> openSet,
         ImmutableStack<WorkItem> backlog,
         PlanNode current,
-        WorkItem workItem)
+        OperationWorkItem workItem,
+        Lookup? lookup)
     {
+        var stepId = current.Steps.LastOrDefault()?.Id + 1 ?? 1;
         var index = current.SelectionSetIndex;
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName,
-            SelectionSet = workItem.SelectionSet,
-            SelectionSetIndex = index,
+            SchemaName = current.SchemaName, SelectionSet = workItem.SelectionSet, SelectionSetIndex = index,
         };
 
-        (var resolvable, var unresolvable, var fields, index) = _partitioner.Partition(input);
+        (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
 
+        // if we cannot resolve any selection with the current source schema then this path is not
+        // cannot be used to resolve the data for the current operation and we need to skip it.
         if (resolvable is null)
         {
             return;
         }
 
         backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(fieldsWithRequirements, stepId);
 
         (var definition, index) =
             OperationDefinitionBuilder
                 .New()
                 .SetType(OperationType.Query)
                 .SetSelectionSet(resolvable)
-                .SetLookup(workItem.Lookup)
+                .SetLookup(lookup)
                 .Build(index);
 
         var step = new OperationPlanStep
         {
+            Id = stepId,
             Definition = definition,
             Type = workItem.SelectionSet.Type,
             SchemaName = current.SchemaName,
@@ -137,7 +150,7 @@ public class OperationPlanner(FusionSchemaDefinition schema)
     private PlanNode InlineLookupRequirements(
         ImmutableStack<WorkItem> backlog,
         PlanNode current,
-        WorkItem workItem,
+        OperationWorkItem workItem,
         Lookup lookup)
     {
         var partitioner = new SelectionSetPartitioner(schema);
@@ -147,7 +160,7 @@ public class OperationPlanner(FusionSchemaDefinition schema)
         var selectionSet = lookup.SelectionSet;
         index.Register(workItem.SelectionSet, selectionSet);
 
-        foreach (var (step, stepIndex, schemaName) in GetPossibleSteps(current, workItem.SelectionSet.Id))
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.SelectionSet.Id))
         {
             if (!processed.Add(schemaName))
             {
@@ -161,18 +174,18 @@ public class OperationPlanner(FusionSchemaDefinition schema)
                 SelectionSetIndex = index
             };
 
-            var (resolvable, unresolvable, fields, _) = partitioner.Partition(input);
+            var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
 
             if (resolvable is not null)
             {
                 var operation =
-                    Inline(
-                        step.Type,
-                        step.Definition,
-                        resolvable,
+                    OperationRewriterUtils.Inline(
                         _mergeRewriter,
+                        step.Definition,
                         index,
-                        index.GetId(resolvable));
+                        step.Type,
+                        index.GetId(resolvable),
+                        resolvable);
 
                 var updatedStep = step with
                 {
@@ -211,7 +224,7 @@ public class OperationPlanner(FusionSchemaDefinition schema)
         {
             var requirements = workItem with
             {
-                Kind = WorkItemKind.Lookup,
+                Kind = OperationWorkItemKind.Lookup,
                 Lookup = null,
                 SelectionSet = workItem.SelectionSet with { Node = selectionSet },
                 Dependents = workItem.Dependents.Add(current.Steps.Count)
@@ -221,77 +234,177 @@ public class OperationPlanner(FusionSchemaDefinition schema)
         }
 
         return current with { Steps = steps, Backlog = backlog, SelectionSetIndex = index };
+    }
 
-        static IEnumerable<(OperationPlanStep, int, string)> GetPossibleSteps(PlanNode current, uint selectionSetId)
+    private void TryInlineFieldWithRequirements(
+        SortedSet<PlanNode> openSet,
+        ImmutableStack<WorkItem> backlog,
+        PlanNode current,
+        FieldWithRequirementWorkItem workItem)
+    {
+        if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
         {
-            for (var i = 0; i < current.Steps.Count; i++)
+            return;
+        }
+
+        var partitioner = new SelectionSetPartitioner(schema);
+        var steps = current.Steps;
+        var index = current.SelectionSetIndex.ToBuilder();
+        var requirementId = current.LastRequirementId + 1;
+        var requirementKey = $"__fusion_{requirementId}";
+        var field = workItem.Selection.Field;
+        var fieldSource = field.Sources[current.SchemaName];
+        var requirements = fieldSource.Requirements!.SelectionSet;
+
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
+        {
+            if (currentStep.Id == step.Id)
             {
-                if (current.Steps[i] is OperationPlanStep step
-                    && step.SelectionSets.Contains(selectionSetId))
+                // we cannot inline the field requirements
+                // into the step that requires.
+                continue;
+            }
+
+            if (step.DependsOn(currentStep, steps))
+            {
+                // we cannot inline the field requirements into
+                // an operation step that depends on the current step.
+                continue;
+            }
+
+            var input = new SelectionSetPartitionerInput
+            {
+                SchemaName = schemaName,
+                SelectionSet = new SelectionSet(
+                    workItem.Selection.SelectionSetId,
+                    requirements,
+                    workItem.Selection.Field.DeclaringType,
+                    workItem.Selection.Path),
+                SelectionSetIndex = index
+            };
+
+            var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
+
+            if (resolvable is not null)
+            {
+                var operation =
+                    OperationRewriterUtils.Inline(
+                        _mergeRewriter,
+                        step.Definition,
+                        index,
+                        workItem.Selection.Field.DeclaringType,
+                        workItem.Selection.SelectionSetId,
+                        resolvable);
+
+                var updatedStep = step with
                 {
-                    yield return (step, i, step.SchemaName);
+                    Definition = operation,
+
+                    // the step containing the field requirements is now dependent on this step.
+                    Dependents = step.Dependents.Add(workItem.StepId)
+                };
+
+                steps = steps.SetItem(stepIndex, updatedStep);
+            }
+
+            requirements = null;
+
+            if (!unresolvable.IsEmpty)
+            {
+                var top = unresolvable.Peek();
+                if (top.Id == workItem.Selection.SelectionSetId)
+                {
+                    unresolvable = unresolvable.Pop(out top);
+                    requirements = top.Node;
                 }
+
+                foreach (var selectionSet in unresolvable.Reverse())
+                {
+                    backlog = backlog.Push(
+                        new FieldRequirementsWorkItem(
+                            requirementKey,
+                            workItem.StepId,
+                            selectionSet));
+                }
+            }
+
+            if (requirements is null)
+            {
+                break;
             }
         }
 
-        static OperationDefinitionNode Inline(
-            ITypeDefinition type,
-            OperationDefinitionNode operation,
-            SelectionSetNode requirements,
-            MergeSelectionSetRewriter mergeRewriter,
-            SelectionSetIndexBuilder index,
-            uint targetSelectionSetId)
+        if (requirements is null)
         {
-            var rewriter = SyntaxRewriter.Create<Stack<ISyntaxNode>>(
-                (node, path) =>
+            var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
+
+            foreach (var argument in fieldSource.Requirements.Arguments)
+            {
+                // arguments that are exposed on the composite schema
+                // are not requirements, and we can skip them.
+                if (field.Arguments.ContainsName(argument.Name))
                 {
-                    if (node is SelectionSetNode selectionSet)
-                    {
-                        var originalSelectionSet = (SelectionSetNode)path.Peek();
-                        var id = index.GetId(originalSelectionSet);
+                    continue;
+                }
 
-                        if (!ReferenceEquals(originalSelectionSet, selectionSet))
-                        {
-                            index.Register(originalSelectionSet, selectionSet);
-                        }
+                arguments.Add(
+                    new ArgumentNode(
+                        new NameNode(argument.Name),
+                        new VariableNode(new NameNode($"{requirementKey}_{argument.Name}"))));
+            }
 
-                        if (targetSelectionSetId == id)
-                        {
-                            return mergeRewriter.Merge(selectionSet, requirements, type);
-                        }
-                    }
+            var operation =
+                OperationRewriterUtils.Inline(
+                    _mergeRewriter,
+                    currentStep.Definition,
+                    index,
+                    currentStep.Type,
+                    workItem.Selection.SelectionSetId,
+                    new SelectionSetNode([workItem.Selection.Node.WithArguments(arguments)]));
 
-                    return node;
-                },
-                (node, path) =>
-                {
-                    path.Push(node);
-                    return path;
-                },
-                (_, path) => path.Pop());
+            var updatedStep = currentStep with
+            {
+                Definition = operation
+            };
 
-            return (OperationDefinitionNode)rewriter.Rewrite(operation, new Stack<ISyntaxNode>())!;
+            steps = steps.SetItem(workItem.StepIndex, updatedStep);
+
+            var next = new PlanNode
+            {
+                Previous = current,
+                SchemaName = current.SchemaName,
+                SelectionSetIndex = index.ToImmutable(),
+                Backlog = backlog,
+                Steps = steps,
+                PathCost = current.PathCost,
+                BacklogCost = backlog.Count()
+            };
+
+            openSet.AddPlanNodes(next, schema);
         }
-    }
-
-    private void InlineFieldRequirement(
-        ImmutableStack<WorkItem> backlog,
-        PlanNode current,
-        WorkItem workItem)
-    {
-
     }
 }
 
 file static class Extensions
 {
+    public static IEnumerable<(OperationPlanStep Step, int Index, string SchemaName)> GetCandidateSteps(
+        this PlanNode current,
+        uint selectionSetId)
+    {
+        for (var i = 0; i < current.Steps.Count; i++)
+        {
+            if (current.Steps[i] is OperationPlanStep step
+                && step.SelectionSets.Contains(selectionSetId))
+            {
+                yield return (step, i, step.SchemaName);
+            }
+        }
+    }
+
     public static ImmutableStack<WorkItem> Push(
         this ImmutableStack<WorkItem> backlog,
         ImmutableStack<SelectionSet> unresolvable)
     {
-        //string schemaName = null!;
-        // CompositeSchema schema = null!;
-
         if (unresolvable.IsEmpty)
         {
             return backlog;
@@ -299,16 +412,45 @@ file static class Extensions
 
         foreach (var selectionSet in unresolvable.Reverse())
         {
-            if (selectionSet.Selections is [FieldNode fieldNode])
-            {
-
-            }
-
-            var workItem = new WorkItem(
+            var workItem = new OperationWorkItem(
                 selectionSet.Path.IsRoot
-                    ? WorkItemKind.Root
-                    : WorkItemKind.Lookup,
+                    ? OperationWorkItemKind.Root
+                    : OperationWorkItemKind.Lookup,
                 selectionSet);
+            backlog = backlog.Push(workItem);
+        }
+
+        return backlog;
+    }
+
+    /// <summary>
+    /// Pushes the field requirements to the backlog.
+    /// </summary>
+    /// <param name="backlog">
+    /// The backlog.
+    /// </param>
+    /// <param name="fieldsWithRequirements">
+    /// The field requirements.
+    /// </param>
+    /// <param name="stepId">
+    /// The step that the fields with requirements were intended to be included in.
+    /// </param>
+    /// <returns>
+    /// The updated backlog.
+    /// </returns>
+    public static ImmutableStack<WorkItem> Push(
+        this ImmutableStack<WorkItem> backlog,
+        ImmutableStack<FieldSelection> fieldsWithRequirements,
+        int stepId)
+    {
+        if (fieldsWithRequirements.IsEmpty)
+        {
+            return backlog;
+        }
+
+        foreach (var selection in fieldsWithRequirements.Reverse())
+        {
+            var workItem = new FieldWithRequirementWorkItem(selection, stepId);
             backlog = backlog.Push(workItem);
         }
 
@@ -338,20 +480,29 @@ file static class Extensions
         {
             openSet.Add(planNodeTemplate);
         }
-        else if (nextWorkItem.Kind == WorkItemKind.Root)
+        else if (nextWorkItem is OperationWorkItem { Kind: OperationWorkItemKind.Root } rwi)
         {
-            openSet.AddRootPlanNodes(planNodeTemplate, nextWorkItem, schema);
+            openSet.AddRootPlanNodes(planNodeTemplate, rwi, schema);
+        }
+        else if (nextWorkItem is OperationWorkItem { Kind: OperationWorkItemKind.Lookup } lwi)
+        {
+            openSet.AddLookupPlanNodes(planNodeTemplate, lwi, schema);
+        }
+        else if (nextWorkItem is FieldWithRequirementWorkItem frwi)
+        {
+            openSet.AddRequirePlanNodes(planNodeTemplate, frwi);
         }
         else
         {
-            openSet.AddLookupPlanNodes(planNodeTemplate, nextWorkItem, schema);
+            throw new NotSupportedException(
+                "The work item type is not supported.");
         }
     }
 
     private static void AddRootPlanNodes(
         this SortedSet<PlanNode> openSet,
         PlanNode planNodeTemplate,
-        WorkItem workItem,
+        OperationWorkItem workItem,
         FusionSchemaDefinition schema)
     {
         foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(workItem))
@@ -368,7 +519,7 @@ file static class Extensions
     private static void AddLookupPlanNodes(
         this SortedSet<PlanNode> openSet,
         PlanNode planNodeTemplate,
-        WorkItem workItem,
+        OperationWorkItem workItem,
         FusionSchemaDefinition schema)
     {
         var backlog = planNodeTemplate.Backlog.Pop();
@@ -388,9 +539,44 @@ file static class Extensions
         }
     }
 
+    private static void AddRequirePlanNodes(
+        this SortedSet<PlanNode> openSet,
+        PlanNode planNodeTemplate,
+        FieldWithRequirementWorkItem workItem)
+    {
+        var backlog = planNodeTemplate.Backlog.Pop();
+
+        foreach (var schemaName in workItem.Selection.Field.Sources.Schemas)
+        {
+            if (schemaName == planNodeTemplate.SchemaName)
+            {
+                openSet.Add(planNodeTemplate with
+                {
+                    PathCost = planNodeTemplate.PathCost + 1,
+                    BacklogCost = planNodeTemplate.BacklogCost,
+                    Backlog = backlog.Push(workItem)
+                });
+            }
+            else
+            {
+                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName))
+                {
+                    openSet.Add(planNodeTemplate with
+                    {
+                        SchemaName = schemaName,
+                        PathCost = planNodeTemplate.PathCost + 1,
+                        BacklogCost = planNodeTemplate.BacklogCost + 1,
+                        Backlog = backlog.Push(workItem with { Lookup = lookup })
+                    });
+                }
+            }
+        }
+    }
+
+
     private static IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(
         this FusionSchemaDefinition schema,
-        WorkItem workItem)
+        OperationWorkItem workItem)
         => schema.GetPossibleSchemas(workItem.SelectionSet);
 
     public static IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(
@@ -540,5 +726,49 @@ file class OperationDefinitionBuilder
             selectionSet);
 
         return (definition, index);
+    }
+}
+
+file static class OperationRewriterUtils
+{
+    public static OperationDefinitionNode Inline(
+        MergeSelectionSetRewriter mergeRewriter,
+        OperationDefinitionNode operation,
+        SelectionSetIndexBuilder index,
+        ITypeDefinition selectionSetType,
+        uint targetSelectionSetId,
+        SelectionSetNode selectionsToInline)
+    {
+        var rewriter = SyntaxRewriter.Create<Stack<ISyntaxNode>>(
+            (node, path) =>
+            {
+                if (node is SelectionSetNode selectionSet)
+                {
+                    var originalSelectionSet = (SelectionSetNode)path.Peek();
+                    var id = index.GetId(originalSelectionSet);
+
+                    if (!ReferenceEquals(originalSelectionSet, selectionSet))
+                    {
+                        index.Register(originalSelectionSet, selectionSet);
+                    }
+
+                    if (targetSelectionSetId == id)
+                    {
+                        var newSelectionSet = mergeRewriter.Merge(selectionSet, selectionsToInline, selectionSetType);
+                        index.Register(originalSelectionSet, newSelectionSet);
+                        return newSelectionSet;
+                    }
+                }
+
+                return node;
+            },
+            (node, path) =>
+            {
+                path.Push(node);
+                return path;
+            },
+            (_, path) => path.Pop());
+
+        return (OperationDefinitionNode)rewriter.Rewrite(operation, new Stack<ISyntaxNode>())!;
     }
 }

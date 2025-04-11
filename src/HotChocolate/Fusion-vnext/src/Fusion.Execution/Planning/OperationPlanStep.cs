@@ -15,4 +15,38 @@ public record OperationPlanStep : PlanStep
     public required string SchemaName { get; init; }
 
     public ImmutableHashSet<int> Dependents { get; init; } = [];
+
+    public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
+    {
+        return DependsOnRecursive(otherStep, Id, allSteps, []);
+    }
+
+    private static bool DependsOnRecursive(
+        OperationPlanStep currentStep,
+        int targetId,
+        ImmutableList<PlanStep> allSteps,
+        HashSet<int> visited)
+    {
+        if (!visited.Add(currentStep.Id))
+        {
+            return false;
+        }
+
+        if (currentStep.Dependents.Contains(targetId))
+        {
+            return true;
+        }
+
+        foreach (var dependentId in currentStep.Dependents)
+        {
+            var dependentStep = allSteps.ById(dependentId);
+            if (dependentStep is OperationPlanStep dependentOpStep
+                && DependsOnRecursive(dependentOpStep, targetId, allSteps, visited))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
