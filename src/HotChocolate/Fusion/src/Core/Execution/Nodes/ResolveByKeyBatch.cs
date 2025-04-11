@@ -153,6 +153,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         if (response.TransportException is not null)
         {
+            context.DiagnosticEvents.SubgraphRequestError(subgraphName, response.TransportException);
+
             foreach (var state in batchExecutionState)
             {
                 CreateTransportErrors(

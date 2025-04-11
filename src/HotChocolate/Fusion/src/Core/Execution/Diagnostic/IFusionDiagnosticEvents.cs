@@ -39,4 +39,15 @@ public interface IFusionDiagnosticEvents
     /// The exception that occurred while executing a ResolveByKeyBatch QueryPlan node.
     /// </param>
     void ResolveByKeyBatchError(Exception exception);
+
+    /// <summary>
+    /// Called when an exception occurred during the request to a subgraph service.
+    /// </summary>
+    /// <param name="subgraphName">
+    /// The name of the subgraph the request was sent to.
+    /// </param>
+    /// <param name="exception">
+    /// The exception that occurred during the request to a subgraph service.
+    /// </param>
+    void SubgraphRequestError(string subgraphName, Exception exception);
 }

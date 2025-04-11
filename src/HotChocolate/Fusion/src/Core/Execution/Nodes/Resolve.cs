@@ -150,6 +150,10 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
 
             if (response.TransportException is not null)
             {
+                context.DiagnosticEvents.SubgraphRequestError(
+                    subgraphName,
+                    response.TransportException);
+
                 CreateTransportErrors(
                     response.TransportException,
                     context.Result,

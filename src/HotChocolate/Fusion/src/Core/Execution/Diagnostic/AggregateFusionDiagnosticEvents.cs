@@ -41,6 +41,14 @@ internal sealed class AggregateFusionDiagnosticEvents(IFusionDiagnosticEventList
         }
     }
 
+    public void SubgraphRequestError(string subgraphName, Exception exception)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].SubgraphRequestError(subgraphName, exception);
+        }
+    }
+
     private sealed class AggregateActivityScope(IDisposable[] scopes) : IDisposable
     {
         private bool _disposed;
