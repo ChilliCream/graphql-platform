@@ -1,0 +1,24 @@
+{
+  "errors": [
+    {
+      "message": "The cursor specified in `before` has an invalid format.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "letters"
+      ],
+      "extensions": {
+        "argument": "before",
+        "cursor": "",
+        "code": "HC0078"
+      }
+    }
+  ],
+  "data": {
+    "letters": null
+  }
+}

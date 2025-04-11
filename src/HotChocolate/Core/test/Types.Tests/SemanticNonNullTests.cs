@@ -35,8 +35,9 @@ public class SemanticNonNullTests
                 o.StrictValidation = false;
                 o.EnableSemanticNonNull = true;
             })
-            .AddMutationConventions()
+            .AddMutationConventions(applyToAllMutations: false)
             .AddMutationType<Mutation>()
+            .AddTypeExtension<MutationExtensions>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -317,6 +318,12 @@ public class SemanticNonNullTests
         [UseMutationConvention]
         [Error<MyException>]
         public bool DoSomething() => true;
+    }
+
+    [ExtendObjectType<Mutation>]
+    public class MutationExtensions
+    {
+        public bool DoSomethingElse() => true;
     }
 
     public class MyException : Exception;
