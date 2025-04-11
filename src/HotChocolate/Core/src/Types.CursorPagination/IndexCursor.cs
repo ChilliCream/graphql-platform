@@ -18,6 +18,12 @@ internal static class IndexCursor
 
     public static unsafe bool TryParse(string cursor, out int index)
     {
+        if (string.IsNullOrWhiteSpace(cursor))
+        {
+            index = -1;
+            return false;
+        }
+
         fixed (char* cPtr = cursor)
         {
             var count = _utf8.GetByteCount(cPtr, cursor.Length);
