@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using GreenDonut.Data.TestContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -160,6 +161,45 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
             Before = "QnJhbmQ5NTo5Ng=="
         };
         var result = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(pagingArgs);
+
+        // Assert
+        await CreateSnapshot()
+            .AddQueries(capture.Queries)
+            .Add(
+                new
+                {
+                    result.HasNextPage,
+                    result.HasPreviousPage,
+                    First = result.First?.Id,
+                    FirstCursor = result.First is not null ? result.CreateCursor(result.First) : null,
+                    Last = result.Last?.Id,
+                    LastCursor = result.Last is not null ? result.CreateCursor(result.Last) : null
+                })
+            .Add(result.Items)
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Paging_WithChildCollectionProjectionExpression_First_5()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+        using var capture = new CapturePagingQueryInterceptor();
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var pagingArgs = new PagingArguments
+        {
+            First = 5
+        };
+
+        var result = await context.Brands
+            .Select(BrandWithProductsDto.Projection)
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
+            .ToPageAsync(pagingArgs);
 
         // Assert
         await CreateSnapshot()
@@ -349,6 +389,37 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public int Id { get; }
 
         public string Name { get; }
+    }
+
+    public class BrandWithProductsDto
+    {
+        public required int Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required IReadOnlyCollection<ProductDto> Products { get; init; }
+
+        public static Expression<Func<Brand, BrandWithProductsDto>> Projection
+            => brand => new BrandWithProductsDto
+            {
+                Id = brand.Id,
+                Name = brand.Name,
+                Products = brand.Products.AsQueryable().Select(ProductDto.Projection).ToList()
+            };
+    }
+
+    public class ProductDto
+    {
+        public required int Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public static Expression<Func<Product, ProductDto>> Projection
+            => product => new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name
+            };
     }
 
     public class ProductsByBrandDataLoader : StatefulBatchDataLoader<int, Page<Product>>
