@@ -596,7 +596,7 @@ public static class PagingQueryableExtensions
         if (arguments.Last is not null)
         {
             hasPrevious = fetchCount > arguments.Last;
-            nullsFirst = previousNullsFirst ?? GetInitialNullsFirst(items.Last(), keys.Last());
+            nullsFirst = previousNullsFirst ?? !AnyNullKeyValue(items.Last(), keys);
         }
 
         // if we request the first 5 items of a dataset with or without cursor
@@ -604,7 +604,7 @@ public static class PagingQueryableExtensions
         if (arguments.First is not null)
         {
             hasNext = fetchCount > arguments.First;
-            nullsFirst = previousNullsFirst ?? GetInitialNullsFirst(items.First(), keys.First());
+            nullsFirst = previousNullsFirst ?? AnyNullKeyValue(items.First(), keys);
         }
 
         // if we fetched anything before an item we know that here is at least one more item.
@@ -632,8 +632,8 @@ public static class PagingQueryableExtensions
             item => CursorFormatter.Format(item, keys, new CursorPageInfo(nullsFirst)),
             totalCount);
 
-        static bool GetInitialNullsFirst(T item, CursorKey key)
-            => key.IsNullable && item != null && key.GetValue(item) == null;
+        static bool AnyNullKeyValue(T item, IReadOnlyList<CursorKey> keys)
+            => keys.Any(key => key.IsNullable && item != null && key.GetValue(item) == null);
     }
 
     private static int? CreateIndex(PagingArguments arguments, Cursor? cursor, int? totalCount)
