@@ -445,6 +445,80 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void Plan_Requirement_That_Cannot_Be_Inlined_2()
+    {
+        // arrange
+        var compositeSchema = CreateSchema(
+            """
+            type Query
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              topProducts: [Product!]
+                @fusion__field(schema: A)
+            }
+
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__type(schema: C)
+              @fusion__lookup(
+                schema: B
+                key: "{ id }"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+              )
+              @fusion__lookup(
+                schema: C
+                key: "{ id }"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+              ) {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              name: String!
+                @fusion__field(schema: A)
+              price: Float!
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: B
+                  field: "price(region: String!): Int!"
+                  map: ["region"]
+                )
+              region: String!
+                @fusion__field(schema: C)
+            }
+
+            enum fusion__Schema {
+              A
+              B
+              C
+            }
+
+            """);
+
+        // assert
+        var request = Parse(
+            """
+            query GetTopProducts {
+              topProducts {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        var plan = PlanOperation(request, compositeSchema);
+
+        // assert
+        var x = new TestMe();
+        var y =  x.BuildExecutionTree(
+            request.Definitions.OfType<OperationDefinitionNode>().First(),
+            plan.OfType<OperationPlanStep>().ToImmutableList());
+    }
+
     private static ImmutableList<PlanStep> PlanOperation(DocumentNode request, FusionSchemaDefinition schema)
     {
         var rewriter = new InlineFragmentOperationRewriter(schema);

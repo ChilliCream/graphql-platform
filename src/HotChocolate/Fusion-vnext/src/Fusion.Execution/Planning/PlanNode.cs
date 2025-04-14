@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -14,8 +13,6 @@ public record PlanNode
     public required ImmutableStack<WorkItem> Backlog { get; init; }
 
     public ImmutableList<PlanStep> Steps { get; init; } = ImmutableList<PlanStep>.Empty;
-
-    public ImmutableList<StepRequirement> Requirements { get; init; } = ImmutableList<StepRequirement>.Empty;
 
     public uint LastRequirementId { get; init; }
 

@@ -65,7 +65,7 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    current = InlineLookupRequirements(wi, current, lookup, backlog);
+                    current = InlineLookupRequirements(wi.SelectionSet, current, lookup, backlog);
                     PlanSelections(wi, current, lookup, backlog, openSet);
                     break;
 
@@ -74,6 +74,12 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
                     break;
 
                 case FieldWithRequirementWorkItem wi:
+                    var selectionSetStub = new SelectionSet(
+                        wi.Selection.SelectionSetId,
+                        new SelectionSetNode([wi.Selection.Node]),
+                        wi.Selection.Field.DeclaringType,
+                        wi.Selection.Path);
+                    current = InlineLookupRequirements(selectionSetStub, current, wi.Lookup, backlog);
                     PlanFieldWithRequirement(wi, current, openSet, backlog);
                     break;
 
@@ -93,12 +99,14 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
         ImmutableStack<WorkItem> backlog,
         SortedSet<PlanNode> openSet)
     {
-        var stepId = current.Steps.LastOrDefault()?.Id + 1 ?? 1;
+        var stepId = current.Steps.NextId();
         var index = current.SelectionSetIndex;
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName, SelectionSet = workItem.SelectionSet, SelectionSetIndex = index
+            SchemaName = current.SchemaName,
+            SelectionSet = workItem.SelectionSet,
+            SelectionSetIndex = index
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -113,13 +121,24 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
         backlog = backlog.Push(unresolvable);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
-        (var definition, index) =
+        var operationBuilder =
             OperationDefinitionBuilder
                 .New()
                 .SetType(OperationType.Query)
-                .SetSelectionSet(resolvable)
-                .SetLookup(lookup)
-                .Build(index);
+                .SetSelectionSet(resolvable);
+
+        var lastRequirementId = current.LastRequirementId;
+        var requirements = ImmutableDictionary<string, FieldRequirements>.Empty;
+
+        if (lookup is not null)
+        {
+            lastRequirementId++;
+            var requirementKey = $"__fusion_{lastRequirementId}";
+            requirements = requirements.Add(requirementKey, lookup.AsFieldRequirements());
+            operationBuilder.SetLookup(lookup, requirementKey);
+        }
+
+        (var definition, index) = operationBuilder.Build(index);
 
         var step = new OperationPlanStep
         {
@@ -127,7 +146,9 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             Definition = definition,
             Type = workItem.SelectionSet.Type,
             SchemaName = current.SchemaName,
-            SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index)
+            SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
+            Dependents = workItem.Dependents,
+            Requirements = requirements
         };
 
         var next = new PlanNode
@@ -138,26 +159,28 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             Backlog = backlog,
             Steps = current.Steps.Add(step),
             PathCost = current.PathCost,
-            BacklogCost = backlog.Count()
+            BacklogCost = backlog.Count(),
+            LastRequirementId = lastRequirementId
         };
 
         openSet.AddPlanNodes(next, schema);
     }
 
     private PlanNode InlineLookupRequirements(
-        OperationWorkItem workItem,
+        SelectionSet workItemSelectionSet,
         PlanNode current,
         Lookup lookup,
         ImmutableStack<WorkItem> backlog)
     {
         var partitioner = new SelectionSetPartitioner(schema);
         var processed = new HashSet<string>();
+        var lookupStepId = current.Steps.NextId();
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var selectionSet = lookup.SelectionSet;
-        index.Register(workItem.SelectionSet, selectionSet);
+        index.Register(workItemSelectionSet, selectionSet);
 
-        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.SelectionSet.Id))
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
             if (!processed.Add(schemaName))
             {
@@ -167,7 +190,7 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             var input = new SelectionSetPartitionerInput
             {
                 SchemaName = schemaName,
-                SelectionSet = workItem.SelectionSet with { Node = selectionSet },
+                SelectionSet = workItemSelectionSet with { Node = selectionSet },
                 SelectionSetIndex = index
             };
 
@@ -190,7 +213,7 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
 
                     // we add the new lookup node to the dependents of the current step.
                     // the new lookup node will be the next index added which is the last index aka Count.
-                    Dependents = step.Dependents.Add(current.Steps.Count)
+                    Dependents = step.Dependents.Add(lookupStepId)
                 };
 
                 steps = steps.SetItem(stepIndex, updatedStep);
@@ -201,7 +224,7 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             if (!unresolvable.IsEmpty)
             {
                 var top = unresolvable.Peek();
-                if (top.Id == workItem.SelectionSet.Id)
+                if (top.Id == workItemSelectionSet.Id)
                 {
                     unresolvable = unresolvable.Pop(out top);
                     selectionSet = top.Node;
@@ -219,18 +242,21 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
         // if we have still selections left we need to add them to the backlog.
         if (selectionSet is not null)
         {
-            var requirements = workItem with
-            {
-                Kind = OperationWorkItemKind.Lookup,
-                Lookup = null,
-                SelectionSet = workItem.SelectionSet with { Node = selectionSet },
-                Dependents = workItem.Dependents.Add(current.Steps.Count)
-            };
-
-            backlog = backlog.Push(requirements);
+            backlog = backlog.Push(
+                new OperationWorkItem(
+                    OperationWorkItemKind.Lookup,
+                    workItemSelectionSet with { Node = selectionSet })
+                {
+                    Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId)
+                });
         }
 
-        return current with { Steps = steps, Backlog = backlog, SelectionSetIndex = index };
+        return current with
+        {
+            Steps = steps,
+            Backlog = backlog,
+            SelectionSetIndex = index
+        };
     }
 
     private void TryInlineFieldWithRequirements(
@@ -293,7 +319,11 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
                 workItem.Selection.SelectionSetId,
                 new SelectionSetNode([workItem.Selection.Node.WithArguments(arguments)]));
 
-        var updatedStep = currentStep with { Definition = operation };
+        var updatedStep = currentStep with
+        {
+            Definition = operation,
+            Requirements = currentStep.Requirements.Add(requirementKey, fieldSource.Requirements)
+        };
 
         steps = steps.SetItem(workItem.StepIndex, updatedStep);
 
@@ -323,10 +353,11 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
         }
 
         var steps = current.Steps;
-        var stepId = current.Steps.LastOrDefault()?.Id + 1 ?? 1;
+        var stepId = current.Steps.NextId();
         var index = current.SelectionSetIndex.ToBuilder();
-        var requirementId = current.LastRequirementId + 1;
-        var requirementKey = $"__fusion_{requirementId}";
+        var lastRequirementId = current.LastRequirementId + 1;
+        var requirementKey = $"__fusion_{lastRequirementId}";
+        var requirements = ImmutableDictionary<string, FieldRequirements>.Empty;
 
         var leftoverRequirements =
             TryInlineFieldRequirements(
@@ -348,12 +379,17 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
                         leftoverRequirements,
                         workItem.Selection.Field.DeclaringType,
                         workItem.Selection.Path),
-                    RequirementKey: requirementKey));
+                    RequirementKey: requirementKey)
+                {
+                    Dependents = ImmutableHashSet<int>.Empty.Add(stepId)
+                });
         }
 
         var field = workItem.Selection.Field;
         var fieldSource = field.Sources[current.SchemaName];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
+
+        requirements = requirements.Add(requirementKey, fieldSource.Requirements!);
 
         foreach (var argument in fieldSource.Requirements!.Arguments)
         {
@@ -382,13 +418,18 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
         index.Register(workItem.Selection.SelectionSetId, selectionSetNode);
 
-        var (definition, _) =
+        var operationBuilder =
             OperationDefinitionBuilder
                 .New()
                 .SetType(OperationType.Query)
-                .SetSelectionSet(selectionSetNode)
-                .SetLookup(workItem.Lookup)
-                .Build(index);
+                .SetSelectionSet(selectionSetNode);
+
+        lastRequirementId++;
+        requirementKey = $"__fusion_{lastRequirementId}";
+        requirements = requirements.Add(requirementKey, workItem.Lookup!.AsFieldRequirements());
+        operationBuilder.SetLookup(workItem.Lookup, requirementKey);
+
+        (var definition, _) = operationBuilder.Build(index);
 
         var step = new OperationPlanStep
         {
@@ -396,7 +437,8 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             Definition = definition,
             Type = field.DeclaringType,
             SchemaName = current.SchemaName,
-            SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index)
+            SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
+            Requirements = requirements
         };
 
         var next = new PlanNode
@@ -407,7 +449,8 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             Backlog = backlog,
             Steps = steps.Add(step),
             PathCost = current.PathCost,
-            BacklogCost = backlog.Count()
+            BacklogCost = backlog.Count(),
+            LastRequirementId = lastRequirementId
         };
 
         openSet.AddPlanNodes(next, schema);
@@ -435,9 +478,7 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName,
-            SelectionSet = selectionSet,
-            SelectionSetIndex = index
+            SchemaName = current.SchemaName, SelectionSet = selectionSet, SelectionSetIndex = index
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
@@ -839,12 +880,16 @@ file static class Extensions
 
         return [];
     }
+
+    public static int NextId(this ImmutableList<PlanStep> steps)
+        => steps.LastOrDefault()?.Id + 1 ?? 1;
 }
 
-file class OperationDefinitionBuilder
+file sealed class OperationDefinitionBuilder
 {
     private OperationType _type = OperationType.Query;
     private Lookup? _lookup;
+    private string? _requirementKey;
     private SelectionSetNode? _selectionSet;
 
     private OperationDefinitionBuilder()
@@ -860,9 +905,10 @@ file class OperationDefinitionBuilder
         return this;
     }
 
-    public OperationDefinitionBuilder SetLookup(Lookup? lookup)
+    public OperationDefinitionBuilder SetLookup(Lookup? lookup, string? requirementKey)
     {
         _lookup = lookup;
+        _requirementKey = requirementKey;
         return this;
     }
 
@@ -883,11 +929,21 @@ file class OperationDefinitionBuilder
 
         if (_lookup is not null)
         {
+            var arguments = new List<ArgumentNode>();
+
+            foreach (var argument in _lookup.Arguments)
+            {
+                arguments.Add(
+                    new ArgumentNode(
+                        new NameNode(argument.Name),
+                        new VariableNode(new NameNode($"{_requirementKey}_{argument.Name}"))));
+            }
+
             var lookupField = new FieldNode(
                 new NameNode(_lookup.Name),
                 null,
                 Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
+                arguments,
                 selectionSet);
 
             selectionSet = new SelectionSetNode(null, [lookupField]);

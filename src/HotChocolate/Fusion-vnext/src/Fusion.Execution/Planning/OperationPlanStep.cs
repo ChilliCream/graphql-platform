@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -16,10 +17,11 @@ public record OperationPlanStep : PlanStep
 
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 
+    public ImmutableDictionary<string, FieldRequirements> Requirements { get; init; }
+        = ImmutableDictionary<string, FieldRequirements>.Empty;
+
     public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
-    {
-        return DependsOnRecursive(otherStep, Id, allSteps, []);
-    }
+        => DependsOnRecursive(otherStep, Id, allSteps, []);
 
     private static bool DependsOnRecursive(
         OperationPlanStep currentStep,
