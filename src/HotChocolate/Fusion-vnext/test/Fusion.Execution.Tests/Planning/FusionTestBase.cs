@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -21,7 +23,7 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-    public static FusionSchemaDefinition ComposeSchema(
+    protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
     {
         var compositionLog = new CompositionLog();
@@ -36,5 +38,27 @@ public abstract class FusionTestBase
         var compositeSchemaDoc = result.Value.ToSyntaxNode();
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
-}
 
+     protected static ExecutionPlan PlanOperation(
+        FusionSchemaDefinition schema,
+        [StringSyntax("graphql")] string operationText)
+    {
+        var operationDoc = Utf8GraphQLParser.Parse(operationText);
+
+        var rewriter = new InlineFragmentOperationRewriter(schema);
+        var rewritten = rewriter.RewriteDocument(operationDoc, null);
+        var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
+
+        var planner = new OperationPlanner(schema);
+        return planner.CreatePlan(operation);
+    }
+
+    protected static void MatchInline(
+        ExecutionPlan plan,
+        [StringSyntax("yaml")] string expected)
+    {
+        var formatter = new YamlExecutionPlanFormatter();
+        var actual = formatter.Format(plan);
+        actual.MatchInlineSnapshot(expected + Environment.NewLine);
+    }
+}

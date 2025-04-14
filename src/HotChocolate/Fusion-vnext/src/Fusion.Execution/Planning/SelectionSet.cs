@@ -12,9 +12,3 @@ public record SelectionSet(
 {
     public IReadOnlyList<ISelectionNode> Selections => Node.Selections;
 }
-
-public record FieldSelection(
-    uint SelectionSetId,
-    FieldNode Node,
-    FusionOutputFieldDefinition Field,
-    SelectionPath Path);
