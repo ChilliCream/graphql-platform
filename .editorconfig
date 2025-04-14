@@ -12,6 +12,7 @@ rulers = 120
 # ReSharper properties
 resharper_align_multiline_statement_conditions = false
 resharper_braces_for_ifelse = not_required
+resharper_trailing_comma_in_multiline_lists = false
 resharper_wrap_object_and_collection_initializer_style = chop_always
 
 # Microsoft .NET properties

@@ -11,7 +11,8 @@ public abstract record WorkItem
 public record OperationWorkItem(
     OperationWorkItemKind Kind,
     SelectionSet SelectionSet,
-    Lookup? Lookup = null)
+    Lookup? Lookup = null,
+    string? RequirementKey = null)
     : WorkItem
 {
     public static OperationWorkItem CreateRoot(SelectionSet selectionSet) =>
@@ -26,10 +27,3 @@ public sealed record FieldWithRequirementWorkItem(
 {
     public int StepIndex => StepId - 1;
 }
-
-public record FieldRequirementsWorkItem(
-    string Key,
-    int StepId,
-    SelectionSet SelectionSet,
-    Lookup? Lookup = null)
-    : WorkItem;

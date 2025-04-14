@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Globalization;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -62,22 +61,20 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanSelections(openSet, backlog, current, wi, null);
+                    PlanSelections(wi, current, null, backlog, openSet);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    current = InlineLookupRequirements(backlog, current, wi, lookup);
-                    PlanSelections(openSet, backlog, current, wi, lookup);
+                    current = InlineLookupRequirements(wi, current, lookup, backlog);
+                    PlanSelections(wi, current, lookup, backlog, openSet);
                     break;
 
                 case FieldWithRequirementWorkItem { Lookup: null } wi:
-                    TryInlineFieldWithRequirements(openSet, backlog, current, wi);
+                    TryInlineFieldWithRequirements(wi, current, openSet, backlog);
                     break;
 
                 case FieldWithRequirementWorkItem wi:
-                    break;
-
-                case FieldRequirementsWorkItem wi:
+                    PlanFieldWithRequirement(wi, current, openSet, backlog);
                     break;
 
                 default:
@@ -90,24 +87,24 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
     }
 
     private void PlanSelections(
-        SortedSet<PlanNode> openSet,
-        ImmutableStack<WorkItem> backlog,
-        PlanNode current,
         OperationWorkItem workItem,
-        Lookup? lookup)
+        PlanNode current,
+        Lookup? lookup,
+        ImmutableStack<WorkItem> backlog,
+        SortedSet<PlanNode> openSet)
     {
         var stepId = current.Steps.LastOrDefault()?.Id + 1 ?? 1;
         var index = current.SelectionSetIndex;
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName, SelectionSet = workItem.SelectionSet, SelectionSetIndex = index,
+            SchemaName = current.SchemaName, SelectionSet = workItem.SelectionSet, SelectionSetIndex = index
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
 
         // if we cannot resolve any selection with the current source schema then this path is not
-        // cannot be used to resolve the data for the current operation and we need to skip it.
+        // cannot be used to resolve the data for the current operation, and we need to skip it.
         if (resolvable is null)
         {
             return;
@@ -148,10 +145,10 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
     }
 
     private PlanNode InlineLookupRequirements(
-        ImmutableStack<WorkItem> backlog,
-        PlanNode current,
         OperationWorkItem workItem,
-        Lookup lookup)
+        PlanNode current,
+        Lookup lookup,
+        ImmutableStack<WorkItem> backlog)
     {
         var partitioner = new SelectionSetPartitioner(schema);
         var processed = new HashSet<string>();
@@ -237,23 +234,231 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
     }
 
     private void TryInlineFieldWithRequirements(
-        SortedSet<PlanNode> openSet,
-        ImmutableStack<WorkItem> backlog,
+        FieldWithRequirementWorkItem workItem,
         PlanNode current,
-        FieldWithRequirementWorkItem workItem)
+        SortedSet<PlanNode> openSet,
+        ImmutableStack<WorkItem> backlog)
     {
         if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
         {
             return;
         }
 
-        var partitioner = new SelectionSetPartitioner(schema);
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var requirementId = current.LastRequirementId + 1;
         var requirementKey = $"__fusion_{requirementId}";
+
+        var success =
+            TryInlineFieldRequirements(
+                    workItem,
+                    current,
+                    currentStep,
+                    requirementKey,
+                    index,
+                    ref backlog,
+                    ref steps)
+                is null;
+
+        if (!success)
+        {
+            return;
+        }
+
         var field = workItem.Selection.Field;
         var fieldSource = field.Sources[current.SchemaName];
+        var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
+
+        foreach (var argument in fieldSource.Requirements!.Arguments)
+        {
+            // arguments that are exposed on the composite schema
+            // are not requirements, and we can skip them.
+            if (field.Arguments.ContainsName(argument.Name))
+            {
+                continue;
+            }
+
+            arguments.Add(
+                new ArgumentNode(
+                    new NameNode(argument.Name),
+                    new VariableNode(new NameNode($"{requirementKey}_{argument.Name}"))));
+        }
+
+        var operation =
+            OperationRewriterUtils.Inline(
+                _mergeRewriter,
+                currentStep.Definition,
+                index,
+                currentStep.Type,
+                workItem.Selection.SelectionSetId,
+                new SelectionSetNode([workItem.Selection.Node.WithArguments(arguments)]));
+
+        var updatedStep = currentStep with { Definition = operation };
+
+        steps = steps.SetItem(workItem.StepIndex, updatedStep);
+
+        var next = new PlanNode
+        {
+            Previous = current,
+            SchemaName = current.SchemaName,
+            SelectionSetIndex = index.ToImmutable(),
+            Backlog = backlog,
+            Steps = steps,
+            PathCost = current.PathCost,
+            BacklogCost = backlog.Count()
+        };
+
+        openSet.AddPlanNodes(next, schema);
+    }
+
+    private void PlanFieldWithRequirement(
+        FieldWithRequirementWorkItem workItem,
+        PlanNode current,
+        SortedSet<PlanNode> openSet,
+        ImmutableStack<WorkItem> backlog)
+    {
+        if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
+        {
+            return;
+        }
+
+        var steps = current.Steps;
+        var stepId = current.Steps.LastOrDefault()?.Id + 1 ?? 1;
+        var index = current.SelectionSetIndex.ToBuilder();
+        var requirementId = current.LastRequirementId + 1;
+        var requirementKey = $"__fusion_{requirementId}";
+
+        var leftoverRequirements =
+            TryInlineFieldRequirements(
+                workItem,
+                current,
+                currentStep,
+                requirementKey,
+                index,
+                ref backlog,
+                ref steps);
+
+        if (leftoverRequirements is not null)
+        {
+            backlog = backlog.Push(
+                new OperationWorkItem(
+                    OperationWorkItemKind.Lookup,
+                    new SelectionSet(
+                        workItem.Selection.SelectionSetId,
+                        leftoverRequirements,
+                        workItem.Selection.Field.DeclaringType,
+                        workItem.Selection.Path),
+                    RequirementKey: requirementKey));
+        }
+
+        var field = workItem.Selection.Field;
+        var fieldSource = field.Sources[current.SchemaName];
+        var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
+
+        foreach (var argument in fieldSource.Requirements!.Arguments)
+        {
+            // arguments that are exposed on the composite schema
+            // are not requirements, and we can skip them.
+            if (field.Arguments.ContainsName(argument.Name))
+            {
+                continue;
+            }
+
+            arguments.Add(
+                new ArgumentNode(
+                    new NameNode(argument.Name),
+                    new VariableNode(new NameNode($"{requirementKey}_{argument.Name}"))));
+        }
+
+        var childSelections =
+            ExtractResolvableChildSelections(
+                stepId,
+                workItem.Selection,
+                current,
+                index,
+                ref backlog);
+
+        var selectionSetNode = new SelectionSetNode(
+            [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
+        index.Register(workItem.Selection.SelectionSetId, selectionSetNode);
+
+        var (definition, _) =
+            OperationDefinitionBuilder
+                .New()
+                .SetType(OperationType.Query)
+                .SetSelectionSet(selectionSetNode)
+                .SetLookup(workItem.Lookup)
+                .Build(index);
+
+        var step = new OperationPlanStep
+        {
+            Id = stepId,
+            Definition = definition,
+            Type = field.DeclaringType,
+            SchemaName = current.SchemaName,
+            SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index)
+        };
+
+        var next = new PlanNode
+        {
+            Previous = current,
+            SchemaName = current.SchemaName,
+            SelectionSetIndex = index.ToImmutable(),
+            Backlog = backlog,
+            Steps = steps.Add(step),
+            PathCost = current.PathCost,
+            BacklogCost = backlog.Count()
+        };
+
+        openSet.AddPlanNodes(next, schema);
+    }
+
+    private SelectionSetNode? ExtractResolvableChildSelections(
+        int stepId,
+        FieldSelection selection,
+        PlanNode current,
+        SelectionSetIndexBuilder index,
+        ref ImmutableStack<WorkItem> backlog)
+    {
+        if (selection.Node.SelectionSet is null)
+        {
+            return null;
+        }
+
+        var selectionSetId = index.GetId(selection.Node.SelectionSet);
+        var selectionSetType = selection.Field.Type.AsTypeDefinition();
+        var selectionSet = new SelectionSet(
+            selectionSetId,
+            selection.Node.SelectionSet,
+            selectionSetType,
+            selection.Path);
+
+        var input = new SelectionSetPartitionerInput
+        {
+            SchemaName = current.SchemaName,
+            SelectionSet = selectionSet,
+            SelectionSetIndex = index
+        };
+
+        var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
+        backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(fieldsWithRequirements, stepId);
+        return resolvable;
+    }
+
+    private SelectionSetNode? TryInlineFieldRequirements(
+        FieldWithRequirementWorkItem workItem,
+        PlanNode current,
+        OperationPlanStep currentStep,
+        string requirementKey,
+        SelectionSetIndexBuilder index,
+        ref ImmutableStack<WorkItem> backlog,
+        ref ImmutableList<PlanStep> steps)
+    {
+        var field = workItem.Selection.Field;
+        var fieldSource = field.Sources[current.SchemaName];
+        // todo: we need a deep copy of this selection set or there might be problems if a requirement
+        // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.SelectionSet;
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
@@ -272,6 +477,8 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
                 continue;
             }
 
+            index.Register(workItem.Selection.SelectionSetId, requirements);
+
             var input = new SelectionSetPartitionerInput
             {
                 SchemaName = schemaName,
@@ -283,34 +490,41 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
                 SelectionSetIndex = index
             };
 
-            var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
+            var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
 
-            if (resolvable is not null)
+            if (resolvable is not { Selections.Count: > 0 })
             {
-                var operation =
-                    OperationRewriterUtils.Inline(
-                        _mergeRewriter,
-                        step.Definition,
-                        index,
-                        workItem.Selection.Field.DeclaringType,
-                        workItem.Selection.SelectionSetId,
-                        resolvable);
-
-                var updatedStep = step with
-                {
-                    Definition = operation,
-
-                    // the step containing the field requirements is now dependent on this step.
-                    Dependents = step.Dependents.Add(workItem.StepId)
-                };
-
-                steps = steps.SetItem(stepIndex, updatedStep);
+                // if we cannot resolve any selection with the current source we cannot inline the
+                // field requirements into this step.
+                continue;
             }
 
+            var operation =
+                OperationRewriterUtils.Inline(
+                    _mergeRewriter,
+                    step.Definition,
+                    index,
+                    workItem.Selection.Field.DeclaringType,
+                    workItem.Selection.SelectionSetId,
+                    resolvable);
+
+            var updatedStep = step with
+            {
+                Definition = operation,
+
+                // the step containing the field requirements is now dependent on this step.
+                Dependents = step.Dependents.Add(workItem.StepId)
+            };
+
+            steps = steps.SetItem(stepIndex, updatedStep);
             requirements = null;
 
             if (!unresolvable.IsEmpty)
             {
+                // if we have unresolvable parts of the requirements we will take the top level
+                // parts that are not resolvable and try to resolve them in the next iteration.
+                // Unresolvable child selections are pushed to the backlog and will be processed
+                // in a later planing iteration.
                 var top = unresolvable.Peek();
                 if (top.Id == workItem.Selection.SelectionSetId)
                 {
@@ -321,67 +535,22 @@ public sealed class OperationPlanner(FusionSchemaDefinition schema)
                 foreach (var selectionSet in unresolvable.Reverse())
                 {
                     backlog = backlog.Push(
-                        new FieldRequirementsWorkItem(
-                            requirementKey,
-                            workItem.StepId,
-                            selectionSet));
+                        new OperationWorkItem(
+                            OperationWorkItemKind.Lookup,
+                            selectionSet,
+                            RequirementKey: requirementKey));
                 }
             }
 
             if (requirements is null)
             {
+                // if requirements has become null we have inlined
+                // all requirements and can stop.
                 break;
             }
         }
 
-        if (requirements is null)
-        {
-            var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
-
-            foreach (var argument in fieldSource.Requirements.Arguments)
-            {
-                // arguments that are exposed on the composite schema
-                // are not requirements, and we can skip them.
-                if (field.Arguments.ContainsName(argument.Name))
-                {
-                    continue;
-                }
-
-                arguments.Add(
-                    new ArgumentNode(
-                        new NameNode(argument.Name),
-                        new VariableNode(new NameNode($"{requirementKey}_{argument.Name}"))));
-            }
-
-            var operation =
-                OperationRewriterUtils.Inline(
-                    _mergeRewriter,
-                    currentStep.Definition,
-                    index,
-                    currentStep.Type,
-                    workItem.Selection.SelectionSetId,
-                    new SelectionSetNode([workItem.Selection.Node.WithArguments(arguments)]));
-
-            var updatedStep = currentStep with
-            {
-                Definition = operation
-            };
-
-            steps = steps.SetItem(workItem.StepIndex, updatedStep);
-
-            var next = new PlanNode
-            {
-                Previous = current,
-                SchemaName = current.SchemaName,
-                SelectionSetIndex = index.ToImmutable(),
-                Backlog = backlog,
-                Steps = steps,
-                PathCost = current.PathCost,
-                BacklogCost = backlog.Count()
-            };
-
-            openSet.AddPlanNodes(next, schema);
-        }
+        return requirements;
     }
 }
 
@@ -488,9 +657,9 @@ file static class Extensions
         {
             openSet.AddLookupPlanNodes(planNodeTemplate, lwi, schema);
         }
-        else if (nextWorkItem is FieldWithRequirementWorkItem frwi)
+        else if (nextWorkItem is FieldWithRequirementWorkItem fwrwi)
         {
-            openSet.AddRequirePlanNodes(planNodeTemplate, frwi);
+            openSet.AddRequirePlanNodes(planNodeTemplate, fwrwi);
         }
         else
         {
@@ -556,6 +725,17 @@ file static class Extensions
                     BacklogCost = planNodeTemplate.BacklogCost,
                     Backlog = backlog.Push(workItem)
                 });
+
+                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName))
+                {
+                    openSet.Add(planNodeTemplate with
+                    {
+                        SchemaName = schemaName,
+                        PathCost = planNodeTemplate.PathCost + 1,
+                        BacklogCost = planNodeTemplate.BacklogCost + 1,
+                        Backlog = backlog.Push(workItem with { Lookup = lookup })
+                    });
+                }
             }
             else
             {

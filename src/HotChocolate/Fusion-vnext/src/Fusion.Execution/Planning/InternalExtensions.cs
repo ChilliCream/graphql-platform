@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -14,5 +15,4 @@ internal static class InternalExtensions
 
         return null;
     }
-
 }
