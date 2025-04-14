@@ -38,19 +38,15 @@ public class TestMe
             forwardVariableContext.UsedVariables.Clear();
             forwardVariableContext.Requirements.Clear();
 
-            foreach (var(key, requirement) in step.Requirements.OrderBy(t => t.Key))
+            foreach (var (key, requirement) in step.Requirements.OrderBy(t => t.Key))
             {
-                foreach (var argument in requirement.Arguments)
-                {
-                    var requirementKey = $"{key}_{argument.Name}";
-                    forwardVariableContext.Requirements[key] =
-                        new VariableDefinitionNode(
-                            null,
-                            new VariableNode(null, new NameNode(requirementKey)),
-                            argument.Type,
-                            null,
-                            Array.Empty<DirectiveNode>());
-                }
+                forwardVariableContext.Requirements[key] =
+                    new VariableDefinitionNode(
+                        null,
+                        new VariableNode(null, new NameNode(key)),
+                        requirement.Type,
+                        null,
+                        []);
             }
 
             if (_forwardVariableRewriter.Rewrite(step.Definition, forwardVariableContext) is OperationDefinitionNode rewritten
@@ -86,9 +82,26 @@ public class TestMe
                     continue;
                 }
 
+                var requirements = ImmutableArray<OperationRequirement>.Empty;
+
+                if (!step.Requirements.IsEmpty)
+                {
+                    var builder = ImmutableArray.CreateBuilder<OperationRequirement>();
+
+                    foreach (var (_, requirement) in step.Requirements.OrderBy(t => t.Key))
+                    {
+                        builder.Add(requirement);
+                    }
+
+                    requirements = builder.ToImmutable();
+                }
+
                 var operationNode = new OperationExecutionNode
                 {
-                    Id = step.Id, Definition = step.Definition, SchemaName = step.SchemaName
+                    Id = step.Id,
+                    Definition = step.Definition,
+                    SchemaName = step.SchemaName,
+                    Requirements = requirements
                 };
 
                 completedNodes.Add(step.Id, operationNode);
@@ -140,7 +153,7 @@ public class TestMe
         return new ExecutionPlan
         {
             RootNodes = rootNodes,
-            AllNodes = [..completedNodes.OrderBy(t => t.Key).Select(t => t.Value)]
+            AllNodes = [.. completedNodes.OrderBy(t => t.Key).Select(t => t.Value)]
         };
     }
 
@@ -158,7 +171,6 @@ public class TestMe
 
             return base.Enter(node, context);
         }
-
 
         public sealed class Context
         {
@@ -190,11 +202,11 @@ public class TestMe
 
             var variableDefinitions = new List<VariableDefinitionNode>();
 
-            foreach (var variableDef in node.VariableDefinitions)
+            foreach (var variableDef in context.Variables)
             {
-                if (!context.UsedVariables.Contains(variableDef.Variable.Name.Value))
+                if (!context.UsedVariables.Contains(variableDef.Key))
                 {
-                    variableDefinitions.Add(variableDef);
+                    variableDefinitions.Add(variableDef.Value);
                 }
             }
 
@@ -209,12 +221,11 @@ public class TestMe
             return rewritten.WithVariableDefinitions(variableDefinitions);
         }
 
-
         public sealed class Context
         {
             public OrderedDictionary<string, VariableDefinitionNode> Variables { get; } = new();
             public OrderedDictionary<string, VariableDefinitionNode> Requirements { get; } = new();
-            public HashSet<string> UsedVariables { get; } = new();
+            public HashSet<string> UsedVariables { get; } = [];
         }
     }
 }
@@ -246,5 +257,6 @@ public record OperationExecutionNode : ExecutionNode
 
 public record OperationRequirement(
     string Key,
+    ITypeNode Type,
     SelectionPath Path,
     FieldPath Map);

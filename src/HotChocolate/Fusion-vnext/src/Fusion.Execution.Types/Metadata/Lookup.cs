@@ -5,8 +5,6 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class Lookup
 {
-    private FieldRequirements? _requirements;
-
     public Lookup(
         string schemaName,
         string name,
@@ -42,11 +40,4 @@ public sealed class Lookup
     public ImmutableArray<FieldPath> Fields { get; }
 
     public SelectionSetNode SelectionSet { get; }
-
-    public FieldRequirements AsFieldRequirements()
-        => _requirements ??= new FieldRequirements(
-            SchemaName,
-            [..Arguments.Select(a => new RequiredArgument(a.Name, a.Type))],
-            Fields,
-            SelectionSet);
 }

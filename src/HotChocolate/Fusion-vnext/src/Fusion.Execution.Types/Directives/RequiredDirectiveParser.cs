@@ -13,7 +13,7 @@ internal static class RequiredDirectiveParser
     {
         string? schemaName = null;
         FieldDefinitionNode? field = null;
-        ImmutableArray<string>? map = null;
+        ImmutableArray<string?>? map = null;
 
         foreach (var argument in directiveNode.Arguments)
         {
@@ -58,27 +58,36 @@ internal static class RequiredDirectiveParser
         return new RequireDirective(schemaName, field, map.Value);
     }
 
-    private static ImmutableArray<string> ParseMap(IValueNode value)
+    private static ImmutableArray<string?> ParseMap(IValueNode value)
     {
-        if (value is ListValueNode listValue)
+        switch (value)
         {
-            var fields = ImmutableArray.CreateBuilder<string>();
+            case ListValueNode listValue:
+                {
+                    var fields = ImmutableArray.CreateBuilder<string?>();
 
-            foreach (var item in listValue.Items)
-            {
-                fields.Add(((StringValueNode)item).Value);
-            }
+                    foreach (var item in listValue.Items)
+                    {
+                        if (item is StringValueNode stringValue)
+                        {
+                            fields.Add(stringValue.Value);
+                        }
+                        else
+                        {
+                            fields.Add(null);
+                        }
+                    }
 
-            return fields.ToImmutable();
+                    return fields.ToImmutable();
+                }
+
+            case StringValueNode stringValue:
+                return [stringValue.Value];
+
+            default:
+                throw new DirectiveParserException(
+                    "The value is expected to be a list of strings or a string.");
         }
-
-        if (value is StringValueNode stringValue)
-        {
-            return ImmutableArray<string>.Empty.Add(stringValue.Value);
-        }
-
-        throw new DirectiveParserException(
-            "The value is expected to be a list of strings or a string.");
     }
 
     public static ImmutableArray<RequireDirective> Parse(

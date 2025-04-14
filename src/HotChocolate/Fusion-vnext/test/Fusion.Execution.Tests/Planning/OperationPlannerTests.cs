@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -14,7 +16,9 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = CreateSchema();
 
-        var request = Parse(
+        // act
+        var plan = PlanOperation(
+            schema,
             """
             {
                 productBySlug(slug: "1") {
@@ -28,19 +32,20 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // act
-        var plan = PlanOperation(request, schema);
-
         // assert
         MatchInline(
             plan,
             """
-            {
-              productBySlug(slug: "1") {
-                id
-                name
-              }
-            }
+            nodes:
+              - id: 1
+                schema: PRODUCTS
+                operation: >-
+                  {
+                      productBySlug(slug: "1") {
+                      id
+                      name
+                      }
+                  }
             """);
     }
 
@@ -50,7 +55,9 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateSchema();
 
-        var request = Parse(
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
             """
             {
                 productBySlug(slug: "1") {
@@ -65,36 +72,44 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
         // assert
         MatchInline(
             plan,
             """
-            1 PRODUCTS
-            ---------------
-            {
-              productBySlug(slug: "1") {
-                id
-                name
-                dimension {
-                  height
-                  width
-                }
-              }
-            }
-            ---------------
-
-            2 SHIPPING
-            ---------------
-            {
-              productById {
-                estimatedDelivery(postCode: "12345", height: $__fusion_1_height, width: $__fusion_1_width)
-              }
-            }
-            ---------------
-
+            nodes:
+              - id: 1
+                schema: PRODUCTS
+                operation: >-
+                  {
+                    productBySlug(slug: "1") {
+                      id
+                      name
+                      dimension {
+                        height
+                        width
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SHIPPING
+                operation: >-
+                  {
+                    productById(id: $__fusion_1_id) {
+                      estimatedDelivery(postCode: "12345", height: $__fusion_2_height, width: $__fusion_2_width)
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: productBySlug
+                    selectionMap: id
+                  - name: __fusion_2_height
+                    selectionSet: productBySlug
+                    selectionMap: dimension.height
+                  - name: __fusion_2_width
+                    selectionSet: productBySlug
+                    selectionMap: dimension.width
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -104,7 +119,9 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var compositeSchema = CreateSchema();
 
-        var request = Parse(
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
             """
             {
                 productBySlug(slug: "1") {
@@ -134,49 +151,56 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
         // assert
         MatchInline(
             plan,
             """
-            1 PRODUCTS
-            ---------------
-            {
-              productBySlug(slug: "1") {
-                name
-                id
-              }
-            }
-            ---------------
-
-            2 REVIEWS
-            ---------------
-            {
-              productById {
-                reviews(first: 10) {
-                  nodes {
-                    body
-                    stars
-                    author {
+            nodes:
+              - id: 1
+                schema: PRODUCTS
+                operation: >-
+                  {
+                    productBySlug(slug: "1") {
+                      name
                       id
                     }
                   }
-                }
-              }
-            }
-            ---------------
-
-            3 ACCOUNTS
-            ---------------
-            {
-              userById {
-                displayName
-              }
-            }
-            ---------------
-
+              - id: 2
+                schema: REVIEWS
+                operation: >-
+                  {
+                    productById(id: $__fusion_1_id) {
+                      reviews(first: 10) {
+                        nodes {
+                          body
+                          stars
+                          author {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: productBySlug
+                    selectionMap: id
+                dependencies:
+                  - id: 1
+              - id: 3
+                schema: ACCOUNTS
+                operation: >-
+                  {
+                    userById(id: $__fusion_2_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: productBySlug.author.nodes.reviews
+                    selectionMap: id
+                dependencies:
+                  - id: 2
             """);
     }
 
@@ -184,41 +208,45 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Lookup()
     {
         // arrange
-        var compositeSchema = CreateSchema(
+        var schema = ComposeSchema(
             """
-            type Query
-              @fusion__type(schema: A)
-              @fusion__type(schema: B) {
+            schema @schemaName(value: "A") {
+              query: Query
+            }
+
+            type Query {
               topProducts: [Product!]
-                @fusion__field(schema: A)
             }
 
-            type Product
-              @fusion__type(schema: A)
-              @fusion__type(schema: B)
-              @fusion__lookup(
-                schema: B
-                key: "{ id }"
-                field: "productById(id: ID!): Product"
-                map: ["id"]
-              ) {
+            type Product {
               id: ID!
-                @fusion__field(schema: A)
-                @fusion__field(schema: B)
               name: String!
-                @fusion__field(schema: A)
-              price: Float!
-                @fusion__field(schema: B)
             }
 
-            enum fusion__Schema {
-              A
-              B
+            directive @schemaName(value: String!) on SCHEMA
+            """,
+            """
+            schema @schemaName(value: "B") {
+              query: Query
             }
+
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              price: Float!
+            }
+
+            directive @lookup on FIELD_DEFINITION
+
+            directive @schemaName(value: String!) on SCHEMA
             """);
 
-        // assert
-        var request = Parse(
+        // act
+        var plan = PlanOperation(
+            schema,
             """
             query GetTopProducts {
               topProducts {
@@ -229,31 +257,34 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        var plan = PlanOperation(request, compositeSchema);
-
         // assert
         MatchInline(
             plan,
             """
-            1 A
-            ---------------
-            {
-              topProducts {
-                id
-                name
+            nodes:
+            - id: 1
+              schema: A
+              operation: >-
+              query GetTopProducts_1 {
+                topProducts {
+                  id
+                  name
+                }
               }
-            }
-            ---------------
-
-            2 B
-            ---------------
-            {
-              productById {
-                price
+            - id: 2
+              schema: B
+              operation: >-
+              query GetTopProducts_2 {
+                productById(id: $__fusion_1_id) {
+                  price
+                }
               }
-            }
-            ---------------
-
+              requirements:
+                - name: __fusion_1_id
+                  selectionSet: topProducts
+                  selectionMap: id
+              dependencies:
+                - id: 1
             """);
     }
 
@@ -261,48 +292,48 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Requirement()
     {
         // arrange
-        var compositeSchema = CreateSchema(
+        var schema = ComposeSchema(
             """
-            type Query
-              @fusion__type(schema: A)
-              @fusion__type(schema: B) {
+            schema @schemaName(value: "A") {
+              query: Query
+            }
+
+            type Query {
               topProducts: [Product!]
-                @fusion__field(schema: A)
             }
 
-            type Product
-              @fusion__type(schema: A)
-              @fusion__type(schema: B)
-              @fusion__lookup(
-                schema: B
-                key: "{ id }"
-                field: "productById(id: ID!): Product"
-                map: ["id"]
-              ) {
+            type Product {
               id: ID!
-                @fusion__field(schema: A)
-                @fusion__field(schema: B)
               name: String!
-                @fusion__field(schema: A)
-              price: Float!
-                @fusion__field(schema: B)
-                @fusion__requires(
-                  schema: B
-                  field: "price(region: String!): Int!"
-                  map: ["region"]
-                )
               region: String!
-                @fusion__field(schema: A)
             }
 
-            enum fusion__Schema {
-              A
-              B
+            directive @schemaName(value: String!) on SCHEMA
+            """,
+            """
+            schema @schemaName(value: "B") {
+              query: Query
             }
+
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              price(region: String! @require(field: "region")): Float!
+            }
+
+            directive @lookup on FIELD_DEFINITION
+
+            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+
+            directive @schemaName(value: String!) on SCHEMA
             """);
 
         // assert
-        var request = Parse(
+        var plan = PlanOperation(
+            schema,
             """
             query GetTopProducts {
               topProducts {
@@ -313,32 +344,38 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        var plan = PlanOperation(request, compositeSchema);
-
         // assert
         MatchInline(
             plan,
             """
-            1 A
-            ---------------
-            {
-              topProducts {
-                id
-                name
-                region
-              }
-            }
-            ---------------
-
-            2 B
-            ---------------
-            {
-              productById {
-                price(region: $__fusion_1_region)
-              }
-            }
-            ---------------
-
+            nodes:
+              - id: 1
+                schema: A
+                operation: >-
+                  query GetTopProducts_1 {
+                    topProducts {
+                      id
+                      name
+                      region
+                    }
+                  }
+              - id: 2
+                schema: B
+                operation: >-
+                  query GetTopProducts_2 {
+                    productById(id: $__fusion_1_id) {
+                      price(region: $__fusion_2_region)
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: topProducts
+                    selectionMap: id
+                  - name: __fusion_2_region
+                    selectionSet: topProducts
+                    selectionMap: region
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -346,57 +383,48 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Requirement_That_Cannot_Be_Inlined()
     {
         // arrange
-        var compositeSchema = CreateSchema(
+        var schema = ComposeSchema(
             """
-            type Query
-              @fusion__type(schema: A)
-              @fusion__type(schema: B) {
+            schema @schemaName(value: "A") {
+              query: Query
+            }
+
+            type Query {
               topProducts: [Product!]
-                @fusion__field(schema: A)
             }
 
-            type Product
-              @fusion__type(schema: A)
-              @fusion__type(schema: B)
-              @fusion__type(schema: C)
-              @fusion__lookup(
-                schema: B
-                key: "{ id }"
-                field: "productById(id: ID!): Product"
-                map: ["id"]
-              )
-              @fusion__lookup(
-                schema: C
-                key: "{ id }"
-                field: "productById(id: ID!): Product"
-                map: ["id"]
-              ) {
+            type Product {
               id: ID!
-                @fusion__field(schema: A)
-                @fusion__field(schema: B)
               name: String!
-                @fusion__field(schema: A)
-              price: Float!
-                @fusion__field(schema: B)
-                @fusion__requires(
-                  schema: B
-                  field: "price(region: String!): Int!"
-                  map: ["region"]
-                )
               region: String!
-                @fusion__field(schema: C)
             }
 
-            enum fusion__Schema {
-              A
-              B
-              C
+            directive @schemaName(value: String!) on SCHEMA
+            """,
+            """
+            schema @schemaName(value: "B") {
+              query: Query
             }
 
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              price(region: String! @require(field: "region")): Float!
+            }
+
+            directive @lookup on FIELD_DEFINITION
+
+            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+
+            directive @schemaName(value: String!) on SCHEMA
             """);
 
         // assert
-        var request = Parse(
+        var plan = PlanOperation(
+            schema,
             """
             query GetTopProducts {
               topProducts {
@@ -406,120 +434,60 @@ public class OperationPlannerTests : FusionTestBase
               }
             }
             """);
-
-        var plan = PlanOperation(request, compositeSchema);
 
         // assert
         MatchInline(
             plan,
             """
-            1 A
-            ---------------
-            {
-              topProducts {
-                id
-                name
-                region
-              }
-            }
-            ---------------
-
-            2 C
-            ---------------
-            {
-              productById {
-                region
-              }
-            }
-            ---------------
-
-            3 B
-            ---------------
-            {
-              productById {
-                price(region: $__fusion_1_region)
-              }
-            }
-            ---------------
-
-            """);
-    }
-
-    [Fact]
-    public void Plan_Requirement_That_Cannot_Be_Inlined_2()
-    {
-        // arrange
-        var compositeSchema = CreateSchema(
-            """
-            type Query
-              @fusion__type(schema: A)
-              @fusion__type(schema: B) {
-              topProducts: [Product!]
-                @fusion__field(schema: A)
-            }
-
-            type Product
-              @fusion__type(schema: A)
-              @fusion__type(schema: B)
-              @fusion__type(schema: C)
-              @fusion__lookup(
+            nodes:
+              - id: 1
+                schema: A
+                operation: >-
+                  query GetTopProducts_1 {
+                    topProducts {
+                      id
+                      name
+                      region
+                    }
+                  }
+              - id: 2
                 schema: B
-                key: "{ id }"
-                field: "productById(id: ID!): Product"
-                map: ["id"]
-              )
-              @fusion__lookup(
-                schema: C
-                key: "{ id }"
-                field: "productById(id: ID!): Product"
-                map: ["id"]
-              ) {
-              id: ID!
-                @fusion__field(schema: A)
-                @fusion__field(schema: B)
-              name: String!
-                @fusion__field(schema: A)
-              price: Float!
-                @fusion__field(schema: B)
-                @fusion__requires(
-                  schema: B
-                  field: "price(region: String!): Int!"
-                  map: ["region"]
-                )
-              region: String!
-                @fusion__field(schema: C)
-            }
-
-            enum fusion__Schema {
-              A
-              B
-              C
-            }
-
+                operation: >-
+                  query GetTopProducts_2 {
+                    productById(id: $__fusion_1_id) {
+                      price(region: $__fusion_2_region)
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: topProducts
+                    selectionMap: id
+                  - name: __fusion_2_region
+                    selectionSet: topProducts
+                    selectionMap: region
+                dependencies:
+                  - id: 1
             """);
-
-        // assert
-        var request = Parse(
-            """
-            query GetTopProducts {
-              topProducts {
-                id
-                name
-                price
-              }
-            }
-            """);
-
-        var plan = PlanOperation(request, compositeSchema);
-
-        // assert
-        var x = new TestMe();
-        var y =  x.BuildExecutionTree(
-            request.Definitions.OfType<OperationDefinitionNode>().First(),
-            plan.OfType<OperationPlanStep>().ToImmutableList());
     }
 
-    private static ImmutableList<PlanStep> PlanOperation(DocumentNode request, FusionSchemaDefinition schema)
+    private ExecutionPlan PlanOperation(
+        FusionSchemaDefinition schema,
+        [StringSyntax("graphql")] string operationText)
+    {
+        var operationDoc = Parse(operationText);
+
+        var rewriter = new InlineFragmentOperationRewriter(schema);
+        var rewritten = rewriter.RewriteDocument(operationDoc, null);
+        var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
+
+        var planner = new OperationPlanner(schema);
+        var steps = planner.CreatePlan(operation);
+
+        var test = new TestMe();
+        return test.BuildExecutionTree(operation, steps.OfType<OperationPlanStep>().ToImmutableList());
+    }
+
+    private static ImmutableList<PlanStep> PlanOperation(FusionSchemaDefinition schema, DocumentNode request)
     {
         var rewriter = new InlineFragmentOperationRewriter(schema);
         var rewritten = rewriter.RewriteDocument(request, null);
@@ -548,6 +516,15 @@ public class OperationPlannerTests : FusionTestBase
         }
 
         snapshot.MatchMarkdown();
+    }
+
+    private static void MatchInline(
+        ExecutionPlan plan,
+        [StringSyntax("yaml")] string expected)
+    {
+        var formatter = new YamlExecutionPlanFormatter();
+        var actual = formatter.Format(plan);
+        actual.MatchInlineSnapshot(expected + Environment.NewLine);
     }
 
     private static void MatchInline(

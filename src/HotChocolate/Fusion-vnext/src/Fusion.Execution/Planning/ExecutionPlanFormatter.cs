@@ -35,28 +35,43 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         writer.WriteLine("schema: " + node.SchemaName);
         writer.WriteLine("operation: >-");
         writer.Indent();
-        writer.WriteLine(node.Definition.ToString());
+        var reader = new StringReader(node.Definition.ToString());
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
         writer.Unindent();
 
-        writer.WriteLine("requirements:");
-        writer.Indent();
-        foreach (var requirement in node.Requirements)
+        if (node.Requirements.Any())
         {
-            writer.WriteLine("- name: " + requirement.Key);
+            writer.WriteLine("requirements:");
             writer.Indent();
-            writer.WriteLine("selectionSet: " + requirement.Path);
-            writer.WriteLine("selectionMap: " + requirement.Map);
+            foreach (var requirement in node.Requirements)
+            {
+                writer.WriteLine("- name: " + requirement.Key);
+                writer.Indent();
+                writer.WriteLine("selectionSet: " + requirement.Path);
+                writer.WriteLine("selectionMap: " + requirement.Map);
+                writer.Unindent();
+            }
+
             writer.Unindent();
         }
-        writer.Unindent();
 
-        writer.WriteLine("dependencies:");
-        writer.Indent();
-        foreach (var dependency in node.Dependencies)
+        if (node.Dependencies.Any())
         {
-            writer.WriteLine("- id: " + dependency.Id);
+            writer.WriteLine("dependencies:");
+            writer.Indent();
+            foreach (var dependency in node.Dependencies)
+            {
+                writer.WriteLine("- id: " + dependency.Id);
+            }
+
+            writer.Unindent();
         }
-        writer.Unindent();
+
         writer.Unindent();
     }
 }

@@ -17,8 +17,8 @@ public record OperationPlanStep : PlanStep
 
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 
-    public ImmutableDictionary<string, FieldRequirements> Requirements { get; init; }
-        = ImmutableDictionary<string, FieldRequirements>.Empty;
+    public ImmutableDictionary<string, OperationRequirement> Requirements { get; init; }
+        = ImmutableDictionary<string, OperationRequirement>.Empty;
 
     public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
         => DependsOnRecursive(otherStep, Id, allSteps, []);
