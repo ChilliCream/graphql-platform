@@ -124,9 +124,9 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
 
         if (descriptor is IObjectFieldDescriptor fieldDesc)
         {
-            var definition = fieldDesc.Extend().Definition;
+            var definition = fieldDesc.Extend().Configuration;
             definition.Configurations.Add(
-                new CreateConfiguration(
+                new OnCreateTypeSystemConfigurationTask(
                     (_, d) =>
                     {
                         ((ObjectFieldConfiguration)d).State =
@@ -136,7 +136,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                     },
                     definition));
             definition.Configurations.Add(
-                new CompleteConfiguration<ObjectFieldConfiguration>(
+                new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
                     definition,
                     ApplyConfigurationOn.BeforeCompletion));

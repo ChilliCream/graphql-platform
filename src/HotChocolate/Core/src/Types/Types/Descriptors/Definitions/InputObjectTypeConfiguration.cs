@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL input object type.
 /// </summary>
-public class InputObjectTypeConfiguration : TypeDefinitionBase
+public class InputObjectTypeConfiguration : TypeConfiguration
 {
     /// <summary>
     /// Initializes a new instance of <see cref="InputObjectTypeConfiguration"/>.

@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// Defines the properties of a GraphQL enum value.
 /// </summary>
 public class EnumValueConfiguration
-    : TypeDefinitionBase
+    : TypeConfiguration
     , IDeprecationConfiguration
     , IIgnoreConfiguration
 {

@@ -18,7 +18,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
         if (definition is ObjectFieldConfiguration fieldDef)
         {
             fieldDef.Configurations.Add(
-                new CompleteConfiguration<ObjectFieldConfiguration>(
+                new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (ctx, def) =>
                     {
                         var propertyName = GetPropertyName(directiveNode);

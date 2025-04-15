@@ -21,7 +21,7 @@ namespace HotChocolate.Types;
 /// GraphQL’s introspection system.
 /// </summary>
 public partial class ObjectType
-    : NamedTypeBase<ObjectTypeDefinition>
+    : NamedTypeBase<ObjectTypeConfiguration>
     , IObjectType
 {
     /// <summary>
@@ -56,7 +56,7 @@ public partial class ObjectType
     /// <returns>
     /// Returns the newly created object type.
     /// </returns>
-    public static ObjectType CreateUnsafe(ObjectTypeDefinition definition)
+    public static ObjectType CreateUnsafe(ObjectTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <inheritdoc />

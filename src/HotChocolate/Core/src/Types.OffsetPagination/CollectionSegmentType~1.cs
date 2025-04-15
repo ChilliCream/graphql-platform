@@ -27,11 +27,11 @@ internal class CollectionSegmentType : ObjectType, IPageType
         else
         {
             Definition.Configurations.Add(
-                new CompleteConfiguration(
+                new OnCompleteTypeSystemConfigurationTask(
                     (c, d) =>
                     {
                         var type = c.GetType<IType>(nodeType);
-                        var definition = (ObjectTypeDefinition)d;
+                        var definition = (ObjectTypeConfiguration)d;
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
                     Definition,
@@ -41,12 +41,12 @@ internal class CollectionSegmentType : ObjectType, IPageType
         }
 
         Definition.Configurations.Add(
-            new CompleteConfiguration(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {
                     ItemType = c.GetType<IOutputType>(nodeType);
 
-                    var definition = (ObjectTypeDefinition)d;
+                    var definition = (ObjectTypeConfiguration)d;
                     var nodes = definition.Fields.First(IsItemsField);
                     nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
@@ -72,9 +72,9 @@ internal class CollectionSegmentType : ObjectType, IPageType
         base.OnBeforeRegisterDependencies(context, definition);
     }
 
-    private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
+    private static ObjectTypeConfiguration CreateTypeDefinition(bool withTotalCount)
     {
-        var definition = new ObjectTypeDefinition
+        var definition = new ObjectTypeConfiguration
         {
             Description = CollectionSegmentType_Description,
             RuntimeType = typeof(CollectionSegment),

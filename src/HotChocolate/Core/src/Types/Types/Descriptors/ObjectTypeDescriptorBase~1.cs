@@ -22,7 +22,7 @@ public abstract class ObjectTypeDescriptorBase<T>
 
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
         : base(context, definition) { }
 
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;

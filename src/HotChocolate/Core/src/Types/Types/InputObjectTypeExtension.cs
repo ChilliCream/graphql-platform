@@ -65,7 +65,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
                 var descriptor = InputObjectTypeDescriptor.New(
                     context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
             return Definition;

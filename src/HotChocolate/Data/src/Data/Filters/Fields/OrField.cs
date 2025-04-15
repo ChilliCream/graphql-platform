@@ -36,5 +36,5 @@ public sealed class OrField
         string? scope) =>
         FilterOperationFieldDescriptor
             .New(context, DefaultFilterOperations.Or, scope)
-            .CreateDefinition();
+            .CreateConfiguration();
 }

@@ -43,7 +43,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 public class UnionType
-    : NamedTypeBase<UnionTypeDefinition>
+    : NamedTypeBase<UnionTypeConfiguration>
     , IUnionType
 {
     private const string _typeReference = "typeReference";
@@ -85,7 +85,7 @@ public class UnionType
     /// <returns>
     /// Returns the newly created union type.
     /// </returns>
-    public static UnionType CreateUnsafe(UnionTypeDefinition definition)
+    public static UnionType CreateUnsafe(UnionTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <inheritdoc />
@@ -176,7 +176,7 @@ public class UnionType
     IObjectType? IUnionType.ResolveConcreteType(IResolverContext context, object resolverResult)
         => ResolveConcreteType(context, resolverResult);
 
-    protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override UnionTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -186,7 +186,7 @@ public class UnionType
                     context.DescriptorContext,
                     GetType());
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
             return Definition;
@@ -201,7 +201,7 @@ public class UnionType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
 
@@ -217,7 +217,7 @@ public class UnionType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -227,7 +227,7 @@ public class UnionType
 
     private void CompleteTypeSet(
         ITypeCompletionContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration definition)
     {
         var typeSet = new HashSet<ObjectType>();
 
@@ -250,7 +250,7 @@ public class UnionType
 
     protected virtual void OnCompleteTypeSet(
         ITypeCompletionContext context,
-        UnionTypeDefinition definition,
+        UnionTypeConfiguration definition,
         ISet<ObjectType> typeSet)
     {
         foreach (var typeReference in definition.Types)

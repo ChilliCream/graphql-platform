@@ -18,7 +18,7 @@ public static class ServerFields
         static _Service Resolve(IResolverContext ctx)
             => _service;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     internal static ObjectFieldConfiguration CreateEntitiesField(IDescriptorContext context)
@@ -37,6 +37,6 @@ public static class ServerFields
                         WellKnownArgumentNames.Representations),
                     c));
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 }

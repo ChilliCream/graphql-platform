@@ -160,8 +160,8 @@ public static class TypeExtensionHelper
     }
 
     public static void MergeInterfaces(
-        ObjectTypeDefinition extension,
-        ObjectTypeDefinition type)
+        ObjectTypeConfiguration extension,
+        ObjectTypeConfiguration type)
     {
         if (extension.GetInterfaces().Count > 0)
         {

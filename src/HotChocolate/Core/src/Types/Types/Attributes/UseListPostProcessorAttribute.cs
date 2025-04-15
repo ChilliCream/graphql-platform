@@ -12,5 +12,5 @@ public sealed class UseListPostProcessorAttribute<TElement>
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
         => descriptor.ExtendWith(
-            c => c.Definition.ResultPostProcessor = ListPostProcessor<TElement>.Default);
+            c => c.Configuration.ResultPostProcessor = ListPostProcessor<TElement>.Default);
 }

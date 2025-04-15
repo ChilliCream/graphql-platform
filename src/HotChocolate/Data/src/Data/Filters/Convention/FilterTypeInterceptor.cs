@@ -30,7 +30,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         ApplyCorrectScope(extensionDefinition, discoveryContext);
 
@@ -59,7 +59,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         convention.ApplyConfigurations(typeReference, descriptor);
 
         DataTypeExtensionHelper
-            .MergeFilterInputTypeDefinitions(completionContext, descriptor.CreateDefinition(), def);
+            .MergeFilterInputTypeDefinitions(completionContext, descriptor.CreateConfiguration(), def);
 
         if (def.Scope is not null)
         {

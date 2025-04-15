@@ -31,7 +31,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         if (operationType == OperationType.Query)
@@ -45,7 +45,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         TypeSystemConfiguration definition)
     {
         if (completionContext.Type == _queryType
-            && definition is ObjectTypeDefinition typeDef)
+            && definition is ObjectTypeConfiguration typeDef)
         {
             if (_services is null)
             {

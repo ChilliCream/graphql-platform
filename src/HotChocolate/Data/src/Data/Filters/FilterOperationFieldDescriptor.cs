@@ -128,7 +128,7 @@ public class FilterOperationFieldDescriptor
         return this;
     }
 
-    public InputFieldConfiguration CreateFieldDefinition() => CreateDefinition();
+    public InputFieldConfiguration CreateFieldDefinition() => CreateConfiguration();
 
     public static FilterOperationFieldDescriptor New(
         IDescriptorContext context,

@@ -2,11 +2,11 @@
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public sealed class CreateConfiguration : ITypeSystemConfigurationTask
+public sealed class OnCreateTypeSystemConfigurationTask : ITypeSystemConfigurationTask
 {
     private readonly Action<IDescriptorContext, ITypeSystemConfiguration> _configure;
 
-    public CreateConfiguration(
+    public OnCreateTypeSystemConfigurationTask(
         Action<IDescriptorContext, ITypeSystemConfiguration> configure,
         ITypeSystemConfiguration owner)
     {
@@ -18,7 +18,7 @@ public sealed class CreateConfiguration : ITypeSystemConfigurationTask
 
     public ApplyConfigurationOn On => ApplyConfigurationOn.Create;
 
-    public IReadOnlyList<TypeDependency> Dependencies { get; } = Array.Empty<TypeDependency>();
+    public IReadOnlyList<TypeDependency> Dependencies { get; } = [];
 
     public void AddDependency(TypeDependency dependency)
         => throw new NotSupportedException(
@@ -34,6 +34,6 @@ public sealed class CreateConfiguration : ITypeSystemConfigurationTask
             throw new ArgumentNullException(nameof(newOwner));
         }
 
-        return new CreateConfiguration(_configure, newOwner);
+        return new OnCreateTypeSystemConfigurationTask(_configure, newOwner);
     }
 }

@@ -224,7 +224,7 @@ public class SortConvention
 
             if (descriptor is SortInputTypeDescriptor inputTypeDescriptor)
             {
-                inputTypeDescriptor.CreateDefinition();
+                inputTypeDescriptor.CreateConfiguration();
             }
         }
     }

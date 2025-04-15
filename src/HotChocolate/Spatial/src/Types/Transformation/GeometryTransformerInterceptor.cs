@@ -31,7 +31,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
 
             switch (definition)
             {
-                case ObjectTypeDefinition def:
+                case ObjectTypeConfiguration def:
                     HandleObjectType(completionContext, def, convention);
                     break;
                 case InputObjectTypeConfiguration def:
@@ -82,7 +82,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
 
     private static void HandleObjectType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         ISpatialConvention convention)
     {
         foreach (var field in definition.Fields)
@@ -111,7 +111,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
                     .Type<IntType>()
                     .Description(Transformation_Argument_Crs_Description);
 
-                field.Arguments.Add(argument.CreateDefinition());
+                field.Arguments.Add(argument.CreateConfiguration());
                 field.MiddlewareDefinitions.Insert(0,
                     new(FieldClassMiddlewareFactory.Create<GeometryTransformationMiddleware>(
                         (typeof(IGeometryTransformerFactory), convention.TransformerFactory),

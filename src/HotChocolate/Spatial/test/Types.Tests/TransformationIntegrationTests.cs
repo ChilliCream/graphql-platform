@@ -648,7 +648,7 @@ public class TransformationIntegrationTests
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration definition)
         {
-            if (definition is ObjectTypeDefinition o)
+            if (definition is ObjectTypeConfiguration o)
             {
                 foreach (var field in o.Fields)
                 {

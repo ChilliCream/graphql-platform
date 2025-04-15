@@ -20,7 +20,7 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
         TypeSystemConfiguration definition)
     {
         if (_directives.TryGetValue(completionContext.Type.Name, out var directives)
-            && definition is ScalarTypeDefinition scalarTypeDef)
+            && definition is ScalarTypeConfiguration scalarTypeDef)
         {
             foreach (var directive in directives)
             {

@@ -130,7 +130,7 @@ public static class FilterObjectFieldDescriptorExtensions
         var argumentPlaceholder =
             "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
 
         descriptor
             .Extend()
@@ -176,7 +176,7 @@ public static class FilterObjectFieldDescriptorExtensions
                     definition.Arguments.Add(argumentDefinition);
 
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldConfiguration>(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (ctx, d) =>
                                 CompileMiddleware(
                                     ctx,
@@ -190,7 +190,7 @@ public static class FilterObjectFieldDescriptorExtensions
                             TypeDependencyFulfilled.Completed));
 
                     argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentConfiguration>(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) =>
                                 argDef.Name =
                                     context.GetFilterConvention(scope).GetArgumentName(),

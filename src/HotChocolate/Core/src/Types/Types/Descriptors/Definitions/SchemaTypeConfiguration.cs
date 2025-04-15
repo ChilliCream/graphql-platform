@@ -4,7 +4,7 @@ using HotChocolate.Features;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class SchemaTypeDefinition : TypeSystemConfiguration, IFeatureProvider
+public class SchemaTypeConfiguration : TypeSystemConfiguration, IFeatureProvider
 {
     private List<DirectiveConfiguration>? _directives;
 
@@ -37,7 +37,7 @@ public class SchemaTypeDefinition : TypeSystemConfiguration, IFeatureProvider
     internal IDirectiveConfigurationProvider GetLegacyDefinition()
         => new CompatibilityLayer(this);
 
-    private class CompatibilityLayer(SchemaTypeDefinition definition) : IDirectiveConfigurationProvider
+    private class CompatibilityLayer(SchemaTypeConfiguration definition) : IDirectiveConfigurationProvider
     {
         public bool HasDirectives => definition.HasDirectives;
 

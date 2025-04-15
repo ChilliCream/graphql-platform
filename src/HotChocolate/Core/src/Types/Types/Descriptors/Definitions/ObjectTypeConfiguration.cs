@@ -9,8 +9,8 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL object type.
 /// </summary>
-public class ObjectTypeDefinition
-    : TypeDefinitionBase
+public class ObjectTypeConfiguration
+    : TypeConfiguration
     , IComplexOutputTypeConfiguration
 {
     private List<Type>? _knownClrTypes;
@@ -19,14 +19,14 @@ public class ObjectTypeDefinition
     private FieldBindingFlags _fieldBindingFlags = FieldBindingFlags.Instance;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
-    public ObjectTypeDefinition() { }
+    public ObjectTypeConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
-    public ObjectTypeDefinition(
+    public ObjectTypeConfiguration(
         string name,
         string? description = null,
         Type? runtimeType = null)
@@ -179,7 +179,7 @@ public class ObjectTypeDefinition
         return _fieldIgnores;
     }
 
-    protected internal void CopyTo(ObjectTypeDefinition target)
+    protected internal void CopyTo(ObjectTypeConfiguration target)
     {
         base.CopyTo(target);
 
@@ -218,7 +218,7 @@ public class ObjectTypeDefinition
         target.IsExtension = IsExtension;
     }
 
-    protected internal void MergeInto(ObjectTypeDefinition target)
+    protected internal void MergeInto(ObjectTypeConfiguration target)
     {
         base.MergeInto(target);
 

@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL enum type.
 /// </summary>
-public class EnumTypeConfiguration : TypeDefinitionBase
+public class EnumTypeConfiguration : TypeConfiguration
 {
     /// <summary>
     /// Initializes a new instance of <see cref="EnumTypeConfiguration"/>.

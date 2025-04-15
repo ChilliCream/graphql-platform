@@ -74,7 +74,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
@@ -96,7 +96,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
@@ -120,7 +120,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         DataTypeExtensionHelper.MergeSortInputTypeDefinitions(
             completionContext,
-            descriptor.CreateDefinition(),
+            descriptor.CreateConfiguration(),
             definition);
 
         if (!string.IsNullOrEmpty(definition.Name) &&
@@ -149,7 +149,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         DataTypeExtensionHelper.MergeSortEnumTypeDefinitions(
             completionContext,
-            descriptor.CreateDefinition(),
+            descriptor.CreateConfiguration(),
             definition);
 
         if (!string.IsNullOrEmpty(definition.Name) &&

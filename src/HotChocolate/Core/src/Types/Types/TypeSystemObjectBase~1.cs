@@ -219,7 +219,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         {
             if (config.On == on)
             {
-                ((CompleteConfiguration)config).Configure(context);
+                ((OnCompleteTypeSystemConfigurationTask)config).Configure(context);
             }
         }
     }

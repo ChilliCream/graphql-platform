@@ -34,10 +34,10 @@ public class NodeDescriptor<TNode>
 
         // we use the CompleteConfiguration  instead of the higher level api since
         // we want to target a specific event.
-        var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Definition;
+        var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Configuration;
 
-        var configuration = new CompleteConfiguration(
-            (c, d) => OnCompleteDefinition(c, (ObjectTypeDefinition)d),
+        var configuration = new OnCompleteTypeSystemConfigurationTask(
+            (c, d) => OnCompleteDefinition(c, (ObjectTypeConfiguration)d),
             ownerDef,
             ApplyConfigurationOn.AfterNaming);
 
@@ -46,7 +46,7 @@ public class NodeDescriptor<TNode>
 
     private void OnCompleteDefinition(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         if (Definition.ResolverField is null)
         {

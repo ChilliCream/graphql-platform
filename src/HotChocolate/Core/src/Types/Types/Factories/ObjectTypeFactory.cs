@@ -15,7 +15,7 @@ internal sealed class ObjectTypeFactory
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new ObjectTypeDefinition(
+        var typeDefinition = new ObjectTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
@@ -39,7 +39,7 @@ internal sealed class ObjectTypeFactory
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new ObjectTypeDefinition(node.Name.Value)
+        var typeDefinition = new ObjectTypeConfiguration(node.Name.Value)
         {
             BindTo = node.GetBindingValue(),
         };
@@ -58,7 +58,7 @@ internal sealed class ObjectTypeFactory
 
     private static void DeclareFields(
         IDescriptorContext context,
-        ObjectTypeDefinition parent,
+        ObjectTypeConfiguration parent,
         IReadOnlyCollection<FieldDefinitionNode> fields,
         Stack<ITypeSystemConfiguration> path)
     {

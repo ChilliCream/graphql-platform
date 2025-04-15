@@ -36,5 +36,5 @@ public sealed class AndField
         string? scope) =>
         FilterOperationFieldDescriptor
             .New(context, DefaultFilterOperations.And, scope)
-            .CreateDefinition();
+            .CreateConfiguration();
 }

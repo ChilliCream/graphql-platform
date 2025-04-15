@@ -24,7 +24,7 @@ public partial class Schema
 
     protected virtual void Configure(ISchemaTypeDescriptor descriptor) { }
 
-    protected sealed override SchemaTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected sealed override SchemaTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         var descriptor = SchemaTypeDescriptor.New(context.DescriptorContext, GetType());
 
@@ -32,7 +32,7 @@ public partial class Schema
 
         context.DescriptorContext.ApplySchemaConfigurations(descriptor);
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected override void OnAfterInitialize(
@@ -52,7 +52,7 @@ public partial class Schema
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
 
@@ -72,7 +72,7 @@ public partial class Schema
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -82,7 +82,7 @@ public partial class Schema
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
     {
         base.OnCompleteMetadata(context, definition);
 

@@ -22,7 +22,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         TypeSystemConfiguration definition)
     {
         if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            definition is ObjectTypeDefinition objectTypeDef)
+            definition is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {

@@ -19,7 +19,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private IDescriptorContext _context = default!;
     private List<MutationContextData> _mutations = default!;
     private ITypeCompletionContext _completionContext = default!;
-    private ObjectTypeDefinition? _mutationTypeDef;
+    private ObjectTypeConfiguration? _mutationTypeDef;
     private FieldMiddlewareConfiguration? _errorNullMiddleware;
     private TypeInterceptor[] _siblings = [];
 
@@ -65,7 +65,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         TypeSystemConfiguration definition)
     {
         // we will use the error interface and implement it with each error type.
-        if (definition is ObjectTypeDefinition objectTypeDef)
+        if (definition is ObjectTypeConfiguration objectTypeDef)
         {
             TryAddErrorInterface(objectTypeDef, _errorTypeHelper.ErrorTypeInterfaceRef);
         }
@@ -76,7 +76,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     internal override void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         // we first invoke our siblings to gather configurations.
         foreach (var sibling in _siblings)
@@ -488,7 +488,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         FieldDef data,
         FieldDef? error)
     {
-        var objectDef = new ObjectTypeDefinition(typeName);
+        var objectDef = new ObjectTypeConfiguration(typeName);
 
         var dataFieldDef = new ObjectFieldConfiguration(
             data.Name,
@@ -530,7 +530,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         string typeName,
         IReadOnlyList<ErrorDefinition> errorDefinitions)
     {
-        var unionDef = new UnionTypeDefinition(typeName);
+        var unionDef = new UnionTypeConfiguration(typeName);
 
         foreach (var error in errorDefinitions)
         {
@@ -541,7 +541,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     }
 
     private static void TryAddErrorInterface(
-        ObjectTypeDefinition objectTypeDef,
+        ObjectTypeConfiguration objectTypeDef,
         TypeReference errorInterfaceTypeRef)
     {
         if (objectTypeDef.ContextData.IsError())

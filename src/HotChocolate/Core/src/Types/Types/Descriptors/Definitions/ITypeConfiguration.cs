@@ -3,7 +3,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Represents a type definition.
 /// </summary>
-public interface ITypeDefinition
+public interface ITypeConfiguration
     : ITypeSystemConfiguration
     , IHasRuntimeType
     , IDirectiveConfigurationProvider

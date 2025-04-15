@@ -81,7 +81,7 @@ public class TypeScopeInterceptorTests
             ITypeDiscoveryContext discoveryContext,
             TypeSystemConfiguration definition)
         {
-            if (discoveryContext is { Scope: { }, } && definition is ObjectTypeDefinition def)
+            if (discoveryContext is { Scope: { }, } && definition is ObjectTypeConfiguration def)
             {
                 _contexts.Add(discoveryContext);
 

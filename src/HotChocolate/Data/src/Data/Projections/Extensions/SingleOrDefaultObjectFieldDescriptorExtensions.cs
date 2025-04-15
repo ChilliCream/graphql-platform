@@ -30,7 +30,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
         FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
 
         descriptor
             .Extend()
@@ -57,7 +57,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                         context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
 
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldConfiguration>(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, d) =>
                             {
                                 CompileMiddleware(

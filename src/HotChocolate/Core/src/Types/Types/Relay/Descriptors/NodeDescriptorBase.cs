@@ -114,7 +114,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
         return ConfigureNodeField();
     }
 
-    protected void CompleteResolver(ITypeCompletionContext context, ObjectTypeDefinition definition)
+    protected void CompleteResolver(ITypeCompletionContext context, ObjectTypeConfiguration definition)
     {
         var descriptorContext = context.DescriptorContext;
 
@@ -123,7 +123,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             // we let the descriptor complete on the definition object.
             ObjectFieldDescriptor
                 .From(descriptorContext, Definition.ResolverField)
-                .CreateDefinition();
+                .CreateConfiguration();
 
             // after that all middleware should be available on the field definition and we can
             // start compiling the resolver and the resolver pipeline.
@@ -188,7 +188,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             }
 
             var formatter = (ResultFormatterConfiguration)value;
-            var converters = extensions.Definition.FormatterDefinitions;
+            var converters = extensions.Configuration.FormatterDefinitions;
 
             if (!converters.Contains(formatter))
             {

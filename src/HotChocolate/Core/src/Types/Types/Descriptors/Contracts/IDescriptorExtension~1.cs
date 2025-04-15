@@ -16,7 +16,7 @@ public interface IDescriptorExtension<out T> : IHasDescriptorContext
     /// <summary>
     /// The type definition.
     /// </summary>
-    T Definition { get; }
+    T Configuration { get; }
 
     /// <summary>
     /// Allows to rewrite the type definition before the type

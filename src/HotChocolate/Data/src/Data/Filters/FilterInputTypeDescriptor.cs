@@ -74,8 +74,8 @@ public class FilterInputTypeDescriptor
         var handledProperties = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition())
-                .Concat(Operations.Select(t => t.CreateDefinition())),
+            Fields.Select(t => t.CreateConfiguration())
+                .Concat(Operations.Select(t => t.CreateConfiguration())),
             f => f.Member,
             fields,
             handledProperties);

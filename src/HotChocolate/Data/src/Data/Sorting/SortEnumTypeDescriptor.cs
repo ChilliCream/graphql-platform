@@ -50,7 +50,7 @@ public class SortEnumTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var values = Values.Select(t => t.CreateDefinition())
+        var values = Values.Select(t => t.CreateConfiguration())
             .OfType<SortEnumValueDefinition>()
             .ToDictionary(t => t.Value);
 

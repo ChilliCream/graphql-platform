@@ -261,7 +261,7 @@ public static class PagingObjectFieldDescriptorExtensions
         }
 
         CreatePagingArguments(
-            descriptor.Extend().Definition.Arguments,
+            descriptor.Extend().Configuration.Arguments,
             allowBackwardPagination);
 
         return descriptor;
@@ -281,7 +281,7 @@ public static class PagingObjectFieldDescriptorExtensions
         }
 
         CreatePagingArguments(
-            descriptor.Extend().Definition.Arguments,
+            descriptor.Extend().Configuration.Arguments,
             allowBackwardPagination);
 
         return descriptor;

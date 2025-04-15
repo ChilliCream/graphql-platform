@@ -41,7 +41,7 @@ public sealed class EntityResolverDescriptor<TEntity>
         Definition.EntityType = entityType;
     }
 
-    private void OnCompleteDefinition(ObjectTypeDefinition definition)
+    private void OnCompleteDefinition(ObjectTypeConfiguration definition)
     {
         if (Definition.ResolverDefinition is not null)
         {

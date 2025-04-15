@@ -72,7 +72,7 @@ public class SortInputTypeDescriptor
         var handledProperties = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition()),
+            Fields.Select(t => t.CreateConfiguration()),
             f => f.Member,
             fields,
             handledProperties);

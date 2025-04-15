@@ -49,7 +49,7 @@ public class EnumTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.RuntimeValue);
+        var values = Values.Select(t => t.CreateConfiguration()).ToDictionary(t => t.RuntimeValue);
         AddImplicitValues(definition, values);
 
         definition.Values.Clear();
@@ -79,7 +79,7 @@ public class EnumTypeDescriptor
 
                 var valueDefinition =
                     EnumValueDescriptor.New(Context, value)
-                        .CreateDefinition();
+                        .CreateConfiguration();
 
                 if (valueDefinition.RuntimeValue is not null)
                 {

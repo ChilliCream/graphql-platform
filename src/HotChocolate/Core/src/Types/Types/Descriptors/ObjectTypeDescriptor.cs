@@ -12,7 +12,7 @@ using static HotChocolate.Types.FieldBindingFlags;
 namespace HotChocolate.Types.Descriptors;
 
 public class ObjectTypeDescriptor
-    : DescriptorBase<ObjectTypeDefinition>
+    : DescriptorBase<ObjectTypeConfiguration>
     , IObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = [];
@@ -38,7 +38,7 @@ public class ObjectTypeDescriptor
 
     protected ObjectTypeDescriptor(
         IDescriptorContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -49,12 +49,12 @@ public class ObjectTypeDescriptor
         }
     }
 
-    protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
+    protected internal override ObjectTypeConfiguration Definition { get; protected set; } = new();
 
     protected ICollection<ObjectFieldDescriptor> Fields => _fields;
 
     protected override void OnCreateDefinition(
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -96,7 +96,7 @@ public class ObjectTypeDescriptor
 
         foreach (var fieldDescriptor in _fields)
         {
-            var fieldDefinition = fieldDescriptor.CreateDefinition();
+            var fieldDefinition = fieldDescriptor.CreateConfiguration();
 
             if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
             {
@@ -192,7 +192,7 @@ public class ObjectTypeDescriptor
                         // the create definition call will trigger the OnCompleteField call
                         // on the field description and trigger the initialization of the
                         // fields arguments.
-                        fields[name] = descriptor.CreateDefinition();
+                        fields[name] = descriptor.CreateConfiguration();
                     }
                 }
             }
@@ -442,11 +442,11 @@ public class ObjectTypeDescriptor
 
     public static ObjectTypeDescriptor From(
         IDescriptorContext context,
-        ObjectTypeDefinition definition) =>
+        ObjectTypeConfiguration definition) =>
         new(context, definition);
 
     public static ObjectTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        ObjectTypeDefinition definition) =>
+        ObjectTypeConfiguration definition) =>
         new(context, definition);
 }

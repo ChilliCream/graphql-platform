@@ -18,12 +18,12 @@ public abstract class NamedTypeBase<TDefinition>
     , IHasRuntimeType
     , IHasTypeIdentity
     , IHasTypeDefinition
-    where TDefinition : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeDefinition
+    where TDefinition : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeConfiguration
 {
     private IDirectiveCollection? _directives;
     private Type? _runtimeType;
 
-    ITypeDefinition? IHasTypeDefinition.Definition => Definition;
+    ITypeConfiguration? IHasTypeDefinition.Definition => Definition;
 
     /// <inheritdoc />
     public abstract TypeKind Kind { get; }
@@ -132,7 +132,7 @@ public abstract class NamedTypeBase<TDefinition>
         }
     }
 
-    private void UpdateRuntimeType(ITypeDefinition definition)
+    private void UpdateRuntimeType(ITypeConfiguration definition)
         => _runtimeType = definition.RuntimeType ?? typeof(object);
 
     public bool Equals(IType? other)

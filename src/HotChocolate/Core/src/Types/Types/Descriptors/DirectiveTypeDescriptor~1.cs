@@ -39,7 +39,7 @@ public class DirectiveTypeDescriptor<T>
                 this,
                 p => DirectiveArgumentDescriptor
                     .New(Context, p)
-                    .CreateDefinition(),
+                    .CreateConfiguration(),
                 arguments,
                 handledProperties);
         }

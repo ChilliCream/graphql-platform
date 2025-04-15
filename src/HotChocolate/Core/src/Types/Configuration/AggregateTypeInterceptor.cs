@@ -288,7 +288,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         ref var first = ref GetReference();
@@ -338,7 +338,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     internal override void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         if (_mutationAggregator is not null)
         {

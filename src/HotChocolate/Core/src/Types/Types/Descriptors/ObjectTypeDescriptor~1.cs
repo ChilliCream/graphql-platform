@@ -13,7 +13,7 @@ public class ObjectTypeDescriptor<T> : ObjectTypeDescriptorBase<T>
 
     protected internal ObjectTypeDescriptor(
         IDescriptorContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
         : base(context, definition)
     {
         Definition = definition;

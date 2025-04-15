@@ -7,11 +7,11 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
-    private readonly List<ObjectTypeDefinition> _typeDefs = new();
+    private readonly List<ObjectTypeConfiguration> _typeDefs = new();
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private IDescriptorContext _context = default!;
-    private ObjectTypeDefinition _mutationDef = default!;
+    private ObjectTypeConfiguration _mutationDef = default!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -28,7 +28,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
@@ -41,7 +41,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration definition)
     {
-        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && definition is ObjectTypeConfiguration typeDef)
         {
             _typeDefs.Add(typeDef);
         }
@@ -175,7 +175,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
             {
                 d.Name(CreateResultTypeName(fieldName));
 
-                var typeDef = d.Extend().Definition;
+                var typeDef = d.Extend().Configuration;
 
                 foreach (var schemaTypeRef in typeSet)
                 {

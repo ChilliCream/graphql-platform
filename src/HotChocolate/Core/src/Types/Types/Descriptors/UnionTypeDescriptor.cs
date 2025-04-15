@@ -5,7 +5,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Types.Descriptors;
 
 public class UnionTypeDescriptor
-    : DescriptorBase<UnionTypeDefinition>
+    : DescriptorBase<UnionTypeConfiguration>
     , IUnionTypeDescriptor
 {
     protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
@@ -23,7 +23,7 @@ public class UnionTypeDescriptor
 
     protected UnionTypeDescriptor(
         IDescriptorContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration definition)
         : base(context)
     {
         Definition = definition;
@@ -35,9 +35,9 @@ public class UnionTypeDescriptor
         Definition.RuntimeType = typeof(object);
     }
 
-    protected internal override UnionTypeDefinition Definition { get; protected set; } = new();
+    protected internal override UnionTypeConfiguration Definition { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(UnionTypeDefinition definition)
+    protected override void OnCreateDefinition(UnionTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -143,6 +143,6 @@ public class UnionTypeDescriptor
 
     public static UnionTypeDescriptor From(
         IDescriptorContext context,
-        UnionTypeDefinition definition) =>
+        UnionTypeConfiguration definition) =>
         new(context, definition);
 }

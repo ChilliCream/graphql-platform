@@ -149,7 +149,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 return;
             }
 
-            if (definition is not ObjectTypeDefinition def)
+            if (definition is not ObjectTypeConfiguration def)
             {
                 return;
             }

@@ -7,7 +7,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Types.Descriptors;
 
 public class ScalarTypeDescriptor
-    : DescriptorBase<ScalarTypeDefinition>
+    : DescriptorBase<ScalarTypeConfiguration>
     , IScalarTypeDescriptor
 {
     protected ScalarTypeDescriptor(IDescriptorContext context)
@@ -15,9 +15,9 @@ public class ScalarTypeDescriptor
     {
     }
 
-    protected internal override ScalarTypeDefinition Definition { get; protected set; } = new();
+    protected internal override ScalarTypeConfiguration Definition { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(ScalarTypeDefinition definition)
+    protected override void OnCreateDefinition(ScalarTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 

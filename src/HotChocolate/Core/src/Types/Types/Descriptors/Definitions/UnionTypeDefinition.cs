@@ -7,17 +7,17 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL union type.
 /// </summary>
-public class UnionTypeDefinition : TypeDefinitionBase
+public class UnionTypeConfiguration : TypeConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="UnionTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="UnionTypeConfiguration"/>.
     /// </summary>
-    public UnionTypeDefinition() { }
+    public UnionTypeConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="UnionTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="UnionTypeConfiguration"/>.
     /// </summary>
-    public UnionTypeDefinition(
+    public UnionTypeConfiguration(
         string name,
         string? description = null,
         Type? runtimeType = null)

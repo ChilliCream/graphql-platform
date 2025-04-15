@@ -221,7 +221,7 @@ public abstract class TypeInterceptor
     #endif
     public virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
     }
@@ -243,7 +243,7 @@ public abstract class TypeInterceptor
 
     internal virtual void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         foreach (var field in definition.Fields)
         {

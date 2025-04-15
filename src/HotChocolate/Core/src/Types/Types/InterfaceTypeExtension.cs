@@ -65,7 +65,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
             {
                 var descriptor = InterfaceTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
             return Definition;

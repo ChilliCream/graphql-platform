@@ -72,7 +72,7 @@ public static class IntrospectionFields
             .Description(TypeResources.TypeNameField_Description)
             .Type<NonNullType<StringType>>();
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.PureResolver = _typeNameResolver;
         definition.Flags |= FieldFlags.TypeNameField;
 
@@ -81,7 +81,7 @@ public static class IntrospectionFields
 
     private static ObjectFieldConfiguration CreateDefinition(ObjectFieldDescriptor descriptor)
     {
-        var definition = descriptor.CreateDefinition();
+        var definition = descriptor.CreateConfiguration();
         definition.IsIntrospectionField = true;
         return definition;
     }

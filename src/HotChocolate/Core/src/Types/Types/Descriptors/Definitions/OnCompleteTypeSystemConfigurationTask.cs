@@ -4,10 +4,11 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public sealed class CompleteConfiguration<TDefinition> : CompleteConfiguration
+public sealed class OnCompleteTypeSystemConfigurationTask<TDefinition>
+    : OnCompleteTypeSystemConfigurationTask
     where TDefinition : ITypeSystemConfiguration
 {
-    public CompleteConfiguration(
+    public OnCompleteTypeSystemConfigurationTask(
         Action<ITypeCompletionContext, TDefinition> configure,
         TDefinition owner,
         ApplyConfigurationOn on,
@@ -17,7 +18,7 @@ public sealed class CompleteConfiguration<TDefinition> : CompleteConfiguration
     {
     }
 
-    public CompleteConfiguration(
+    public OnCompleteTypeSystemConfigurationTask(
         Action<ITypeCompletionContext, TDefinition> configure,
         TDefinition owner,
         ApplyConfigurationOn on,
@@ -27,12 +28,12 @@ public sealed class CompleteConfiguration<TDefinition> : CompleteConfiguration
     }
 }
 
-public class CompleteConfiguration : ITypeSystemConfigurationTask
+public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTask
 {
     private readonly Action<ITypeCompletionContext, ITypeSystemConfiguration> _configure;
     private List<TypeDependency>? _dependencies;
 
-    public CompleteConfiguration(
+    public OnCompleteTypeSystemConfigurationTask(
         Action<ITypeCompletionContext, ITypeSystemConfiguration> configure,
         ITypeSystemConfiguration owner,
         ApplyConfigurationOn on,
@@ -54,7 +55,7 @@ public class CompleteConfiguration : ITypeSystemConfigurationTask
         }
     }
 
-    public CompleteConfiguration(
+    public OnCompleteTypeSystemConfigurationTask(
         Action<ITypeCompletionContext, ITypeSystemConfiguration> configure,
         ITypeSystemConfiguration owner,
         ApplyConfigurationOn on,
@@ -104,6 +105,6 @@ public class CompleteConfiguration : ITypeSystemConfigurationTask
             throw new ArgumentNullException(nameof(newOwner));
         }
 
-        return new CompleteConfiguration(_configure, newOwner, On, Dependencies);
+        return new OnCompleteTypeSystemConfigurationTask(_configure, newOwner, On, Dependencies);
     }
 }

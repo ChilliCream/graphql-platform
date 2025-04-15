@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 /// which is itself an extension of another GraphQL service.
 /// </para>
 /// </summary>
-public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
+public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguration>
 {
     private Action<IObjectTypeDescriptor>? _configure;
 
@@ -55,13 +55,13 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
     /// <returns>
     /// Returns the newly created object type.
     /// </returns>
-    public static ObjectTypeExtension CreateUnsafe(ObjectTypeDefinition definition)
+    public static ObjectTypeExtension CreateUnsafe(ObjectTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
 
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -69,7 +69,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
             {
                 var descriptor = ObjectTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
             return Definition;
@@ -84,7 +84,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         context.RegisterDependencies(definition);
@@ -116,8 +116,8 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
     }
 
     private void ApplyGlobalFieldIgnores(
-        ObjectTypeDefinition extensionDef,
-        ObjectTypeDefinition typeDef)
+        ObjectTypeConfiguration extensionDef,
+        ObjectTypeConfiguration typeDef)
     {
         var fieldIgnores = extensionDef.GetFieldIgnores();
 

@@ -45,7 +45,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
     {
-        if (definition is ObjectTypeDefinition objectTypeDef)
+        if (definition is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
@@ -153,7 +153,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
     {
-        if (definition is ObjectTypeDefinition objectTypeDef)
+        if (definition is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {

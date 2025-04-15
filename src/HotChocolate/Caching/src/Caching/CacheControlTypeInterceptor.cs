@@ -12,7 +12,7 @@ internal sealed class CacheControlTypeInterceptor(
     ICacheControlOptionsAccessor accessor)
     : TypeInterceptor
 {
-    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
+    private readonly List<(RegisteredType Type, ObjectTypeConfiguration TypeDef)> _types = [];
     private readonly ICacheControlOptions _cacheControlOptions = accessor.CacheControl;
     private TypeDependency? _cacheControlDependency;
 
@@ -25,7 +25,7 @@ internal sealed class CacheControlTypeInterceptor(
             return;
         }
 
-        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && definition is ObjectTypeConfiguration typeDef)
         {
             _types.Add(((RegisteredType)completionContext, typeDef));
         }
@@ -39,7 +39,7 @@ internal sealed class CacheControlTypeInterceptor(
         }
     }
 
-    private void TryApplyDefaults(RegisteredType type, ObjectTypeDefinition objectDef)
+    private void TryApplyDefaults(RegisteredType type, ObjectTypeConfiguration objectDef)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {

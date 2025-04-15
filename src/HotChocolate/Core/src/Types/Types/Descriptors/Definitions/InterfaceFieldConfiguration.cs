@@ -22,7 +22,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     private bool _resultConvertersCleaned;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
     public InterfaceFieldConfiguration()
     {
@@ -30,7 +30,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
     public InterfaceFieldConfiguration(
         string name,

@@ -19,7 +19,7 @@ internal sealed class MutationDirective : ISchemaDirective
         }
 
         fieldDef.Configurations.Add(
-            new CompleteConfiguration<ObjectFieldConfiguration>(
+            new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) =>
                 {
                     c.ContextData

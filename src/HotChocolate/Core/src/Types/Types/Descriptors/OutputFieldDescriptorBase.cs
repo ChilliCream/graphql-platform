@@ -36,7 +36,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         {
             foreach (var argument in Arguments)
             {
-                Definition.Arguments.Add(argument.CreateDefinition());
+                Definition.Arguments.Add(argument.CreateConfiguration());
             }
         }
     }

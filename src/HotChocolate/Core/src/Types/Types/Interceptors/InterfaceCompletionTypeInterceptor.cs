@@ -75,7 +75,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
     // defines if this type has a concrete runtime type.
     private bool IsRelevant(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef &&
+        if (typeInfo.Definition is ObjectTypeConfiguration { IsExtension: true, } objectDef &&
             objectDef.FieldBindingType != typeof(object))
         {
             return true;
@@ -87,7 +87,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     private Type GetRuntimeType(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef)
+        if (typeInfo.Definition is ObjectTypeConfiguration { IsExtension: true, } objectDef)
         {
             return objectDef.FieldBindingType ?? typeof(object);
         }
@@ -124,7 +124,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             CompleteInterfacesAndFields(typeDef);
         }
 
-        if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0, }, } objectTypeDef)
+        if (definition is ObjectTypeConfiguration { Interfaces: { Count: > 0, }, } objectTypeDef)
         {
             _completed.Clear();
             _completedFields.Clear();

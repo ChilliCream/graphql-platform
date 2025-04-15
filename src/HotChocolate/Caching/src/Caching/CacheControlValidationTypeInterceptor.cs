@@ -12,7 +12,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)

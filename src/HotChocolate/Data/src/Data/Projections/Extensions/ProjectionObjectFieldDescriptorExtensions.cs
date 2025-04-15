@@ -135,8 +135,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         var extension = descriptor.Extend();
 
-        extension.Definition.MiddlewareDefinitions.Add(placeholder);
-        extension.Definition.Flags |= FieldFlags.UsesProjections;
+        extension.Configuration.MiddlewareDefinitions.Add(placeholder);
+        extension.Configuration.Flags |= FieldFlags.UsesProjections;
 
         extension
             .OnBeforeCreate(
@@ -158,7 +158,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                     }
 
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldConfiguration>(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion));

@@ -50,7 +50,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // we capture the schema context data before everything else so that we can
         // set a marker if the authorization validation rules need to be executed.
-        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Definition.ContextData);
+        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Configuration.ContextData);
     }
 
     private ITypeCompletionContext _tc = default!;
@@ -63,13 +63,13 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         switch (completionContext.Type)
         {
             // at this point we collect object types so we can check if they need to be authorized.
-            case ObjectType when definition is ObjectTypeDefinition objectTypeDef:
+            case ObjectType when definition is ObjectTypeConfiguration objectTypeDef:
                 _objectTypes.Add(new ObjectTypeInfo(completionContext, objectTypeDef));
                 break;
 
             // also we collect union types so we can see if a union exposes
             // an authorized object type.
-            case UnionType when definition is UnionTypeDefinition unionTypeDef:
+            case UnionType when definition is UnionTypeConfiguration unionTypeDef:
                 _unionTypes.Add(new UnionTypeInfo(completionContext, unionTypeDef));
                 break;
 
@@ -85,7 +85,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
@@ -128,7 +128,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         // last in the initialization we need to intercept the query type and ensure that
         // authorization configuration is applied to the special introspection and node fields.
         if (ReferenceEquals(_queryContext, completionContext) &&
-            definition is ObjectTypeDefinition typeDef)
+            definition is ObjectTypeConfiguration typeDef)
         {
             var state = _state ?? throw ThrowHelper.StateNotInitialized();
             HandleSpecialQueryFields(new ObjectTypeInfo(completionContext, typeDef), state);
@@ -308,7 +308,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
                 options.ConfigureTypeField?.Invoke(descriptor);
-                descriptor.CreateDefinition();
+                descriptor.CreateConfiguration();
             }
             else if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Schema))
             {
@@ -319,7 +319,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
                 options.ConfigureSchemaField?.Invoke(descriptor);
-                descriptor.CreateDefinition();
+                descriptor.CreateConfiguration();
             }
             else if (fieldDef.IsNodeField())
             {
@@ -330,7 +330,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
                 options.ConfigureNodeFields?.Invoke(descriptor);
-                descriptor.CreateDefinition();
+                descriptor.CreateConfiguration();
             }
         }
     }

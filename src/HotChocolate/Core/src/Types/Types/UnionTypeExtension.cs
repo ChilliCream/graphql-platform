@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// local data, or by a GraphQL service which is itself an extension of another
 /// GraphQL service.
 /// </summary>
-public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeDefinition>
+public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
 {
     private Action<IUnionTypeDescriptor>? _configure;
 
@@ -51,13 +51,13 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeDefinition>
     /// <returns>
     /// Returns the newly created union type extension.
     /// </returns>
-    public static UnionTypeExtension CreateUnsafe(UnionTypeDefinition definition)
+    public static UnionTypeExtension CreateUnsafe(UnionTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;
 
-    protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override UnionTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -65,7 +65,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeDefinition>
             {
                 var descriptor = UnionTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
             return Definition;
@@ -80,7 +80,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeDefinition>
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
 

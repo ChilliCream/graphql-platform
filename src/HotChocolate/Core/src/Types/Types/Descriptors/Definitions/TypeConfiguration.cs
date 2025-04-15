@@ -5,14 +5,14 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// A definition that represents a type.
 /// </summary>
-public class TypeDefinitionBase : TypeSystemConfiguration, ITypeDefinition
+public abstract class TypeConfiguration : TypeSystemConfiguration, ITypeConfiguration
 {
     private List<DirectiveConfiguration>? _directives;
     private Type _runtimeType = typeof(object);
 
-    protected TypeDefinitionBase() { }
+    protected TypeConfiguration() { }
 
-    protected TypeDefinitionBase(Type runtimeType)
+    protected TypeConfiguration(Type runtimeType)
     {
         _runtimeType = runtimeType;
     }
@@ -61,7 +61,7 @@ public class TypeDefinitionBase : TypeSystemConfiguration, ITypeDefinition
         return _directives;
     }
 
-    protected void CopyTo(TypeDefinitionBase target)
+    protected void CopyTo(TypeConfiguration target)
     {
         base.CopyTo(target);
 
@@ -74,7 +74,7 @@ public class TypeDefinitionBase : TypeSystemConfiguration, ITypeDefinition
         }
     }
 
-    protected void MergeInto(TypeDefinitionBase target)
+    protected void MergeInto(TypeConfiguration target)
     {
         base.MergeInto(target);
 

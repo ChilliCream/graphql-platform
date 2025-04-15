@@ -37,7 +37,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
     {
         switch (definition)
         {
-            case ObjectTypeDefinition o:
+            case ObjectTypeConfiguration o:
                 ProcessOutputFields(o.Fields);
 
                 break;
@@ -113,7 +113,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
         var typeName = _namingConventions.GetTypeName(type) + _flagNameAddition;
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
-        var objectTypeDefinition = new ObjectTypeDefinition(typeName, desc)
+        var objectTypeDefinition = new ObjectTypeConfiguration(typeName, desc)
         {
             RuntimeType = typeof(Dictionary<string, object>),
         };

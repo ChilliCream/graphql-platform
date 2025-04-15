@@ -4,18 +4,18 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class InterfaceTypeConfiguration : TypeDefinitionBase, IComplexOutputTypeConfiguration
+public class InterfaceTypeConfiguration : TypeConfiguration, IComplexOutputTypeConfiguration
 {
     private List<Type>? _knownClrTypes;
     private List<TypeReference>? _interfaces;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
     public InterfaceTypeConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
     public InterfaceTypeConfiguration(
         string name,

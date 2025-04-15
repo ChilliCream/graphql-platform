@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 public abstract class NamedTypeExtensionBase<TDefinition>
     : TypeSystemObjectBase<TDefinition>
     , INamedTypeExtensionMerger
-    where TDefinition : TypeSystemConfiguration, ITypeDefinition
+    where TDefinition : TypeSystemConfiguration, ITypeConfiguration
 {
     /// <inheritdoc />
     public abstract TypeKind Kind { get; }

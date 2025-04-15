@@ -127,7 +127,7 @@ public static class FieldDescriptorUtilities
                     var argumentDefinition =
                         ArgumentDescriptor
                             .New(context, parameter)
-                            .CreateDefinition();
+                            .CreateConfiguration();
 
                     if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
                         processedNames.Add(argumentDefinition.Name))

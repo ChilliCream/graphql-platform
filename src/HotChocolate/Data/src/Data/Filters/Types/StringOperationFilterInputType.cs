@@ -24,7 +24,7 @@ file static class Extensions
 {
     public static IFilterOperationFieldDescriptor Expensive(this IFilterOperationFieldDescriptor descriptor)
     {
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
 
         if ((definition.Flags & FieldFlags.FilterOperationField) == FieldFlags.FilterOperationField)
         {

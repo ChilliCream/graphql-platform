@@ -61,7 +61,7 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
             {
                 var descriptor = EnumTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
             return Definition;

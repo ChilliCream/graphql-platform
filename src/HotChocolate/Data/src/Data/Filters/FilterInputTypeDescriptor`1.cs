@@ -48,7 +48,7 @@ public class FilterInputTypeDescriptor<T>
                 Definition.EntityType!,
                 p => FilterFieldDescriptor
                     .New(Context, Definition.Scope, p)
-                    .CreateDefinition(),
+                    .CreateConfiguration(),
                 fields,
                 handledProperties,
                 include: (_, member)

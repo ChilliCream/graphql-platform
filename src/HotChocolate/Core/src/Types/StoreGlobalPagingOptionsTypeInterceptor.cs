@@ -12,7 +12,7 @@ internal sealed class StoreGlobalPagingOptionsTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration definition)
     {
-        if(definition is SchemaTypeDefinition schemaDef)
+        if(definition is SchemaTypeConfiguration schemaDef)
         {
             var options = completionContext.DescriptorContext.GetPagingOptions(null);
             schemaDef.Features.Set(options);

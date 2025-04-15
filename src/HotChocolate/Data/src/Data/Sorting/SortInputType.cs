@@ -36,7 +36,7 @@ public class SortInputType
             _configure!(descriptor);
             _configure = null;
 
-            Definition = descriptor.CreateDefinition();
+            Definition = descriptor.CreateConfiguration();
         }
 
         return Definition;

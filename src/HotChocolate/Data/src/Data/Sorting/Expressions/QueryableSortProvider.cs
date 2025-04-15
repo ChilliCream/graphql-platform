@@ -124,7 +124,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             return visitorContext;
         }
 
-        var contextData = descriptor.Extend().Definition.ContextData;
+        var contextData = descriptor.Extend().Configuration.ContextData;
         var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
         contextData[ContextVisitSortArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;

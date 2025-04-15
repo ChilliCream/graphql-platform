@@ -68,7 +68,7 @@ public class DirectiveTypeDescriptor
         var handledMembers = new HashSet<PropertyInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
-            Arguments.Select(t => t.CreateDefinition()),
+            Arguments.Select(t => t.CreateConfiguration()),
             f => f.Property,
             arguments,
             handledMembers);

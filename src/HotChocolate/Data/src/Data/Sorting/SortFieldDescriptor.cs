@@ -73,7 +73,7 @@ public class SortFieldDescriptor
         protected set => base.Definition = value;
     }
 
-    internal InputFieldConfiguration CreateFieldDefinition() => CreateDefinition();
+    internal InputFieldConfiguration CreateFieldDefinition() => CreateConfiguration();
 
     protected override void OnCreateDefinition(
         SortFieldDefinition definition)

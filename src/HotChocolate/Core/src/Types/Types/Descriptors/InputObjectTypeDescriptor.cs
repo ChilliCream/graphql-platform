@@ -73,7 +73,7 @@ public class InputObjectTypeDescriptor
 
         foreach (var fieldDescriptor in _fields)
         {
-            var fieldDefinition = fieldDescriptor.CreateDefinition();
+            var fieldDefinition = fieldDescriptor.CreateConfiguration();
 
             if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
             {
@@ -128,7 +128,7 @@ public class InputObjectTypeDescriptor
                         // the create definition call will trigger the OnCompleteField call
                         // on the field description and trigger the initialization of the
                         // fields arguments.
-                        fields[name] = descriptor.CreateDefinition();
+                        fields[name] = descriptor.CreateConfiguration();
                     }
                 }
             }

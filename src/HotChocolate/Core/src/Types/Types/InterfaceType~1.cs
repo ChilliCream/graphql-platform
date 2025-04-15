@@ -26,7 +26,7 @@ public class InterfaceType<T> : InterfaceType
 
         context.DescriptorContext.TypeConfiguration.Apply(typeof(T), descriptor);
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IInterfaceTypeDescriptor<T> descriptor) { }

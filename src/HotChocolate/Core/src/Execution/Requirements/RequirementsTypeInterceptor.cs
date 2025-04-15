@@ -13,7 +13,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration definition)
     {
-        if (definition is SchemaTypeDefinition schema)
+        if (definition is SchemaTypeConfiguration schema)
         {
             schema.Features.Set(_metadata);
         }
@@ -23,7 +23,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration definition)
     {
-        if (definition is not ObjectTypeDefinition typeDef)
+        if (definition is not ObjectTypeConfiguration typeDef)
         {
             return;
         }

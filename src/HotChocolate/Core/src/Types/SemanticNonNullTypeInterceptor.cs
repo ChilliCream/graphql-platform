@@ -14,7 +14,7 @@ namespace HotChocolate;
 internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
-    private ObjectTypeDefinition? _mutationDef;
+    private ObjectTypeConfiguration? _mutationDef;
 
     public override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableSemanticNonNull;
@@ -29,7 +29,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         _typeInspector = context.TypeInspector;
     }
 
-    public override void OnAfterResolveRootType(ITypeCompletionContext completionContext, ObjectTypeDefinition definition,
+    public override void OnAfterResolveRootType(ITypeCompletionContext completionContext, ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
@@ -45,7 +45,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (definition is ObjectTypeDefinition objectDef)
+        if (definition is ObjectTypeConfiguration objectDef)
         {
             if (objectDef.Name is "CollectionSegmentInfo" or "PageInfo")
             {

@@ -5,7 +5,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Types.Descriptors;
 
 public class SchemaTypeDescriptor
-    : DescriptorBase<SchemaTypeDefinition>
+    : DescriptorBase<SchemaTypeConfiguration>
     , ISchemaTypeDescriptor
 {
     protected SchemaTypeDescriptor(IDescriptorContext context, Type type)
@@ -20,13 +20,13 @@ public class SchemaTypeDescriptor
 
     protected SchemaTypeDescriptor(
         IDescriptorContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
         : base(context)
     {
         Definition = definition;
     }
 
-    protected internal override SchemaTypeDefinition Definition { get; protected set; } = new();
+    protected internal override SchemaTypeConfiguration Definition { get; protected set; } = new();
 
     public ISchemaTypeDescriptor Name(string value)
     {
@@ -69,6 +69,6 @@ public class SchemaTypeDescriptor
 
     public static SchemaTypeDescriptor From(
         IDescriptorContext context,
-        SchemaTypeDefinition definition) =>
+        SchemaTypeConfiguration definition) =>
         new SchemaTypeDescriptor(context, definition);
 }

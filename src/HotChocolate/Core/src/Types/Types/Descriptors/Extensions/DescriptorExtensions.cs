@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors;
 public static class DescriptorExtensions
 {
     public static ObjectTypeDescriptor ToDescriptor(
-        this ObjectTypeDefinition definition,
+        this ObjectTypeConfiguration definition,
         IDescriptorContext context)
         => ObjectTypeDescriptor.From(context, definition);
 
@@ -32,6 +32,6 @@ public static class DescriptorExtensions
 
     public static T ToDefinition<T>(this IDescriptor<T> descriptor) where T : TypeSystemConfiguration
         => descriptor is DescriptorBase<T> desc
-            ? desc.CreateDefinition()
+            ? desc.CreateConfiguration()
             : throw new NotSupportedException("The specified descriptor is not supported.");
 }

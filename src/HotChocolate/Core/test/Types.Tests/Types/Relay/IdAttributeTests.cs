@@ -720,7 +720,7 @@ public class IdAttributeTests
             TypeSystemConfiguration definition)
         {
             if (validationContext.Type.Name.EqualsOrdinal("Query") &&
-                definition is ObjectTypeDefinition typeDef)
+                definition is ObjectTypeConfiguration typeDef)
             {
                 Count = typeDef.Fields
                     .Single(t => t.Name.EqualsOrdinal("abc"))

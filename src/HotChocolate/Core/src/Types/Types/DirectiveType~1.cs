@@ -30,7 +30,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IDirectiveTypeDescriptor<TDirective> descriptor)

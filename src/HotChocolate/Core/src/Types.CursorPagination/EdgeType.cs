@@ -28,7 +28,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         Definition = CreateTypeDefinition(nodeType);
         Definition.Name = NameHelper.CreateEdgeName(connectionName);
         Definition.Configurations.Add(
-            new CompleteConfiguration(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
                 Definition,
                 ApplyConfigurationOn.BeforeCompletion));
@@ -45,19 +45,19 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         ConnectionName = default!;
         Definition = CreateTypeDefinition(nodeType);
         Definition.Configurations.Add(
-            new CompleteConfiguration(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {
                     var type = c.GetType<IType>(nodeType);
                     ConnectionName = type.NamedType().Name;
-                    ((ObjectTypeDefinition)d).Name = NameHelper.CreateEdgeName(ConnectionName);
+                    ((ObjectTypeConfiguration)d).Name = NameHelper.CreateEdgeName(ConnectionName);
                 },
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
-            new CompleteConfiguration(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
                 Definition,
                 ApplyConfigurationOn.BeforeCompletion));
@@ -95,7 +95,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         return false;
     }
 
-    private static ObjectTypeDefinition CreateTypeDefinition(TypeReference nodeType)
+    private static ObjectTypeConfiguration CreateTypeDefinition(TypeReference nodeType)
         => new()
         {
             Description = EdgeType_Description,

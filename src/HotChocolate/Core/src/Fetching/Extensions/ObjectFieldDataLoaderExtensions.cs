@@ -29,7 +29,7 @@ public static class DataLoaderObjectFieldExtensions
             throw DataLoader_InvalidType(dataLoaderType);
         }
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
 
         descriptor
             .Extend()
@@ -53,7 +53,7 @@ public static class DataLoaderObjectFieldExtensions
 
                     definition.Type = TypeReference.Create(schemaType, TypeContext.Output);
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldConfiguration>(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, def) =>
                             {
                                 CompileMiddleware(

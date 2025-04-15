@@ -133,7 +133,7 @@ public static class SortingObjectFieldDescriptorExtensions
         FieldMiddlewareConfiguration sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
         var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
-        var fieldDefinition = descriptor.Extend().Definition;
+        var fieldDefinition = descriptor.Extend().Configuration;
 
         fieldDefinition.MiddlewareDefinitions.Add(sortQuery);
 
@@ -179,7 +179,7 @@ public static class SortingObjectFieldDescriptorExtensions
                     };
 
                     argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentConfiguration>((context, def) =>
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>((context, def) =>
                         {
                             var namedType = context.GetType<INamedType>(argumentTypeReference);
                             def.Type = TypeReference.Parse($"[{namedType.Name}!]");
@@ -192,7 +192,7 @@ public static class SortingObjectFieldDescriptorExtensions
                     definition.Arguments.Add(argumentDefinition);
 
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldConfiguration>(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (context, def) =>
                                 CompileMiddleware(
                                     context,
@@ -206,7 +206,7 @@ public static class SortingObjectFieldDescriptorExtensions
                             TypeDependencyFulfilled.Completed));
 
                     argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentConfiguration>(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,
                             ApplyConfigurationOn.BeforeNaming));

@@ -18,13 +18,13 @@ namespace HotChocolate.Types.Relay;
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
     private ITypeCompletionContext? _queryContext;
-    private ObjectTypeDefinition? _queryTypeDefinition;
+    private ObjectTypeConfiguration? _queryTypeDefinition;
 
     internal override uint Position => uint.MaxValue - 100;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)

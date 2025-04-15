@@ -8,10 +8,10 @@ public class InterfaceTypeDescriptorTests : DescriptorTestBase
         var descriptor = InterfaceTypeDescriptor.New(Context);
         descriptor.Field("id").Type("ID!");
 
-        var interfaceType = descriptor.CreateDefinition();
+        var interfaceType = descriptor.CreateConfiguration();
         Assert.Single(interfaceType.Fields);
 
-        descriptor.CreateDefinition();
+        descriptor.CreateConfiguration();
         Assert.Single(interfaceType.Fields);
     }
 }

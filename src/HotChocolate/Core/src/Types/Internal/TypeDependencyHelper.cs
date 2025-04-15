@@ -42,7 +42,7 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition is null)
@@ -189,7 +189,7 @@ public static class TypeDependencyHelper
     }
 
     internal static void CollectDirectiveDependencies(
-        TypeDefinitionBase definition,
+        TypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition.HasDirectives)
@@ -267,7 +267,7 @@ public static class TypeDependencyHelper
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         if (context is null)
         {

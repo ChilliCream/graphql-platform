@@ -70,7 +70,7 @@ internal static class RelayIdFieldHelpers
             // add serializer if globalID support is enabled.
             if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
             {
-                ApplyIdToField(extend.Definition, typeName);
+                ApplyIdToField(extend.Configuration, typeName);
             }
         }
     }
@@ -92,7 +92,7 @@ internal static class RelayIdFieldHelpers
             key: WellKnownMiddleware.GlobalId);
         definition.FormatterDefinitions.Add(placeholder);
 
-        var configuration = new CompleteConfiguration(
+        var configuration = new OnCompleteTypeSystemConfigurationTask(
             (ctx, def) => AddSerializerToObjectField(
                 ctx,
                 (ObjectFieldConfiguration)def,

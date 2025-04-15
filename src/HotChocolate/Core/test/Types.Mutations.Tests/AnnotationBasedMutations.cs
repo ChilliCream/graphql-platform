@@ -1412,7 +1412,7 @@ public class AnnotationBasedMutations
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration definition)
         {
-            if (definition is not ObjectTypeDefinition objTypeDef)
+            if (definition is not ObjectTypeConfiguration objTypeDef)
             {
                 return;
             }
@@ -1422,7 +1422,7 @@ public class AnnotationBasedMutations
             ITypeDiscoveryContext discoveryContext,
             TypeSystemConfiguration definition)
         {
-            if (definition is ObjectTypeDefinition objTypeDef)
+            if (definition is ObjectTypeConfiguration objTypeDef)
             {
                 foreach (var fieldDef in objTypeDef.Fields)
                 {

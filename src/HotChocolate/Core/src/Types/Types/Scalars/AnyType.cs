@@ -39,7 +39,7 @@ public class AnyType : ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ScalarTypeDefinition definition)
+        ScalarTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
         _objectToDictConverter = new ObjectToDictionaryConverter(Converter);

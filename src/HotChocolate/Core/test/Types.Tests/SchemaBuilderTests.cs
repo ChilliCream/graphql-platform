@@ -2182,7 +2182,7 @@ public class SchemaBuilderTests
         }
         protected override void OnCompleteName(
             ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
+            ObjectTypeConfiguration definition)
         {
             base.OnCompleteName(context, definition);
             Context = context.DescriptorContext;

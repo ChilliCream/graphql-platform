@@ -26,7 +26,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     private ObjectType? QueryType { get; set; }
 
-    private ObjectTypeDefinition? TypeDef { get; set; }
+    private ObjectTypeConfiguration? TypeDef { get; set; }
 
     [MemberNotNullWhen(true, nameof(QueryType), nameof(TypeDef), nameof(CompletionContext))]
     private bool IsInitialized
@@ -36,7 +36,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         // we are only interested in the query type to infer node resolvers.
@@ -194,7 +194,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     private static bool ImplementsNode(
         ITypeCompletionContext context,
-        ObjectTypeDefinition typeDef)
+        ObjectTypeConfiguration typeDef)
     {
         if (typeDef.Interfaces.Count > 0)
         {

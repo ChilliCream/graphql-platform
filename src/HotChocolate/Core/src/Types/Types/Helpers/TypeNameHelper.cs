@@ -11,7 +11,7 @@ public static class TypeNameHelper
         IDescriptor<TDefinition> descriptor,
         Func<INamedType, string> createName,
         Type dependency)
-        where TDefinition : TypeSystemConfiguration, ITypeDefinition
+        where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
         if (descriptor is null)
         {
@@ -42,7 +42,7 @@ public static class TypeNameHelper
                 nameof(dependency));
         }
 
-        descriptor.Extend().Definition.NeedsNameCompletion = true;
+        descriptor.Extend().Configuration.NeedsNameCompletion = true;
 
         descriptor
             .Extend()
@@ -59,7 +59,7 @@ public static class TypeNameHelper
         IDescriptor<TDefinition> descriptor,
         Func<INamedType, string> createName,
         TypeReference dependency)
-        where TDefinition : TypeSystemConfiguration, ITypeDefinition
+        where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
         if (descriptor is null)
         {
@@ -76,7 +76,7 @@ public static class TypeNameHelper
             throw new ArgumentNullException(nameof(dependency));
         }
 
-        descriptor.Extend().Definition.NeedsNameCompletion = true;
+        descriptor.Extend().Configuration.NeedsNameCompletion = true;
 
         descriptor
             .Extend()

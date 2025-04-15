@@ -100,7 +100,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         string argumentName,
         IObjectFieldDescriptor descriptor)
     {
-        var contextData = descriptor.Extend().Definition.ContextData;
+        var contextData = descriptor.Extend().Configuration.ContextData;
         var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
         contextData[ContextVisitFilterArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;

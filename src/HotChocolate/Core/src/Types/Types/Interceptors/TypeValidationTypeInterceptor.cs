@@ -19,7 +19,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
         switch (definition)
         {
-            case ObjectTypeDefinition od:
+            case ObjectTypeConfiguration od:
                 ValidateObjectType(discoveryContext, od);
                 return;
 
@@ -31,7 +31,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
                 ValidateInterfaceType(discoveryContext, id);
                 return;
 
-            case UnionTypeDefinition ud:
+            case UnionTypeConfiguration ud:
                 ValidateUnionType(discoveryContext, ud);
                 return;
 
@@ -70,7 +70,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateUnionType(
         ITypeDiscoveryContext context,
-        UnionTypeDefinition? definition)
+        UnionTypeConfiguration? definition)
     {
         if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
@@ -83,7 +83,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateObjectType(
         ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))

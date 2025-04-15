@@ -35,7 +35,7 @@ public class FilterInputType
                 var descriptor = FilterInputTypeDescriptor
                     .FromSchemaType(context.DescriptorContext, GetType(), context.Scope);
                 _configure!(descriptor);
-                Definition = descriptor.CreateDefinition();
+                Definition = descriptor.CreateConfiguration();
             }
 
             return Definition;

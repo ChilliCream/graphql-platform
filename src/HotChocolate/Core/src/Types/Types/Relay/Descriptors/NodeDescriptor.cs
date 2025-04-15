@@ -41,7 +41,7 @@ public class NodeDescriptor
 
     internal void OnCompleteDefinition(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
         => CompleteResolver(context, definition);
 
     internal void ConfigureNodeField(IObjectTypeDescriptor typeDescriptor)

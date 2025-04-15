@@ -23,7 +23,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     private bool _resultConvertersCleaned;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
     public ObjectFieldConfiguration()
     {
@@ -31,7 +31,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeConfiguration"/>.
     /// </summary>
     public ObjectFieldConfiguration(
         string name,

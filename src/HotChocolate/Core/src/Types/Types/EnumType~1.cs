@@ -85,6 +85,6 @@ public class EnumType<T> : EnumType, IEnumType<T>
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 }

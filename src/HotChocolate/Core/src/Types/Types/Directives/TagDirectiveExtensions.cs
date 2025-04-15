@@ -461,10 +461,10 @@ public static class TagDirectiveExtensions
 
             case IDirectiveArgumentDescriptor desc:
                 var extend = desc.Extend();
-                extend.Definition.AddDirective(
+                extend.Configuration.AddDirective(
                     new Tag(name),
                     extend.Context.TypeInspector);
-                extend.Definition.Dependencies.Add(
+                extend.Configuration.Dependencies.Add(
                     new TypeDependency(
                         extend.Context.TypeInspector.GetTypeRef(typeof(Tag)),
                         TypeDependencyFulfilled.Completed));

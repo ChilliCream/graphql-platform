@@ -49,7 +49,7 @@ public class SortInputTypeDescriptor<T>
                 Definition.EntityType,
                 p => SortFieldDescriptor
                     .New(Context, Definition.Scope, p)
-                    .CreateDefinition(),
+                    .CreateConfiguration(),
                 fields,
                 handledProperties,
                 include: (_, member) => member is PropertyInfo &&

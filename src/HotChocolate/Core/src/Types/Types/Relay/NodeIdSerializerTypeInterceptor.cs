@@ -13,7 +13,7 @@ internal sealed class NodeIdSerializerTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
     {
-        if (definition is SchemaTypeDefinition schemaTypeDef)
+        if (definition is SchemaTypeConfiguration schemaTypeDef)
         {
             // we ensure that the serializer type map exists.
             if (!completionContext.DescriptorContext.ContextData.TryGetValue(SerializerTypes, out var value))

@@ -13,7 +13,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
@@ -75,7 +75,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration definition)
     {
-        if (definition is ObjectTypeDefinition objectTypeDefinition)
+        if (definition is ObjectTypeConfiguration objectTypeDefinition)
         {
             List<string>? alwaysProjected = null;
             foreach (var field in objectTypeDefinition.Fields)

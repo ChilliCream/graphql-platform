@@ -32,10 +32,10 @@ public static class PagingHelper
 
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.MiddlewareDefinitions.Add(placeholder);
         definition.Configurations.Add(
-            new CompleteConfiguration<ObjectFieldConfiguration>(
+            new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) => ApplyConfiguration(
                     c,
                     d,

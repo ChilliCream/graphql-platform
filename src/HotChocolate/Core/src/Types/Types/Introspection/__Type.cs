@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Type : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var booleanType = Create(ScalarNames.Boolean);
@@ -27,7 +27,7 @@ internal sealed class __Type : ObjectType
         var inputValueListType = Parse($"[{nameof(__InputValue)}!]");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-        var def = new ObjectTypeDefinition(
+        var def = new ObjectTypeConfiguration(
             Names.__Type,
             TypeResources.Type_Description,
             typeof(IType))
