@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Planning;
 
-public abstract record PlanStep
+public abstract record ExecutionNode
 {
     public required int Id { get; init; }
 }

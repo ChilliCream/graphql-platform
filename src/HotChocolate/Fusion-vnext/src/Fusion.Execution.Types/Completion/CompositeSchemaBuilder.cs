@@ -78,7 +78,6 @@ public static class CompositeSchemaBuilder
                                 break;
                         }
                     }
-
                     break;
             }
         }
@@ -342,11 +341,11 @@ public static class CompositeSchemaBuilder
                     argumentsBuilder.Add(new RequiredArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath>();
+                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath?>();
 
                 foreach (var field in requireDirective.Map)
                 {
-                    fieldsBuilder.Add(FieldPath.Parse(field));
+                    fieldsBuilder.Add(field is not null ? FieldPath.Parse(field) : null);
                 }
 
                 var arguments = argumentsBuilder.ToImmutable();
