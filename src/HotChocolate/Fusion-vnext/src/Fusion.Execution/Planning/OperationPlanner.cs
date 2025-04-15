@@ -126,7 +126,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         PriorityQueue<PlanNode, double> possiblePlans)
     {
         current = InlineLookupRequirements(workItem.SelectionSet, current, lookup, backlog);
-        PlanSelections(workItem, current, lookup, backlog, possiblePlans);
+        PlanSelections(workItem, current, lookup, current.Backlog, possiblePlans);
     }
 
     private void PlanSelections(
@@ -250,7 +250,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
 
             var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
 
-            if (resolvable is not null)
+            if (resolvable is { Selections.Count: > 0 })
             {
                 var operation =
                     InlineSelections(
@@ -270,20 +270,20 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
                 };
 
                 steps = steps.SetItem(stepIndex, updatedStep);
-            }
 
-            selectionSet = null;
+                selectionSet = null;
 
-            if (!unresolvable.IsEmpty)
-            {
-                var top = unresolvable.Peek();
-                if (top.Id == workItemSelectionSet.Id)
+                if (!unresolvable.IsEmpty)
                 {
-                    unresolvable = unresolvable.Pop(out top);
-                    selectionSet = top.Node;
-                }
+                    var top = unresolvable.Peek();
+                    if (top.Id == workItemSelectionSet.Id)
+                    {
+                        unresolvable = unresolvable.Pop(out top);
+                        selectionSet = top.Node;
+                    }
 
-                backlog = backlog.Push(unresolvable);
+                    backlog = backlog.Push(unresolvable);
+                }
             }
 
             if (selectionSet is null)

@@ -461,4 +461,126 @@ public class OperationPlannerTests : FusionTestBase
                   - id: 1
             """);
     }
+
+    [Fact]
+    public void Plan_Key_Requirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema @schemaName(value: "A") {
+              query: Query
+            }
+
+            type Query {
+              topProducts: [Product!]
+            }
+
+            type Product {
+              id: ID!
+              region: String!
+            }
+
+            directive @schemaName(value: String!) on SCHEMA
+            """,
+            """
+            schema @schemaName(value: "B") {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              sku(region: String! @require(field: "region")): String!
+            }
+
+            directive @lookup on FIELD_DEFINITION
+
+            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+
+            directive @schemaName(value: String!) on SCHEMA
+            """,
+            """
+            schema @schemaName(value: "C") {
+              query: Query
+            }
+
+            type Query {
+              productBySku(sku: String!): Product @lookup
+            }
+
+            type Product {
+              sku: String!
+              name: String!
+            }
+
+            directive @lookup on FIELD_DEFINITION
+
+            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+
+            directive @schemaName(value: String!) on SCHEMA
+            """);
+
+        // assert
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProducts {
+                id
+                name
+              }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            nodes:
+              - id: 1
+                schema: A
+                operation: >-
+                  query GetTopProducts_1 {
+                    topProducts {
+                      id
+                      region
+                    }
+                  }
+              - id: 2
+                schema: C
+                operation: >-
+                  query GetTopProducts_2 {
+                    productBySku(sku: $__fusion_1_sku) {
+                      name
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_sku
+                    selectionSet: topProducts
+                    selectionMap: sku
+                dependencies:
+                  - id: 3
+              - id: 3
+                schema: B
+                operation: >-
+                  query GetTopProducts_3 {
+                    productById(id: $__fusion_2_id) {
+                      sku(region: $__fusion_3_region)
+                    }
+                  }
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: topProducts
+                    selectionMap: id
+                  - name: __fusion_3_region
+                    selectionSet: topProducts
+                    selectionMap: region
+                dependencies:
+                  - id: 1
+            """);
+    }
 }
