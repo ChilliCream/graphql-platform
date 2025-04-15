@@ -21,7 +21,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeConfiguration definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         _context ??= completionContext;
@@ -33,7 +33,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 break;
 
             case OperationType.Mutation:
-                _mutationDefinition = (ObjectTypeConfiguration)definition;
+                _mutationDefinition = (ObjectTypeConfiguration)configuration;
                 break;
         }
     }
@@ -67,10 +67,10 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.Type is ObjectType objectType
-            && definition is ObjectTypeConfiguration objectTypeDef
+            && configuration is ObjectTypeConfiguration objectTypeDef
             && _payloads.Contains(objectType.Name))
         {
             if (objectTypeDef.Fields.Any(t => t.Name.EqualsOrdinal(_queryField.Name)))

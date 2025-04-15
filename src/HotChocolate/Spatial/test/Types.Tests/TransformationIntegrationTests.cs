@@ -646,9 +646,9 @@ public class TransformationIntegrationTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            TypeSystemConfiguration definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is ObjectTypeConfiguration o)
+            if (configuration is ObjectTypeConfiguration o)
             {
                 foreach (var field in o.Fields)
                 {

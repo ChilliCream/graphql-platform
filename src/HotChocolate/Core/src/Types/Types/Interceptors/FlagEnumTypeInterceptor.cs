@@ -33,9 +33,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
             case ObjectTypeConfiguration o:
                 ProcessOutputFields(o.Fields);

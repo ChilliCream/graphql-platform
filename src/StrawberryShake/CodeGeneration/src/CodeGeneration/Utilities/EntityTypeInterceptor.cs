@@ -22,18 +22,18 @@ internal sealed class EntityTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.Type is IComplexOutputType outputType &&
-            definition is not null)
+            configuration is not null)
         {
             if (_typeEntityPatterns.TryGetValue(outputType.Name, out var pattern))
             {
-                definition.ContextData[WellKnownContextData.Entity] = pattern;
+                configuration.ContextData[WellKnownContextData.Entity] = pattern;
             }
             else
             {
-                _outputTypes.Add(new TypeInfo(outputType, definition.ContextData));
+                _outputTypes.Add(new TypeInfo(outputType, configuration.ContextData));
             }
         }
     }

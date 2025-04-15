@@ -15,9 +15,9 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
             return;
         }
@@ -41,9 +41,9 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not FilterInputTypeDefinition def)
+        if (configuration is not FilterInputTypeDefinition def)
         {
             return;
         }
@@ -63,15 +63,15 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         if (def.Scope is not null)
         {
-            definition.Name = $"{completionContext.Scope}_{definition.Name}";
+            configuration.Name = $"{completionContext.Scope}_{configuration.Name}";
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
             return;
         }

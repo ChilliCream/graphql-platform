@@ -14,9 +14,9 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
             case SortInputTypeDefinition inputDefinition:
                 OnBeforeRegisteringDependencies(discoveryContext, inputDefinition);
@@ -29,9 +29,9 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
             case SortInputTypeDefinition inputDefinition:
                 OnBeforeCompleteName(completionContext, inputDefinition);
@@ -44,9 +44,9 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
             case SortInputTypeDefinition inputDefinition:
                 OnBeforeCompleteType(completionContext, inputDefinition);

@@ -136,7 +136,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
-            TypeSystemConfiguration definition)
+            TypeSystemConfiguration configuration)
         {
             if (!CanHandle(completionContext))
             {
@@ -149,7 +149,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 return;
             }
 
-            if (definition is not ObjectTypeConfiguration def)
+            if (configuration is not ObjectTypeConfiguration def)
             {
                 return;
             }

@@ -89,11 +89,11 @@ public partial class Schema
         Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
     }
 
-    internal void CompleteSchema(SchemaTypesDefinition schemaTypesDefinition)
+    internal void CompleteSchema(SchemaTypesConfiguration schemaTypesConfiguration)
     {
-        if (schemaTypesDefinition is null)
+        if (schemaTypesConfiguration is null)
         {
-            throw new ArgumentNullException(nameof(schemaTypesDefinition));
+            throw new ArgumentNullException(nameof(schemaTypesConfiguration));
         }
 
         if (_sealed)
@@ -102,14 +102,14 @@ public partial class Schema
                 "This schema is already sealed and cannot be mutated.");
         }
 
-        if (schemaTypesDefinition.Types is null || schemaTypesDefinition.DirectiveTypes is null)
+        if (schemaTypesConfiguration.Types is null || schemaTypesConfiguration.DirectiveTypes is null)
         {
             throw new InvalidOperationException(
                 "The schema type collections are not initialized.");
         }
 
-        DirectiveTypes = schemaTypesDefinition.DirectiveTypes;
-        _types = new SchemaTypes(schemaTypesDefinition);
+        DirectiveTypes = schemaTypesConfiguration.DirectiveTypes;
+        _types = new SchemaTypes(schemaTypesConfiguration);
         _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
         _sealed = true;
     }

@@ -43,7 +43,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     private TypeRegistry _typeRegistry = default!;
     private ObjectType _queryType = default!;
     private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
-    private SchemaTypeConfiguration _schemaTypeDefinition = default!;
+    private SchemaTypeConfiguration _schemaTypeCfg = default!;
     private RegisteredType _schemaType = default!;
     private bool _registeredTypes;
 
@@ -63,22 +63,22 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (discoveryContext.Type is ObjectType objectType &&
-            definition is ObjectTypeConfiguration objectTypeDefinition)
+            configuration is ObjectTypeConfiguration objectTypeCfg)
         {
             ApplyMethodLevelReferenceResolvers(
                 objectType,
-                objectTypeDefinition);
+                objectTypeCfg);
 
             AddToUnionIfHasTypeLevelKeyDirective(
                 objectType,
-                objectTypeDefinition);
+                objectTypeCfg);
 
             AggregatePropertyLevelKeyDirectives(
                 objectType,
-                objectTypeDefinition,
+                objectTypeCfg,
                 discoveryContext);
         }
     }
@@ -114,40 +114,40 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is SchemaTypeConfiguration schemaDef)
+        if (configuration is SchemaTypeConfiguration schemaCfg)
         {
             _schemaType = (RegisteredType)completionContext;
-            _schemaTypeDefinition = schemaDef;
+            _schemaTypeCfg = schemaCfg;
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (_context.GetFederationVersion() == FederationVersion.Federation10
-            || definition is not ITypeConfiguration and not DirectiveTypeConfiguration)
+            || configuration is not ITypeConfiguration and not DirectiveTypeConfiguration)
         {
             return;
         }
 
         // if we find a PagingInfo we will make all fields sharable.
-        if (definition is ObjectTypeConfiguration typeDef
-            && typeDef.Name.Equals(PageInfoType.Names.PageInfo))
+        if (configuration is ObjectTypeConfiguration typeCfg
+            && typeCfg.Name.Equals(PageInfoType.Names.PageInfo))
         {
-            foreach (var fieldDef in typeDef.Fields)
+            foreach (var fieldCfg in typeCfg.Fields)
             {
-                if (fieldDef.Directives.All(t => t.Value is not ShareableDirective))
+                if (fieldCfg.Directives.All(t => t.Value is not ShareableDirective))
                 {
                     var typeRef = TypeReference.CreateDirective(_typeInspector.GetType(typeof(ShareableDirective)));
-                    fieldDef.Directives.Add(new DirectiveConfiguration(ShareableDirective.Default, typeRef));
+                    fieldCfg.Directives.Add(new DirectiveConfiguration(ShareableDirective.Default, typeRef));
                 }
             }
         }
 
-        var hasRuntimeType = (IHasRuntimeType)definition;
+        var hasRuntimeType = (IHasRuntimeType)configuration;
         var type = hasRuntimeType.RuntimeType;
 
         if (type != typeof(object) &&
@@ -259,7 +259,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             TypeDependencyFulfilled.Completed);
         _schemaType.Dependencies.Add(dependency);
 
-        _schemaTypeDefinition
+        _schemaTypeCfg
             .GetLegacyDefinition()
             .AddDirective(
                 new LinkDirective(version.ToUrl(), federationTypes),
@@ -272,7 +272,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            _schemaTypeDefinition
+            _schemaTypeCfg
                 .GetLegacyDefinition()
                 .AddDirective(
                     new LinkDirective(import.Key, import.Value),
@@ -307,7 +307,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
             foreach (var directive in composeDirectives)
             {
-                _schemaTypeDefinition
+                _schemaTypeCfg
                     .GetLegacyDefinition()
                     .AddDirective(directive, _typeInspector);
             }
@@ -316,7 +316,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeConfiguration definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
@@ -327,37 +327,37 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         AddMemberTypesToTheEntityUnionType(
             completionContext,
-            definition);
+            configuration);
 
         AddServiceTypeToQueryType(
             completionContext,
-            definition);
+            configuration);
     }
 
     public override void OnAfterMakeExecutable(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.Type is ObjectType type &&
-            definition is ObjectTypeConfiguration typeDef)
+            configuration is ObjectTypeConfiguration typeCfg)
         {
-            CompleteExternalFieldSetters(type, typeDef);
-            CompleteReferenceResolver(typeDef);
+            CompleteExternalFieldSetters(type, typeCfg);
+            CompleteReferenceResolver(typeCfg);
         }
     }
 
-    private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeConfiguration typeDef)
-        => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeDef);
+    private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeConfiguration typeCfg)
+        => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeCfg);
 
-    private void CompleteReferenceResolver(ObjectTypeConfiguration typeDef)
+    private void CompleteReferenceResolver(ObjectTypeConfiguration typeCfg)
     {
         IReadOnlyList<ReferenceResolverDefinition> resolvers;
         {
-            var contextData = typeDef.GetContextData();
+            var contextData = typeCfg.GetContextData();
 
             if (!contextData.TryGetValue(EntityResolver, out var resolversObject))
             {
@@ -374,7 +374,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         if (resolvers.Count == 1)
         {
-            typeDef.ContextData[EntityResolver] = resolvers[0].Resolver;
+            typeCfg.ContextData[EntityResolver] = resolvers[0].Resolver;
         }
         else
         {
@@ -404,7 +404,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
             current = Expression.Block(new[] { variable, }, current, variable);
 
-            typeDef.ContextData[EntityResolver] =
+            typeCfg.ContextData[EntityResolver] =
                 Expression.Lambda<FieldResolverDelegate>(current, context).Compile();
         }
     }
@@ -418,24 +418,24 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             return;
         }
 
-        var objectTypeDefinition = (ObjectTypeConfiguration)definition!;
-        objectTypeDefinition.Fields.Add(ServerFields.CreateServiceField(_context));
+        var objectTypeCfg = (ObjectTypeConfiguration)definition!;
+        objectTypeCfg.Fields.Add(ServerFields.CreateServiceField(_context));
         if (_entityTypes.Count > 0)
         {
-            objectTypeDefinition.Fields.Add(ServerFields.CreateEntitiesField(_context));
+            objectTypeCfg.Fields.Add(ServerFields.CreateEntitiesField(_context));
         }
     }
 
     private void ApplyMethodLevelReferenceResolvers(
         ObjectType objectType,
-        ObjectTypeConfiguration objectTypeDefinition)
+        ObjectTypeConfiguration objectTypeCfg)
     {
         if (objectType.RuntimeType == typeof(object))
         {
             return;
         }
 
-        var descriptor = ObjectTypeDescriptor.From(_context, objectTypeDefinition);
+        var descriptor = ObjectTypeDescriptor.From(_context, objectTypeCfg);
 
         // Static methods won't end up in the schema as fields.
         // The default initialization system only considers instance methods,
@@ -465,16 +465,16 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void AddToUnionIfHasTypeLevelKeyDirective(
         ObjectType objectType,
-        ObjectTypeConfiguration objectTypeDefinition)
+        ObjectTypeConfiguration objectTypeCfg)
     {
-        if (objectTypeDefinition.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective &&
+        if (objectTypeCfg.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective &&
             ((KeyDirective)keyDirective.Value).Resolvable)
         {
             _entityTypes.Add(objectType);
             return;
         }
 
-        if (objectTypeDefinition.Fields.Any(f => f.ContextData.TryGetValue(KeyMarker, out var resolvable) &&
+        if (objectTypeCfg.Fields.Any(f => f.ContextData.TryGetValue(KeyMarker, out var resolvable) &&
                 resolvable is true))
         {
             _entityTypes.Add(objectType);
@@ -483,13 +483,13 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void AggregatePropertyLevelKeyDirectives(
         ObjectType objectType,
-        ObjectTypeConfiguration objectTypeDefinition,
+        ObjectTypeConfiguration objectTypeCfg,
         ITypeDiscoveryContext discoveryContext)
     {
         // if we find key markers on our fields, we need to construct the key directive
         // from the annotated fields.
         {
-            var foundMarkers = objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker));
+            var foundMarkers = objectTypeCfg.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker));
 
             if (!foundMarkers)
             {
@@ -497,7 +497,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             }
         }
 
-        IReadOnlyList<ObjectFieldConfiguration> fields = objectTypeDefinition.Fields;
+        IReadOnlyList<ObjectFieldConfiguration> fields = objectTypeCfg.Fields;
         var fieldSet = new StringBuilder();
         bool? resolvable = null;
 
@@ -525,11 +525,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
 
         // add the key directive with the dynamically generated field set.
-        AddKeyDirective(objectTypeDefinition, fieldSet.ToString(), resolvable ?? true);
+        AddKeyDirective(objectTypeCfg, fieldSet.ToString(), resolvable ?? true);
 
         // register dependency to the key directive so that it is completed before
         // we complete this type.
-        foreach (var directiveDefinition in objectTypeDefinition.Directives)
+        foreach (var directiveDefinition in objectTypeCfg.Directives)
         {
             discoveryContext.Dependencies.Add(
                 new TypeDependency(
@@ -552,21 +552,21 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         TypeSystemConfiguration? definition)
     {
         if (completionContext.Type is _EntityType &&
-            definition is UnionTypeConfiguration unionTypeDefinition)
+            definition is UnionTypeConfiguration unionTypeCfg)
         {
             foreach (var objectType in _entityTypes)
             {
-                unionTypeDefinition.Types.Add(TypeReference.Create(objectType));
+                unionTypeCfg.Types.Add(TypeReference.Create(objectType));
             }
         }
     }
 
     private void AddKeyDirective(
-        ObjectTypeConfiguration objectTypeDefinition,
+        ObjectTypeConfiguration objectTypeCfg,
         string fieldSet,
         bool resolvable)
     {
-        objectTypeDefinition.Directives.Add(
+        objectTypeCfg.Directives.Add(
             new DirectiveConfiguration(
                 new KeyDirective(fieldSet, resolvable),
                 _keyDirectiveReference));

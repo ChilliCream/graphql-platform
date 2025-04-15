@@ -58,18 +58,18 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         switch (completionContext.Type)
         {
             // at this point we collect object types so we can check if they need to be authorized.
-            case ObjectType when definition is ObjectTypeConfiguration objectTypeDef:
+            case ObjectType when configuration is ObjectTypeConfiguration objectTypeDef:
                 _objectTypes.Add(new ObjectTypeInfo(completionContext, objectTypeDef));
                 break;
 
             // also we collect union types so we can see if a union exposes
             // an authorized object type.
-            case UnionType when definition is UnionTypeConfiguration unionTypeDef:
+            case UnionType when configuration is UnionTypeConfiguration unionTypeDef:
                 _unionTypes.Add(new UnionTypeInfo(completionContext, unionTypeDef));
                 break;
 
@@ -85,7 +85,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeConfiguration definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
@@ -123,12 +123,12 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteMetadata(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         // last in the initialization we need to intercept the query type and ensure that
         // authorization configuration is applied to the special introspection and node fields.
         if (ReferenceEquals(_queryContext, completionContext) &&
-            definition is ObjectTypeConfiguration typeDef)
+            configuration is ObjectTypeConfiguration typeDef)
         {
             var state = _state ?? throw ThrowHelper.StateNotInitialized();
             HandleSpecialQueryFields(new ObjectTypeInfo(completionContext, typeDef), state);

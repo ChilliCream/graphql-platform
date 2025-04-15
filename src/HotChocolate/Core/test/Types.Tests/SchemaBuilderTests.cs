@@ -2273,16 +2273,16 @@ public class SchemaBuilderTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            TypeSystemConfiguration definition)
+            TypeSystemConfiguration configuration)
         {
-            definition.TouchContextData();
+            configuration.TouchContextData();
         }
 
         public override void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
-            TypeSystemConfiguration definition)
+            TypeSystemConfiguration configuration)
         {
-            definition.ContextData.Add("touched", true);
+            configuration.ContextData.Add("touched", true);
         }
     }
 

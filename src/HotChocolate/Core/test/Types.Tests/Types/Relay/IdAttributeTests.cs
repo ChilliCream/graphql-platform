@@ -716,11 +716,11 @@ public class IdAttributeTests
         public int Count { get; set; }
 
         public override void OnValidateType(
-            ITypeSystemObjectContext validationContext,
-            TypeSystemConfiguration definition)
+            ITypeSystemObjectContext context,
+            TypeSystemConfiguration configuration)
         {
-            if (validationContext.Type.Name.EqualsOrdinal("Query") &&
-                definition is ObjectTypeConfiguration typeDef)
+            if (context.Type.Name.EqualsOrdinal("Query") &&
+                configuration is ObjectTypeConfiguration typeDef)
             {
                 Count = typeDef.Fields
                     .Single(t => t.Name.EqualsOrdinal("abc"))

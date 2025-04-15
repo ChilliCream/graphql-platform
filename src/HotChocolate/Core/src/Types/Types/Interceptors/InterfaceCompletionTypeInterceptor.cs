@@ -17,11 +17,11 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         // we need to preserve the initialization context of all
         // interface types and object types.
-        if (definition is IComplexOutputTypeConfiguration typeDefinition)
+        if (configuration is IComplexOutputTypeConfiguration typeDefinition)
         {
             _typeInfos.Add(discoveryContext.Type, new(discoveryContext, typeDefinition));
         }
@@ -97,9 +97,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is InterfaceTypeConfiguration { Interfaces: { Count: > 0, }, } typeDef)
+        if (configuration is InterfaceTypeConfiguration { Interfaces: { Count: > 0, }, } typeDef)
         {
             _completed.Clear();
             _completedFields.Clear();
@@ -124,7 +124,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             CompleteInterfacesAndFields(typeDef);
         }
 
-        if (definition is ObjectTypeConfiguration { Interfaces: { Count: > 0, }, } objectTypeDef)
+        if (configuration is ObjectTypeConfiguration { Interfaces: { Count: > 0, }, } objectTypeDef)
         {
             _completed.Clear();
             _completedFields.Clear();

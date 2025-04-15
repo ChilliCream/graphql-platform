@@ -18,14 +18,14 @@ internal sealed class CacheControlTypeInterceptor(
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {
             return;
         }
 
-        if (completionContext.Type is ObjectType && definition is ObjectTypeConfiguration typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _types.Add(((RegisteredType)completionContext, typeDef));
         }

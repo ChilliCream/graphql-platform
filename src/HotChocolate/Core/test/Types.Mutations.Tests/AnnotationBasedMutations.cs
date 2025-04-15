@@ -1410,9 +1410,9 @@ public class AnnotationBasedMutations
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            TypeSystemConfiguration definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is not ObjectTypeConfiguration objTypeDef)
+            if (configuration is not ObjectTypeConfiguration objTypeDef)
             {
                 return;
             }
@@ -1420,9 +1420,9 @@ public class AnnotationBasedMutations
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            TypeSystemConfiguration definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is ObjectTypeConfiguration objTypeDef)
+            if (configuration is ObjectTypeConfiguration objTypeDef)
             {
                 foreach (var fieldDef in objTypeDef.Fields)
                 {

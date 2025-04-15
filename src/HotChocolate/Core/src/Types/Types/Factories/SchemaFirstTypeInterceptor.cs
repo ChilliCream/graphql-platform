@@ -17,10 +17,10 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (_directives.TryGetValue(completionContext.Type.Name, out var directives)
-            && definition is ScalarTypeConfiguration scalarTypeDef)
+            && configuration is ScalarTypeConfiguration scalarTypeDef)
         {
             foreach (var directive in directives)
             {

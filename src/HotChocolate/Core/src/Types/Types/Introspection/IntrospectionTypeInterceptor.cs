@@ -28,9 +28,9 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if(completionContext.Type is ObjectType && definition is ObjectTypeConfiguration typeDef)
+        if(completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _objectTypeDefinitions.Add(typeDef);
         }
@@ -38,12 +38,12 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeConfiguration definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
         {
-            _queryTypeDefinition = definition;
+            _queryTypeDefinition = configuration;
         }
     }
 

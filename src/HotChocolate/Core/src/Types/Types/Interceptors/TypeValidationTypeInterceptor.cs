@@ -10,14 +10,14 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (discoveryContext.IsIntrospectionType)
         {
             return;
         }
 
-        switch (definition)
+        switch (configuration)
         {
             case ObjectTypeConfiguration od:
                 ValidateObjectType(discoveryContext, od);

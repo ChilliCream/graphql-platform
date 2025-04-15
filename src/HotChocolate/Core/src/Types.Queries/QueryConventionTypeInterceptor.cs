@@ -28,25 +28,25 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeConfiguration definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
         {
-            _mutationDef = definition;
+            _mutationDef = configuration;
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is ObjectType && definition is ObjectTypeConfiguration typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _typeDefs.Add(typeDef);
         }
 
-        base.OnAfterCompleteName(completionContext, definition);
+        base.OnAfterCompleteName(completionContext, configuration);
     }
 
     public override void OnBeforeCompleteTypes()

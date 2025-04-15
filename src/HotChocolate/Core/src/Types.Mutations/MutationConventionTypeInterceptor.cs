@@ -62,10 +62,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         // we will use the error interface and implement it with each error type.
-        if (definition is ObjectTypeConfiguration objectTypeDef)
+        if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             TryAddErrorInterface(objectTypeDef, _errorTypeHelper.ErrorTypeInterfaceRef);
         }
@@ -76,18 +76,18 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     internal override void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
         // we first invoke our siblings to gather configurations.
         foreach (var sibling in _siblings)
         {
-            sibling.OnBeforeCompleteMutation(completionContext, definition);
+            sibling.OnBeforeCompleteMutation(completionContext, configuration);
         }
 
         // we need to capture a completion context to resolve types.
         // any context will do.
         _completionContext ??= completionContext;
-        _mutationTypeDef = definition;
+        _mutationTypeDef = configuration;
 
         // if we have found a mutation type we will start applying the mutation conventions
         // on the mutations.

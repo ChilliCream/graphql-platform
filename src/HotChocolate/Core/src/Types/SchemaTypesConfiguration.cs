@@ -8,7 +8,7 @@ namespace HotChocolate;
 /// The schema type definition is a mutable object that is used during type initialization
 /// to configure the <see cref="Schema"/> properties.
 /// </summary>
-internal sealed class SchemaTypesDefinition
+internal sealed class SchemaTypesConfiguration
 {
     /// <summary>
     /// Gets the mandatory query type of the schema.

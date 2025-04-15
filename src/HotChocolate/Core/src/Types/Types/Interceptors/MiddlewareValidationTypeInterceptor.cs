@@ -19,10 +19,10 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            definition is ObjectTypeConfiguration objectTypeDef)
+            configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {

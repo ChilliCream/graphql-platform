@@ -394,12 +394,12 @@ public partial class SchemaBuilder
             return schema;
         }
 
-        private static SchemaTypesDefinition CreateSchemaDefinition(
+        private static SchemaTypesConfiguration CreateSchemaDefinition(
             SchemaBuilder builder,
             IDescriptorContext context,
             TypeRegistry typeRegistry)
         {
-            var definition = new SchemaTypesDefinition();
+            var definition = new SchemaTypesConfiguration();
 
             RegisterOperationName(
                 builder,
@@ -431,7 +431,7 @@ public partial class SchemaBuilder
         }
 
         private static void ResolveOperations(
-            SchemaTypesDefinition schemaDef,
+            SchemaTypesConfiguration schemaDef,
             Dictionary<OperationType, TypeReference> operations,
             TypeRegistry typeRegistry)
         {
@@ -538,14 +538,14 @@ public partial class SchemaBuilder
         private static IReadOnlyCollection<TypeSystemObjectBase> RemoveUnreachableTypes(
             SchemaBuilder builder,
             TypeRegistry typeRegistry,
-            SchemaTypesDefinition definition)
+            SchemaTypesConfiguration configuration)
         {
             if (builder._options.RemoveUnreachableTypes)
             {
                 var trimmer = new TypeTrimmer(typeRegistry.Types.Select(t => t.Type));
-                trimmer.AddOperationType(definition.QueryType);
-                trimmer.AddOperationType(definition.MutationType);
-                trimmer.AddOperationType(definition.SubscriptionType);
+                trimmer.AddOperationType(configuration.QueryType);
+                trimmer.AddOperationType(configuration.MutationType);
+                trimmer.AddOperationType(configuration.SubscriptionType);
                 return trimmer.Trim();
             }
 

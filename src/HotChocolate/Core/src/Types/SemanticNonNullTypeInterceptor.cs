@@ -29,23 +29,23 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         _typeInspector = context.TypeInspector;
     }
 
-    public override void OnAfterResolveRootType(ITypeCompletionContext completionContext, ObjectTypeConfiguration definition,
+    public override void OnAfterResolveRootType(ITypeCompletionContext completionContext, ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
         {
-            _mutationDef = definition;
+            _mutationDef = configuration;
         }
     }
 
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
         if (completionContext.IsIntrospectionType)
         {
             return;
         }
 
-        if (definition is ObjectTypeConfiguration objectDef)
+        if (configuration is ObjectTypeConfiguration objectDef)
         {
             if (objectDef.Name is "CollectionSegmentInfo" or "PageInfo")
             {
@@ -89,7 +89,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                 field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition(levels));
             }
         }
-        else if (definition is InterfaceTypeConfiguration interfaceDef)
+        else if (configuration is InterfaceTypeConfiguration interfaceDef)
         {
             if (interfaceDef.Name == "Node")
             {

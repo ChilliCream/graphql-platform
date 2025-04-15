@@ -18,7 +18,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
     /// <inheritdoc />
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         var convention = completionContext.GetSpatialConvention();
         if (convention.TransformerFactory.HasCoordinateSystems() &&
@@ -29,7 +29,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
                 throw ThrowHelper.Transformation_DefaultCRSNotFound(convention.DefaultSrid);
             }
 
-            switch (definition)
+            switch (configuration)
             {
                 case ObjectTypeConfiguration def:
                     HandleObjectType(completionContext, def, convention);

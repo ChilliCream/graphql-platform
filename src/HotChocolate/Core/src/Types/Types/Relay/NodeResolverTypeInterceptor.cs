@@ -36,7 +36,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeConfiguration definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         // we are only interested in the query type to infer node resolvers.
@@ -44,7 +44,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             completionContext.Type is ObjectType queryType)
         {
             CompletionContext = completionContext;
-            TypeDef = definition;
+            TypeDef = configuration;
             QueryType = queryType;
         }
     }

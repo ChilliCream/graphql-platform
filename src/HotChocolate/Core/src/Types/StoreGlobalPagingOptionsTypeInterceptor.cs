@@ -10,9 +10,9 @@ internal sealed class StoreGlobalPagingOptionsTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        if(definition is SchemaTypeConfiguration schemaDef)
+        if(configuration is SchemaTypeConfiguration schemaDef)
         {
             var options = completionContext.DescriptorContext.GetPagingOptions(null);
             schemaDef.Features.Set(options);

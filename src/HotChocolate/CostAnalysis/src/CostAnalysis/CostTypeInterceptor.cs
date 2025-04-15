@@ -43,9 +43,9 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         TypeReferenceResolver typeReferenceResolver)
         => _options = context.Services.GetRequiredService<CostOptions>();
 
-    public override void OnAfterCompleteName(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
+    public override void OnAfterCompleteName(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
-        if (definition is ObjectTypeConfiguration objectTypeDef)
+        if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
@@ -118,7 +118,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
             }
         }
 
-        if (definition is InputObjectTypeConfiguration inputObjectTypeDef)
+        if (configuration is InputObjectTypeConfiguration inputObjectTypeDef)
         {
             foreach (var fieldDef in inputObjectTypeDef.Fields)
             {
@@ -151,9 +151,9 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
-        if (definition is ObjectTypeConfiguration objectTypeDef)
+        if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
