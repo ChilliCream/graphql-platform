@@ -70,7 +70,7 @@ AST
                     "Kind": "Name",
                     "Location": {
                       "Start": 45,
-                      "End": 126,
+                      "End": 49,
                       "Line": 3,
                       "Column": 21
                     },
@@ -94,7 +94,7 @@ AST
                         "Kind": "Name",
                         "Location": {
                           "Start": 127,
-                          "End": 129,
+                          "End": 128,
                           "Line": 5,
                           "Column": 29
                         },
@@ -124,7 +124,7 @@ AST
                         "Kind": "Name",
                         "Location": {
                           "Start": 135,
-                          "End": 137,
+                          "End": 136,
                           "Line": 5,
                           "Column": 37
                         },
@@ -153,7 +153,7 @@ AST
                         "Kind": "Name",
                         "Location": {
                           "Start": 145,
-                          "End": 147,
+                          "End": 146,
                           "Line": 5,
                           "Column": 47
                         },
@@ -182,7 +182,7 @@ AST
                         "Kind": "Name",
                         "Location": {
                           "Start": 152,
-                          "End": 154,
+                          "End": 153,
                           "Line": 5,
                           "Column": 54
                         },
@@ -224,7 +224,7 @@ AST
                           "Kind": "Name",
                           "Location": {
                             "Start": 191,
-                            "End": 217,
+                            "End": 195,
                             "Line": 6,
                             "Column": 25
                           },
@@ -244,7 +244,7 @@ AST
                     "Kind": "Name",
                     "Location": {
                       "Start": 119,
-                      "End": 127,
+                      "End": 126,
                       "Line": 5,
                       "Column": 21
                     },
@@ -264,7 +264,7 @@ AST
               "Kind": "Name",
               "Location": {
                 "Start": 18,
-                "End": 24,
+                "End": 22,
                 "Line": 2,
                 "Column": 17
               },
