@@ -106,7 +106,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     }
 
     private static void SubscribeFactory<TMessage>(
-        ObjectFieldDefinition fieldDef,
+        ObjectFieldConfiguration fieldDef,
         string topicString)
     {
         var arg = false;

@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting;
 
 public class SortInputTypeDefinition
-    : InputObjectTypeDefinition
+    : InputObjectTypeConfiguration
     , ISortInputTypeDefinition
 {
     public Type? EntityType { get; set; }

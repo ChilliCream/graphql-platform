@@ -4,10 +4,10 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// Represents a type definition.
 /// </summary>
 public interface ITypeDefinition
-    : IDefinition
+    : ITypeSystemConfiguration
     , IHasRuntimeType
-    , IHasDirectiveDefinition
-    , IHasExtendsType
+    , IDirectiveConfigurationProvider
+    , IExtendsTypeConfiguration
 {
     /// <summary>
     /// Specifies that this type system object needs an explicit name completion since it

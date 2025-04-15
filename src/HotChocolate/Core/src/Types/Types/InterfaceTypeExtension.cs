@@ -15,7 +15,7 @@ namespace HotChocolate.Types;
 /// For example, this might be used to represent common local data on many types,
 /// or by a GraphQL service which is itself an extension of another GraphQL service.
 /// </summary>
-public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefinition>
+public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfiguration>
 {
     private Action<IInterfaceTypeDescriptor>? _configure;
 
@@ -51,13 +51,13 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefini
     /// <returns>
     /// Returns the newly created interface type extension.
     /// </returns>
-    public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeDefinition definition)
+    public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;
 
-    protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InterfaceTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -80,7 +80,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefini
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         context.RegisterDependencies(definition);

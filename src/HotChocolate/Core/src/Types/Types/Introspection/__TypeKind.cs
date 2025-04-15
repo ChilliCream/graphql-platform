@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __TypeKind : EnumType
 {
-    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
         => new(Names.__TypeKind, TypeKind_Description, typeof(TypeKind))
         {
             Values =

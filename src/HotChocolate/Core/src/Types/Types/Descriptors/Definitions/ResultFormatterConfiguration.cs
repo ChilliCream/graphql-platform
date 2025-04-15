@@ -5,37 +5,37 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
-/// Represents a middleware configuration.
+/// Represents a result formatter configuration.
 /// </summary>
-public sealed class FieldMiddlewareDefinition : IMiddlewareDefinition
+public sealed class ResultFormatterConfiguration : IRepeatableConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="FieldMiddlewareDefinition"/>.
+    /// Initializes a new instance of <see cref="ResultFormatterConfiguration"/>.
     /// </summary>
-    /// <param name="middleware">
-    /// The delegate representing the middleware.
+    /// <param name="formatter">
+    /// The delegate representing the result converter.
     /// </param>
     /// <param name="isRepeatable">
     /// Defines if the middleware or result converters is repeatable and
-    /// the same middleware is allowed to occur multiple times.
+    /// the same middleware is allowed to be occur multiple times.
     /// </param>
     /// <param name="key">
     /// The key is optional and is used to identify a middleware.
     /// </param>
-    public FieldMiddlewareDefinition(
-        FieldMiddleware middleware,
+    public ResultFormatterConfiguration(
+        ResultFormatterDelegate formatter,
         bool isRepeatable = true,
         string? key = null)
     {
-        Middleware = middleware;
+        Formatter = formatter;
         IsRepeatable = isRepeatable;
         Key = key;
     }
 
     /// <summary>
-    /// Gets the delegate representing the middleware.
+    /// Gets the delegate representing the result converter.
     /// </summary>
-    public FieldMiddleware Middleware { get; }
+    public ResultFormatterDelegate Formatter { get; }
 
     /// <summary>
     /// Defines if the middleware or result converters is repeatable and

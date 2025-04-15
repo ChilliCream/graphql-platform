@@ -133,7 +133,7 @@ public interface ISortConvention : IConvention
 
     bool TryGetOperationHandler(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
+        EnumTypeConfiguration typeDefinition,
         SortEnumValueDefinition fieldDefinition,
         [NotNullWhen(true)] out ISortOperationHandler? handler);
 

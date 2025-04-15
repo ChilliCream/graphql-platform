@@ -63,7 +63,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (discoveryContext.Type is ObjectType objectType &&
             definition is ObjectTypeDefinition objectTypeDefinition)
@@ -114,7 +114,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (definition is SchemaTypeDefinition schemaDef)
         {
@@ -125,10 +125,10 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (_context.GetFederationVersion() == FederationVersion.Federation10
-            || definition is not ITypeDefinition and not DirectiveTypeDefinition)
+            || definition is not ITypeDefinition and not DirectiveTypeConfiguration)
         {
             return;
         }
@@ -142,7 +142,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 if (fieldDef.Directives.All(t => t.Value is not ShareableDirective))
                 {
                     var typeRef = TypeReference.CreateDirective(_typeInspector.GetType(typeof(ShareableDirective)));
-                    fieldDef.Directives.Add(new DirectiveDefinition(ShareableDirective.Default, typeRef));
+                    fieldDef.Directives.Add(new DirectiveConfiguration(ShareableDirective.Default, typeRef));
                 }
             }
         }
@@ -327,7 +327,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         AddMemberTypesToTheEntityUnionType(
             completionContext,
@@ -340,7 +340,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterMakeExecutable(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (completionContext.Type is ObjectType type &&
             definition is ObjectTypeDefinition typeDef)
@@ -411,7 +411,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void AddServiceTypeToQueryType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        TypeSystemConfiguration? definition)
     {
         if (!ReferenceEquals(completionContext.Type, _queryType))
         {
@@ -497,7 +497,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             }
         }
 
-        IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
+        IReadOnlyList<ObjectFieldConfiguration> fields = objectTypeDefinition.Fields;
         var fieldSet = new StringBuilder();
         bool? resolvable = null;
 
@@ -549,7 +549,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void AddMemberTypesToTheEntityUnionType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        TypeSystemConfiguration? definition)
     {
         if (completionContext.Type is _EntityType &&
             definition is UnionTypeDefinition unionTypeDefinition)
@@ -567,7 +567,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         bool resolvable)
     {
         objectTypeDefinition.Directives.Add(
-            new DirectiveDefinition(
+            new DirectiveConfiguration(
                 new KeyDirective(fieldSet, resolvable),
                 _keyDirectiveReference));
     }

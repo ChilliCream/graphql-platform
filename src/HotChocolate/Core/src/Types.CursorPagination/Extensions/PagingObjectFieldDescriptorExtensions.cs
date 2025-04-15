@@ -288,7 +288,7 @@ public static class PagingObjectFieldDescriptorExtensions
     }
 
     private static void CreatePagingArguments(
-        IList<ArgumentDefinition> arguments,
+        IList<ArgumentConfiguration> arguments,
         bool allowBackwardPagination)
     {
         var intType = TypeReference.Parse(ScalarNames.Int);
@@ -305,7 +305,7 @@ public static class PagingObjectFieldDescriptorExtensions
     }
 
     private static void AddOrUpdate(
-        this IList<ArgumentDefinition> arguments,
+        this IList<ArgumentConfiguration> arguments,
         string name,
         string description,
         TypeReference type)

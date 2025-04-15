@@ -27,7 +27,7 @@ public class SortEnumValueDescriptor
     {
     }
 
-    protected internal new EnumValueDefinition Definition
+    protected internal new EnumValueConfiguration Definition
     {
         get { return base.Definition; }
         set { base.Definition = value; }

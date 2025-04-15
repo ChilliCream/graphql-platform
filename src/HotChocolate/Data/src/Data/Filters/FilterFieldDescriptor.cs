@@ -69,7 +69,7 @@ public class FilterFieldDescriptor
         protected set => base.Definition = value;
     }
 
-    internal InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
+    internal InputFieldConfiguration CreateFieldDefinition() => CreateDefinition();
 
     protected override void OnCreateDefinition(
         FilterFieldDefinition definition)

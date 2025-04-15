@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// this might be used by a GraphQL service which is itself an extension of another
 /// GraphQL service.
 /// </summary>
-public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeDefinition>
+public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeConfiguration>
 {
     private Action<IInputObjectTypeDescriptor>? _configure;
 
@@ -50,13 +50,13 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeDe
     /// <returns>
     /// Returns the newly created input object type.
     /// </returns>
-    public static InputObjectTypeExtension CreateUnsafe(InputObjectTypeDefinition definition)
+    public static InputObjectTypeExtension CreateUnsafe(InputObjectTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;
 
-    protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -80,7 +80,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeDe
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         context.RegisterDependencies(definition);

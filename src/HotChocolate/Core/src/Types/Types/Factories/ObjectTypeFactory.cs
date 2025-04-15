@@ -60,13 +60,13 @@ internal sealed class ObjectTypeFactory
         IDescriptorContext context,
         ObjectTypeDefinition parent,
         IReadOnlyCollection<FieldDefinitionNode> fields,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var field in fields)
         {
-            var fieldDefinition = new ObjectFieldDefinition(
+            var fieldDefinition = new ObjectFieldConfiguration(
                 field.Name.Value,
                 field.Description?.Value,
                 TypeReference.Create(field.Type))
@@ -91,15 +91,15 @@ internal sealed class ObjectTypeFactory
 
     private static void DeclareFieldArguments(
         IDescriptorContext context,
-        ObjectFieldDefinition parent,
+        ObjectFieldConfiguration parent,
         FieldDefinitionNode field,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var argument in field.Arguments)
         {
-            var argumentDefinition = new ArgumentDefinition(
+            var argumentDefinition = new ArgumentConfiguration(
                 argument.Name.Value,
                 argument.Description?.Value,
                 TypeReference.Create(argument.Type),

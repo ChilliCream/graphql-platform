@@ -102,7 +102,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -144,7 +144,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -160,7 +160,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -185,7 +185,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -200,7 +200,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -253,7 +253,7 @@ public abstract class TypeInterceptor
 
     public virtual void OnBeforeCompleteMutationField(
         ITypeCompletionContext completionContext,
-        ObjectFieldDefinition mutationField)
+        ObjectFieldConfiguration mutationField)
     {
     }
 
@@ -283,7 +283,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -298,7 +298,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -323,7 +323,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -338,7 +338,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -363,7 +363,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -378,7 +378,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 
@@ -395,7 +395,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
     }
 

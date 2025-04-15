@@ -130,7 +130,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        FieldMiddlewareDefinition placeholder =
+        FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
 
         var extension = descriptor.Extend();
@@ -158,7 +158,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                     }
 
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                        new CompleteConfiguration<ObjectFieldConfiguration>(
                             (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion));
@@ -169,8 +169,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         Type type,
-        ObjectFieldDefinition definition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        FieldMiddlewareConfiguration placeholder,
         ITypeCompletionContext context,
         string? scope)
     {

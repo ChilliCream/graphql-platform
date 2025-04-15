@@ -16,7 +16,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     private ITypeCompletionContext _context = default!;
     private ObjectType? _queryType;
-    private ObjectFieldDefinition _queryField = default!;
+    private ObjectFieldConfiguration _queryField = default!;
     private ObjectTypeDefinition? _mutationDefinition;
 
     public override void OnAfterResolveRootType(
@@ -46,7 +46,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
             TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
-            _queryField = new ObjectFieldDefinition(
+            _queryField = new ObjectFieldConfiguration(
                 options.QueryFieldName ?? _defaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
@@ -67,7 +67,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (completionContext.Type is ObjectType objectType
             && definition is ObjectTypeDefinition objectTypeDef

@@ -162,7 +162,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -214,7 +214,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -227,7 +227,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -262,7 +262,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -275,7 +275,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -379,7 +379,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -392,7 +392,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -427,7 +427,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -440,7 +440,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -475,7 +475,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -488,7 +488,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -501,7 +501,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;

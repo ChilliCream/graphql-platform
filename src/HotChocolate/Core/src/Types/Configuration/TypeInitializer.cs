@@ -458,7 +458,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -509,7 +509,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            ObjectFieldDefinition definition,
+            ObjectFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)
@@ -523,7 +523,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        InterfaceFieldDefinition definition,
+        InterfaceFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -566,7 +566,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            InterfaceFieldDefinition definition,
+            InterfaceFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)

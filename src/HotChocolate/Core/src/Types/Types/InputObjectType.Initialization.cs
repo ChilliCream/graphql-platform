@@ -22,7 +22,7 @@ public partial class InputObjectType
     private Func<object?[], object> _createInstance = default!;
     private Action<object, object?[]> _getFieldValues = default!;
 
-    protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -45,7 +45,7 @@ public partial class InputObjectType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         context.RegisterDependencies(definition);
@@ -54,7 +54,7 @@ public partial class InputObjectType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -67,7 +67,7 @@ public partial class InputObjectType
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnCompleteMetadata(context, definition);
 
@@ -79,7 +79,7 @@ public partial class InputObjectType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnMakeExecutable(context, definition);
 
@@ -91,7 +91,7 @@ public partial class InputObjectType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnFinalizeType(context, definition);
 
@@ -103,16 +103,16 @@ public partial class InputObjectType
 
     protected virtual FieldCollection<InputField> OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         return CompleteFields(context, this, definition.Fields, CreateField);
-        static InputField CreateField(InputFieldDefinition fieldDef, int index)
+        static InputField CreateField(InputFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }
 
     protected virtual Func<object?[], object> OnCompleteCreateInstance(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         Func<object?[], object>? createInstance = null;
 
@@ -135,7 +135,7 @@ public partial class InputObjectType
 
     protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         Action<object, object?[]>? getFieldValues = null;
 
@@ -186,7 +186,7 @@ file static class Extensions
 {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsOneOf(this DirectiveDefinition directiveDef)
+    public static bool IsOneOf(this DirectiveConfiguration directiveDef)
         => directiveDef.Value is DirectiveNode node
             && node.Name.Value.EqualsOrdinal(WellKnownDirectives.OneOf);
 }

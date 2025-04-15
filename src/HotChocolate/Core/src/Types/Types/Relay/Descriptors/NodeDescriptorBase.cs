@@ -29,7 +29,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     public virtual IObjectFieldDescriptor ResolveNode(
         FieldResolverDelegate fieldResolver)
     {
-        Definition.ResolverField ??= new ObjectFieldDefinition();
+        Definition.ResolverField ??= new ObjectFieldConfiguration();
         Definition.ResolverField.Resolver = fieldResolver ??
             throw new ArgumentNullException(nameof(fieldResolver));
 
@@ -84,7 +84,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
 
         if (member is MethodInfo m)
         {
-            Definition.ResolverField ??= new ObjectFieldDefinition();
+            Definition.ResolverField ??= new ObjectFieldConfiguration();
             Definition.ResolverField.Member = m;
             Definition.ResolverField.ResolverType = typeof(TResolver);
             return ConfigureNodeField();
@@ -108,7 +108,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             throw new ArgumentNullException(nameof(method));
         }
 
-        Definition.ResolverField ??= new ObjectFieldDefinition();
+        Definition.ResolverField ??= new ObjectFieldConfiguration();
         Definition.ResolverField.Member = method;
         Definition.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
         return ConfigureNodeField();
@@ -187,7 +187,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                 context.ContextData[WellKnownContextData.NodeIdResultFormatter] = value;
             }
 
-            var formatter = (ResultFormatterDefinition)value;
+            var formatter = (ResultFormatterConfiguration)value;
             var converters = extensions.Definition.FormatterDefinitions;
 
             if (!converters.Contains(formatter))
@@ -198,7 +198,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             return descriptor;
         }
 
-        public static ResultFormatterDefinition Create(
+        public static ResultFormatterConfiguration Create(
             INodeIdSerializerAccessor serializerAccessor)
             => new((context, result)
                     => result is not null

@@ -10,7 +10,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (discoveryContext.IsIntrospectionType)
         {
@@ -23,11 +23,11 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
                 ValidateObjectType(discoveryContext, od);
                 return;
 
-            case InputObjectTypeDefinition ind:
+            case InputObjectTypeConfiguration ind:
                 ValidateInputObjectType(discoveryContext, ind);
                 return;
 
-            case InterfaceTypeDefinition id:
+            case InterfaceTypeConfiguration id:
                 ValidateInterfaceType(discoveryContext, id);
                 return;
 
@@ -35,7 +35,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
                 ValidateUnionType(discoveryContext, ud);
                 return;
 
-            case DirectiveTypeDefinition ud:
+            case DirectiveTypeConfiguration ud:
                 ValidateDirectiveType(discoveryContext, ud);
                 return;
         }
@@ -43,7 +43,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateInputObjectType(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition? definition)
+        InputObjectTypeConfiguration? definition)
     {
         if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
@@ -57,7 +57,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateDirectiveType(
         ITypeDiscoveryContext context,
-        DirectiveTypeDefinition? definition)
+        DirectiveTypeConfiguration? definition)
     {
         if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))
@@ -98,7 +98,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateInterfaceType(
         ITypeDiscoveryContext context,
-        InterfaceTypeDefinition? definition)
+        InterfaceTypeConfiguration? definition)
     {
         if (definition is { RuntimeType: { } runtimeType, } &&
             IsTypeSystemType(definition.RuntimeType))

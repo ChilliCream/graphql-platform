@@ -21,7 +21,7 @@ public class InterfaceTypeDescriptor<T>
 
     protected internal InterfaceTypeDescriptor(
         IDescriptorContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
         : base(context, definition)
     {
     }
@@ -29,7 +29,7 @@ public class InterfaceTypeDescriptor<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<string, InterfaceFieldDefinition> fields,
+        IDictionary<string, InterfaceFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
         if (Definition.Fields.IsImplicitBinding())

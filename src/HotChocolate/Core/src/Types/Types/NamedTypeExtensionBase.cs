@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 public abstract class NamedTypeExtensionBase<TDefinition>
     : TypeSystemObjectBase<TDefinition>
     , INamedTypeExtensionMerger
-    where TDefinition : DefinitionBase, ITypeDefinition
+    where TDefinition : TypeSystemConfiguration, ITypeDefinition
 {
     /// <inheritdoc />
     public abstract TypeKind Kind { get; }
@@ -31,7 +31,7 @@ public abstract class NamedTypeExtensionBase<TDefinition>
 
     protected override void OnAfterCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         ExtendsType = Definition?.ExtendsType;
         base.OnAfterCompleteName(context, definition);

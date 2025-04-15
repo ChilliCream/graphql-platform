@@ -18,7 +18,7 @@ public class LeafTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (completionContext.Type is ILeafType leafType && definition is not null)
         {

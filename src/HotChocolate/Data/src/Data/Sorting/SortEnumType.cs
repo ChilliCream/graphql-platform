@@ -22,7 +22,7 @@ public class SortEnumType : EnumType
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override EnumTypeDefinition CreateDefinition(
+    protected override EnumTypeConfiguration CreateDefinition(
         ITypeDiscoveryContext context)
     {
         var descriptor = SortEnumTypeDescriptor.FromSchemaType(
@@ -42,7 +42,7 @@ public class SortEnumType : EnumType
 
     protected override bool TryCreateEnumValue(
         ITypeCompletionContext context,
-        EnumValueDefinition definition,
+        EnumValueConfiguration definition,
         [NotNullWhen(true)] out IEnumValue? enumValue)
     {
         if (definition is SortEnumValueDefinition sortDefinition)

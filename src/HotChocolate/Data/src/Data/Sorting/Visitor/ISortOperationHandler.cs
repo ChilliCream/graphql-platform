@@ -19,6 +19,6 @@ public interface ISortOperationHandler
     /// <returns>Returns true if the field can be handled</returns>
     bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
+        EnumTypeConfiguration typeDefinition,
         SortEnumValueDefinition valueDefinition);
 }

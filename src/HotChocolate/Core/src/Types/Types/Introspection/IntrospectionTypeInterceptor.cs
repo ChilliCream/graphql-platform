@@ -28,7 +28,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if(completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
         {

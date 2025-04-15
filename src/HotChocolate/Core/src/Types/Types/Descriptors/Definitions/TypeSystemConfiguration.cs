@@ -9,15 +9,15 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// A type system definition is used in the type initialization to store properties
 /// of a type system object.
 /// </summary>
-public class DefinitionBase : IDefinition
+public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
 {
     private List<TypeDependency>? _dependencies;
-    private List<ITypeSystemMemberConfiguration>? _configurations;
+    private List<ITypeSystemConfigurationTask>? _configurations;
     private ExtensionData? _contextData;
     private string _name = string.Empty;
 
     /// <summary>
-    /// Gets or sets the name the type shall have.
+    /// Gets or sets the name of the type system member.
     /// </summary>
     public string Name
     {
@@ -26,7 +26,7 @@ public class DefinitionBase : IDefinition
     }
 
     /// <summary>
-    /// Gets or sets the description the type shall have.
+    /// Gets or sets the description of the type system member.
     /// </summary>
     public string? Description { get; set; }
 
@@ -57,7 +57,7 @@ public class DefinitionBase : IDefinition
     /// <summary>
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
-    public IList<ITypeSystemMemberConfiguration> Configurations
+    public IList<ITypeSystemConfigurationTask> Configurations
         => _configurations ??= [];
 
     /// <summary>
@@ -80,11 +80,11 @@ public class DefinitionBase : IDefinition
     /// <summary>
     /// Gets lazy configuration of this definition and all dependent definitions.
     /// </summary>
-    public virtual IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public virtual IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
     {
         if (_configurations is null)
         {
-            return Array.Empty<ITypeSystemMemberConfiguration>();
+            return Array.Empty<ITypeSystemConfigurationTask>();
         }
 
         return _configurations;
@@ -118,16 +118,16 @@ public class DefinitionBase : IDefinition
     }
 
     public void TouchContextData()
-        => _contextData = new ExtensionData();
+        => _contextData = [];
 
-    protected void CopyTo(DefinitionBase target)
+    protected void CopyTo(TypeSystemConfiguration target)
     {
-        if (_dependencies is not null && _dependencies.Count > 0)
+        if (_dependencies?.Count > 0)
         {
             target._dependencies = [.._dependencies,];
         }
 
-        if (_configurations is not null && _configurations.Count > 0)
+        if (_configurations?.Count > 0)
         {
             target._configurations = [];
 
@@ -137,9 +137,9 @@ public class DefinitionBase : IDefinition
             }
         }
 
-        if (_contextData is not null && _contextData.Count > 0)
+        if (_contextData?.Count > 0)
         {
-            target._contextData = new ExtensionData(_contextData);
+            target._contextData = [.. _contextData];
         }
 
         if (State is { Count: > 0 })
@@ -153,15 +153,15 @@ public class DefinitionBase : IDefinition
         target.BindTo = BindTo;
     }
 
-    protected void MergeInto(DefinitionBase target)
+    protected void MergeInto(TypeSystemConfiguration target)
     {
-        if (_dependencies is not null && _dependencies.Count > 0)
+        if (_dependencies?.Count > 0)
         {
             target._dependencies ??= [];
             target._dependencies.AddRange(_dependencies);
         }
 
-        if (_configurations is not null && _configurations.Count > 0)
+        if (_configurations?.Count > 0)
         {
             target._configurations ??= [];
 
@@ -171,7 +171,7 @@ public class DefinitionBase : IDefinition
             }
         }
 
-        if (_contextData is not null && _contextData.Count > 0)
+        if (_contextData?.Count > 0)
         {
             target._contextData ??= new ExtensionData();
             foreach (var item in _contextData)

@@ -208,7 +208,7 @@ public static class PolicyDescriptorExtensions
 
     private static void AddPolicies(
         IReadOnlyList<Policy> policies,
-        IHasDirectiveDefinition definition,
+        IDirectiveConfigurationProvider definition,
         ITypeInspector typeInspector)
     {
         var directive = definition

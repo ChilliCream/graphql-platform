@@ -129,14 +129,14 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                 new CreateConfiguration(
                     (_, d) =>
                     {
-                        ((ObjectFieldDefinition)d).State =
-                            ((ObjectFieldDefinition)d).State.SetItem(
+                        ((ObjectFieldConfiguration)d).State =
+                            ((ObjectFieldConfiguration)d).State.SetItem(
                                 WellKnownContextData.PagingOptions,
                                 options);
                     },
                     definition));
             definition.Configurations.Add(
-                new CompleteConfiguration<ObjectFieldDefinition>(
+                new CompleteConfiguration<ObjectFieldConfiguration>(
                     (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
                     definition,
                     ApplyConfigurationOn.BeforeCompletion));
@@ -144,7 +144,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
 
         static void ApplyPagingOptions(
             IDescriptorContext context,
-            ObjectFieldDefinition definition,
+            ObjectFieldConfiguration definition,
             PagingOptions options)
         {
             options = context.GetPagingOptions(options);

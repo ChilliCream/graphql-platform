@@ -39,7 +39,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
         {
@@ -144,7 +144,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
                     // create middleware
                     var errorMiddleware =
-                        new FieldMiddlewareDefinition(
+                        new FieldMiddlewareConfiguration(
                             FieldClassMiddlewareFactory.Create<QueryResultMiddleware>(
                                 (typeof(IReadOnlyList<CreateError>), errorFactories)),
                             key: "Query Results",

@@ -17,7 +17,7 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (_directives.TryGetValue(completionContext.Type.Name, out var directives)
             && definition is ScalarTypeDefinition scalarTypeDef)

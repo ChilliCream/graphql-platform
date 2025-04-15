@@ -37,7 +37,7 @@ public partial class Schema
 
     protected override void OnAfterInitialize(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         base.OnAfterInitialize(context, definition);
 

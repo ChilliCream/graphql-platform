@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Descriptors;
 
 public class DirectiveTypeDescriptor
-    : DescriptorBase<DirectiveTypeDefinition>
+    : DescriptorBase<DirectiveTypeConfiguration>
     , IDirectiveTypeDescriptor
 {
     protected internal DirectiveTypeDescriptor(
@@ -39,19 +39,19 @@ public class DirectiveTypeDescriptor
 
     protected internal DirectiveTypeDescriptor(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override DirectiveTypeDefinition Definition { get; protected set; } = new();
+    protected internal override DirectiveTypeConfiguration Definition { get; protected set; } = new();
 
     protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
         new List<DirectiveArgumentDescriptor>();
 
     protected override void OnCreateDefinition(
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -64,7 +64,7 @@ public class DirectiveTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var arguments = new Dictionary<string, DirectiveArgumentDefinition>(StringComparer.Ordinal);
+        var arguments = new Dictionary<string, DirectiveArgumentConfiguration>(StringComparer.Ordinal);
         var handledMembers = new HashSet<PropertyInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -83,7 +83,7 @@ public class DirectiveTypeDescriptor
     }
 
     protected virtual void OnCompleteArguments(
-        IDictionary<string, DirectiveArgumentDefinition> arguments,
+        IDictionary<string, DirectiveArgumentConfiguration> arguments,
         ISet<PropertyInfo> handledProperties)
     {
     }
@@ -185,11 +185,11 @@ public class DirectiveTypeDescriptor
 
     public static DirectiveTypeDescriptor From(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => new(context, definition);
 
     public static DirectiveTypeDescriptor From<T>(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => new DirectiveTypeDescriptor<T>(context, definition);
 }

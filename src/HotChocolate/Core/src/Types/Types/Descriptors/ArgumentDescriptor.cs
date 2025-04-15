@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors;
 /// A fluent configuration API for GraphQL arguments.
 /// </summary>
 public class ArgumentDescriptor
-    : ArgumentDescriptorBase<ArgumentDefinition>
+    : ArgumentDescriptorBase<ArgumentConfiguration>
     , IArgumentDescriptor
 {
     /// <summary>
@@ -70,14 +70,14 @@ public class ArgumentDescriptor
     /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
-        ArgumentDefinition definition)
+        ArgumentConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(ArgumentDefinition definition)
+    protected override void OnCreateDefinition(ArgumentConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -228,6 +228,6 @@ public class ArgumentDescriptor
     /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor From(
         IDescriptorContext context,
-        ArgumentDefinition argumentDefinition) =>
+        ArgumentConfiguration argumentDefinition) =>
         new(context, argumentDefinition);
 }

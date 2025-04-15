@@ -9,17 +9,17 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL argument type.
 /// </summary>
-public class ArgumentDefinition : FieldDefinitionBase
+public class ArgumentConfiguration : FieldConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+    /// Initializes a new instance of <see cref="ArgumentConfiguration"/>.
     /// </summary>
-    public ArgumentDefinition() { }
+    public ArgumentConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+    /// Initializes a new instance of <see cref="ArgumentConfiguration"/>.
     /// </summary>
-    public ArgumentDefinition(
+    public ArgumentConfiguration(
         string name,
         string? description = null,
         TypeReference? type = null,
@@ -52,13 +52,13 @@ public class ArgumentDefinition : FieldDefinitionBase
     {
         if (_formatters is null)
         {
-            return Array.Empty<IInputValueFormatter>();
+            return [];
         }
 
         return _formatters;
     }
 
-    internal void CopyTo(ArgumentDefinition target)
+    internal void CopyTo(ArgumentConfiguration target)
     {
         base.CopyTo(target);
 
@@ -69,7 +69,7 @@ public class ArgumentDefinition : FieldDefinitionBase
         target.RuntimeType = RuntimeType;
     }
 
-    internal void MergeInto(ArgumentDefinition target)
+    internal void MergeInto(ArgumentConfiguration target)
     {
         base.MergeInto(target);
 

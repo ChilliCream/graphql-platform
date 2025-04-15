@@ -5,7 +5,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Types.Descriptors;
 
 public class EnumValueDescriptor
-    : DescriptorBase<EnumValueDefinition>
+    : DescriptorBase<EnumValueConfiguration>
     , IEnumValueDescriptor
 {
     protected EnumValueDescriptor(IDescriptorContext context, object runtimeValue)
@@ -26,15 +26,15 @@ public class EnumValueDescriptor
         }
     }
 
-    protected EnumValueDescriptor(IDescriptorContext context, EnumValueDefinition definition)
+    protected EnumValueDescriptor(IDescriptorContext context, EnumValueConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override EnumValueDefinition Definition { get; protected set; } = new();
+    protected internal override EnumValueConfiguration Definition { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(EnumValueDefinition definition)
+    protected override void OnCreateDefinition(EnumValueConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -124,6 +124,6 @@ public class EnumValueDescriptor
 
     public static EnumValueDescriptor From(
         IDescriptorContext context,
-        EnumValueDefinition definition) =>
+        EnumValueConfiguration definition) =>
         new EnumValueDescriptor(context, definition);
 }

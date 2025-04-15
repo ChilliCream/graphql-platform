@@ -15,7 +15,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
@@ -41,7 +41,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (definition is not FilterInputTypeDefinition def)
         {
@@ -69,7 +69,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
@@ -122,7 +122,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
     }
 
     private static void ApplyCorrectScope(
-        InputObjectTypeDefinition definition,
+        InputObjectTypeConfiguration definition,
         ITypeDiscoveryContext discoveryContext)
     {
         foreach (var field in definition.Fields)
@@ -157,7 +157,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
 file static class Extensions
 {
-    public static bool HasIdAttribute(this InputFieldDefinition? definition)
+    public static bool HasIdAttribute(this InputFieldConfiguration? definition)
     {
         if (definition is not FilterFieldDefinition { Member: { } member })
         {

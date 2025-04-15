@@ -17,7 +17,7 @@ using static HotChocolate.WellKnownContextData;
 namespace HotChocolate.Types.Descriptors;
 
 public class ObjectFieldDescriptor
-    : OutputFieldDescriptorBase<ObjectFieldDefinition>
+    : OutputFieldDescriptorBase<ObjectFieldConfiguration>
         , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
@@ -127,16 +127,16 @@ public class ObjectFieldDescriptor
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
-        ObjectFieldDefinition definition)
+        ObjectFieldConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override ObjectFieldDefinition Definition { get; protected set; } = new();
+    protected internal override ObjectFieldConfiguration Definition { get; protected set; } = new();
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(ObjectFieldDefinition definition)
+    protected override void OnCreateDefinition(ObjectFieldConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -162,7 +162,7 @@ public class ObjectFieldDescriptor
         Context.Descriptors.Pop();
     }
 
-    private void CompleteArguments(ObjectFieldDefinition definition)
+    private void CompleteArguments(ObjectFieldConfiguration definition)
     {
         if (!_argumentsInitialized)
         {
@@ -559,7 +559,7 @@ public class ObjectFieldDescriptor
     /// <returns></returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
-        ObjectFieldDefinition definition)
+        ObjectFieldConfiguration definition)
         => new(context, definition);
 
     public static class ExpressionSelectionSetFormatter

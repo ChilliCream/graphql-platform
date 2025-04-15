@@ -42,7 +42,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (completionContext.Type == _queryType
             && definition is ObjectTypeDefinition typeDef)
@@ -68,7 +68,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
                     {
                         field.MiddlewareDefinitions.Insert(
                             0,
-                            new FieldMiddlewareDefinition(
+                            new FieldMiddlewareConfiguration(
                                 static next => context =>
                                 {
                                     var options = context.RequestServices.GetRequiredService<DataLoaderOptions>();
@@ -88,7 +88,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         }
     }
 
-    private static bool IsUsableFieldConnection(ObjectFieldDefinition field)
+    private static bool IsUsableFieldConnection(ObjectFieldConfiguration field)
     {
         var isConnection = (field.Flags & FieldFlags.Connection) == FieldFlags.Connection;
         var usesProjection = (field.Flags & FieldFlags.UsesProjections) == FieldFlags.UsesProjections;

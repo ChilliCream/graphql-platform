@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public abstract class OutputFieldDescriptorBase<TDefinition>
     : DescriptorBase<TDefinition>
-    where TDefinition : OutputFieldDefinitionBase
+    where TDefinition : OutputFieldConfiguration
 {
     private ICollection<ArgumentDescriptor>? _arguments;
 

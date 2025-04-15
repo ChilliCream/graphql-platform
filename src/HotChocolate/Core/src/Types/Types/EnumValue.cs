@@ -9,9 +9,9 @@ namespace HotChocolate.Types;
 
 public sealed class EnumValue : IEnumValue, IEnumValueCompletion
 {
-    private EnumValueDefinition? _enumValueDefinition;
+    private EnumValueConfiguration? _enumValueDefinition;
 
-    public EnumValue(EnumValueDefinition enumValueDefinition)
+    public EnumValue(EnumValueConfiguration enumValueDefinition)
     {
         if (enumValueDefinition is null)
         {

@@ -46,7 +46,7 @@ public class EnumTypeUnsafeTests
         // arrange
         // act
         var enumType = EnumType.CreateUnsafe(
-            new EnumTypeDefinition("Simple")
+            new EnumTypeConfiguration("Simple")
             {
                 Values =
                 {

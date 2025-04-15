@@ -15,7 +15,7 @@ namespace HotChocolate.Types;
 
 public partial class DirectiveType
 {
-    protected override DirectiveTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override DirectiveTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -40,7 +40,7 @@ public partial class DirectiveType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
 
@@ -60,7 +60,7 @@ public partial class DirectiveType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -87,7 +87,7 @@ public partial class DirectiveType
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         base.OnCompleteMetadata(context, definition);
 
@@ -99,7 +99,7 @@ public partial class DirectiveType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         base.OnMakeExecutable(context, definition);
 
@@ -111,7 +111,7 @@ public partial class DirectiveType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         base.OnFinalizeType(context, definition);
 
@@ -123,16 +123,16 @@ public partial class DirectiveType
 
     protected virtual FieldCollection<DirectiveArgument> OnCompleteFields(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
-        static DirectiveArgument CreateArgument(DirectiveArgumentDefinition argDef, int index)
+        static DirectiveArgument CreateArgument(DirectiveArgumentConfiguration argDef, int index)
             => new(argDef, index);
     }
 
     protected virtual Func<object?[], object> OnCompleteCreateInstance(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.CreateInstance is not null)
         {
@@ -149,7 +149,7 @@ public partial class DirectiveType
 
     protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.GetFieldData is not null)
         {
@@ -166,7 +166,7 @@ public partial class DirectiveType
 
     protected virtual Func<DirectiveNode, object> OnCompleteParse(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.Parse is not null)
         {
@@ -179,7 +179,7 @@ public partial class DirectiveType
 
     protected virtual Func<object, DirectiveNode> OnCompleteFormat(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.Format is not null)
         {
@@ -192,7 +192,7 @@ public partial class DirectiveType
 
     protected virtual DirectiveMiddleware? OnCompleteMiddleware(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.MiddlewareComponents.Count == 0)
         {

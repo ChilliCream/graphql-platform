@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Represents a middleware or result converter configuration.
 /// </summary>
-public interface IMiddlewareDefinition
+public interface IRepeatableConfiguration
 {
     /// <summary>
     /// Defines if the middleware or result converters is repeatable and

@@ -5,9 +5,9 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// A definition that represents a type.
 /// </summary>
-public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
+public class TypeDefinitionBase : TypeSystemConfiguration, ITypeDefinition
 {
-    private List<DirectiveDefinition>? _directives;
+    private List<DirectiveConfiguration>? _directives;
     private Type _runtimeType = typeof(object);
 
     protected TypeDefinitionBase() { }
@@ -40,7 +40,7 @@ public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
     /// <summary>
     /// Gets the list of directives that are annotated to this type.
     /// </summary>
-    public IList<DirectiveDefinition> Directives =>
+    public IList<DirectiveConfiguration> Directives =>
         _directives ??= [];
 
     /// <summary>
@@ -51,7 +51,7 @@ public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
     /// <summary>
     /// Gets the list of directives that are annotated to this field.
     /// </summary>
-    public IReadOnlyList<DirectiveDefinition> GetDirectives()
+    public IReadOnlyList<DirectiveConfiguration> GetDirectives()
     {
         if (_directives is null)
         {

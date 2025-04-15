@@ -5,12 +5,12 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// This definition represents a field or argument.
 /// </summary>
-public abstract class FieldDefinitionBase
-    : DefinitionBase
-    , IHasDirectiveDefinition
-    , IHasIgnore
+public abstract class FieldConfiguration
+    : TypeSystemConfiguration
+    , IDirectiveConfigurationProvider
+    , IIgnoreConfiguration
 {
-    private List<DirectiveDefinition>? _directives;
+    private List<DirectiveConfiguration>? _directives;
     private string? _deprecationReason;
     private FieldFlags _flags = FieldFlags.None;
 
@@ -77,7 +77,7 @@ public abstract class FieldDefinitionBase
     /// <summary>
     /// Gets the list of directives that are annotated to this field.
     /// </summary>
-    public IList<DirectiveDefinition> Directives
+    public IList<DirectiveConfiguration> Directives
         => _directives ??= [];
 
     /// <summary>
@@ -88,11 +88,11 @@ public abstract class FieldDefinitionBase
     /// <summary>
     /// Gets the list of directives that are annotated to this field.
     /// </summary>
-    public IReadOnlyList<DirectiveDefinition> GetDirectives()
+    public IReadOnlyList<DirectiveConfiguration> GetDirectives()
     {
         if (_directives is null)
         {
-            return Array.Empty<DirectiveDefinition>();
+            return Array.Empty<DirectiveConfiguration>();
         }
 
         return _directives;
@@ -108,7 +108,7 @@ public abstract class FieldDefinitionBase
 
     public void SetConnectionTotalCountFieldFlags() => Flags |= FieldFlags.TotalCount;
 
-    protected void CopyTo(FieldDefinitionBase target)
+    protected void CopyTo(FieldConfiguration target)
     {
         base.CopyTo(target);
 
@@ -126,7 +126,7 @@ public abstract class FieldDefinitionBase
         }
     }
 
-    protected void MergeInto(FieldDefinitionBase target)
+    protected void MergeInto(FieldConfiguration target)
     {
         base.MergeInto(target);
 

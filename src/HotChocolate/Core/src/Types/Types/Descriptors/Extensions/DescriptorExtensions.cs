@@ -11,26 +11,26 @@ public static class DescriptorExtensions
         => ObjectTypeDescriptor.From(context, definition);
 
     public static ObjectFieldDescriptor ToDescriptor(
-        this ObjectFieldDefinition definition,
+        this ObjectFieldConfiguration definition,
         IDescriptorContext context)
         => ObjectFieldDescriptor.From(context, definition);
 
     public static ArgumentDescriptor ToDescriptor(
-        this ArgumentDefinition definition,
+        this ArgumentConfiguration definition,
         IDescriptorContext context)
         => ArgumentDescriptor.From(context, definition);
 
     public static EnumTypeDescriptor ToDescriptor(
-        this EnumTypeDefinition definition,
+        this EnumTypeConfiguration definition,
         IDescriptorContext context)
         => EnumTypeDescriptor.From(context, definition);
 
     public static EnumValueDescriptor ToDescriptor(
-        this EnumValueDefinition definition,
+        this EnumValueConfiguration definition,
         IDescriptorContext context)
         => EnumValueDescriptor.From(context, definition);
 
-    public static T ToDefinition<T>(this IDescriptor<T> descriptor) where T : DefinitionBase
+    public static T ToDefinition<T>(this IDescriptor<T> descriptor) where T : TypeSystemConfiguration
         => descriptor is DescriptorBase<T> desc
             ? desc.CreateDefinition()
             : throw new NotSupportedException("The specified descriptor is not supported.");

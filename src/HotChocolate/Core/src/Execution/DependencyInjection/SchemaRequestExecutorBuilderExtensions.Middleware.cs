@@ -136,7 +136,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration definition)
         {
             if (!CanHandle(completionContext))
             {
@@ -162,7 +162,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                     {
                         if (middlewareRef.Reference.FieldName.Equals(field.Name))
                         {
-                            var middlewareDefinition = new FieldMiddlewareDefinition(
+                            var middlewareDefinition = new FieldMiddlewareConfiguration(
                                 middlewareRef.Middleware);
                             field.MiddlewareDefinitions.Add(middlewareDefinition);
                         }

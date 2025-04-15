@@ -10,7 +10,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     , IDescriptorExtension<T>
     , IDescriptorExtension
     , IDefinitionFactory<T>
-    where T : DefinitionBase
+    where T : TypeSystemConfiguration
 {
     protected internal IDescriptorContext Context { get; } =
         context ?? throw new ArgumentNullException(nameof(context));
@@ -79,7 +79,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     {
     }
 
-    DefinitionBase IDefinitionFactory.CreateDefinition()
+    TypeSystemConfiguration IDefinitionFactory.CreateDefinition()
         => CreateDefinition();
 
     void IDescriptorExtension<T>.OnBeforeCreate(
@@ -91,11 +91,11 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         => OnBeforeCreate(configure);
 
     void IDescriptorExtension.OnBeforeCreate(
-        Action<DefinitionBase> configure)
+        Action<TypeSystemConfiguration> configure)
         => OnBeforeCreate((_, d) => configure(d));
 
     void IDescriptorExtension.OnBeforeCreate(
-        Action<IDescriptorContext, DefinitionBase> configure)
+        Action<IDescriptorContext, TypeSystemConfiguration> configure)
         => OnBeforeCreate(configure);
 
     private void OnBeforeCreate(Action<IDescriptorContext, T> configure)
@@ -115,7 +115,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         => OnBeforeNaming(configure);
 
     INamedDependencyDescriptor IDescriptorExtension.OnBeforeNaming(
-        Action<ITypeCompletionContext, DefinitionBase> configure)
+        Action<ITypeCompletionContext, TypeSystemConfiguration> configure)
         => OnBeforeNaming(configure);
 
     private INamedDependencyDescriptor OnBeforeNaming(
@@ -141,7 +141,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         => OnBeforeCompletion(configure);
 
     ICompletedDependencyDescriptor IDescriptorExtension.OnBeforeCompletion(
-        Action<ITypeCompletionContext, DefinitionBase> configure)
+        Action<ITypeCompletionContext, TypeSystemConfiguration> configure)
         => OnBeforeCompletion(configure);
 
     private ICompletedDependencyDescriptor OnBeforeCompletion(

@@ -79,7 +79,7 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration definition)
         {
             if (discoveryContext is { Scope: { }, } && definition is ObjectTypeDefinition def)
             {
@@ -97,7 +97,7 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration definition)
         {
             if (completionContext is { Scope: { }, })
             {

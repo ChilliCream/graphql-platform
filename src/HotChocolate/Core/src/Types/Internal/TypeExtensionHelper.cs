@@ -12,8 +12,8 @@ public static class TypeExtensionHelper
 {
     public static void MergeInterfaceFields(
         ITypeCompletionContext context,
-        IList<InterfaceFieldDefinition> extensionFields,
-        IList<InterfaceFieldDefinition> typeFields)
+        IList<InterfaceFieldConfiguration> extensionFields,
+        IList<InterfaceFieldConfiguration> typeFields)
     {
         MergeOutputFields(context, extensionFields, typeFields,
             (_, _, _) => { });
@@ -21,8 +21,8 @@ public static class TypeExtensionHelper
 
     public static void MergeInputObjectFields(
         ITypeCompletionContext context,
-        IList<InputFieldDefinition> extensionFields,
-        IList<InputFieldDefinition> typeFields)
+        IList<InputFieldConfiguration> extensionFields,
+        IList<InputFieldConfiguration> typeFields)
     {
         MergeFields(context, extensionFields, typeFields,
              (_, extensionField, typeField) =>
@@ -40,7 +40,7 @@ public static class TypeExtensionHelper
         IList<T> typeFields,
         Action<IList<T>, T, T> action,
         Action<T>? onBeforeAdd = null)
-        where T : OutputFieldDefinitionBase
+        where T : OutputFieldConfiguration
     {
         MergeFields(context, extensionFields, typeFields,
             (fields, extensionField, typeField) =>
@@ -68,7 +68,7 @@ public static class TypeExtensionHelper
         IList<T> typeFields,
         Action<IList<T>, T, T> action,
         Action<T>? onBeforeAdd = null)
-        where T : FieldDefinitionBase
+        where T : FieldConfiguration
     {
         foreach (var extensionField in extensionFields)
         {
@@ -96,10 +96,10 @@ public static class TypeExtensionHelper
 
     public static void MergeDirectives(
         ITypeCompletionContext context,
-        IList<DirectiveDefinition> extension,
-        IList<DirectiveDefinition> type)
+        IList<DirectiveConfiguration> extension,
+        IList<DirectiveConfiguration> type)
     {
-        var directives = new List<(DirectiveType type, DirectiveDefinition def)>();
+        var directives = new List<(DirectiveType type, DirectiveConfiguration def)>();
 
         foreach (var directive in type)
         {
@@ -124,8 +124,8 @@ public static class TypeExtensionHelper
 
     private static void MergeDirective(
         ITypeCompletionContext context,
-        IList<(DirectiveType type, DirectiveDefinition def)> directives,
-        DirectiveDefinition directive)
+        IList<(DirectiveType type, DirectiveConfiguration def)> directives,
+        DirectiveConfiguration directive)
     {
         if (context.TryGetDirectiveType(directive.Type, out var directiveType))
         {
@@ -150,8 +150,8 @@ public static class TypeExtensionHelper
     }
 
     public static void MergeContextData(
-        DefinitionBase extension,
-        DefinitionBase type)
+        TypeSystemConfiguration extension,
+        TypeSystemConfiguration type)
     {
         if (extension.GetContextData().Count > 0)
         {
@@ -194,8 +194,8 @@ public static class TypeExtensionHelper
     }
 
     public static void MergeConfigurations(
-        ICollection<ITypeSystemMemberConfiguration> extensionConfigurations,
-        ICollection<ITypeSystemMemberConfiguration> typeConfigurations)
+        ICollection<ITypeSystemConfigurationTask> extensionConfigurations,
+        ICollection<ITypeSystemConfigurationTask> typeConfigurations)
     {
         foreach (var configuration in extensionConfigurations)
         {

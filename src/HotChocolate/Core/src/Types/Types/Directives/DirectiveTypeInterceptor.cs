@@ -13,7 +13,7 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         base.OnAfterCompleteMetadata(context, definition);
 

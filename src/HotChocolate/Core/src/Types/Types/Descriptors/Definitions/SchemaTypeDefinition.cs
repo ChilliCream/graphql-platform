@@ -4,14 +4,14 @@ using HotChocolate.Features;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class SchemaTypeDefinition : DefinitionBase, IFeatureProvider
+public class SchemaTypeDefinition : TypeSystemConfiguration, IFeatureProvider
 {
-    private List<DirectiveDefinition>? _directives;
+    private List<DirectiveConfiguration>? _directives;
 
     /// <summary>
     /// Gets the list of directives that are annotated to this schema.
     /// </summary>
-    internal IList<DirectiveDefinition> Directives =>
+    internal IList<DirectiveConfiguration> Directives =>
         _directives ??= [];
 
     /// <summary>
@@ -24,26 +24,26 @@ public class SchemaTypeDefinition : DefinitionBase, IFeatureProvider
     /// <summary>
     /// Gets the list of directives that are annotated to this schema.
     /// </summary>
-    internal IReadOnlyList<DirectiveDefinition> GetDirectives()
+    internal IReadOnlyList<DirectiveConfiguration> GetDirectives()
     {
         if (_directives is null)
         {
-            return Array.Empty<DirectiveDefinition>();
+            return Array.Empty<DirectiveConfiguration>();
         }
 
         return _directives;
     }
 
-    internal IHasDirectiveDefinition GetLegacyDefinition()
+    internal IDirectiveConfigurationProvider GetLegacyDefinition()
         => new CompatibilityLayer(this);
 
-    private class CompatibilityLayer(SchemaTypeDefinition definition) : IHasDirectiveDefinition
+    private class CompatibilityLayer(SchemaTypeDefinition definition) : IDirectiveConfigurationProvider
     {
         public bool HasDirectives => definition.HasDirectives;
 
-        public IList<DirectiveDefinition> Directives => definition.Directives;
+        public IList<DirectiveConfiguration> Directives => definition.Directives;
 
-        public IReadOnlyList<DirectiveDefinition> GetDirectives()
+        public IReadOnlyList<DirectiveConfiguration> GetDirectives()
             => definition.GetDirectives();
     }
 }

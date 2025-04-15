@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Relay;
 
 internal sealed class NodeIdSerializerTypeInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
     {
         if (definition is SchemaTypeDefinition schemaTypeDef)
         {

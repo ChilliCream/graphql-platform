@@ -69,21 +69,21 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     private static void CreateNodeField(
         ITypeInspector typeInspector,
         INodeIdSerializerAccessor serializerAccessor,
-        IList<ObjectFieldDefinition> fields,
+        IList<ObjectFieldConfiguration> fields,
         int index)
     {
         var node = typeInspector.GetTypeRef(typeof(NodeType));
         var id = typeInspector.GetTypeRef(typeof(NonNullType<IdType>));
 
-        var field = new ObjectFieldDefinition(
+        var field = new ObjectFieldConfiguration(
             Node,
             Relay_NodeField_Description,
             node)
         {
-            Arguments = { new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id), },
+            Arguments = { new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id), },
             MiddlewareDefinitions =
             {
-                new FieldMiddlewareDefinition(
+                new FieldMiddlewareConfiguration(
                     _ =>
                     {
                         INodeIdSerializer? serializer = null;
@@ -108,22 +108,22 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     private static void CreateNodesField(
         ITypeInspector typeInspector,
         INodeIdSerializerAccessor serializerAccessor,
-        IList<ObjectFieldDefinition> fields,
+        IList<ObjectFieldConfiguration> fields,
         int index,
         int maxAllowedNodes)
     {
         var nodes = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NodeType>>));
         var ids = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NonNullType<IdType>>>));
 
-        var field = new ObjectFieldDefinition(
+        var field = new ObjectFieldConfiguration(
             Nodes,
             Relay_NodesField_Description,
             nodes)
         {
-            Arguments = { new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids), },
+            Arguments = { new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids), },
             MiddlewareDefinitions =
             {
-                new FieldMiddlewareDefinition(
+                new FieldMiddlewareConfiguration(
                     _ =>
                     {
                         INodeIdSerializer? serializer = null;

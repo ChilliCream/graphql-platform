@@ -141,7 +141,7 @@ public class ObjectTypeDescriptor
     }
 
     private protected void InferFieldsFromFieldBindingType(
-        IDictionary<string, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers,
         bool createDefinition = true)
     {
@@ -233,7 +233,7 @@ public class ObjectTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     { }
 

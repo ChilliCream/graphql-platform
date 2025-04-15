@@ -9,21 +9,21 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL directive.
 /// </summary>
-public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
+public class DirectiveTypeConfiguration : TypeSystemConfiguration, IHasRuntimeType
 {
     private Type _clrType = typeof(object);
     private List<DirectiveMiddleware>? _middlewareComponents;
-    private BindableList<DirectiveArgumentDefinition>? _arguments;
+    private BindableList<DirectiveArgumentConfiguration>? _arguments;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="DirectiveTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="DirectiveTypeConfiguration"/>.
     /// </summary>
-    public DirectiveTypeDefinition() { }
+    public DirectiveTypeConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="DirectiveTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="DirectiveTypeConfiguration"/>.
     /// </summary>
-    public DirectiveTypeDefinition(
+    public DirectiveTypeConfiguration(
         string name,
         string? description = null,
         Type? runtimeType = null,
@@ -72,7 +72,7 @@ public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public IBindableList<DirectiveArgumentDefinition> Arguments
+    public IBindableList<DirectiveArgumentConfiguration> Arguments
         => _arguments ??= [];
 
     /// <summary>
@@ -100,9 +100,9 @@ public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
     /// </summary>
     public Func<object, DirectiveNode>? Format { get; set; }
 
-    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
     {
-        var configs = new List<ITypeSystemMemberConfiguration>();
+        var configs = new List<ITypeSystemConfigurationTask>();
 
         configs.AddRange(Configurations);
 
@@ -130,11 +130,11 @@ public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    internal IReadOnlyList<DirectiveArgumentDefinition> GetArguments()
+    internal IReadOnlyList<DirectiveArgumentConfiguration> GetArguments()
     {
         if (_arguments is null)
         {
-            return Array.Empty<DirectiveArgumentDefinition>();
+            return Array.Empty<DirectiveArgumentConfiguration>();
         }
 
         return _arguments;

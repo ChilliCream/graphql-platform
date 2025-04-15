@@ -29,6 +29,6 @@ public abstract class SortOperationHandler<TContext, T>
     /// <inheritdoc />
     public abstract bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
+        EnumTypeConfiguration typeDefinition,
         SortEnumValueDefinition valueDefinition);
 }

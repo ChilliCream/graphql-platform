@@ -18,7 +18,7 @@ public abstract class NamedTypeBase<TDefinition>
     , IHasRuntimeType
     , IHasTypeIdentity
     , IHasTypeDefinition
-    where TDefinition : DefinitionBase, IHasDirectiveDefinition, ITypeDefinition
+    where TDefinition : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeDefinition
 {
     private IDirectiveCollection? _directives;
     private Type? _runtimeType;

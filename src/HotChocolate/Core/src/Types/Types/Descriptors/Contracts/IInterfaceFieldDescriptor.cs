@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL interface type fields.
 /// </summary>
 public interface IInterfaceFieldDescriptor
-    : IDescriptor<InterfaceFieldDefinition>
+    : IDescriptor<InterfaceFieldConfiguration>
     , IFluent
 {
     /// <summary>

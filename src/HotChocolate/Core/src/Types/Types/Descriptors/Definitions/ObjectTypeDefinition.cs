@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// </summary>
 public class ObjectTypeDefinition
     : TypeDefinitionBase
-    , IComplexOutputTypeDefinition
+    , IComplexOutputTypeConfiguration
 {
     private List<Type>? _knownClrTypes;
     private List<TypeReference>? _interfaces;
@@ -96,8 +96,8 @@ public class ObjectTypeDefinition
     /// <summary>
     /// Gets the fields of this object type.
     /// </summary>
-    public IBindableList<ObjectFieldDefinition> Fields { get; } =
-        new BindableList<ObjectFieldDefinition>();
+    public IBindableList<ObjectFieldConfiguration> Fields { get; } =
+        new BindableList<ObjectFieldConfiguration>();
 
     /// <summary>
     /// Gets the field binding flags, which defines how runtime
@@ -118,9 +118,9 @@ public class ObjectTypeDefinition
         }
     }
 
-    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
     {
-        List<ITypeSystemMemberConfiguration>? configs = null;
+        List<ITypeSystemConfigurationTask>? configs = null;
 
         if (HasConfigurations)
         {
@@ -146,7 +146,7 @@ public class ObjectTypeDefinition
             }
         }
 
-        return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
+        return configs ?? Enumerable.Empty<ITypeSystemConfigurationTask>();
     }
 
     internal IReadOnlyList<Type> GetKnownClrTypes()
@@ -287,7 +287,7 @@ public class ObjectTypeDefinition
                     target.Fields.Remove(targetField);
                 }
 
-                var newField = new ObjectFieldDefinition();
+                var newField = new ObjectFieldConfiguration();
                 field.CopyTo(newField);
                 newField.SourceType = target.RuntimeType;
 
@@ -305,8 +305,8 @@ public class ObjectTypeDefinition
     }
 
     private static void SetResolverMember(
-        ObjectFieldDefinition sourceField,
-        ObjectFieldDefinition? targetField)
+        ObjectFieldConfiguration sourceField,
+        ObjectFieldConfiguration? targetField)
     {
         // we prepare the field that is merged in to use the resolver member instead of member.
         // this will ensure that the original source type member is preserved after we have

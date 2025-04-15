@@ -53,7 +53,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (discoveryContext is { IsIntrospectionType: false, Type: IHasName namedType, } &&
             definition is ITypeDefinition { NeedsNameCompletion: false, } typeDef)
@@ -86,7 +86,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                     TypeDependencyHelper.CollectDependencies(otd, list);
                     break;
 
-                case InterfaceTypeDefinition itd:
+                case InterfaceTypeConfiguration itd:
                     TypeDependencyHelper.CollectDependencies(itd, list);
                     break;
             }
@@ -97,7 +97,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (completionContext is { IsIntrospectionType: false, Type: IHasName namedType, } &&
             definition is ITypeDefinition typeDef)
@@ -216,11 +216,11 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                     ApplyObjectSourceMembers(context, objectTypeDef);
                     break;
 
-                case InputObjectTypeDefinition inputTypeDef:
+                case InputObjectTypeConfiguration inputTypeDef:
                     ApplyInputSourceMembers(context, inputTypeDef);
                     break;
 
-                case EnumTypeDefinition enumTypeDef:
+                case EnumTypeConfiguration enumTypeDef:
                     ApplyEnumSourceMembers(context, enumTypeDef);
                     break;
             }
@@ -285,7 +285,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void ApplyInputSourceMembers(
         CompletionContext context,
-        InputObjectTypeDefinition inputTypeDef)
+        InputObjectTypeConfiguration inputTypeDef)
     {
         var initialized = false;
 
@@ -318,7 +318,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void ApplyEnumSourceMembers(
         CompletionContext context,
-        EnumTypeDefinition enumTypeDef)
+        EnumTypeConfiguration enumTypeDef)
     {
         var initialized = false;
 
@@ -376,7 +376,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void TrySetRuntimeType(
         CompletionContext context,
-        ObjectFieldDefinition field,
+        ObjectFieldConfiguration field,
         FieldResolverConfig config)
     {
         if (config.ResultType != typeof(object) &&
@@ -394,7 +394,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     }
 
     private void TryBindArgumentRuntimeType(
-        ObjectFieldDefinition field,
+        ObjectFieldConfiguration field,
         MemberInfo member)
     {
         if (member is MethodInfo method)

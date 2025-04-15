@@ -695,7 +695,7 @@ public class IdAttributeTests
             }
         }
 
-        private void AddInterceptingSerializer(ArgumentDefinition definition)
+        private void AddInterceptingSerializer(ArgumentConfiguration definition)
             => definition.Formatters.Insert(0, new InterceptingFormatter(TypeName));
 
         private sealed class InterceptingFormatter(string typeName) : IInputValueFormatter
@@ -717,7 +717,7 @@ public class IdAttributeTests
 
         public override void OnValidateType(
             ITypeSystemObjectContext validationContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration definition)
         {
             if (validationContext.Type.Name.EqualsOrdinal("Query") &&
                 definition is ObjectTypeDefinition typeDef)

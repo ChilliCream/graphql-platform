@@ -58,7 +58,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         switch (completionContext.Type)
         {
@@ -123,7 +123,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteMetadata(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         // last in the initialization we need to intercept the query type and ensure that
         // authorization configuration is applied to the special introspection and node fields.
@@ -365,7 +365,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     private void ApplyAuthMiddleware(
         string typeName,
-        ObjectFieldDefinition fieldDef,
+        ObjectFieldConfiguration fieldDef,
         State state)
     {
         // if the field contains the AnonymousAllowed flag we will not apply authorization
@@ -412,7 +412,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 
     private void ApplyAuthMiddleware(
-        ObjectFieldDefinition fieldDef,
+        ObjectFieldConfiguration fieldDef,
         RegisteredType authTypeReg,
         bool isNodeField)
     {
@@ -471,9 +471,9 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         }
     }
 
-    private static FieldMiddlewareDefinition CreateAuthMiddleware(
+    private static FieldMiddlewareConfiguration CreateAuthMiddleware(
         AuthorizeDirective directive)
-        => new FieldMiddlewareDefinition(
+        => new FieldMiddlewareConfiguration(
             next =>
             {
                 // we capture the auth middleware instance on the outer factory delegate.
@@ -513,7 +513,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         return (DirectiveCollection)directives;
     }
 
-    private void CompleteDirectiveTypes(IReadOnlyList<DirectiveDefinition> directives)
+    private void CompleteDirectiveTypes(IReadOnlyList<DirectiveConfiguration> directives)
     {
         foreach (var directiveDef in directives)
         {
@@ -521,7 +521,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void CompleteDirectiveType(DirectiveDefinition directive)
+    private void CompleteDirectiveType(DirectiveConfiguration directive)
     {
         if (!_completedTypeRefs.Add(directive.Type))
         {
@@ -597,14 +597,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 
     private static bool IsAuthorizedType<T>(T definition)
-        where T : IHasDirectiveDefinition
+        where T : IDirectiveConfigurationProvider
     {
         if (!definition.HasDirectives)
         {
             return false;
         }
 
-        var directives = (List<DirectiveDefinition>)definition.Directives;
+        var directives = (List<DirectiveConfiguration>)definition.Directives;
         var length = directives.Count;
 
         ref var start = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(directives));
@@ -642,7 +642,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
 file static class AuthorizationTypeInterceptorExtensions
 {
-    public static bool IsNodeField(this ObjectFieldDefinition fieldDef)
+    public static bool IsNodeField(this ObjectFieldConfiguration fieldDef)
     {
         var contextData = fieldDef.GetContextData();
 

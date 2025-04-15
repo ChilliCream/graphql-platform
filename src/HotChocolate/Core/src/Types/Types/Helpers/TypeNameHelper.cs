@@ -11,7 +11,7 @@ public static class TypeNameHelper
         IDescriptor<TDefinition> descriptor,
         Func<INamedType, string> createName,
         Type dependency)
-        where TDefinition : DefinitionBase, ITypeDefinition
+        where TDefinition : TypeSystemConfiguration, ITypeDefinition
     {
         if (descriptor is null)
         {
@@ -59,7 +59,7 @@ public static class TypeNameHelper
         IDescriptor<TDefinition> descriptor,
         Func<INamedType, string> createName,
         TypeReference dependency)
-        where TDefinition : DefinitionBase, ITypeDefinition
+        where TDefinition : TypeSystemConfiguration, ITypeDefinition
     {
         if (descriptor is null)
         {

@@ -23,7 +23,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (validationContext.IsIntrospectionType)
         {

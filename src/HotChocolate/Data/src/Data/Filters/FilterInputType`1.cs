@@ -20,7 +20,7 @@ public class FilterInputType<T> : FilterInputType
         _configure = Configure;
     }
 
-    protected override InputObjectTypeDefinition CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateDefinition(
         ITypeDiscoveryContext context)
     {
         var descriptor = FilterInputTypeDescriptor.New<T>(

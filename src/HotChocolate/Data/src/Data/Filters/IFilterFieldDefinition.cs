@@ -6,9 +6,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Filters;
 
 public interface IFilterFieldDefinition
-    : IDefinition
-    , IHasDirectiveDefinition
-    , IHasIgnore
+    : ITypeSystemConfiguration
+    , IDirectiveConfigurationProvider
+    , IIgnoreConfiguration
     , IHasScope
 {
     MemberInfo? Member { get; }

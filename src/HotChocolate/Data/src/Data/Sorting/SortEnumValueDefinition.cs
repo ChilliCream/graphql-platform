@@ -2,7 +2,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortEnumValueDefinition : EnumValueDefinition
+public class SortEnumValueDefinition : EnumValueConfiguration
 {
     public ISortOperationHandler Handler { get; set; } = default!;
 

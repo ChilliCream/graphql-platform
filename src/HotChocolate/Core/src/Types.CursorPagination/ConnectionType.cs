@@ -139,7 +139,7 @@ internal sealed class ConnectionType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         context.Dependencies.Add(new(
             context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
@@ -147,7 +147,7 @@ internal sealed class ConnectionType
         base.OnBeforeRegisterDependencies(context, definition);
     }
 
-    protected override void OnBeforeCompleteType(ITypeCompletionContext context, DefinitionBase definition)
+    protected override void OnBeforeCompleteType(ITypeCompletionContext context, TypeSystemConfiguration definition)
     {
         Definition!.IsOfType = IsOfTypeWithRuntimeType;
         base.OnBeforeCompleteType(context, definition);
@@ -205,10 +205,10 @@ internal sealed class ConnectionType
         return definition;
     }
 
-    private static bool IsEdgesField(ObjectFieldDefinition field)
+    private static bool IsEdgesField(ObjectFieldConfiguration field)
         => (field.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField;
 
-    private static bool IsNodesField(ObjectFieldDefinition field)
+    private static bool IsNodesField(ObjectFieldConfiguration field)
         => (field.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField;
 
     private static IPageInfo GetPagingInfo(IResolverContext context)

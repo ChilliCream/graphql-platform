@@ -144,7 +144,7 @@ public partial class ObjectType
         {
             if (processed.Add(interfaceField.Name))
             {
-                var field = new ObjectFieldDefinition();
+                var field = new ObjectFieldConfiguration();
                 interfaceField.CopyTo(field);
                 definition.Fields.Add(field);
             }
@@ -166,7 +166,7 @@ public partial class ObjectType
         TypeMemHelper.Return(processed);
         return collection;
 
-        static ObjectField CreateField(ObjectFieldDefinition fieldDef, int index)
+        static ObjectField CreateField(ObjectFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }
 

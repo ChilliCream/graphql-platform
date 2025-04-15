@@ -2,19 +2,19 @@
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public sealed class CreateConfiguration : ITypeSystemMemberConfiguration
+public sealed class CreateConfiguration : ITypeSystemConfigurationTask
 {
-    private readonly Action<IDescriptorContext, IDefinition> _configure;
+    private readonly Action<IDescriptorContext, ITypeSystemConfiguration> _configure;
 
     public CreateConfiguration(
-        Action<IDescriptorContext, IDefinition> configure,
-        IDefinition owner)
+        Action<IDescriptorContext, ITypeSystemConfiguration> configure,
+        ITypeSystemConfiguration owner)
     {
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
     }
 
-    public IDefinition Owner { get; }
+    public ITypeSystemConfiguration Owner { get; }
 
     public ApplyConfigurationOn On => ApplyConfigurationOn.Create;
 
@@ -27,7 +27,7 @@ public sealed class CreateConfiguration : ITypeSystemMemberConfiguration
     public void Configure(IDescriptorContext context)
         => _configure(context, Owner);
 
-    public ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner)
+    public ITypeSystemConfigurationTask Copy(TypeSystemConfiguration newOwner)
     {
         if (newOwner is null)
         {

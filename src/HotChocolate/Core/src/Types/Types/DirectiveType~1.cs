@@ -22,7 +22,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
         _configure = Configure;
     }
 
-    protected override DirectiveTypeDefinition CreateDefinition(
+    protected override DirectiveTypeConfiguration CreateDefinition(
         ITypeDiscoveryContext context)
     {
         var descriptor = DirectiveTypeDescriptor.New<TDirective>(context.DescriptorContext);

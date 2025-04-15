@@ -123,7 +123,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 
         if (fieldIgnores.Count > 0)
         {
-            var fields = new List<ObjectFieldDefinition>();
+            var fields = new List<ObjectFieldConfiguration>();
 
             foreach (var binding in fieldIgnores)
             {

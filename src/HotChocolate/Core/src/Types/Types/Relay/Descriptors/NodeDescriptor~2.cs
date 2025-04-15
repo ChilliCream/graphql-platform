@@ -42,7 +42,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
     public IObjectFieldDescriptor ResolveNode(FieldResolverDelegate fieldResolver)
     {
-        Definition.ResolverField ??= new ObjectFieldDefinition();
+        Definition.ResolverField ??= new ObjectFieldConfiguration();
         Definition.ResolverField.Resolver = fieldResolver ??
             throw new ArgumentNullException(nameof(fieldResolver));
 
@@ -83,7 +83,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
         if (member is MethodInfo m)
         {
-            Definition.ResolverField ??= new ObjectFieldDefinition();
+            Definition.ResolverField ??= new ObjectFieldConfiguration();
             Definition.ResolverField.Member = m;
             Definition.ResolverField.ResolverType = typeof(TResolver);
             return _configureNodeField();
@@ -101,7 +101,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
             throw new ArgumentNullException(nameof(method));
         }
 
-        Definition.ResolverField ??= new ObjectFieldDefinition();
+        Definition.ResolverField ??= new ObjectFieldConfiguration();
         Definition.ResolverField.Member = method;
         Definition.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
         return _configureNodeField();

@@ -27,7 +27,7 @@ public static class IntrospectionFields
     private static readonly PureFieldDelegate _typeNameResolver =
         ctx => ctx.ObjectType.Name;
 
-    internal static ObjectFieldDefinition CreateSchemaField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateSchemaField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, Schema);
 
@@ -43,7 +43,7 @@ public static class IntrospectionFields
         return CreateDefinition(descriptor);
     }
 
-    internal static ObjectFieldDefinition CreateTypeField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateTypeField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, Type);
 
@@ -64,7 +64,7 @@ public static class IntrospectionFields
         return CreateDefinition(descriptor);
     }
 
-    internal static ObjectFieldDefinition CreateTypeNameField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateTypeNameField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, TypeName);
 
@@ -79,7 +79,7 @@ public static class IntrospectionFields
         return CreateDefinition(descriptor);
     }
 
-    private static ObjectFieldDefinition CreateDefinition(ObjectFieldDescriptor descriptor)
+    private static ObjectFieldConfiguration CreateDefinition(ObjectFieldDescriptor descriptor)
     {
         var definition = descriptor.CreateDefinition();
         definition.IsIntrospectionField = true;

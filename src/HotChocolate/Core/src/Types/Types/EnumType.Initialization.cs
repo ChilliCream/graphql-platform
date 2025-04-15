@@ -48,7 +48,7 @@ public partial class EnumType
     /// <returns>
     /// Returns the newly created enum type.
     /// </returns>
-    public static EnumType CreateUnsafe(EnumTypeDefinition definition)
+    public static EnumType CreateUnsafe(EnumTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <summary>
@@ -60,7 +60,7 @@ public partial class EnumType
     protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
     /// <inheritdoc />
-    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         try
         {
@@ -84,7 +84,7 @@ public partial class EnumType
     /// <inheritdoc />
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         context.RegisterDependencies(definition);
@@ -94,7 +94,7 @@ public partial class EnumType
     /// <inheritdoc />
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -135,7 +135,7 @@ public partial class EnumType
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration definition)
     {
         base.OnCompleteMetadata(context, definition);
 
@@ -147,7 +147,7 @@ public partial class EnumType
 
     protected virtual bool TryCreateEnumValue(
         ITypeCompletionContext context,
-        EnumValueDefinition definition,
+        EnumValueConfiguration definition,
         [NotNullWhen(true)] out IEnumValue? enumValue)
     {
         enumValue = new EnumValue(definition);

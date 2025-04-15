@@ -13,7 +13,7 @@ using static HotChocolate.Properties.TypeResources;
 namespace HotChocolate.Types.Descriptors;
 
 public class InterfaceFieldDescriptor
-    : OutputFieldDescriptorBase<InterfaceFieldDefinition>
+    : OutputFieldDescriptorBase<InterfaceFieldConfiguration>
     , IInterfaceFieldDescriptor
 {
     private ParameterInfo[] _parameterInfos = [];
@@ -29,7 +29,7 @@ public class InterfaceFieldDescriptor
 
     protected internal InterfaceFieldDescriptor(
         IDescriptorContext context,
-        InterfaceFieldDefinition definition)
+        InterfaceFieldConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -59,9 +59,9 @@ public class InterfaceFieldDescriptor
         }
     }
 
-    protected internal override InterfaceFieldDefinition Definition { get; protected set; } = new();
+    protected internal override InterfaceFieldConfiguration Definition { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(InterfaceFieldDefinition definition)
+    protected override void OnCreateDefinition(InterfaceFieldConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -78,7 +78,7 @@ public class InterfaceFieldDescriptor
         Context.Descriptors.Pop();
     }
 
-    private void CompleteArguments(InterfaceFieldDefinition definition)
+    private void CompleteArguments(InterfaceFieldConfiguration definition)
     {
         if (!_argumentsInitialized && Parameters.Any())
         {
@@ -312,6 +312,6 @@ public class InterfaceFieldDescriptor
 
     public static InterfaceFieldDescriptor From(
         IDescriptorContext context,
-        InterfaceFieldDefinition definition)
+        InterfaceFieldConfiguration definition)
         => new(context, definition);
 }

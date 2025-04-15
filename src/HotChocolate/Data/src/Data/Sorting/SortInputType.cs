@@ -24,7 +24,7 @@ public class SortInputType
 
     public IExtendedType EntityType { get; private set; } = default!;
 
-    protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         if (Definition is null)
         {
@@ -48,7 +48,7 @@ public class SortInputType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         if (definition is SortInputTypeDefinition {EntityType: { }, } sortDefinition)
@@ -60,7 +60,7 @@ public class SortInputType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -72,7 +72,7 @@ public class SortInputType
 
     protected override FieldCollection<InputField> OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         var fields = new InputField[definition.Fields.Count];
         var index = 0;

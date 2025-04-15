@@ -24,7 +24,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterMakeExecutable(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (ReferenceEquals(completionContext, _queryContext) &&
             completionContext.Type is ObjectType { Fields: var fields, })
@@ -73,7 +73,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDefinition)
         {

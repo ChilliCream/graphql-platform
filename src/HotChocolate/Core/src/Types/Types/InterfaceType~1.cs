@@ -17,7 +17,7 @@ public class InterfaceType<T> : InterfaceType
     public InterfaceType() =>
         _configure = Configure;
 
-    protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InterfaceTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         var descriptor = InterfaceTypeDescriptor.New<T>(context.DescriptorContext);
 

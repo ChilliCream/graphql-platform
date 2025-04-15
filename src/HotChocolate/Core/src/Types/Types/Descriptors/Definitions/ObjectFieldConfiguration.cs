@@ -11,13 +11,13 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
-/// The <see cref="ObjectFieldDefinition"/> contains the settings
+/// The <see cref="ObjectFieldConfiguration"/> contains the settings
 /// to create a <see cref="ObjectField"/>.
 /// </summary>
-public class ObjectFieldDefinition : OutputFieldDefinitionBase
+public class ObjectFieldConfiguration : OutputFieldConfiguration
 {
-    private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
-    private List<ResultFormatterDefinition>? _resultConverters;
+    private List<FieldMiddlewareConfiguration>? _middlewareDefinitions;
+    private List<ResultFormatterConfiguration>? _resultConverters;
     private List<IParameterExpressionBuilder>? _expressionBuilders;
     private bool _middlewareDefinitionsCleaned;
     private bool _resultConvertersCleaned;
@@ -25,7 +25,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public ObjectFieldDefinition()
+    public ObjectFieldConfiguration()
     {
         IsParallelExecutable = true;
     }
@@ -33,7 +33,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public ObjectFieldDefinition(
+    public ObjectFieldConfiguration(
         string name,
         string? description = null,
         TypeReference? type = null,
@@ -125,7 +125,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
-    public IList<FieldMiddlewareDefinition> MiddlewareDefinitions
+    public IList<FieldMiddlewareConfiguration> MiddlewareDefinitions
     {
         get
         {
@@ -137,7 +137,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of formatters that can transform the resolver result.
     /// </summary>
-    public IList<ResultFormatterDefinition> FormatterDefinitions
+    public IList<ResultFormatterConfiguration> FormatterDefinitions
     {
         get
         {
@@ -224,11 +224,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
-    internal IReadOnlyList<FieldMiddlewareDefinition> GetMiddlewareDefinitions()
+    internal IReadOnlyList<FieldMiddlewareConfiguration> GetMiddlewareDefinitions()
     {
         if (_middlewareDefinitions is null)
         {
-            return Array.Empty<FieldMiddlewareDefinition>();
+            return Array.Empty<FieldMiddlewareConfiguration>();
         }
 
         CleanMiddlewareDefinitions(_middlewareDefinitions, ref _middlewareDefinitionsCleaned);
@@ -239,11 +239,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of converters that can transform the resolver result.
     /// </summary>
-    internal IReadOnlyList<ResultFormatterDefinition> GetResultConverters()
+    internal IReadOnlyList<ResultFormatterConfiguration> GetResultConverters()
     {
         if (_resultConverters is null)
         {
-            return Array.Empty<ResultFormatterDefinition>();
+            return Array.Empty<ResultFormatterConfiguration>();
         }
 
         CleanMiddlewareDefinitions(_resultConverters, ref _resultConvertersCleaned);
@@ -268,7 +268,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     private FieldResolverDelegates GetResolvers()
         => new(Resolver, PureResolver);
 
-    internal void CopyTo(ObjectFieldDefinition target)
+    internal void CopyTo(ObjectFieldConfiguration target)
     {
         base.CopyTo(target);
 
@@ -307,7 +307,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.ResultPostProcessor = ResultPostProcessor;
     }
 
-    internal void MergeInto(ObjectFieldDefinition target)
+    internal void MergeInto(ObjectFieldConfiguration target)
     {
         base.MergeInto(target);
 
@@ -400,7 +400,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     private static void CleanMiddlewareDefinitions<T>(
         IList<T> definitions,
         ref bool definitionsCleaned)
-        where T : IMiddlewareDefinition
+        where T : IRepeatableConfiguration
     {
         var count = definitions.Count;
 
@@ -450,7 +450,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 
                     do
                     {
-                        IMiddlewareDefinition def = definitions[i];
+                        IRepeatableConfiguration def = definitions[i];
 
                         if (def.IsRepeatable || def.Key is null)
                         {

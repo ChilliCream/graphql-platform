@@ -4,9 +4,8 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public sealed class CompleteConfiguration<TDefinition>
-    : CompleteConfiguration
-    where TDefinition : IDefinition
+public sealed class CompleteConfiguration<TDefinition> : CompleteConfiguration
+    where TDefinition : ITypeSystemConfiguration
 {
     public CompleteConfiguration(
         Action<ITypeCompletionContext, TDefinition> configure,
@@ -28,14 +27,14 @@ public sealed class CompleteConfiguration<TDefinition>
     }
 }
 
-public class CompleteConfiguration : ITypeSystemMemberConfiguration
+public class CompleteConfiguration : ITypeSystemConfigurationTask
 {
-    private readonly Action<ITypeCompletionContext, IDefinition> _configure;
+    private readonly Action<ITypeCompletionContext, ITypeSystemConfiguration> _configure;
     private List<TypeDependency>? _dependencies;
 
     public CompleteConfiguration(
-        Action<ITypeCompletionContext, IDefinition> configure,
-        IDefinition owner,
+        Action<ITypeCompletionContext, ITypeSystemConfiguration> configure,
+        ITypeSystemConfiguration owner,
         ApplyConfigurationOn on,
         TypeReference? typeReference = null,
         TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
@@ -56,8 +55,8 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
     }
 
     public CompleteConfiguration(
-        Action<ITypeCompletionContext, IDefinition> configure,
-        IDefinition owner,
+        Action<ITypeCompletionContext, ITypeSystemConfiguration> configure,
+        ITypeSystemConfiguration owner,
         ApplyConfigurationOn on,
         IEnumerable<TypeDependency> dependencies)
     {
@@ -77,7 +76,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
         _dependencies = [..dependencies,];
     }
 
-    public IDefinition Owner { get; }
+    public ITypeSystemConfiguration Owner { get; }
 
     public ApplyConfigurationOn On { get; }
 
@@ -98,7 +97,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
     public void Configure(ITypeCompletionContext context)
         => _configure(context, Owner);
 
-    public ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner)
+    public ITypeSystemConfigurationTask Copy(TypeSystemConfiguration newOwner)
     {
         if (newOwner is null)
         {

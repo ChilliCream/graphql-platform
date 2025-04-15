@@ -28,7 +28,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<string, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
         InferFieldsFromFieldBindingType(fields, handledMembers);

@@ -9,7 +9,7 @@ public static class ServerFields
 {
     private static readonly _Service _service = new();
 
-    internal static ObjectFieldDefinition CreateServiceField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateServiceField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, WellKnownFieldNames.Service);
         descriptor.Type<NonNullType<ObjectType<_Service>>>().Resolve(_service);
@@ -21,7 +21,7 @@ public static class ServerFields
         return descriptor.CreateDefinition();
     }
 
-    internal static ObjectFieldDefinition CreateEntitiesField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateEntitiesField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, WellKnownFieldNames.Entities);
 

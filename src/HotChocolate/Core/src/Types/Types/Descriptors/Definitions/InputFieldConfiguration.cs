@@ -6,20 +6,20 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
-/// The <see cref="InputFieldDefinition"/> contains the settings
+/// The <see cref="InputFieldConfiguration"/> contains the settings
 /// to create a <see cref="InputField"/>.
 /// </summary>
-public class InputFieldDefinition : ArgumentDefinition
+public class InputFieldConfiguration : ArgumentConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="InputFieldDefinition"/>.
+    /// Initializes a new instance of <see cref="InputFieldConfiguration"/>.
     /// </summary>
-    public InputFieldDefinition() { }
+    public InputFieldConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="InputFieldDefinition"/>.
+    /// Initializes a new instance of <see cref="InputFieldConfiguration"/>.
     /// </summary>
-    public InputFieldDefinition(
+    public InputFieldConfiguration(
         string name,
         string? description = null,
         TypeReference? type = null,
@@ -34,14 +34,14 @@ public class InputFieldDefinition : ArgumentDefinition
     /// </summary>
     public PropertyInfo? Property { get; set; }
 
-    internal void CopyTo(InputFieldDefinition target)
+    internal void CopyTo(InputFieldConfiguration target)
     {
         base.CopyTo(target);
 
         target.Property = Property;
     }
 
-    internal void MergeInto(InputFieldDefinition target)
+    internal void MergeInto(InputFieldConfiguration target)
     {
         base.MergeInto(target);
 

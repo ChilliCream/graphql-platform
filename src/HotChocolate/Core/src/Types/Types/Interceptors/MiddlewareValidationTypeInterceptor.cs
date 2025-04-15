@@ -19,7 +19,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
             definition is ObjectTypeDefinition objectTypeDef)
@@ -40,7 +40,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     private void ValidatePipeline(
         ITypeSystemObject type,
         SchemaCoordinate fieldCoordinate,
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         _names.Clear();
 
@@ -138,7 +138,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     }
 
     private static string PrintPipeline(
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         var sb = new StringBuilder();
         var next = false;

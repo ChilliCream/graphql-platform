@@ -17,7 +17,7 @@ public partial class InterfaceType
     private ResolveAbstractType? _resolveAbstractType;
     private ISchema _schema = default!;
 
-    protected override InterfaceTypeDefinition CreateDefinition(
+    protected override InterfaceTypeConfiguration CreateDefinition(
         ITypeDiscoveryContext context)
     {
         try
@@ -41,7 +41,7 @@ public partial class InterfaceType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         context.RegisterDependencies(definition);
@@ -50,7 +50,7 @@ public partial class InterfaceType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -63,7 +63,7 @@ public partial class InterfaceType
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         base.OnCompleteMetadata(context, definition);
 
@@ -75,7 +75,7 @@ public partial class InterfaceType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         base.OnMakeExecutable(context, definition);
 
@@ -87,7 +87,7 @@ public partial class InterfaceType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         base.OnFinalizeType(context, definition);
 
@@ -99,10 +99,10 @@ public partial class InterfaceType
 
     protected virtual FieldCollection<InterfaceField> OnCompleteFields(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         return CompleteFields(context, this, definition.Fields, CreateField);
-        static InterfaceField CreateField(InterfaceFieldDefinition fieldDef, int index)
+        static InterfaceField CreateField(InterfaceFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }
 

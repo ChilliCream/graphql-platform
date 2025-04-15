@@ -10,16 +10,16 @@ internal sealed class MutationDirective : ISchemaDirective
     public void ApplyConfiguration(
         IDescriptorContext context,
         DirectiveNode directiveNode,
-        IDefinition definition,
-        Stack<IDefinition> path)
+        ITypeSystemConfiguration definition,
+        Stack<ITypeSystemConfiguration> path)
     {
-        if (definition is not ObjectFieldDefinition fieldDef)
+        if (definition is not ObjectFieldConfiguration fieldDef)
         {
             throw ThrowHelper.MutationConventionDirective_In_Wrong_Location(directiveNode);
         }
 
         fieldDef.Configurations.Add(
-            new CompleteConfiguration<ObjectFieldDefinition>(
+            new CompleteConfiguration<ObjectFieldConfiguration>(
                 (c, d) =>
                 {
                     c.ContextData
@@ -32,7 +32,7 @@ internal sealed class MutationDirective : ISchemaDirective
 
     private static MutationContextData CreateMutationContextData(
         DirectiveNode directiveNode,
-        ObjectFieldDefinition fieldDef)
+        ObjectFieldConfiguration fieldDef)
     {
         var data = new MutationDirectiveData { Enabled = true, };
         var args = directiveNode.Arguments;

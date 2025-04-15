@@ -7,17 +7,17 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL enum type.
 /// </summary>
-public class EnumTypeDefinition : TypeDefinitionBase
+public class EnumTypeConfiguration : TypeDefinitionBase
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="EnumTypeConfiguration"/>.
     /// </summary>
-    public EnumTypeDefinition() { }
+    public EnumTypeConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="EnumTypeConfiguration"/>.
     /// </summary>
-    public EnumTypeDefinition(
+    public EnumTypeConfiguration(
         string name,
         string? description = null,
         Type? runtimeType = null)
@@ -42,12 +42,12 @@ public class EnumTypeDefinition : TypeDefinitionBase
     /// <summary>
     /// Gets the enum values.
     /// </summary>
-    public IBindableList<EnumValueDefinition> Values { get; } =
-        new BindableList<EnumValueDefinition>();
+    public IBindableList<EnumValueConfiguration> Values { get; } =
+        new BindableList<EnumValueConfiguration>();
 
-    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
     {
-        List<ITypeSystemMemberConfiguration>? configs = null;
+        List<ITypeSystemConfigurationTask>? configs = null;
 
         if (HasConfigurations)
         {
@@ -64,7 +64,7 @@ public class EnumTypeDefinition : TypeDefinitionBase
             }
         }
 
-        return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
+        return configs ?? Enumerable.Empty<ITypeSystemConfigurationTask>();
     }
 
     private sealed class DefaultValueComparer : IEqualityComparer<object>

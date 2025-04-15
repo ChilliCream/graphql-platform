@@ -22,7 +22,7 @@ public static class DataLoaderObjectFieldExtensions
         this IObjectFieldDescriptor descriptor,
         Type dataLoaderType)
     {
-        FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: DataLoader);
+        FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: DataLoader);
 
         if (!TryGetDataLoaderTypes(dataLoaderType, out var keyType, out var valueType))
         {
@@ -53,7 +53,7 @@ public static class DataLoaderObjectFieldExtensions
 
                     definition.Type = TypeReference.Create(schemaType, TypeContext.Output);
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                        new CompleteConfiguration<ObjectFieldConfiguration>(
                             (_, def) =>
                             {
                                 CompileMiddleware(
@@ -71,8 +71,8 @@ public static class DataLoaderObjectFieldExtensions
     }
 
     private static void CompileMiddleware(
-        ObjectFieldDefinition definition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        FieldMiddlewareConfiguration placeholder,
         Type keyType,
         Type valueType,
         Type dataLoaderType)

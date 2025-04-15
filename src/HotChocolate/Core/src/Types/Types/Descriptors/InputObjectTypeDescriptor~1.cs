@@ -20,7 +20,7 @@ public class InputObjectTypeDescriptor<T>
 
     protected internal InputObjectTypeDescriptor(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         : base(context, definition)
     {
     }
@@ -28,7 +28,7 @@ public class InputObjectTypeDescriptor<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<string, InputFieldDefinition> fields,
+        IDictionary<string, InputFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
         InferFieldsFromFieldBindingType(fields, handledMembers);

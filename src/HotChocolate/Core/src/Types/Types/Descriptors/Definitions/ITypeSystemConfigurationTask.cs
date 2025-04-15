@@ -6,13 +6,13 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// A configuration object that is applied to a type system member at a certain event
 /// during the type system initialization.
 /// </summary>
-public interface ITypeSystemMemberConfiguration
+public interface ITypeSystemConfigurationTask
 {
     /// <summary>
     /// The definition of the type system member that shall be configured.
     /// </summary>
     /// <value></value>
-    IDefinition Owner { get; }
+    ITypeSystemConfiguration Owner { get; }
 
     /// <summary>
     /// Defines on which type initialization step this
@@ -23,7 +23,6 @@ public interface ITypeSystemMemberConfiguration
     /// <summary>
     /// Defines types on on which this configuration is dependant on.
     /// </summary>
-    /// <returns></returns>
     IReadOnlyList<TypeDependency> Dependencies { get; }
 
     /// <summary>
@@ -43,5 +42,5 @@ public interface ITypeSystemMemberConfiguration
     /// <returns>
     /// Returns the new configuration.
     /// </returns>
-    ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner);
+    ITypeSystemConfigurationTask Copy(TypeSystemConfiguration newOwner);
 }

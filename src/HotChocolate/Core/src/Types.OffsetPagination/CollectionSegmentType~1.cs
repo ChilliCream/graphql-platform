@@ -65,7 +65,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
         context.Dependencies.Add(new(typeRef));
@@ -116,7 +116,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
     private static object GetTotalCount(IResolverContext context)
         => context.Parent<CollectionSegment>().TotalCount;
 
-    private static bool IsItemsField(ObjectFieldDefinition field)
+    private static bool IsItemsField(ObjectFieldConfiguration field)
         => (field.Flags & FieldFlags.ItemsField) == FieldFlags.ItemsField;
 
     internal static class Names

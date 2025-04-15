@@ -207,7 +207,7 @@ public static class RequiresScopesDescriptorExtensions
 
     private static void AddScopes(
         IReadOnlyList<Scope> scopes,
-        IHasDirectiveDefinition definition,
+        IDirectiveConfigurationProvider definition,
         ITypeInspector typeInspector)
     {
         var directive = definition

@@ -38,7 +38,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
     {
         if (completionContext.IsIntrospectionType)
         {
@@ -89,7 +89,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                 field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition(levels));
             }
         }
-        else if (definition is InterfaceTypeDefinition interfaceDef)
+        else if (definition is InterfaceTypeConfiguration interfaceDef)
         {
             if (interfaceDef.Name == "Node")
             {
@@ -117,7 +117,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
     }
 
     private void ApplySemanticNonNullDirective(
-        OutputFieldDefinitionBase field,
+        OutputFieldConfiguration field,
         ITypeCompletionContext completionContext,
         HashSet<int> levels)
     {
@@ -296,7 +296,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         return typeNode;
     }
 
-    private static ResultFormatterDefinition CreateSemanticNonNullResultFormatterDefinition(HashSet<int> levels)
+    private static ResultFormatterConfiguration CreateSemanticNonNullResultFormatterDefinition(HashSet<int> levels)
         => new((context, result) =>
             {
                 CheckResultForSemanticNonNullViolations(result, context, context.Path, levels, 0);

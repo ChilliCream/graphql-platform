@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public interface ICanBeDeprecated
+public interface IDeprecationConfiguration
 {
     string DeprecationReason { get; }
 

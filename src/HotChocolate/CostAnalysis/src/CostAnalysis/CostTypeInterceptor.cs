@@ -43,7 +43,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         TypeReferenceResolver typeReferenceResolver)
         => _options = context.Services.GetRequiredService<CostOptions>();
 
-    public override void OnAfterCompleteName(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnAfterCompleteName(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDef)
         {
@@ -118,7 +118,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
             }
         }
 
-        if (definition is InputObjectTypeDefinition inputObjectTypeDef)
+        if (definition is InputObjectTypeConfiguration inputObjectTypeDef)
         {
             foreach (var fieldDef in inputObjectTypeDef.Fields)
             {
@@ -151,7 +151,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDef)
         {
@@ -180,11 +180,11 @@ internal sealed class CostDirectiveTypeInterceptor : TypeInterceptor
 
 file static class Extensions
 {
-    public static bool HasCostDirective(this IHasDirectiveDefinition directiveProvider)
+    public static bool HasCostDirective(this IDirectiveConfigurationProvider directiveProvider)
         => directiveProvider.Directives.Any(
             t => t.Value is CostDirective or DirectiveNode { Name.Value: "cost" });
 
-    public static bool HasListSizeDirective(this IHasDirectiveDefinition directiveProvider)
+    public static bool HasListSizeDirective(this IDirectiveConfigurationProvider directiveProvider)
         => directiveProvider.Directives.Any(
             t => t.Value is ListSizeDirective or DirectiveNode { Name.Value: "listSize" });
 }

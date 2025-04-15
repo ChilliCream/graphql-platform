@@ -8,7 +8,7 @@ using static HotChocolate.Types.MemberKind;
 namespace HotChocolate.Types.Descriptors;
 
 public class InputFieldDescriptor
-    : ArgumentDescriptorBase<InputFieldDefinition>
+    : ArgumentDescriptorBase<InputFieldConfiguration>
     , IInputFieldDescriptor
 {
     /// <summary>
@@ -27,7 +27,7 @@ public class InputFieldDescriptor
     /// </summary>
     protected internal InputFieldDescriptor(
         IDescriptorContext context,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -59,7 +59,7 @@ public class InputFieldDescriptor
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(InputFieldDefinition definition)
+    protected override void OnCreateDefinition(InputFieldConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -211,6 +211,6 @@ public class InputFieldDescriptor
     /// <returns>An instance of <see cref="InputFieldDescriptor "/></returns>
     public static InputFieldDescriptor From(
         IDescriptorContext context,
-        InputFieldDefinition definition) =>
+        InputFieldConfiguration definition) =>
         new(context, definition);
 }

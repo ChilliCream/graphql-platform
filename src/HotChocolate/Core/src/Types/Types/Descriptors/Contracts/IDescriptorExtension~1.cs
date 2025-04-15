@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 /// </summary>
 /// <typeparam name="T">The type definition.</typeparam>
 public interface IDescriptorExtension<out T> : IHasDescriptorContext
-    where T : DefinitionBase
+    where T : TypeSystemConfiguration
 {
     /// <summary>
     /// The type definition.

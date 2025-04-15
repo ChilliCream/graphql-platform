@@ -10,8 +10,8 @@ namespace HotChocolate.Types.Descriptors;
 /// <summary>
 /// A fluent configuration API for GraphQL arguments.
 /// </summary>
-/// <typeparam name="T">The type of the <see cref="ArgumentDefinition"/></typeparam>
-public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDefinition, new()
+/// <typeparam name="T">The type of the <see cref="ArgumentConfiguration"/></typeparam>
+public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentConfiguration, new()
 {
     /// <summary>
     ///  Creates a new instance of <see cref="ArgumentDescriptor"/>

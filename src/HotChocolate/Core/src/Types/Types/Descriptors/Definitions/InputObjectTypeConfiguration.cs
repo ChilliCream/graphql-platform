@@ -7,17 +7,17 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL input object type.
 /// </summary>
-public class InputObjectTypeDefinition : TypeDefinitionBase
+public class InputObjectTypeConfiguration : TypeDefinitionBase
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="InputObjectTypeConfiguration"/>.
     /// </summary>
-    public InputObjectTypeDefinition() { }
+    public InputObjectTypeConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
+    /// Initializes a new instance of <see cref="InputObjectTypeConfiguration"/>.
     /// </summary>
-    public InputObjectTypeDefinition(
+    public InputObjectTypeConfiguration(
         string name,
         string? description = null,
         Type? runtimeType = null)
@@ -30,8 +30,8 @@ public class InputObjectTypeDefinition : TypeDefinitionBase
     /// <summary>
     /// Gets the input fields.
     /// </summary>
-    public IBindableList<InputFieldDefinition> Fields { get; } =
-        new BindableList<InputFieldDefinition>();
+    public IBindableList<InputFieldConfiguration> Fields { get; } =
+        new BindableList<InputFieldConfiguration>();
 
     /// <summary>
     /// Gets or sets the input object runtime value factory delegate.
@@ -43,9 +43,9 @@ public class InputObjectTypeDefinition : TypeDefinitionBase
     /// </summary>
     public Action<object, object?[]>? GetFieldData { get; set; }
 
-    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
     {
-        List<ITypeSystemMemberConfiguration>? configs = null;
+        List<ITypeSystemConfigurationTask>? configs = null;
 
         if (HasConfigurations)
         {
@@ -62,10 +62,10 @@ public class InputObjectTypeDefinition : TypeDefinitionBase
             }
         }
 
-        return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
+        return configs ?? Enumerable.Empty<ITypeSystemConfigurationTask>();
     }
 
-    protected internal void CopyTo(InputObjectTypeDefinition target)
+    protected internal void CopyTo(InputObjectTypeConfiguration target)
     {
         base.CopyTo(target);
 
@@ -83,7 +83,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase
         target.GetFieldData = GetFieldData;
     }
 
-    protected internal void MergeInto(InputObjectTypeDefinition target)
+    protected internal void MergeInto(InputObjectTypeConfiguration target)
     {
         base.MergeInto(target);
 
@@ -106,7 +106,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase
                     target.Fields.Remove(targetField);
                 }
 
-                var newField = new InputFieldDefinition();
+                var newField = new InputFieldConfiguration();
                 field.CopyTo(newField);
                 target.Fields.Add(newField);
             }

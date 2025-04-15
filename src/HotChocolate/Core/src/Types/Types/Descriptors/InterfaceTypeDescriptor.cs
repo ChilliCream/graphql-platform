@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Descriptors;
 
 public class InterfaceTypeDescriptor
-    : DescriptorBase<InterfaceTypeDefinition>
+    : DescriptorBase<InterfaceTypeConfiguration>
     , IInterfaceTypeDescriptor
 {
     protected InterfaceTypeDescriptor(
@@ -35,7 +35,7 @@ public class InterfaceTypeDescriptor
 
     protected InterfaceTypeDescriptor(
         IDescriptorContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -46,14 +46,14 @@ public class InterfaceTypeDescriptor
         }
     }
 
-    protected internal override InterfaceTypeDefinition Definition { get; protected set; } =
+    protected internal override InterfaceTypeConfiguration Definition { get; protected set; } =
         new();
 
     protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
         new List<InterfaceFieldDescriptor>();
 
     protected override void OnCreateDefinition(
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -66,7 +66,7 @@ public class InterfaceTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<string, InterfaceFieldDefinition>();
+        var fields = new Dictionary<string, InterfaceFieldConfiguration>();
         var handledMembers = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -86,7 +86,7 @@ public class InterfaceTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, InterfaceFieldDefinition> fields,
+        IDictionary<string, InterfaceFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
     }
@@ -200,11 +200,11 @@ public class InterfaceTypeDescriptor
 
     public static InterfaceTypeDescriptor From(
         IDescriptorContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
         => new(context, definition);
 
     public static InterfaceTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
         => new(context, definition);
 }

@@ -20,7 +20,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
 
-    internal ObjectField(ObjectFieldDefinition definition, int index)
+    internal ObjectField(ObjectFieldConfiguration definition, int index)
         : base(definition, index)
     {
         Member = definition.Member;
@@ -113,15 +113,15 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         base.OnMakeExecutable(context, declaringMember, definition);
-        CompleteResolver(context, (ObjectFieldDefinition)definition);
+        CompleteResolver(context, (ObjectFieldConfiguration)definition);
     }
 
     private void CompleteResolver(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition)
+        ObjectFieldConfiguration definition)
     {
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
@@ -141,7 +141,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 
         if (Directives.Count > 0)
         {
-            List<FieldMiddlewareDefinition>? middlewareDefinitions = null;
+            List<FieldMiddlewareConfiguration>? middlewareDefinitions = null;
 
             for (var i = Directives.Count - 1; i >= 0; i--)
             {
@@ -151,7 +151,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
                 {
                     (middlewareDefinitions ??= fieldMiddlewareDefinitions.ToList()).Insert(
                         0,
-                        new FieldMiddlewareDefinition(next => m(next, directive)));
+                        new FieldMiddlewareConfiguration(next => m(next, directive)));
                 }
             }
 
@@ -224,7 +224,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
             return skipMiddleware || (context.GlobalComponents.Count == 0 && fieldMiddlewareDefinitions.Count == 0);
         }
 
-        static Type GetResultType(ObjectFieldDefinition definition, Type runtimeType)
+        static Type GetResultType(ObjectFieldConfiguration definition, Type runtimeType)
         {
             if (definition.ResultType == null
                 || definition.ResultType == typeof(object))

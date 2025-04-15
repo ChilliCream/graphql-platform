@@ -8,20 +8,20 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL enum value.
 /// </summary>
-public class EnumValueDefinition
+public class EnumValueConfiguration
     : TypeDefinitionBase
-    , ICanBeDeprecated
-    , IHasIgnore
+    , IDeprecationConfiguration
+    , IIgnoreConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="EnumValueDefinition"/>.
+    /// Initializes a new instance of <see cref="EnumValueConfiguration"/>.
     /// </summary>
-    public EnumValueDefinition() { }
+    public EnumValueConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="EnumValueDefinition"/>.
+    /// Initializes a new instance of <see cref="EnumValueConfiguration"/>.
     /// </summary>
-    public EnumValueDefinition(
+    public EnumValueConfiguration(
         string name,
         string? description = null,
         object? runtimeValue = null)

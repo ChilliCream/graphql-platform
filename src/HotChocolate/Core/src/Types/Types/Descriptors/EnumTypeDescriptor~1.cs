@@ -14,7 +14,7 @@ public class EnumTypeDescriptor<T>
 
     protected internal EnumTypeDescriptor(
         IDescriptorContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration definition)
         : base(context, definition)
     {
     }

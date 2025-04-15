@@ -10,7 +10,7 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
 {
     public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)
     {
-        var typeDefinition = new DirectiveTypeDefinition(
+        var typeDefinition = new DirectiveTypeConfiguration(
             node.Name.Value,
             node.Description?.Value,
             isRepeatable: node.IsRepeatable);
@@ -27,12 +27,12 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
     }
 
     private static void DeclareArguments(
-        DirectiveTypeDefinition parent,
+        DirectiveTypeConfiguration parent,
         IReadOnlyCollection<InputValueDefinitionNode> arguments)
     {
         foreach (var argument in arguments)
         {
-            var argumentDefinition = new DirectiveArgumentDefinition(
+            var argumentDefinition = new DirectiveArgumentConfiguration(
                 argument.Name.Value,
                 argument.Description?.Value,
                 TypeReference.Create(argument.Type),
@@ -48,7 +48,7 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
     }
 
     private static void DeclareLocations(
-        DirectiveTypeDefinition parent,
+        DirectiveTypeConfiguration parent,
         DirectiveDefinitionNode node)
     {
         parent.Locations = Parse(node.Locations);

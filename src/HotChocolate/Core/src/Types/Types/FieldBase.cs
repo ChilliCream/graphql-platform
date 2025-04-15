@@ -12,10 +12,10 @@ public abstract class FieldBase
     : IField
     , IFieldCompletion
 {
-    private FieldDefinitionBase? _definition;
+    private FieldConfiguration? _definition;
     private FieldFlags _flags;
 
-    protected FieldBase(FieldDefinitionBase definition, int index)
+    protected FieldBase(FieldConfiguration definition, int index)
     {
         _definition = definition ?? throw new ArgumentNullException(nameof(definition));
         Index = index;
@@ -74,7 +74,7 @@ public abstract class FieldBase
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
         DeclaringType = context.Type;
         Coordinate = declaringMember is IField field
@@ -99,7 +99,7 @@ public abstract class FieldBase
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
         Directives = DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
@@ -121,7 +121,7 @@ public abstract class FieldBase
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
     }
 
@@ -143,7 +143,7 @@ public abstract class FieldBase
     protected virtual void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
     }
 

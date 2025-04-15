@@ -5,7 +5,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// <summary>
 /// The entity definition allows to specify a reference resolver.
 /// </summary>
-public sealed class EntityResolverDefinition : DefinitionBase
+public sealed class EntityResolverDefinition : TypeSystemConfiguration
 {
     /// <summary>
     /// The runtime type of the entity.

@@ -21,7 +21,7 @@ public class DirectiveTypeDescriptor<T>
 
     protected internal DirectiveTypeDescriptor(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         : base(context, definition)
     {
         Definition = definition;
@@ -30,7 +30,7 @@ public class DirectiveTypeDescriptor<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteArguments(
-        IDictionary<string, DirectiveArgumentDefinition> arguments,
+        IDictionary<string, DirectiveArgumentConfiguration> arguments,
         ISet<PropertyInfo> handledProperties)
     {
         if (Definition.Arguments.IsImplicitBinding())

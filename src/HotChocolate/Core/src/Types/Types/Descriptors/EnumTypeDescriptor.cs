@@ -5,7 +5,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Types.Descriptors;
 
 public class EnumTypeDescriptor
-    : DescriptorBase<EnumTypeDefinition>
+    : DescriptorBase<EnumTypeConfiguration>
     , IEnumTypeDescriptor
 {
     protected EnumTypeDescriptor(IDescriptorContext context)
@@ -24,19 +24,19 @@ public class EnumTypeDescriptor
         Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
-    protected EnumTypeDescriptor(IDescriptorContext context, EnumTypeDefinition definition)
+    protected EnumTypeDescriptor(IDescriptorContext context, EnumTypeConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override EnumTypeDefinition Definition { get; protected set; } = new();
+    protected internal override EnumTypeConfiguration Definition { get; protected set; } = new();
 
     protected ICollection<EnumValueDescriptor> Values { get; } =
         new List<EnumValueDescriptor>();
 
     protected override void OnCreateDefinition(
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -65,8 +65,8 @@ public class EnumTypeDescriptor
     }
 
     protected void AddImplicitValues(
-        EnumTypeDefinition typeDefinition,
-        IDictionary<object, EnumValueDefinition> values)
+        EnumTypeConfiguration typeDefinition,
+        IDictionary<object, EnumValueConfiguration> values)
     {
         if (typeDefinition.Values.IsImplicitBinding())
         {
@@ -186,11 +186,11 @@ public class EnumTypeDescriptor
 
     public static EnumTypeDescriptor From(
         IDescriptorContext context,
-        EnumTypeDefinition definition) =>
+        EnumTypeConfiguration definition) =>
         new(context, definition);
 
     public static EnumTypeDescriptor From<T>(
         IDescriptorContext context,
-        EnumTypeDefinition definition) =>
+        EnumTypeConfiguration definition) =>
         new(context, definition);
 }

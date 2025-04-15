@@ -30,12 +30,12 @@ public static class PagingHelper
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: Paging);
+        FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
 
         var definition = descriptor.Extend().Definition;
         definition.MiddlewareDefinitions.Add(placeholder);
         definition.Configurations.Add(
-            new CompleteConfiguration<ObjectFieldDefinition>(
+            new CompleteConfiguration<ObjectFieldConfiguration>(
                 (c, d) => ApplyConfiguration(
                     c,
                     d,
@@ -52,12 +52,12 @@ public static class PagingHelper
 
     private static void ApplyConfiguration(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         Type? entityType,
         string? name,
         GetPagingProvider resolvePagingProvider,
         PagingOptions? options,
-        FieldMiddlewareDefinition placeholder)
+        FieldMiddlewareConfiguration placeholder)
     {
         options = context.GetPagingOptions(options);
         entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
@@ -74,7 +74,7 @@ public static class PagingHelper
 
     private static IExtendedType GetSourceType(
         ITypeInspector typeInspector,
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         Type entityType)
     {
         var type = ResolveType();

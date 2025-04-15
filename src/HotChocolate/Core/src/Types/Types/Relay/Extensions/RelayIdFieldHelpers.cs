@@ -24,7 +24,7 @@ internal static class RelayIdFieldHelpers
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
     public static void ApplyIdToField(
-        IDescriptor<ArgumentDefinition> descriptor,
+        IDescriptor<ArgumentConfiguration> descriptor,
         string? typeName = default)
     {
         if (descriptor is null)
@@ -52,7 +52,7 @@ internal static class RelayIdFieldHelpers
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
     public static void ApplyIdToField(
-        IDescriptor<OutputFieldDefinitionBase> descriptor,
+        IDescriptor<OutputFieldConfiguration> descriptor,
         string? typeName = default)
     {
         if (descriptor is null)
@@ -63,7 +63,7 @@ internal static class RelayIdFieldHelpers
         // rewrite type
         descriptor.Extend().OnBeforeCreate(RewriteDefinition);
 
-        if (descriptor is IDescriptor<ObjectFieldDefinition> objectFieldDescriptor)
+        if (descriptor is IDescriptor<ObjectFieldConfiguration> objectFieldDescriptor)
         {
             var extend = objectFieldDescriptor.Extend();
 
@@ -83,10 +83,10 @@ internal static class RelayIdFieldHelpers
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
     internal static void ApplyIdToField(
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         string? typeName = default)
     {
-        var placeholder = new ResultFormatterDefinition(
+        var placeholder = new ResultFormatterConfiguration(
             (_, r) => r,
             isRepeatable: false,
             key: WellKnownMiddleware.GlobalId);
@@ -95,7 +95,7 @@ internal static class RelayIdFieldHelpers
         var configuration = new CompleteConfiguration(
             (ctx, def) => AddSerializerToObjectField(
                 ctx,
-                (ObjectFieldDefinition)def,
+                (ObjectFieldConfiguration)def,
                 placeholder,
                 typeName),
             definition,
@@ -106,7 +106,7 @@ internal static class RelayIdFieldHelpers
 
     private static void RewriteDefinition(
         IDescriptorContext context,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
         if (definition.Type is ExtendedTypeReference typeReference)
         {
@@ -144,17 +144,17 @@ internal static class RelayIdFieldHelpers
 
     internal static void AddSerializerToInputField(
         ITypeCompletionContext completionContext,
-        ArgumentDefinition definition,
+        ArgumentConfiguration definition,
         string? typeName)
     {
         var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
-        if (definition is InputFieldDefinition { RuntimeType: { } runtimeType, })
+        if (definition is InputFieldConfiguration { RuntimeType: { } runtimeType, })
         {
             resultType = typeInspector.GetType(runtimeType);
         }
-        else if (definition is InputFieldDefinition { Property: not null, } inputField)
+        else if (definition is InputFieldConfiguration { Property: not null, } inputField)
         {
             resultType = typeInspector.GetReturnType(inputField.Property, true);
         }
@@ -182,8 +182,8 @@ internal static class RelayIdFieldHelpers
 
     private static void AddSerializerToObjectField(
         ITypeCompletionContext completionContext,
-        ObjectFieldDefinition definition,
-        ResultFormatterDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        ResultFormatterConfiguration placeholder,
         string? typeName)
     {
         var typeInspector = completionContext.TypeInspector;
@@ -214,7 +214,7 @@ internal static class RelayIdFieldHelpers
             CreateResultFormatter(typeName, resultType, serializerAccessor);
     }
 
-    private static ResultFormatterDefinition CreateResultFormatter(
+    private static ResultFormatterConfiguration CreateResultFormatter(
         string typeName,
         IExtendedType resultType,
         INodeIdSerializerAccessor serializerAccessor)

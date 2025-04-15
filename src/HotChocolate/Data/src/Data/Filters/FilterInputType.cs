@@ -25,7 +25,7 @@ public class FilterInputType
 
     public IExtendedType EntityType { get; private set; } = default!;
 
-    protected override InputObjectTypeDefinition CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateDefinition(
         ITypeDiscoveryContext context)
     {
         try
@@ -48,7 +48,7 @@ public class FilterInputType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         if (definition is FilterInputTypeDefinition { EntityType: { }, } filterDefinition)
@@ -64,7 +64,7 @@ public class FilterInputType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -77,7 +77,7 @@ public class FilterInputType
 
     protected override FieldCollection<InputField> OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         var fields = new InputField[definition.Fields.Count + 2];
         var index = 0;

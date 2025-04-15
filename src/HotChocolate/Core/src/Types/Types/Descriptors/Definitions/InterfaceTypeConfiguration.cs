@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class InterfaceTypeDefinition : TypeDefinitionBase, IComplexOutputTypeDefinition
+public class InterfaceTypeConfiguration : TypeDefinitionBase, IComplexOutputTypeConfiguration
 {
     private List<Type>? _knownClrTypes;
     private List<TypeReference>? _interfaces;
@@ -12,12 +12,12 @@ public class InterfaceTypeDefinition : TypeDefinitionBase, IComplexOutputTypeDef
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public InterfaceTypeDefinition() { }
+    public InterfaceTypeConfiguration() { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public InterfaceTypeDefinition(
+    public InterfaceTypeConfiguration(
         string name,
         string? description = null,
         Type? runtimeType = null)
@@ -38,12 +38,12 @@ public class InterfaceTypeDefinition : TypeDefinitionBase, IComplexOutputTypeDef
     /// </summary>
     public bool HasInterfaces => _interfaces is { Count: > 0, };
 
-    public IBindableList<InterfaceFieldDefinition> Fields { get; } =
-        new BindableList<InterfaceFieldDefinition>();
+    public IBindableList<InterfaceFieldConfiguration> Fields { get; } =
+        new BindableList<InterfaceFieldConfiguration>();
 
-    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
     {
-        List<ITypeSystemMemberConfiguration>? configs = null;
+        List<ITypeSystemConfigurationTask>? configs = null;
 
         if (HasConfigurations)
         {
@@ -72,14 +72,14 @@ public class InterfaceTypeDefinition : TypeDefinitionBase, IComplexOutputTypeDef
             }
         }
 
-        return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
+        return configs ?? Enumerable.Empty<ITypeSystemConfigurationTask>();
     }
 
     internal IReadOnlyList<Type> GetKnownClrTypes()
     {
         if (_knownClrTypes is null)
         {
-            return Array.Empty<Type>();
+            return [];
         }
 
         return _knownClrTypes;
@@ -89,7 +89,7 @@ public class InterfaceTypeDefinition : TypeDefinitionBase, IComplexOutputTypeDef
     {
         if (_interfaces is null)
         {
-            return Array.Empty<TypeReference>();
+            return [];
         }
 
         return _interfaces;

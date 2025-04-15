@@ -508,7 +508,7 @@ public class EnumTypeTests : TypeTestBase
     {
         // arrange
         // act
-        void Action() => new EnumValue(new EnumValueDefinition());
+        void Action() => new EnumValue(new EnumValueConfiguration());
 
         // assert
         Assert.Throws<ArgumentException>(Action);

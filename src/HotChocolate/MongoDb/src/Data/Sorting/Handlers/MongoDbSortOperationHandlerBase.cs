@@ -29,7 +29,7 @@ public abstract class MongoDbSortOperationHandlerBase
     /// <inheritdoc/>
     public override bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
+        EnumTypeConfiguration typeDefinition,
         SortEnumValueDefinition valueDefinition)
     {
         return valueDefinition.Operation == _operation;

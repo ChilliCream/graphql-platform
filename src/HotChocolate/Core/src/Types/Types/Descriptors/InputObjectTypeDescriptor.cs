@@ -10,7 +10,7 @@ using static System.Reflection.BindingFlags;
 namespace HotChocolate.Types.Descriptors;
 
 public class InputObjectTypeDescriptor
-    : DescriptorBase<InputObjectTypeDefinition>
+    : DescriptorBase<InputObjectTypeConfiguration>
     , IInputObjectTypeDescriptor
 {
     private readonly List<InputFieldDescriptor> _fields = [];
@@ -38,7 +38,7 @@ public class InputObjectTypeDescriptor
 
     protected InputObjectTypeDescriptor(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -49,13 +49,13 @@ public class InputObjectTypeDescriptor
         }
     }
 
-    protected internal override InputObjectTypeDefinition Definition { get; protected set; } =
+    protected internal override InputObjectTypeConfiguration Definition { get; protected set; } =
         new();
 
     protected ICollection<InputFieldDescriptor> Fields => _fields;
 
     protected override void OnCreateDefinition(
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -100,7 +100,7 @@ public class InputObjectTypeDescriptor
     }
 
     protected void InferFieldsFromFieldBindingType(
-        IDictionary<string, InputFieldDefinition> fields,
+        IDictionary<string, InputFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
         if (Definition.Fields.IsImplicitBinding())
@@ -136,7 +136,7 @@ public class InputObjectTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, InputFieldDefinition> fields,
+        IDictionary<string, InputFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     { }
 
@@ -206,12 +206,12 @@ public class InputObjectTypeDescriptor
 
     public static InputObjectTypeDescriptor From(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         => new(context, definition);
 
     public static InputObjectTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         => new(context, definition);
 
     /// <summary>

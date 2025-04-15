@@ -9,17 +9,17 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// This definition represents a directive argument.
 /// </summary>
-public class DirectiveArgumentDefinition : ArgumentDefinition
+public class DirectiveArgumentConfiguration : ArgumentConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+    /// Initializes a new instance of <see cref="ArgumentConfiguration"/>.
     /// </summary>
-    public DirectiveArgumentDefinition() { }
+    public DirectiveArgumentConfiguration() { }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+    /// Initializes a new instance of <see cref="ArgumentConfiguration"/>.
     /// </summary>
-    public DirectiveArgumentDefinition(
+    public DirectiveArgumentConfiguration(
         string name,
         string? description = null,
         TypeReference? type = null,

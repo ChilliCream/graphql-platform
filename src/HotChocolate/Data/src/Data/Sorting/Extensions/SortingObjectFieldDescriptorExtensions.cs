@@ -130,7 +130,7 @@ public static class SortingObjectFieldDescriptorExtensions
         ITypeSystemMember? sortTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+        FieldMiddlewareConfiguration sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
         var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
         var fieldDefinition = descriptor.Extend().Definition;
@@ -171,7 +171,7 @@ public static class SortingObjectFieldDescriptorExtensions
                             scope);
                     }
 
-                    var argumentDefinition = new ArgumentDefinition
+                    var argumentDefinition = new ArgumentConfiguration
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
@@ -179,7 +179,7 @@ public static class SortingObjectFieldDescriptorExtensions
                     };
 
                     argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>((context, def) =>
+                        new CompleteConfiguration<ArgumentConfiguration>((context, def) =>
                         {
                             var namedType = context.GetType<INamedType>(argumentTypeReference);
                             def.Type = TypeReference.Parse($"[{namedType.Name}!]");
@@ -192,7 +192,7 @@ public static class SortingObjectFieldDescriptorExtensions
                     definition.Arguments.Add(argumentDefinition);
 
                     definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                        new CompleteConfiguration<ObjectFieldConfiguration>(
                             (context, def) =>
                                 CompileMiddleware(
                                     context,
@@ -206,7 +206,7 @@ public static class SortingObjectFieldDescriptorExtensions
                             TypeDependencyFulfilled.Completed));
 
                     argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>(
+                        new CompleteConfiguration<ArgumentConfiguration>(
                             (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,
                             ApplyConfigurationOn.BeforeNaming));
@@ -217,9 +217,9 @@ public static class SortingObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition,
-        ArgumentDefinition argumentDefinition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        ArgumentConfiguration argumentDefinition,
+        FieldMiddlewareConfiguration placeholder,
         string? scope)
     {
         var resolvedType = context.GetType<IType>(argumentDefinition.Type!);

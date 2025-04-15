@@ -4,11 +4,11 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class OutputFieldDefinitionBase : FieldDefinitionBase, ICanBeDeprecated
+public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfiguration
 {
-    private List<ArgumentDefinition>? _arguments;
+    private List<ArgumentConfiguration>? _arguments;
 
-    public IList<ArgumentDefinition> Arguments
+    public IList<ArgumentConfiguration> Arguments
         => _arguments ??= [];
 
     /// <summary>
@@ -16,17 +16,17 @@ public class OutputFieldDefinitionBase : FieldDefinitionBase, ICanBeDeprecated
     /// </summary>
     public bool HasArguments => _arguments?.Count > 0;
 
-    public IReadOnlyList<ArgumentDefinition> GetArguments()
+    public IReadOnlyList<ArgumentConfiguration> GetArguments()
     {
         if (_arguments is null)
         {
-            return Array.Empty<ArgumentDefinition>();
+            return Array.Empty<ArgumentConfiguration>();
         }
 
         return _arguments;
     }
 
-    protected void CopyTo(OutputFieldDefinitionBase target)
+    protected void CopyTo(OutputFieldConfiguration target)
     {
         base.CopyTo(target);
 
@@ -36,7 +36,7 @@ public class OutputFieldDefinitionBase : FieldDefinitionBase, ICanBeDeprecated
 
             foreach (var argument in _arguments)
             {
-                var newArgument = new ArgumentDefinition();
+                var newArgument = new ArgumentConfiguration();
                 argument.CopyTo(newArgument);
                 target._arguments.Add(newArgument);
             }
@@ -45,7 +45,7 @@ public class OutputFieldDefinitionBase : FieldDefinitionBase, ICanBeDeprecated
         target.DeprecationReason = DeprecationReason;
     }
 
-    protected void MergeInto(OutputFieldDefinitionBase target)
+    protected void MergeInto(OutputFieldConfiguration target)
     {
         base.MergeInto(target);
 
@@ -60,7 +60,7 @@ public class OutputFieldDefinitionBase : FieldDefinitionBase, ICanBeDeprecated
 
                 if (targetArgument is null)
                 {
-                    targetArgument = new ArgumentDefinition();
+                    targetArgument = new ArgumentConfiguration();
                     argument.CopyTo(targetArgument);
                     target._arguments.Add(targetArgument);
                 }

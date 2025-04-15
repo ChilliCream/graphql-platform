@@ -1410,7 +1410,7 @@ public class AnnotationBasedMutations
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration definition)
         {
             if (definition is not ObjectTypeDefinition objTypeDef)
             {
@@ -1420,7 +1420,7 @@ public class AnnotationBasedMutations
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration definition)
         {
             if (definition is ObjectTypeDefinition objTypeDef)
             {
@@ -1756,7 +1756,7 @@ public class AnnotationBasedMutations
     {
         public override void OnConfigure(
             IDescriptorContext context,
-            ObjectFieldDefinition mutationField)
+            ObjectFieldConfiguration mutationField)
         {
             mutationField.AddErrorType(context, typeof(SomeNewError));
             mutationField.MiddlewareDefinitions.Add(

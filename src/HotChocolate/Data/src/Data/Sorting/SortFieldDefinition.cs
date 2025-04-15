@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting;
 
 public class SortFieldDefinition
-    : InputFieldDefinition
+    : InputFieldConfiguration
     , ISortFieldDefinition
 {
     public MemberInfo? Member { get; set; }

@@ -3,18 +3,18 @@
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
-/// A type system definition is used in the type initialization to store properties
-/// of a type system object.
+/// A type system configuration is used in the type initialization
+/// as a mutable object to define the types properties.
 /// </summary>
-public interface IDefinition
+public interface ITypeSystemConfiguration
 {
     /// <summary>
-    /// Gets or sets the name the type shall have.
+    /// Gets or sets the name of the type system member.
     /// </summary>
     string Name { get; set; }
 
     /// <summary>
-    /// Gets or sets the description the type shall have.
+    /// Gets or sets the description of the type system member.
     /// </summary>
     string? Description { get; set; }
 
@@ -47,7 +47,7 @@ public interface IDefinition
     /// <summary>
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
-    IList<ITypeSystemMemberConfiguration> Configurations { get; }
+    IList<ITypeSystemConfigurationTask> Configurations { get; }
 
     /// <summary>
     /// Defines if this type has configurations.

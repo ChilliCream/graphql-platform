@@ -252,7 +252,7 @@ public class SortConvention
 
     public bool TryGetOperationHandler(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
+        EnumTypeConfiguration typeDefinition,
         SortEnumValueDefinition fieldDefinition,
         [NotNullWhen(true)] out ISortOperationHandler? handler)
     {

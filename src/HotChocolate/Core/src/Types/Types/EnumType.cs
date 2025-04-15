@@ -28,7 +28,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 public partial class EnumType
-    : NamedTypeBase<EnumTypeDefinition>
+    : NamedTypeBase<EnumTypeConfiguration>
     , IEnumType
 {
     /// <inheritdoc />

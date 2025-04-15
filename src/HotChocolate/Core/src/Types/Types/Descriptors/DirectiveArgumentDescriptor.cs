@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors;
 /// A fluent configuration API for GraphQL directive arguments.
 /// </summary>
 public class DirectiveArgumentDescriptor
-    : ArgumentDescriptorBase<DirectiveArgumentDefinition>
+    : ArgumentDescriptorBase<DirectiveArgumentConfiguration>
     , IDirectiveArgumentDescriptor
 {
     /// <summary>
@@ -55,14 +55,14 @@ public class DirectiveArgumentDescriptor
     /// </summary>
     protected internal DirectiveArgumentDescriptor(
         IDescriptorContext context,
-        DirectiveArgumentDefinition definition)
+        DirectiveArgumentConfiguration definition)
         : base(context)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
+    protected override void OnCreateDefinition(DirectiveArgumentConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -186,6 +186,6 @@ public class DirectiveArgumentDescriptor
     /// <returns>An instance of <see cref="DirectiveArgumentDescriptor "/></returns>
     public static DirectiveArgumentDescriptor From(
         IDescriptorContext context,
-        DirectiveArgumentDefinition definition)
+        DirectiveArgumentConfiguration definition)
         => new(context, definition);
 }

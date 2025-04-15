@@ -18,7 +18,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
     /// <inheritdoc />
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         var convention = completionContext.GetSpatialConvention();
         if (convention.TransformerFactory.HasCoordinateSystems() &&
@@ -34,10 +34,10 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
                 case ObjectTypeDefinition def:
                     HandleObjectType(completionContext, def, convention);
                     break;
-                case InputObjectTypeDefinition def:
+                case InputObjectTypeConfiguration def:
                     HandleInputObjectType(completionContext, def, convention);
                     break;
-                case DirectiveTypeDefinition def:
+                case DirectiveTypeConfiguration def:
                     HandleDirectiveType(completionContext, def, convention);
                     break;
             }
@@ -46,7 +46,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
 
     private static void HandleInputObjectType(
         ITypeCompletionContext completionContext,
-        InputObjectTypeDefinition definition,
+        InputObjectTypeConfiguration definition,
         ISpatialConvention convention)
     {
         foreach (var field in definition.Fields)
@@ -64,7 +64,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
 
     private static void HandleDirectiveType(
         ITypeCompletionContext completionContext,
-        DirectiveTypeDefinition definition,
+        DirectiveTypeConfiguration definition,
         ISpatialConvention convention)
     {
         foreach (var arg in definition.Arguments)

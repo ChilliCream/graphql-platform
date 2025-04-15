@@ -10,13 +10,13 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
-/// The <see cref="InterfaceFieldDefinition"/> contains the settings
+/// The <see cref="InterfaceFieldConfiguration"/> contains the settings
 /// to create a <see cref="InterfaceField"/>.
 /// </summary>
-public class InterfaceFieldDefinition : OutputFieldDefinitionBase
+public class InterfaceFieldConfiguration : OutputFieldConfiguration
 {
-    private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
-    private List<ResultFormatterDefinition>? _resultConverters;
+    private List<FieldMiddlewareConfiguration>? _middlewareDefinitions;
+    private List<ResultFormatterConfiguration>? _resultConverters;
     private List<IParameterExpressionBuilder>? _expressionBuilders;
     private bool _middlewareDefinitionsCleaned;
     private bool _resultConvertersCleaned;
@@ -24,7 +24,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public InterfaceFieldDefinition()
+    public InterfaceFieldConfiguration()
     {
         IsParallelExecutable = true;
     }
@@ -32,7 +32,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public InterfaceFieldDefinition(
+    public InterfaceFieldConfiguration(
         string name,
         string? description = null,
         TypeReference? type = null)
@@ -104,7 +104,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
-    public IList<FieldMiddlewareDefinition> MiddlewareDefinitions
+    public IList<FieldMiddlewareConfiguration> MiddlewareDefinitions
     {
         get
         {
@@ -116,7 +116,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of formatters that can transform the resolver result.
     /// </summary>
-    public IList<ResultFormatterDefinition> FormatterDefinitions
+    public IList<ResultFormatterConfiguration> FormatterDefinitions
     {
         get
         {
@@ -184,14 +184,14 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
-    internal IReadOnlyList<FieldMiddlewareDefinition> GetMiddlewareDefinitions()
+    internal IReadOnlyList<FieldMiddlewareConfiguration> GetMiddlewareDefinitions()
     {
         if (_middlewareDefinitions is null)
         {
-            return Array.Empty<FieldMiddlewareDefinition>();
+            return [];
         }
 
-        CleanMiddlewareDefinitions(_middlewareDefinitions, ref _middlewareDefinitionsCleaned);
+        CleanRepeatableConfigurations(_middlewareDefinitions, ref _middlewareDefinitionsCleaned);
 
         return _middlewareDefinitions;
     }
@@ -199,14 +199,14 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of converters that can transform the resolver result.
     /// </summary>
-    internal IReadOnlyList<ResultFormatterDefinition> GetResultConverters()
+    internal IReadOnlyList<ResultFormatterConfiguration> GetResultConverters()
     {
         if (_resultConverters is null)
         {
-            return Array.Empty<ResultFormatterDefinition>();
+            return [];
         }
 
-        CleanMiddlewareDefinitions(_resultConverters, ref _resultConvertersCleaned);
+        CleanRepeatableConfigurations(_resultConverters, ref _resultConvertersCleaned);
 
         return _resultConverters;
     }
@@ -219,7 +219,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     {
         if (_expressionBuilders is null)
         {
-            return Array.Empty<IParameterExpressionBuilder>();
+            return [];
         }
 
         return _expressionBuilders;
@@ -228,7 +228,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     private FieldResolverDelegates GetResolvers()
         => new(Resolver, PureResolver);
 
-    internal void CopyTo(InterfaceFieldDefinition target)
+    internal void CopyTo(InterfaceFieldConfiguration target)
     {
         base.CopyTo(target);
 
@@ -263,7 +263,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
         target.ResultPostProcessor = ResultPostProcessor;
     }
 
-    internal void CopyTo(ObjectFieldDefinition target)
+    internal void CopyTo(ObjectFieldConfiguration target)
     {
         base.CopyTo(target);
 
@@ -307,7 +307,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
         target.ResultPostProcessor = ResultPostProcessor;
     }
 
-    internal void MergeInto(InterfaceFieldDefinition target)
+    internal void MergeInto(InterfaceFieldConfiguration target)
     {
         base.MergeInto(target);
 
@@ -382,18 +382,18 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
         }
     }
 
-    private static void CleanMiddlewareDefinitions<T>(
-        IList<T> definitions,
-        ref bool definitionsCleaned)
-        where T : IMiddlewareDefinition
+    private static void CleanRepeatableConfigurations<T>(
+        List<T> definitions,
+        ref bool isClean)
+        where T :IRepeatableConfiguration
     {
         var count = definitions.Count;
 
-        if (!definitionsCleaned && count > 1)
+        if (!isClean && count > 1)
         {
             if (count == 2 && definitions[0].IsRepeatable)
             {
-                definitionsCleaned = true;
+                isClean = true;
             }
 
             if (count == 3 &&
@@ -401,7 +401,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
                 definitions[1].IsRepeatable &&
                 definitions[2].IsRepeatable)
             {
-                definitionsCleaned = true;
+                isClean = true;
             }
 
             if (count == 4 &&
@@ -410,10 +410,10 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
                 definitions[2].IsRepeatable &&
                 definitions[3].IsRepeatable)
             {
-                definitionsCleaned = true;
+                isClean = true;
             }
 
-            if (!definitionsCleaned)
+            if (!isClean)
             {
                 var nonRepeatable = 0;
 
@@ -430,12 +430,12 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
                     var keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
 
                     // we clear the section of the array we need before we are using it.
-                    keys.AsSpan().Slice(0, nonRepeatable).Clear();
+                    keys.AsSpan()[..nonRepeatable].Clear();
                     int i = 0, ki = 0;
 
                     do
                     {
-                        IMiddlewareDefinition def = definitions[i];
+                        var def = definitions[i];
 
                         if (def.IsRepeatable || def.Key is null)
                         {
@@ -443,14 +443,11 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
                         }
                         else
                         {
-                            if (ki > 0)
+                            if (ki > 0 && Array.IndexOf(keys, def.Key, 0, ki) != -1)
                             {
-                                if (Array.IndexOf(keys, def.Key, 0, ki) != -1)
-                                {
-                                    count--;
-                                    definitions.RemoveAt(i);
-                                    continue;
-                                }
+                                count--;
+                                definitions.RemoveAt(i);
+                                continue;
                             }
 
                             keys[ki++] = def.Key;
@@ -461,7 +458,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
                     ArrayPool<string>.Shared.Return(keys);
                 }
 
-                definitionsCleaned = true;
+                isClean = true;
             }
         }
     }

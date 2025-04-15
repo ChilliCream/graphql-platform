@@ -10,7 +10,7 @@ internal sealed class StoreGlobalPagingOptionsTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         if(definition is SchemaTypeDefinition schemaDef)
         {
