@@ -983,6 +983,30 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Invalid_EmptyString_After_Index_Cursor()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .Services.BuildServiceProvider()
+            .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 after: "") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """
+        );
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Invalid_Before_Index_Cursor()
     {
         var executor =
@@ -997,6 +1021,31 @@ public class IntegrationTests
             """
             {
               letters(first: 2 before: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Invalid_EmptyString_Before_Index_Cursor()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 before: "") {
                   edges {
                       cursor
                   }
