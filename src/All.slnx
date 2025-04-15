@@ -143,12 +143,10 @@
   </Folder>
   <Folder Name="/HotChocolate/Data/" />
   <Folder Name="/HotChocolate/Data/src/">
-    <Project Path="HotChocolate/Data/src/AutoMapper/HotChocolate.Data.AutoMapper.csproj" />
     <Project Path="HotChocolate/Data/src/Data/HotChocolate.Data.csproj" />
     <Project Path="HotChocolate/Data/src/EntityFramework/HotChocolate.Data.EntityFramework.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Data/test/">
-    <Project Path="HotChocolate/Data/test/Data.AutoMapper.Tests/HotChocolate.Data.AutoMapper.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.EntityFramework.Pagination.Tests/HotChocolate.Data.EntityFramework.Pagination.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.EntityFramework.Tests/HotChocolate.Data.EntityFramework.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.Filters.InMemory.Tests/HotChocolate.Data.Filters.InMemory.Tests.csproj" />
