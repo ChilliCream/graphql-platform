@@ -15,7 +15,7 @@ public class SchemaTypeDescriptor
         {
             throw new ArgumentNullException(nameof(type));
         }
-        Definition.Name = context.Naming.GetTypeName(type);
+        Configuration.Name = context.Naming.GetTypeName(type);
     }
 
     protected SchemaTypeDescriptor(
@@ -23,34 +23,34 @@ public class SchemaTypeDescriptor
         SchemaTypeConfiguration definition)
         : base(context)
     {
-        Definition = definition;
+        Configuration = definition;
     }
 
-    protected internal override SchemaTypeConfiguration Definition { get; protected set; } = new();
+    protected internal override SchemaTypeConfiguration Configuration { get; protected set; } = new();
 
     public ISchemaTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public ISchemaTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     public ISchemaTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.GetLegacyDefinition().AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.GetLegacyDefinition().AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public ISchemaTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.GetLegacyDefinition().AddDirective(new T(), Context.TypeInspector);
+        Configuration.GetLegacyDefinition().AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
@@ -58,7 +58,7 @@ public class SchemaTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Definition.GetLegacyDefinition().AddDirective(name, arguments);
+        Configuration.GetLegacyDefinition().AddDirective(name, arguments);
         return this;
     }
 

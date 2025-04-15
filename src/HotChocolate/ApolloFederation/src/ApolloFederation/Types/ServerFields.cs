@@ -13,7 +13,7 @@ public static class ServerFields
     {
         var descriptor = ObjectFieldDescriptor.New(context, WellKnownFieldNames.Service);
         descriptor.Type<NonNullType<ObjectType<_Service>>>().Resolve(_service);
-        descriptor.Definition.PureResolver = Resolve;
+        descriptor.Configuration.PureResolver = Resolve;
 
         static _Service Resolve(IResolverContext ctx)
             => _service;

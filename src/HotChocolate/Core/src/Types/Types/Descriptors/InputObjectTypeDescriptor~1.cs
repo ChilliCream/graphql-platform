@@ -15,7 +15,7 @@ public class InputObjectTypeDescriptor<T>
     protected internal InputObjectTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected internal InputObjectTypeDescriptor(
@@ -25,7 +25,7 @@ public class InputObjectTypeDescriptor<T>
     {
     }
 
-    Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
+    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
         IDictionary<string, InputFieldConfiguration> fields,
@@ -50,7 +50,7 @@ public class InputObjectTypeDescriptor<T>
     public IInputObjectTypeDescriptor<T> BindFields(
         BindingBehavior behavior)
     {
-        Definition.Fields.BindingBehavior = behavior;
+        Configuration.Fields.BindingBehavior = behavior;
         return this;
     }
 
@@ -65,7 +65,7 @@ public class InputObjectTypeDescriptor<T>
     {
         if (property.ExtractMember() is PropertyInfo p)
         {
-            var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Property == p);
+            var fieldDescriptor = Fields.FirstOrDefault(t => t.Configuration.Property == p);
 
             if (fieldDescriptor is not null)
             {

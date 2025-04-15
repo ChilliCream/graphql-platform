@@ -19,7 +19,7 @@ public class InputFieldDescriptor
         string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName;
+        Configuration.Name = fieldName;
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public class InputFieldDescriptor
         InputFieldConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
     /// <summary>
@@ -41,15 +41,15 @@ public class InputFieldDescriptor
         PropertyInfo property)
         : base(context)
     {
-        Definition.Property = property
+        Configuration.Property = property
             ?? throw new ArgumentNullException(nameof(property));
-        Definition.Name = context.Naming.GetMemberName(property, InputObjectField);
-        Definition.Description = context.Naming.GetMemberDescription(property, InputObjectField);
-        Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
+        Configuration.Name = context.Naming.GetMemberName(property, InputObjectField);
+        Configuration.Description = context.Naming.GetMemberDescription(property, InputObjectField);
+        Configuration.Type = context.TypeInspector.GetInputReturnTypeRef(property);
 
         if (context.TypeInspector.TryGetDefaultValue(property, out var defaultValue))
         {
-            Definition.RuntimeDefaultValue = defaultValue;
+            Configuration.RuntimeDefaultValue = defaultValue;
         }
 
         if (context.Naming.IsDeprecated(property, out var reason))
@@ -63,13 +63,13 @@ public class InputFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Property: not null, })
+        if (Configuration is { AttributesAreApplied: false, Property: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.Property);
-            Definition.AttributesAreApplied = true;
+                Configuration.Property);
+            Configuration.AttributesAreApplied = true;
         }
 
         base.OnCreateDefinition(definition);
@@ -80,7 +80,7 @@ public class InputFieldDescriptor
     /// <inheritdoc />
     public IInputFieldDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
@@ -152,7 +152,7 @@ public class InputFieldDescriptor
     /// <inheritdoc />
     public IInputFieldDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 

@@ -31,9 +31,9 @@ public partial class ObjectType
                     GetType());
                 _configure!.Invoke(descriptor);
 
-                if (!descriptor.Definition.NeedsNameCompletion)
+                if (!descriptor.Configuration.NeedsNameCompletion)
                 {
-                    context.DescriptorContext.TypeConfiguration.Apply(descriptor.Definition.Name, descriptor);
+                    context.DescriptorContext.TypeConfiguration.Apply(descriptor.Configuration.Name, descriptor);
                 }
 
                 return descriptor.CreateConfiguration();

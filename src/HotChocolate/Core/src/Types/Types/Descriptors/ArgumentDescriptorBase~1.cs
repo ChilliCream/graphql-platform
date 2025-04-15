@@ -19,11 +19,11 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     protected ArgumentDescriptorBase(IDescriptorContext context)
         : base(context)
     {
-        Definition = new T();
+        Configuration = new T();
     }
 
     /// <inheritdoc />
-    protected internal override T Definition { get; protected set; }
+    protected internal override T Configuration { get; protected set; }
 
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
     protected void Deprecated(string? reason)
@@ -34,20 +34,20 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
         }
         else
         {
-            Definition.DeprecationReason = reason;
+            Configuration.DeprecationReason = reason;
         }
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated()"/>
     protected void Deprecated()
     {
-        Definition.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+        Configuration.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Description(string)"/>
     protected void Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Type{TInputType}()"/>
@@ -79,7 +79,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
             throw new ArgumentException(TypeResources.ArgumentDescriptor_InputTypeViolation);
         }
 
-        Definition.SetMoreSpecificType(typeInfo.GetExtendedType(), TypeContext.Input);
+        Configuration.SetMoreSpecificType(typeInfo.GetExtendedType(), TypeContext.Input);
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Type{TInputType}(TInputType)"/>
@@ -98,7 +98,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
                 nameof(inputType));
         }
 
-        Definition.Type = new SchemaTypeReference(inputType);
+        Configuration.Type = new SchemaTypeReference(inputType);
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
             throw new ArgumentNullException(nameof(typeReference));
         }
 
-        Definition.Type = typeReference;
+        Configuration.Type = typeReference;
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Type(ITypeNode)"/>
@@ -140,14 +140,14 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
             throw new ArgumentNullException(nameof(typeNode));
         }
 
-        Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
+        Configuration.SetMoreSpecificType(typeNode, TypeContext.Input);
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(IValueNode)"/>
     public void DefaultValue(IValueNode? value)
     {
-        Definition.DefaultValue = value ?? NullValueNode.Default;
-        Definition.RuntimeDefaultValue = null;
+        Configuration.DefaultValue = value ?? NullValueNode.Default;
+        Configuration.RuntimeDefaultValue = null;
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(object)"/>
@@ -155,27 +155,27 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     {
         if (value is null)
         {
-            Definition.DefaultValue = NullValueNode.Default;
-            Definition.RuntimeDefaultValue = null;
+            Configuration.DefaultValue = NullValueNode.Default;
+            Configuration.RuntimeDefaultValue = null;
         }
         else
         {
             var type = Context.TypeInspector.GetType(value.GetType());
-            Definition.SetMoreSpecificType(type, TypeContext.Input);
-            Definition.RuntimeDefaultValue = value;
-            Definition.DefaultValue = null;
+            Configuration.SetMoreSpecificType(type, TypeContext.Input);
+            Configuration.RuntimeDefaultValue = value;
+            Configuration.DefaultValue = null;
         }
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Directive{T}(T)"/>
     public void Directive<TDirective>(TDirective directiveInstance) where TDirective : class
-        => Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        => Configuration.AddDirective(directiveInstance, Context.TypeInspector);
 
     /// <inheritdoc cref="IArgumentDescriptor.Directive{T}()"/>
     public void Directive<TDirective>() where TDirective : class, new()
-        => Definition.AddDirective(new TDirective(), Context.TypeInspector);
+        => Configuration.AddDirective(new TDirective(), Context.TypeInspector);
 
     /// <inheritdoc cref="IArgumentDescriptor.Directive(string, ArgumentNode[])"/>
     public void Directive(string name, params ArgumentNode[] arguments)
-        => Definition.AddDirective(name, arguments);
+        => Configuration.AddDirective(name, arguments);
 }

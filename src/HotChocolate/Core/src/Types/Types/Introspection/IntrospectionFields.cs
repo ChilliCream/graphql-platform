@@ -35,7 +35,7 @@ public static class IntrospectionFields
             .Description(TypeResources.SchemaField_Description)
             .Type<NonNullType<__Schema>>();
 
-        descriptor.Definition.PureResolver = Resolve;
+        descriptor.Configuration.PureResolver = Resolve;
 
         static ISchema Resolve(IResolverContext ctx)
             => ctx.Schema;
@@ -53,7 +53,7 @@ public static class IntrospectionFields
             .Type<__Type>()
             .Resolve(Resolve);
 
-        descriptor.Definition.PureResolver = Resolve;
+        descriptor.Configuration.PureResolver = Resolve;
 
         static INamedType? Resolve(IResolverContext ctx)
         {

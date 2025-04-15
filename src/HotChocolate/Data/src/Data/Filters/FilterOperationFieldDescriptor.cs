@@ -16,24 +16,25 @@ public class FilterOperationFieldDescriptor
         : base(context)
     {
         var convention = context.GetFilterConvention(scope);
-        Definition.Id = operationId;
-        Definition.Name = convention.GetOperationName(operationId);
-        Definition.Description = convention.GetOperationDescription(operationId);
-        Definition.Scope = scope;
-        Definition.Flags = FieldFlags.FilterOperationField;
+        Configuration.Id = operationId;
+        Configuration.Name = convention.GetOperationName(operationId);
+        Configuration.Description = convention.GetOperationDescription(operationId);
+        Configuration.Scope = scope;
+        Configuration.Flags = FieldFlags.FilterOperationField;
     }
 
-    protected internal new FilterOperationFieldDefinition Definition => base.Definition;
+    protected internal new FilterOperationFieldDefinition Configuration
+        => base.Configuration;
 
     protected override void OnCreateDefinition(
         FilterOperationFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Property: not null })
+        if (Configuration is { AttributesAreApplied: false, Property: not null })
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Property);
+            Configuration.AttributesAreApplied = true;
         }
 
         base.OnCreateDefinition(definition);
@@ -43,13 +44,13 @@ public class FilterOperationFieldDescriptor
 
     public IFilterOperationFieldDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IFilterOperationFieldDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 
@@ -88,7 +89,7 @@ public class FilterOperationFieldDescriptor
 
     public IFilterOperationFieldDescriptor Operation(int operation)
     {
-        Definition.Id = operation;
+        Configuration.Id = operation;
         return this;
     }
 

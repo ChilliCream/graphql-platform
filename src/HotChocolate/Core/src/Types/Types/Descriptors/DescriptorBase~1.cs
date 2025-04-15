@@ -17,9 +17,9 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
 
     IDescriptorContext IHasDescriptorContext.Context => Context;
 
-    protected internal abstract T Definition { get; protected set; }
+    protected internal abstract T Configuration { get; protected set; }
 
-    T IDescriptorExtension<T>.Configuration => Definition;
+    T IDescriptorExtension<T>.Configuration => Configuration;
 
     public IDescriptorExtension<T> Extend() => this;
 
@@ -51,12 +51,12 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
 
     public T CreateConfiguration()
     {
-        OnCreateDefinition(Definition);
+        OnCreateDefinition(Configuration);
 
-        if (Definition.HasTasks)
+        if (Configuration.HasTasks)
         {
             var i = 0;
-            var configurations = Definition.Tasks;
+            var configurations = Configuration.Tasks;
 
             do
             {
@@ -72,7 +72,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
             } while (i < configurations.Count);
         }
 
-        return Definition;
+        return Configuration;
     }
 
     protected virtual void OnCreateDefinition(T definition)
@@ -105,9 +105,9 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
             throw new ArgumentNullException(nameof(configure));
         }
 
-        Definition.Tasks.Add(new OnCreateTypeSystemConfigurationTask(
+        Configuration.Tasks.Add(new OnCreateTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
-            Definition));
+            Configuration));
     }
 
     INamedDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
@@ -128,10 +128,10 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
 
         var configuration = new OnCompleteTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
-            Definition,
+            Configuration,
             ApplyConfigurationOn.BeforeNaming);
 
-        Definition.Tasks.Add(configuration);
+        Configuration.Tasks.Add(configuration);
 
         return new NamedDependencyDescriptor(Context.TypeInspector, configuration);
     }
@@ -149,10 +149,10 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     {
         var configuration = new OnCompleteTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
-            Definition,
+            Configuration,
             ApplyConfigurationOn.BeforeCompletion);
 
-        Definition.Tasks.Add(configuration);
+        Configuration.Tasks.Add(configuration);
 
         return new CompletedDependencyDescriptor(Context.TypeInspector, configuration);
     }

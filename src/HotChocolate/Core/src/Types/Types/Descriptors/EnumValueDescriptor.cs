@@ -16,9 +16,9 @@ public class EnumValueDescriptor
             throw new ArgumentNullException(nameof(runtimeValue));
         }
 
-        Definition.RuntimeValue = runtimeValue;
-        Definition.Description = context.Naming.GetEnumValueDescription(runtimeValue);
-        Definition.Member = context.TypeInspector.GetEnumValueMember(runtimeValue);
+        Configuration.RuntimeValue = runtimeValue;
+        Configuration.Description = context.Naming.GetEnumValueDescription(runtimeValue);
+        Configuration.Member = context.TypeInspector.GetEnumValueMember(runtimeValue);
 
         if (context.Naming.IsDeprecated(runtimeValue, out var reason))
         {
@@ -29,24 +29,24 @@ public class EnumValueDescriptor
     protected EnumValueDescriptor(IDescriptorContext context, EnumValueConfiguration configuration)
         : base(context)
     {
-        Definition = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
-    protected internal override EnumValueConfiguration Definition { get; protected set; } = new();
+    protected internal override EnumValueConfiguration Configuration { get; protected set; } = new();
 
     protected override void OnCreateDefinition(EnumValueConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Member: not null, })
+        if (Configuration is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.Member);
-            Definition.AttributesAreApplied = true;
+                Configuration.Member);
+            Configuration.AttributesAreApplied = true;
 
-            if (Context.TypeInspector.IsMemberIgnored(Definition.Member))
+            if (Context.TypeInspector.IsMemberIgnored(Configuration.Member))
             {
                 Ignore();
             }
@@ -54,7 +54,7 @@ public class EnumValueDescriptor
 
         if (string.IsNullOrEmpty(definition.Name))
         {
-            Definition.Name = Context.Naming.GetEnumValueName(Definition.RuntimeValue!);
+            Configuration.Name = Context.Naming.GetEnumValueName(Configuration.RuntimeValue!);
         }
 
         base.OnCreateDefinition(definition);
@@ -64,13 +64,13 @@ public class EnumValueDescriptor
 
     public IEnumValueDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IEnumValueDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
@@ -81,39 +81,39 @@ public class EnumValueDescriptor
             return Deprecated();
         }
 
-        Definition.DeprecationReason = reason;
+        Configuration.DeprecationReason = reason;
         return this;
     }
 
     public IEnumValueDescriptor Deprecated()
     {
-        Definition.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+        Configuration.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
         return this;
     }
 
     public IEnumValueDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 
     public IEnumValueDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public IEnumValueDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
     public IEnumValueDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 

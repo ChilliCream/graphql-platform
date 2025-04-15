@@ -15,9 +15,9 @@ public class SortEnumValueDescriptor
         : base(context, new SortEnumValueConfiguration { Operation = value, })
     {
         var convention = context.GetSortConvention(scope);
-        Definition.Name = convention.GetOperationName(value);
-        Definition.Description = convention.GetOperationDescription(value);
-        Definition.RuntimeValue = Definition.Name;
+        Configuration.Name = convention.GetOperationName(value);
+        Configuration.Description = convention.GetOperationDescription(value);
+        Configuration.RuntimeValue = Configuration.Name;
     }
 
     protected SortEnumValueDescriptor(
@@ -27,10 +27,10 @@ public class SortEnumValueDescriptor
     {
     }
 
-    protected internal new EnumValueConfiguration Definition
+    protected internal new EnumValueConfiguration Configuration
     {
-        get { return base.Definition; }
-        set { base.Definition = value; }
+        get { return base.Configuration; }
+        set { base.Configuration = value; }
     }
 
     public new ISortEnumValueDescriptor Name(string value)

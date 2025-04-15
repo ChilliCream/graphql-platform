@@ -21,16 +21,16 @@ public class InterfaceTypeDescriptor
             throw new ArgumentNullException(nameof(clrType));
         }
 
-        Definition.RuntimeType = clrType;
-        Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
-        Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
+        Configuration.RuntimeType = clrType;
+        Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
+        Configuration.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
     }
 
     protected InterfaceTypeDescriptor(
         IDescriptorContext context)
         : base(context)
     {
-        Definition.RuntimeType = typeof(object);
+        Configuration.RuntimeType = typeof(object);
     }
 
     protected InterfaceTypeDescriptor(
@@ -38,7 +38,7 @@ public class InterfaceTypeDescriptor
         InterfaceTypeConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
 
         foreach (var field in definition.Fields)
         {
@@ -46,7 +46,7 @@ public class InterfaceTypeDescriptor
         }
     }
 
-    protected internal override InterfaceTypeConfiguration Definition { get; protected set; } =
+    protected internal override InterfaceTypeConfiguration Configuration { get; protected set; } =
         new();
 
     protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
@@ -57,13 +57,13 @@ public class InterfaceTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.RuntimeType);
-            Definition.AttributesAreApplied = true;
+                Configuration.RuntimeType);
+            Configuration.AttributesAreApplied = true;
         }
 
         var fields = new Dictionary<string, InterfaceFieldConfiguration>();
@@ -77,8 +77,8 @@ public class InterfaceTypeDescriptor
 
         OnCompleteFields(fields, handledMembers);
 
-        Definition.Fields.Clear();
-        Definition.Fields.AddRange(fields.Values);
+        Configuration.Fields.Clear();
+        Configuration.Fields.AddRange(fields.Values);
 
         base.OnCreateDefinition(definition);
 
@@ -93,13 +93,13 @@ public class InterfaceTypeDescriptor
 
     public IInterfaceTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IInterfaceTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
@@ -112,7 +112,7 @@ public class InterfaceTypeDescriptor
                 TypeResources.InterfaceTypeDescriptor_InterfaceBaseClass);
         }
 
-        Definition.Interfaces.Add(
+        Configuration.Interfaces.Add(
             Context.TypeInspector.GetTypeRef(typeof(T), TypeContext.Output));
         return this;
     }
@@ -125,7 +125,7 @@ public class InterfaceTypeDescriptor
             throw new ArgumentNullException(nameof(type));
         }
 
-        Definition.Interfaces.Add(new SchemaTypeReference(type));
+        Configuration.Interfaces.Add(new SchemaTypeReference(type));
         return this;
     }
 
@@ -136,13 +136,13 @@ public class InterfaceTypeDescriptor
             throw new ArgumentNullException(nameof(type));
         }
 
-        Definition.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
+        Configuration.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
         return this;
     }
 
     public IInterfaceFieldDescriptor Field(string name)
     {
-        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
+        var fieldDescriptor = Fields.FirstOrDefault(t => t.Configuration.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
@@ -157,7 +157,7 @@ public class InterfaceTypeDescriptor
     public IInterfaceTypeDescriptor ResolveAbstractType(
         ResolveAbstractType typeResolver)
     {
-        Definition.ResolveAbstractType = typeResolver
+        Configuration.ResolveAbstractType = typeResolver
             ?? throw new ArgumentNullException(nameof(typeResolver));
         return this;
     }
@@ -165,20 +165,20 @@ public class InterfaceTypeDescriptor
     public IInterfaceTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public IInterfaceTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
     public IInterfaceTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -194,7 +194,7 @@ public class InterfaceTypeDescriptor
         IDescriptorContext context, Type schemaType)
     {
         var descriptor = New(context, schemaType);
-        descriptor.Definition.RuntimeType = typeof(object);
+        descriptor.Configuration.RuntimeType = typeof(object);
         return descriptor;
     }
 

@@ -16,7 +16,7 @@ public class InterfaceTypeDescriptor<T>
     protected internal InterfaceTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected internal InterfaceTypeDescriptor(
@@ -26,13 +26,13 @@ public class InterfaceTypeDescriptor<T>
     {
     }
 
-    Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
+    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
         IDictionary<string, InterfaceFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
-        if (Definition.Fields.IsImplicitBinding())
+        if (Configuration.Fields.IsImplicitBinding())
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
@@ -59,7 +59,7 @@ public class InterfaceTypeDescriptor<T>
     public IInterfaceTypeDescriptor<T> BindFields(
         BindingBehavior behavior)
     {
-        Definition.Fields.BindingBehavior = behavior;
+        Configuration.Fields.BindingBehavior = behavior;
         return this;
     }
 
@@ -100,7 +100,7 @@ public class InterfaceTypeDescriptor<T>
         var member = propertyOrMethod.ExtractMember();
         if (member is PropertyInfo or MethodInfo)
         {
-            var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Member == member);
+            var fieldDescriptor = Fields.FirstOrDefault(t => t.Configuration.Member == member);
 
             if (fieldDescriptor is not null)
             {

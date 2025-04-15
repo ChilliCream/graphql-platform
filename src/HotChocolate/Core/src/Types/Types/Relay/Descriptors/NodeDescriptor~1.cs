@@ -48,7 +48,7 @@ public class NodeDescriptor<TNode>
         ITypeCompletionContext context,
         ObjectTypeConfiguration definition)
     {
-        if (Definition.ResolverField is null)
+        if (Configuration.ResolverField is null)
         {
             var resolverMethod =
                 Context.TypeInspector.GetNodeResolverMethod(typeof(TNode), typeof(TNode));
@@ -72,14 +72,14 @@ public class NodeDescriptor<TNode>
 
     protected override IObjectFieldDescriptor ConfigureNodeField()
     {
-        Definition.NodeType = typeof(TNode);
+        Configuration.NodeType = typeof(TNode);
 
-        if (Definition.IdMember is null)
+        if (Configuration.IdMember is null)
         {
-            Definition.IdMember = Context.TypeInspector.GetNodeIdMember(typeof(TNode));
+            Configuration.IdMember = Context.TypeInspector.GetNodeIdMember(typeof(TNode));
         }
 
-        if (Definition.IdMember is null)
+        if (Configuration.IdMember is null)
         {
             var descriptor = _typeDescriptor
                 .Field(NodeType.Names.Id)
@@ -90,7 +90,7 @@ public class NodeDescriptor<TNode>
         else
         {
             var descriptor = _typeDescriptor
-                .Field(Definition.IdMember)
+                .Field(Configuration.IdMember)
                 .Name(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
 
@@ -111,8 +111,8 @@ public class NodeDescriptor<TNode>
 
         if (member is MethodInfo or PropertyInfo)
         {
-            Definition.IdMember = member;
-            return new NodeDescriptor<TNode, TId>(Context, Definition, ConfigureNodeField);
+            Configuration.IdMember = member;
+            return new NodeDescriptor<TNode, TId>(Context, Configuration, ConfigureNodeField);
         }
 
         throw new ArgumentException(NodeDescriptor_IdMember, nameof(member));
@@ -128,7 +128,7 @@ public class NodeDescriptor<TNode>
 
         if (propertyOrMethod is MethodInfo or PropertyInfo)
         {
-            Definition.IdMember = propertyOrMethod;
+            Configuration.IdMember = propertyOrMethod;
             return this;
         }
 

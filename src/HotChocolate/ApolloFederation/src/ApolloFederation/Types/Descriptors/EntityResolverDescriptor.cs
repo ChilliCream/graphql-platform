@@ -38,17 +38,17 @@ public sealed class EntityResolverDescriptor<TEntity>
             .Extend()
             .OnBeforeCreate(OnCompleteDefinition);
 
-        Definition.EntityType = entityType;
+        Configuration.EntityType = entityType;
     }
 
     private void OnCompleteDefinition(ObjectTypeConfiguration definition)
     {
-        if (Definition.ResolverDefinition is not null)
+        if (Configuration.ResolverDefinition is not null)
         {
             if (definition.ContextData.TryGetValue(EntityResolver, out var value) &&
                 value is List<ReferenceResolverDefinition> resolvers)
             {
-                resolvers.Add(Definition.ResolverDefinition.Value);
+                resolvers.Add(Configuration.ResolverDefinition.Value);
             }
             else
             {
@@ -56,7 +56,7 @@ public sealed class EntityResolverDescriptor<TEntity>
                     EntityResolver,
                     new List<ReferenceResolverDefinition>
                     {
-                        Definition.ResolverDefinition.Value,
+                        Configuration.ResolverDefinition.Value,
                     });
             }
         }
@@ -115,7 +115,7 @@ public sealed class EntityResolverDescriptor<TEntity>
     public IObjectTypeDescriptor ResolveReferenceWith(Type type)
         => ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.EntityType ?? type,
+                Configuration.EntityType ?? type,
                 type)!);
 
     private IObjectTypeDescriptor ResolveReference(
@@ -126,9 +126,9 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         ArgumentNullException.ThrowIfNull(required);
 
-        Definition.ResolverDefinition = new(fieldResolver, required);
+        Configuration.ResolverDefinition = new(fieldResolver, required);
         return _typeDescriptor;
     }
 
-    protected internal override EntityResolverDefinition Definition { get; protected set; } = new();
+    protected internal override EntityResolverDefinition Configuration { get; protected set; } = new();
 }

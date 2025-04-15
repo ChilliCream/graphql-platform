@@ -18,12 +18,12 @@ public class SortInputTypeDescriptor
         : base(context)
     {
         Convention = context.GetSortConvention(scope);
-        Definition.EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
-        Definition.RuntimeType = typeof(object);
-        Definition.Name = Convention.GetTypeName(entityType);
-        Definition.Description = Convention.GetTypeDescription(entityType);
-        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
-        Definition.Scope = scope;
+        Configuration.EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
+        Configuration.RuntimeType = typeof(object);
+        Configuration.Name = Convention.GetTypeName(entityType);
+        Configuration.Description = Convention.GetTypeDescription(entityType);
+        Configuration.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.Scope = scope;
     }
 
     protected SortInputTypeDescriptor(
@@ -32,9 +32,9 @@ public class SortInputTypeDescriptor
         : base(context)
     {
         Convention = context.GetSortConvention(scope);
-        Definition.RuntimeType = typeof(object);
-        Definition.EntityType = typeof(object);
-        Definition.Scope = scope;
+        Configuration.RuntimeType = typeof(object);
+        Configuration.EntityType = typeof(object);
+        Configuration.Scope = scope;
     }
 
     protected SortInputTypeDescriptor(
@@ -44,28 +44,28 @@ public class SortInputTypeDescriptor
         : base(context)
     {
         Convention = context.GetSortConvention(scope);
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
     protected ISortConvention Convention { get; }
 
-    protected internal override SortInputTypeDefinition Definition { get; protected set; } =
+    protected internal override SortInputTypeDefinition Configuration { get; protected set; } =
         new SortInputTypeDefinition();
 
     protected BindableList<SortFieldDescriptor> Fields { get; } =
         [];
 
-    Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
+    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCreateDefinition(
         SortInputTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, EntityType: not null, })
+        if (Configuration is { AttributesAreApplied: false, EntityType: not null, })
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.EntityType);
+            Configuration.AttributesAreApplied = true;
         }
 
         var fields = new Dictionary<string, SortFieldDefinition>(StringComparer.Ordinal);
@@ -79,7 +79,7 @@ public class SortInputTypeDescriptor
 
         OnCompleteFields(fields, handledProperties);
 
-        Definition.Fields.AddRange(fields.Values);
+        Configuration.Fields.AddRange(fields.Values);
 
         Context.Descriptors.Pop();
     }
@@ -93,8 +93,8 @@ public class SortInputTypeDescriptor
     /// <inheritdoc />
     public ISortInputTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
-        Definition.IsNamed = true;
+        Configuration.Name = value;
+        Configuration.IsNamed = true;
         return this;
     }
 
@@ -102,14 +102,14 @@ public class SortInputTypeDescriptor
     public ISortInputTypeDescriptor Description(
         string? value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     protected ISortInputTypeDescriptor BindFields(
         BindingBehavior bindingBehavior)
     {
-        Definition.Fields.BindingBehavior = bindingBehavior;
+        Configuration.Fields.BindingBehavior = bindingBehavior;
         return this;
     }
 
@@ -123,11 +123,11 @@ public class SortInputTypeDescriptor
     public ISortFieldDescriptor Field(string name)
     {
         var fieldDescriptor =
-            Fields.FirstOrDefault(t => t.Definition.Name == name);
+            Fields.FirstOrDefault(t => t.Configuration.Name == name);
 
         if (fieldDescriptor is null)
         {
-            fieldDescriptor = SortFieldDescriptor.New(Context, name, Definition.Scope);
+            fieldDescriptor = SortFieldDescriptor.New(Context, name, Configuration.Scope);
             Fields.Add(fieldDescriptor);
         }
 
@@ -138,14 +138,14 @@ public class SortInputTypeDescriptor
     public ISortInputTypeDescriptor Ignore(string name)
     {
         var fieldDescriptor =
-            Fields.FirstOrDefault(t => t.Definition.Name == name);
+            Fields.FirstOrDefault(t => t.Configuration.Name == name);
 
         if (fieldDescriptor is null)
         {
             fieldDescriptor = SortFieldDescriptor.New(
                 Context,
                 name,
-                Definition.Scope);
+                Configuration.Scope);
             Fields.Add(fieldDescriptor);
         }
 
@@ -158,7 +158,7 @@ public class SortInputTypeDescriptor
         TDirective directive)
         where TDirective : class
     {
-        Definition.AddDirective(directive, Context.TypeInspector);
+        Configuration.AddDirective(directive, Context.TypeInspector);
         return this;
     }
 
@@ -166,7 +166,7 @@ public class SortInputTypeDescriptor
     public ISortInputTypeDescriptor Directive<TDirective>()
         where TDirective : class, new()
     {
-        Definition.AddDirective(new TDirective(), Context.TypeInspector);
+        Configuration.AddDirective(new TDirective(), Context.TypeInspector);
         return this;
     }
 
@@ -175,7 +175,7 @@ public class SortInputTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -197,7 +197,7 @@ public class SortInputTypeDescriptor
         string? scope = null)
     {
         var descriptor = New(context, schemaType, scope);
-        descriptor.Definition.RuntimeType = typeof(object);
+        descriptor.Configuration.RuntimeType = typeof(object);
         return descriptor;
     }
 
@@ -216,5 +216,5 @@ public class SortInputTypeDescriptor
     public static SortInputTypeDescriptor<T> From<T>(
         SortInputTypeDescriptor descriptor,
         string? scope = null)
-        => From<T>(descriptor.Context, descriptor.Definition, scope);
+        => From<T>(descriptor.Context, descriptor.Configuration, scope);
 }

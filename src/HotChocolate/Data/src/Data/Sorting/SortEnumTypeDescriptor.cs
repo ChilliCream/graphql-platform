@@ -15,12 +15,12 @@ public class SortEnumTypeDescriptor
         string? scope)
         : base(context)
     {
-        Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
-        Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
-        Definition.EntityType = clrType;
-        Definition.RuntimeType = typeof(object);
-        Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
-        Definition.Scope = scope;
+        Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
+        Configuration.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
+        Configuration.EntityType = clrType;
+        Configuration.RuntimeType = typeof(object);
+        Configuration.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.Scope = scope;
     }
 
     protected SortEnumTypeDescriptor(
@@ -28,10 +28,10 @@ public class SortEnumTypeDescriptor
         SortEnumTypeDefinition definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override SortEnumTypeDefinition Definition { get; protected set; } = new();
+    protected internal override SortEnumTypeDefinition Configuration { get; protected set; } = new();
 
     protected ICollection<SortEnumValueDescriptor> Values { get; } =
         new List<SortEnumValueDescriptor>();
@@ -41,13 +41,13 @@ public class SortEnumTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.RuntimeType);
-            Definition.AttributesAreApplied = true;
+                Configuration.RuntimeType);
+            Configuration.AttributesAreApplied = true;
         }
 
         var values = Values.Select(t => t.CreateConfiguration())
@@ -68,13 +68,13 @@ public class SortEnumTypeDescriptor
 
     public ISortEnumTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public ISortEnumTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
@@ -83,15 +83,15 @@ public class SortEnumTypeDescriptor
         var descriptor = Values
             .FirstOrDefault(
                 t =>
-                    t.Definition.RuntimeValue is not null &&
-                    t.Definition.RuntimeValue.Equals(operation));
+                    t.Configuration.RuntimeValue is not null &&
+                    t.Configuration.RuntimeValue.Equals(operation));
 
         if (descriptor is not null)
         {
             return descriptor;
         }
 
-        descriptor = SortEnumValueDescriptor.New(Context, Definition.Scope, operation);
+        descriptor = SortEnumValueDescriptor.New(Context, Configuration.Scope, operation);
         Values.Add(descriptor);
         return descriptor;
     }
@@ -99,20 +99,20 @@ public class SortEnumTypeDescriptor
     public ISortEnumTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public ISortEnumTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
     public ISortEnumTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
