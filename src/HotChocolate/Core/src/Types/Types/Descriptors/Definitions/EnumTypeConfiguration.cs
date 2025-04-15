@@ -45,22 +45,22 @@ public class EnumTypeConfiguration : TypeConfiguration
     public IBindableList<EnumValueConfiguration> Values { get; } =
         new BindableList<EnumValueConfiguration>();
 
-    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetTasks()
     {
         List<ITypeSystemConfigurationTask>? configs = null;
 
-        if (HasConfigurations)
+        if (HasTasks)
         {
             configs ??= [];
-            configs.AddRange(Configurations);
+            configs.AddRange(Tasks);
         }
 
         foreach (var value in Values)
         {
-            if (value.HasConfigurations)
+            if (value.HasTasks)
             {
                 configs ??= [];
-                configs.AddRange(value.Configurations);
+                configs.AddRange(value.Tasks);
             }
         }
 

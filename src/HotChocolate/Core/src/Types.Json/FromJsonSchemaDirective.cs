@@ -17,7 +17,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
     {
         if (definition is ObjectFieldConfiguration fieldDef)
         {
-            fieldDef.Configurations.Add(
+            fieldDef.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (ctx, def) =>
                     {

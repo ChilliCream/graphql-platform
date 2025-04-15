@@ -26,7 +26,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         }
         else
         {
-            Definition.Configurations.Add(
+            Definition.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask(
                     (c, d) =>
                     {
@@ -40,7 +40,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
                     TypeDependencyFulfilled.Named));
         }
 
-        Definition.Configurations.Add(
+        Definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {

@@ -56,7 +56,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                     definition.Type =
                         context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
 
-                    definition.Configurations.Add(
+                    definition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, d) =>
                             {

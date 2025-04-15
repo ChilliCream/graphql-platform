@@ -157,7 +157,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                         selectionType = typeInfo.NamedType;
                     }
 
-                    definition.Configurations.Add(
+                    definition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
                             definition,

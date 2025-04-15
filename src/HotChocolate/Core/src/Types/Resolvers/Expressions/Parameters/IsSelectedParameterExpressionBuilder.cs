@@ -42,7 +42,7 @@ internal sealed class IsSelectedParameterExpressionBuilder
         if (attribute.Fields is not null)
         {
             var definition = descriptor.Extend().Configuration;
-            definition.Configurations.Add(
+            definition.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask((ctx, def) =>
                     {
                         if (!ctx.DescriptorContext.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks,

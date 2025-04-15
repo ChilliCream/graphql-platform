@@ -175,7 +175,7 @@ public static class FilterObjectFieldDescriptorExtensions
 
                     definition.Arguments.Add(argumentDefinition);
 
-                    definition.Configurations.Add(
+                    definition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (ctx, d) =>
                                 CompileMiddleware(
@@ -189,7 +189,7 @@ public static class FilterObjectFieldDescriptorExtensions
                             argumentTypeReference,
                             TypeDependencyFulfilled.Completed));
 
-                    argumentDefinition.Configurations.Add(
+                    argumentDefinition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) =>
                                 argDef.Name =

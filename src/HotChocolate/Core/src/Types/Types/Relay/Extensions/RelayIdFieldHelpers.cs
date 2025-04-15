@@ -101,7 +101,7 @@ internal static class RelayIdFieldHelpers
             definition,
             ApplyConfigurationOn.BeforeCompletion);
 
-        definition.Configurations.Add(configuration);
+        definition.Tasks.Add(configuration);
     }
 
     private static void RewriteDefinition(

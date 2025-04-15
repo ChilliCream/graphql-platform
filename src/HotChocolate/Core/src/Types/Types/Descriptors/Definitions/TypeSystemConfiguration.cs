@@ -57,13 +57,13 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// <summary>
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
-    public IList<ITypeSystemConfigurationTask> Configurations
+    public IList<ITypeSystemConfigurationTask> Tasks
         => _configurations ??= [];
 
     /// <summary>
     /// Defines if this type has configurations.
     /// </summary>
-    public bool HasConfigurations
+    public bool HasTasks
         => _configurations is { Count: > 0, };
 
     /// <summary>
@@ -80,11 +80,11 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// <summary>
     /// Gets lazy configuration of this definition and all dependent definitions.
     /// </summary>
-    public virtual IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
+    public virtual IEnumerable<ITypeSystemConfigurationTask> GetTasks()
     {
         if (_configurations is null)
         {
-            return Array.Empty<ITypeSystemConfigurationTask>();
+            return [];
         }
 
         return _configurations;
@@ -97,7 +97,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     {
         if (_dependencies is null)
         {
-            return Array.Empty<TypeDependency>();
+            return [];
         }
 
         return _dependencies;
@@ -173,7 +173,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
 
         if (_contextData?.Count > 0)
         {
-            target._contextData ??= new ExtensionData();
+            target._contextData ??= [];
             foreach (var item in _contextData)
             {
                 target._contextData[item.Key] = item.Value;

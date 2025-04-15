@@ -43,22 +43,22 @@ public class InputObjectTypeConfiguration : TypeConfiguration
     /// </summary>
     public Action<object, object?[]>? GetFieldData { get; set; }
 
-    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetTasks()
     {
         List<ITypeSystemConfigurationTask>? configs = null;
 
-        if (HasConfigurations)
+        if (HasTasks)
         {
             configs ??= [];
-            configs.AddRange(Configurations);
+            configs.AddRange(Tasks);
         }
 
         foreach (var field in Fields)
         {
-            if (field.HasConfigurations)
+            if (field.HasTasks)
             {
                 configs ??= [];
-                configs.AddRange(field.Configurations);
+                configs.AddRange(field.Tasks);
             }
         }
 

@@ -52,7 +52,7 @@ public static class DataLoaderObjectFieldExtensions
                     }
 
                     definition.Type = TypeReference.Create(schemaType, TypeContext.Output);
-                    definition.Configurations.Add(
+                    definition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, def) =>
                             {

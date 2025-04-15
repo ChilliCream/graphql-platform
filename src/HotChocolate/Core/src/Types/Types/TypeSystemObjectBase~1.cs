@@ -198,7 +198,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     {
         OnBeforeRegisterDependencies(context, definition);
 
-        foreach (var configuration in definition.GetConfigurations())
+        foreach (var configuration in definition.GetTasks())
         {
             foreach (var dependency in configuration.Dependencies)
             {
@@ -215,7 +215,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         TDefinition definition,
         ApplyConfigurationOn on)
     {
-        foreach (var config in definition.GetConfigurations())
+        foreach (var config in definition.GetTasks())
         {
             if (config.On == on)
             {

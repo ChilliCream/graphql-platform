@@ -112,8 +112,8 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
                 inputObjectType.Definition!.Fields);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Configurations,
-                inputObjectType.Definition!.Configurations);
+                Definition!.Tasks,
+                inputObjectType.Definition!.Tasks);
         }
         else
         {

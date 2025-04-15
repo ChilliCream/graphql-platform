@@ -42,7 +42,7 @@ internal sealed class ConnectionType
         Definition = CreateTypeDefinition(includeTotalCount, includeNodesField, edgesType);
         Definition.Name = NameHelper.CreateConnectionName(connectionName);
         Definition.Dependencies.Add(new(nodeType));
-        Definition.Configurations.Add(
+        Definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
                 Definition,
@@ -50,7 +50,7 @@ internal sealed class ConnectionType
 
         if (includeNodesField)
         {
-            Definition.Configurations.Add(
+            Definition.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask(
                     (c, d) =>
                     {
@@ -88,7 +88,7 @@ internal sealed class ConnectionType
         Definition.Dependencies.Add(new(edgeType));
         Definition.NeedsNameCompletion = true;
 
-        Definition.Configurations.Add(
+        Definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {
@@ -115,7 +115,7 @@ internal sealed class ConnectionType
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyFulfilled.Named));
-        Definition.Configurations.Add(
+        Definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, _) =>
                 {

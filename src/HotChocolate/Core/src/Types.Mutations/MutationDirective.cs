@@ -18,7 +18,7 @@ internal sealed class MutationDirective : ISchemaDirective
             throw ThrowHelper.MutationConventionDirective_In_Wrong_Location(directiveNode);
         }
 
-        fieldDef.Configurations.Add(
+        fieldDef.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) =>
                 {

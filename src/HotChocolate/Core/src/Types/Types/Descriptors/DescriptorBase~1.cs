@@ -53,10 +53,10 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     {
         OnCreateDefinition(Definition);
 
-        if (Definition.HasConfigurations)
+        if (Definition.HasTasks)
         {
             var i = 0;
-            var configurations = Definition.Configurations;
+            var configurations = Definition.Tasks;
 
             do
             {
@@ -105,7 +105,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
             throw new ArgumentNullException(nameof(configure));
         }
 
-        Definition.Configurations.Add(new OnCreateTypeSystemConfigurationTask(
+        Definition.Tasks.Add(new OnCreateTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
             Definition));
     }
@@ -131,7 +131,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
             Definition,
             ApplyConfigurationOn.BeforeNaming);
 
-        Definition.Configurations.Add(configuration);
+        Definition.Tasks.Add(configuration);
 
         return new NamedDependencyDescriptor(Context.TypeInspector, configuration);
     }
@@ -152,7 +152,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
             Definition,
             ApplyConfigurationOn.BeforeCompletion);
 
-        Definition.Configurations.Add(configuration);
+        Definition.Tasks.Add(configuration);
 
         return new CompletedDependencyDescriptor(Context.TypeInspector, configuration);
     }

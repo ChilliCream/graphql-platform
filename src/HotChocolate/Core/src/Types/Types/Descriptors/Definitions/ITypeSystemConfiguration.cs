@@ -47,10 +47,10 @@ public interface ITypeSystemConfiguration
     /// <summary>
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
-    IList<ITypeSystemConfigurationTask> Configurations { get; }
+    IList<ITypeSystemConfigurationTask> Tasks { get; }
 
     /// <summary>
     /// Defines if this type has configurations.
     /// </summary>
-    bool HasConfigurations { get; }
+    bool HasTasks { get; }
 }

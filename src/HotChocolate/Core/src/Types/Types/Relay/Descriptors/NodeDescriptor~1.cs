@@ -41,7 +41,7 @@ public class NodeDescriptor<TNode>
             ownerDef,
             ApplyConfigurationOn.AfterNaming);
 
-        ownerDef.Configurations.Add(configuration);
+        ownerDef.Tasks.Add(configuration);
     }
 
     private void OnCompleteDefinition(

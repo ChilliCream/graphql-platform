@@ -178,7 +178,7 @@ public static class SortingObjectFieldDescriptorExtensions
                         Flags = FieldFlags.SortArgument
                     };
 
-                    argumentDefinition.Configurations.Add(
+                    argumentDefinition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>((context, def) =>
                         {
                             var namedType = context.GetType<INamedType>(argumentTypeReference);
@@ -191,7 +191,7 @@ public static class SortingObjectFieldDescriptorExtensions
 
                     definition.Arguments.Add(argumentDefinition);
 
-                    definition.Configurations.Add(
+                    definition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (context, def) =>
                                 CompileMiddleware(
@@ -205,7 +205,7 @@ public static class SortingObjectFieldDescriptorExtensions
                             argumentTypeReference,
                             TypeDependencyFulfilled.Completed));
 
-                    argumentDefinition.Configurations.Add(
+                    argumentDefinition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,

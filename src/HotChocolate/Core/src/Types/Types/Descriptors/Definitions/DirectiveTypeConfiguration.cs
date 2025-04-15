@@ -100,15 +100,15 @@ public class DirectiveTypeConfiguration : TypeSystemConfiguration, IHasRuntimeTy
     /// </summary>
     public Func<object, DirectiveNode>? Format { get; set; }
 
-    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetTasks()
     {
         var configs = new List<ITypeSystemConfigurationTask>();
 
-        configs.AddRange(Configurations);
+        configs.AddRange(Tasks);
 
         foreach (var field in GetArguments())
         {
-            configs.AddRange(field.Configurations);
+            configs.AddRange(field.Tasks);
         }
 
         return configs;

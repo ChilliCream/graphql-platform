@@ -41,32 +41,32 @@ public class InterfaceTypeConfiguration : TypeConfiguration, IComplexOutputTypeC
     public IBindableList<InterfaceFieldConfiguration> Fields { get; } =
         new BindableList<InterfaceFieldConfiguration>();
 
-    public override IEnumerable<ITypeSystemConfigurationTask> GetConfigurations()
+    public override IEnumerable<ITypeSystemConfigurationTask> GetTasks()
     {
         List<ITypeSystemConfigurationTask>? configs = null;
 
-        if (HasConfigurations)
+        if (HasTasks)
         {
             configs ??= [];
-            configs.AddRange(Configurations);
+            configs.AddRange(Tasks);
         }
 
         foreach (var field in Fields)
         {
-            if (field.HasConfigurations)
+            if (field.HasTasks)
             {
                 configs ??= [];
-                configs.AddRange(field.Configurations);
+                configs.AddRange(field.Tasks);
             }
 
             if (field.HasArguments)
             {
                 foreach (var argument in field.Arguments)
                 {
-                    if (argument.HasConfigurations)
+                    if (argument.HasTasks)
                     {
                         configs ??= [];
-                        configs.AddRange(argument.Configurations);
+                        configs.AddRange(argument.Tasks);
                     }
                 }
             }

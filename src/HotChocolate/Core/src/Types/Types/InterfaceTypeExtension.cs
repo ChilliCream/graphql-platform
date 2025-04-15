@@ -112,8 +112,8 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
                 interfaceType.Definition!.Fields);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Configurations,
-                interfaceType.Definition!.Configurations);
+                Definition!.Tasks,
+                interfaceType.Definition!.Tasks);
         }
         else
         {

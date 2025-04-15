@@ -109,8 +109,8 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
                 enumType.Definition!.Directives);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Configurations,
-                enumType.Definition!.Configurations);
+                Definition!.Tasks,
+                enumType.Definition!.Tasks);
 
             MergeValues(context, Definition!, enumType.Definition!);
         }

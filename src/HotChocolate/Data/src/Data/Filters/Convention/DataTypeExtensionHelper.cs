@@ -28,8 +28,8 @@ internal static class DataTypeExtensionHelper
             typeDefinition.Fields);
 
         TypeExtensionHelper.MergeConfigurations(
-            extensionDefinition.Configurations,
-            typeDefinition.Configurations);
+            extensionDefinition.Tasks,
+            typeDefinition.Tasks);
     }
 
     public static void MergeSortEnumTypeDefinitions(
@@ -52,8 +52,8 @@ internal static class DataTypeExtensionHelper
             typeDefinition.Values);
 
         TypeExtensionHelper.MergeConfigurations(
-            extensionDefinition.Configurations,
-            typeDefinition.Configurations);
+            extensionDefinition.Tasks,
+            typeDefinition.Tasks);
     }
 
     public static void MergeSortInputTypeDefinitions(
@@ -76,8 +76,8 @@ internal static class DataTypeExtensionHelper
             typeDefinition.Fields);
 
         TypeExtensionHelper.MergeConfigurations(
-            extensionDefinition.Configurations,
-            typeDefinition.Configurations);
+            extensionDefinition.Tasks,
+            typeDefinition.Tasks);
     }
 
     private static void MergeFilterFieldDefinitions(

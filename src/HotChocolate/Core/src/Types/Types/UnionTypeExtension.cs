@@ -117,8 +117,8 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
                 unionType.Definition!.Types);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Configurations,
-                unionType.Definition!.Configurations);
+                Definition!.Tasks,
+                unionType.Definition!.Tasks);
         }
         else
         {

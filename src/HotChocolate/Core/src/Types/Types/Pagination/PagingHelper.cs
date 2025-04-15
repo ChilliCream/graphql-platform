@@ -34,7 +34,7 @@ public static class PagingHelper
 
         var definition = descriptor.Extend().Configuration;
         definition.MiddlewareDefinitions.Add(placeholder);
-        definition.Configurations.Add(
+        definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) => ApplyConfiguration(
                     c,
