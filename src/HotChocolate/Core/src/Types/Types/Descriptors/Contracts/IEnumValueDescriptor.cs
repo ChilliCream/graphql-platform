@@ -8,7 +8,7 @@ public interface IEnumValueDescriptor
     , IFluent
 {
     /// <summary>
-    /// Defines the name of the <see cref="EnumValue"/>.
+    /// Defines the name of the <see cref="DefaultEnumValue"/>.
     /// The name represents the public visible enum value name.
     /// </summary>
     /// <param name="value">The enum value name.</param>
@@ -19,7 +19,7 @@ public interface IEnumValueDescriptor
     IEnumValueDescriptor Name(string value);
 
     /// <summary>
-    /// Adds explanatory text to the <see cref="EnumValue"/>
+    /// Adds explanatory text to the <see cref="DefaultEnumValue"/>
     /// that can be accessed via introspection.
     /// </summary>
     /// <param name="value">The enum value description.</param>

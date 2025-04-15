@@ -12,7 +12,7 @@ public class SortEnumValueDescriptor
         IDescriptorContext context,
         string? scope,
         int value)
-        : base(context, new SortEnumValueDefinition { Operation = value, })
+        : base(context, new SortEnumValueConfiguration { Operation = value, })
     {
         var convention = context.GetSortConvention(scope);
         Definition.Name = convention.GetOperationName(value);
@@ -22,8 +22,8 @@ public class SortEnumValueDescriptor
 
     protected SortEnumValueDescriptor(
         IDescriptorContext context,
-        SortEnumValueDefinition definition)
-        : base(context, definition)
+        SortEnumValueConfiguration configuration)
+        : base(context, configuration)
     {
     }
 

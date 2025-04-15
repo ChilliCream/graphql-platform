@@ -37,19 +37,19 @@ public partial class EnumType
     /// <summary>
     /// Gets the enum values of this type.
     /// </summary>
-    public IReadOnlyList<IEnumValue> Values => _values;
+    public IReadOnlyList<EnumValue> Values => _values;
 
     /// <summary>
     /// Gets a dictionary that allows to look up the enum value by its name.
     /// </summary>
-    protected IReadOnlyDictionary<string, IEnumValue> NameLookup => _nameLookup;
+    protected IReadOnlyDictionary<string, EnumValue> NameLookup => _nameLookup;
 
     /// <summary>
     /// Gets a dictionary that allows to look up the enum value by its runtime value.
     /// </summary>
-    protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
+    protected IReadOnlyDictionary<object, EnumValue> ValueLookup => _valueLookup;
 
-    public bool TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value)
+    public bool TryGetValue(string name, [NotNullWhen(true)] out EnumValue? value)
     {
         if (string.IsNullOrEmpty(name))
         {

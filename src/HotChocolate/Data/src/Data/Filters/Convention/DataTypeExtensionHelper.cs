@@ -113,8 +113,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is SortEnumValueDefinition filterTypeField &&
-                    extensionField is SortEnumValueDefinition filterExtensionField)
+                if (typeField is SortEnumValueConfiguration filterTypeField &&
+                    extensionField is SortEnumValueConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -194,9 +194,9 @@ internal static class DataTypeExtensionHelper
         foreach (var extensionField in extensionFields)
         {
             EnumValueConfiguration? typeField;
-            if (extensionField is SortEnumValueDefinition sortEnumValueDefinition)
+            if (extensionField is SortEnumValueConfiguration sortEnumValueDefinition)
             {
-                typeField = typeFields.OfType<SortEnumValueDefinition>()
+                typeField = typeFields.OfType<SortEnumValueConfiguration>()
                     .FirstOrDefault(t => t.Operation == sortEnumValueDefinition.Operation);
             }
             else

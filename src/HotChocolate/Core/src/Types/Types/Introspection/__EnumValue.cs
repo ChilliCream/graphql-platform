@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Introspection;
 
 [Introspection]
 // ReSharper disable once InconsistentNaming
-internal sealed class __EnumValue : ObjectType<IEnumValue>
+internal sealed class __EnumValue : ObjectType<EnumValue>
 {
     protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
@@ -23,7 +23,7 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
         var def = new ObjectTypeConfiguration(
             Names.__EnumValue,
             EnumValue_Description,
-            typeof(IEnumValue))
+            typeof(EnumValue))
         {
             Fields =
                 {
@@ -50,19 +50,19 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
     private static class Resolvers
     {
         public static object Name(IResolverContext context)
-            => context.Parent<IEnumValue>().Name;
+            => context.Parent<EnumValue>().Name;
 
         public static object? Description(IResolverContext context)
-            => context.Parent<IEnumValue>().Description;
+            => context.Parent<EnumValue>().Description;
 
         public static object IsDeprecated(IResolverContext context)
-            => context.Parent<IEnumValue>().IsDeprecated;
+            => context.Parent<EnumValue>().IsDeprecated;
 
         public static string? DeprecationReason(IResolverContext context)
-            => context.Parent<IEnumValue>().DeprecationReason;
+            => context.Parent<EnumValue>().DeprecationReason;
 
         public static object AppliedDirectives(IResolverContext context)
-            => context.Parent<IEnumValue>().Directives
+            => context.Parent<EnumValue>().Directives
                 .Where(t => t.Type.IsPublic)
                 .Select(d => d.AsSyntaxNode());
     }

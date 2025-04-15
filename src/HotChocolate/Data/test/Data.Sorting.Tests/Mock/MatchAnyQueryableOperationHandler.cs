@@ -10,5 +10,5 @@ public class MatchAnyQueryableOperationHandler
     public override bool CanHandle(
         ITypeCompletionContext context,
         EnumTypeConfiguration typeDefinition,
-        SortEnumValueDefinition valueDefinition) => true;
+        SortEnumValueConfiguration valueConfiguration) => true;
 }

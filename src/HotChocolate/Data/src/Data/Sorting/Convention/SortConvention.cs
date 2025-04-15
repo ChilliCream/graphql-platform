@@ -253,12 +253,12 @@ public class SortConvention
     public bool TryGetOperationHandler(
         ITypeCompletionContext context,
         EnumTypeConfiguration typeDefinition,
-        SortEnumValueDefinition fieldDefinition,
+        SortEnumValueConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortOperationHandler? handler)
     {
         foreach (var sortFieldHandler in _provider.OperationHandlers)
         {
-            if (sortFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
+            if (sortFieldHandler.CanHandle(context, typeDefinition, fieldConfiguration))
             {
                 handler = sortFieldHandler;
                 return true;

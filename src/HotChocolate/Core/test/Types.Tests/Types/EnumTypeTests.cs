@@ -497,7 +497,7 @@ public class EnumTypeTests : TypeTestBase
     {
         // arrange
         // act
-        void Action() => new EnumValue(null!);
+        void Action() => new DefaultEnumValue(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -508,7 +508,7 @@ public class EnumTypeTests : TypeTestBase
     {
         // arrange
         // act
-        void Action() => new EnumValue(new EnumValueConfiguration());
+        void Action() => new DefaultEnumValue(new EnumValueConfiguration());
 
         // assert
         Assert.Throws<ArgumentException>(Action);

@@ -30,16 +30,16 @@ public abstract class MongoDbSortOperationHandlerBase
     public override bool CanHandle(
         ITypeCompletionContext context,
         EnumTypeConfiguration typeDefinition,
-        SortEnumValueDefinition valueDefinition)
+        SortEnumValueConfiguration valueConfiguration)
     {
-        return valueDefinition.Operation == _operation;
+        return valueConfiguration.Operation == _operation;
     }
 
     /// <inheritdoc/>
     public override bool TryHandleEnter(
         MongoDbSortVisitorContext context,
         ISortField field,
-        ISortEnumValue? sortValue,
+        SortEnumValue? sortValue,
         EnumValueNode node,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {

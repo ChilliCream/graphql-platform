@@ -14,9 +14,9 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private FrozenDictionary<string, IEnumValue> _nameLookup = default!;
-    private FrozenDictionary<object, IEnumValue> _valueLookup = default!;
-    private ImmutableArray<IEnumValue> _values;
+    private FrozenDictionary<string, EnumValue> _nameLookup = default!;
+    private FrozenDictionary<object, EnumValue> _valueLookup = default!;
+    private ImmutableArray<EnumValue> _values;
     private INamingConventions _naming = default!;
     private Action<IEnumTypeDescriptor>? _configure;
 
@@ -98,9 +98,9 @@ public partial class EnumType
     {
         base.OnCompleteType(context, definition);
 
-        var builder = ImmutableArray.CreateBuilder<IEnumValue>(definition.Values.Count);
-        var nameLookupBuilder = new Dictionary<string, IEnumValue>(definition.NameComparer);
-        var valueLookupBuilder = new Dictionary<object, IEnumValue>(definition.ValueComparer);
+        var builder = ImmutableArray.CreateBuilder<EnumValue>(definition.Values.Count);
+        var nameLookupBuilder = new Dictionary<string, EnumValue>(definition.NameComparer);
+        var valueLookupBuilder = new Dictionary<object, EnumValue>(definition.ValueComparer);
         _naming = context.DescriptorContext.Naming;
 
         foreach (var enumValueDefinition in definition.Values)
@@ -148,9 +148,9 @@ public partial class EnumType
     protected virtual bool TryCreateEnumValue(
         ITypeCompletionContext context,
         EnumValueConfiguration definition,
-        [NotNullWhen(true)] out IEnumValue? enumValue)
+        [NotNullWhen(true)] out EnumValue? enumValue)
     {
-        enumValue = new EnumValue(definition);
+        enumValue = new DefaultEnumValue(definition);
         return true;
     }
 }

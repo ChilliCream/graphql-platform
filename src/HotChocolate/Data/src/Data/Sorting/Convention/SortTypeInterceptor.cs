@@ -208,7 +208,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         foreach (var enumValue in definition.Values)
         {
-            if (enumValue is SortEnumValueDefinition sortEnumValueDefinition)
+            if (enumValue is SortEnumValueConfiguration sortEnumValueDefinition)
             {
                 if (convention.TryGetOperationHandler(
                     completionContext,

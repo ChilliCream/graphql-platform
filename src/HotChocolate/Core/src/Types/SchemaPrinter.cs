@@ -354,7 +354,7 @@ public static class SchemaPrinter
         );
     }
 
-    private static EnumValueDefinitionNode PrintEnumValue(IEnumValue enumValue)
+    private static EnumValueDefinitionNode PrintEnumValue(EnumValue enumValue)
     {
         var directives = enumValue.Directives
             .Select(PrintDirective)

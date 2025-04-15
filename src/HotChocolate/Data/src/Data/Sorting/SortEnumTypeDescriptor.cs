@@ -51,7 +51,7 @@ public class SortEnumTypeDescriptor
         }
 
         var values = Values.Select(t => t.CreateConfiguration())
-            .OfType<SortEnumValueDefinition>()
+            .OfType<SortEnumValueConfiguration>()
             .ToDictionary(t => t.Value);
 
         definition.Values.Clear();

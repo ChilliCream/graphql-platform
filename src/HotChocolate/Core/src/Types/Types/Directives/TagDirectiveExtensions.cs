@@ -340,7 +340,7 @@ public static class TagDirectiveExtensions
     }
 
     /// <summary>
-    /// Adds a @tag(name: "your-value") to an <see cref="EnumValue"/>.
+    /// Adds a @tag(name: "your-value") to an <see cref="DefaultEnumValue"/>.
     /// <code>
     /// enum Episode {
     ///   NEWHOPE @tag(name: "your-value")
@@ -374,7 +374,7 @@ public static class TagDirectiveExtensions
     }
 
     /// <summary>
-    /// Adds a @tag(name: "your-value") to an <see cref="EnumValue"/>.
+    /// Adds a @tag(name: "your-value") to an <see cref="DefaultEnumValue"/>.
     /// <code>
     /// schema @myDirective(arg: "value") {
     ///   query: Query

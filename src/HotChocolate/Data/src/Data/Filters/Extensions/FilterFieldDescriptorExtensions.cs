@@ -33,7 +33,7 @@ public static class FilterFieldDescriptorExtensions
         if (reference is SchemaTypeReference schemaRef)
         {
             return schemaRef.Type is NonNullType nnt
-                ? schemaRef.WithType(nnt.Type)
+                ? schemaRef.WithType(nnt.NullableType)
                 : schemaRef;
         }
 

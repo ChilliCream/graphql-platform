@@ -26,10 +26,10 @@ public class EnumValueDescriptor
         }
     }
 
-    protected EnumValueDescriptor(IDescriptorContext context, EnumValueConfiguration definition)
+    protected EnumValueDescriptor(IDescriptorContext context, EnumValueConfiguration configuration)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Definition = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     protected internal override EnumValueConfiguration Definition { get; protected set; } = new();

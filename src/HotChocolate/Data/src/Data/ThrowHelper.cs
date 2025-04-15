@@ -237,7 +237,7 @@ internal static class ThrowHelper
 
     public static SchemaException SortInterceptor_NoOperationHandlerFoundForValue(
         EnumTypeConfiguration type,
-        SortEnumValueDefinition value) =>
+        SortEnumValueConfiguration value) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
