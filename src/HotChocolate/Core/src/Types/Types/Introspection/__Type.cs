@@ -155,7 +155,7 @@ internal sealed class __Type : ObjectType
             => context.Parent<IType>() switch
             {
                 ListType lt => lt.ElementType,
-                NonNullType nnt => nnt.Type,
+                NonNullType nnt => nnt.NullableType,
                 _ => null,
             };
 

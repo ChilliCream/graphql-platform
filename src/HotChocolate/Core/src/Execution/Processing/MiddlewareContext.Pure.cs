@@ -263,7 +263,7 @@ internal partial class MiddlewareContext
 
                 if (typeof(T).IsInterface)
                 {
-                    var o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
+                    var o = dictToObjConverter.Convert(value, argument.Type.ToRuntimeType());
                     if (o is T c)
                     {
                         return c;

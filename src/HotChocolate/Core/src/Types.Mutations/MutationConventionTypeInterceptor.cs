@@ -683,7 +683,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             return typeRef;
         }
 
-        return Create(CreateTypeNode(nt.Type));
+        return Create(CreateTypeNode(nt.NullableType));
     }
 
     private TypeReference EnsureNonNull(TypeReference typeRef)
@@ -701,7 +701,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private static ITypeNode CreateTypeNode(IType type)
         => type switch
         {
-            NonNullType nnt => new NonNullTypeNode((INullableTypeNode) CreateTypeNode(nnt.Type)),
+            NonNullType nnt => new NonNullTypeNode((INullableTypeNode) CreateTypeNode(nnt.NullableType)),
             ListType lt => new ListTypeNode(CreateTypeNode(lt.ElementType)),
             INamedType nt => new NamedTypeNode(nt.Name),
             _ => throw new NotSupportedException("Type is not supported."),

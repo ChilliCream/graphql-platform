@@ -351,16 +351,19 @@ internal static class ThrowHelper
         ListType type,
         Type listType,
         Path path)
-        => new SerializationException(
+    {
+        var runtimeType = type.ToRuntimeType();
+        return new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ParseList_InvalidObjectKind,
                     listType.FullName ?? listType.Name,
                     type.Print(),
-                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                    runtimeType.FullName ?? runtimeType.Name)
                 .Build(),
             type,
             path);
+    }
 
     public static SerializationException FormatValueList_InvalidObjectKind(
         ListType type,

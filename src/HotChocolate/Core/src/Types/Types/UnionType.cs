@@ -259,7 +259,7 @@ public class UnionType
             {
                 if (type is NonNullType nonNullType)
                 {
-                    type = nonNullType.Type;
+                    type = nonNullType.NullableType;
                 }
 
                 if (type is not ObjectType objectType)

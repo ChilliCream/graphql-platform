@@ -202,7 +202,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
             else if (currentType is NonNullType nonNullType)
             {
                 levels.Add(index);
-                currentType = nonNullType.Type;
+                currentType = nonNullType.NullableType;
             }
             else
             {
@@ -275,7 +275,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
         if (typeSystemMember is NonNullType nonNullType)
         {
-            return BuildNullableTypeStructure(nonNullType.Type);
+            return BuildNullableTypeStructure(nonNullType.NullableType);
         }
 
         return (IType)typeSystemMember;
