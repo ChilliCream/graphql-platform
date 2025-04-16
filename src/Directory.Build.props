@@ -13,8 +13,7 @@
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == ''">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- TODO: See https://github.com/NuGet/Home/issues/14251 (remove NU1510) -->
-    <WarningsNotAsErrors>NU1510;NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == 'false'">
