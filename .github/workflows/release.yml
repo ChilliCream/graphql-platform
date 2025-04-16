@@ -114,11 +114,13 @@ jobs:
             -o ./publish
 
       - name: 📦 Zip Binary
+        shell: bash
         run: |
           cd publish
           zip ../fusion-${{ matrix.rid }}.zip fusion${{ matrix.ext }}
 
       - name: 📤 Upload Zipped AOT Binary
+        shell: bash
         run: |
           gh release upload ${{ github.ref_name }} fusion-${{ matrix.rid }}.zip --repo ${{ github.repository }}
         env:
