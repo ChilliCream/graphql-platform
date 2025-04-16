@@ -74,7 +74,7 @@ jobs:
             rid: linux-musl-x64
             ext: ""
           # Linux (arm64 on ARM runner!)
-          - os: ubuntu-arm64
+          - os: ubuntu-24.04-arm
             rid: linux-arm64
             ext: ""
           # macOS
@@ -85,11 +85,15 @@ jobs:
             rid: osx-arm64
             ext: ""
           # Windows
-          - os: windows-2022
+          - os: windows-11
             rid: win-x64
             ext: ".exe"
-          - os: windows-2022
+          - os: windows-11
             rid: win-x86
+            ext: ".exe"
+          # Windows (arm64 on ARM runner!)
+          - os: windows-11-arm
+            rid: win-arm64
             ext: ".exe"
 
     steps:
@@ -113,11 +117,17 @@ jobs:
             -p:TargetFrameworks=NET9.0 \
             -o ./publish
 
-      - name: 📦 Zip Binary
-        shell: bash
+      - name: 📦 Zip Binary (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path publish/fusion.exe -DestinationPath fusion-${{ matrix.rid }}.zip
+        shell: pwsh
+
+      - name: 📦 Zip Binary (Unix)
+        if: runner.os != 'Windows'
         run: |
           cd publish
           zip ../fusion-${{ matrix.rid }}.zip fusion${{ matrix.ext }}
+        shell: bash
 
       - name: 📤 Upload Zipped AOT Binary
         shell: bash
