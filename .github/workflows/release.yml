@@ -102,6 +102,7 @@ jobs:
           dotnet-version: 9.x
 
       - name: 🧩 Publish AOT Binary for ${{ matrix.rid }}
+        shell: bash
         run: |
           dotnet publish ./src/HotChocolate/Fusion-vnext/src/Fusion.CommandLine \
             -c Release \
