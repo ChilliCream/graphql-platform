@@ -1,4 +1,4 @@
-name: Release
+name: 🚀 Release
 
 on:
   push:
@@ -7,51 +7,118 @@ on:
 
 jobs:
   release:
+    name: 📦 Build & Publish NuGet Packages
     runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        show-progress: false
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: |
-          8.x
-          9.x
+      - name: 🛠 Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.x
+            9.x
 
-    - name: Get the version
-      id: get_version
-      run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: 🏷 Get the version from tag
+        id: get_version
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-    - name: Build Packages
-      run: |
-        ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
+      - name: 📦 Build NuGet Packages
+        run: |
+          ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
 
-    - name: Push Packages
-      run: |
-        ./build.cmd publish --skip
-      env:
-        NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
+      - name: 🚀 Push Packages to NuGet
+        run: |
+          ./build.cmd publish --skip
+        env:
+          NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
 
-    - name: Get release
-      id: get_release
-      run: |
-        RELEASE_ID=$(gh api repos/ChilliCream/graphql-platform/releases/tags/${{ env.GIT_TAG }} --jq '.id')
-        UPLOAD_URL=$(gh api repos/ChilliCream/graphql-platform/releases/$RELEASE_ID --jq '.upload_url')
-        echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
-        echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🔎 Get GitHub Release Info
+        id: get_release
+        run: |
+          RELEASE_ID=$(gh api repos/ChilliCream/graphql-platform/releases/tags/${{ env.GIT_TAG }} --jq '.id')
+          UPLOAD_URL=$(gh api repos/ChilliCream/graphql-platform/releases/$RELEASE_ID --jq '.upload_url')
+          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+          echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload Release Assets
-      run: |
-        for file in ./output/packages/*.nupkg; do
-          echo "Uploading $file"
-          gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
-        done
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📤 Upload .nupkg Release Assets
+        run: |
+          for file in ./output/packages/*.nupkg; do
+            echo "📤 Uploading $file"
+            gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-aot:
+    name: 🧱 Build and Publish Fusion Tooling
+    runs-on: ${{ matrix.os }}
+    needs: release
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          # Linux (x64)
+          - os: ubuntu-22.04
+            rid: linux-x64
+            ext: ""
+          - os: ubuntu-22.04
+            rid: linux-musl-x64
+            ext: ""
+          # Linux (arm64 on ARM runner!)
+          - os: ubuntu-arm64
+            rid: linux-arm64
+            ext: ""
+          # macOS
+          - os: macos-14
+            rid: osx-x64
+            ext: ""
+          - os: macos-14
+            rid: osx-arm64
+            ext: ""
+          # Windows
+          - os: windows-2022
+            rid: win-x64
+            ext: ".exe"
+          - os: windows-2022
+            rid: win-x86
+            ext: ".exe"
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🛠 Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
+
+      - name: 🧩 Publish AOT Binary for ${{ matrix.rid }}
+        run: |
+          dotnet publish ./src/HotChocolate/Fusion-vnext/src/Fusion.CommandLine \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            -f net9.0 \
+            --self-contained true \
+            -p:PublishAot=true \
+            -p:TargetFrameworks=NET9.0 \
+            -o ./publish
+
+      - name: 📦 Zip Binary
+        run: |
+          cd publish
+          zip ../fusion-${{ matrix.rid }}.zip fusion${{ matrix.ext }}
+
+      - name: 📤 Upload Zipped AOT Binary
+        run: |
+          gh release upload ${{ github.ref_name }} fusion-${{ matrix.rid }}.zip --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
