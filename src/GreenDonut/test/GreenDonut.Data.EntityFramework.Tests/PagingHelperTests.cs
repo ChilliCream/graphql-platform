@@ -215,7 +215,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -244,7 +245,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -273,7 +275,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -302,7 +305,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -499,14 +503,5 @@ public class PagingHelperTests(PostgreSqlResource resource)
         }
 
         await context.SaveChangesAsync();
-    }
-
-    private static Snapshot CreateSnapshot()
-    {
-#if NET9_0_OR_GREATER
-        return Snapshot.Create();
-#else
-        return Snapshot.Create("NET8_0");
-#endif
     }
 }
