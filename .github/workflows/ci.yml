@@ -148,7 +148,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.x
+          dotnet-version: 10.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix
@@ -181,6 +181,7 @@ jobs:
           dotnet-version: |
             8.x
             9.x
+            10.x
 
       - name: Run Build
         id: run-build
