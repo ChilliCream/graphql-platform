@@ -6,6 +6,7 @@
     <PackAsTool>true</PackAsTool>
     <PublishAot>false</PublishAot>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <PackageId>HotChocolate.Fusion.CommandLine</PackageId>
     <ToolCommandName>fusion</ToolCommandName>
   </PropertyGroup>
 

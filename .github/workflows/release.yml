@@ -1,4 +1,4 @@
-name: Release
+name: 🚀 Release
 
 on:
   push:
@@ -11,33 +11,33 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout
+      - name: 📦 Checkout
         uses: actions/checkout@v4
         with:
           show-progress: false
 
-      - name: Install .NET
+      - name: 🛠 Install .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             8.x
             9.x
 
-      - name: Get the version
+      - name: 🏷 Get the version from tag
         id: get_version
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build Packages
+      - name: 📦 Build NuGet Packages
         run: |
           ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
 
-      - name: Push Packages
+      - name: 🚀 Push Packages to NuGet
         run: |
           ./build.cmd publish --skip
         env:
           NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
 
-      - name: Get release
+      - name: 🔎 Get GitHub Release Info
         id: get_release
         run: |
           RELEASE_ID=$(gh api repos/ChilliCream/graphql-platform/releases/tags/${{ env.GIT_TAG }} --jq '.id')
@@ -47,17 +47,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Assets
+      - name: 📤 Upload .nupkg Release Assets
         run: |
           for file in ./output/packages/*.nupkg; do
-            echo "Uploading $file"
+            echo "📤 Uploading $file"
             gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-aot:
-    name: Build AOT Binary
+    name: 🧱 Build Fusion Tooling
     runs-on: ${{ matrix.os }}
     needs: release
     strategy:
@@ -98,15 +98,15 @@ jobs:
             ext: ".exe"
 
     steps:
-      - name: Checkout
+      - name: 📦 Checkout
         uses: actions/checkout@v4
 
-      - name: Install .NET
+      - name: 🛠 Install .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.x
 
-      - name: Publish AOT binary
+      - name: 🧩 Publish AOT Binary for ${{ matrix.rid }}
         run: |
           dotnet publish ./src/HotChocolate/Fusion-vnext/src/Fusion.CommandLine \
             -c Release \
@@ -117,12 +117,12 @@ jobs:
             -p:TargetFrameworks=NET9.0 \
             -o ./publish
 
-      - name: Zip the binary
+      - name: 📦 Zip Binary
         run: |
           cd publish
           zip ../fusion-${{ matrix.rid }}.zip fusion${{ matrix.ext }}
 
-      - name: Upload zipped binary to GitHub Release
+      - name: 📤 Upload Zipped AOT Binary
         run: |
           gh release upload ${{ github.ref_name }} fusion-${{ matrix.rid }}.zip --repo ${{ github.repository }}
         env:
