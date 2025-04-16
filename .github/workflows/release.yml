@@ -60,7 +60,6 @@ jobs:
   build-aot:
     name: 🧱 Build and Publish Fusion Tooling
     runs-on: ${{ matrix.os }}
-    needs: release
     permissions:
       contents: write
     strategy:
@@ -74,22 +73,26 @@ jobs:
             rid: linux-musl-x64
             ext: ""
           # Linux (arm64 on ARM runner!)
-          - os: ubuntu-arm64
+          - os: ubuntu-24.04-arm
             rid: linux-arm64
             ext: ""
           # macOS
-          - os: macos-14
+          - os: macos-15
             rid: osx-x64
             ext: ""
-          - os: macos-14
+          - os: macos-15
             rid: osx-arm64
             ext: ""
           # Windows
-          - os: windows-2022
+          - os: windows-2025
             rid: win-x64
             ext: ".exe"
-          - os: windows-2022
+          - os: windows-2025
             rid: win-x86
+            ext: ".exe"
+          # Windows (arm64 on ARM runner!)
+          - os: windows-11-arm
+            rid: win-arm64
             ext: ".exe"
 
     steps:
@@ -102,6 +105,7 @@ jobs:
           dotnet-version: 9.x
 
       - name: 🧩 Publish AOT Binary for ${{ matrix.rid }}
+        shell: bash
         run: |
           dotnet publish ./src/HotChocolate/Fusion-vnext/src/Fusion.CommandLine \
             -c Release \
@@ -112,12 +116,20 @@ jobs:
             -p:TargetFrameworks=NET9.0 \
             -o ./publish
 
-      - name: 📦 Zip Binary
+      - name: 📦 Zip Binary (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path publish/fusion.exe -DestinationPath fusion-${{ matrix.rid }}.zip
+        shell: pwsh
+
+      - name: 📦 Zip Binary (Unix)
+        if: runner.os != 'Windows'
         run: |
           cd publish
           zip ../fusion-${{ matrix.rid }}.zip fusion${{ matrix.ext }}
+        shell: bash
 
       - name: 📤 Upload Zipped AOT Binary
+        shell: bash
         run: |
           gh release upload ${{ github.ref_name }} fusion-${{ matrix.rid }}.zip --repo ${{ github.repository }}
         env:
