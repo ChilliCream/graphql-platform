@@ -60,7 +60,6 @@ jobs:
   build-aot:
     name: 🧱 Build and Publish Fusion Tooling
     runs-on: ${{ matrix.os }}
-    needs: release
     permissions:
       contents: write
     strategy:
