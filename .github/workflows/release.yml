@@ -61,6 +61,8 @@ jobs:
     name: 🧱 Build and Publish Fusion Tooling
     runs-on: ${{ matrix.os }}
     needs: release
+    permissions:
+      contents: write
     strategy:
       matrix:
         include:
