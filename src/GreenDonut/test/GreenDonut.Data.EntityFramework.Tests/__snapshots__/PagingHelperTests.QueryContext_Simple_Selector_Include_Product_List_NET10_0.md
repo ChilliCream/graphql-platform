@@ -3,13 +3,13 @@
 ## SQL 0
 
 ```sql
--- @__p_0='3'
+-- @p='3'
 SELECT b0."Id", b0."Name", p."Id", p."Name"
 FROM (
     SELECT b."Id", b."Name"
     FROM "Brands" AS b
     ORDER BY b."Id"
-    LIMIT @__p_0
+    LIMIT @p
 ) AS b0
 LEFT JOIN "Products" AS p ON b0."Id" = p."BrandId"
 ORDER BY b0."Id"
