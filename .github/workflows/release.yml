@@ -64,12 +64,16 @@ jobs:
     strategy:
       matrix:
         include:
-          # Linux
+          # Linux (x64)
           - os: ubuntu-22.04
             rid: linux-x64
             ext: ""
           - os: ubuntu-22.04
             rid: linux-musl-x64
+            ext: ""
+          # Linux (arm64 on ARM runner!)
+          - os: ubuntu-arm64
+            rid: linux-arm64
             ext: ""
           # macOS
           - os: macos-14
@@ -84,9 +88,6 @@ jobs:
             ext: ".exe"
           - os: windows-2022
             rid: win-x86
-            ext: ".exe"
-          - os: windows-2022
-            rid: win-arm64
             ext: ".exe"
 
     steps:
