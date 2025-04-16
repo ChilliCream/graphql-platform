@@ -54,7 +54,10 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "Sam_Sampleman")
             .AddResult(res2, "NoMatch")
             .AddResult(res3, "null")
@@ -85,7 +88,10 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "1")
             .AddResult(res2, "0")
             .AddResult(res3, "null")

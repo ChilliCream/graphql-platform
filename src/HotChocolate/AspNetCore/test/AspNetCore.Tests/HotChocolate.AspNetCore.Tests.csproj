@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
+    <!-- TODO: See https://github.com/dotnet/aspnetcore/issues/61177 -->
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.Http.Validation.Generated</InterceptorsNamespaces>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
   </PropertyGroup>
 
