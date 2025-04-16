@@ -7,6 +7,7 @@ on:
 
 jobs:
   release:
+    name: 📦 Build & Publish NuGet Packages
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -57,7 +58,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-aot:
-    name: 🧱 Build Fusion Tooling
+    name: 🧱 Build and Publish Fusion Tooling
     runs-on: ${{ matrix.os }}
     needs: release
     strategy:
@@ -68,16 +69,7 @@ jobs:
             rid: linux-x64
             ext: ""
           - os: ubuntu-22.04
-            rid: linux-arm
-            ext: ""
-          - os: ubuntu-22.04
-            rid: linux-arm64
-            ext: ""
-          - os: ubuntu-22.04
             rid: linux-musl-x64
-            ext: ""
-          - os: ubuntu-22.04
-            rid: linux-musl-arm64
             ext: ""
           # macOS
           - os: macos-14
