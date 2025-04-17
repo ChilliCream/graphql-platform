@@ -574,12 +574,19 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Scalar-Types">
     /// Specification
     /// </seealso>
-    private MutableScalarTypeDefinition MergeScalarTypes(
+    private MutableScalarTypeDefinition? MergeScalarTypes(
         ImmutableArray<TypeInfo> typeGroup,
         MutableSchemaDefinition mergedSchema)
     {
         var firstScalar = typeGroup[0].Type;
         var typeName = firstScalar.Name;
+
+        // Built-in Fusion scalar types should not be merged.
+        if (FusionBuiltIns.IsBuiltInSourceSchemaScalar(typeName))
+        {
+            return null;
+        }
+
         var description = firstScalar.Description;
         var scalarType = GetOrCreateType<MutableScalarTypeDefinition>(mergedSchema, typeName);
 
