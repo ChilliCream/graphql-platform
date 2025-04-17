@@ -10,8 +10,8 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableSchemaDefinition
     : INamedTypeSystemMemberDefinition<MutableSchemaDefinition>
-        , ISchemaDefinition
-        , IFeatureProvider
+    , ISchemaDefinition
+    , IFeatureProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
     private MutableObjectTypeDefinition? _queryType;

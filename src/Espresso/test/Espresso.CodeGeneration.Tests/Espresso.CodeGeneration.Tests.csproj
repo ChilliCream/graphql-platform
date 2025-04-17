@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Espresso.CodeGeneration.Tests</AssemblyName>
+    <RootNamespace>Espresso.CodeGeneration</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Espresso.CodeGeneration\Espresso.CodeGeneration.csproj" />
+  </ItemGroup>
+
+</Project>

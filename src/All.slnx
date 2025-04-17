@@ -13,6 +13,14 @@
   <Folder Name="/CookieCrumble/test/">
     <Project Path="CookieCrumble/test/CookieCrumble.Tests/CookieCrumble.Tests.csproj" />
   </Folder>
+  <Folder Name="/Espresso/" />
+  <Folder Name="/Espresso/src/">
+    <Project Path="Espresso/src/Espresso.Abstractions/Espresso.Abstractions.csproj" />
+    <Project Path="Espresso/src/Espresso.CodeGeneration/Espresso.CodeGeneration.csproj" />
+  </Folder>
+  <Folder Name="/Espresso/test/">
+    <Project Path="Espresso/test/Espresso.CodeGeneration.Tests/Espresso.CodeGeneration.Tests.csproj" />
+  </Folder>
   <Folder Name="/GreenDonut/" />
   <Folder Name="/GreenDonut/src/">
     <Project Path="GreenDonut/src/GreenDonut.Abstractions/GreenDonut.Abstractions.csproj" />

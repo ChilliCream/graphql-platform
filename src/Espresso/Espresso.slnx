@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Espresso.Abstractions/Espresso.Abstractions.csproj" />
+    <Project Path="src/Espresso.CodeGeneration/Espresso.CodeGeneration.csproj" />
+  </Folder>
+</Solution>

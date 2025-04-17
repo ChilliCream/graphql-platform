@@ -22,7 +22,11 @@ public static class SchemaParser
     public static void Parse(MutableSchemaDefinition schema, ReadOnlySpan<byte> sourceText)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
+        Parse(schema, document);
+    }
 
+    public static void Parse(MutableSchemaDefinition schema, DocumentNode document)
+    {
         DiscoverTypesAndDirectives(schema, document);
         DiscoverExtensions(schema, document);
 
