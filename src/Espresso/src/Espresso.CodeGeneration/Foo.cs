@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate;
@@ -11,7 +12,6 @@ using HotChocolate.Types.Mutable.Serialization;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace Espresso.CodeGeneration;
-
 
 // @runtimeType(fullTypeName: "Espresso.CodeGeneration.ModelBuilder", isValueType: false)
 // @serializationType(fullTypeName: "Espresso.CodeGeneration.ModelBuilder", isValueType: false)
@@ -146,7 +146,6 @@ public static class Directives
     }
 }
 
-
 public class ModelBuilder
 {
     private List<DocumentNode> _documents = [];
@@ -159,7 +158,7 @@ public class ModelBuilder
         return this;
     }
 
-    public ModelBuilder AddDocument([StringSyntax("graphql")]string document)
+    public ModelBuilder AddDocument([StringSyntax("graphql")] string document)
     {
         AddDocument(Encoding.UTF8.GetBytes(document));
         return this;
@@ -331,16 +330,29 @@ public class OperationInspector(ISchemaDefinition schema) : SyntaxWalker<CSharpC
                 + "Please provide a name for the operation.");
         }
 
-        var model = new EntityModel(node.Name.Value + node.Operation)
-        {
-            OperationDefinition = node
-        };
+        var model = new EntityModel(node.Name.Value + node.Operation) { OperationDefinition = node };
 
         context.Entities.Push(model);
         context.AllModels.Add(model);
         context.Types.Push(schema.GetOperationType(node.Operation));
 
+        var path = new Stack<string>();
+        path.Push(node.Name.Value);
+        context.Paths.Push(path);
+
         return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Leave(OperationDefinitionNode node, CSharpCodeGeneratorContext context)
+    {
+        context.Paths.Pop();
+        return base.Leave(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(FragmentDefinitionNode node, CSharpCodeGeneratorContext context)
+    {
+        return Skip;
+        // return base.Enter(node, context);
     }
 
     protected override ISyntaxVisitorAction Enter(FieldNode node, CSharpCodeGeneratorContext context)
@@ -352,46 +364,57 @@ public class OperationInspector(ISchemaDefinition schema) : SyntaxWalker<CSharpC
 
         var type = context.Types.Peek().AsTypeDefinition();
         var model = context.Entities.Peek();
+        var path = context.Paths.Peek();
+        var responseName = node.Name.Value;
 
         if (type is not IComplexTypeDefinition complexType)
         {
             throw new GeneratorException($"The type '{type.Name}' is not a complex type.");
         }
 
-        if(!complexType.Fields.TryGetField(node.Name.Value, out var field))
+        if (!complexType.Fields.TryGetField(node.Name.Value, out var field))
         {
             throw new GeneratorException($"The field '{node.Name.Value}' does not exist on type '{type.Name}'.");
         }
 
         context.Fields.Push(node);
         context.Types.Push(field.Type);
+        path.Push(responseName);
 
-        if (model.Properties.TryGetValue(node.Name.Value, out var property)
+        if (context.NewPath(node, field.Type))
+        {
+            path = new Stack<string>();
+            context.Paths.Push(path);
+        }
+
+        if (model.Properties.TryGetValue(responseName, out var property)
             && property.Nullability is not Nullability.Nullable
             && !context.Nullable.Peek()
             && !context.IsNullable(node, field.Type))
         {
-            property = context.CreatePropertyModel(node, type);
-            model.Properties[node.Name.Value] = property;
+            property = context.CreatePropertyModel(node, field.Type);
+            model.Properties[responseName] = property;
         }
         else
         {
-            property = context.CreatePropertyModel(node, type);
-            model.Properties.Add(node.Name.Value, property);
+            property = context.CreatePropertyModel(node, field.Type);
+            model.Properties.Add(responseName, property);
         }
 
         if (node.SelectionSet is not null)
         {
-            if (context.IsAbstract(node, type))
+            var (_, typeName) = context.GetTypeInfo(node, field.Type);
+
+            if (context.IsAbstract(node, field.Type))
             {
-                var nextModel = new EntityInterfaceModel(property.TypeName);
+                var nextModel = new EntityInterfaceModel(typeName);
                 context.EntityInterfaces.Push(nextModel);
                 context.AllModels.Add(nextModel);
                 context.Abstract.Push(true);
             }
             else
             {
-                var nextModel = new EntityModel(property.TypeName);
+                var nextModel = new EntityModel(typeName);
                 context.Entities.Push(nextModel);
                 context.AllModels.Add(nextModel);
                 context.Abstract.Push(false);
@@ -410,8 +433,14 @@ public class OperationInspector(ISchemaDefinition schema) : SyntaxWalker<CSharpC
             return Skip;
         }
 
+        if (context.NewPath(node, context.Types.Peek()))
+        {
+            context.Paths.Pop();
+        }
+
         context.Fields.Pop();
         context.Types.Pop();
+        context.Paths.Peek().Pop();
 
         if (node.SelectionSet is not null)
         {
@@ -471,10 +500,7 @@ public class OperationInspector(ISchemaDefinition schema) : SyntaxWalker<CSharpC
 
             if (context.IsInlined(node))
             {
-                var entityModel = new EntityModel(context.GetTypeName(node))
-                {
-                    InlineFragment = node
-                };
+                var entityModel = new EntityModel(context.GetTypeName(node)) { InlineFragment = node };
 
                 context.Entities.Push(entityModel);
             }
@@ -489,10 +515,7 @@ public class OperationInspector(ISchemaDefinition schema) : SyntaxWalker<CSharpC
                     model.Properties.Add(propertyName, property);
                 }
 
-                var entityModel = new EntityModel(property.TypeName)
-                {
-                    InlineFragment = node
-                };
+                var entityModel = new EntityModel(property.TypeName) { InlineFragment = node };
 
                 context.Entities.Push(entityModel);
                 context.AllModels.Add(entityModel);
@@ -505,6 +528,8 @@ public class OperationInspector(ISchemaDefinition schema) : SyntaxWalker<CSharpC
 
 public class CSharpCodeGeneratorContext
 {
+    private readonly Dictionary<(FieldNode, IType), TypeInfo> _typeInfos = [];
+
     public string Namespace { get; set; } = "Espresso.CodeGeneration";
 
     public Stack<bool> Nullable { get; } = new();
@@ -519,14 +544,15 @@ public class CSharpCodeGeneratorContext
 
     public Stack<EntityInterfaceModel> EntityInterfaces { get; } = new();
 
+    public Stack<Stack<string>> Paths { get; } = new();
+
     public List<ITypeModel> AllModels { get; } = new();
 
     public PropertyModel CreatePropertyModel(FieldNode field, IType type)
     {
-        var typeName = GetTypeName(field, type);
         return new PropertyModel(
             field.Name.Value,
-            typeName,
+            GetOrCreateTypeInfo(field, type).FullTypeName,
             type,
             type.Kind is TypeKind.NonNull ? Nullability.NonNull : Nullability.Nullable,
             field.Alias?.Value ?? field.Name.Value);
@@ -552,8 +578,19 @@ public class CSharpCodeGeneratorContext
         throw new NotImplementedException();
     }
 
+    public (string FullTypeName, string TypeName) GetTypeInfo(FieldNode field, IType type)
+    {
+        var typeInfo = GetOrCreateTypeInfo(field, type);
+        return (typeInfo.FullTypeName, typeInfo.TypeName);
+    }
+
     public bool IsInlined(FragmentSpreadNode fragmentSpread)
-        => false;
+    {
+        var field = Fields.Peek();
+        var type = Types.Peek();
+        var typeInfo = GetOrCreateTypeInfo(field, type);
+        return typeInfo.NewPath;
+    }
 
 
     public bool IsInlined(InlineFragmentNode fragmentSpread)
@@ -567,25 +604,138 @@ public class CSharpCodeGeneratorContext
 
     public bool IsMaybeSkipped(ISelectionNode node) => false;
 
-    private string GetTypeName(FieldNode field, IType type)
+    public bool NewPath(FieldNode field, IType type)
     {
+        return GetOrCreateTypeInfo(field, type).NewPath;
+    }
+
+    private TypeInfo GetOrCreateTypeInfo(FieldNode field, IType type)
+    {
+        if (_typeInfos.TryGetValue((field, type), out var typeInfo))
+        {
+            return typeInfo;
+        }
+
         var typeDefinition = type.AsTypeDefinition();
 
         if (typeDefinition.Kind is TypeKind.Scalar)
         {
             var runtimeType = ((IFeatureProvider)typeDefinition).Features.GetRequired<RuntimeTypeInfo>();
-            return runtimeType.FullTypeName;
+            typeInfo = new TypeInfo(runtimeType.FullTypeName, runtimeType.FullTypeName.Split('.').Last(), false);
+            _typeInfos.Add((field, type), typeInfo);
+            return typeInfo;
         }
-        else if (typeDefinition.Kind is TypeKind.Enum)
+
+        if (typeDefinition.Kind is TypeKind.Enum)
         {
-            return $"{Namespace}.{typeDefinition.Name}";
+            typeInfo = new TypeInfo($"{Namespace}.{typeDefinition.Name}", typeDefinition.Name, false);
+            _typeInfos.Add((field, type), typeInfo);
+            return typeInfo;
         }
-        else
+
+        var selectionSet = field.SelectionSet!;
+
+        if (selectionSet.Selections.Count == 1)
         {
-            // TODO : needs inspection to build the name
-            return "";
+            switch (selectionSet.Selections[0])
+            {
+                case FragmentSpreadNode fragment:
+                    typeInfo = new TypeInfo($"{Namespace}.{fragment.Name.Value}", fragment.Name.Value, true);
+                    _typeInfos.Add((field, type), typeInfo);
+                    return typeInfo;
+
+                case InlineFragmentNode { TypeCondition: not null }:
+                {
+                    var typeName = string.Join("_", Paths.Peek());
+                    typeInfo = new TypeInfo($"{Namespace}.{typeName}", typeName, false);
+                    _typeInfos.Add((field, type), typeInfo);
+                    return typeInfo;
+                }
+
+                case InlineFragmentNode { TypeCondition: null } fragment:
+                {
+                    if (typeDefinition.Kind is TypeKind.Union or TypeKind.Interface
+                        && fragment.SelectionSet.Selections.All(t => t.Kind is SyntaxKind.FragmentSpread))
+                    {
+                        if (TryGetInterfaceName(selectionSet, out var interfaceFragmentSpread))
+                        {
+                            typeInfo = new TypeInfo(
+                                $"{Namespace}.{interfaceFragmentSpread.Name.Value}",
+                                interfaceFragmentSpread.Name.Value,
+                                true);
+                            _typeInfos.Add((field, type), typeInfo);
+                            return typeInfo;
+                        }
+
+                        typeInfo = BuildTypeInfoFromPath(true);
+                        _typeInfos.Add((field, type), typeInfo);
+                        return typeInfo;
+                    }
+
+                    break;
+                }
+            }
+        }
+        else if (typeDefinition.Kind is TypeKind.Union or TypeKind.Interface
+            && selectionSet.Selections.All(t => t.Kind is SyntaxKind.FragmentSpread))
+        {
+            if (TryGetInterfaceName(selectionSet, out var interfaceFragmentSpread))
+            {
+                typeInfo = new TypeInfo(
+                    $"{Namespace}.{interfaceFragmentSpread.Name.Value}",
+                    interfaceFragmentSpread.Name.Value,
+                    true);
+                _typeInfos.Add((field, type), typeInfo);
+                return typeInfo;
+            }
+
+            typeInfo = BuildTypeInfoFromPath(true);
+            _typeInfos.Add((field, type), typeInfo);
+            return typeInfo;
+        }
+
+        typeInfo = BuildTypeInfoFromPath();
+        _typeInfos.Add((field, type), typeInfo);
+        return typeInfo;
+
+        TypeInfo BuildTypeInfoFromPath(bool newPath = false)
+        {
+            var (fullTypeName, typeName) = BuildFromPath();
+            return new TypeInfo(fullTypeName, typeName, newPath);
+        }
+
+        (string, string) BuildFromPath()
+        {
+            var path = Paths.Peek();
+            var typeName = string.Join("_", path.Reverse());
+            var fullTypeName = $"{Namespace}.{typeName}";
+            return (fullTypeName, typeName);
         }
     }
+
+    private bool TryGetInterfaceName(
+        SelectionSetNode selectionSet,
+        [NotNullWhen(true)] out FragmentSpreadNode? interfaceFragmentSpread)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FragmentSpreadNode fragmentSpread)
+            {
+                continue;
+            }
+
+            if (fragmentSpread.Directives.Any(t => t.Name.Value.Equals("interface")))
+            {
+                interfaceFragmentSpread = fragmentSpread;
+                return true;
+            }
+        }
+
+        interfaceFragmentSpread = null;
+        return false;
+    }
+
+    private record TypeInfo(string FullTypeName, string TypeName, bool NewPath);
 }
 
 public interface ITypeModel
@@ -618,7 +768,6 @@ public class EntityInterfaceModel(string name) : ITypeModel
 
     public List<PropertyModel> Properties { get; } = new();
 }
-
 
 public enum Nullability
 {
@@ -673,7 +822,6 @@ public enum Skipped
 
 public class CSharpCodeGenerator
 {
-
     public string Namespace { get; set; } = "Espresso.CodeGeneration";
 
     public IEnumerable<(string FileName, string Content)> GenerateCode(IReadOnlyList<ITypeModel> models)
