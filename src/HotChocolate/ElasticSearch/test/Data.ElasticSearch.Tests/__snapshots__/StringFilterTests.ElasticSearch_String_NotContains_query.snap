@@ -1,0 +1,19 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must_not": [
+              {
+                "query_string": {
+                  "query": "description.keyword:*ields*"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
