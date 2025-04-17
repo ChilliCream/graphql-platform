@@ -8,6 +8,11 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
 {
     private List<ArgumentConfiguration>? _arguments;
 
+    /// <summary>
+    /// The result type of the resolver.
+    /// </summary>
+    public Type? ResultType { get; set; }
+
     public IList<ArgumentConfiguration> Arguments
         => _arguments ??= [];
 
@@ -20,7 +25,7 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
     {
         if (_arguments is null)
         {
-            return Array.Empty<ArgumentConfiguration>();
+            return [];
         }
 
         return _arguments;
@@ -29,6 +34,8 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
     protected void CopyTo(OutputFieldConfiguration target)
     {
         base.CopyTo(target);
+
+        target.ResultType = ResultType;
 
         if (_arguments?.Count > 0)
         {
@@ -48,6 +55,11 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
     protected void MergeInto(OutputFieldConfiguration target)
     {
         base.MergeInto(target);
+
+        if (ResultType is not null)
+        {
+            target.ResultType = ResultType;
+        }
 
         if (_arguments is { Count: > 0, })
         {

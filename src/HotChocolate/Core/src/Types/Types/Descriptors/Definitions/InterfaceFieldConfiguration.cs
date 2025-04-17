@@ -69,11 +69,6 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     public MemberInfo? ResolverMember { get; set; }
 
     /// <summary>
-    /// The result type of the resolver.
-    /// </summary>
-    public Type? ResultType { get; set; }
-
-    /// <summary>
     /// The delegate that represents the resolver.
     /// </summary>
     public FieldResolverDelegate? Resolver { get; set; }
@@ -298,7 +293,6 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         target.Member = Member;
         target.BindToField = BindToField;
         target.ResolverMember = ResolverMember;
-        target.ResultType = ResultType;
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
         target.IsParallelExecutable = IsParallelExecutable;
@@ -359,11 +353,6 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         if (ResolverMember is not null)
         {
             target.ResolverMember = ResolverMember;
-        }
-
-        if (ResultType is not null)
-        {
-            target.ResultType = ResultType;
         }
 
         if (Resolver is not null)

@@ -79,11 +79,6 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     public Expression? Expression { get; set; }
 
     /// <summary>
-    /// The result type of the resolver.
-    /// </summary>
-    public Type? ResultType { get; set; }
-
-    /// <summary>
     /// The member name that represents the event stream factory.
     /// </summary>
     public string? SubscribeWith { get; set; }
@@ -295,7 +290,6 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
         target.BindToField = BindToField;
         target.ResolverMember = ResolverMember;
         target.Expression = Expression;
-        target.ResultType = ResultType;
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
         target.SubscribeResolver = SubscribeResolver;
@@ -364,11 +358,6 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
         if (Expression is not null)
         {
             target.Expression = Expression;
-        }
-
-        if (ResultType is not null)
-        {
-            target.ResultType = ResultType;
         }
 
         if (Resolver is not null)

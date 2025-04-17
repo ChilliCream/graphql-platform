@@ -162,7 +162,8 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         }
 
         var skipMiddleware =
-            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields && isIntrospectionField;
+            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields
+                && isIntrospectionField;
 
         var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
@@ -220,9 +221,9 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         }
 
         bool IsPureContext()
-        {
-            return skipMiddleware || (context.GlobalComponents.Count == 0 && fieldMiddlewareDefinitions.Count == 0);
-        }
+            => skipMiddleware
+                || (context.GlobalComponents.Count == 0
+                    && fieldMiddlewareDefinitions.Count == 0);
 
         static Type GetResultType(ObjectFieldConfiguration definition, Type runtimeType)
         {
@@ -239,7 +240,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 
 file static class ResolverHelpers
 {
-    private static readonly ConcurrentDictionary<Type, MethodInfo> _methodCache = new();
+    private static readonly ConcurrentDictionary<Type, IResolverResultPostProcessor> _methodCache = new();
 
     private static readonly MethodInfo _createListPostProcessor =
         typeof(ResolverHelpers).GetMethod(
@@ -253,16 +254,17 @@ file static class ResolverHelpers
         if (extendedType.IsArrayOrList)
         {
             var elementType = extendedType.ElementType!.Type;
-            var generic = GetFactoryMethod(elementType);
-            return (IResolverResultPostProcessor?)generic.Invoke(null, []);
+            return GetFactoryMethod(elementType);
         }
 
         return null;
     }
 
-    private static MethodInfo GetFactoryMethod(Type elementType)
-        => _methodCache.GetOrAdd(elementType, static type => _createListPostProcessor.MakeGenericMethod(type));
+    private static IResolverResultPostProcessor GetFactoryMethod(Type elementType)
+        => _methodCache.GetOrAdd(
+            elementType,
+            static t => (IResolverResultPostProcessor)_createListPostProcessor.MakeGenericMethod(t).Invoke(null, [])!);
 
     private static IResolverResultPostProcessor CreateListPostProcessor<T>()
-        => new ListPostProcessor<T>();
+        => ListPostProcessor<T>.Default;
 }

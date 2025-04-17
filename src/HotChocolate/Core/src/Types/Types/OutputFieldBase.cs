@@ -62,11 +62,18 @@ public class OutputFieldBase : FieldBase, IOutputField
 
         Type = context.GetType<IOutputType>(definition.Type!).EnsureOutputType();
         _runtimeType = CompleteRuntimeType(Type, null);
-        Arguments = OnCompleteFields(context, definition);
+
+        if (_runtimeType == typeof(object)
+            && definition is ObjectFieldConfiguration { ResultType: not null } objectFieldCfg
+            && objectFieldCfg.ResultType != typeof(object))
+        {
+            _runtimeType = CompleteRuntimeType(Type, objectFieldCfg.ResultType);
+        }
+
+        Arguments = OnCompleteArguments(context, definition);
     }
 
-    // TODO: V15: should be renamed to OnCompleteArguments
-    protected virtual FieldCollection<Argument> OnCompleteFields(
+    protected virtual FieldCollection<Argument> OnCompleteArguments(
         ITypeCompletionContext context,
         OutputFieldConfiguration definition)
     {

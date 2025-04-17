@@ -12,27 +12,18 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 /// Represents a mongodb handler that can be bound to a <see cref="SortField"/>. The handler is
 /// executed during the visitation of a input object.
 /// </summary>
-public abstract class MongoDbSortOperationHandlerBase
+public abstract class MongoDbSortOperationHandlerBase(
+    int operation,
+    SortDirection sortDirection)
     : SortOperationHandler<MongoDbSortVisitorContext, MongoDbSortDefinition>
 {
-    private readonly SortDirection _sortDirection;
-    private readonly int _operation;
-
-    protected MongoDbSortOperationHandlerBase(
-        int operation,
-        SortDirection sortDirection)
-    {
-        _sortDirection = sortDirection;
-        _operation = operation;
-    }
-
     /// <inheritdoc/>
     public override bool CanHandle(
         ITypeCompletionContext context,
         EnumTypeConfiguration typeDefinition,
         SortEnumValueConfiguration valueConfiguration)
     {
-        return valueConfiguration.Operation == _operation;
+        return valueConfiguration.Operation == operation;
     }
 
     /// <inheritdoc/>
@@ -53,7 +44,7 @@ public abstract class MongoDbSortOperationHandlerBase
         }
 
         context.Operations.Enqueue(
-            new MongoDbDirectionalSortOperation(context.GetPath(), _sortDirection));
+            new MongoDbDirectionalSortOperation(context.GetPath(), sortDirection));
 
         action = SyntaxVisitor.Continue;
         return true;
