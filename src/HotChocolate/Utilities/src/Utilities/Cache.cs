@@ -129,6 +129,22 @@ public sealed class Cache<TValue>
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(create);
 
+        // We first check if the entry is already in the map.
+        // This is a fast lookup and will be used most of the time.
+        if (_map.TryGetValue(key, out var entry))
+        {
+            // We mark our entry as used by setting Accessed to 1
+            // this means the entry will be safe from the next eviction.
+            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
+            // tiny risk that an in‑flight eviction may still remove this entry.
+            Volatile.Write(ref entry.Accessed, 1);
+            _diagnostics.Hit();
+            return entry.Value;
+        }
+
+        // If we have miss we do a GetOrAdd on the map to get at the end
+        // the winner in case of contention.
+        //
         // The GetOrAdd of the ConcurrentDictionary is not atomic.
         // It is possible that two threads will try to create the same entry
         // at the same time.
@@ -145,10 +161,11 @@ public sealed class Cache<TValue>
         // lock the whole dictionary when adding an entry.
         var args = new CacheEntryCreateArgs<TState>(state, create, this);
 
-        var entry = _map.GetOrAdd(
+        entry = _map.GetOrAdd(
             key,
             static (k, arg) =>
             {
+                arg.Diagnostics.Miss();
                 var value = arg.Create(k, arg.State);
                 return arg.Cache.InsertNew(k, value);
             },
@@ -276,5 +293,10 @@ public sealed class Cache<TValue>
         /// The cache instance.
         /// </summary>
         public readonly Cache<TValue> Cache = cache;
+
+        /// <summary>
+        /// The diagnostics for the cache.
+        /// </summary>
+        public readonly CacheDiagnostics Diagnostics = cache._diagnostics;
     }
 }
