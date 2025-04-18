@@ -20,10 +20,10 @@ BarAndFoo SQL:
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE EXISTS (
-    SELECT 1
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."BarEnum" OR ("p"."value" IS NULL AND "d"."BarEnum" IS NULL))
+)
 ---------------
 
 FOO Result:
@@ -45,10 +45,10 @@ FOO SQL:
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE EXISTS (
-    SELECT 1
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."BarEnum" OR ("p"."value" IS NULL AND "d"."BarEnum" IS NULL))
+)
 ---------------
 
 nullAndFoo Result:
@@ -69,12 +69,12 @@ nullAndFoo Result:
 
 nullAndFoo SQL:
 ---------------
-.param set @__p_0 '[null,0]'
+.param set @__p_0_without_nulls '[0]'
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE EXISTS (
-    SELECT 1
-    FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."BarEnum" OR ("p"."value" IS NULL AND "d"."BarEnum" IS NULL))
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0_without_nulls) AS "p"
+) OR "d"."BarEnum" IS NULL
 ---------------
