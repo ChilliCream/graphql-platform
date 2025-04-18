@@ -180,6 +180,7 @@ public sealed class Cache<TValue>
                 if (ReferenceEquals(prev, entry))
                 {
                     _map.TryRemove(prev.Key, out _);
+                    _diagnostics.Evict();
                     return newEntry;
                 }
             }
