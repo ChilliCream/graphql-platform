@@ -13,16 +13,16 @@ public class CacheTests
         for (var i = 0; i < 9; i++)
         {
             var item = i.ToString();
-            cache.GetOrCreate(item, () => item);
+            cache.GetOrCreate(item, _ => item);
         }
 
         // assert
-        var value = cache.GetOrCreate("10", () => "10");
+        var value = cache.GetOrCreate("10", _ => "10");
 
         // assert
         Assert.Equal("10", value);
         Assert.Equal(10, cache.Capacity);
-        Assert.Equal(10, cache.Usage);
+        Assert.Equal(10, cache.Count);
 
         Assert.Collection(
             cache.GetKeys(),
@@ -47,16 +47,16 @@ public class CacheTests
         for (var i = 0; i < 10; i++)
         {
             var item = i.ToString();
-            cache.GetOrCreate(item, () => item);
+            cache.GetOrCreate(item, _ => item);
         }
 
         // assert
-        var value = cache.GetOrCreate("10", () => "10");
+        var value = cache.GetOrCreate("11", _ => "11");
 
         // assert
-        Assert.Equal("10", value);
+        Assert.Equal("11", value);
         Assert.Equal(10, cache.Capacity);
-        Assert.Equal(10, cache.Usage);
+        Assert.Equal(10, cache.Count);
 
         Assert.Collection(
             cache.GetKeys(),
@@ -77,12 +77,12 @@ public class CacheTests
     {
         // arrange
         var cache = new Cache<string>(10);
-        cache.GetOrCreate("a", () => "a");
-        cache.GetOrCreate("b", () => "b");
-        cache.GetOrCreate("c", () => "c");
-        cache.GetOrCreate("d", () => "d");
-        cache.GetOrCreate("e", () => "e");
-        cache.GetOrCreate("f", () => "f");
+        cache.GetOrCreate("a", _ => "a");
+        cache.GetOrCreate("b", _ => "b");
+        cache.GetOrCreate("c", _ => "c");
+        cache.GetOrCreate("d", _ => "d");
+        cache.GetOrCreate("e", _ => "e");
+        cache.GetOrCreate("f", _ => "f");
 
         // act
         Assert.True(cache.TryGet("c", out _));
@@ -103,13 +103,13 @@ public class CacheTests
     {
         // arrange
         var cache = new Cache<string>(10);
-        cache.GetOrCreate("a", () => "a");
-        cache.GetOrCreate("b", () => "b");
-        cache.GetOrCreate("c", () => "c");
-        cache.GetOrCreate("d", () => "d");
-        cache.GetOrCreate("e", () => "e");
-        cache.GetOrCreate("f", () => "f");
-        cache.GetOrCreate("g", () => "g");
+        cache.GetOrCreate("a", _ => "a");
+        cache.GetOrCreate("b", _ => "b");
+        cache.GetOrCreate("c", _ => "c");
+        cache.GetOrCreate("d", _ => "d");
+        cache.GetOrCreate("e", _ => "e");
+        cache.GetOrCreate("f", _ => "f");
+        cache.GetOrCreate("g", _ => "g");
 
         // act
         Assert.True(cache.TryGet("c", out _));
@@ -131,16 +131,16 @@ public class CacheTests
     {
         // arrange
         var cache = new Cache<string>(10);
-        cache.GetOrCreate("a", () => "a");
-        cache.GetOrCreate("b", () => "b");
-        cache.GetOrCreate("c", () => "c");
-        cache.GetOrCreate("d", () => "d");
-        cache.GetOrCreate("e", () => "e");
-        cache.GetOrCreate("f", () => "f");
-        cache.GetOrCreate("g", () => "g");
+        cache.GetOrCreate("a", _ => "a");
+        cache.GetOrCreate("b", _ => "b");
+        cache.GetOrCreate("c", _ => "c");
+        cache.GetOrCreate("d", _ => "d");
+        cache.GetOrCreate("e", _ => "e");
+        cache.GetOrCreate("f", _ => "f");
+        cache.GetOrCreate("g", _ => "g");
 
         // act
-        cache.GetOrCreate("c", () => "c");
+        cache.GetOrCreate("c", _ => "c");
 
         // assert
         Assert.Collection(

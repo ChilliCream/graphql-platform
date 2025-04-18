@@ -172,7 +172,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
     public static IServiceCollection AddDocumentCache(
         this IServiceCollection services,
-        int capacity = 100)
+        int capacity = 256)
     {
         services.RemoveAll<IDocumentCache>();
         services.AddSingleton<IDocumentCache>(
@@ -182,7 +182,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
     public static IServiceCollection AddOperationCache(
         this IServiceCollection services,
-        int capacity = 100)
+        int capacity = 256)
     {
         services.RemoveAll<PreparedOperationCacheOptions>();
         services.AddSingleton<PreparedOperationCacheOptions>(

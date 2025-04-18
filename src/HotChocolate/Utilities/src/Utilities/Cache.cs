@@ -213,6 +213,21 @@ public sealed class Cache<TValue>
         Interlocked.Exchange(ref _hand, 0);
     }
 
+    /// <summary>
+    /// Returns all keys in the cache. This method is for testing only.
+    /// </summary>
+    /// <returns></returns>
+    internal IEnumerable<string> GetKeys()
+    {
+        foreach (var entry in _ring)
+        {
+            if (entry is not null)
+            {
+                yield return entry.Key;
+            }
+        }
+    }
+
     private sealed class CacheEntry(string key, TValue value)
     {
         public readonly string Key = key;
