@@ -15,9 +15,10 @@ public sealed class Cache<TValue>
     private readonly CacheEntry?[] _ring;
     private readonly ConcurrentDictionary<string, CacheEntry> _map;
 
-    // the clock hand is incremented atomically and is used to
+    // The clock hand is incremented atomically and is used to
     // determine which cache entry to try to set a new entry into.
-    private uint _hand;
+    // We start with uint.MaxValue to ensure that we start with slot 0.
+    private uint _hand = uint.MaxValue;
 
     /// <summary>
     /// Creates a new instance of the <see cref="Cache{TValue}"/> class.
