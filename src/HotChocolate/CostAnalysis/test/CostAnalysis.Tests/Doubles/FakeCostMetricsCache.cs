@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.Utilities;
 
@@ -39,6 +40,4 @@ internal class FakeCostMetricsCache(int capacity = 256) : ICostMetricsCache
         _cache.GetOrCreate(operationId, static (_, m) => m, costMetrics);
         Additions++;
     }
-
-    public void Clear() => _cache.Clear();
 }

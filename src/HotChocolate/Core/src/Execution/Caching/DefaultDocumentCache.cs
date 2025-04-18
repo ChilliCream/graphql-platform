@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Caching;
 
@@ -17,6 +17,4 @@ internal sealed class DefaultDocumentCache(int capacity = 256) : IDocumentCache
 
     public bool TryGetDocument(string documentId, [NotNullWhen(true)] out CachedDocument? document)
         => _cache.TryGet(documentId, out document);
-
-    public void Clear() => _cache.Clear();
 }

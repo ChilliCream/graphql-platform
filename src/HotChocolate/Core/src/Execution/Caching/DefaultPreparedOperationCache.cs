@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Caching;
 
@@ -17,6 +17,4 @@ internal sealed class DefaultPreparedOperationCache(int capacity = 256) : IPrepa
 
     public bool TryGetOperation(string operationId, [NotNullWhen(true)] out IOperation? operation)
         => _cache.TryGet(operationId, out operation);
-
-    public void Clear() => _cache.Clear();
 }

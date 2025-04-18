@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.CostAnalysis.Caching;
@@ -18,6 +19,4 @@ internal sealed class DefaultCostMetricsCache(int capacity = 256) : ICostMetrics
 
     public void TryAddCostMetrics(string operationId, CostMetrics costMetrics)
         => _cache.GetOrCreate(operationId, static (_, m) => m, costMetrics);
-
-    public void Clear() => _cache.Clear();
 }
