@@ -33,6 +33,8 @@ public sealed class CursorKey(
     /// </summary>
     public MethodInfo CompareMethod { get; } = serializer.GetCompareToMethod(expression.ReturnType);
 
+    public MethodInfo EqualsMethod { get; } = EqualsResolver.GetEqualsMethod<string>();
+
     /// <summary>
     /// Gets a value defining the sort direction of this key in dataset.
     /// </summary>

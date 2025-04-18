@@ -27,6 +27,7 @@
     <Project Path="GreenDonut/test/GreenDonut.Data.EntityFramework.Tests/GreenDonut.Data.EntityFramework.Tests.csproj" />
     <Project Path="GreenDonut/test/GreenDonut.Data.Tests/GreenDonut.Data.Tests.csproj" />
     <Project Path="GreenDonut/test/GreenDonut.Tests/GreenDonut.Tests.csproj" />
+    <Project Path="GreenDonut\test\GreenDonut.Data.Marten.Tests\GreenDonut.Data.Marten.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/HotChocolate/" />
   <Folder Name="/HotChocolate/ApolloFederation/" />
