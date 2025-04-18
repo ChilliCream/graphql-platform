@@ -1,6 +1,0 @@
-﻿{
-  "message": "Can not specify `inheritMaxAge: true` for the @cacheControl directive on the field Query.field, since it's a field of the Query root type Query.",
-  "type": "Query",
-  "extensions": {}
-}
-
