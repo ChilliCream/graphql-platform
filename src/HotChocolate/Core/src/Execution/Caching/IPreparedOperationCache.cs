@@ -9,18 +9,18 @@ namespace HotChocolate.Execution.Caching;
 public interface IPreparedOperationCache
 {
     /// <summary>
-    /// Gets maximum amount of compiled operations that can be cached. The default
+    /// Gets the maximum number of compiled operations that can be cached. The default
     /// value is <c>100</c>. The minimum allowed value is <c>10</c>.
     /// </summary>
     int Capacity { get; }
 
     /// <summary>
-    /// Gets the amount of compiled queries residing in the cache.
+    /// Gets the maximum number of compiled queries residing in the cache.
     /// </summary>
     int Count { get; }
 
     /// <summary>
-    /// Try get a compiled operation by it <paramref name="operationId" />.
+    /// Try to get a compiled operation by it <paramref name="operationId" />.
     /// </summary>
     /// <param name="operationId">
     /// The internal operation id.
@@ -33,9 +33,7 @@ public interface IPreparedOperationCache
     /// <c>true</c> if an operation was found that matches the specified
     /// <paramref name="operationId"/>, otherwise <c>false</c>.
     /// </returns>
-    bool TryGetOperation(
-        string operationId,
-        [NotNullWhen(true)] out IOperation? operation);
+    bool TryGetOperation(string operationId, [NotNullWhen(true)] out IOperation? operation);
 
     /// <summary>
     /// Tries to add a new compiled operation to the cache.
@@ -46,9 +44,7 @@ public interface IPreparedOperationCache
     /// <param name="operation">
     /// The operation that shall be cached.
     /// </param>
-    void TryAddOperation(
-        string operationId,
-        IOperation operation);
+    void TryAddOperation(string operationId, IOperation operation);
 
     /// <summary>
     /// Clears all items from the cache.

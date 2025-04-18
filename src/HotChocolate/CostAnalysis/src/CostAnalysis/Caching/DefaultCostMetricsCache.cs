@@ -3,23 +3,21 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.CostAnalysis.Caching;
 
-internal sealed class DefaultCostMetricsCache(int capacity = 100) : ICostMetricsCache
+internal sealed class DefaultCostMetricsCache(int capacity = 256) : ICostMetricsCache
 {
     private readonly Cache<CostMetrics> _cache = new(capacity);
 
     public int Capacity => _cache.Capacity;
 
-    public int Count => _cache.Usage;
+    public int Count => _cache.Count;
 
     public bool TryGetCostMetrics(
         string operationId,
         [NotNullWhen(true)] out CostMetrics? costMetrics)
         => _cache.TryGet(operationId, out costMetrics);
 
-    public void TryAddCostMetrics(
-        string operationId,
-        CostMetrics costMetrics)
-        => _cache.GetOrCreate(operationId, () => costMetrics);
+    public void TryAddCostMetrics(string operationId, CostMetrics costMetrics)
+        => _cache.GetOrCreate(operationId, static (_, m) => m, costMetrics);
 
     public void Clear() => _cache.Clear();
 }
