@@ -46,7 +46,7 @@ public class SortVisitor<TContext, T>
     protected override ISyntaxVisitorAction OnOperationEnter(
         TContext context,
         ISortField field,
-        ISortEnumValue? sortValue,
+        SortEnumValue? sortValue,
         EnumValueNode valueNode)
     {
         if (sortValue?.Handler is ISortOperationHandler<TContext, T> handler &&

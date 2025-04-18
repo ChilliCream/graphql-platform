@@ -30,8 +30,8 @@ namespace TestNamespace
                 .Field(thisType.GetMember("GetAuthorsAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.GetAuthorsAsync();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.Resolvers = r.GetAuthorsAsync();
                 },
                 resolvers);
 

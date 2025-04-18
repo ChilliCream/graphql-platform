@@ -130,7 +130,7 @@ public static class ObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Request;
+        descriptor.Extend().Configuration.DependencyInjectionScope = DependencyInjectionScope.Request;
         return descriptor;
     }
 
@@ -154,7 +154,7 @@ public static class ObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Resolver;
+        descriptor.Extend().Configuration.DependencyInjectionScope = DependencyInjectionScope.Resolver;
         return descriptor;
     }
 }

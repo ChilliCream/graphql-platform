@@ -29,7 +29,7 @@ public abstract class FederationTypesTestBase
             t =>
             {
                 Assert.Equal("fields", t.Name);
-                Assert.IsType<FieldSetType>(Assert.IsType<NonNullType>(t.Type).Type);
+                Assert.IsType<FieldSetType>(Assert.IsType<NonNullType>(t.Type).NullableType);
             }
         );
     }

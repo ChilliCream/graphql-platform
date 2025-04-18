@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// <typeparam name="T">
 /// The type definition.
 /// </typeparam>
-public interface IDescriptor<out T> : IDescriptor where T : DefinitionBase
+public interface IDescriptor<out T> : IDescriptor where T : TypeSystemConfiguration
 {
     /// <summary>
     /// Provides access to the underlying configuration. This is useful for extensions.

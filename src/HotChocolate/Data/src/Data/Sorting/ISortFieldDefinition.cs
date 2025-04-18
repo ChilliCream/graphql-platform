@@ -6,9 +6,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting;
 
 public interface ISortFieldDefinition
-    : IDefinition
-    , IHasDirectiveDefinition
-    , IHasIgnore
+    : ITypeSystemConfiguration
+    , IDirectiveConfigurationProvider
+    , IIgnoreConfiguration
     , IHasScope
 {
     public MemberInfo? Member { get; }

@@ -126,11 +126,11 @@ public sealed class KeyAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectFieldDescriptor fieldDesc:
-                fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, Resolvable);
+                fieldDesc.Extend().Configuration.ContextData.TryAdd(KeyMarker, Resolvable);
                 break;
 
             case IInterfaceFieldDescriptor fieldDesc:
-                fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, Resolvable);
+                fieldDesc.Extend().Configuration.ContextData.TryAdd(KeyMarker, Resolvable);
                 break;
         }
     }

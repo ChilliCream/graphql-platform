@@ -9,12 +9,12 @@ internal static class SchemaBuildingDirectiveHelper
 {
     private const string _definitionStackKey = "HotChocolate.Schema.Building.DefinitionStack";
 
-    public static Stack<IDefinition> GetOrCreateDefinitionStack(this IDescriptorContext context)
+    public static Stack<ITypeSystemConfiguration> GetOrCreateDefinitionStack(this IDescriptorContext context)
     {
         if (!context.ContextData.TryGetValue(_definitionStackKey, out var value) ||
-            value is not Stack<IDefinition> stack)
+            value is not Stack<ITypeSystemConfiguration> stack)
         {
-            stack = new Stack<IDefinition>();
+            stack = new Stack<ITypeSystemConfiguration>();
             context.ContextData[_definitionStackKey] = stack;
         }
 

@@ -45,7 +45,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 public partial class InterfaceType
-    : NamedTypeBase<InterfaceTypeDefinition>
+    : NamedTypeBase<InterfaceTypeConfiguration>
     , IInterfaceType
 {
     /// <summary>
@@ -80,7 +80,7 @@ public partial class InterfaceType
     /// <returns>
     /// Returns the newly created interface type.
     /// </returns>
-    public static InterfaceType CreateUnsafe(InterfaceTypeDefinition definition)
+    public static InterfaceType CreateUnsafe(InterfaceTypeConfiguration definition)
         => new() { Definition = definition, };
 
     /// <inheritdoc />

@@ -498,13 +498,13 @@ public static partial class TypeDescriptorMapper
             if (kind == PropertyKind.SkipOrIncludeField)
             {
                 return BuildFieldType(
-                    nnt.Type,
+                    nnt.NullableType,
                     namedTypeDescriptor);
             }
 
             return new NonNullTypeDescriptor(
                 BuildFieldType(
-                    nnt.Type,
+                    nnt.NullableType,
                     namedTypeDescriptor));
         }
 

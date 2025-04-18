@@ -18,7 +18,7 @@ namespace HotChocolate;
 /// the entry points for query, mutation, and subscription operations.
 /// </summary>
 public partial class Schema
-    : TypeSystemObjectBase<SchemaTypeDefinition>
+    : TypeSystemObjectBase<SchemaTypeConfiguration>
     , ISchema
 {
     private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;

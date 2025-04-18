@@ -15,7 +15,7 @@ internal sealed class InputObjectTypeFactory
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new InputObjectTypeDefinition(
+        var typeDefinition = new InputObjectTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
@@ -34,7 +34,7 @@ internal sealed class InputObjectTypeFactory
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new InputObjectTypeDefinition(node.Name.Value)
+        var typeDefinition = new InputObjectTypeConfiguration(node.Name.Value)
         {
             BindTo = node.GetBindingValue(),
         };
@@ -48,15 +48,15 @@ internal sealed class InputObjectTypeFactory
 
     private static void DeclareFields(
         IDescriptorContext context,
-        InputObjectTypeDefinition parent,
+        InputObjectTypeConfiguration parent,
         IReadOnlyCollection<InputValueDefinitionNode> fields,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var inputField in fields)
         {
-            var inputFieldDefinition = new InputFieldDefinition(
+            var inputFieldDefinition = new InputFieldConfiguration(
                 inputField.Name.Value,
                 inputField.Description?.Value,
                 TypeReference.Create(inputField.Type),

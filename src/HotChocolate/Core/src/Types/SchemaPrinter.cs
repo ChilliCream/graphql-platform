@@ -354,7 +354,7 @@ public static class SchemaPrinter
         );
     }
 
-    private static EnumValueDefinitionNode PrintEnumValue(IEnumValue enumValue)
+    private static EnumValueDefinitionNode PrintEnumValue(EnumValue enumValue)
     {
         var directives = enumValue.Directives
             .Select(PrintDirective)
@@ -503,7 +503,7 @@ public static class SchemaPrinter
     {
         if (type is NonNullType nt)
         {
-            return new NonNullTypeNode(null, (INullableTypeNode)PrintType(nt.Type));
+            return new NonNullTypeNode(null, (INullableTypeNode)PrintType(nt.NullableType));
         }
 
         if (type is ListType lt)

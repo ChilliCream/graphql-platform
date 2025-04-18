@@ -11,9 +11,9 @@ namespace HotChocolate.Types.Relay;
 
 internal sealed class NodeIdSerializerTypeInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
-        if (definition is SchemaTypeDefinition schemaTypeDef)
+        if (configuration is SchemaTypeConfiguration schemaTypeDef)
         {
             // we ensure that the serializer type map exists.
             if (!completionContext.DescriptorContext.ContextData.TryGetValue(SerializerTypes, out var value))

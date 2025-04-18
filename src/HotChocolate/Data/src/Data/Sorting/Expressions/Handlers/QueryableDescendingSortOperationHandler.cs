@@ -12,7 +12,7 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
         QueryableSortContext context,
         QueryableFieldSelector fieldSelector,
         ISortField field,
-        ISortEnumValue? sortEnumValue)
+        SortEnumValue? sortEnumValue)
     {
         return DescendingSortOperation.From(fieldSelector);
     }

@@ -10,9 +10,9 @@ namespace HotChocolate.Types.Introspection;
 
 internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ObjectTypeDefinition> _objectTypeDefinitions = [];
+    private readonly List<ObjectTypeConfiguration> _objectTypeDefinitions = [];
     private IDescriptorContext _context = default!;
-    private ObjectTypeDefinition? _queryTypeDefinition;
+    private ObjectTypeConfiguration? _queryTypeDefinition;
 
     internal override uint Position => uint.MaxValue - 200;
 
@@ -28,9 +28,9 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if(completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if(completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _objectTypeDefinitions.Add(typeDef);
         }
@@ -38,12 +38,12 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
         {
-            _queryTypeDefinition = definition;
+            _queryTypeDefinition = configuration;
         }
     }
 

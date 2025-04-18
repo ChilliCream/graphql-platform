@@ -17,11 +17,11 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         // we need to preserve the initialization context of all
         // interface types and object types.
-        if (definition is IComplexOutputTypeDefinition typeDefinition)
+        if (configuration is IComplexOutputTypeConfiguration typeDefinition)
         {
             _typeInfos.Add(discoveryContext.Type, new(discoveryContext, typeDefinition));
         }
@@ -34,7 +34,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         foreach (var interfaceTypeInfo in _typeInfos.Values
             .Where(t => t.Definition.RuntimeType is { } rt &&
                 rt != typeof(object) &&
-                t.Definition is InterfaceTypeDefinition))
+                t.Definition is InterfaceTypeConfiguration))
         {
             if (!_allInterfaceRuntimeTypes.ContainsKey(interfaceTypeInfo.Definition.RuntimeType))
             {
@@ -75,7 +75,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
     // defines if this type has a concrete runtime type.
     private bool IsRelevant(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef &&
+        if (typeInfo.Definition is ObjectTypeConfiguration { IsExtension: true, } objectDef &&
             objectDef.FieldBindingType != typeof(object))
         {
             return true;
@@ -87,7 +87,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     private Type GetRuntimeType(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef)
+        if (typeInfo.Definition is ObjectTypeConfiguration { IsExtension: true, } objectDef)
         {
             return objectDef.FieldBindingType ?? typeof(object);
         }
@@ -97,9 +97,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0, }, } typeDef)
+        if (configuration is InterfaceTypeConfiguration { Interfaces: { Count: > 0, }, } typeDef)
         {
             _completed.Clear();
             _completedFields.Clear();
@@ -124,7 +124,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             CompleteInterfacesAndFields(typeDef);
         }
 
-        if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0, }, } objectTypeDef)
+        if (configuration is ObjectTypeConfiguration { Interfaces: { Count: > 0, }, } objectTypeDef)
         {
             _completed.Clear();
             _completedFields.Clear();
@@ -150,7 +150,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void CompleteInterfacesAndFields(IComplexOutputTypeDefinition definition)
+    private void CompleteInterfacesAndFields(IComplexOutputTypeConfiguration definition)
     {
         while (_backlog.Count > 0)
         {
@@ -158,9 +158,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             var typeInfo = _typeInfos[current];
             definition.Interfaces.Add(TypeReference.Create(current));
 
-            if (definition is InterfaceTypeDefinition interfaceDef)
+            if (definition is InterfaceTypeConfiguration interfaceDef)
             {
-                foreach (var field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
+                foreach (var field in ((InterfaceTypeConfiguration)typeInfo.Definition).Fields)
                 {
                     if (_completedFields.Add(field.Name))
                     {
@@ -202,7 +202,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
     {
         public TypeInfo(
             ITypeDiscoveryContext context,
-            IComplexOutputTypeDefinition definition)
+            IComplexOutputTypeConfiguration definition)
         {
             Context = context;
             Definition = definition;
@@ -210,7 +210,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
         public ITypeDiscoveryContext Context { get; }
 
-        public IComplexOutputTypeDefinition Definition { get; }
+        public IComplexOutputTypeConfiguration Definition { get; }
 
         public override string ToString() => Definition.Name;
     }

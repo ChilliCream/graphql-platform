@@ -12,13 +12,13 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
     public void ApplyConfiguration(
         IDescriptorContext context,
         DirectiveNode directiveNode,
-        IDefinition definition,
-        Stack<IDefinition> path)
+        ITypeSystemConfiguration definition,
+        Stack<ITypeSystemConfiguration> path)
     {
-        if (definition is ObjectFieldDefinition fieldDef)
+        if (definition is ObjectFieldConfiguration fieldDef)
         {
-            fieldDef.Configurations.Add(
-                new CompleteConfiguration<ObjectFieldDefinition>(
+            fieldDef.Tasks.Add(
+                new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (ctx, def) =>
                     {
                         var propertyName = GetPropertyName(directiveNode);

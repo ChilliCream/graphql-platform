@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 public interface IInterfaceTypeDescriptor
-    : IDescriptor<InterfaceTypeDefinition>
+    : IDescriptor<InterfaceTypeConfiguration>
     , IFluent
 {
     /// <summary>

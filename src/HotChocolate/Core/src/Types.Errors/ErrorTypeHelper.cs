@@ -22,7 +22,7 @@ internal sealed class ErrorTypeHelper
     }
 
     public IReadOnlyList<ErrorDefinition> GetErrorDefinitions(
-        ObjectFieldDefinition field)
+        ObjectFieldConfiguration field)
     {
         var errorTypes = GetErrorResultTypes(field);
 
@@ -94,7 +94,7 @@ internal sealed class ErrorTypeHelper
         }
     }
 
-    private static Type[] GetErrorResultTypes(ObjectFieldDefinition mutation)
+    private static Type[] GetErrorResultTypes(ObjectFieldConfiguration mutation)
     {
         var resultType = mutation.ResultType;
 

@@ -24,7 +24,7 @@ public partial class Schema
 
     protected virtual void Configure(ISchemaTypeDescriptor descriptor) { }
 
-    protected sealed override SchemaTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected sealed override SchemaTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         var descriptor = SchemaTypeDescriptor.New(context.DescriptorContext, GetType());
 
@@ -32,12 +32,12 @@ public partial class Schema
 
         context.DescriptorContext.ApplySchemaConfigurations(descriptor);
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected override void OnAfterInitialize(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
     {
         base.OnAfterInitialize(context, definition);
 
@@ -52,7 +52,7 @@ public partial class Schema
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
 
@@ -72,7 +72,7 @@ public partial class Schema
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -82,18 +82,18 @@ public partial class Schema
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
     {
         base.OnCompleteMetadata(context, definition);
 
         Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
     }
 
-    internal void CompleteSchema(SchemaTypesDefinition schemaTypesDefinition)
+    internal void CompleteSchema(SchemaTypesConfiguration schemaTypesConfiguration)
     {
-        if (schemaTypesDefinition is null)
+        if (schemaTypesConfiguration is null)
         {
-            throw new ArgumentNullException(nameof(schemaTypesDefinition));
+            throw new ArgumentNullException(nameof(schemaTypesConfiguration));
         }
 
         if (_sealed)
@@ -102,14 +102,14 @@ public partial class Schema
                 "This schema is already sealed and cannot be mutated.");
         }
 
-        if (schemaTypesDefinition.Types is null || schemaTypesDefinition.DirectiveTypes is null)
+        if (schemaTypesConfiguration.Types is null || schemaTypesConfiguration.DirectiveTypes is null)
         {
             throw new InvalidOperationException(
                 "The schema type collections are not initialized.");
         }
 
-        DirectiveTypes = schemaTypesDefinition.DirectiveTypes;
-        _types = new SchemaTypes(schemaTypesDefinition);
+        DirectiveTypes = schemaTypesConfiguration.DirectiveTypes;
+        _types = new SchemaTypes(schemaTypesConfiguration);
         _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
         _sealed = true;
     }

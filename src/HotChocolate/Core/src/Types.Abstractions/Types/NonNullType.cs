@@ -4,7 +4,7 @@ using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
-public sealed class NonNullType : IType
+public sealed class NonNullType : IWrapperType
 {
     public NonNullType(IType nullableType)
     {
@@ -23,6 +23,8 @@ public sealed class NonNullType : IType
     public TypeKind Kind => TypeKind.NonNull;
 
     public IType NullableType { get; }
+
+    IType IWrapperType.InnerType => NullableType;
 
     public override string ToString()
         => FormatTypeRef(this).ToString(true);

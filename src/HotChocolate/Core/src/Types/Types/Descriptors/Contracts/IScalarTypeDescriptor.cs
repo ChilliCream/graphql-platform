@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL scalar types.
 /// </summary>
 public interface IScalarTypeDescriptor
-    : IDescriptor<ScalarTypeDefinition>
+    : IDescriptor<ScalarTypeConfiguration>
     , IFluent
 {
     /// <summary>

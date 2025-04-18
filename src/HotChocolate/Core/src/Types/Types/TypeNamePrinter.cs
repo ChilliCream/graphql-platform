@@ -21,7 +21,7 @@ public static class TypeNamePrinter
 
         if (type is NonNullType nnt)
         {
-            return $"{Print(nnt.Type, ++count)}!";
+            return $"{Print(nnt.NullableType, ++count)}!";
         }
 
         if (type is ListType lt)

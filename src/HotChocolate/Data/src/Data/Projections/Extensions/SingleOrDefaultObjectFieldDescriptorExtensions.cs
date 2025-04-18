@@ -27,10 +27,10 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        FieldMiddlewareDefinition placeholder =
+        FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
 
         descriptor
             .Extend()
@@ -56,8 +56,8 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                     definition.Type =
                         context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, d) =>
                             {
                                 CompileMiddleware(
@@ -75,8 +75,8 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         Type type,
-        ObjectFieldDefinition definition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        FieldMiddlewareConfiguration placeholder,
         Type middlewareDefinition)
     {
         var middlewareType = middlewareDefinition.MakeGenericType(type);

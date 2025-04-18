@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Field : ObjectType<IOutputField>
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
@@ -23,7 +23,7 @@ internal sealed class __Field : ObjectType<IOutputField>
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-        var def = new ObjectTypeDefinition(
+        var def = new ObjectTypeConfiguration(
             Names.__Field,
             TypeResources.Field_Description,
             typeof(IOutputField))

@@ -4,7 +4,7 @@ using static HotChocolate.Types.Properties.ErrorResources;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Provides extensions to the <see cref="ObjectFieldDefinition"/> for the mutation convention.
+/// Provides extensions to the <see cref="ObjectFieldConfiguration"/> for the mutation convention.
 /// </summary>
 public static class ErrorObjectFieldDefinitionExtensions
 {
@@ -19,7 +19,7 @@ public static class ErrorObjectFieldDefinitionExtensions
     /// as the argument. See the examples in <see cref="Error"/>.
     /// </param>
     public static void AddErrorType(
-        this ObjectFieldDefinition fieldDefinition,
+        this ObjectFieldConfiguration fieldDefinition,
         IDescriptorContext descriptorContext,
         Type errorType)
     {

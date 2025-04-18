@@ -8,7 +8,7 @@ namespace HotChocolate.Internal;
 public static class TypeDependencyHelper
 {
     public static void CollectDependencies(
-        InterfaceTypeDefinition definition,
+        InterfaceTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition is null)
@@ -42,7 +42,7 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition is null)
@@ -76,7 +76,7 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        InputObjectTypeDefinition definition,
+        InputObjectTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition is null)
@@ -119,7 +119,7 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        EnumTypeDefinition definition,
+        EnumTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition is null)
@@ -157,7 +157,7 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        DirectiveTypeDefinition definition,
+        DirectiveTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition.HasDependencies)
@@ -189,7 +189,7 @@ public static class TypeDependencyHelper
     }
 
     internal static void CollectDirectiveDependencies(
-        TypeDefinitionBase definition,
+        TypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition.HasDirectives)
@@ -202,7 +202,7 @@ public static class TypeDependencyHelper
     }
 
     private static void CollectDirectiveDependencies(
-        FieldDefinitionBase definition,
+        FieldConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition.HasDirectives)
@@ -215,7 +215,7 @@ public static class TypeDependencyHelper
     }
 
     private static void CollectFieldDependencies(
-        IReadOnlyList<OutputFieldDefinitionBase> fields,
+        IReadOnlyList<OutputFieldConfiguration> fields,
         ICollection<TypeDependency> dependencies)
     {
         foreach (var field in fields)
@@ -243,7 +243,7 @@ public static class TypeDependencyHelper
     }
 
     private static void CollectArgumentDependencies(
-        IReadOnlyList<ArgumentDefinition> fields,
+        IReadOnlyList<ArgumentConfiguration> fields,
         ICollection<TypeDependency> dependencies)
     {
         foreach (var field in fields)
@@ -267,7 +267,7 @@ public static class TypeDependencyHelper
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         if (context is null)
         {
@@ -284,7 +284,7 @@ public static class TypeDependencyHelper
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
         if (context is null)
         {
@@ -301,7 +301,7 @@ public static class TypeDependencyHelper
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration definition)
     {
         if (context is null)
         {
@@ -318,7 +318,7 @@ public static class TypeDependencyHelper
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         if (context is null)
         {

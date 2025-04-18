@@ -2182,7 +2182,7 @@ public class SchemaBuilderTests
         }
         protected override void OnCompleteName(
             ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
+            ObjectTypeConfiguration definition)
         {
             base.OnCompleteName(context, definition);
             Context = context.DescriptorContext;
@@ -2273,16 +2273,16 @@ public class SchemaBuilderTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            definition.TouchContextData();
+            configuration.TouchContextData();
         }
 
         public override void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            definition.ContextData.Add("touched", true);
+            configuration.ContextData.Add("touched", true);
         }
     }
 

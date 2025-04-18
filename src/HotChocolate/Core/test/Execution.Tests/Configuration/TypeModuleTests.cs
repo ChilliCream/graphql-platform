@@ -134,14 +134,14 @@ public class TypeModuleTests
         {
             var list = new List<ITypeSystemMember>();
 
-            var typeDefinition = new ObjectTypeDefinition("Query");
+            var typeDefinition = new ObjectTypeConfiguration("Query");
             typeDefinition.Fields.Add(new(
                 "hello",
                 type: TypeReference.Parse("String!"),
                 pureResolver: _ => "world"));
             list.Add(ObjectType.CreateUnsafe(typeDefinition));
 
-            var typeExtensionDefinition = new ObjectTypeDefinition("Person");
+            var typeExtensionDefinition = new ObjectTypeConfiguration("Person");
             typeExtensionDefinition.Fields.Add(new(
                 "dynamic",
                 type: TypeReference.Parse("String!"),

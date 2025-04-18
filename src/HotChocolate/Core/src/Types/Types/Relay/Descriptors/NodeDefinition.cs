@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Relay.Descriptors;
 /// The node definition is a mutable object that is used during type initialization
 /// to configure object types that implement <see cref="INode"/>.
 /// </summary>
-public class NodeDefinition : DefinitionBase
+public class NodeDefinition : TypeSystemConfiguration
 {
     /// <summary>
     /// Gets the node runtime type.
@@ -24,5 +24,5 @@ public class NodeDefinition : DefinitionBase
     /// <summary>
     /// Gets an object field definition representing the node resolver.
     /// </summary>
-    public ObjectFieldDefinition? ResolverField { get; set; }
+    public ObjectFieldConfiguration? ResolverField { get; set; }
 }

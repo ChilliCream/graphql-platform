@@ -43,7 +43,7 @@ public sealed class InputFormatter
         switch (type.Kind)
         {
             case TypeKind.NonNull:
-                return FormatValueInternal(runtimeValue, ((NonNullType)type).Type, path);
+                return FormatValueInternal(runtimeValue, ((NonNullType)type).NullableType, path);
 
             case TypeKind.List:
                 return FormatValueList(runtimeValue, (ListType)type, path);
@@ -131,8 +131,8 @@ public sealed class InputFormatter
     {
         try
         {
-            if (runtimeValue.GetType() != type.RuntimeType &&
-                _converter.TryConvert(type.RuntimeType, runtimeValue, out var converted))
+            if (runtimeValue.GetType() != type.ToRuntimeType() &&
+                _converter.TryConvert(type.ToRuntimeType(), runtimeValue, out var converted))
             {
                 runtimeValue = converted;
             }
@@ -217,7 +217,7 @@ public sealed class InputFormatter
         switch (type.Kind)
         {
             case TypeKind.NonNull:
-                return FormatResultInternal(resultValue, ((NonNullType)type).Type, path);
+                return FormatResultInternal(resultValue, ((NonNullType)type).NullableType, path);
 
             case TypeKind.List:
                 return FormatResultList(resultValue, (ListType)type, path);

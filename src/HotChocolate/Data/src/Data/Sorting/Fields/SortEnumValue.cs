@@ -1,65 +1,65 @@
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
 
-public sealed class SortEnumValue : ISortEnumValue
+public sealed class SortEnumValue : EnumValue
 {
-    private readonly DirectiveCollection _directives;
+    private SortEnumValueConfiguration? _configuration;
+    private IDirectiveCollection _directives = null!;
 
-    public SortEnumValue(
-        ITypeCompletionContext completionContext,
-        SortEnumValueDefinition enumValueDefinition)
+    public SortEnumValue(SortEnumValueConfiguration configuration)
     {
-        if (completionContext == null)
-        {
-            throw new ArgumentNullException(nameof(completionContext));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        if (enumValueDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(enumValueDefinition));
-        }
-
-        if (enumValueDefinition.Value is null)
+        if (configuration.RuntimeValue is null)
         {
             throw new ArgumentException(
-                DataResources.SortEnumValue_ValueIsNull,
-                nameof(enumValueDefinition));
+                TypeResources.EnumValue_ValueIsNull,
+                nameof(configuration));
         }
 
-        Name = !string.IsNullOrEmpty(enumValueDefinition.Name)
-            ? enumValueDefinition.Name
-            : enumValueDefinition.Value.ToString()!;
-        Description = enumValueDefinition.Description;
-        DeprecationReason = enumValueDefinition.DeprecationReason;
-        IsDeprecated = enumValueDefinition.IsDeprecated;
-        Value = enumValueDefinition.Value;
-        ContextData = enumValueDefinition.GetContextData();
-        Handler = enumValueDefinition.Handler;
-        Operation = enumValueDefinition.Operation;
+        _configuration = configuration;
 
-        _directives = DirectiveCollection.CreateAndComplete(
-            completionContext,
-            this,
-            enumValueDefinition.GetDirectives());
+        Name = string.IsNullOrEmpty(configuration.Name)
+            ? configuration.RuntimeValue.ToString()!
+            : configuration.Name;
+        Description = configuration.Description;
+        DeprecationReason = configuration.DeprecationReason;
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        Value = configuration.RuntimeValue;
+        ContextData = configuration.GetContextData();
+        Handler = configuration.Handler;
+        Operation = configuration.Operation;
     }
 
-    public string Name { get; }
+    public override string Name { get; }
 
-    public string? Description { get; }
+    public override string? Description { get; }
 
-    public bool IsDeprecated { get; }
+    public override bool IsDeprecated { get; }
 
-    public string? DeprecationReason { get; }
+    public override string? DeprecationReason { get; }
 
-    public object Value { get; }
+    public override object Value { get; }
 
-    public IDirectiveCollection Directives => _directives;
+    public override IDirectiveCollection Directives => _directives;
 
-    public IReadOnlyDictionary<string, object?> ContextData { get; }
+    public override IReadOnlyDictionary<string, object?> ContextData { get; }
 
     public ISortOperationHandler Handler { get; }
 
     public int Operation { get; }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember)
+    {
+        _directives = DirectiveCollection.CreateAndComplete(
+            context,
+            this,
+            _configuration!.GetDirectives());
+        _configuration = null;
+    }
 }

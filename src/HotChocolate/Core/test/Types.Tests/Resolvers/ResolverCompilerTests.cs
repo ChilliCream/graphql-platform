@@ -1552,7 +1552,7 @@ public class ResolverCompilerTests
                     return n(c);
                 });
 
-            descriptor.Extend().Definition.ParameterExpressionBuilders.Add(
+            descriptor.Extend().Configuration.ParameterExpressionBuilders.Add(
                 new CustomParameterExpressionBuilder<SomeState>(
                     t => t.GetLocalState<SomeState>("foo")!));
         }

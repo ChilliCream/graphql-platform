@@ -34,7 +34,7 @@ public class SortField
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 

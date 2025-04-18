@@ -76,7 +76,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                     completionContext.DescriptorContext,
                     definition);
                 nodeDescriptor.ConfigureNodeField(typeDescriptor);
-                typeDescriptor.CreateDefinition();
+                typeDescriptor.CreateConfiguration();
 
                 // invoke completion explicitly.
                 nodeDescriptor.OnCompleteDefinition(completionContext, definition);

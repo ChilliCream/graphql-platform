@@ -24,7 +24,7 @@ internal static class ExternalSetterExpressionHelper
     private static readonly ParameterExpression _data = Parameter(typeof(IValueNode), "data");
     private static readonly ParameterExpression _entity = Parameter(typeof(object), "entity");
 
-    public static void TryAddExternalSetter(ObjectType type, ObjectTypeDefinition typeDef)
+    public static void TryAddExternalSetter(ObjectType type, ObjectTypeConfiguration typeDef)
     {
         List<Expression>? block = null;
 

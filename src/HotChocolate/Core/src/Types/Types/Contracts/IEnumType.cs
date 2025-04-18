@@ -12,7 +12,7 @@ public interface IEnumType : ILeafType
     /// <summary>
     /// Gets the possible enum values.
     /// </summary>
-    IReadOnlyList<IEnumValue> Values { get; }
+    IReadOnlyList<EnumValue> Values { get; }
 
     /// <summary>
     /// Tries to get the <paramref name="value"/> for
@@ -28,7 +28,7 @@ public interface IEnumType : ILeafType
     /// <c>true</c> if the <paramref name="name"/> represents a value of this enum type;
     /// otherwise, <c>false</c>.
     /// </returns>
-    bool TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value);
+    bool TryGetValue(string name, [NotNullWhen(true)] out EnumValue? value);
 
     /// <summary>
     /// Tries to get the <paramref name="runtimeValue"/> for

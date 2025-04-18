@@ -21,7 +21,7 @@ public sealed class OrField
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         definition.Type = TypeReference.Parse(
             $"[{context.Type.Name}!]",
@@ -36,5 +36,5 @@ public sealed class OrField
         string? scope) =>
         FilterOperationFieldDescriptor
             .New(context, DefaultFilterOperations.Or, scope)
-            .CreateDefinition();
+            .CreateConfiguration();
 }

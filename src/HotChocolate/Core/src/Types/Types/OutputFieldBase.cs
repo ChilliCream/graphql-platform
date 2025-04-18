@@ -11,7 +11,7 @@ public class OutputFieldBase : FieldBase, IOutputField
 {
     private Type _runtimeType = default!;
 
-    internal OutputFieldBase(OutputFieldDefinitionBase definition, int index)
+    internal OutputFieldBase(OutputFieldConfiguration definition, int index)
         : base(definition, index)
     {
         DeprecationReason = definition.DeprecationReason;
@@ -50,41 +50,48 @@ public class OutputFieldBase : FieldBase, IOutputField
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteField(context, declaringMember, (OutputFieldDefinitionBase)definition);
+        FieldConfiguration definition)
+        => OnCompleteField(context, declaringMember, (OutputFieldConfiguration)definition);
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 
         Type = context.GetType<IOutputType>(definition.Type!).EnsureOutputType();
         _runtimeType = CompleteRuntimeType(Type, null);
-        Arguments = OnCompleteFields(context, definition);
+
+        if (_runtimeType == typeof(object)
+            && definition is ObjectFieldConfiguration { ResultType: not null } objectFieldCfg
+            && objectFieldCfg.ResultType != typeof(object))
+        {
+            _runtimeType = CompleteRuntimeType(Type, objectFieldCfg.ResultType);
+        }
+
+        Arguments = OnCompleteArguments(context, definition);
     }
 
-    // TODO: V15: should be renamed to OnCompleteArguments
-    protected virtual FieldCollection<Argument> OnCompleteFields(
+    protected virtual FieldCollection<Argument> OnCompleteArguments(
         ITypeCompletionContext context,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
-        static Argument CreateArgument(ArgumentDefinition argDef, int index)
+        static Argument CreateArgument(ArgumentConfiguration argDef, int index)
             => new(argDef, index);
     }
 
     protected sealed override void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteMetadata(context, declaringMember, (OutputFieldDefinitionBase)definition);
+        FieldConfiguration definition)
+        => OnCompleteMetadata(context, declaringMember, (OutputFieldConfiguration)definition);
 
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         base.OnCompleteMetadata(context, declaringMember, definition);
 
@@ -97,13 +104,13 @@ public class OutputFieldBase : FieldBase, IOutputField
     protected sealed override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnMakeExecutable(context, declaringMember, (OutputFieldDefinitionBase)definition);
+        FieldConfiguration definition)
+        => OnMakeExecutable(context, declaringMember, (OutputFieldConfiguration)definition);
 
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         base.OnMakeExecutable(context, declaringMember, definition);
 
@@ -116,13 +123,13 @@ public class OutputFieldBase : FieldBase, IOutputField
     protected sealed override void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnFinalizeField(context, declaringMember, (OutputFieldDefinitionBase)definition);
+        FieldConfiguration definition)
+        => OnFinalizeField(context, declaringMember, (OutputFieldConfiguration)definition);
 
     protected virtual void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         base.OnFinalizeField(context, declaringMember, definition);
 

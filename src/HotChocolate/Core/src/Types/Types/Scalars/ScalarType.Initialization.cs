@@ -35,18 +35,18 @@ public abstract partial class ScalarType
         Directives = default!;
     }
 
-    protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ScalarTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
     {
         var descriptor = ScalarTypeDescriptor.New(context.DescriptorContext, Name, Description, GetType());
         Configure(descriptor);
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IScalarTypeDescriptor descriptor) { }
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ScalarTypeDefinition definition)
+        ScalarTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
 
@@ -68,7 +68,7 @@ public abstract partial class ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ScalarTypeDefinition definition)
+        ScalarTypeConfiguration definition)
     {
         _converter = context.DescriptorContext.TypeConverter;
         var directiveDefinitions = definition.GetDirectives();

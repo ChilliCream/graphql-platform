@@ -125,12 +125,12 @@ public static class FilterObjectFieldDescriptorExtensions
         ITypeSystemMember? filterTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition placeholder = new(_ => _ => default);
+        FieldMiddlewareConfiguration placeholder = new(_ => _ => default);
 
         var argumentPlaceholder =
             "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
 
         descriptor
             .Extend()
@@ -166,7 +166,7 @@ public static class FilterObjectFieldDescriptorExtensions
                             scope);
                     }
 
-                    var argumentDefinition = new ArgumentDefinition
+                    var argumentDefinition = new ArgumentConfiguration
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
@@ -175,8 +175,8 @@ public static class FilterObjectFieldDescriptorExtensions
 
                     definition.Arguments.Add(argumentDefinition);
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (ctx, d) =>
                                 CompileMiddleware(
                                     ctx,
@@ -189,8 +189,8 @@ public static class FilterObjectFieldDescriptorExtensions
                             argumentTypeReference,
                             TypeDependencyFulfilled.Completed));
 
-                    argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>(
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) =>
                                 argDef.Name =
                                     context.GetFilterConvention(scope).GetArgumentName(),
@@ -203,9 +203,9 @@ public static class FilterObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         TypeReference argumentTypeReference,
-        FieldMiddlewareDefinition placeholder,
+        FieldMiddlewareConfiguration placeholder,
         string? scope)
     {
         var type = context.GetType<IFilterInputType>(argumentTypeReference);

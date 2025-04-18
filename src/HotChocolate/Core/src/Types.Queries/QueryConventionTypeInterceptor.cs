@@ -7,11 +7,11 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
-    private readonly List<ObjectTypeDefinition> _typeDefs = new();
+    private readonly List<ObjectTypeConfiguration> _typeDefs = new();
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private IDescriptorContext _context = default!;
-    private ObjectTypeDefinition _mutationDef = default!;
+    private ObjectTypeConfiguration _mutationDef = default!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -28,25 +28,25 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
         {
-            _mutationDef = definition;
+            _mutationDef = configuration;
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _typeDefs.Add(typeDef);
         }
 
-        base.OnAfterCompleteName(completionContext, definition);
+        base.OnAfterCompleteName(completionContext, configuration);
     }
 
     public override void OnBeforeCompleteTypes()
@@ -144,7 +144,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
                     // create middleware
                     var errorMiddleware =
-                        new FieldMiddlewareDefinition(
+                        new FieldMiddlewareConfiguration(
                             FieldClassMiddlewareFactory.Create<QueryResultMiddleware>(
                                 (typeof(IReadOnlyList<CreateError>), errorFactories)),
                             key: "Query Results",
@@ -175,7 +175,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
             {
                 d.Name(CreateResultTypeName(fieldName));
 
-                var typeDef = d.Extend().Definition;
+                var typeDef = d.Extend().Configuration;
 
                 foreach (var schemaTypeRef in typeSet)
                 {

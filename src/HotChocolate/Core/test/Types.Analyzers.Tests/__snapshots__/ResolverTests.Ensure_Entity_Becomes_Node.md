@@ -70,8 +70,8 @@ namespace TestNamespace
                 .Field(thisType.GetMember("GetTestById", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.GetTestById();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.Resolvers = r.GetTestById();
                 },
                 resolvers);
 

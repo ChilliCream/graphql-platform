@@ -24,7 +24,7 @@ public class Argument : FieldBase, IInputField
     /// <param name="index">
     /// The position of this argument within its field collection.
     /// </param>
-    public Argument(ArgumentDefinition definition, int index)
+    public Argument(ArgumentConfiguration definition, int index)
         : base(definition, index)
     {
         DefaultValue = definition.DefaultValue;
@@ -79,13 +79,13 @@ public class Argument : FieldBase, IInputField
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteField(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteField(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition)
+        ArgumentConfiguration definition)
     {
         if (definition.Type is null)
         {
@@ -110,13 +110,13 @@ public class Argument : FieldBase, IInputField
     protected sealed override void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteMetadata(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteMetadata(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition)
+        ArgumentConfiguration definition)
     {
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         base.OnCompleteMetadata(context, declaringMember, definition);
@@ -125,25 +125,25 @@ public class Argument : FieldBase, IInputField
     protected sealed override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnMakeExecutable(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnMakeExecutable(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition) =>
+        ArgumentConfiguration definition) =>
         base.OnMakeExecutable(context, declaringMember, definition);
 
     protected sealed override void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnFinalizeField(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnFinalizeField(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition) =>
+        ArgumentConfiguration definition) =>
         base.OnFinalizeField(context, declaringMember, definition);
 
     /// <summary>

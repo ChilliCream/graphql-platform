@@ -224,7 +224,7 @@ public class SortConvention
 
             if (descriptor is SortInputTypeDescriptor inputTypeDescriptor)
             {
-                inputTypeDescriptor.CreateDefinition();
+                inputTypeDescriptor.CreateConfiguration();
             }
         }
     }
@@ -252,13 +252,13 @@ public class SortConvention
 
     public bool TryGetOperationHandler(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition fieldDefinition,
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortOperationHandler? handler)
     {
         foreach (var sortFieldHandler in _provider.OperationHandlers)
         {
-            if (sortFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
+            if (sortFieldHandler.CanHandle(context, typeDefinition, fieldConfiguration))
             {
                 handler = sortFieldHandler;
                 return true;

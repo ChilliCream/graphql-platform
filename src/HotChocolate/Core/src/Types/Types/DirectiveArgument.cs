@@ -18,7 +18,7 @@ public sealed class DirectiveArgument : Argument, IHasProperty
     /// <param name="index">
     /// The position of the argument within the field collection.
     /// </param>
-    public DirectiveArgument(DirectiveArgumentDefinition definition, int index)
+    public DirectiveArgument(DirectiveArgumentConfiguration definition, int index)
         : base(definition, index)
     {
         Property = definition.Property;

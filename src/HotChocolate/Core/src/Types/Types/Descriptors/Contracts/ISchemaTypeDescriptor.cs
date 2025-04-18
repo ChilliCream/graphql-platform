@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 public interface ISchemaTypeDescriptor
-    : IDescriptor<SchemaTypeDefinition>
+    : IDescriptor<SchemaTypeConfiguration>
     , IFluent
 {
     ISchemaTypeDescriptor Name(string value);

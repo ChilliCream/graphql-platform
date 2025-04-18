@@ -19,7 +19,7 @@ public partial class ObjectType
     private Action<IObjectTypeDescriptor>? _configure;
     private IsOfType? _isOfType;
 
-    protected override ObjectTypeDefinition CreateDefinition(
+    protected override ObjectTypeConfiguration CreateDefinition(
         ITypeDiscoveryContext context)
     {
         try
@@ -31,12 +31,12 @@ public partial class ObjectType
                     GetType());
                 _configure!.Invoke(descriptor);
 
-                if (!descriptor.Definition.NeedsNameCompletion)
+                if (!descriptor.Configuration.NeedsNameCompletion)
                 {
-                    context.DescriptorContext.TypeConfiguration.Apply(descriptor.Definition.Name, descriptor);
+                    context.DescriptorContext.TypeConfiguration.Apply(descriptor.Configuration.Name, descriptor);
                 }
 
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
             return Definition;
@@ -49,7 +49,7 @@ public partial class ObjectType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
         context.RegisterDependencies(definition);
@@ -58,7 +58,7 @@ public partial class ObjectType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         base.OnCompleteType(context, definition);
 
@@ -73,7 +73,7 @@ public partial class ObjectType
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         base.OnCompleteMetadata(context, definition);
 
@@ -85,7 +85,7 @@ public partial class ObjectType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         base.OnMakeExecutable(context, definition);
 
@@ -97,7 +97,7 @@ public partial class ObjectType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         base.OnFinalizeType(context, definition);
 
@@ -109,7 +109,7 @@ public partial class ObjectType
 
     protected virtual FieldCollection<ObjectField> OnCompleteFields(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         var interfaceFields = TypeMemHelper.RentInterfaceFieldDefinitionMap();
         var processed = TypeMemHelper.RentNameSet();
@@ -144,7 +144,7 @@ public partial class ObjectType
         {
             if (processed.Add(interfaceField.Name))
             {
-                var field = new ObjectFieldDefinition();
+                var field = new ObjectFieldConfiguration();
                 interfaceField.CopyTo(field);
                 definition.Fields.Add(field);
             }
@@ -166,7 +166,7 @@ public partial class ObjectType
         TypeMemHelper.Return(processed);
         return collection;
 
-        static ObjectField CreateField(ObjectFieldDefinition fieldDef, int index)
+        static ObjectField CreateField(ObjectFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }
 
@@ -194,7 +194,7 @@ public partial class ObjectType
 
     private bool ValidateFields(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         var hasErrors = false;
 

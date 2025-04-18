@@ -45,8 +45,8 @@ public class TypeInitializationOrderTests
                     var reference =
                         c.TypeInspector.GetTypeRef(typeof(Word), TypeContext.Output);
 
-                    d.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    d.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (context, _) =>
                             {
                                 var type = context.GetType<ObjectType>(reference);

@@ -16,12 +16,12 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     private ITypeCompletionContext _context = default!;
     private ObjectType? _queryType;
-    private ObjectFieldDefinition _queryField = default!;
-    private ObjectTypeDefinition? _mutationDefinition;
+    private ObjectFieldConfiguration _queryField = default!;
+    private ObjectTypeConfiguration? _mutationDefinition;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         _context ??= completionContext;
@@ -33,7 +33,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 break;
 
             case OperationType.Mutation:
-                _mutationDefinition = (ObjectTypeDefinition)definition;
+                _mutationDefinition = (ObjectTypeConfiguration)configuration;
                 break;
         }
     }
@@ -46,7 +46,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
             TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
-            _queryField = new ObjectFieldDefinition(
+            _queryField = new ObjectFieldConfiguration(
                 options.QueryFieldName ?? _defaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
@@ -67,10 +67,10 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.Type is ObjectType objectType
-            && definition is ObjectTypeDefinition objectTypeDef
+            && configuration is ObjectTypeConfiguration objectTypeDef
             && _payloads.Contains(objectType.Name))
         {
             if (objectTypeDef.Fields.Any(t => t.Name.EqualsOrdinal(_queryField.Name)))

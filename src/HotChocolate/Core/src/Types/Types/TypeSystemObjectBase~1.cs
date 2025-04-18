@@ -9,7 +9,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
-    where TDefinition : DefinitionBase
+    where TDefinition : TypeSystemConfiguration
 {
     private TDefinition? _definition;
     private IReadOnlyDictionary<string, object?>? _contextData;
@@ -198,7 +198,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     {
         OnBeforeRegisterDependencies(context, definition);
 
-        foreach (var configuration in definition.GetConfigurations())
+        foreach (var configuration in definition.GetTasks())
         {
             foreach (var dependency in configuration.Dependencies)
             {
@@ -215,11 +215,11 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         TDefinition definition,
         ApplyConfigurationOn on)
     {
-        foreach (var config in definition.GetConfigurations())
+        foreach (var config in definition.GetTasks())
         {
             if (config.On == on)
             {
-                ((CompleteConfiguration)config).Configure(context);
+                ((OnCompleteTypeSystemConfigurationTask)config).Configure(context);
             }
         }
     }
@@ -230,62 +230,62 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
     protected virtual void OnAfterInitialize(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnAfterInitialize(context, definition);
 
     protected virtual void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnBeforeRegisterDependencies(context, definition);
 
     protected virtual void OnAfterRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnAfterRegisterDependencies(context, definition);
 
     protected virtual void OnBeforeCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnBeforeCompleteName(context, definition);
 
     protected virtual void OnAfterCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnAfterCompleteName(context, definition);
 
     protected virtual void OnBeforeCompleteType(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnBeforeCompleteType(context, definition);
 
     protected virtual void OnAfterCompleteType(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnAfterCompleteType(context, definition);
 
     protected virtual void OnBeforeCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnBeforeCompleteMetadata(context, definition);
 
     protected virtual void OnAfterCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnAfterCompleteMetadata(context, definition);
 
     protected virtual void OnBeforeMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnBeforeMakeExecutable(context, definition);
 
     protected virtual void OnAfterMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnAfterMakeExecutable(context, definition);
 
     protected virtual void OnValidateType(
         ITypeSystemObjectContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration definition)
         => context.TypeInterceptor.OnValidateType(context, definition);
 
     private void AssertUninitialized()

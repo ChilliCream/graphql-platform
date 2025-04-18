@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 public interface IDirectiveArgumentDescriptor
-    : IDescriptor<DirectiveArgumentDefinition>
+    : IDescriptor<DirectiveArgumentConfiguration>
     , IFluent
 {
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>

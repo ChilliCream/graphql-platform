@@ -13,7 +13,7 @@ internal sealed class UnionTypeFactory
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new UnionTypeDefinition(
+        var typeDefinition = new UnionTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
@@ -35,7 +35,7 @@ internal sealed class UnionTypeFactory
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new UnionTypeDefinition(node.Name.Value);
+        var typeDefinition = new UnionTypeConfiguration(node.Name.Value);
         typeDefinition.BindTo = node.GetBindingValue();
 
         foreach (var namedType in node.Types)

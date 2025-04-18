@@ -97,7 +97,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         {
             if (type.Kind == TypeKind.NonNull)
             {
-                type = ((NonNullType)type).Type;
+                type = ((NonNullType)type).NullableType;
             }
             else
             {

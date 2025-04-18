@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 public interface IUnionTypeDescriptor
-    : IDescriptor<UnionTypeDefinition>
+    : IDescriptor<UnionTypeConfiguration>
     , IFluent
 {
     IUnionTypeDescriptor Name(string value);

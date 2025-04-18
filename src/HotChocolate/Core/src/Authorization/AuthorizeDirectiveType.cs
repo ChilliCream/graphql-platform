@@ -56,10 +56,10 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
     public void ApplyConfiguration(
         IDescriptorContext context,
         DirectiveNode directiveNode,
-        IDefinition definition,
-        Stack<IDefinition> path)
+        ITypeSystemConfiguration definition,
+        Stack<ITypeSystemConfiguration> path)
     {
-        ((IHasDirectiveDefinition)definition).Directives.Add(new(directiveNode));
+        ((IDirectiveConfigurationProvider)definition).Directives.Add(new(directiveNode));
 
         if (IsValidationAuthRule(directiveNode))
         {

@@ -12,7 +12,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
@@ -22,48 +22,48 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
     }
 
     public override void OnValidateType(
-        ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+        ITypeSystemObjectContext context,
+        TypeSystemConfiguration configuration)
     {
-        if (validationContext.IsIntrospectionType)
+        if (context.IsIntrospectionType)
         {
             return;
         }
 
-        switch (validationContext.Type)
+        switch (context.Type)
         {
             case ObjectType objectType:
             {
-                var isQueryType = ReferenceEquals(validationContext, _queryContext);
+                var isQueryType = ReferenceEquals(context, _queryContext);
 
-                ValidateCacheControlOnType(validationContext, objectType);
+                ValidateCacheControlOnType(context, objectType);
 
                 var span = objectType.Fields.AsSpan();
 
                 for (var i = 0; i < span.Length; i++)
                 {
                     var field = span[i];
-                    ValidateCacheControlOnField(validationContext, field, objectType, isQueryType);
+                    ValidateCacheControlOnField(context, field, objectType, isQueryType);
                 }
                 break;
             }
 
             case InterfaceType interfaceType:
             {
-                ValidateCacheControlOnType(validationContext, interfaceType);
+                ValidateCacheControlOnType(context, interfaceType);
 
                 var span = interfaceType.Fields.AsSpan();
 
                 for (var i = 0; i < span.Length; i++)
                 {
                     var field = span[i];
-                    ValidateCacheControlOnField(validationContext, field, interfaceType, false);
+                    ValidateCacheControlOnField(context, field, interfaceType, false);
                 }
                 break;
             }
 
             case UnionType unionType:
-                ValidateCacheControlOnType(validationContext, unionType);
+                ValidateCacheControlOnType(context, unionType);
                 break;
         }
     }

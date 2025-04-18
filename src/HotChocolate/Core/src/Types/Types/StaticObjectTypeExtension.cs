@@ -16,7 +16,7 @@ internal sealed class StaticObjectTypeExtension : ObjectTypeExtension
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
         var context = descriptor.Extend().Context;
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
 
         // we are using the non-generic type extension class which would set nothing.
         definition.Name = context.Naming.GetTypeName(_staticExtType, TypeKind.Object);

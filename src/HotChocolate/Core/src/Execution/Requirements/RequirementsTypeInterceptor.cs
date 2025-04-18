@@ -11,9 +11,9 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is SchemaTypeDefinition schema)
+        if (configuration is SchemaTypeConfiguration schema)
         {
             schema.Features.Set(_metadata);
         }
@@ -21,9 +21,9 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not ObjectTypeDefinition typeDef)
+        if (configuration is not ObjectTypeConfiguration typeDef)
         {
             return;
         }

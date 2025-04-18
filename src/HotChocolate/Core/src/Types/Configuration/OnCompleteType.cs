@@ -9,5 +9,5 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public delegate void OnCompleteType(
     ITypeCompletionContext context,
-    DefinitionBase? definition,
+    TypeSystemConfiguration? definition,
     IDictionary<string, object?> contextData);

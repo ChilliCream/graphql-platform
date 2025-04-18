@@ -7,7 +7,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL enum types.
 /// </summary>
 public interface IEnumTypeDescriptor
-    : IDescriptor<EnumTypeDefinition>
+    : IDescriptor<EnumTypeConfiguration>
     , IFluent
 {
     /// <summary>

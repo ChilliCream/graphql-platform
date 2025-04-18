@@ -18,7 +18,7 @@ public abstract class SortOperationHandler<TContext, T>
     public virtual bool TryHandleEnter(
         TContext context,
         ISortField field,
-        ISortEnumValue? sortValue,
+        SortEnumValue? sortValue,
         EnumValueNode node,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
@@ -29,6 +29,6 @@ public abstract class SortOperationHandler<TContext, T>
     /// <inheritdoc />
     public abstract bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition valueDefinition);
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration valueConfiguration);
 }

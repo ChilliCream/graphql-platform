@@ -11,9 +11,9 @@ namespace HotChocolate.Types.Helpers;
 /// </summary>
 internal static class TypeMemHelper
 {
-    private static Dictionary<string, ObjectFieldDefinition>? _objectFieldDefinitionMap;
-    private static Dictionary<string, InterfaceFieldDefinition>? _interfaceFieldDefinitionMap;
-    private static Dictionary<string, InputFieldDefinition>? _inputFieldDefinitionMap;
+    private static Dictionary<string, ObjectFieldConfiguration>? _objectFieldDefinitionMap;
+    private static Dictionary<string, InterfaceFieldConfiguration>? _interfaceFieldDefinitionMap;
+    private static Dictionary<string, InputFieldConfiguration>? _inputFieldDefinitionMap;
     private static Dictionary<string, InputField>? _inputFieldMap;
     private static Dictionary<string, InputField>? _inputFieldMapOrdinalIgnoreCase;
     private static Dictionary<string, DirectiveArgument>? _directiveArgumentMap;
@@ -23,31 +23,31 @@ internal static class TypeMemHelper
     private static HashSet<string>? _nameSet;
     private static HashSet<string>? _nameSetOrdinalIgnoreCase;
 
-    public static Dictionary<string, ObjectFieldDefinition> RentObjectFieldDefinitionMap()
+    public static Dictionary<string, ObjectFieldConfiguration> RentObjectFieldDefinitionMap()
         => Interlocked.Exchange(ref _objectFieldDefinitionMap, null) ??
-            new Dictionary<string, ObjectFieldDefinition>(StringComparer.Ordinal);
+            new Dictionary<string, ObjectFieldConfiguration>(StringComparer.Ordinal);
 
-    public static void Return(Dictionary<string, ObjectFieldDefinition> map)
+    public static void Return(Dictionary<string, ObjectFieldConfiguration> map)
     {
         map.Clear();
         Interlocked.CompareExchange(ref _objectFieldDefinitionMap, map, null);
     }
 
-    public static Dictionary<string, InterfaceFieldDefinition> RentInterfaceFieldDefinitionMap()
+    public static Dictionary<string, InterfaceFieldConfiguration> RentInterfaceFieldDefinitionMap()
         => Interlocked.Exchange(ref _interfaceFieldDefinitionMap, null) ??
-            new Dictionary<string, InterfaceFieldDefinition>(StringComparer.Ordinal);
+            new Dictionary<string, InterfaceFieldConfiguration>(StringComparer.Ordinal);
 
-    public static void Return(Dictionary<string, InterfaceFieldDefinition> map)
+    public static void Return(Dictionary<string, InterfaceFieldConfiguration> map)
     {
         map.Clear();
         Interlocked.CompareExchange(ref _interfaceFieldDefinitionMap, map, null);
     }
 
-    public static Dictionary<string, InputFieldDefinition> RentInputFieldDefinitionMap()
+    public static Dictionary<string, InputFieldConfiguration> RentInputFieldDefinitionMap()
         => Interlocked.Exchange(ref _inputFieldDefinitionMap, null) ??
-            new Dictionary<string, InputFieldDefinition>(StringComparer.Ordinal);
+            new Dictionary<string, InputFieldConfiguration>(StringComparer.Ordinal);
 
-    public static void Return(Dictionary<string, InputFieldDefinition> map)
+    public static void Return(Dictionary<string, InputFieldConfiguration> map)
     {
         map.Clear();
         Interlocked.CompareExchange(ref _inputFieldDefinitionMap, map, null);

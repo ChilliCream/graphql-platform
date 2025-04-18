@@ -14,9 +14,9 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
             case SortInputTypeDefinition inputDefinition:
                 OnBeforeRegisteringDependencies(discoveryContext, inputDefinition);
@@ -29,9 +29,9 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
             case SortInputTypeDefinition inputDefinition:
                 OnBeforeCompleteName(completionContext, inputDefinition);
@@ -44,9 +44,9 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
             case SortInputTypeDefinition inputDefinition:
                 OnBeforeCompleteType(completionContext, inputDefinition);
@@ -74,7 +74,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
@@ -96,7 +96,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
@@ -120,7 +120,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         DataTypeExtensionHelper.MergeSortInputTypeDefinitions(
             completionContext,
-            descriptor.CreateDefinition(),
+            descriptor.CreateConfiguration(),
             definition);
 
         if (!string.IsNullOrEmpty(definition.Name) &&
@@ -149,7 +149,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         DataTypeExtensionHelper.MergeSortEnumTypeDefinitions(
             completionContext,
-            descriptor.CreateDefinition(),
+            descriptor.CreateConfiguration(),
             definition);
 
         if (!string.IsNullOrEmpty(definition.Name) &&
@@ -208,7 +208,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
         foreach (var enumValue in definition.Values)
         {
-            if (enumValue is SortEnumValueDefinition sortEnumValueDefinition)
+            if (enumValue is SortEnumValueConfiguration sortEnumValueDefinition)
             {
                 if (convention.TryGetOperationHandler(
                     completionContext,

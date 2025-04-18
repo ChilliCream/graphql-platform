@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL object types.
 /// </summary>
 public interface IObjectTypeDescriptor
-    : IDescriptor<ObjectTypeDefinition>
+    : IDescriptor<ObjectTypeConfiguration>
     , IFluent
 {
     /// <summary>

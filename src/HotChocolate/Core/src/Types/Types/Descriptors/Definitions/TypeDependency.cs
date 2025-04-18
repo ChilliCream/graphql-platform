@@ -7,9 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 
 public sealed class TypeDependency
 {
-    public TypeDependency(
-        TypeReference type,
-        TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
+    public TypeDependency(TypeReference type, TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
         Type = type ?? throw new ArgumentNullException(nameof(type));
         Fulfilled = fulfilled;

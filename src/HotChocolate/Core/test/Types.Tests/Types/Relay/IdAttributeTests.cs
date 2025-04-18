@@ -695,7 +695,7 @@ public class IdAttributeTests
             }
         }
 
-        private void AddInterceptingSerializer(ArgumentDefinition definition)
+        private void AddInterceptingSerializer(ArgumentConfiguration definition)
             => definition.Formatters.Insert(0, new InterceptingFormatter(TypeName));
 
         private sealed class InterceptingFormatter(string typeName) : IInputValueFormatter
@@ -716,11 +716,11 @@ public class IdAttributeTests
         public int Count { get; set; }
 
         public override void OnValidateType(
-            ITypeSystemObjectContext validationContext,
-            DefinitionBase definition)
+            ITypeSystemObjectContext context,
+            TypeSystemConfiguration configuration)
         {
-            if (validationContext.Type.Name.EqualsOrdinal("Query") &&
-                definition is ObjectTypeDefinition typeDef)
+            if (context.Type.Name.EqualsOrdinal("Query") &&
+                configuration is ObjectTypeConfiguration typeDef)
             {
                 Count = typeDef.Fields
                     .Single(t => t.Name.EqualsOrdinal("abc"))

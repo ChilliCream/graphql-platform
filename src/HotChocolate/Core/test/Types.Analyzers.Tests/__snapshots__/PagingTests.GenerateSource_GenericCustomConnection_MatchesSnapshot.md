@@ -37,9 +37,9 @@ namespace TestNamespace
                 .Type<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomEdgeType>>>>()
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionEdgesFieldFlags();
-                    c.Definition.Resolvers = r.Edges();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.SetConnectionEdgesFieldFlags();
+                    c.Configuration.Resolvers = r.Edges();
                 },
                 resolvers);
 
@@ -47,9 +47,9 @@ namespace TestNamespace
                 .Field(thisType.GetMember("Nodes", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionNodesFieldFlags();
-                    c.Definition.Resolvers = r.Nodes();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.SetConnectionNodesFieldFlags();
+                    c.Configuration.Resolvers = r.Nodes();
                 },
                 resolvers);
 
@@ -57,8 +57,8 @@ namespace TestNamespace
                 .Field(thisType.GetMember("PageInfo", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.PageInfo();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.Resolvers = r.PageInfo();
                 },
                 resolvers);
 
@@ -66,9 +66,9 @@ namespace TestNamespace
                 .Field(thisType.GetMember("TotalCount", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionTotalCountFieldFlags();
-                    c.Definition.Resolvers = r.TotalCount();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.SetConnectionTotalCountFieldFlags();
+                    c.Configuration.Resolvers = r.TotalCount();
                 },
                 resolvers);
         }
@@ -153,8 +153,8 @@ namespace TestNamespace
                 .Field(thisType.GetMember("Node", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.Node();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.Resolvers = r.Node();
                 },
                 resolvers);
 
@@ -162,8 +162,8 @@ namespace TestNamespace
                 .Field(thisType.GetMember("Cursor", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.Cursor();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.Resolvers = r.Cursor();
                 },
                 resolvers);
         }
@@ -226,12 +226,12 @@ namespace TestNamespace.Types.Nodes
                 .Type<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>>()
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionFlags();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
-                    c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
-                    c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
-                    c.Definition.Resolvers = r.GetAuthorsAsync();
+                    c.Configuration.State = c.Configuration.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
+                    c.Configuration.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
+                    c.Configuration.Resolvers = r.GetAuthorsAsync();
                 },
                 resolvers);
 
@@ -324,12 +324,12 @@ namespace TestNamespace.Types.Root
                 .Type<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>>()
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionFlags();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
-                    c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
-                    c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
-                    c.Definition.Resolvers = r.GetAuthorsAsync();
+                    c.Configuration.State = c.Configuration.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
+                    c.Configuration.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
+                    c.Configuration.Resolvers = r.GetAuthorsAsync();
                 },
                 resolvers);
 
@@ -339,12 +339,12 @@ namespace TestNamespace.Types.Root
                 .Type<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>>()
                 .ExtendWith(static (c, r) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionFlags();
+                    c.Configuration.SetSourceGeneratorFlags();
+                    c.Configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
-                    c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
-                    c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
-                    c.Definition.Resolvers = r.GetAuthors2Async();
+                    c.Configuration.State = c.Configuration.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
+                    c.Configuration.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
+                    c.Configuration.Resolvers = r.GetAuthors2Async();
                 },
                 resolvers);
 

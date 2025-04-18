@@ -122,7 +122,7 @@ internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<objec
                         type = elementType;
                         continue;
 
-                    case NonNullType { Type: IInputType innerType }:
+                    case NonNullType { NullableType: IInputType innerType }:
                         type = innerType;
                         continue;
 
