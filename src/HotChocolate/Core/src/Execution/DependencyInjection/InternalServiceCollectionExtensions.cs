@@ -162,10 +162,11 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDefaultCaches(
         this IServiceCollection services)
     {
-        services.TryAddSingleton<IDocumentCache>(
-            _ => new DefaultDocumentCache());
         services.TryAddSingleton<PreparedOperationCacheOptions>(
-            _ => new PreparedOperationCacheOptions { Capacity = 100 });
+            _ => new PreparedOperationCacheOptions { Capacity = 256 });
+        services.TryAddSingleton<IDocumentCache>(
+            sp => new DefaultDocumentCache(
+                sp.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
         return services;
     }
 
