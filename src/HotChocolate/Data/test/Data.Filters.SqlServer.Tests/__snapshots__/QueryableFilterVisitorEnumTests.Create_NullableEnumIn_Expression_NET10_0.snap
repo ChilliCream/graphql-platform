@@ -1,0 +1,80 @@
+BarAndFoo Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "FOO"
+      }
+    ]
+  }
+}
+---------------
+
+BarAndFoo SQL:
+---------------
+.param set @p '[1,0]'
+
+SELECT "d"."Id", "d"."BarEnum"
+FROM "Data" AS "d"
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
+    FROM json_each(@p) AS "p"
+)
+---------------
+
+FOO Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "FOO"
+      }
+    ]
+  }
+}
+---------------
+
+FOO SQL:
+---------------
+.param set @p '[0]'
+
+SELECT "d"."Id", "d"."BarEnum"
+FROM "Data" AS "d"
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
+    FROM json_each(@p) AS "p"
+)
+---------------
+
+nullAndFoo Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "FOO"
+      },
+      {
+        "barEnum": null
+      }
+    ]
+  }
+}
+---------------
+
+nullAndFoo SQL:
+---------------
+.param set @p_without_nulls '[0]'
+
+SELECT "d"."Id", "d"."BarEnum"
+FROM "Data" AS "d"
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
+    FROM json_each(@p_without_nulls) AS "p"
+) OR "d"."BarEnum" IS NULL
+---------------

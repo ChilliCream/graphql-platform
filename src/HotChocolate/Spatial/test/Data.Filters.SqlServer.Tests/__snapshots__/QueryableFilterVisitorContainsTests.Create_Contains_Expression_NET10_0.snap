@@ -1,0 +1,41 @@
+1 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "id": 1
+      }
+    ]
+  }
+}
+---------------
+
+1 SQL:
+---------------
+-- @p='POINT (1 1)' (DbType = Object)
+SELECT d."Id", d."Bar"
+FROM "Data" AS d
+WHERE ST_Contains(d."Bar", @p)
+---------------
+
+2 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "id": 2
+      }
+    ]
+  }
+}
+---------------
+
+2 SQL:
+---------------
+-- @p='POINT (-1 -1)' (DbType = Object)
+SELECT d."Id", d."Bar"
+FROM "Data" AS d
+WHERE ST_Contains(d."Bar", @p)
+---------------

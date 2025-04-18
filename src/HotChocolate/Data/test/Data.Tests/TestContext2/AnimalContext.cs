@@ -6,10 +6,10 @@ namespace HotChocolate.Data.TestContext2;
 
 public class AnimalContext(string connectionString) : DbContext
 {
-    public DbSet<Owner> Owners { get; set; }
-    public DbSet<Animal> Pets { get; set; }
-    public DbSet<Dog> Dogs { get; set; }
-    public DbSet<Cat> Cats { get; set; }
+    public DbSet<Owner> Owners { get; set; } = null!;
+    public DbSet<Animal> Pets { get; set; } = null!;
+    public DbSet<Dog> Dogs { get; set; } = null!;
+    public DbSet<Cat> Cats { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql(connectionString);
