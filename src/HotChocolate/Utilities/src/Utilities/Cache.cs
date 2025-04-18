@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
 
 namespace HotChocolate.Utilities;
 
@@ -14,6 +15,7 @@ public sealed class Cache<TValue>
     private readonly int _capacity;
     private readonly CacheEntry?[] _ring;
     private readonly ConcurrentDictionary<string, CacheEntry> _map;
+    private readonly CacheDiagnostics _diagnostics;
 
     // The clock hand is incremented atomically and is used to
     // determine which cache entry to try to set a new entry into.
@@ -26,18 +28,25 @@ public sealed class Cache<TValue>
     /// <param name="capacity">
     /// The maximum number of items that can be stored in this cache.
     /// </param>
+    /// <param name="diagnostics">
+    /// The diagnostics for the cache.
+    /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when the capacity is less than 10.
     /// </exception>
-    public Cache(int capacity = 256)
+    public Cache(int capacity = 256, CacheDiagnostics? diagnostics = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 10);
+
         _capacity = capacity;
         _ring = new CacheEntry[capacity];
         _map = new ConcurrentDictionary<string, CacheEntry>(
             concurrencyLevel: Environment.ProcessorCount,
             capacity: _capacity,
             comparer: StringComparer.Ordinal);
+        _diagnostics = diagnostics ?? NoOpCacheDiagnostics.Instance;
+        _diagnostics.RegisterCapacityGauge(() => _capacity);
+        _diagnostics.RegisterSizeGauge(() => _map.Count);
     }
 
     /// <summary>
@@ -67,13 +76,17 @@ public sealed class Cache<TValue>
     {
         if (_map.TryGetValue(key, out var entry))
         {
-            // we mark our entry as used by setting Accessed to 1
+            // We mark our entry as used by setting Accessed to 1
             // this means the entry will be safe from the next eviction.
+            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
+            // tiny risk that an in‑flight eviction may still remove this entry.
             Volatile.Write(ref entry.Accessed, 1);
+            _diagnostics.Hit();
             value = entry.Value;
             return true;
         }
 
+        _diagnostics.Miss();
         value = default;
         return false;
     }
@@ -116,6 +129,22 @@ public sealed class Cache<TValue>
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(create);
 
+        // We first check if the entry is already in the map.
+        // This is a fast lookup and will be used most of the time.
+        if (_map.TryGetValue(key, out var entry))
+        {
+            // We mark our entry as used by setting Accessed to 1
+            // this means the entry will be safe from the next eviction.
+            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
+            // tiny risk that an in‑flight eviction may still remove this entry.
+            Volatile.Write(ref entry.Accessed, 1);
+            _diagnostics.Hit();
+            return entry.Value;
+        }
+
+        // If we have miss we do a GetOrAdd on the map to get at the end
+        // the winner in case of contention.
+        //
         // The GetOrAdd of the ConcurrentDictionary is not atomic.
         // It is possible that two threads will try to create the same entry
         // at the same time.
@@ -130,17 +159,22 @@ public sealed class Cache<TValue>
         // the overhead of a lock on the dictionary itself.
         // The ConcurrentDictionary is vert efficient and does not
         // lock the whole dictionary when adding an entry.
-        var entry = _map.GetOrAdd(
+        var args = new CacheEntryCreateArgs<TState>(state, create, this);
+
+        entry = _map.GetOrAdd(
             key,
             static (k, arg) =>
             {
-                var value = arg.create(k, arg.state);
-                return arg.cache.InsertNew(k, value);
+                arg.Diagnostics.Miss();
+                var value = arg.Create(k, arg.State);
+                return arg.Cache.InsertNew(k, value);
             },
-            (state, create, cache: this));
+            args);
 
-        // in the case we did not add a new entry but instead retrieved it
+        // In the case we did not add a new entry but instead retrieved it
         // from the ConcurrentDictionary we need to mark it as recently accessed
+        // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
+        // tiny risk that an in‑flight eviction may still remove this entry.
         Volatile.Write(ref entry.Accessed, 1);
         return entry.Value;
     }
@@ -157,6 +191,17 @@ public sealed class Cache<TValue>
             var idx = (int)(handle % (uint)_capacity);
             var entry = _ring[idx];
 
+            if (++spins > maxSpins && entry is not null)
+            {
+                var prev = Interlocked.CompareExchange(ref _ring[idx], newEntry, entry);
+                if (ReferenceEquals(prev, entry))
+                {
+                    _map.TryRemove(prev.Key, out _);
+                    _diagnostics.Evict();
+                    return newEntry;
+                }
+            }
+
             if (entry is null)
             {
                 // if the current cache slot is empty, we will try to insert
@@ -165,11 +210,8 @@ public sealed class Cache<TValue>
                 {
                     return newEntry;
                 }
-
-                continue;
             }
-
-            if (Interlocked.CompareExchange(ref entry.Accessed, 0, 1) == 0)
+            else if (Interlocked.CompareExchange(ref entry.Accessed, 0, 1) == 0)
             {
                 // If we found a slot that was not recently retrieved, we will try to
                 // replace it with our new entry. This will only succeed if no other thread
@@ -177,45 +219,26 @@ public sealed class Cache<TValue>
                 var prev = Interlocked.CompareExchange(ref _ring[idx], newEntry, entry);
 
                 // If we were successful in replacing the entry, we will
-                // then prev is the old entry and we need to remove it from the map.
+                // then prev is the old entry, and we need to remove it from the map.
                 // It might be that the old entry was retrieved in the meantime, and we
                 // accept this small window in which the map might have a dangling reference.
                 if (ReferenceEquals(prev, entry))
                 {
                     _map.TryRemove(prev.Key, out _);
+                    _diagnostics.Evict();
                     return newEntry;
                 }
-            }
-
-            if (++spins > maxSpins)
-            {
-                entry = _ring[idx]!; // re‑read reference
-
-                var oldKey = entry.Key;
-
-                // atomic swap
-                Interlocked.Exchange(ref _ring[idx], newEntry);
-
-                _map.TryRemove(oldKey, out _);
-                return newEntry;
             }
         }
     }
 
     /// <summary>
     /// Clears all entries from the cache.
+    /// The clear might leave the cache in a dirty state.
+    /// This is acceptable as we are not using a clear in production.
+    /// It's more a helper for testing.
     /// </summary>
-    public void Clear()
-    {
-        _map.Clear();
-
-        for (var i = 0; i < _ring.Length; i++)
-        {
-            _ring[i] = null;
-        }
-
-        Interlocked.Exchange(ref _hand, 0);
-    }
+    public void Clear() => _map.Clear();
 
     /// <summary>
     /// Returns all keys in the cache. This method is for testing only.
@@ -234,12 +257,46 @@ public sealed class Cache<TValue>
 
     private sealed class CacheEntry(string key, TValue value)
     {
+        /// <summary>
+        /// The key of the entry.
+        /// </summary>
         public readonly string Key = key;
 
+        /// <summary>
+        /// The value of the entry.
+        /// </summary>
         public readonly TValue Value = value;
 
-        // 0 = not accessed recently
-        // 1 = accessed recently
+        /// <summary>
+        /// 0 = not accessed recently
+        /// 1 = accessed recently
+        /// </summary>
         public int Accessed = 1;
+    }
+
+    private readonly struct CacheEntryCreateArgs<TState>(
+        TState state,
+        Func<string, TState, TValue> create,
+        Cache<TValue> cache)
+    {
+        /// <summary>
+        /// The state that is needed to create the value to cache.
+        /// </summary>
+        public readonly TState State = state;
+
+        /// <summary>
+        /// The factory to create the value to cache.
+        /// </summary>
+        public readonly Func<string, TState, TValue> Create = create;
+
+        /// <summary>
+        /// The cache instance.
+        /// </summary>
+        public readonly Cache<TValue> Cache = cache;
+
+        /// <summary>
+        /// The diagnostics for the cache.
+        /// </summary>
+        public readonly CacheDiagnostics Diagnostics = cache._diagnostics;
     }
 }
