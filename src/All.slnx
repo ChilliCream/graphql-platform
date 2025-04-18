@@ -21,6 +21,7 @@
     <Project Path="GreenDonut/src/GreenDonut.Data.Primitives/GreenDonut.Data.Primitives.csproj" />
     <Project Path="GreenDonut/src/GreenDonut.Data/GreenDonut.Data.csproj" />
     <Project Path="GreenDonut/src/GreenDonut/GreenDonut.csproj" />
+    <Project Path="GreenDonut\src\GreenDonut.Data.Marten\GreenDonut.Data.Marten.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/GreenDonut/test/">
     <Project Path="GreenDonut/test/GreenDonut.Data.EntityFramework.Tests/GreenDonut.Data.EntityFramework.Tests.csproj" />
@@ -90,8 +91,8 @@
     <Project Path="HotChocolate/Core/src/Subscriptions/HotChocolate.Subscriptions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Analyzers/HotChocolate.Types.Analyzers.csproj" />
-    <Project Path="HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
     <Project Path="HotChocolate/Core/src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Errors/HotChocolate.Types.Errors.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Json/HotChocolate.Types.Json.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Mutations/HotChocolate.Types.Mutations.csproj" />
