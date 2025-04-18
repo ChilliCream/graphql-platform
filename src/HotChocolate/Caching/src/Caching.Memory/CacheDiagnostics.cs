@@ -1,4 +1,4 @@
-namespace HotChocolate.Utilities;
+namespace HotChocolate.Caching.Memory;
 
 /// <summary>
 /// The diagnostics for the cache.

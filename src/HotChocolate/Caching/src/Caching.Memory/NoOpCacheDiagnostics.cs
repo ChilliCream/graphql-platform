@@ -1,4 +1,4 @@
-namespace HotChocolate.Utilities;
+namespace HotChocolate.Caching.Memory;
 
 internal sealed class NoOpCacheDiagnostics : CacheDiagnostics
 {

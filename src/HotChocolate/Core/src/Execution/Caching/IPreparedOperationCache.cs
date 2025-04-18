@@ -45,9 +45,4 @@ public interface IPreparedOperationCache
     /// The operation that shall be cached.
     /// </param>
     void TryAddOperation(string operationId, IOperation operation);
-
-    /// <summary>
-    /// Clears all items from the cache.
-    /// </summary>
-    void Clear();
 }

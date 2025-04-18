@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Utilities;
+using HotChocolate.Caching.Memory;
 
 namespace HotChocolate.Authorization;
 
@@ -16,7 +16,4 @@ internal sealed class AuthorizationCache(int capacity = 256)
 
     public void TryAddDirectives(string documentId, AuthorizeDirective[] directives)
         => _cache.GetOrCreate(documentId, static (_, d) => d, directives);
-
-    public void Clear()
-        => _cache.Clear();
 }

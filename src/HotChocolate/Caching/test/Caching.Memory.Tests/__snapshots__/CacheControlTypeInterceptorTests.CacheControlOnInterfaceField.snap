@@ -1,0 +1,6 @@
+﻿{
+  "message": "Can not specify @cacheControl directive on interface fields, such as Interface.field.",
+  "type": "Interface",
+  "extensions": {}
+}
+

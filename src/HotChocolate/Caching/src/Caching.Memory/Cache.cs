@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.Metrics;
 
-namespace HotChocolate.Utilities;
+namespace HotChocolate.Caching.Memory;
 
 /// <summary>
 /// The core cache implementation for the HotChocolate library.
@@ -9,7 +8,9 @@ namespace HotChocolate.Utilities;
 /// used entries when the cache is full.
 /// https://en.wikipedia.org/wiki/Page_replacement_algorithm#Clock
 /// </summary>
-/// <typeparam name="TValue"></typeparam>
+/// <typeparam name="TValue">
+/// The type of the value that is stored in the cache.
+/// </typeparam>
 public sealed class Cache<TValue>
 {
     private readonly int _capacity;
@@ -36,7 +37,7 @@ public sealed class Cache<TValue>
     /// </exception>
     public Cache(int capacity = 256, CacheDiagnostics? diagnostics = null)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 10);
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
 
         _capacity = capacity;
         _ring = new CacheEntry[capacity];
@@ -231,14 +232,6 @@ public sealed class Cache<TValue>
             }
         }
     }
-
-    /// <summary>
-    /// Clears all entries from the cache.
-    /// The clear might leave the cache in a dirty state.
-    /// This is acceptable as we are not using a clear in production.
-    /// It's more a helper for testing.
-    /// </summary>
-    public void Clear() => _map.Clear();
 
     /// <summary>
     /// Returns all keys in the cache. This method is for testing only.
