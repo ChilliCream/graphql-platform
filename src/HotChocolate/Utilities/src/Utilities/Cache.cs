@@ -34,7 +34,10 @@ public sealed class Cache<TValue>
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 10);
         _capacity = capacity;
         _ring = new CacheEntry[capacity];
-        _map = new ConcurrentDictionary<string, CacheEntry>(StringComparer.Ordinal);
+        _map = new ConcurrentDictionary<string, CacheEntry>(
+            concurrencyLevel: Environment.ProcessorCount,
+            capacity: _capacity,
+            comparer: StringComparer.Ordinal);
     }
 
     /// <summary>
