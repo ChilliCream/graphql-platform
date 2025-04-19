@@ -6,7 +6,9 @@ public interface ICursorKeySerializer
 {
     bool IsSupported(Type type);
 
-    MethodInfo GetCompareToMethod(Type type);
+    bool IsNullable(Type type);
+
+    CursorKeyCompareMethod GetCompareToMethod(Type type);
 
     object Parse(ReadOnlySpan<byte> formattedKey);
 

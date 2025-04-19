@@ -6,12 +6,15 @@ namespace GreenDonut.Data.Cursors.Serializers;
 internal sealed class StringCursorKeySerializer : ICursorKeySerializer
 {
     private static readonly Encoding _encoding = Encoding.UTF8;
-    private static readonly MethodInfo _compareTo = CompareToResolver.GetCompareToMethod<string>();
+    private static readonly CursorKeyCompareMethod _compareTo = CompareToResolver.GetCompareToMethod<string>();
 
     public bool IsSupported(Type type)
         => type == typeof(string);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => false;
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => _compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
