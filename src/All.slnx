@@ -69,9 +69,11 @@
   <Folder Name="/HotChocolate/Caching/" />
   <Folder Name="/HotChocolate/Caching/src/">
     <Project Path="HotChocolate/Caching/src/Caching/HotChocolate.Caching.csproj" />
+    <Project Path="HotChocolate/Caching/src/Caching.Memory/HotChocolate.Caching.Memory.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Caching/test/">
     <Project Path="HotChocolate/Caching/test/Caching.Tests/HotChocolate.Caching.Tests.csproj" />
+    <Project Path="HotChocolate/Caching/test/Caching.Memory.Tests/HotChocolate.Caching.Memory.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Core/" />
   <Folder Name="/HotChocolate/Core/src/">

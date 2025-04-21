@@ -707,7 +707,7 @@ internal sealed class SourceSchemaMerger
     /// either source requires a non-null value, the merged type also becomes non-null so that no
     /// invalid (e.g., <c>null</c>) data can be introduced at runtime. Conversely, if both sources
     /// allow <c>null</c>, the merged type remains nullable. The same principle applies to list
-    /// types, where the more restrictive settings (non-null list or non-null elements) is used.
+    /// types, where the more restrictive settings (non-null list or non-null elements) are used.
     /// </summary>
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Most-Restrictive-Type">
     /// Specification
