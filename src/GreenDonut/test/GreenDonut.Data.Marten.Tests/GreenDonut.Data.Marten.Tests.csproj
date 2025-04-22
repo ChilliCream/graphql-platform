@@ -14,7 +14,7 @@
     <PackageReference Include="Marten" />
     <PackageReference Include="Squadron.PostgreSql" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
   </ItemGroup>
 
 </Project>
