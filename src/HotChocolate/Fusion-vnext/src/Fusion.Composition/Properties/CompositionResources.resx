@@ -24,6 +24,9 @@
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed.</value>
   </data>
+  <data name="ErrorHelper_SatisfiabilityValidationFailed" xml:space="preserve">
+    <value>Satisfiability validation failed.</value>
+  </data>
   <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
     <value>Source schema parsing failed.</value>
   </data>
@@ -332,6 +335,30 @@
   </data>
   <data name="RequireMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @require directive is used to express data requirements with other source schemas.</value>
+  </data>
+  <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected: {0} -&gt; {1}.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NoOtherSchemasContainField" xml:space="preserve">
+    <value>No other schemas contain this field.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToAccessRequiredField" xml:space="preserve">
+    <value>Unable to access the required field '{0}.{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' on field '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to field '{2}'.</value>
   </data>
   <data name="SchemaNameMutableDirectiveDefinition_Argument_Value_Description" xml:space="preserve">
     <value>The name of the source schema.</value>

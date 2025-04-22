@@ -7,6 +7,19 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class DirectivesProviderExtensions
 {
+    public static IEnumerable<IDirective> GetFusionLookupDirectives(
+        this IDirectivesProvider type,
+        string schemaName)
+    {
+        return
+            type.Directives
+                .AsEnumerable()
+                .Where(
+                    d =>
+                        d.Name == DirectiveNames.FusionLookup
+                        && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+    }
+
     public static string? GetIsFieldSelectionMap(this IDirectivesProvider type)
     {
         var isDirective = type.Directives.FirstOrDefault(d => d.Name == DirectiveNames.Is);
