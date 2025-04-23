@@ -1,0 +1,51 @@
+schema {
+  query: TestObjectsQuery
+}
+
+type ChildObject {
+  id: NestedId!
+  amount: Float!
+  sum: Decimal!
+}
+
+type NestedId {
+  objectId: UUID!
+}
+
+type TestObject {
+  objectId: UUID!
+  isRoot: Boolean!
+  child: ChildObject!
+}
+
+type TestObjectsQuery {
+  testObjects(order: [TestObjectSortInput!]): [TestObject!]!
+}
+
+input ChildObjectSortInput {
+  id: NestedIdSortInput
+  amount: SortEnumType
+  sum: SortEnumType
+}
+
+input NestedIdSortInput {
+  objectId: SortEnumType
+}
+
+input TestObjectSortInput {
+  objectId: SortEnumType
+  child: ChildObjectSortInput
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")
