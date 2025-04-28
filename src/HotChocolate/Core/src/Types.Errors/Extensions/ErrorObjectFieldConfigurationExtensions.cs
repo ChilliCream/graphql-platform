@@ -45,8 +45,6 @@ public static class ErrorObjectFieldConfigurationExtensions
                 .BuildException();
         }
 
-        var definitions = ErrorFactoryCompiler.Compile(errorType);
-
         if (!configuration.ContextData.TryGetValue(ErrorConfigurations, out var value) ||
             value is not List<ErrorConfiguration> errorFactories)
         {
@@ -54,11 +52,12 @@ public static class ErrorObjectFieldConfigurationExtensions
             configuration.ContextData[ErrorConfigurations] = errorFactories;
         }
 
-        errorFactories.AddRange(definitions);
+        var errorConfigs = ErrorFactoryCompiler.Compile(errorType);
+        errorFactories.AddRange(errorConfigs);
 
-        foreach (var definition in definitions)
+        foreach (var errorConfig in errorConfigs)
         {
-            var typeRef = context.TypeInspector.GetTypeRef(definition.SchemaType);
+            var typeRef = context.TypeInspector.GetTypeRef(errorConfig.SchemaType);
             configuration.Dependencies.Add(new TypeDependency(typeRef));
         }
     }

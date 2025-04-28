@@ -1,9 +1,7 @@
-using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Types.Queries.Tests;
+namespace HotChocolate.Types;
 
 public class CodeFirstSchemaTests
 {
@@ -586,22 +584,22 @@ public class CodeFirstSchemaTests
 
     public class InvalidQueryTask
     {
-        public Task<FieldResult<Foo>> Foo() => default!;
+        public Task<FieldResult<Foo>> Foo() => null!;
     }
 
     public class InvalidQueryValueTask
     {
-        public Task<FieldResult<Foo>> Foo() => default!;
+        public Task<FieldResult<Foo>> Foo() => null!;
     }
 
     public class ValidQueryValueTask
     {
         [Error<ArgumentException>]
-        public Task<FieldResult<Foo>> Foo() => default!;
+        public Task<FieldResult<Foo>> Foo() => null!;
     }
 
     public class Foo
     {
-        public string Bar => default!;
+        public string Bar => null!;
     }
 }
