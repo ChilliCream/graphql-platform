@@ -14,7 +14,7 @@ namespace HotChocolate;
 internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
-    private ObjectTypeDefinition? _mutationDef;
+    private ObjectTypeConfiguration? _mutationDef;
 
     public override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableSemanticNonNull;
@@ -29,23 +29,23 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         _typeInspector = context.TypeInspector;
     }
 
-    public override void OnAfterResolveRootType(ITypeCompletionContext completionContext, ObjectTypeDefinition definition,
+    public override void OnAfterResolveRootType(ITypeCompletionContext completionContext, ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
         {
-            _mutationDef = definition;
+            _mutationDef = configuration;
         }
     }
 
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
         if (completionContext.IsIntrospectionType)
         {
             return;
         }
 
-        if (definition is ObjectTypeDefinition objectDef)
+        if (configuration is ObjectTypeConfiguration objectDef)
         {
             if (objectDef.Name is "CollectionSegmentInfo" or "PageInfo")
             {
@@ -86,10 +86,10 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
                 ApplySemanticNonNullDirective(field, completionContext, levels);
 
-                field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition(levels));
+                field.FormatterConfigurations.Add(CreateSemanticNonNullResultFormatterConfiguration(levels));
             }
         }
-        else if (definition is InterfaceTypeDefinition interfaceDef)
+        else if (configuration is InterfaceTypeConfiguration interfaceDef)
         {
             if (interfaceDef.Name == "Node")
             {
@@ -117,7 +117,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
     }
 
     private void ApplySemanticNonNullDirective(
-        OutputFieldDefinitionBase field,
+        OutputFieldConfiguration field,
         ITypeCompletionContext completionContext,
         HashSet<int> levels)
     {
@@ -202,7 +202,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
             else if (currentType is NonNullType nonNullType)
             {
                 levels.Add(index);
-                currentType = nonNullType.Type;
+                currentType = nonNullType.NullableType;
             }
             else
             {
@@ -275,7 +275,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
         if (typeSystemMember is NonNullType nonNullType)
         {
-            return BuildNullableTypeStructure(nonNullType.Type);
+            return BuildNullableTypeStructure(nonNullType.NullableType);
         }
 
         return (IType)typeSystemMember;
@@ -296,7 +296,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         return typeNode;
     }
 
-    private static ResultFormatterDefinition CreateSemanticNonNullResultFormatterDefinition(HashSet<int> levels)
+    private static ResultFormatterConfiguration CreateSemanticNonNullResultFormatterConfiguration(HashSet<int> levels)
         => new((context, result) =>
             {
                 CheckResultForSemanticNonNullViolations(result, context, context.Path, levels, 0);

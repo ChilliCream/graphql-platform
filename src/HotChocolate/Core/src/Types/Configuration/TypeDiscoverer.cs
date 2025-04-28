@@ -112,7 +112,7 @@ internal sealed class TypeDiscoverer
             new SyntaxTypeReferenceHandler(context),
             new FactoryTypeReferenceHandler(context),
             new DependantFactoryTypeReferenceHandler(context),
-            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector),
+            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector)
         ];
 
         _interceptor = interceptor;

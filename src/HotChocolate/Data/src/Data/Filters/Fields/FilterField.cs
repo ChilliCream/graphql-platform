@@ -10,17 +10,17 @@ public class FilterField
     : InputField
     , IFilterField
 {
-    internal FilterField(FilterFieldDefinition definition)
-        : this(definition, default)
+    internal FilterField(FilterFieldConfiguration configuration)
+        : this(configuration, default)
     {
     }
 
-    internal FilterField(FilterFieldDefinition definition, int index)
-        : base(definition, index)
+    internal FilterField(FilterFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        Member = definition.Member;
-        Handler = definition.Handler!;
-        Metadata = definition.Metadata;
+        Member = configuration.Member;
+        Handler = configuration.Handler!;
+        Metadata = configuration.Metadata;
     }
 
     public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
@@ -38,7 +38,7 @@ public class FilterField
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 

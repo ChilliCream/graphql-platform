@@ -5,13 +5,13 @@ internal sealed class ErrorObjectType<T> : ObjectType<T>
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
         descriptor.Extend().OnBeforeCreate(RewriteMessageFieldToNonNullableStringType);
-        descriptor.Extend().Definition.ContextData.MarkAsError();
+        descriptor.Extend().Configuration.ContextData.MarkAsError();
         descriptor.BindFieldsImplicitly();
     }
 
     private void RewriteMessageFieldToNonNullableStringType(
         IDescriptorContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
         // if a user provides his/her own error interface we will not rewrite the message type
         // and the user is responsible for ensuring that type and interface align.

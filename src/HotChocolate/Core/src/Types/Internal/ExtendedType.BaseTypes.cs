@@ -28,7 +28,7 @@ internal sealed partial class ExtendedType
             typeof(UnionTypeExtension),
             typeof(UnionType<>),
             typeof(DirectiveType),
-            typeof(DirectiveType<>),
+            typeof(DirectiveType<>)
         ];
 
         /// <summary>

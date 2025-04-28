@@ -163,7 +163,7 @@ public class MiddlewareContextTests
 
                                             foreach (var argumentValue in current.Values)
                                             {
-                                                if (argumentValue.Type.RuntimeType ==
+                                                if (argumentValue.Type.ToRuntimeType() ==
                                                     typeof(string) &&
                                                     argumentValue
                                                         .ValueLiteral is StringValueNode sv)

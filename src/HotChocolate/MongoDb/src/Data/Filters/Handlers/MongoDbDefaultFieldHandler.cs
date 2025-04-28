@@ -17,14 +17,14 @@ public class MongoDbDefaultFieldHandler
     /// Checks if the field not a filter operations field
     /// </summary>
     /// <param name="context">The current context</param>
-    /// <param name="typeDefinition">The definition of the type that declares the field</param>
-    /// <param name="fieldDefinition">The definition of the field</param>
+    /// <param name="typeConfiguration">The configuration of the type that declares the field</param>
+    /// <param name="fieldConfiguration">The configuration of the field</param>
     /// <returns>True in case the field can be handled</returns>
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) =>
-        !(fieldDefinition is FilterOperationFieldDefinition);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration) =>
+        !(fieldConfiguration is FilterOperationFieldConfiguration);
 
     /// <inheritdoc />
     public override bool TryHandleEnter(

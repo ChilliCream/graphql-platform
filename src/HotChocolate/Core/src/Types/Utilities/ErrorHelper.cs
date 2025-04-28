@@ -374,7 +374,7 @@ internal static class ErrorHelper
     public static ISchemaError ObjectType_UnableToInferOrResolveType(
         string typeName,
         ObjectType type,
-        ObjectFieldDefinition field)
+        ObjectFieldConfiguration field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ObjectType_UnableToInferOrResolveType,

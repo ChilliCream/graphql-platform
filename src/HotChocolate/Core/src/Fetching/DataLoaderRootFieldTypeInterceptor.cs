@@ -31,7 +31,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType == OperationType.Query)
@@ -42,10 +42,10 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.Type == _queryType
-            && definition is ObjectTypeDefinition typeDef)
+            && configuration is ObjectTypeConfiguration typeDef)
         {
             if (_services is null)
             {
@@ -66,9 +66,9 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
                     var resultType = completionContext.TypeInspector.GetType(field.ResultType!);
                     if (resultType.IsArrayOrList && dataLoaderValueTypes.Contains(resultType.ElementType.Type))
                     {
-                        field.MiddlewareDefinitions.Insert(
+                        field.MiddlewareConfigurations.Insert(
                             0,
-                            new FieldMiddlewareDefinition(
+                            new FieldMiddlewareConfiguration(
                                 static next => context =>
                                 {
                                     var options = context.RequestServices.GetRequiredService<DataLoaderOptions>();
@@ -88,7 +88,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         }
     }
 
-    private static bool IsUsableFieldConnection(ObjectFieldDefinition field)
+    private static bool IsUsableFieldConnection(ObjectFieldConfiguration field)
     {
         var isConnection = (field.Flags & FieldFlags.Connection) == FieldFlags.Connection;
         var usesProjection = (field.Flags & FieldFlags.UsesProjections) == FieldFlags.UsesProjections;

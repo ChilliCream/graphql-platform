@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 public partial class InputObjectType
-    : NamedTypeBase<InputObjectTypeDefinition>
+    : NamedTypeBase<InputObjectTypeConfiguration>
     , IInputObjectType
 {
     /// <summary>
@@ -54,8 +54,8 @@ public partial class InputObjectType
     /// <returns>
     /// Returns the newly created input object type.
     /// </returns>
-    public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static InputObjectType CreateUnsafe(InputObjectTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;

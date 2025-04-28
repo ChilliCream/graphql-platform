@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// The runtime type.
 /// </typeparam>"
 public interface IEnumTypeDescriptor<TRuntimeType>
-    : IDescriptor<EnumTypeDefinition>
+    : IDescriptor<EnumTypeConfiguration>
     , IFluent
 {
     /// <summary>

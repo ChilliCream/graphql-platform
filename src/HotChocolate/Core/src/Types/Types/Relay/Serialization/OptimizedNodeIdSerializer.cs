@@ -522,7 +522,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                 bucket = newBucket;
             }
 
-            bucket[insertAt] = new Entry { HashCode = hashCode, Key = formattedTypeName, Value = serializer, };
+            bucket[insertAt] = new Entry { HashCode = hashCode, Key = formattedTypeName, Value = serializer };
         }
 
         public bool TryGetValue(

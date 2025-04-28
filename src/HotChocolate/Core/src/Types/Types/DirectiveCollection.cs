@@ -111,7 +111,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
     internal static DirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,
         object source,
-        IReadOnlyList<DirectiveDefinition> definitions)
+        IReadOnlyList<DirectiveConfiguration> definitions)
     {
         var location = DirectiveHelper.InferDirectiveLocation(source);
         return CreateAndComplete(context, location, source, definitions);
@@ -121,7 +121,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         ITypeCompletionContext context,
         DirectiveLocation location,
         object source,
-        IReadOnlyList<DirectiveDefinition> definitions)
+        IReadOnlyList<DirectiveConfiguration> definitions)
     {
         if (context is null)
         {
