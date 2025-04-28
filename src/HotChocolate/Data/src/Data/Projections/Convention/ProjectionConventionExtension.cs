@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Data.Projections;
 
 public class ProjectionConventionExtension
-    : ConventionExtension<ProjectionConventionDefinition>
+    : ConventionExtension<ProjectionConventionConfiguration>
 {
     private Action<IProjectionConventionDescriptor>? _configure;
 
@@ -18,7 +18,7 @@ public class ProjectionConventionExtension
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override ProjectionConventionDefinition CreateConfiguration(
+    protected override ProjectionConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)

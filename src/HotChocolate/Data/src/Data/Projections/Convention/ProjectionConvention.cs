@@ -6,7 +6,7 @@ using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 namespace HotChocolate.Data.Projections;
 
 public class ProjectionConvention
-    : Convention<ProjectionConventionDefinition>
+    : Convention<ProjectionConventionConfiguration>
     , IProjectionConvention
 {
     private Action<IProjectionConventionDescriptor>? _configure;
@@ -26,9 +26,9 @@ public class ProjectionConvention
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionConventionDefinition? Configuration => base.Configuration;
+    internal new ProjectionConventionConfiguration? Configuration => base.Configuration;
 
-    protected override ProjectionConventionDefinition CreateConfiguration(
+    protected override ProjectionConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -87,12 +87,12 @@ public class ProjectionConvention
 
     private static IReadOnlyList<IProjectionProviderExtension> CollectExtensions(
         IServiceProvider serviceProvider,
-        ProjectionConventionDefinition definition)
+        ProjectionConventionConfiguration configuration)
     {
         List<IProjectionProviderExtension> extensions = [];
-        extensions.AddRange(definition.ProviderExtensions);
+        extensions.AddRange(configuration.ProviderExtensions);
 
-        foreach (var extensionType in definition.ProviderExtensionsTypes)
+        foreach (var extensionType in configuration.ProviderExtensionsTypes)
         {
             extensions.Add((IProjectionProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }

@@ -27,7 +27,7 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.Equal("Bar", convention.DefinitionAccessor?.ArgumentName);
+        Assert.Equal("Bar", convention.ConfigurationAccessor?.ArgumentName);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.Equal("Foo", convention.DefinitionAccessor?.ArgumentName);
+        Assert.Equal("Foo", convention.ConfigurationAccessor?.ArgumentName);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.Equal(typeof(MockProvider), convention.DefinitionAccessor?.Provider);
+        Assert.Equal(typeof(MockProvider), convention.ConfigurationAccessor?.Provider);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.Equal(providerInstance, convention.DefinitionAccessor?.ProviderInstance);
+        Assert.Equal(providerInstance, convention.ConfigurationAccessor?.ProviderInstance);
     }
 
     [Fact]
@@ -115,9 +115,9 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.NotNull(convention.DefinitionAccessor);
+        Assert.NotNull(convention.ConfigurationAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.Operations,
+            convention.ConfigurationAccessor!.Operations,
             x => Assert.Equal(1, x.Id),
             x => Assert.Equal(2, x.Id));
     }
@@ -142,9 +142,9 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Contains(typeof(int), convention.DefinitionAccessor!.Bindings);
-        Assert.Contains(typeof(double), convention.DefinitionAccessor!.Bindings);
+        Assert.NotNull(convention.ConfigurationAccessor);
+        Assert.Contains(typeof(int), convention.ConfigurationAccessor!.Bindings);
+        Assert.Contains(typeof(double), convention.ConfigurationAccessor!.Bindings);
     }
 
     [Fact]
@@ -167,8 +167,8 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.NotNull(convention.DefinitionAccessor);
-        var configuration = Assert.Single(convention.DefinitionAccessor!.Configurations.Values)!;
+        Assert.NotNull(convention.ConfigurationAccessor);
+        var configuration = Assert.Single(convention.ConfigurationAccessor!.Configurations.Values)!;
         Assert.Equal(2, configuration.Count);
     }
 
@@ -192,8 +192,8 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Equal(2, convention.DefinitionAccessor!.Configurations.Count);
+        Assert.NotNull(convention.ConfigurationAccessor);
+        Assert.Equal(2, convention.ConfigurationAccessor!.Configurations.Count);
     }
 
     [Fact]
@@ -217,8 +217,8 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Equal(2, convention.DefinitionAccessor!.ProviderExtensionsTypes.Count);
+        Assert.NotNull(convention.ConfigurationAccessor);
+        Assert.Equal(2, convention.ConfigurationAccessor!.ProviderExtensionsTypes.Count);
     }
 
     [Fact]
@@ -241,9 +241,9 @@ public class FilterConventionExtensionsTests
         extension.Merge(context, convention);
 
         // assert
-        Assert.NotNull(convention.DefinitionAccessor);
+        Assert.NotNull(convention.ConfigurationAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.ProviderExtensions,
+            convention.ConfigurationAccessor!.ProviderExtensions,
             x => Assert.Equal(provider1, x),
             x => Assert.Equal(provider2, x));
     }
@@ -271,6 +271,6 @@ public class FilterConventionExtensionsTests
         Action<IFilterConventionDescriptor> configure)
         : FilterConvention(configure)
     {
-        public FilterConventionConfiguration? DefinitionAccessor => Configuration;
+        public FilterConventionConfiguration? ConfigurationAccessor => Configuration;
     }
 }

@@ -20,7 +20,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
 
     public FilterConventionConfiguration CreateConfiguration()
     {
-        // collect all operation configurations and add them to the convention definition.
+        // collect all operation configurations and add them to the convention configuration.
         foreach (var operation in _operations.Values)
         {
             Configuration.Operations.Add(operation.CreateConfiguration());

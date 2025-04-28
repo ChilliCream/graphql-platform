@@ -10,17 +10,17 @@ public class ProjectionConventionDescriptor
         string? scope)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
-        Definition.Scope = scope;
+        Configuration.Scope = scope;
     }
 
     protected IDescriptorContext Context { get; }
 
-    protected ProjectionConventionDefinition Definition { get; } =
-        new ProjectionConventionDefinition();
+    protected ProjectionConventionConfiguration Configuration { get; } =
+        new ProjectionConventionConfiguration();
 
-    public ProjectionConventionDefinition CreateConfiguration()
+    public ProjectionConventionConfiguration CreateConfiguration()
     {
-        return Definition;
+        return Configuration;
     }
 
     /// <inheritdoc />
@@ -32,8 +32,8 @@ public class ProjectionConventionDescriptor
     public IProjectionConventionDescriptor Provider<TProvider>(TProvider provider)
         where TProvider : class, IProjectionProvider
     {
-        Definition.Provider = typeof(TProvider);
-        Definition.ProviderInstance = provider;
+        Configuration.Provider = typeof(TProvider);
+        Configuration.ProviderInstance = provider;
         return this;
     }
 
@@ -52,7 +52,7 @@ public class ProjectionConventionDescriptor
                 nameof(provider));
         }
 
-        Definition.Provider = provider;
+        Configuration.Provider = provider;
         return this;
     }
 
@@ -60,7 +60,7 @@ public class ProjectionConventionDescriptor
     public IProjectionConventionDescriptor AddProviderExtension<TExtension>()
         where TExtension : class, IProjectionProviderExtension
     {
-        Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+        Configuration.ProviderExtensionsTypes.Add(typeof(TExtension));
         return this;
     }
 
@@ -68,7 +68,7 @@ public class ProjectionConventionDescriptor
     public IProjectionConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
         where TExtension : class, IProjectionProviderExtension
     {
-        Definition.ProviderExtensions.Add(provider);
+        Configuration.ProviderExtensions.Add(provider);
         return this;
     }
 

@@ -115,7 +115,7 @@ public class SortConvention
         _typeInspector = context.DescriptorContext.TypeInspector;
 
         // It is important to always call base to continue the cleanup and the disposal of the
-        // definition
+        // configuration
         base.Complete(context);
     }
 

@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections;
 
-public class ProjectionConventionDefinition : IHasScope
+public class ProjectionConventionConfiguration : IHasScope
 {
     public string? Scope { get; set; }
 
@@ -10,8 +10,7 @@ public class ProjectionConventionDefinition : IHasScope
 
     public IProjectionProvider? ProviderInstance { get; set; }
 
-    public List<IProjectionProviderExtension> ProviderExtensions { get; } =
-        [];
+    public List<IProjectionProviderExtension> ProviderExtensions { get; } = [];
 
     public List<Type> ProviderExtensionsTypes { get; } = [];
 }

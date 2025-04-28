@@ -6,8 +6,7 @@ namespace HotChocolate.Data.Sorting;
 
 public class SortConventionDescriptor : ISortConventionDescriptor
 {
-    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations =
-        new Dictionary<int, SortOperationConventionDescriptor>();
+    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations = new();
 
     protected SortConventionDescriptor(IDescriptorContext context, string? scope)
     {
@@ -21,7 +20,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
 
     public SortConventionDefinition CreateConfiguration()
     {
-        // collect all operation configurations and add them to the convention definition.
+        // collect all operation configurations and add them to the convention configuration.
         foreach (var operation in _operations.Values)
         {
             Definition.Operations.Add(operation.CreateConfiguration());

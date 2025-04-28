@@ -103,7 +103,7 @@ public abstract class QueryableListOperationHandlerBase
     }
 
     /// <summary>
-    /// Maps a operation field to a list filter definition.
+    /// Maps a operation field to a list filter configuration.
     /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
     /// field
     /// </summary>

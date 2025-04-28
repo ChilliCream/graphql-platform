@@ -12,8 +12,8 @@ public interface IFilterFieldHandler
     /// will be attached to the <see cref="FilterField"/>
     /// </summary>
     /// <param name="context">The discovery context of the schema</param>
-    /// <param name="typeConfiguration">The definition of the declaring type of the field</param>
-    /// <param name="fieldConfiguration">The definition of the field</param>
+    /// <param name="typeConfiguration">The configuration of the declaring type of the field</param>
+    /// <param name="fieldConfiguration">The configuration of the field</param>
     /// <returns>Returns true if the field can be handled</returns>
     bool CanHandle(
         ITypeCompletionContext context,
