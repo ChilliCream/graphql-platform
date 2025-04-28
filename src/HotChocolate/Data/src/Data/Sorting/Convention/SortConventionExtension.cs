@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Sorting;
 /// The sort convention extensions can be used to extend a sort convention.
 /// </summary>
 public class SortConventionExtension
-    : ConventionExtension<SortConventionDefinition>
+    : ConventionExtension<SortConventionConfiguration>
 {
     private Action<ISortConventionDescriptor>? _configure;
 
@@ -22,7 +22,7 @@ public class SortConventionExtension
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override SortConventionDefinition CreateConfiguration(
+    protected override SortConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -85,7 +85,7 @@ public class SortConventionExtension
                     Configuration.ProviderExtensionsTypes[i]);
             }
 
-            if (Configuration.ArgumentName != SortConventionDefinition.DefaultArgumentName)
+            if (Configuration.ArgumentName != SortConventionConfiguration.DefaultArgumentName)
             {
                 sortConvention.Configuration.ArgumentName = Configuration.ArgumentName;
             }

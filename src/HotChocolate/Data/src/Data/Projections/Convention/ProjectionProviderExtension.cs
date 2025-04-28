@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Data.Projections;
 
 public class ProjectionProviderExtension
-    : ConventionExtension<ProjectionProviderDefinition>
+    : ConventionExtension<ProjectionProviderConfiguration>
     , IProjectionProviderExtension
     , IProjectionProviderConvention
 {
@@ -30,7 +30,7 @@ public class ProjectionProviderExtension
         Complete(context);
     }
 
-    protected override ProjectionProviderDefinition CreateConfiguration(IConventionContext context)
+    protected override ProjectionProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {

@@ -8,9 +8,9 @@ public class SortProviderDescriptor<TContext>
     {
     }
 
-    protected SortProviderDefinition Configuration { get; } = new();
+    protected SortProviderConfiguration Configuration { get; } = new();
 
-    public SortProviderDefinition CreateConfiguration() => Configuration;
+    public SortProviderConfiguration CreateConfiguration() => Configuration;
 
     public ISortProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
         where TFieldHandler : ISortFieldHandler<TContext>

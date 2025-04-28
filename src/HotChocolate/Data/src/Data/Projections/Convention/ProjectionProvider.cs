@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Projections;
 /// object structure at runtime
 /// </summary>
 public abstract class ProjectionProvider
-    : Convention<ProjectionProviderDefinition>
+    : Convention<ProjectionProviderConfiguration>
     , IProjectionProvider
     , IProjectionProviderConvention
 {
@@ -40,10 +40,10 @@ public abstract class ProjectionProvider
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionProviderDefinition? Configuration => base.Configuration;
+    internal new ProjectionProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
-    protected override ProjectionProviderDefinition CreateConfiguration(
+    protected override ProjectionProviderConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)

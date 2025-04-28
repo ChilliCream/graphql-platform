@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortConventionDefinition : IHasScope
+public class SortConventionConfiguration : IHasScope
 {
     public static readonly string DefaultArgumentName = "order";
     private string _argumentName = DefaultArgumentName;
@@ -23,8 +23,8 @@ public class SortConventionDefinition : IHasScope
 
     public Type? DefaultBinding { get; set; }
 
-    public IList<SortOperationConventionDefinition> Operations { get; } =
-        new List<SortOperationConventionDefinition>();
+    public IList<SortOperationConventionConfiguration> Operations { get; } =
+        new List<SortOperationConventionConfiguration>();
 
     public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 

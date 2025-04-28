@@ -5,10 +5,10 @@ using NetTopologySuite;
 namespace HotChocolate.Types.Spatial.Configuration;
 
 /// <summary>
-/// The convention of the
+/// A convention that configures the behavior of spatial types
 /// </summary>
 public class SpatialConvention
-    : Convention<SpatialConventionDefinition>
+    : Convention<SpatialConventionConfiguration>
     , ISpatialConvention
 {
     private Action<ISpatialConventionDescriptor>? _configure;
@@ -33,7 +33,7 @@ public class SpatialConvention
     }
 
     /// <inheritdoc />
-    protected override SpatialConventionDefinition CreateConfiguration(IConventionContext context)
+    protected override SpatialConventionConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {

@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class SortProvider<TContext>
-    : Convention<SortProviderDefinition>
+    : Convention<SortProviderConfiguration>
     , ISortProvider
     , ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -35,7 +35,7 @@ public abstract class SortProvider<TContext>
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortProviderDefinition? Configuration => base.Configuration;
+    internal new SortProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
@@ -49,7 +49,7 @@ public abstract class SortProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override SortProviderDefinition CreateConfiguration(IConventionContext context)
+    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {

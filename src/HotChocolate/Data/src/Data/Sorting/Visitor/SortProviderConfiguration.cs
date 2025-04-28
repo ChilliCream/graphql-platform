@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Sorting;
 
-public class SortProviderDefinition
+public class SortProviderConfiguration
 {
     public IList<(Type Handler, ISortFieldHandler? HandlerInstance)> Handlers { get; } =
         new List<(Type Handler, ISortFieldHandler? HandlerInstance)>();

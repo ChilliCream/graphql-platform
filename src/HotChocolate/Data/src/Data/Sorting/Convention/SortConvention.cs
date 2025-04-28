@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Sorting;
 /// The sort convention provides defaults for inferring sorting fields.
 /// </summary>
 public class SortConvention
-    : Convention<SortConventionDefinition>
+    : Convention<SortConventionConfiguration>
         , ISortConvention
 {
     private const string _inputPostFix = "SortInput";
@@ -42,9 +42,9 @@ public class SortConvention
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortConventionDefinition? Configuration => base.Configuration;
+    internal new SortConventionConfiguration? Configuration => base.Configuration;
 
-    protected override SortConventionDefinition CreateConfiguration(
+    protected override SortConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -88,7 +88,7 @@ public class SortConvention
 
         _operations = Configuration.Operations.ToDictionary(
             x => x.Id,
-            SortOperation.FromDefinition);
+            SortOperation.FromConfiguration);
 
         foreach (var operation in _operations.Values)
         {
@@ -319,11 +319,11 @@ public class SortConvention
 
     private static IReadOnlyList<ISortProviderExtension> CollectExtensions(
         IServiceProvider serviceProvider,
-        SortConventionDefinition definition)
+        SortConventionConfiguration configuration)
     {
         var extensions = new List<ISortProviderExtension>();
-        extensions.AddRange(definition.ProviderExtensions);
-        foreach (var extensionType in definition.ProviderExtensionsTypes)
+        extensions.AddRange(configuration.ProviderExtensions);
+        foreach (var extensionType in configuration.ProviderExtensionsTypes)
         {
             extensions.Add((ISortProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }

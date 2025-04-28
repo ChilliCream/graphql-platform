@@ -4,7 +4,7 @@ using static HotChocolate.Data.DataResources;
 namespace HotChocolate.Data.Sorting;
 
 public abstract class SortProviderExtensions<TContext>
-    : ConventionExtension<SortProviderDefinition>,
+    : ConventionExtension<SortProviderConfiguration>,
       ISortProviderExtension,
       ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -32,7 +32,7 @@ public abstract class SortProviderExtensions<TContext>
         Complete(context);
     }
 
-    protected override SortProviderDefinition CreateConfiguration(IConventionContext context)
+    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {

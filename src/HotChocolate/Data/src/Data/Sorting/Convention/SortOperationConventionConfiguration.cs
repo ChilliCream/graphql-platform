@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Sorting;
 
-public class SortOperationConventionDefinition
+public class SortOperationConventionConfiguration
 {
     public int Id { get; set; }
 

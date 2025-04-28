@@ -36,7 +36,7 @@ public class SortConventionExtensionsTests
         // arrange
         var convention = new MockSortConvention(x => x.ArgumentName("Foo"));
         var extension = new SortConventionExtension(
-            x => x.ArgumentName(SortConventionDefinition.DefaultArgumentName));
+            x => x.ArgumentName(SortConventionConfiguration.DefaultArgumentName));
         var context = new ConventionContext(
             "Scope",
             new ServiceCollection().BuildServiceProvider(),
@@ -365,6 +365,6 @@ public class SortConventionExtensionsTests
         {
         }
 
-        public SortConventionDefinition? DefinitionAccessor => base.Configuration;
+        public SortConventionConfiguration? DefinitionAccessor => base.Configuration;
     }
 }

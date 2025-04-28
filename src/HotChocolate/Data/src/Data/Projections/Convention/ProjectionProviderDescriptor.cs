@@ -8,24 +8,20 @@ public class ProjectionProviderDescriptor
     protected ProjectionProviderDescriptor(IDescriptorContext context, string? scope)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
-        Definition.Scope = scope;
+        Configuration.Scope = scope;
     }
 
     protected IDescriptorContext Context { get; }
 
-    protected ProjectionProviderDefinition Definition { get; } =
-        new ProjectionProviderDefinition();
+    protected ProjectionProviderConfiguration Configuration { get; } = new();
 
-    public ProjectionProviderDefinition CreateConfiguration()
-    {
-        return Definition;
-    }
+    public ProjectionProviderConfiguration CreateConfiguration() => Configuration;
 
     /// <inheritdoc />
     public IProjectionProviderDescriptor RegisterFieldHandler<THandler>()
         where THandler : IProjectionFieldHandler
     {
-        Definition.Handlers.Add((typeof(THandler), null));
+        Configuration.Handlers.Add((typeof(THandler), null));
         return this;
     }
 
@@ -33,7 +29,7 @@ public class ProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterFieldHandler<THandler>(THandler handler)
         where THandler : IProjectionFieldHandler
     {
-        Definition.Handlers.Add((typeof(THandler), handler));
+        Configuration.Handlers.Add((typeof(THandler), handler));
         return this;
     }
 
@@ -41,7 +37,7 @@ public class ProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterFieldInterceptor<THandler>()
         where THandler : IProjectionFieldInterceptor
     {
-        Definition.Interceptors.Add((typeof(THandler), null));
+        Configuration.Interceptors.Add((typeof(THandler), null));
         return this;
     }
 
@@ -49,7 +45,7 @@ public class ProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterFieldInterceptor<THandler>(THandler handler)
         where THandler : IProjectionFieldInterceptor
     {
-        Definition.Interceptors.Add((typeof(THandler), handler));
+        Configuration.Interceptors.Add((typeof(THandler), handler));
         return this;
     }
 
@@ -57,7 +53,7 @@ public class ProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterOptimizer<THandler>()
         where THandler : IProjectionOptimizer
     {
-        Definition.Optimizers.Add((typeof(THandler), null));
+        Configuration.Optimizers.Add((typeof(THandler), null));
         return this;
     }
 
@@ -65,7 +61,7 @@ public class ProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterOptimizer<THandler>(THandler handler)
         where THandler : IProjectionOptimizer
     {
-        Definition.Optimizers.Add((typeof(THandler), handler));
+        Configuration.Optimizers.Add((typeof(THandler), handler));
         return this;
     }
 

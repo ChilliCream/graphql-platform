@@ -10,13 +10,13 @@ public class SpatialConventionDescriptor : ISpatialConventionDescriptor
     /// <summary>
     /// The definition of this descriptor
     /// </summary>
-    protected SpatialConventionDefinition Configuration { get; } = new();
+    protected SpatialConventionConfiguration Configuration { get; } = new();
 
     /// <summary>
     /// Creates the definition of this descriptor
     /// </summary>
     /// <returns></returns>
-    public SpatialConventionDefinition CreateConfiguration() => Configuration;
+    public SpatialConventionConfiguration CreateConfiguration() => Configuration;
 
     /// <inheritdoc />
     public ISpatialConventionDescriptor DefaultSrid(int srid)

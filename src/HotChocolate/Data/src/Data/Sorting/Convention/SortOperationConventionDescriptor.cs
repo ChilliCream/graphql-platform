@@ -4,24 +4,24 @@ public class SortOperationConventionDescriptor : ISortOperationConventionDescrip
 {
     protected SortOperationConventionDescriptor(int operationId)
     {
-        Definition.Id = operationId;
+        Configuration.Id = operationId;
     }
 
-    protected SortOperationConventionDefinition Definition { get; } = new();
+    protected SortOperationConventionConfiguration Configuration { get; } = new();
 
-    public SortOperationConventionDefinition CreateConfiguration() => Definition;
+    public SortOperationConventionConfiguration CreateConfiguration() => Configuration;
 
     /// <inheritdoc />
     public ISortOperationConventionDescriptor Name(string name)
     {
-        Definition.Name = name;
+        Configuration.Name = name;
         return this;
     }
 
     /// <inheritdoc />
     public ISortOperationConventionDescriptor Description(string description)
     {
-        Definition.Description = description;
+        Configuration.Description = description;
         return this;
     }
 

@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Spatial.Configuration;
 /// <summary>
 /// The definition of the spatial convention
 /// </summary>
-public class SpatialConventionDefinition
+public class SpatialConventionConfiguration
 {
     /// <summary>
     /// The default SRID/CRS of the schema. All incoming queries will be translated to this SRID

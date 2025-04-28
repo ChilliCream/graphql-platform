@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections;
 
-public class ProjectionProviderDefinition : IHasScope
+public class ProjectionProviderConfiguration : IHasScope
 {
     public string? Scope { get; set; }
 
