@@ -15,14 +15,14 @@ public abstract class FieldBase
     private FieldConfiguration? _definition;
     private FieldFlags _flags;
 
-    protected FieldBase(FieldConfiguration definition, int index)
+    protected FieldBase(FieldConfiguration configuration, int index)
     {
-        _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        _definition = configuration ?? throw new ArgumentNullException(nameof(configuration));
         Index = index;
 
-        Name = definition.Name.EnsureGraphQLName();
-        Description = definition.Description;
-        Flags = definition.Flags;
+        Name = configuration.Name.EnsureGraphQLName();
+        Description = configuration.Description;
+        Flags = configuration.Flags;
         DeclaringType = default!;
         ContextData = default!;
         Directives = default!;

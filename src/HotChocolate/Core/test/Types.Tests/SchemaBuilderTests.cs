@@ -2102,8 +2102,8 @@ public class SchemaBuilderTests
     public class MockConvention : Convention<MockConventionDefinition>, IMockConvention
     {
         public bool IsExtended { get; set; }
-        public new MockConventionDefinition Definition => base.Definition;
-        protected override MockConventionDefinition CreateDefinition(IConventionContext context)
+        public new MockConventionDefinition Definition => base.Configuration;
+        protected override MockConventionDefinition CreateConfiguration(IConventionContext context)
         {
             return new MockConventionDefinition();
         }
@@ -2117,7 +2117,7 @@ public class SchemaBuilderTests
 
     public class MockConventionExtension : ConventionExtension<MockConventionDefinition>
     {
-        protected override MockConventionDefinition CreateDefinition(IConventionContext context)
+        protected override MockConventionDefinition CreateConfiguration(IConventionContext context)
         {
             return new MockConventionDefinition();
         }

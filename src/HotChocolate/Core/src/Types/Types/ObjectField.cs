@@ -204,7 +204,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 
         ResultPostProcessor = definition.ResultPostProcessor;
 
-        // if the source generator has configured this field we will not try to infer a post processor with
+        // if the source generator has configured this field, we will not try to infer a post processor with
         // reflection.
         if ((Flags & FieldFlags.SourceGenerator) != FieldFlags.SourceGenerator
             && ResultPostProcessor is null
@@ -250,6 +250,11 @@ file static class ResolverHelpers
     public static IResolverResultPostProcessor? CreateListPostProcessor(ITypeInspector inspector, Type type)
     {
         var extendedType = inspector.GetType(type);
+
+        if(type == typeof(object))
+        {
+            return ListPostProcessor<object>.Default;
+        }
 
         if (extendedType.IsArrayOrList)
         {

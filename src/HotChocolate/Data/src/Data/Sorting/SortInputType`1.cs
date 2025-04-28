@@ -20,7 +20,7 @@ public class SortInputType<T> : SortInputType
         _configure = Configure;
     }
 
-    protected override InputObjectTypeConfiguration CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = SortInputTypeDescriptor.New<T>(

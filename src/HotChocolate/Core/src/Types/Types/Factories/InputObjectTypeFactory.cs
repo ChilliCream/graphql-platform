@@ -19,7 +19,7 @@ internal sealed class InputObjectTypeFactory
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -36,7 +36,7 @@ internal sealed class InputObjectTypeFactory
 
         var typeDefinition = new InputObjectTypeConfiguration(node.Name.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -62,10 +62,10 @@ internal sealed class InputObjectTypeFactory
                 TypeReference.Create(inputField.Type),
                 inputField.DefaultValue)
             {
-                BindTo = inputField.GetBindingValue(),
+                BindTo = inputField.GetBindingValue()
             };
 
-            if (inputField.DeprecationReason() is { Length: > 0, } reason)
+            if (inputField.DeprecationReason() is { Length: > 0 } reason)
             {
                 inputFieldDefinition.DeprecationReason = reason;
             }

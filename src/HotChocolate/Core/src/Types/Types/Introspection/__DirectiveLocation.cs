@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
 {
-    protected override EnumTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
         => new(
             Names.__DirectiveLocation,
             DirectiveLocation_Description,
@@ -94,8 +94,8 @@ internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
                 new EnumValueConfiguration(
                     Lang.InputFieldDefinition.Value,
                     DirectiveLocation_InputFieldDefinition,
-                    DirectiveLocation.InputFieldDefinition),
-            },
+                    DirectiveLocation.InputFieldDefinition)
+            }
         };
 
     public static class Names

@@ -8,7 +8,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Data.Filters;
 
 public class FilterInputTypeDescriptor
-    : DescriptorBase<FilterInputTypeDefinition>
+    : DescriptorBase<FilterInputTypeConfiguration>
     , IFilterInputTypeDescriptor
 {
     protected FilterInputTypeDescriptor(
@@ -41,17 +41,17 @@ public class FilterInputTypeDescriptor
 
     protected FilterInputTypeDescriptor(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope)
         : base(context)
     {
         Convention = context.GetFilterConvention(scope);
-        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     protected IFilterConvention Convention { get; }
 
-    protected internal override FilterInputTypeDefinition Configuration { get; protected set; } =
+    protected internal override FilterInputTypeConfiguration Configuration { get; protected set; } =
         new();
 
     protected BindableList<FilterFieldDescriptor> Fields { get; } = [];
@@ -60,7 +60,7 @@ public class FilterInputTypeDescriptor
 
     Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
-    protected override void OnCreateDefinition(FilterInputTypeDefinition definition)
+    protected override void OnCreateDefinition(FilterInputTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
@@ -70,7 +70,7 @@ public class FilterInputTypeDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<string, FilterFieldDefinition>(StringComparer.Ordinal);
+        var fields = new Dictionary<string, FilterFieldConfiguration>(StringComparer.Ordinal);
         var handledProperties = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -88,7 +88,7 @@ public class FilterInputTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, FilterFieldDefinition> fields,
+        IDictionary<string, FilterFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
     }
@@ -254,15 +254,15 @@ public class FilterInputTypeDescriptor
 
     public static FilterInputTypeDescriptor From(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope = null)
-        => new(context, definition, scope);
+        => new(context, configuration, scope);
 
     public static FilterInputTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope = null)
-        => new(context, definition, scope);
+        => new(context, configuration, scope);
 
     public static FilterInputTypeDescriptor<T> From<T>(
         FilterInputTypeDescriptor descriptor,

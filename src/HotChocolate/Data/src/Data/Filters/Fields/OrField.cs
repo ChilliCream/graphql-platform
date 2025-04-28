@@ -31,7 +31,7 @@ public sealed class OrField
         base.OnCompleteField(context, declaringMember, definition);
     }
 
-    private static FilterOperationFieldDefinition CreateDefinition(
+    private static FilterOperationFieldConfiguration CreateDefinition(
         IDescriptorContext context,
         string? scope) =>
         FilterOperationFieldDescriptor

@@ -61,7 +61,7 @@ public class OutputFieldConfiguration : FieldConfiguration, IDeprecationConfigur
             target.ResultType = ResultType;
         }
 
-        if (_arguments is { Count: > 0, })
+        if (_arguments is { Count: > 0 })
         {
             target._arguments ??= [];
 

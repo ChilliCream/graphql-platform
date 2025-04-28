@@ -156,7 +156,7 @@ internal sealed class TypeRegistry
         if (!registeredType.IsExtension)
         {
             if (registeredType.IsNamedType &&
-                registeredType.Type is IHasTypeDefinition { Definition: { } typeDef, } &&
+                registeredType.Type is IHasTypeDefinition { Definition: { } typeDef } &&
                 !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);
@@ -205,7 +205,7 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (registeredType is { IsNamedType: false, IsDirectiveType: false, })
+        if (registeredType is { IsNamedType: false, IsDirectiveType: false })
         {
             return;
         }

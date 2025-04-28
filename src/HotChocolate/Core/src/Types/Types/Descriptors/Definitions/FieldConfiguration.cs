@@ -112,7 +112,7 @@ public abstract class FieldConfiguration
     {
         base.CopyTo(target);
 
-        if (_directives is { Count: > 0, })
+        if (_directives is { Count: > 0 })
         {
             target._directives = [.._directives];
         }
@@ -130,7 +130,7 @@ public abstract class FieldConfiguration
     {
         base.MergeInto(target);
 
-        if (_directives is { Count: > 0, })
+        if (_directives is { Count: > 0 })
         {
             target._directives ??= [];
             target._directives.AddRange(_directives);

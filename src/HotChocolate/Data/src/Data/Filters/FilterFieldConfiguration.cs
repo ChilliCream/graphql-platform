@@ -2,34 +2,32 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Data.Sorting;
+namespace HotChocolate.Data.Filters;
 
-public class SortFieldDefinition
+public class FilterFieldConfiguration
     : InputFieldConfiguration
-    , ISortFieldDefinition
+    , IFilterFieldConfiguration
 {
     public MemberInfo? Member { get; set; }
 
-    public ISortFieldHandler? Handler { get; set; }
-
-    public string? Scope { get; set; }
+    public IFilterFieldHandler? Handler { get; set; }
 
     public Expression? Expression { get; set; }
 
-    internal ISortMetadata? Metadata { get; set; }
+    internal IFilterMetadata? Metadata { get; set; }
 
-    internal void CopyTo(SortFieldDefinition target)
+    public string? Scope { get; set; }
+
+    internal void CopyTo(FilterFieldConfiguration target)
     {
         base.CopyTo(target);
 
         target.Member = Member;
         target.Handler = Handler;
-        target.Expression = Expression;
-        target.Metadata = Metadata;
         target.Scope = Scope;
     }
 
-    internal void MergeInto(SortFieldDefinition target)
+    internal void MergeInto(FilterFieldConfiguration target)
     {
         base.MergeInto(target);
 
@@ -46,16 +44,6 @@ public class SortFieldDefinition
         if (Scope is not null)
         {
             target.Scope = Scope;
-        }
-
-        if (Expression is not null)
-        {
-            target.Expression = Expression;
-        }
-
-        if (Metadata is not null)
-        {
-            target.Metadata = Metadata;
         }
     }
 }

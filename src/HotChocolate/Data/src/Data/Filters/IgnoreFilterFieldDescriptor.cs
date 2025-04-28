@@ -16,7 +16,7 @@ internal class IgnoreFilterFieldDescriptor
         Configuration.Ignore = true;
     }
 
-    public static new FilterFieldDescriptor New(
+    public new static FilterFieldDescriptor New(
         IDescriptorContext context,
         string? scope,
         MemberInfo member) =>

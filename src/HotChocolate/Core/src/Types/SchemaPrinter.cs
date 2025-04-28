@@ -112,7 +112,7 @@ public static class SchemaPrinter
             typeDefinitions.Insert(0, PrintSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated, };
+        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes
@@ -236,7 +236,7 @@ public static class SchemaPrinter
             InputObjectType type => PrintInputObjectType(type),
             UnionType type => PrintUnionType(type),
             EnumType type => PrintEnumType(type),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     private static ObjectTypeDefinitionNode PrintObjectType(

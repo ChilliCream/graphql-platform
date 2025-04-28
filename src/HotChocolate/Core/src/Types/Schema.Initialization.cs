@@ -24,7 +24,7 @@ public partial class Schema
 
     protected virtual void Configure(ISchemaTypeDescriptor descriptor) { }
 
-    protected sealed override SchemaTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected sealed override SchemaTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var descriptor = SchemaTypeDescriptor.New(context.DescriptorContext, GetType());
 

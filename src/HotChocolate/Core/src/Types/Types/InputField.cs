@@ -12,22 +12,22 @@ public class InputField : FieldBase, IInputField, IHasProperty
 {
     private Type _runtimeType = default!;
 
-    public InputField(InputFieldConfiguration definition, int index)
-        : base(definition, index)
+    public InputField(InputFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        DefaultValue = definition.DefaultValue;
-        Property = definition.Property;
+        DefaultValue = configuration.DefaultValue;
+        Property = configuration.Property;
 
-        var formatters = definition.GetFormatters();
+        var formatters = configuration.GetFormatters();
         Formatter = formatters.Count switch
         {
             0 => null,
             1 => formatters[0],
-            _ => new AggregateInputValueFormatter(formatters),
+            _ => new AggregateInputValueFormatter(formatters)
         };
 
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
-        DeprecationReason = definition.DeprecationReason;
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = configuration.DeprecationReason;
     }
 
     /// <inheritdoc />

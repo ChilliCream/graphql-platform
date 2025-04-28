@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __EnumValue : ObjectType<EnumValue>
 {
-    protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
@@ -32,8 +32,8 @@ internal sealed class __EnumValue : ObjectType<EnumValue>
                     new(Names.IsDeprecated, type: nonNullBooleanType,
                         pureResolver: Resolvers.IsDeprecated),
                     new(Names.DeprecationReason, type: stringType,
-                        pureResolver: Resolvers.DeprecationReason),
-                },
+                        pureResolver: Resolvers.DeprecationReason)
+                }
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)

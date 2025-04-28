@@ -33,13 +33,13 @@ public abstract class FilterProvider<TContext>
     public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
-    internal new FilterProviderDefinition? Definition => base.Definition;
+    internal new FilterProviderDefinition? Definition => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
     /// <inheritdoc />
-    protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
+    protected override FilterProviderDefinition CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -51,7 +51,7 @@ public abstract class FilterProvider<TContext>
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     void IFilterProviderConvention.Initialize(
@@ -149,7 +149,7 @@ public abstract class FilterProvider<TContext>
 
     public virtual IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
         => null;
 }

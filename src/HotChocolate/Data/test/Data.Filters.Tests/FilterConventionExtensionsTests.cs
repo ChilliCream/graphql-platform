@@ -36,7 +36,7 @@ public class FilterConventionExtensionsTests
         // arrange
         var convention = new MockFilterConvention(x => x.ArgumentName("Foo"));
         var extension = new FilterConventionExtension(
-            x => x.ArgumentName(FilterConventionDefinition.DefaultArgumentName));
+            x => x.ArgumentName(FilterConventionConfiguration.DefaultArgumentName));
         var context = new ConventionContext(
             "Scope",
             new ServiceCollection().BuildServiceProvider(),
@@ -262,8 +262,8 @@ public class FilterConventionExtensionsTests
 
         public IFilterMetadata? CreateMetaData(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
             => null;
     }
 
@@ -271,6 +271,6 @@ public class FilterConventionExtensionsTests
         Action<IFilterConventionDescriptor> configure)
         : FilterConvention(configure)
     {
-        public FilterConventionDefinition? DefinitionAccessor => Definition;
+        public FilterConventionConfiguration? DefinitionAccessor => Configuration;
     }
 }

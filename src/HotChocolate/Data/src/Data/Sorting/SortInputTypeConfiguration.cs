@@ -2,9 +2,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortInputTypeDefinition
+public class SortInputTypeConfiguration
     : InputObjectTypeConfiguration
-    , ISortInputTypeDefinition
+    , ISortInputTypeConfiguration
 {
     public Type? EntityType { get; set; }
 

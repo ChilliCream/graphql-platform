@@ -52,7 +52,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Defines if this type has dependencies.
     /// </summary>
     public bool HasDependencies
-        => _dependencies is { Count: > 0, };
+        => _dependencies is { Count: > 0 };
 
     /// <summary>
     /// Gets configurations that shall be applied at a later point.
@@ -64,7 +64,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Defines if this type has configurations.
     /// </summary>
     public bool HasTasks
-        => _configurations is { Count: > 0, };
+        => _configurations is { Count: > 0 };
 
     /// <summary>
     /// Defines whether descriptor attributes have been applied or not.
@@ -124,7 +124,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     {
         if (_dependencies?.Count > 0)
         {
-            target._dependencies = [.._dependencies,];
+            target._dependencies = [.._dependencies];
         }
 
         if (_configurations?.Count > 0)

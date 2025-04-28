@@ -123,25 +123,25 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// <inheritdoc />
     public override IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
-        if (fieldDefinition.Expression is null)
+        if (fieldConfiguration.Expression is null)
         {
             return null;
         }
 
-        if (fieldDefinition.Expression is not LambdaExpression lambda ||
+        if (fieldConfiguration.Expression is not LambdaExpression lambda ||
             lambda.Parameters.Count != 1 ||
-            lambda.Parameters[0].Type != typeDefinition.EntityType)
+            lambda.Parameters[0].Type != typeConfiguration.EntityType)
         {
             throw ThrowHelper.QueryableFilterProvider_ExpressionParameterInvalid(
                 context.Type,
-                typeDefinition,
-                fieldDefinition);
+                typeConfiguration,
+                fieldConfiguration);
         }
 
-        return new ExpressionFilterMetadata(fieldDefinition.Expression);
+        return new ExpressionFilterMetadata(fieldConfiguration.Expression);
     }
 
     /// <summary>

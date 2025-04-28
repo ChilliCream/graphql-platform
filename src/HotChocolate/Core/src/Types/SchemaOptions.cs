@@ -171,7 +171,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
-            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
+            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope
         };
     }
 }

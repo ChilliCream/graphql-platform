@@ -8,7 +8,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Filters;
 
 public class FilterFieldDescriptor
-    : ArgumentDescriptorBase<FilterFieldDefinition>
+    : ArgumentDescriptorBase<FilterFieldConfiguration>
     , IFilterFieldDescriptor
 {
     protected FilterFieldDescriptor(
@@ -63,7 +63,7 @@ public class FilterFieldDescriptor
         Configuration.Scope = scope;
     }
 
-    protected internal new FilterFieldDefinition Configuration
+    protected internal new FilterFieldConfiguration Configuration
     {
         get => base.Configuration;
         protected set => base.Configuration = value;
@@ -72,7 +72,7 @@ public class FilterFieldDescriptor
     internal InputFieldConfiguration CreateFieldDefinition() => CreateConfiguration();
 
     protected override void OnCreateDefinition(
-        FilterFieldDefinition definition)
+        FilterFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
@@ -82,7 +82,7 @@ public class FilterFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateDefinition(configuration);
 
         Context.Descriptors.Pop();
     }

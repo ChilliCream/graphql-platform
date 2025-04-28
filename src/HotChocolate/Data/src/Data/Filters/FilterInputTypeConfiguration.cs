@@ -3,10 +3,10 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterInputTypeDefinition
+public class FilterInputTypeConfiguration
     : InputObjectTypeConfiguration
     , IHasScope
-    , IFilterInputTypeDefinition
+    , IFilterInputTypeConfiguration
 {
     public Type? EntityType { get; set; }
 

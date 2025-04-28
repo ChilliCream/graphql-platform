@@ -60,7 +60,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
 
             do
             {
-                if (configurations[i] is { On: ApplyConfigurationOn.Create, } config)
+                if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
                 {
                     configurations.RemoveAt(i);
                     ((OnCreateTypeSystemConfigurationTask)config).Configure(Context);

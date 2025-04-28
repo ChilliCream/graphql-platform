@@ -38,7 +38,7 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
                 TypeReference.Create(argument.Type),
                 argument.DefaultValue);
 
-            if (argument.DeprecationReason() is { Length: > 0, } reason)
+            if (argument.DeprecationReason() is { Length: > 0 } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

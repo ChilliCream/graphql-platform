@@ -8,7 +8,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting;
 
 public class SortFieldDescriptor
-    : ArgumentDescriptorBase<SortFieldDefinition>
+    : ArgumentDescriptorBase<SortFieldConfiguration>
     , ISortFieldDescriptor
 {
     protected SortFieldDescriptor(
@@ -67,7 +67,7 @@ public class SortFieldDescriptor
         Configuration.Flags = FieldFlags.SortOperationField;
     }
 
-    protected internal new SortFieldDefinition Configuration
+    protected internal new SortFieldConfiguration Configuration
     {
         get => base.Configuration;
         protected set => base.Configuration = value;
@@ -76,7 +76,7 @@ public class SortFieldDescriptor
     internal InputFieldConfiguration CreateFieldDefinition() => CreateConfiguration();
 
     protected override void OnCreateDefinition(
-        SortFieldDefinition definition)
+        SortFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
@@ -86,7 +86,7 @@ public class SortFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateDefinition(configuration);
 
         Context.Descriptors.Pop();
     }

@@ -38,7 +38,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
         _configure = Configure;
     }
 
-    protected override ObjectTypeConfiguration CreateDefinition(
+    protected override ObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = ObjectTypeDescriptor.NewExtension<T>(context.DescriptorContext);

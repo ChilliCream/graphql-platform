@@ -129,7 +129,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0, } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
         {
             throw new SchemaException(errors);
         }
@@ -342,7 +342,7 @@ internal sealed class TypeInitializer
             {
                 if (extension.Type is INamedTypeExtension
                     {
-                        ExtendsType: { } extendsType,
+                        ExtendsType: { } extendsType
                     } namedTypeExtension)
                 {
                     var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);

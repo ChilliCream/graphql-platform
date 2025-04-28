@@ -35,7 +35,7 @@ public abstract partial class ScalarType
         Directives = default!;
     }
 
-    protected override ScalarTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override ScalarTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var descriptor = ScalarTypeDescriptor.New(context.DescriptorContext, Name, Description, GetType());
         Configure(descriptor);

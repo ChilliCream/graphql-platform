@@ -40,10 +40,10 @@ public abstract class ProjectionProvider
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionProviderDefinition? Definition => base.Definition;
+    internal new ProjectionProviderDefinition? Definition => base.Configuration;
 
     /// <inheritdoc />
-    protected override ProjectionProviderDefinition CreateDefinition(
+    protected override ProjectionProviderDefinition CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)

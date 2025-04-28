@@ -132,7 +132,7 @@ public static class PagingHelper
             // if the member has already associated a schema type we will just take it.
             // Since we want the entity element we are going to take
             // the element type of the list or array as our entity type.
-            if (r.Type is { IsSchemaType: true, IsArrayOrList: true, })
+            if (r.Type is { IsSchemaType: true, IsArrayOrList: true })
             {
                 return r.Type.ElementType!;
             }
@@ -145,7 +145,7 @@ public static class PagingHelper
             if (context.TryInferSchemaType(
                     r.WithType(typeInspector.GetType(typeInfo.NamedType)),
                     out var schemaTypeRefs)
-                && schemaTypeRefs is { Length: > 0, }
+                && schemaTypeRefs is { Length: > 0 }
                 && schemaTypeRefs[0] is ExtendedTypeReference schemaTypeRef)
             {
                 // if we are able to infer the type we will reconstruct its structure so that
@@ -165,7 +165,7 @@ public static class PagingHelper
                     }
                 }
 
-                if (typeInspector.GetType(current) is { IsArrayOrList: true, } schemaType)
+                if (typeInspector.GetType(current) is { IsArrayOrList: true } schemaType)
                 {
                     return schemaType.ElementType!;
                 }

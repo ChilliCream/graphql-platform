@@ -26,7 +26,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             Visited = [],
             CycleStartIndex = new Dictionary<InputObjectType, int>(),
             Errors = errors,
-            FieldPath = [],
+            FieldPath = []
         };
 
         foreach (var type in schema.Types)

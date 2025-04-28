@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterOperationConventionDefinition
+public class FilterOperationConventionConfiguration
 {
     private string _name = string.Empty;
 

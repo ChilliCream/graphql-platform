@@ -10,13 +10,13 @@ public class SortField
     : InputField
     , ISortField
 {
-    internal SortField(SortFieldDefinition definition, int index)
-        : base(definition, index)
+    internal SortField(SortFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        Member = definition.Member;
-        Handler = definition.Handler ??
+        Member = configuration.Member;
+        Handler = configuration.Handler ??
             throw ThrowHelper.SortField_ArgumentInvalid_NoHandlerWasFound();
-        Metadata = definition.Metadata;
+        Metadata = configuration.Metadata;
     }
 
     public new SortInputType DeclaringType => (SortInputType)base.DeclaringType;

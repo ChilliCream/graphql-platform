@@ -17,7 +17,7 @@ public class SchemaTypeConfiguration : TypeSystemConfiguration, IFeatureProvider
     /// <summary>
     /// Specifies if this schema has directives.
     /// </summary>
-    internal bool HasDirectives => _directives is { Count: > 0, };
+    internal bool HasDirectives => _directives is { Count: > 0 };
 
     public IFeatureCollection Features { get; } = new FeatureCollection();
 

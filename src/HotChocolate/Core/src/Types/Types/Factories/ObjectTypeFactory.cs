@@ -19,7 +19,7 @@ internal sealed class ObjectTypeFactory
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var typeNode in node.Interfaces)
@@ -41,7 +41,7 @@ internal sealed class ObjectTypeFactory
 
         var typeDefinition = new ObjectTypeConfiguration(node.Name.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var typeNode in node.Interfaces)
@@ -71,12 +71,12 @@ internal sealed class ObjectTypeFactory
                 field.Description?.Value,
                 TypeReference.Create(field.Type))
             {
-                BindTo = field.GetBindingValue(),
+                BindTo = field.GetBindingValue()
             };
 
             SdlToTypeSystemHelper.AddDirectives(context, fieldDefinition, field, path);
 
-            if (field.DeprecationReason() is { Length: > 0, } reason)
+            if (field.DeprecationReason() is { Length: > 0 } reason)
             {
                 fieldDefinition.DeprecationReason = reason;
             }
@@ -105,10 +105,10 @@ internal sealed class ObjectTypeFactory
                 TypeReference.Create(argument.Type),
                 argument.DefaultValue)
             {
-                BindTo = argument.GetBindingValue(),
+                BindTo = argument.GetBindingValue()
             };
 
-            if (argument.DeprecationReason() is { Length: > 0, } reason)
+            if (argument.DeprecationReason() is { Length: > 0 } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

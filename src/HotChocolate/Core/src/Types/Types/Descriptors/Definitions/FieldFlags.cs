@@ -29,5 +29,5 @@ internal enum FieldFlags
     WithRequirements = 4194304,
     UsesProjections = 8388608,
     GlobalIdNodeField = 16777216,
-    GlobalIdNodesField = 33554432,
+    GlobalIdNodesField = 33554432
 }

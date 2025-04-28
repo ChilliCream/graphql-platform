@@ -16,6 +16,6 @@ public class FilterOperation
     public string? Description { get; }
 
     internal static FilterOperation FromDefinition(
-        FilterOperationConventionDefinition definition) =>
-        new(definition.Id, definition.Name, definition.Description);
+        FilterOperationConventionConfiguration configuration) =>
+        new(configuration.Id, configuration.Name, configuration.Description);
 }

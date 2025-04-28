@@ -36,6 +36,6 @@ public interface IFilterProvider
     /// </summary>
     IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration);
 }

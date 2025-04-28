@@ -17,7 +17,7 @@ internal sealed class UnionTypeFactory
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var namedType in node.Types)

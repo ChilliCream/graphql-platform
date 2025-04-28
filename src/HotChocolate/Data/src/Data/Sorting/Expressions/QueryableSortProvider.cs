@@ -133,22 +133,22 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     /// <inheritdoc />
     public override ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration)
     {
-        if (fieldDefinition.Expression is not null)
+        if (fieldConfiguration.Expression is not null)
         {
-            if (fieldDefinition.Expression is not LambdaExpression lambda ||
+            if (fieldConfiguration.Expression is not LambdaExpression lambda ||
                 lambda.Parameters.Count != 1 ||
-                lambda.Parameters[0].Type != typeDefinition.EntityType)
+                lambda.Parameters[0].Type != typeConfiguration.EntityType)
             {
                 throw ThrowHelper.QueryableSortProvider_ExpressionParameterInvalid(
                     context.Type,
-                    typeDefinition,
-                    fieldDefinition);
+                    typeConfiguration,
+                    fieldConfiguration);
             }
 
-            return new ExpressionSortMetadata(fieldDefinition.Expression);
+            return new ExpressionSortMetadata(fieldConfiguration.Expression);
         }
 
         return null;

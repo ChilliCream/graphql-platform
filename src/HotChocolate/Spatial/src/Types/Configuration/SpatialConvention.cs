@@ -33,7 +33,7 @@ public class SpatialConvention
     }
 
     /// <inheritdoc />
-    protected override SpatialConventionDefinition CreateDefinition(IConventionContext context)
+    protected override SpatialConventionDefinition CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -64,12 +64,12 @@ public class SpatialConvention
     /// <inheritdoc />
     protected override void Complete(IConventionContext context)
     {
-        if (Definition is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException();
         }
 
-        DefaultSrid = Definition.DefaultSrid;
-        TransformerFactory = new GeometryTransformerFactory(Definition.CoordinateSystems);
+        DefaultSrid = Configuration.DefaultSrid;
+        TransformerFactory = new GeometryTransformerFactory(Configuration.CoordinateSystems);
     }
 }

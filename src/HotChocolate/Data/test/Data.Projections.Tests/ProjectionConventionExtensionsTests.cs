@@ -126,6 +126,6 @@ public class ProjectionConventionExtensionsTests
         Action<IProjectionConventionDescriptor> configure)
         : ProjectionConvention(configure)
     {
-        public ProjectionConventionDefinition? DefinitionAccessor => Definition;
+        public ProjectionConventionDefinition? DefinitionAccessor => Configuration;
     }
 }

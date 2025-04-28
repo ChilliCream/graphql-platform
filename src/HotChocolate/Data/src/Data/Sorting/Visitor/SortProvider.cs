@@ -35,7 +35,7 @@ public abstract class SortProvider<TContext>
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortProviderDefinition? Definition => base.Definition;
+    internal new SortProviderDefinition? Definition => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
@@ -49,7 +49,7 @@ public abstract class SortProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override SortProviderDefinition CreateDefinition(IConventionContext context)
+    protected override SortProviderDefinition CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -180,7 +180,7 @@ public abstract class SortProvider<TContext>
 
     public virtual ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration)
         => null;
 }

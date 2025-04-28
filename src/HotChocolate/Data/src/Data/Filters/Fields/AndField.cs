@@ -10,11 +10,11 @@ public sealed class AndField
     , IAndField
 {
     internal AndField(IDescriptorContext context, int index, string? scope)
-        : base(CreateDefinition(context, scope), index)
+        : base(CreateConfiguration(context, scope), index)
     {
     }
 
-    public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
+    public new FilterInputType DeclaringType => base.DeclaringType;
 
     IFilterInputType IAndField.DeclaringType => DeclaringType;
 
@@ -31,7 +31,7 @@ public sealed class AndField
         base.OnCompleteField(context, declaringMember, definition);
     }
 
-    private static FilterOperationFieldDefinition CreateDefinition(
+    private static FilterOperationFieldConfiguration CreateConfiguration(
         IDescriptorContext context,
         string? scope) =>
         FilterOperationFieldDescriptor

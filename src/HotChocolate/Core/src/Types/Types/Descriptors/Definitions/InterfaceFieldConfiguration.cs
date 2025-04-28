@@ -227,21 +227,21 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     {
         base.CopyTo(target);
 
-        if (_middlewareDefinitions is { Count: > 0, })
+        if (_middlewareDefinitions is { Count: > 0 })
         {
-            target._middlewareDefinitions = [.._middlewareDefinitions,];
+            target._middlewareDefinitions = [.._middlewareDefinitions];
             _middlewareDefinitionsCleaned = false;
         }
 
-        if (_resultConverters is { Count: > 0, })
+        if (_resultConverters is { Count: > 0 })
         {
-            target._resultConverters = [.._resultConverters,];
+            target._resultConverters = [.._resultConverters];
             _resultConvertersCleaned = false;
         }
 
-        if (_expressionBuilders is { Count: > 0, })
+        if (_expressionBuilders is { Count: > 0 })
         {
-            target._expressionBuilders = [.._expressionBuilders,];
+            target._expressionBuilders = [.._expressionBuilders];
         }
 
         target.SourceType = SourceType;
@@ -262,7 +262,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     {
         base.CopyTo(target);
 
-        if (_middlewareDefinitions is { Count: > 0, })
+        if (_middlewareDefinitions is { Count: > 0 })
         {
             foreach (var definition in _middlewareDefinitions)
             {
@@ -271,7 +271,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
             _middlewareDefinitionsCleaned = false;
         }
 
-        if (_resultConverters is { Count: > 0, })
+        if (_resultConverters is { Count: > 0 })
         {
             foreach (var definition in _resultConverters)
             {
@@ -280,7 +280,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
             _resultConvertersCleaned = false;
         }
 
-        if (_expressionBuilders is { Count: > 0, })
+        if (_expressionBuilders is { Count: > 0 })
         {
             foreach (var builder in _expressionBuilders)
             {
@@ -305,21 +305,21 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     {
         base.MergeInto(target);
 
-        if (_middlewareDefinitions is { Count: > 0, })
+        if (_middlewareDefinitions is { Count: > 0 })
         {
             target._middlewareDefinitions ??= [];
             target._middlewareDefinitions.AddRange(_middlewareDefinitions);
             _middlewareDefinitionsCleaned = false;
         }
 
-        if (_resultConverters is { Count: > 0, })
+        if (_resultConverters is { Count: > 0 })
         {
             target._resultConverters ??= [];
             target._resultConverters.AddRange(_resultConverters);
             _resultConvertersCleaned = false;
         }
 
-        if (_expressionBuilders is { Count: > 0, })
+        if (_expressionBuilders is { Count: > 0 })
         {
             target._expressionBuilders ??= [];
             target._expressionBuilders.AddRange(_expressionBuilders);
@@ -408,7 +408,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
 
                 foreach (var def in definitions)
                 {
-                    if (def is { IsRepeatable: false, Key: not null, })
+                    if (def is { IsRepeatable: false, Key: not null })
                     {
                         nonRepeatable++;
                     }

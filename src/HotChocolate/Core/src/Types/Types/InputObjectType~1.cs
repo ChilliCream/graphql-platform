@@ -21,7 +21,7 @@ public class InputObjectType<T> : InputObjectType
         _configure = Configure;
     }
 
-    protected override InputObjectTypeConfiguration CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = InputObjectTypeDescriptor.New<T>(context.DescriptorContext);

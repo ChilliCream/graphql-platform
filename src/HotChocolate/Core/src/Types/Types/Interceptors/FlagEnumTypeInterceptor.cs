@@ -115,7 +115,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new ObjectTypeConfiguration(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>),
+            RuntimeType = typeof(Dictionary<string, object>)
         };
 
         foreach (var value in Enum.GetValues(type))
@@ -146,7 +146,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new InputObjectTypeConfiguration(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>),
+            RuntimeType = typeof(Dictionary<string, object>)
         };
 
         var metadata = new Dictionary<string, object>();

@@ -567,7 +567,7 @@ public static class TypeExtensions
             NonNullType xnn when y is NonNullType ynn => xnn.NullableType.IsEqualTo(ynn.NullableType),
             ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
             INamedType xnt when y is INamedType ynt => xnt.Name.EqualsOrdinal(ynt.Name),
-            _ => false,
+            _ => false
         };
     }
 
@@ -704,7 +704,7 @@ public static class TypeExtensions
             NonNullTypeNode nonNull => new NonNullTypeNode((INullableTypeNode)RenameName(nonNull.Type, name)),
             ListTypeNode list => new ListTypeNode(RenameName(list.Type, name)),
             NamedTypeNode named => named.WithName(named.Name.WithValue(name)),
-            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported),
+            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported)
         };
 
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)

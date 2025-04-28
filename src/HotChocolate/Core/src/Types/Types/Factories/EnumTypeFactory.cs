@@ -17,7 +17,7 @@ internal sealed class EnumTypeFactory
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -34,7 +34,7 @@ internal sealed class EnumTypeFactory
 
         var typeDefinition = new EnumTypeConfiguration(node.Name.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -59,12 +59,12 @@ internal sealed class EnumTypeFactory
                 value.Description?.Value,
                 value.Name.Value)
             {
-                BindTo = value.GetBindingValue(),
+                BindTo = value.GetBindingValue()
             };
 
             SdlToTypeSystemHelper.AddDirectives(context, valueDefinition, value, path);
 
-            if (value.DeprecationReason() is { Length: > 0, } reason)
+            if (value.DeprecationReason() is { Length: > 0 } reason)
             {
                 valueDefinition.DeprecationReason = reason;
             }

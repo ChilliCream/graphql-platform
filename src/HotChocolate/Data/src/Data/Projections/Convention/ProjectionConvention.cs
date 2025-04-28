@@ -26,9 +26,9 @@ public class ProjectionConvention
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionConventionDefinition? Definition => base.Definition;
+    internal new ProjectionConventionDefinition? Definition => base.Configuration;
 
-    protected override ProjectionConventionDefinition CreateDefinition(
+    protected override ProjectionConventionDefinition CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)

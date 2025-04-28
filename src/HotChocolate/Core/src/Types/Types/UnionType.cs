@@ -86,7 +86,7 @@ public class UnionType
     /// Returns the newly created union type.
     /// </returns>
     public static UnionType CreateUnsafe(UnionTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;
@@ -176,7 +176,7 @@ public class UnionType
     IObjectType? IUnionType.ResolveConcreteType(IResolverContext context, object resolverResult)
         => ResolveConcreteType(context, resolverResult);
 
-    protected override UnionTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override UnionTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

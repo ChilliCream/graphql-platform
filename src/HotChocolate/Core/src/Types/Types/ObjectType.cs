@@ -57,7 +57,7 @@ public partial class ObjectType
     /// Returns the newly created object type.
     /// </returns>
     public static ObjectType CreateUnsafe(ObjectTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;

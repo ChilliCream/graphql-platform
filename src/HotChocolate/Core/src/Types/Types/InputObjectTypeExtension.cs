@@ -51,12 +51,12 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
     /// Returns the newly created input object type.
     /// </returns>
     public static InputObjectTypeExtension CreateUnsafe(InputObjectTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;
 
-    protected override InputObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

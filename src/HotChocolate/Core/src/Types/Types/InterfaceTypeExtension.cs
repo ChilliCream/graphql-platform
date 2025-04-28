@@ -52,12 +52,12 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
     /// Returns the newly created interface type extension.
     /// </returns>
     public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;
 
-    protected override InterfaceTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override InterfaceTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

@@ -12,9 +12,9 @@ public class QueryableDefaultSortFieldHandler
 {
     public override bool CanHandle(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition) =>
-        fieldDefinition.Member is not null || fieldDefinition.Expression is not null;
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration.Member is not null || fieldConfiguration.Expression is not null;
 
     public override bool TryHandleEnter(
         QueryableSortContext context,

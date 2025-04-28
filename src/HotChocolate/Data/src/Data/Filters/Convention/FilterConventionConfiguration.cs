@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterConventionDefinition : IHasScope
+public class FilterConventionConfiguration : IHasScope
 {
     public static readonly string DefaultArgumentName = "where";
     private string _argumentName = DefaultArgumentName;
@@ -21,7 +21,7 @@ public class FilterConventionDefinition : IHasScope
 
     public IFilterProvider? ProviderInstance { get; set; }
 
-    public List<FilterOperationConventionDefinition> Operations { get; } = [];
+    public List<FilterOperationConventionConfiguration> Operations { get; } = [];
 
     public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 

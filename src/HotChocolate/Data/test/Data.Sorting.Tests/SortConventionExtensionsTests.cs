@@ -354,7 +354,7 @@ public class SortConventionExtensionsTests
         public void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
             => throw new NotImplementedException();
 
-        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition, ISortFieldDefinition fieldDefinition)
+        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeConfiguration typeConfiguration, ISortFieldConfiguration fieldConfiguration)
             => null;
     }
 
@@ -365,6 +365,6 @@ public class SortConventionExtensionsTests
         {
         }
 
-        public SortConventionDefinition? DefinitionAccessor => base.Definition;
+        public SortConventionDefinition? DefinitionAccessor => base.Configuration;
     }
 }

@@ -55,8 +55,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (discoveryContext is { IsIntrospectionType: false, Type: IHasName namedType, } &&
-            configuration is ITypeConfiguration { NeedsNameCompletion: false, } typeDef)
+        if (discoveryContext is { IsIntrospectionType: false, Type: IHasName namedType } &&
+            configuration is ITypeConfiguration { NeedsNameCompletion: false } typeDef)
         {
             if (typeDef.RuntimeType == typeof(object) &&
                 _runtimeTypes.TryGetValue(typeDef.Name, out var type))
@@ -99,7 +99,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext is { IsIntrospectionType: false, Type: IHasName namedType, } &&
+        if (completionContext is { IsIntrospectionType: false, Type: IHasName namedType } &&
             configuration is ITypeConfiguration typeDef)
         {
             if (typeDef.RuntimeType == typeof(object) &&

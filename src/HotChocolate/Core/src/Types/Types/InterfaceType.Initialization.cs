@@ -17,7 +17,7 @@ public partial class InterfaceType
     private ResolveAbstractType? _resolveAbstractType;
     private ISchema _schema = default!;
 
-    protected override InterfaceTypeConfiguration CreateDefinition(
+    protected override InterfaceTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         try

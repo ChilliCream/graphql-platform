@@ -52,12 +52,12 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
     /// Returns the newly created union type extension.
     /// </returns>
     public static UnionTypeExtension CreateUnsafe(UnionTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;
 
-    protected override UnionTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override UnionTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

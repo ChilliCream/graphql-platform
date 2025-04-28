@@ -31,14 +31,14 @@ public class FilterInputTypeDescriptor<T>
 
     protected internal FilterInputTypeDescriptor(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope)
-        : base(context, definition, scope)
+        : base(context, configuration, scope)
     {
     }
 
     protected override void OnCompleteFields(
-        IDictionary<string, FilterFieldDefinition> fields,
+        IDictionary<string, FilterFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
         if (Configuration.Fields.IsImplicitBinding())

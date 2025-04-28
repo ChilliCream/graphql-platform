@@ -96,8 +96,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException FilterInterceptor_NoHandlerFoundForField(
-        FilterInputTypeDefinition type,
-        FilterFieldDefinition field) =>
+        FilterInputTypeConfiguration type,
+        FilterFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -107,8 +107,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException FilterInterceptor_OperationHasNoTypeSpecified(
-        FilterInputTypeDefinition type,
-        FilterFieldDefinition field) =>
+        FilterInputTypeConfiguration type,
+        FilterFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -225,8 +225,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException SortInterceptor_NoFieldHandlerFoundForField(
-        SortInputTypeDefinition type,
-        SortFieldDefinition field) =>
+        SortInputTypeConfiguration type,
+        SortFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -433,13 +433,13 @@ internal static class ThrowHelper
 
     public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
         ITypeSystemObject type,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition field) =>
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration field) =>
         new(SchemaErrorBuilder
                 .New()
                 .SetMessage(
                     DataResources.QueryableFilterProvider_ExpressionParameterInvalid,
-                    typeDefinition.EntityType?.FullName,
+                    typeConfiguration.EntityType?.FullName,
                     field.Name)
                 .SetTypeSystemObject(type)
                 .Build());
@@ -528,13 +528,13 @@ internal static class ThrowHelper
 
     public static SchemaException QueryableSortProvider_ExpressionParameterInvalid(
         ITypeSystemObject type,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition field) =>
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration field) =>
         new(SchemaErrorBuilder
             .New()
             .SetMessage(
                 DataResources.QueryableSortProvider_ExpressionParameterInvalid,
-                typeDefinition.EntityType?.FullName,
+                typeConfiguration.EntityType?.FullName,
                 field.Name)
             .SetTypeSystemObject(type)
             .Build());

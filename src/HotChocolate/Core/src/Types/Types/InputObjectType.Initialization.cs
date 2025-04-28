@@ -22,7 +22,7 @@ public partial class InputObjectType
     private Func<object?[], object> _createInstance = default!;
     private Action<object, object?[]> _getFieldValues = default!;
 
-    protected override InputObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

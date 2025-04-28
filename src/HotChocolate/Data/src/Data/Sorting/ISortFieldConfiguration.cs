@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting;
 
-public interface ISortFieldDefinition
+public interface ISortFieldConfiguration
     : ITypeSystemConfiguration
     , IDirectiveConfigurationProvider
     , IIgnoreConfiguration

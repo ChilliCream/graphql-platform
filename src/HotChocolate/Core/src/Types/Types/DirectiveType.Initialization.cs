@@ -15,7 +15,7 @@ namespace HotChocolate.Types;
 
 public partial class DirectiveType
 {
-    protected override DirectiveTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override DirectiveTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

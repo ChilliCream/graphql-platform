@@ -17,7 +17,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeDefinition { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
         {
             return;
         }
@@ -43,7 +43,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeDefinition def)
+        if (configuration is not FilterInputTypeConfiguration def)
         {
             return;
         }
@@ -71,7 +71,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeDefinition { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
         {
             return;
         }
@@ -80,7 +80,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         foreach (var field in def.Fields)
         {
-            if (field is FilterFieldDefinition filterFieldDefinition)
+            if (field is FilterFieldConfiguration filterFieldDefinition)
             {
                 if (filterFieldDefinition.Type is null)
                 {
@@ -127,7 +127,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
     {
         foreach (var field in definition.Fields)
         {
-            if (field is FilterFieldDefinition filterFieldDefinition &&
+            if (field is FilterFieldConfiguration filterFieldDefinition &&
                 field.Type is not null &&
                 filterFieldDefinition.Type is { } filterFieldType &&
                 discoveryContext.TryPredictTypeKind(filterFieldType, out var kind) &&
@@ -140,7 +140,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     private static void ApplyIdAttributesToFields(
         ITypeDiscoveryContext discoveryContext,
-        FilterInputTypeDefinition def)
+        FilterInputTypeConfiguration def)
     {
         foreach (var field in def.Fields)
         {
@@ -159,7 +159,7 @@ file static class Extensions
 {
     public static bool HasIdAttribute(this InputFieldConfiguration? definition)
     {
-        if (definition is not FilterFieldDefinition { Member: { } member })
+        if (definition is not FilterFieldConfiguration { Member: { } member })
         {
             return false;
         }

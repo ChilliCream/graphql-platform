@@ -48,12 +48,12 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
     /// Returns the newly created enum type extension.
     /// </returns>
     public static EnumTypeExtension CreateUnsafe(EnumTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Enum;
 
-    protected override EnumTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

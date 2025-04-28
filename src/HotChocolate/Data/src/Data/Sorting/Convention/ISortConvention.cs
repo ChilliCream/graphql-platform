@@ -127,8 +127,8 @@ public interface ISortConvention : IConvention
 
     bool TryGetFieldHandler(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition,
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortFieldHandler? handler);
 
     bool TryGetOperationHandler(
@@ -164,6 +164,6 @@ public interface ISortConvention : IConvention
     /// </summary>
     ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition);
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration);
 }

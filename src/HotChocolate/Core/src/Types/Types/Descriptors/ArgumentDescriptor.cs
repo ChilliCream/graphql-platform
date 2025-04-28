@@ -81,7 +81,7 @@ public class ArgumentDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Parameter: not null, })
+        if (Configuration is { AttributesAreApplied: false, Parameter: not null })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,

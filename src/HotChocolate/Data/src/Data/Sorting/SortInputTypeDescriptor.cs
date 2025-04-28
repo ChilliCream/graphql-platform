@@ -8,7 +8,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Data.Sorting;
 
 public class SortInputTypeDescriptor
-    : DescriptorBase<SortInputTypeDefinition>
+    : DescriptorBase<SortInputTypeConfiguration>
     , ISortInputTypeDescriptor
 {
     protected SortInputTypeDescriptor(
@@ -39,18 +39,18 @@ public class SortInputTypeDescriptor
 
     protected SortInputTypeDescriptor(
         IDescriptorContext context,
-        SortInputTypeDefinition definition,
+        SortInputTypeConfiguration configuration,
         string? scope)
         : base(context)
     {
         Convention = context.GetSortConvention(scope);
-        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     protected ISortConvention Convention { get; }
 
-    protected internal override SortInputTypeDefinition Configuration { get; protected set; } =
-        new SortInputTypeDefinition();
+    protected internal override SortInputTypeConfiguration Configuration { get; protected set; } =
+        new SortInputTypeConfiguration();
 
     protected BindableList<SortFieldDescriptor> Fields { get; } =
         [];
@@ -58,7 +58,7 @@ public class SortInputTypeDescriptor
     Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCreateDefinition(
-        SortInputTypeDefinition definition)
+        SortInputTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
@@ -68,7 +68,7 @@ public class SortInputTypeDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<string, SortFieldDefinition>(StringComparer.Ordinal);
+        var fields = new Dictionary<string, SortFieldConfiguration>(StringComparer.Ordinal);
         var handledProperties = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -85,7 +85,7 @@ public class SortInputTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, SortFieldDefinition> fields,
+        IDictionary<string, SortFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
     }
@@ -203,15 +203,15 @@ public class SortInputTypeDescriptor
 
     public static SortInputTypeDescriptor From(
         IDescriptorContext context,
-        SortInputTypeDefinition definition,
+        SortInputTypeConfiguration configuration,
         string? scope = null)
-        => new(context, definition, scope);
+        => new(context, configuration, scope);
 
     public static SortInputTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        SortInputTypeDefinition definition,
+        SortInputTypeConfiguration configuration,
         string? scope = null)
-        => new(context, definition, scope);
+        => new(context, configuration, scope);
 
     public static SortInputTypeDescriptor<T> From<T>(
         SortInputTypeDescriptor descriptor,

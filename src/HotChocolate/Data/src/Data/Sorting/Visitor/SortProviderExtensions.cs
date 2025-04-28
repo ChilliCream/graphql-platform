@@ -32,7 +32,7 @@ public abstract class SortProviderExtensions<TContext>
         Complete(context);
     }
 
-    protected override SortProviderDefinition CreateDefinition(IConventionContext context)
+    protected override SortProviderDefinition CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -51,21 +51,21 @@ public abstract class SortProviderExtensions<TContext>
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (Definition is { } &&
+        if (Configuration is { } &&
             convention is SortProvider<TContext> sortProvider &&
             sortProvider.Definition is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more
             // specific handlers than the default providers
-            for (var i = Definition.Handlers.Count - 1; i >= 0; i--)
+            for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
             {
-                target.Handlers.Insert(0, Definition.Handlers[i]);
+                target.Handlers.Insert(0, Configuration.Handlers[i]);
             }
 
-            for (var i = Definition.OperationHandlers.Count - 1; i >= 0; i--)
+            for (var i = Configuration.OperationHandlers.Count - 1; i >= 0; i--)
             {
-                target.OperationHandlers.Insert(0, Definition.OperationHandlers[i]);
+                target.OperationHandlers.Insert(0, Configuration.OperationHandlers[i]);
             }
         }
     }

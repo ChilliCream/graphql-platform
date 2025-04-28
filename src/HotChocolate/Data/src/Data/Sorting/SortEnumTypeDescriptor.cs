@@ -6,7 +6,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Data.Sorting;
 
 public class SortEnumTypeDescriptor
-    : DescriptorBase<SortEnumTypeDefinition>,
+    : DescriptorBase<SortEnumTypeConfiguration>,
       ISortEnumTypeDescriptor
 {
     protected SortEnumTypeDescriptor(
@@ -25,19 +25,19 @@ public class SortEnumTypeDescriptor
 
     protected SortEnumTypeDescriptor(
         IDescriptorContext context,
-        SortEnumTypeDefinition definition)
+        SortEnumTypeConfiguration configuration)
         : base(context)
     {
-        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
-    protected internal override SortEnumTypeDefinition Configuration { get; protected set; } = new();
+    protected internal override SortEnumTypeConfiguration Configuration { get; protected set; } = new();
 
     protected ICollection<SortEnumValueDescriptor> Values { get; } =
         new List<SortEnumValueDescriptor>();
 
     protected override void OnCreateDefinition(
-        SortEnumTypeDefinition definition)
+        SortEnumTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
@@ -54,14 +54,14 @@ public class SortEnumTypeDescriptor
             .OfType<SortEnumValueConfiguration>()
             .ToDictionary(t => t.Value);
 
-        definition.Values.Clear();
+        configuration.Values.Clear();
 
         foreach (var value in values.Values)
         {
-            definition.Values.Add(value);
+            configuration.Values.Add(value);
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateDefinition(configuration);
 
         Context.Descriptors.Pop();
     }
@@ -130,6 +130,6 @@ public class SortEnumTypeDescriptor
 
     public static SortEnumTypeDescriptor From(
         IDescriptorContext context,
-        SortEnumTypeDefinition definition)
-        => new(context, definition);
+        SortEnumTypeConfiguration configuration)
+        => new(context, configuration);
 }

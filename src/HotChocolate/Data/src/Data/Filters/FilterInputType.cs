@@ -25,7 +25,7 @@ public class FilterInputType
 
     public IExtendedType EntityType { get; private set; } = default!;
 
-    protected override InputObjectTypeConfiguration CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         try
@@ -51,7 +51,7 @@ public class FilterInputType
         InputObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
-        if (definition is FilterInputTypeDefinition { EntityType: { }, } filterDefinition)
+        if (definition is FilterInputTypeConfiguration { EntityType: { }, } filterDefinition)
         {
             SetTypeIdentity(typeof(FilterInputType<>)
                 .MakeGenericType(filterDefinition.EntityType));
@@ -68,7 +68,7 @@ public class FilterInputType
     {
         base.OnCompleteType(context, definition);
 
-        if (definition is FilterInputTypeDefinition ft &&
+        if (definition is FilterInputTypeConfiguration ft &&
             ft.EntityType is { })
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
@@ -82,13 +82,13 @@ public class FilterInputType
         var fields = new InputField[definition.Fields.Count + 2];
         var index = 0;
 
-        if (definition is FilterInputTypeDefinition { UseAnd: true, } def)
+        if (definition is FilterInputTypeConfiguration { UseAnd: true, } def)
         {
             fields[index] = new AndField(context.DescriptorContext, index, def.Scope);
             index++;
         }
 
-        if (definition is FilterInputTypeDefinition { UseOr: true, } defOr)
+        if (definition is FilterInputTypeConfiguration { UseOr: true, } defOr)
         {
             fields[index] = new OrField(context.DescriptorContext, index, defOr.Scope);
             index++;
@@ -99,12 +99,12 @@ public class FilterInputType
         {
             switch (fieldDefinition)
             {
-                case FilterOperationFieldDefinition operation:
+                case FilterOperationFieldConfiguration operation:
                     fields[index] = new FilterOperationField(operation, index);
                     index++;
                     break;
 
-                case FilterFieldDefinition field:
+                case FilterFieldConfiguration field:
                     fields[index] = new FilterField(field, index);
                     index++;
                     break;

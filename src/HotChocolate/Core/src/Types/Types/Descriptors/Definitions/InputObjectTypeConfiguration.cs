@@ -69,7 +69,7 @@ public class InputObjectTypeConfiguration : TypeConfiguration
     {
         base.CopyTo(target);
 
-        if (Fields is { Count: > 0, })
+        if (Fields is { Count: > 0 })
         {
             target.Fields.Clear();
 

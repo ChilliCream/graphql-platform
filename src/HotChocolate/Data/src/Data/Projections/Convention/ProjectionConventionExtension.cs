@@ -18,7 +18,7 @@ public class ProjectionConventionExtension
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override ProjectionConventionDefinition CreateDefinition(
+    protected override ProjectionConventionDefinition CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -49,23 +49,23 @@ public class ProjectionConventionExtension
     public override void Merge(IConventionContext context, Convention convention)
     {
         if (convention is ProjectionConvention projectionConvention &&
-            Definition is not null &&
+            Configuration is not null &&
             projectionConvention.Definition is not null)
         {
             projectionConvention.Definition.ProviderExtensions.AddRange(
-                Definition.ProviderExtensions);
+                Configuration.ProviderExtensions);
 
             projectionConvention.Definition.ProviderExtensionsTypes.AddRange(
-                Definition.ProviderExtensionsTypes);
+                Configuration.ProviderExtensionsTypes);
 
-            if (Definition.Provider is not null)
+            if (Configuration.Provider is not null)
             {
-                projectionConvention.Definition.Provider = Definition.Provider;
+                projectionConvention.Definition.Provider = Configuration.Provider;
             }
 
-            if (Definition.ProviderInstance is not null)
+            if (Configuration.ProviderInstance is not null)
             {
-                projectionConvention.Definition.ProviderInstance = Definition.ProviderInstance;
+                projectionConvention.Definition.ProviderInstance = Configuration.ProviderInstance;
             }
         }
     }

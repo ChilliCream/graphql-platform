@@ -24,7 +24,7 @@ public class SortInputType
 
     public IExtendedType EntityType { get; private set; } = default!;
 
-    protected override InputObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         if (Definition is null)
         {
@@ -51,7 +51,7 @@ public class SortInputType
         InputObjectTypeConfiguration definition)
     {
         base.OnRegisterDependencies(context, definition);
-        if (definition is SortInputTypeDefinition {EntityType: { }, } sortDefinition)
+        if (definition is SortInputTypeConfiguration {EntityType: { }, } sortDefinition)
         {
             SetTypeIdentity(
                 typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
@@ -64,7 +64,7 @@ public class SortInputType
     {
         base.OnCompleteType(context, definition);
 
-        if (definition is SortInputTypeDefinition { EntityType: not null, } ft)
+        if (definition is SortInputTypeConfiguration { EntityType: not null, } ft)
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
@@ -79,7 +79,7 @@ public class SortInputType
 
         foreach (var fieldDefinition in definition.Fields)
         {
-            if (fieldDefinition is SortFieldDefinition {Ignore: false, } field)
+            if (fieldDefinition is SortFieldConfiguration {Ignore: false, } field)
             {
                 fields[index] = new SortField(field, index);
                 index++;

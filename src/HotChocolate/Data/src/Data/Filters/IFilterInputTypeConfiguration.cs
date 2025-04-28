@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterInputTypeDefinition
+public interface IFilterInputTypeConfiguration
 {
     Type? EntityType { get; }
 

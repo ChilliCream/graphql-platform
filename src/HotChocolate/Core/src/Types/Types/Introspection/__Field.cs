@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Field : ObjectType<IOutputField>
 {
-    protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
@@ -39,9 +39,9 @@ internal sealed class __Field : ObjectType<IOutputField>
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.Type, type: nonNullTypeType, pureResolver: Resolvers.Type),
                 new(Names.IsDeprecated,
@@ -49,8 +49,8 @@ internal sealed class __Field : ObjectType<IOutputField>
                     pureResolver: Resolvers.IsDeprecated),
                 new(Names.DeprecationReason,
                     type: stringType,
-                    pureResolver: Resolvers.DeprecationReason),
-            },
+                    pureResolver: Resolvers.DeprecationReason)
+            }
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)

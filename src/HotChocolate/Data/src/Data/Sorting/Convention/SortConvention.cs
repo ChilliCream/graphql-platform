@@ -48,9 +48,9 @@ public class SortConvention
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortConventionDefinition? Definition => base.Definition;
+    internal new SortConventionDefinition? Definition => base.Configuration;
 
-    protected override SortConventionDefinition CreateDefinition(
+    protected override SortConventionDefinition CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -271,13 +271,13 @@ public class SortConvention
 
     public bool TryGetFieldHandler(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition,
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortFieldHandler? handler)
     {
         foreach (var sortFieldHandler in _provider.FieldHandlers)
         {
-            if (sortFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
+            if (sortFieldHandler.CanHandle(context, typeConfiguration, fieldConfiguration))
             {
                 handler = sortFieldHandler;
                 return true;
@@ -290,9 +290,9 @@ public class SortConvention
 
     public ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
-        => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration)
+        => _provider.CreateMetaData(context, typeConfiguration, fieldConfiguration);
 
     private bool TryCreateSortType(
         IExtendedType runtimeType,

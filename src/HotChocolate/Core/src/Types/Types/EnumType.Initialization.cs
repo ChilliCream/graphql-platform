@@ -49,7 +49,7 @@ public partial class EnumType
     /// Returns the newly created enum type.
     /// </returns>
     public static EnumType CreateUnsafe(EnumTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <summary>
     /// Override this in order to specify the type configuration explicitly.
@@ -60,7 +60,7 @@ public partial class EnumType
     protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
     /// <inheritdoc />
-    protected override EnumTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {

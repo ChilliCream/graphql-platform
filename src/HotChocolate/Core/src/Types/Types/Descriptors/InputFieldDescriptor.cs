@@ -63,7 +63,7 @@ public class InputFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Property: not null, })
+        if (Configuration is { AttributesAreApplied: false, Property: not null })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,

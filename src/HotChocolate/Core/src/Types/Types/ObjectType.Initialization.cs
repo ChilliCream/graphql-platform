@@ -19,7 +19,7 @@ public partial class ObjectType
     private Action<IObjectTypeDescriptor>? _configure;
     private IsOfType? _isOfType;
 
-    protected override ObjectTypeConfiguration CreateDefinition(
+    protected override ObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         try

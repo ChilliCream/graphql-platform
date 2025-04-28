@@ -30,16 +30,16 @@ public abstract class MongoDbComparableOperationHandler
     /// defined in <see cref="MongoDbComparableOperationHandler.Operation"/>
     /// </summary>
     /// <param name="context">The discovery context of the schema</param>
-    /// <param name="typeDefinition">The definition of the declaring type of the field</param>
-    /// <param name="fieldDefinition">The definition of the field</param>
+    /// <param name="typeConfiguration">The definition of the declaring type of the field</param>
+    /// <param name="fieldConfiguration">The definition of the field</param>
     /// <returns>Returns true if the field can be handled</returns>
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
         return context.Type is IComparableOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
+            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
             operationField.Id == Operation;
     }
 }

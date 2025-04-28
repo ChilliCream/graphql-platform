@@ -30,7 +30,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         OnBeforeInitialize(context);
 
         Scope = context.Scope;
-        _definition = CreateDefinition(context);
+        _definition = CreateConfiguration(context);
 
         if (_definition is null)
         {
@@ -51,7 +51,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         MarkInitialized();
     }
 
-    protected abstract TDefinition CreateDefinition(
+    protected abstract TDefinition CreateConfiguration(
         ITypeDiscoveryContext context);
 
     protected virtual void OnRegisterDependencies(

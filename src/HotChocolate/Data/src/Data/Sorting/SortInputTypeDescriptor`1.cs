@@ -31,14 +31,14 @@ public class SortInputTypeDescriptor<T>
 
     protected internal SortInputTypeDescriptor(
         IDescriptorContext context,
-        SortInputTypeDefinition definition,
+        SortInputTypeConfiguration configuration,
         string? scope)
-        : base(context, definition, scope)
+        : base(context, configuration, scope)
     {
     }
 
     protected override void OnCompleteFields(
-        IDictionary<string, SortFieldDefinition> fields,
+        IDictionary<string, SortFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
         if (Configuration.Fields.IsImplicitBinding() &&

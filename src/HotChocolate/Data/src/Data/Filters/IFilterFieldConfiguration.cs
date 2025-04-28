@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterFieldDefinition
+public interface IFilterFieldConfiguration
     : ITypeSystemConfiguration
     , IDirectiveConfigurationProvider
     , IIgnoreConfiguration

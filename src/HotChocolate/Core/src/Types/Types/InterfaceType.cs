@@ -81,7 +81,7 @@ public partial class InterfaceType
     /// Returns the newly created interface type.
     /// </returns>
     public static InterfaceType CreateUnsafe(InterfaceTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;

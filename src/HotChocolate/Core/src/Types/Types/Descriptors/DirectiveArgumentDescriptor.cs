@@ -66,7 +66,7 @@ public class DirectiveArgumentDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Property: not null, })
+        if (Configuration is { AttributesAreApplied: false, Property: not null })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Property);
             Configuration.AttributesAreApplied = true;

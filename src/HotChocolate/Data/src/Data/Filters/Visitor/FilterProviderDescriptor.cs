@@ -8,15 +8,14 @@ public class FilterProviderDescriptor<TContext>
     {
     }
 
-    protected FilterProviderDefinition Definition { get; } =
-        new FilterProviderDefinition();
+    protected FilterProviderDefinition Configuration { get; } = new();
 
-    public FilterProviderDefinition CreateDefinition() => Definition;
+    public FilterProviderDefinition CreateConfiguration() => Configuration;
 
     public IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
         where TFieldHandler : IFilterFieldHandler<TContext>
     {
-        Definition.Handlers.Add((typeof(TFieldHandler), null));
+        Configuration.Handlers.Add((typeof(TFieldHandler), null));
         return this;
     }
 
@@ -24,7 +23,7 @@ public class FilterProviderDescriptor<TContext>
         TFieldHandler fieldHandler)
         where TFieldHandler : IFilterFieldHandler<TContext>
     {
-        Definition.Handlers.Add((typeof(TFieldHandler), fieldHandler));
+        Configuration.Handlers.Add((typeof(TFieldHandler), fieldHandler));
         return this;
     }
 

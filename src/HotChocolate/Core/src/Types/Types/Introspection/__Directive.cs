@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Directive : ObjectType<DirectiveType>
 {
-    protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
@@ -39,9 +39,9 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.IsRepeatable,
                     type: nonNullBooleanType,
@@ -50,21 +50,21 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnOperation)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation,
+                    DeprecationReason = TypeResources.Directive_UseLocation
                 },
                 new(Names.OnFragment,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnFragment)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation,
+                    DeprecationReason = TypeResources.Directive_UseLocation
                 },
                 new(Names.OnField,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnField)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation,
-                },
-            },
+                    DeprecationReason = TypeResources.Directive_UseLocation
+                }
+            }
         };
     }
 

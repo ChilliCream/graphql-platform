@@ -4,26 +4,26 @@ public class FilterOperationConventionDescriptor : IFilterOperationConventionDes
 {
     protected FilterOperationConventionDescriptor(int operationId)
     {
-        Definition.Id = operationId;
+        Configuration.Id = operationId;
     }
 
-    protected FilterOperationConventionDefinition Definition { get; } =
-        new FilterOperationConventionDefinition();
+    protected FilterOperationConventionConfiguration Configuration { get; } =
+        new FilterOperationConventionConfiguration();
 
-    public FilterOperationConventionDefinition CreateDefinition() =>
-        Definition;
+    public FilterOperationConventionConfiguration CreateDefinition() =>
+        Configuration;
 
     /// <inheritdoc />
     public IFilterOperationConventionDescriptor Name(string name)
     {
-        Definition.Name = name;
+        Configuration.Name = name;
         return this;
     }
 
     /// <inheritdoc />
     public IFilterOperationConventionDescriptor Description(string description)
     {
-        Definition.Description = description;
+        Configuration.Description = description;
         return this;
     }
 

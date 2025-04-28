@@ -51,7 +51,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
 
         if (typeReference is not null)
         {
-            _dependencies = [new(typeReference, fulfilled),];
+            _dependencies = [new(typeReference, fulfilled)];
         }
     }
 
@@ -74,7 +74,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
         On = on;
-        _dependencies = [..dependencies,];
+        _dependencies = [..dependencies];
     }
 
     public ITypeSystemConfiguration Owner { get; }

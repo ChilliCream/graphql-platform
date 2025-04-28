@@ -56,12 +56,12 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
     /// Returns the newly created object type.
     /// </returns>
     public static ObjectTypeExtension CreateUnsafe(ObjectTypeConfiguration definition)
-        => new() { Definition = definition, };
+        => new() { Definition = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
 
-    protected override ObjectTypeConfiguration CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
