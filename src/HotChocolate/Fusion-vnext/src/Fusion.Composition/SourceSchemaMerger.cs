@@ -67,6 +67,11 @@ internal sealed class SourceSchemaMerger
 
         SetOperationTypes(mergedSchema);
 
+        if (_options.RemoveUnreferencedTypes)
+        {
+            mergedSchema.RemoveUnreferencedTypes();
+        }
+
         // Add lookup directives.
         foreach (var schema in _schemas)
         {
