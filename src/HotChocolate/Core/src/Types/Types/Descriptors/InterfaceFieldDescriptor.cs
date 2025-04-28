@@ -61,7 +61,7 @@ public class InterfaceFieldDescriptor
 
     protected internal override InterfaceFieldConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(InterfaceFieldConfiguration definition)
+    protected override void OnCreateConfiguration(InterfaceFieldConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -71,7 +71,7 @@ public class InterfaceFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         CompleteArguments(definition);
 

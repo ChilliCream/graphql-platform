@@ -9,7 +9,7 @@ using static HotChocolate.Properties.TypeResources;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node descriptor allows to configure a node type.
+/// The node descriptor allows configuring a node type.
 /// </summary>
 public class NodeDescriptor
     : NodeDescriptorBase
@@ -34,15 +34,15 @@ public class NodeDescriptor
         _typeDescriptor
             .Implements<NodeType>()
             .Extend()
-            .OnBeforeCompletion(OnCompleteDefinition);
+            .OnBeforeCompletion(OnCompleteConfiguration);
 
         Configuration.NodeType = nodeType;
     }
 
-    internal void OnCompleteDefinition(
+    internal void OnCompleteConfiguration(
         ITypeCompletionContext context,
-        ObjectTypeConfiguration definition)
-        => CompleteResolver(context, definition);
+        ObjectTypeConfiguration configuration)
+        => CompleteResolver(context, configuration);
 
     internal void ConfigureNodeField(IObjectTypeDescriptor typeDescriptor)
     {

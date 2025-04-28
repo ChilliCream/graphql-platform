@@ -33,7 +33,7 @@ public static class PagingHelper
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
 
         var definition = descriptor.Extend().Configuration;
-        definition.MiddlewareDefinitions.Add(placeholder);
+        definition.MiddlewareConfigurations.Add(placeholder);
         definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) => ApplyConfiguration(
@@ -67,8 +67,8 @@ public static class PagingHelper
         var pagingHandler = pagingProvider.CreateHandler(source, options);
         var middleware = CreateMiddleware(pagingHandler);
 
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: Paging);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: Paging);
         definition.ContextData[WellKnownContextData.PagingOptions] = options;
     }
 

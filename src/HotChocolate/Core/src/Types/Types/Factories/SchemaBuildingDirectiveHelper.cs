@@ -7,15 +7,15 @@ namespace HotChocolate.Types.Factories;
 
 internal static class SchemaBuildingDirectiveHelper
 {
-    private const string _definitionStackKey = "HotChocolate.Schema.Building.DefinitionStack";
+    private const string _configurationStackKey = "HotChocolate.Schema.Building.ConfigurationStack";
 
-    public static Stack<ITypeSystemConfiguration> GetOrCreateDefinitionStack(this IDescriptorContext context)
+    public static Stack<ITypeSystemConfiguration> GetOrCreateConfigurationStack(this IDescriptorContext context)
     {
-        if (!context.ContextData.TryGetValue(_definitionStackKey, out var value) ||
+        if (!context.ContextData.TryGetValue(_configurationStackKey, out var value) ||
             value is not Stack<ITypeSystemConfiguration> stack)
         {
             stack = new Stack<ITypeSystemConfiguration>();
-            context.ContextData[_definitionStackKey] = stack;
+            context.ContextData[_configurationStackKey] = stack;
         }
 
         return stack;

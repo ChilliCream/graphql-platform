@@ -113,14 +113,14 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     public SubscribeResolverDelegate? SubscribeResolver { get; set; }
 
     /// <summary>
-    /// Gets or sets the result post processor that shall be applied to the resolver result.
+    /// Gets or sets the result post-processor that shall be applied to the resolver result.
     /// </summary>
     public IResolverResultPostProcessor? ResultPostProcessor { get; set; }
 
     /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
-    public IList<FieldMiddlewareConfiguration> MiddlewareDefinitions
+    public IList<FieldMiddlewareConfiguration> MiddlewareConfigurations
     {
         get
         {
@@ -132,7 +132,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// <summary>
     /// A list of formatters that can transform the resolver result.
     /// </summary>
-    public IList<ResultFormatterConfiguration> FormatterDefinitions
+    public IList<ResultFormatterConfiguration> FormatterConfigurations
     {
         get
         {

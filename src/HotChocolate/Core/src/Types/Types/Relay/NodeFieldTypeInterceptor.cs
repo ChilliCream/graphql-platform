@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Relay;
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
     private ITypeCompletionContext? _queryContext;
-    private ObjectTypeConfiguration? _queryTypeDefinition;
+    private ObjectTypeConfiguration? _queryTypeConfig;
 
     internal override uint Position => uint.MaxValue - 100;
 
@@ -30,13 +30,13 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         if (operationType is OperationType.Query)
         {
             _queryContext = completionContext;
-            _queryTypeDefinition = configuration;
+            _queryTypeConfig = configuration;
         }
     }
 
     public override void OnBeforeCompleteTypes()
     {
-        if (_queryContext is not null && _queryTypeDefinition is not null)
+        if (_queryContext is not null && _queryTypeConfig is not null)
         {
             var typeInspector = _queryContext.TypeInspector;
 
@@ -45,22 +45,22 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             // the nodes fields shall be chained in after the introspection fields,
             // so we first get the index of the last introspection field,
             // which is __typename
-            var typeNameField = _queryTypeDefinition.Fields.First(
+            var typeNameField = _queryTypeConfig.Fields.First(
                 t => t.Name.EqualsOrdinal(IntrospectionFields.TypeName) &&
                     t.IsIntrospectionField);
-            var index = _queryTypeDefinition.Fields.IndexOf(typeNameField);
+            var index = _queryTypeConfig.Fields.IndexOf(typeNameField);
             var maxAllowedNodes = _queryContext.DescriptorContext.Options.MaxAllowedNodeBatchSize;
 
             CreateNodeField(
                 typeInspector,
                 serializer,
-                _queryTypeDefinition.Fields,
+                _queryTypeConfig.Fields,
                 index + 1);
 
             CreateNodesField(
                 typeInspector,
                 serializer,
-                _queryTypeDefinition.Fields,
+                _queryTypeConfig.Fields,
                 index + 2,
                 maxAllowedNodes);
         }
@@ -81,7 +81,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             node)
         {
             Arguments = { new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id) },
-            MiddlewareDefinitions =
+            MiddlewareConfigurations =
             {
                 new FieldMiddlewareConfiguration(
                     _ =>
@@ -121,7 +121,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             nodes)
         {
             Arguments = { new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids) },
-            MiddlewareDefinitions =
+            MiddlewareConfigurations =
             {
                 new FieldMiddlewareConfiguration(
                     _ =>

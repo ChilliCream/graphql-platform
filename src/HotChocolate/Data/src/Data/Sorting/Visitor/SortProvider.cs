@@ -35,7 +35,7 @@ public abstract class SortProvider<TContext>
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortProviderDefinition? Definition => base.Configuration;
+    internal new SortProviderDefinition? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
@@ -61,7 +61,7 @@ public abstract class SortProvider<TContext>
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
@@ -78,12 +78,12 @@ public abstract class SortProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.Handlers.Count == 0)
         {
             throw SortProvider_NoFieldHandlersConfigured(this);
         }
 
-        if (Definition.OperationHandlers.Count == 0)
+        if (Configuration.OperationHandlers.Count == 0)
         {
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
@@ -105,7 +105,7 @@ public abstract class SortProvider<TContext>
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
-        foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)
+        foreach ((Type Type, ISortFieldHandler? Instance) handler in Configuration.Handlers)
         {
             if (handler.Instance is ISortFieldHandler<TContext> field)
             {
@@ -124,8 +124,7 @@ public abstract class SortProvider<TContext>
             }
         }
 
-        foreach ((Type Type, ISortOperationHandler? Instance) handler
-            in Definition.OperationHandlers)
+        foreach ((Type Type, ISortOperationHandler? Instance) handler in Configuration.OperationHandlers)
         {
             if (handler.Instance is ISortOperationHandler<TContext> op)
             {

@@ -40,7 +40,7 @@ public abstract class ProjectionProvider
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionProviderDefinition? Definition => base.Configuration;
+    internal new ProjectionProviderDefinition? Configuration => base.Configuration;
 
     /// <inheritdoc />
     protected override ProjectionProviderDefinition CreateConfiguration(
@@ -58,7 +58,7 @@ public abstract class ProjectionProvider
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public abstract class ProjectionProvider
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.Handlers.Count == 0)
         {
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
@@ -93,7 +93,7 @@ public abstract class ProjectionProvider
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
-        foreach (var (type, instance) in Definition.Handlers)
+        foreach (var (type, instance) in Configuration.Handlers)
         {
             if (instance is not null)
             {
@@ -113,7 +113,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach (var (type, instance) in Definition.Interceptors)
+        foreach (var (type, instance) in Configuration.Interceptors)
         {
             if (instance is not null)
             {
@@ -133,7 +133,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach (var (type, instance) in Definition.Optimizers)
+        foreach (var (type, instance) in Configuration.Optimizers)
         {
             if (instance is not null)
             {

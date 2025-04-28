@@ -28,13 +28,13 @@ public class SchemaTypeConfiguration : TypeSystemConfiguration, IFeatureProvider
     {
         if (_directives is null)
         {
-            return Array.Empty<DirectiveConfiguration>();
+            return [];
         }
 
         return _directives;
     }
 
-    internal IDirectiveConfigurationProvider GetLegacyDefinition()
+    internal IDirectiveConfigurationProvider GetLegacyConfiguration()
         => new CompatibilityLayer(this);
 
     private class CompatibilityLayer(SchemaTypeConfiguration definition) : IDirectiveConfigurationProvider

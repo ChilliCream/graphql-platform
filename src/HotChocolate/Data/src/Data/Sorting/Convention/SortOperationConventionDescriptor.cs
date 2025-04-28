@@ -7,11 +7,9 @@ public class SortOperationConventionDescriptor : ISortOperationConventionDescrip
         Definition.Id = operationId;
     }
 
-    protected SortOperationConventionDefinition Definition { get; } =
-        new SortOperationConventionDefinition();
+    protected SortOperationConventionDefinition Definition { get; } = new();
 
-    public SortOperationConventionDefinition CreateDefinition() =>
-        Definition;
+    public SortOperationConventionDefinition CreateConfiguration() => Definition;
 
     /// <inheritdoc />
     public ISortOperationConventionDescriptor Name(string name)

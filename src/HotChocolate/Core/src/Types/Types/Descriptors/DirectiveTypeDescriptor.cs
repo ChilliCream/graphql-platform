@@ -50,7 +50,7 @@ public class DirectiveTypeDescriptor
     protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
         new List<DirectiveArgumentDescriptor>();
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         DirectiveTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
@@ -77,7 +77,7 @@ public class DirectiveTypeDescriptor
 
         definition.Arguments.AddRange(arguments.Values);
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

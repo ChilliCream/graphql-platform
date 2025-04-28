@@ -14,9 +14,9 @@ using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 public abstract class NodeDescriptorBase(IDescriptorContext context)
-    : DescriptorBase<NodeDefinition>(context)
+    : DescriptorBase<NodeConfiguration>(context)
 {
-    protected internal sealed override NodeDefinition Configuration { get; protected set; } = new();
+    protected internal sealed override NodeConfiguration Configuration { get; protected set; } = new();
 
     protected abstract IObjectFieldDescriptor ConfigureNodeField();
 
@@ -188,7 +188,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             }
 
             var formatter = (ResultFormatterConfiguration)value;
-            var converters = extensions.Configuration.FormatterDefinitions;
+            var converters = extensions.Configuration.FormatterConfigurations;
 
             if (!converters.Contains(formatter))
             {

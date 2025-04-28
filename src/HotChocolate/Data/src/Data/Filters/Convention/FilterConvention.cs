@@ -96,7 +96,7 @@ public class FilterConvention
 
         _namingConventions = context.DescriptorContext.Naming;
         _operations =
-            Configuration.Operations.ToDictionary(x => x.Id, FilterOperation.FromDefinition);
+            Configuration.Operations.ToDictionary(x => x.Id, FilterOperation.FromConfiguration);
         _bindings = Configuration.Bindings;
         _configs = Configuration.Configurations;
         _argumentName = Configuration.ArgumentName;

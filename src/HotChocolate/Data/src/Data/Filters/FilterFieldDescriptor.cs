@@ -69,9 +69,9 @@ public class FilterFieldDescriptor
         protected set => base.Configuration = value;
     }
 
-    internal InputFieldConfiguration CreateFieldDefinition() => CreateConfiguration();
+    internal InputFieldConfiguration CreateFieldConfiguration() => CreateConfiguration();
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         FilterFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
@@ -82,7 +82,7 @@ public class FilterFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(configuration);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }

@@ -17,7 +17,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
     private ITypeCompletionContext _context = default!;
     private ObjectType? _queryType;
     private ObjectFieldConfiguration _queryField = default!;
-    private ObjectTypeConfiguration? _mutationDefinition;
+    private ObjectTypeConfiguration? _mutationConfig;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
@@ -33,14 +33,14 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 break;
 
             case OperationType.Mutation:
-                _mutationDefinition = (ObjectTypeConfiguration)configuration;
+                _mutationConfig = (ObjectTypeConfiguration)configuration;
                 break;
         }
     }
 
     public override void OnBeforeCompleteTypes()
     {
-        if (_queryType is not null && _mutationDefinition is not null)
+        if (_queryType is not null && _mutationConfig is not null)
         {
             var options = _context.DescriptorContext.GetMutationPayloadOptions();
 
@@ -52,7 +52,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
             _queryField.Flags |= FieldFlags.MutationQueryField;
 
-            foreach (var field in _mutationDefinition.Fields)
+            foreach (var field in _mutationConfig.Fields)
             {
                 if (!field.IsIntrospectionField
                     && _context.TryGetType(field.Type!, out IType? returnType)

@@ -115,11 +115,11 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // Once we have the type instance we need to grab it type definition to
                 // inject a placeholder for the node resolver pipeline into the types
                 // context data.
-                var fieldTypeDef = ((ObjectType)fieldType.NamedType()).Definition;
+                var fieldTypeDef = ((ObjectType)fieldType.NamedType()).Configuration;
 
                 if (fieldTypeDef is null)
                 {
-                    throw NodeResolver_ObjNoDefinition();
+                    throw NodeResolver_ObjNoConfig();
                 }
 
                 // Before we go any further we will ensure that the type either implements the

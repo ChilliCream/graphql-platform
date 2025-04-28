@@ -5,7 +5,7 @@ namespace HotChocolate.Types;
 internal sealed class ErrorTypeHelper
 {
     private readonly HashSet<Type> _handled = [];
-    private readonly List<ErrorDefinition> _tempErrors = [];
+    private readonly List<ErrorConfiguration> _tempErrors = [];
     private ExtendedTypeReference? _errorInterfaceTypeRef;
 
     public ExtendedTypeReference ErrorTypeInterfaceRef
@@ -21,23 +21,23 @@ internal sealed class ErrorTypeHelper
         }
     }
 
-    public IReadOnlyList<ErrorDefinition> GetErrorDefinitions(
+    public IReadOnlyList<ErrorConfiguration> GetErrorConfigurations(
         ObjectFieldConfiguration field)
     {
         var errorTypes = GetErrorResultTypes(field);
 
-        if (field.ContextData.TryGetValue(ErrorDefinitions, out var value) &&
-            value is IReadOnlyList<ErrorDefinition> errorDefs)
+        if (field.ContextData.TryGetValue(ErrorConfigurations, out var value) &&
+            value is IReadOnlyList<ErrorConfiguration> errorConfigs)
         {
             if (errorTypes.Length == 0)
             {
-                return errorDefs;
+                return errorConfigs;
             }
 
             _handled.Clear();
             _tempErrors.Clear();
 
-            foreach (var errorDef in errorDefs)
+            foreach (var errorDef in errorConfigs)
             {
                 _handled.Add(errorDef.RuntimeType);
                 _tempErrors.Add(errorDef);
@@ -58,13 +58,13 @@ internal sealed class ErrorTypeHelper
             return _tempErrors.ToArray();
         }
 
-        return Array.Empty<ErrorDefinition>();
+        return [];
 
         // ReSharper disable once VariableHidesOuterVariable
         static void CreateErrorDefinitions(
             Type[] errorTypes,
             HashSet<Type> handled,
-            List<ErrorDefinition> tempErrors)
+            List<ErrorConfiguration> tempErrors)
         {
             foreach (var errorType in errorTypes)
             {
@@ -76,19 +76,19 @@ internal sealed class ErrorTypeHelper
                 if (typeof(Exception).IsAssignableFrom(errorType))
                 {
                     var schemaType = typeof(ExceptionObjectType<>).MakeGenericType(errorType);
-                    var definition = new ErrorDefinition(
+                    var config = new ErrorConfiguration(
                         errorType,
                         schemaType,
                         ex => ex.GetType() == errorType
                             ? ex
                             : null);
-                    tempErrors.Add(definition);
+                    tempErrors.Add(config);
                 }
                 else
                 {
                     var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
-                    var definition = new ErrorDefinition(errorType, schemaType, _ => null);
-                    tempErrors.Add(definition);
+                    var config = new ErrorConfiguration(errorType, schemaType, _ => null);
+                    tempErrors.Add(config);
                 }
             }
         }

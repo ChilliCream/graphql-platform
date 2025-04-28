@@ -53,7 +53,7 @@ public class ObjectTypeDescriptor
 
     protected ICollection<ObjectFieldDescriptor> Fields => _fields;
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         ObjectTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
@@ -91,7 +91,7 @@ public class ObjectTypeDescriptor
             }
         }
 
-        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var fields = TypeMemHelper.RentObjectFieldConfigurationMap();
         var handledMembers = TypeMemHelper.RentMemberSet();
 
         foreach (var fieldDescriptor in _fields)
@@ -124,14 +124,14 @@ public class ObjectTypeDescriptor
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
 
     internal void InferFieldsFromFieldBindingType()
     {
-        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var fields = TypeMemHelper.RentObjectFieldConfigurationMap();
         var handledMembers = TypeMemHelper.RentMemberSet();
 
         InferFieldsFromFieldBindingType(fields, handledMembers, false);

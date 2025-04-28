@@ -26,7 +26,7 @@ public class SortInputType
 
     protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
-        if (Definition is null)
+        if (Configuration is null)
         {
             var descriptor = SortInputTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -36,10 +36,10 @@ public class SortInputType
             _configure!(descriptor);
             _configure = null;
 
-            Definition = descriptor.CreateConfiguration();
+            Configuration = descriptor.CreateConfiguration();
         }
 
-        return Definition;
+        return Configuration;
     }
 
     protected virtual void Configure(ISortInputTypeDescriptor descriptor)
@@ -48,10 +48,10 @@ public class SortInputType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        if (definition is SortInputTypeConfiguration {EntityType: { }, } sortDefinition)
+        base.OnRegisterDependencies(context, configuration);
+        if (configuration is SortInputTypeConfiguration {EntityType: { }, } sortDefinition)
         {
             SetTypeIdentity(
                 typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
@@ -60,11 +60,11 @@ public class SortInputType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        if (definition is SortInputTypeConfiguration { EntityType: not null, } ft)
+        if (configuration is SortInputTypeConfiguration { EntityType: not null, } ft)
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }

@@ -157,7 +157,7 @@ internal sealed class TypeInitializer
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
+                        ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
                         objectType.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -171,7 +171,7 @@ internal sealed class TypeInitializer
                         && interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
+                        ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
                         implementing.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -189,7 +189,7 @@ internal sealed class TypeInitializer
                     if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = objectType.TypeReference;
-                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
+                        ((UnionType)unionType.Type).Configuration!.Types.Add(typeRef);
                     }
                 }
             }
@@ -296,7 +296,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnAfterResolveRootType(
                 type.Context,
-                ((ObjectType)type.Type.Type).Definition!,
+                ((ObjectType)type.Type.Type).Configuration!,
                 type.Kind);
         }
     }
@@ -385,7 +385,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnBeforeCompleteMutation(
                 mutationType.Type,
-                ((ObjectType)mutationType.Type.Type).Definition!);
+                ((ObjectType)mutationType.Type.Type).Configuration!);
         }
     }
 
@@ -437,7 +437,7 @@ internal sealed class TypeInitializer
     {
         if (registeredType.Type is ObjectType objectType)
         {
-            foreach (var field in objectType.Definition!.Fields)
+            foreach (var field in objectType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {
@@ -447,7 +447,7 @@ internal sealed class TypeInitializer
         }
         else if(registeredType.Type is InterfaceType interfaceType)
         {
-            foreach (var field in interfaceType.Definition!.Fields)
+            foreach (var field in interfaceType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {

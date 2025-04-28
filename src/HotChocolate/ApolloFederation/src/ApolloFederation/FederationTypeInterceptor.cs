@@ -260,7 +260,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         _schemaType.Dependencies.Add(dependency);
 
         _schemaTypeCfg
-            .GetLegacyDefinition()
+            .GetLegacyConfiguration()
             .AddDirective(
                 new LinkDirective(version.ToUrl(), federationTypes),
                 _typeInspector);
@@ -273,7 +273,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             }
 
             _schemaTypeCfg
-                .GetLegacyDefinition()
+                .GetLegacyConfiguration()
                 .AddDirective(
                     new LinkDirective(import.Key, import.Value),
                     _typeInspector);
@@ -308,7 +308,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             foreach (var directive in composeDirectives)
             {
                 _schemaTypeCfg
-                    .GetLegacyDefinition()
+                    .GetLegacyConfiguration()
                     .AddDirective(directive, _typeInspector);
             }
         }
@@ -355,7 +355,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void CompleteReferenceResolver(ObjectTypeConfiguration typeCfg)
     {
-        IReadOnlyList<ReferenceResolverDefinition> resolvers;
+        IReadOnlyList<ReferenceResolverConfiguration> resolvers;
         {
             var contextData = typeCfg.GetContextData();
 
@@ -364,7 +364,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 return;
             }
 
-            if (resolversObject is not IReadOnlyList<ReferenceResolverDefinition> r)
+            if (resolversObject is not IReadOnlyList<ReferenceResolverConfiguration> r)
             {
                 return;
             }

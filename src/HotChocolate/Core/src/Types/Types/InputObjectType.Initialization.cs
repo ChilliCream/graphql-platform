@@ -26,7 +26,7 @@ public partial class InputObjectType
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = InputObjectTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
@@ -35,7 +35,7 @@ public partial class InputObjectType
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -45,31 +45,31 @@ public partial class InputObjectType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
         SetTypeIdentity(typeof(InputObjectType<>));
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        Fields = OnCompleteFields(context, definition);
-        IsOneOf = definition.GetDirectives().Any(static t => t.IsOneOf());
+        Fields = OnCompleteFields(context, configuration);
+        IsOneOf = configuration.GetDirectives().Any(static t => t.IsOneOf());
 
-        _createInstance = OnCompleteCreateInstance(context, definition);
-        _getFieldValues = OnCompleteGetFieldValues(context, definition);
+        _createInstance = OnCompleteCreateInstance(context, configuration);
+        _getFieldValues = OnCompleteGetFieldValues(context, configuration);
     }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -79,9 +79,9 @@ public partial class InputObjectType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnMakeExecutable(context, definition);
+        base.OnMakeExecutable(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -91,9 +91,9 @@ public partial class InputObjectType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnFinalizeType(context, definition);
+        base.OnFinalizeType(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {

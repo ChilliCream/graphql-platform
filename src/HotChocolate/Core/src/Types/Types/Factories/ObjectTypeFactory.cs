@@ -12,7 +12,7 @@ internal sealed class ObjectTypeFactory
 {
     public ObjectType Create(IDescriptorContext context, ObjectTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new ObjectTypeConfiguration(
@@ -36,7 +36,7 @@ internal sealed class ObjectTypeFactory
 
     public ObjectTypeExtension Create(IDescriptorContext context, ObjectTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new ObjectTypeConfiguration(node.Name.Value)

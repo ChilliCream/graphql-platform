@@ -32,14 +32,14 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         // after all types have been initialized we will index the runtime
         // types of all interfaces.
         foreach (var interfaceTypeInfo in _typeInfos.Values
-            .Where(t => t.Definition.RuntimeType is { } rt &&
+            .Where(t => t.Configuration.RuntimeType is { } rt &&
                 rt != typeof(object) &&
-                t.Definition is InterfaceTypeConfiguration))
+                t.Configuration is InterfaceTypeConfiguration))
         {
-            if (!_allInterfaceRuntimeTypes.ContainsKey(interfaceTypeInfo.Definition.RuntimeType))
+            if (!_allInterfaceRuntimeTypes.ContainsKey(interfaceTypeInfo.Configuration.RuntimeType))
             {
                 _allInterfaceRuntimeTypes.Add(
-                    interfaceTypeInfo.Definition.RuntimeType,
+                    interfaceTypeInfo.Configuration.RuntimeType,
                     interfaceTypeInfo);
             }
         }
@@ -66,7 +66,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
                         TypeDependencyFulfilled.Completed);
 
                     typeInfo.Context.Dependencies.Add(interfaceTypeDependency);
-                    typeInfo.Definition.Interfaces.Add(interfaceTypeDependency.Type);
+                    typeInfo.Configuration.Interfaces.Add(interfaceTypeDependency.Type);
                 }
             }
         }
@@ -75,24 +75,24 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
     // defines if this type has a concrete runtime type.
     private bool IsRelevant(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeConfiguration { IsExtension: true } objectDef &&
+        if (typeInfo.Configuration is ObjectTypeConfiguration { IsExtension: true } objectDef &&
             objectDef.FieldBindingType != typeof(object))
         {
             return true;
         }
 
-        var runtimeType = typeInfo.Definition.RuntimeType;
+        var runtimeType = typeInfo.Configuration.RuntimeType;
         return runtimeType != typeof(object);
     }
 
     private Type GetRuntimeType(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeConfiguration { IsExtension: true } objectDef)
+        if (typeInfo.Configuration is ObjectTypeConfiguration { IsExtension: true } objectDef)
         {
             return objectDef.FieldBindingType ?? typeof(object);
         }
 
-        return typeInfo.Definition.RuntimeType;
+        return typeInfo.Configuration.RuntimeType;
     }
 
     public override void OnBeforeCompleteType(
@@ -160,7 +160,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
             if (definition is InterfaceTypeConfiguration interfaceDef)
             {
-                foreach (var field in ((InterfaceTypeConfiguration)typeInfo.Definition).Fields)
+                foreach (var field in ((InterfaceTypeConfiguration)typeInfo.Configuration).Fields)
                 {
                     if (_completedFields.Add(field.Name))
                     {
@@ -198,20 +198,14 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private readonly struct TypeInfo
+    private readonly struct TypeInfo(
+        ITypeDiscoveryContext context,
+        IComplexOutputTypeConfiguration configuration)
     {
-        public TypeInfo(
-            ITypeDiscoveryContext context,
-            IComplexOutputTypeConfiguration definition)
-        {
-            Context = context;
-            Definition = definition;
-        }
+        public ITypeDiscoveryContext Context { get; } = context;
 
-        public ITypeDiscoveryContext Context { get; }
+        public IComplexOutputTypeConfiguration Configuration { get; } = configuration;
 
-        public IComplexOutputTypeConfiguration Definition { get; }
-
-        public override string ToString() => Definition.Name;
+        public override string ToString() => Configuration.Name;
     }
 }

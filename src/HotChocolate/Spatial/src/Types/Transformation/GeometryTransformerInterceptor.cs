@@ -112,7 +112,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
                     .Description(Transformation_Argument_Crs_Description);
 
                 field.Arguments.Add(argument.CreateConfiguration());
-                field.MiddlewareDefinitions.Insert(0,
+                field.MiddlewareConfigurations.Insert(0,
                     new(FieldClassMiddlewareFactory.Create<GeometryTransformationMiddleware>(
                         (typeof(IGeometryTransformerFactory), convention.TransformerFactory),
                         (typeof(int), convention.DefaultSrid))));

@@ -12,7 +12,7 @@ internal sealed class InputObjectTypeFactory
         IDescriptorContext context,
         InputObjectTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new InputObjectTypeConfiguration(
@@ -31,7 +31,7 @@ internal sealed class InputObjectTypeFactory
 
     public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new InputObjectTypeConfiguration(node.Name.Value)

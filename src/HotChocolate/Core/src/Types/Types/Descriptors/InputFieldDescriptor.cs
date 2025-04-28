@@ -59,7 +59,7 @@ public class InputFieldDescriptor
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(InputFieldConfiguration definition)
+    protected override void OnCreateConfiguration(InputFieldConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -72,7 +72,7 @@ public class InputFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

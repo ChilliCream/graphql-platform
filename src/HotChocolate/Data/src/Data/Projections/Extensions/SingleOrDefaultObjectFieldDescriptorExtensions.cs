@@ -30,7 +30,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
         FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);
 
-        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
 
         descriptor
             .Extend()
@@ -81,8 +81,8 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
     {
         var middlewareType = middlewareDefinition.MakeGenericType(type);
         var middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] =
             new(middleware, key: WellKnownMiddleware.SingleOrDefault);
     }
 }

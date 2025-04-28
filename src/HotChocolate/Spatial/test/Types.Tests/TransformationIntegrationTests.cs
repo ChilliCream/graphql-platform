@@ -654,7 +654,7 @@ public class TransformationIntegrationTests
                 {
                     if (field.Name.EqualsOrdinal("test"))
                     {
-                        field.MiddlewareDefinitions.Insert(0,
+                        field.MiddlewareConfigurations.Insert(0,
                             new(next => async context =>
                             {
                                 await next(context);

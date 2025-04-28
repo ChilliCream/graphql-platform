@@ -5,10 +5,10 @@ namespace HotChocolate.ApolloFederation.Types;
 /// <summary>
 /// A reference resolver definition.
 /// </summary>
-public readonly struct ReferenceResolverDefinition
+public sealed class ReferenceResolverConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ReferenceResolverDefinition"/>.
+    /// Initializes a new instance of <see cref="ReferenceResolverConfiguration"/>.
     /// </summary>
     /// <param name="resolver">
     /// The field resolver.
@@ -19,13 +19,13 @@ public readonly struct ReferenceResolverDefinition
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="resolver"/> is <c>null</c>.
     /// </exception>
-    public ReferenceResolverDefinition(
+    public ReferenceResolverConfiguration(
         FieldResolverDelegate resolver,
-        IReadOnlyList<string[]>? required = default)
+        IReadOnlyList<string[]>? required = null)
     {
         ArgumentNullException.ThrowIfNull(resolver);
         Resolver = resolver;
-        Required = required ?? Array.Empty<string[]>();
+        Required = required ?? [];
     }
 
     /// <summary>

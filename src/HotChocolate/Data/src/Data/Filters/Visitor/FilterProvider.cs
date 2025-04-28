@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class FilterProvider<TContext>
-    : Convention<FilterProviderDefinition>
+    : Convention<FilterProviderConfiguration>
     , IFilterProvider
     , IFilterProviderConvention
     where TContext : IFilterVisitorContext
@@ -33,13 +33,13 @@ public abstract class FilterProvider<TContext>
     public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
-    internal new FilterProviderDefinition? Definition => base.Configuration;
+    internal new FilterProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
     /// <inheritdoc />
-    protected override FilterProviderDefinition CreateConfiguration(IConventionContext context)
+    protected override FilterProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -70,7 +70,7 @@ public abstract class FilterProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.Handlers.Count == 0)
         {
             throw FilterProvider_NoHandlersConfigured(this);
         }
@@ -94,7 +94,7 @@ public abstract class FilterProvider<TContext>
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
-        foreach (var (type, instance) in Definition.Handlers)
+        foreach (var (type, instance) in Configuration.Handlers)
         {
             if (instance is IFilterFieldHandler<TContext> casted)
             {

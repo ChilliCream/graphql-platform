@@ -30,15 +30,15 @@ public class FilterInputType
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = FilterInputTypeDescriptor
                     .FromSchemaType(context.DescriptorContext, GetType(), context.Scope);
                 _configure!(descriptor);
-                Definition = descriptor.CreateConfiguration();
+                Configuration = descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -48,10 +48,10 @@ public class FilterInputType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        if (definition is FilterInputTypeConfiguration { EntityType: { }, } filterDefinition)
+        base.OnRegisterDependencies(context, configuration);
+        if (configuration is FilterInputTypeConfiguration { EntityType: { }, } filterDefinition)
         {
             SetTypeIdentity(typeof(FilterInputType<>)
                 .MakeGenericType(filterDefinition.EntityType));
@@ -64,11 +64,11 @@ public class FilterInputType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        if (definition is FilterInputTypeConfiguration ft &&
+        if (configuration is FilterInputTypeConfiguration ft &&
             ft.EntityType is { })
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);

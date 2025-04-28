@@ -35,7 +35,7 @@ public class EnumTypeDescriptor
     protected ICollection<EnumValueDescriptor> Values { get; } =
         new List<EnumValueDescriptor>();
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         EnumTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
@@ -59,7 +59,7 @@ public class EnumTypeDescriptor
             definition.Values.Add(value);
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

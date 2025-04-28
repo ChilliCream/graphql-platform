@@ -62,7 +62,7 @@ public class DirectiveArgumentDescriptor
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(DirectiveArgumentConfiguration definition)
+    protected override void OnCreateConfiguration(DirectiveArgumentConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -72,7 +72,7 @@ public class DirectiveArgumentDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

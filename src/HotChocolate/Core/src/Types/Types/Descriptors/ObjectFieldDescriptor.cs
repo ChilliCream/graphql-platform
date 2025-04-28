@@ -136,7 +136,7 @@ public class ObjectFieldDescriptor
     protected internal override ObjectFieldConfiguration Configuration { get; protected set; } = new();
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(ObjectFieldConfiguration definition)
+    protected override void OnCreateConfiguration(ObjectFieldConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -148,7 +148,7 @@ public class ObjectFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         CompleteArguments(definition);
 
@@ -444,7 +444,7 @@ public class ObjectFieldDescriptor
             throw new ArgumentNullException(nameof(middleware));
         }
 
-        Configuration.MiddlewareDefinitions.Add(new(middleware));
+        Configuration.MiddlewareConfigurations.Add(new(middleware));
         return this;
     }
 

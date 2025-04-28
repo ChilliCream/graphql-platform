@@ -17,7 +17,7 @@ public class ScalarTypeDescriptor
 
     protected internal override ScalarTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(ScalarTypeConfiguration definition)
+    protected override void OnCreateConfiguration(ScalarTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -31,7 +31,7 @@ public class ScalarTypeDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

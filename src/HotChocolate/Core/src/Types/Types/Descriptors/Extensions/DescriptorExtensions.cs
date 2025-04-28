@@ -30,7 +30,7 @@ public static class DescriptorExtensions
         IDescriptorContext context)
         => EnumValueDescriptor.From(context, definition);
 
-    public static T ToDefinition<T>(this IDescriptor<T> descriptor) where T : TypeSystemConfiguration
+    public static T ToConfiguration<T>(this IDescriptor<T> descriptor) where T : TypeSystemConfiguration
         => descriptor is DescriptorBase<T> desc
             ? desc.CreateConfiguration()
             : throw new NotSupportedException("The specified descriptor is not supported.");

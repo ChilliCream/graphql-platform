@@ -54,7 +54,7 @@ public class InputObjectTypeDescriptor
 
     protected ICollection<InputFieldDescriptor> Fields => _fields;
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         InputObjectTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
@@ -68,7 +68,7 @@ public class InputObjectTypeDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        var fields = TypeMemHelper.RentInputFieldDefinitionMap();
+        var fields = TypeMemHelper.RentInputFieldConfigurationMap();
         var handledMembers = TypeMemHelper.RentMemberSet();
 
         foreach (var fieldDescriptor in _fields)
@@ -94,7 +94,7 @@ public class InputObjectTypeDescriptor
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

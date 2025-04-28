@@ -369,7 +369,7 @@ public partial class SchemaBuilder
             LazySchema lazySchema,
             TypeRegistry typeRegistry)
         {
-            var definition = CreateSchemaDefinition(builder, context, typeRegistry);
+            var definition = CreateSchemaConfiguration(builder, context, typeRegistry);
             context.TypeInterceptor.OnBeforeRegisterSchemaTypes(context, definition);
 
             var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
@@ -394,7 +394,7 @@ public partial class SchemaBuilder
             return schema;
         }
 
-        private static SchemaTypesConfiguration CreateSchemaDefinition(
+        private static SchemaTypesConfiguration CreateSchemaConfiguration(
             SchemaBuilder builder,
             IDescriptorContext context,
             TypeRegistry typeRegistry)

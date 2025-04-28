@@ -43,14 +43,14 @@ public class SchemaTypeDescriptor
     public ISchemaTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Configuration.GetLegacyDefinition().AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.GetLegacyConfiguration().AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public ISchemaTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Configuration.GetLegacyDefinition().AddDirective(new T(), Context.TypeInspector);
+        Configuration.GetLegacyConfiguration().AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
@@ -58,7 +58,7 @@ public class SchemaTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Configuration.GetLegacyDefinition().AddDirective(name, arguments);
+        Configuration.GetLegacyConfiguration().AddDirective(name, arguments);
         return this;
     }
 

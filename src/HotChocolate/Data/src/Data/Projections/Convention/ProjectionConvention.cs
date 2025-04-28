@@ -26,7 +26,7 @@ public class ProjectionConvention
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionConventionDefinition? Definition => base.Configuration;
+    internal new ProjectionConventionDefinition? Configuration => base.Configuration;
 
     protected override ProjectionConventionDefinition CreateConfiguration(
         IConventionContext context)
@@ -44,7 +44,7 @@ public class ProjectionConvention
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IProjectionConventionDescriptor descriptor)
@@ -53,26 +53,26 @@ public class ProjectionConvention
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition?.Provider is null)
+        if (Configuration?.Provider is null)
         {
-            throw ProjectionConvention_NoProviderFound(GetType(), Definition?.Scope);
+            throw ProjectionConvention_NoProviderFound(GetType(), Configuration?.Scope);
         }
 
-        if (Definition.ProviderInstance is null)
+        if (Configuration.ProviderInstance is null)
         {
             _provider =
-                (IProjectionProvider)GetServiceOrCreateInstance(context.Services, Definition.Provider) ??
-                throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
+                (IProjectionProvider)GetServiceOrCreateInstance(context.Services, Configuration.Provider) ??
+                throw ProjectionConvention_NoProviderFound(GetType(), Configuration.Scope);
         }
         else
         {
-            _provider = Definition.ProviderInstance;
+            _provider = Configuration.ProviderInstance;
         }
 
         if (_provider is IProjectionProviderConvention init)
         {
             var extensions =
-                CollectExtensions(context.Services, Definition);
+                CollectExtensions(context.Services, Configuration);
             init.Initialize(context);
             MergeExtensions(context, init, extensions);
             init.Complete(context);

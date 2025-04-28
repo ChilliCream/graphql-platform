@@ -10,7 +10,7 @@ internal sealed class UnionTypeFactory
 {
     public UnionType Create(IDescriptorContext context, UnionTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new UnionTypeConfiguration(
@@ -32,7 +32,7 @@ internal sealed class UnionTypeFactory
 
     public UnionTypeExtension Create(IDescriptorContext context, UnionTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new UnionTypeConfiguration(node.Name.Value);

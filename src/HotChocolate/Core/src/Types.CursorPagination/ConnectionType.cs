@@ -39,18 +39,18 @@ internal sealed class ConnectionType
                 TypeContext.Output,
                 factory: _ => new EdgeType(connectionName, nodeType));
 
-        Definition = CreateTypeDefinition(includeTotalCount, includeNodesField, edgesType);
-        Definition.Name = NameHelper.CreateConnectionName(connectionName);
-        Definition.Dependencies.Add(new(nodeType));
-        Definition.Tasks.Add(
+        Configuration = CreateConfiguration(includeTotalCount, includeNodesField, edgesType);
+        Configuration.Name = NameHelper.CreateConnectionName(connectionName);
+        Configuration.Dependencies.Add(new(nodeType));
+        Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeCompletion));
 
         if (includeNodesField)
         {
-            Definition.Tasks.Add(
+            Configuration.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask(
                     (c, d) =>
                     {
@@ -60,7 +60,7 @@ internal sealed class ConnectionType
                             $"[{c.GetType<IType>(nodeType).Print()}]",
                             TypeContext.Output);
                     },
-                    Definition,
+                    Configuration,
                     ApplyConfigurationOn.BeforeNaming,
                     nodeType,
                     TypeDependencyFulfilled.Named));
@@ -83,12 +83,12 @@ internal sealed class ConnectionType
 
         // the property is set later in the configuration
         ConnectionName = default!;
-        Definition = CreateTypeDefinition(includeTotalCount, includeNodesField);
-        Definition.Dependencies.Add(new(nodeType));
-        Definition.Dependencies.Add(new(edgeType));
-        Definition.NeedsNameCompletion = true;
+        Configuration = CreateConfiguration(includeTotalCount, includeNodesField);
+        Configuration.Dependencies.Add(new(nodeType));
+        Configuration.Dependencies.Add(new(edgeType));
+        Configuration.NeedsNameCompletion = true;
 
-        Definition.Tasks.Add(
+        Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {
@@ -111,17 +111,17 @@ internal sealed class ConnectionType
                             TypeContext.Output);
                     }
                 },
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyFulfilled.Named));
-        Definition.Tasks.Add(
+        Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, _) =>
                 {
                     EdgeType = c.GetType<IEdgeType>(edgeType);
                 },
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeCompletion));
     }
 
@@ -139,18 +139,18 @@ internal sealed class ConnectionType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         context.Dependencies.Add(new(
             context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
 
-        base.OnBeforeRegisterDependencies(context, definition);
+        base.OnBeforeRegisterDependencies(context, configuration);
     }
 
-    protected override void OnBeforeCompleteType(ITypeCompletionContext context, TypeSystemConfiguration definition)
+    protected override void OnBeforeCompleteType(ITypeCompletionContext context, TypeSystemConfiguration configuration)
     {
-        Definition!.IsOfType = IsOfTypeWithRuntimeType;
-        base.OnBeforeCompleteType(context, definition);
+        Configuration!.IsOfType = IsOfTypeWithRuntimeType;
+        base.OnBeforeCompleteType(context, configuration);
     }
 
     private bool IsOfTypeWithRuntimeType(
@@ -158,7 +158,7 @@ internal sealed class ConnectionType
         object? result) =>
         result is null || RuntimeType.IsInstanceOfType(result);
 
-    private static ObjectTypeConfiguration CreateTypeDefinition(
+    private static ObjectTypeConfiguration CreateConfiguration(
         bool includeTotalCount,
         bool includeNodesField,
         TypeReference? edgesType = null)

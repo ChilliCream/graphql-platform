@@ -10,7 +10,7 @@ internal sealed class EnumTypeFactory
 {
     public EnumType Create(IDescriptorContext context, EnumTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new EnumTypeConfiguration(
@@ -29,7 +29,7 @@ internal sealed class EnumTypeFactory
 
     public EnumTypeExtension Create(IDescriptorContext context, EnumTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new EnumTypeConfiguration(node.Name.Value)

@@ -7,11 +7,9 @@ public class FilterOperationConventionDescriptor : IFilterOperationConventionDes
         Configuration.Id = operationId;
     }
 
-    protected FilterOperationConventionConfiguration Configuration { get; } =
-        new FilterOperationConventionConfiguration();
+    protected FilterOperationConventionConfiguration Configuration { get; } = new();
 
-    public FilterOperationConventionConfiguration CreateDefinition() =>
-        Configuration;
+    public FilterOperationConventionConfiguration CreateConfiguration() => Configuration;
 
     /// <inheritdoc />
     public IFilterOperationConventionDescriptor Name(string name)

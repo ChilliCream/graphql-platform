@@ -27,7 +27,7 @@ internal sealed class DocumentStoreParameterExpressionBuilder()
                 Create(typeof(ToListMiddleware<>).MakeGenericType(entityType)),
                 key: WellKnownMiddleware.ToList);
 
-            definition.MiddlewareDefinitions.Insert(0, middleware);
+            definition.MiddlewareConfigurations.Insert(0, middleware);
         }
     }
 

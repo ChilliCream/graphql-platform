@@ -8,9 +8,9 @@ public class FilterProviderDescriptor<TContext>
     {
     }
 
-    protected FilterProviderDefinition Configuration { get; } = new();
+    protected FilterProviderConfiguration Configuration { get; } = new();
 
-    public FilterProviderDefinition CreateConfiguration() => Configuration;
+    public FilterProviderConfiguration CreateConfiguration() => Configuration;
 
     public IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
         where TFieldHandler : IFilterFieldHandler<TContext>

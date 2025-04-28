@@ -45,7 +45,7 @@ public class ProjectionProviderExtension
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IProjectionProviderDescriptor descriptor) { }
@@ -54,7 +54,7 @@ public class ProjectionProviderExtension
     {
         if (Configuration is not null &&
             convention is ProjectionProvider projectionProvider &&
-            projectionProvider.Definition is { } target)
+            projectionProvider.Configuration is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more

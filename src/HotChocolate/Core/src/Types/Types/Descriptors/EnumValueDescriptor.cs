@@ -34,7 +34,7 @@ public class EnumValueDescriptor
 
     protected internal override EnumValueConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(EnumValueConfiguration definition)
+    protected override void OnCreateConfiguration(EnumValueConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -57,7 +57,7 @@ public class EnumValueDescriptor
             Configuration.Name = Context.Naming.GetEnumValueName(Configuration.RuntimeValue!);
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

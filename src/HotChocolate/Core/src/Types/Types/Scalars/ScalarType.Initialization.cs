@@ -46,9 +46,9 @@ public abstract partial class ScalarType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ScalarTypeConfiguration definition)
+        ScalarTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
         if (SpecifiedBy is not null)
         {
@@ -57,9 +57,9 @@ public abstract partial class ScalarType
             context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
         }
 
-        if (definition.HasDirectives)
+        if (configuration.HasDirectives)
         {
-            foreach (var directive in definition.Directives)
+            foreach (var directive in configuration.Directives)
             {
                 context.Dependencies.Add(new TypeDependency(directive.Type, TypeDependencyFulfilled.Completed));
             }
@@ -68,15 +68,15 @@ public abstract partial class ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ScalarTypeConfiguration definition)
+        ScalarTypeConfiguration configuration)
     {
         _converter = context.DescriptorContext.TypeConverter;
-        var directiveDefinitions = definition.GetDirectives();
+        var directiveDefinitions = configuration.GetDirectives();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
 
-        if(definition.SpecifiedBy is not null)
+        if(configuration.SpecifiedBy is not null)
         {
-            SpecifiedBy = definition.SpecifiedBy;
+            SpecifiedBy = configuration.SpecifiedBy;
         }
     }
 }

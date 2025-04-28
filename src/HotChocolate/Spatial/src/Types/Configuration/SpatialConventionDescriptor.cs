@@ -3,28 +3,25 @@ using ProjNet.CoordinateSystems;
 namespace HotChocolate.Types.Spatial.Configuration;
 
 /// <summary>
-/// A conventions that configures the behavior of spatial types
+/// A convention that configures the behavior of spatial types
 /// </summary>
 public class SpatialConventionDescriptor : ISpatialConventionDescriptor
 {
     /// <summary>
     /// The definition of this descriptor
     /// </summary>
-    protected SpatialConventionDefinition Definition { get; } = new();
+    protected SpatialConventionDefinition Configuration { get; } = new();
 
     /// <summary>
     /// Creates the definition of this descriptor
     /// </summary>
     /// <returns></returns>
-    public SpatialConventionDefinition CreateDefinition()
-    {
-        return Definition;
-    }
+    public SpatialConventionDefinition CreateConfiguration() => Configuration;
 
     /// <inheritdoc />
     public ISpatialConventionDescriptor DefaultSrid(int srid)
     {
-        Definition.DefaultSrid = srid;
+        Configuration.DefaultSrid = srid;
         return this;
     }
 
@@ -33,7 +30,7 @@ public class SpatialConventionDescriptor : ISpatialConventionDescriptor
         int srid,
         CoordinateSystem coordinateSystem)
     {
-        Definition.CoordinateSystems[srid] = coordinateSystem;
+        Configuration.CoordinateSystems[srid] = coordinateSystem;
         return this;
     }
 

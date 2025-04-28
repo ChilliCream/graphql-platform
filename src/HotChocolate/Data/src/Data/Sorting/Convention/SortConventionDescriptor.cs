@@ -19,12 +19,12 @@ public class SortConventionDescriptor : ISortConventionDescriptor
 
     protected SortConventionDefinition Definition { get; } = new();
 
-    public SortConventionDefinition CreateDefinition()
+    public SortConventionDefinition CreateConfiguration()
     {
         // collect all operation configurations and add them to the convention definition.
         foreach (var operation in _operations.Values)
         {
-            Definition.Operations.Add(operation.CreateDefinition());
+            Definition.Operations.Add(operation.CreateConfiguration());
         }
 
         return Definition;

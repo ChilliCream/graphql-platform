@@ -10,7 +10,7 @@ public sealed class OrField
     , IOrField
 {
     internal OrField(IDescriptorContext context, int index, string? scope)
-        : base(CreateDefinition(context, scope), index)
+        : base(CreateConfiguration(context, scope), index)
     {
     }
 
@@ -31,7 +31,7 @@ public sealed class OrField
         base.OnCompleteField(context, declaringMember, definition);
     }
 
-    private static FilterOperationFieldConfiguration CreateDefinition(
+    private static FilterOperationFieldConfiguration CreateConfiguration(
         IDescriptorContext context,
         string? scope) =>
         FilterOperationFieldDescriptor

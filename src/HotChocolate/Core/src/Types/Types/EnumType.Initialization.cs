@@ -49,7 +49,7 @@ public partial class EnumType
     /// Returns the newly created enum type.
     /// </returns>
     public static EnumType CreateUnsafe(EnumTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <summary>
     /// Override this in order to specify the type configuration explicitly.
@@ -64,7 +64,7 @@ public partial class EnumType
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = EnumTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
@@ -73,7 +73,7 @@ public partial class EnumType
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -84,26 +84,26 @@ public partial class EnumType
     /// <inheritdoc />
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        EnumTypeConfiguration definition)
+        EnumTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
         SetTypeIdentity(typeof(EnumType<>));
     }
 
     /// <inheritdoc />
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        EnumTypeConfiguration definition)
+        EnumTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        var builder = ImmutableArray.CreateBuilder<EnumValue>(definition.Values.Count);
-        var nameLookupBuilder = new Dictionary<string, EnumValue>(definition.NameComparer);
-        var valueLookupBuilder = new Dictionary<object, EnumValue>(definition.ValueComparer);
+        var builder = ImmutableArray.CreateBuilder<EnumValue>(configuration.Values.Count);
+        var nameLookupBuilder = new Dictionary<string, EnumValue>(configuration.NameComparer);
+        var valueLookupBuilder = new Dictionary<object, EnumValue>(configuration.ValueComparer);
         _naming = context.DescriptorContext.Naming;
 
-        foreach (var enumValueDefinition in definition.Values)
+        foreach (var enumValueDefinition in configuration.Values)
         {
             if (enumValueDefinition.Ignore)
             {
@@ -129,15 +129,15 @@ public partial class EnumType
         }
 
         _values = builder.ToImmutable();
-        _nameLookup = nameLookupBuilder.ToFrozenDictionary(definition.NameComparer);
-        _valueLookup = valueLookupBuilder.ToFrozenDictionary(definition.ValueComparer);
+        _nameLookup = nameLookupBuilder.ToFrozenDictionary(configuration.NameComparer);
+        _valueLookup = valueLookupBuilder.ToFrozenDictionary(configuration.ValueComparer);
     }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        EnumTypeConfiguration definition)
+        EnumTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
         foreach (var value in _values.OfType<IEnumValueCompletion>())
         {

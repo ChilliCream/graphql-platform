@@ -51,7 +51,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
 
     public T CreateConfiguration()
     {
-        OnCreateDefinition(Configuration);
+        OnCreateConfiguration(Configuration);
 
         if (Configuration.HasTasks)
         {
@@ -75,7 +75,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         return Configuration;
     }
 
-    protected virtual void OnCreateDefinition(T definition)
+    protected virtual void OnCreateConfiguration(T definition)
     {
     }
 

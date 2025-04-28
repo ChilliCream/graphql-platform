@@ -145,7 +145,7 @@ internal sealed class CacheControlTypeInterceptor(
     /// </summary>
     internal static bool IsDataResolver(ObjectFieldConfiguration field)
     {
-        if (field.PureResolver is not null && field.MiddlewareDefinitions.Count == 0)
+        if (field.PureResolver is not null && field.MiddlewareConfigurations.Count == 0)
         {
             return false;
         }

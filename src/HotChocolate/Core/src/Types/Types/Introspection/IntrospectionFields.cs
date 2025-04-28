@@ -40,7 +40,7 @@ public static class IntrospectionFields
         static ISchema Resolve(IResolverContext ctx)
             => ctx.Schema;
 
-        return CreateDefinition(descriptor);
+        return CreateConfiguration(descriptor);
     }
 
     internal static ObjectFieldConfiguration CreateTypeField(IDescriptorContext context)
@@ -61,7 +61,7 @@ public static class IntrospectionFields
             return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
         }
 
-        return CreateDefinition(descriptor);
+        return CreateConfiguration(descriptor);
     }
 
     internal static ObjectFieldConfiguration CreateTypeNameField(IDescriptorContext context)
@@ -76,10 +76,10 @@ public static class IntrospectionFields
         definition.PureResolver = _typeNameResolver;
         definition.Flags |= FieldFlags.TypeNameField;
 
-        return CreateDefinition(descriptor);
+        return CreateConfiguration(descriptor);
     }
 
-    private static ObjectFieldConfiguration CreateDefinition(ObjectFieldDescriptor descriptor)
+    private static ObjectFieldConfiguration CreateConfiguration(ObjectFieldDescriptor descriptor)
     {
         var definition = descriptor.CreateConfiguration();
         definition.IsIntrospectionField = true;

@@ -419,11 +419,11 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         var insertPos = 0;
 
         // we try to locate the last auth middleware and insert after it.
-        if (fieldDef.MiddlewareDefinitions.Count > 0)
+        if (fieldDef.MiddlewareConfigurations.Count > 0)
         {
-            for (var i = 0; i < fieldDef.MiddlewareDefinitions.Count; i++)
+            for (var i = 0; i < fieldDef.MiddlewareConfigurations.Count; i++)
             {
-                if (fieldDef.MiddlewareDefinitions[i].Key == WellKnownMiddleware.Authorization)
+                if (fieldDef.MiddlewareConfigurations[i].Key == WellKnownMiddleware.Authorization)
                 {
                     insertPos = i + 1;
                 }
@@ -463,7 +463,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                fieldDef.MiddlewareDefinitions.Insert(
+                fieldDef.MiddlewareConfigurations.Insert(
                     insertPos++,
                     CreateAuthMiddleware(
                         authDir));
@@ -497,7 +497,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             return (DirectiveCollection)directives;
         }
 
-        var typeDef = type.Definition!;
+        var typeDef = type.Configuration!;
         var directiveDefs = typeDef.GetDirectives();
 
         CompleteDirectiveTypes(directiveDefs);
@@ -575,7 +575,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 var registration = GetTypeRegistration(current);
                 register(registration.TypeReference);
 
-                var typeDef = ((InterfaceType)registration.Type).Definition!;
+                var typeDef = ((InterfaceType)registration.Type).Configuration!;
 
                 if (typeDef.HasInterfaces)
                 {

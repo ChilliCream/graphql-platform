@@ -52,7 +52,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
     /// Returns the newly created union type extension.
     /// </returns>
     public static UnionTypeExtension CreateUnsafe(UnionTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;
@@ -61,14 +61,14 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = UnionTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -80,16 +80,16 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        UnionTypeConfiguration definition)
+        UnionTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        foreach (var typeRef in definition.Types)
+        foreach (var typeRef in configuration.Types)
         {
             context.Dependencies.Add(new(typeRef));
         }
 
-        TypeDependencyHelper.CollectDirectiveDependencies(definition, context.Dependencies);
+        TypeDependencyHelper.CollectDirectiveDependencies(configuration, context.Dependencies);
     }
 
     protected override void Merge(
@@ -104,21 +104,21 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
             unionType.AssertMutable();
 
             TypeExtensionHelper.MergeContextData(
-                Definition!,
-                unionType.Definition!);
+                Configuration!,
+                unionType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Definition!.Directives,
-                unionType.Definition!.Directives);
+                Configuration!.Directives,
+                unionType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeTypes(
-                Definition!.Types,
-                unionType.Definition!.Types);
+                Configuration!.Types,
+                unionType.Configuration!.Types);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Tasks,
-                unionType.Definition!.Tasks);
+                Configuration!.Tasks,
+                unionType.Configuration!.Tasks);
         }
         else
         {

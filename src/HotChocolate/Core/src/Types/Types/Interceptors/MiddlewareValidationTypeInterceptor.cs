@@ -26,12 +26,12 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         {
             foreach (var field in objectTypeDef.Fields)
             {
-                if (field.MiddlewareDefinitions.Count > 1)
+                if (field.MiddlewareConfigurations.Count > 1)
                 {
                     ValidatePipeline(
                         completionContext.Type,
                         new SchemaCoordinate(completionContext.Type.Name, field.Name),
-                        field.MiddlewareDefinitions);
+                        field.MiddlewareConfigurations);
                 }
             }
         }

@@ -45,7 +45,7 @@ public partial class DirectiveType
     /// Returns the newly created directive type.
     /// </returns>
     public static DirectiveType CreateUnsafe(DirectiveTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <summary>
     /// Gets the runtime type.

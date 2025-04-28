@@ -57,7 +57,7 @@ public class SortInputTypeDescriptor
 
     Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         SortInputTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);

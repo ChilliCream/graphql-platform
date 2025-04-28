@@ -24,7 +24,7 @@ public partial class ObjectType
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = ObjectTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
@@ -39,7 +39,7 @@ public partial class ObjectType
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -49,33 +49,33 @@ public partial class ObjectType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
         SetTypeIdentity(typeof(ObjectType<>));
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        if (ValidateFields(context, definition))
+        if (ValidateFields(context, configuration))
         {
-            _isOfType = definition.IsOfType;
-            _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
-            Fields = OnCompleteFields(context, definition);
+            _isOfType = configuration.IsOfType;
+            _implements = CompleteInterfaces(context, configuration.GetInterfaces(), this);
+            Fields = OnCompleteFields(context, configuration);
             CompleteTypeResolver(context);
         }
     }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -85,9 +85,9 @@ public partial class ObjectType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
-        base.OnMakeExecutable(context, definition);
+        base.OnMakeExecutable(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -97,9 +97,9 @@ public partial class ObjectType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
-        base.OnFinalizeType(context, definition);
+        base.OnFinalizeType(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -111,12 +111,12 @@ public partial class ObjectType
         ITypeCompletionContext context,
         ObjectTypeConfiguration definition)
     {
-        var interfaceFields = TypeMemHelper.RentInterfaceFieldDefinitionMap();
+        var interfaceFields = TypeMemHelper.RentInterfaceFieldConfigurationMap();
         var processed = TypeMemHelper.RentNameSet();
 
         foreach (var interfaceType in _implements)
         {
-            foreach (var field in interfaceType.Definition!.Fields)
+            foreach (var field in interfaceType.Configuration!.Fields)
             {
                 if (interfaceFields.ContainsKey(field.Name))
                 {

@@ -516,7 +516,7 @@ internal static class ThrowHelper
     public static InvalidOperationException NodeResolver_ArgumentTypeMissing()
         => new(ThrowHelper_NodeResolver_ArgumentTypeMissing);
 
-    public static InvalidOperationException NodeResolver_ObjNoDefinition()
+    public static InvalidOperationException NodeResolver_ObjNoConfig()
         => new(ThrowHelper_NodeResolver_ObjNoDefinition);
 
     public static SchemaException RelayIdFieldHelpers_NoFieldType(

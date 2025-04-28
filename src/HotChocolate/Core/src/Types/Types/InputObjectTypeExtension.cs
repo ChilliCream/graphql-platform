@@ -51,7 +51,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
     /// Returns the newly created input object type.
     /// </returns>
     public static InputObjectTypeExtension CreateUnsafe(InputObjectTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;
@@ -60,7 +60,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = InputObjectTypeDescriptor.New(
                     context.DescriptorContext);
@@ -68,7 +68,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -80,10 +80,10 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
     }
 
     protected override void Merge(
@@ -98,22 +98,22 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
             inputObjectType.AssertMutable();
 
             TypeExtensionHelper.MergeContextData(
-                Definition!,
-                inputObjectType.Definition!);
+                Configuration!,
+                inputObjectType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Definition!.Directives!,
-                inputObjectType.Definition!.Directives);
+                Configuration!.Directives!,
+                inputObjectType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeInputObjectFields(
                 context,
-                Definition!.Fields,
-                inputObjectType.Definition!.Fields);
+                Configuration!.Fields,
+                inputObjectType.Configuration!.Fields);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Tasks,
-                inputObjectType.Definition!.Tasks);
+                Configuration!.Tasks,
+                inputObjectType.Configuration!.Tasks);
         }
         else
         {

@@ -56,7 +56,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
     /// Returns the newly created object type.
     /// </returns>
     public static ObjectTypeExtension CreateUnsafe(ObjectTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
@@ -65,14 +65,14 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = ObjectTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -84,10 +84,10 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
     }
 
     protected override void Merge(
@@ -102,10 +102,10 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
             objectType.AssertMutable();
 
             ApplyGlobalFieldIgnores(
-                Definition!,
-                objectType.Definition!);
+                Configuration!,
+                objectType.Configuration!);
 
-            Definition!.MergeInto(objectType.Definition!);
+            Configuration!.MergeInto(objectType.Configuration!);
         }
         else
         {

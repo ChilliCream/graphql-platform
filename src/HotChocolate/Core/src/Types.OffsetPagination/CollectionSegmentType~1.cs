@@ -18,15 +18,15 @@ internal class CollectionSegmentType : ObjectType, IPageType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        Definition = CreateTypeDefinition(withTotalCount);
+        Configuration = CreateConfiguration(withTotalCount);
 
         if (collectionSegmentName is not null)
         {
-            Definition.Name = collectionSegmentName + "CollectionSegment";
+            Configuration.Name = collectionSegmentName + "CollectionSegment";
         }
         else
         {
-            Definition.Tasks.Add(
+            Configuration.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask(
                     (c, d) =>
                     {
@@ -34,13 +34,13 @@ internal class CollectionSegmentType : ObjectType, IPageType
                         var definition = (ObjectTypeConfiguration)d;
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
-                    Definition,
+                    Configuration,
                     ApplyConfigurationOn.BeforeNaming,
                     nodeType,
                     TypeDependencyFulfilled.Named));
         }
 
-        Definition.Tasks.Add(
+        Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {
@@ -50,12 +50,12 @@ internal class CollectionSegmentType : ObjectType, IPageType
                     var nodes = definition.Fields.First(IsItemsField);
                     nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyFulfilled.Named));
 
-        Definition.Dependencies.Add(new(nodeType));
+        Configuration.Dependencies.Add(new(nodeType));
     }
 
     /// <summary>
@@ -65,14 +65,14 @@ internal class CollectionSegmentType : ObjectType, IPageType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
         var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
         context.Dependencies.Add(new(typeRef));
-        base.OnBeforeRegisterDependencies(context, definition);
+        base.OnBeforeRegisterDependencies(context, configuration);
     }
 
-    private static ObjectTypeConfiguration CreateTypeDefinition(bool withTotalCount)
+    private static ObjectTypeConfiguration CreateConfiguration(bool withTotalCount)
     {
         var definition = new ObjectTypeConfiguration
         {

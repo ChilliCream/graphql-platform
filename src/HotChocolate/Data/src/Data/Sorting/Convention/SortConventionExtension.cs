@@ -38,7 +38,7 @@ public class SortConventionExtension
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected internal new void Initialize(IConventionContext context)
@@ -54,55 +54,55 @@ public class SortConventionExtension
     {
         if (convention is SortConvention sortConvention &&
             Configuration is not null &&
-            sortConvention.Definition is not null)
+            sortConvention.Configuration is not null)
         {
             ExtensionHelpers.MergeDictionary(
                 Configuration.Bindings,
-                sortConvention.Definition.Bindings);
+                sortConvention.Configuration.Bindings);
 
             ExtensionHelpers.MergeListDictionary(
                 Configuration.Configurations,
-                sortConvention.Definition.Configurations);
+                sortConvention.Configuration.Configurations);
 
             ExtensionHelpers.MergeListDictionary(
                 Configuration.EnumConfigurations,
-                sortConvention.Definition.EnumConfigurations);
+                sortConvention.Configuration.EnumConfigurations);
 
             for (var i = 0; i < Configuration.Operations.Count; i++)
             {
-                sortConvention.Definition.Operations.Add(Configuration.Operations[i]);
+                sortConvention.Configuration.Operations.Add(Configuration.Operations[i]);
             }
 
             for (var i = 0; i < Configuration.ProviderExtensions.Count; i++)
             {
-                sortConvention.Definition.ProviderExtensions.Add(
+                sortConvention.Configuration.ProviderExtensions.Add(
                     Configuration.ProviderExtensions[i]);
             }
 
             for (var i = 0; i < Configuration.ProviderExtensionsTypes.Count; i++)
             {
-                sortConvention.Definition.ProviderExtensionsTypes.Add(
+                sortConvention.Configuration.ProviderExtensionsTypes.Add(
                     Configuration.ProviderExtensionsTypes[i]);
             }
 
             if (Configuration.ArgumentName != SortConventionDefinition.DefaultArgumentName)
             {
-                sortConvention.Definition.ArgumentName = Configuration.ArgumentName;
+                sortConvention.Configuration.ArgumentName = Configuration.ArgumentName;
             }
 
             if (Configuration.Provider is not null)
             {
-                sortConvention.Definition.Provider = Configuration.Provider;
+                sortConvention.Configuration.Provider = Configuration.Provider;
             }
 
             if (Configuration.ProviderInstance is not null)
             {
-                sortConvention.Definition.ProviderInstance = Configuration.ProviderInstance;
+                sortConvention.Configuration.ProviderInstance = Configuration.ProviderInstance;
             }
 
             if (Configuration.DefaultBinding is not null)
             {
-                sortConvention.Definition.DefaultBinding = Configuration.DefaultBinding;
+                sortConvention.Configuration.DefaultBinding = Configuration.DefaultBinding;
             }
         }
     }

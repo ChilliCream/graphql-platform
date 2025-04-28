@@ -2102,7 +2102,7 @@ public class SchemaBuilderTests
     public class MockConvention : Convention<MockConventionDefinition>, IMockConvention
     {
         public bool IsExtended { get; set; }
-        public new MockConventionDefinition Definition => base.Configuration;
+        public new MockConventionDefinition Configuration => base.Configuration;
         protected override MockConventionDefinition CreateConfiguration(IConventionContext context)
         {
             return new MockConventionDefinition();
@@ -2110,7 +2110,7 @@ public class SchemaBuilderTests
 
         protected internal override void Complete(IConventionContext context)
         {
-            IsExtended = Definition.IsExtended;
+            IsExtended = Configuration.IsExtended;
             base.Complete(context);
         }
     }
@@ -2126,7 +2126,7 @@ public class SchemaBuilderTests
         {
             if (convention is MockConvention mockConvention)
             {
-                mockConvention.Definition.IsExtended = true;
+                mockConvention.Configuration.IsExtended = true;
             }
         }
     }
@@ -2182,9 +2182,9 @@ public class SchemaBuilderTests
         }
         protected override void OnCompleteName(
             ITypeCompletionContext context,
-            ObjectTypeConfiguration definition)
+            ObjectTypeConfiguration configuration)
         {
-            base.OnCompleteName(context, definition);
+            base.OnCompleteName(context, configuration);
             Context = context.DescriptorContext;
         }
     }

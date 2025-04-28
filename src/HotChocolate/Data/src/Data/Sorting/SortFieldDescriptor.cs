@@ -73,9 +73,7 @@ public class SortFieldDescriptor
         protected set => base.Configuration = value;
     }
 
-    internal InputFieldConfiguration CreateFieldDefinition() => CreateConfiguration();
-
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         SortFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
@@ -86,7 +84,7 @@ public class SortFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(configuration);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }

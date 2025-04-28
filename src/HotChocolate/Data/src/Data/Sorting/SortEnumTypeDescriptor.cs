@@ -36,7 +36,7 @@ public class SortEnumTypeDescriptor
     protected ICollection<SortEnumValueDescriptor> Values { get; } =
         new List<SortEnumValueDescriptor>();
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         SortEnumTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
@@ -61,7 +61,7 @@ public class SortEnumTypeDescriptor
             configuration.Values.Add(value);
         }
 
-        base.OnCreateDefinition(configuration);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }

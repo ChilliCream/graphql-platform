@@ -6,10 +6,10 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node definition is a mutable object that is used during type initialization
+/// The node configuration is a mutable object used during type initialization
 /// to configure object types that implement <see cref="INode"/>.
 /// </summary>
-public class NodeDefinition : TypeSystemConfiguration
+public class NodeConfiguration : TypeSystemConfiguration
 {
     /// <summary>
     /// Gets the node runtime type.

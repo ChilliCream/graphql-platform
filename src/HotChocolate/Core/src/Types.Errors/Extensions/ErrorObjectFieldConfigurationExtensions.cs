@@ -6,31 +6,31 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Provides extensions to the <see cref="ObjectFieldConfiguration"/> for the mutation convention.
 /// </summary>
-public static class ErrorObjectFieldDefinitionExtensions
+public static class ErrorObjectFieldConfigurationExtensions
 {
     /// <summary>
     /// Registers an error type with this field for the mutation convention
     /// to pick up.
     /// </summary>
-    /// <param name="fieldDefinition">The object field definition.</param>
-    /// <param name="descriptorContext">The descriptor context.</param>
+    /// <param name="configuration">The object field definition.</param>
+    /// <param name="context">The descriptor context.</param>
     /// <param name="errorType">
     /// The type of the exception, the class with factory methods or the error with an exception
     /// as the argument. See the examples in <see cref="Error"/>.
     /// </param>
     public static void AddErrorType(
-        this ObjectFieldConfiguration fieldDefinition,
-        IDescriptorContext descriptorContext,
+        this ObjectFieldConfiguration configuration,
+        IDescriptorContext context,
         Type errorType)
     {
-        if (fieldDefinition is null)
+        if (configuration is null)
         {
-            throw new ArgumentNullException(nameof(fieldDefinition));
+            throw new ArgumentNullException(nameof(configuration));
         }
 
-        if (descriptorContext is null)
+        if (context is null)
         {
-            throw new ArgumentNullException(nameof(descriptorContext));
+            throw new ArgumentNullException(nameof(context));
         }
 
         if (errorType is null)
@@ -38,28 +38,28 @@ public static class ErrorObjectFieldDefinitionExtensions
             throw new ArgumentNullException(nameof(errorType));
         }
 
-        if (!descriptorContext.ContextData.ContainsKey(ErrorConventionEnabled))
+        if (!context.ContextData.ContainsKey(ErrorConventionEnabled))
         {
             throw SchemaErrorBuilder.New()
-                .SetMessage(ErrorConventionDisabled_Message, errorType.Name, fieldDefinition.Name)
+                .SetMessage(ErrorConventionDisabled_Message, errorType.Name, configuration.Name)
                 .BuildException();
         }
 
         var definitions = ErrorFactoryCompiler.Compile(errorType);
 
-        if (!fieldDefinition.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
-            value is not List<ErrorDefinition> errorFactories)
+        if (!configuration.ContextData.TryGetValue(ErrorConfigurations, out var value) ||
+            value is not List<ErrorConfiguration> errorFactories)
         {
             errorFactories = [];
-            fieldDefinition.ContextData[ErrorDefinitions] = errorFactories;
+            configuration.ContextData[ErrorConfigurations] = errorFactories;
         }
 
         errorFactories.AddRange(definitions);
 
         foreach (var definition in definitions)
         {
-            var typeRef = descriptorContext.TypeInspector.GetTypeRef(definition.SchemaType);
-            fieldDefinition.Dependencies.Add(new TypeDependency(typeRef));
+            var typeRef = context.TypeInspector.GetTypeRef(definition.SchemaType);
+            configuration.Dependencies.Add(new TypeDependency(typeRef));
         }
     }
 }

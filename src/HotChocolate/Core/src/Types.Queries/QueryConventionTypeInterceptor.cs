@@ -83,13 +83,13 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
                         if (_typeRegistry.TryGetType(errorTypeRef, out var errorType))
                         {
-                            ((ObjectType)errorType.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)errorType.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
                     }
                 }
 
                 // collect error definitions from query field.
-                var errorDefinitions = _errorTypeHelper.GetErrorDefinitions(field);
+                var errorDefinitions = _errorTypeHelper.GetErrorConfigurations(field);
 
                 // collect error factories for middleware
                 var errorFactories = errorDefinitions.Count != 0
@@ -108,14 +108,14 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                             var errorTypeRef = TypeReference.Create(obj.Type);
                             RegisterErrorType(errorTypeRef, errorDef.SchemaType);
                             RegisterErrorType(errorTypeRef, errorDef.RuntimeType);
-                            ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
 
                         var errorSchemaTypeRef = _context.TypeInspector.GetOutputTypeRef(errorDef.SchemaType);
 
                         if (obj is null && _typeRegistry.TryGetType(errorSchemaTypeRef, out obj))
                         {
-                            ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
 
                         (typeSet ??= []).Add(errorSchemaTypeRef);
@@ -151,7 +151,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                             isRepeatable: false);
 
                     // last but not least we insert the result middleware to the query field.
-                    field.MiddlewareDefinitions.Insert(0, errorMiddleware);
+                    field.MiddlewareConfigurations.Insert(0, errorMiddleware);
                 }
             }
         }
@@ -215,7 +215,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     && interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorObject.Definition!.Interfaces.Add(typeRef);
+                    errorObject.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                 }
                 else if (possibleInterface.Type is UnionType unionType
@@ -223,7 +223,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     && unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = registeredType.TypeReference;
-                    unionType.Definition!.Types.Add(typeRef);
+                    unionType.Configuration!.Types.Add(typeRef);
                     possibleInterface.Dependencies.Add(new TypeDependency(typeRef, Completed));
                 }
             }
@@ -237,7 +237,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     && interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorInterface.Definition!.Interfaces.Add(typeRef);
+                    errorInterface.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new(typeRef, Completed));
                 }
             }

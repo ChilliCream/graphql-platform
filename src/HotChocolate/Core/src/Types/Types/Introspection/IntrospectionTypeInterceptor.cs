@@ -10,9 +10,9 @@ namespace HotChocolate.Types.Introspection;
 
 internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ObjectTypeConfiguration> _objectTypeDefinitions = [];
+    private readonly List<ObjectTypeConfiguration> _objectTypeConfigurations = [];
     private IDescriptorContext _context = default!;
-    private ObjectTypeConfiguration? _queryTypeDefinition;
+    private ObjectTypeConfiguration? _queryTypeConfiguration;
 
     internal override uint Position => uint.MaxValue - 200;
 
@@ -32,7 +32,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
     {
         if(completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
-            _objectTypeDefinitions.Add(typeDef);
+            _objectTypeConfigurations.Add(typeDef);
         }
     }
 
@@ -43,23 +43,23 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
     {
         if (operationType is OperationType.Query)
         {
-            _queryTypeDefinition = configuration;
+            _queryTypeConfiguration = configuration;
         }
     }
 
     public override void OnBeforeCompleteTypes()
     {
-        if (_queryTypeDefinition is not null)
+        if (_queryTypeConfiguration is not null)
         {
             var position = 0;
-            _queryTypeDefinition.Fields.Insert(position++, CreateSchemaField(_context));
-            _queryTypeDefinition.Fields.Insert(position++, CreateTypeField(_context));
-            _queryTypeDefinition.Fields.Insert(position, CreateTypeNameField(_context));
+            _queryTypeConfiguration.Fields.Insert(position++, CreateSchemaField(_context));
+            _queryTypeConfiguration.Fields.Insert(position++, CreateTypeField(_context));
+            _queryTypeConfiguration.Fields.Insert(position, CreateTypeNameField(_context));
         }
 
-        foreach (var typeDef in _objectTypeDefinitions)
+        foreach (var typeDef in _objectTypeConfigurations)
         {
-            if (ReferenceEquals(_queryTypeDefinition, typeDef))
+            if (ReferenceEquals(_queryTypeConfiguration, typeDef))
             {
                 continue;
             }

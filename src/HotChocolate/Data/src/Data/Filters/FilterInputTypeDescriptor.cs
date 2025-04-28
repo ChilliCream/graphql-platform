@@ -60,7 +60,7 @@ public class FilterInputTypeDescriptor
 
     Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
-    protected override void OnCreateDefinition(FilterInputTypeConfiguration configuration)
+    protected override void OnCreateConfiguration(FilterInputTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 

@@ -48,7 +48,7 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
     /// Returns the newly created enum type extension.
     /// </returns>
     public static EnumTypeExtension CreateUnsafe(EnumTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Enum;
@@ -57,14 +57,14 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = EnumTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -82,10 +82,10 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        EnumTypeConfiguration definition)
+        EnumTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
     }
 
     protected override void Merge(
@@ -100,19 +100,19 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
             enumType.AssertMutable();
 
             TypeExtensionHelper.MergeContextData(
-                Definition!,
-                enumType.Definition!);
+                Configuration!,
+                enumType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Definition!.Directives,
-                enumType.Definition!.Directives);
+                Configuration!.Directives,
+                enumType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Tasks,
-                enumType.Definition!.Tasks);
+                Configuration!.Tasks,
+                enumType.Configuration!.Tasks);
 
-            MergeValues(context, Definition!, enumType.Definition!);
+            MergeValues(context, Configuration!, enumType.Configuration!);
         }
         else
         {

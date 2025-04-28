@@ -10,7 +10,7 @@ using static HotChocolate.Properties.TypeResources;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node descriptor allows to configure a node type.
+/// The node descriptor allows configuring a node type.
 /// </summary>
 /// <typeparam name="TNode">
 /// The node runtime type.
@@ -37,16 +37,16 @@ public class NodeDescriptor<TNode>
         var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Configuration;
 
         var configuration = new OnCompleteTypeSystemConfigurationTask(
-            (c, d) => OnCompleteDefinition(c, (ObjectTypeConfiguration)d),
+            (c, d) => OnCompleteConfiguration(c, (ObjectTypeConfiguration)d),
             ownerDef,
             ApplyConfigurationOn.AfterNaming);
 
         ownerDef.Tasks.Add(configuration);
     }
 
-    private void OnCompleteDefinition(
+    private void OnCompleteConfiguration(
         ITypeCompletionContext context,
-        ObjectTypeConfiguration definition)
+        ObjectTypeConfiguration configuration)
     {
         if (Configuration.ResolverField is null)
         {
@@ -67,17 +67,13 @@ public class NodeDescriptor<TNode>
             }
         }
 
-        CompleteResolver(context, definition);
+        CompleteResolver(context, configuration);
     }
 
     protected override IObjectFieldDescriptor ConfigureNodeField()
     {
         Configuration.NodeType = typeof(TNode);
-
-        if (Configuration.IdMember is null)
-        {
-            Configuration.IdMember = Context.TypeInspector.GetNodeIdMember(typeof(TNode));
-        }
+        Configuration.IdMember ??= Context.TypeInspector.GetNodeIdMember(typeof(TNode));
 
         if (Configuration.IdMember is null)
         {

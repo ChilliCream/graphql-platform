@@ -16,7 +16,7 @@ public class ProjectionProviderDescriptor
     protected ProjectionProviderDefinition Definition { get; } =
         new ProjectionProviderDefinition();
 
-    public ProjectionProviderDefinition CreateDefinition()
+    public ProjectionProviderDefinition CreateConfiguration()
     {
         return Definition;
     }

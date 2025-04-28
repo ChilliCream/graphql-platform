@@ -266,7 +266,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         {
             foreach (var definition in _middlewareDefinitions)
             {
-                target.MiddlewareDefinitions.Add(definition);
+                target.MiddlewareConfigurations.Add(definition);
             }
             _middlewareDefinitionsCleaned = false;
         }
@@ -275,7 +275,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         {
             foreach (var definition in _resultConverters)
             {
-                target.FormatterDefinitions.Add(definition);
+                target.FormatterConfigurations.Add(definition);
             }
             _resultConvertersCleaned = false;
         }

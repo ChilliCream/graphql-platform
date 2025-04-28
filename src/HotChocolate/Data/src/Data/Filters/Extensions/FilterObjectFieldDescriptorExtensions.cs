@@ -130,7 +130,7 @@ public static class FilterObjectFieldDescriptorExtensions
         var argumentPlaceholder =
             "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
-        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
 
         descriptor
             .Extend()
@@ -217,8 +217,8 @@ public static class FilterObjectFieldDescriptorExtensions
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
 
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Filtering);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Filtering);
     }
 
     private static IQueryBuilder CreateMiddleware<TEntity>(IFilterConvention convention) =>

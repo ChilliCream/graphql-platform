@@ -112,7 +112,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateEnumValues(type.EnumValues)
         );
     }
@@ -146,7 +146,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateInputValues(type.InputFields)
         );
     }
@@ -182,8 +182,8 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<NamedTypeNode>(),
+            [],
+            [],
             CreateFields(type.Fields)
         );
     }
@@ -196,7 +196,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateNamedTypeRefs(type.Interfaces),
             CreateFields(type.Fields)
         );
@@ -232,7 +232,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateNamedTypeRefs(type.PossibleTypes)
         );
     }
@@ -245,7 +245,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>()
+            []
         );
     }
 
@@ -331,7 +331,7 @@ internal static class IntrospectionFormatter
                 ),
             };
         }
-        return Array.Empty<DirectiveNode>();
+        return [];
     }
 
     private static StringValueNode? CreateDescription(string description)

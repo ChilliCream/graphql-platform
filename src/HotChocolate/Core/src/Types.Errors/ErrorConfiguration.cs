@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-internal sealed class ErrorDefinition(
+internal sealed class ErrorConfiguration(
     Type runtimeType,
     Type schemaType,
     CreateError? factory = null)

@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 public class SortConvention
     : Convention<SortConventionDefinition>
-    , ISortConvention
+        , ISortConvention
 {
     private const string _inputPostFix = "SortInput";
     private const string _inputTypePostFix = "SortInputType";
@@ -25,13 +25,8 @@ public class SortConvention
     private INamingConventions _namingConventions = default!;
     private IReadOnlyDictionary<int, SortOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
-
-    private IDictionary<TypeReference, List<ConfigureSortInputType>> _inputTypeConfigs =
-        default!;
-
-    private IDictionary<TypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs =
-        default!;
-
+    private IDictionary<TypeReference, List<ConfigureSortInputType>> _inputTypeConfigs = default!;
+    private IDictionary<TypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs = default!;
     private string _argumentName = default!;
     private ISortProvider _provider = default!;
     private ITypeInspector _typeInspector = default!;
@@ -44,11 +39,10 @@ public class SortConvention
 
     public SortConvention(Action<ISortConventionDescriptor> configure)
     {
-        _configure = configure ??
-            throw new ArgumentNullException(nameof(configure));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortConventionDefinition? Definition => base.Configuration;
+    internal new SortConventionDefinition? Configuration => base.Configuration;
 
     protected override SortConventionDefinition CreateConfiguration(
         IConventionContext context)
@@ -65,7 +59,7 @@ public class SortConvention
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(ISortConventionDescriptor descriptor)
@@ -74,25 +68,25 @@ public class SortConvention
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition?.Provider is null)
+        if (Configuration?.Provider is null)
         {
-            throw SortConvention_NoProviderFound(GetType(), Definition?.Scope);
+            throw SortConvention_NoProviderFound(GetType(), Configuration?.Scope);
         }
 
-        if (Definition.ProviderInstance is null)
+        if (Configuration.ProviderInstance is null)
         {
             _provider =
-                (ISortProvider)GetServiceOrCreateInstance(context.Services,Definition. Provider) ??
-                throw SortConvention_NoProviderFound(GetType(), Definition.Scope);
+                (ISortProvider)GetServiceOrCreateInstance(context.Services, Configuration.Provider)
+                ?? throw SortConvention_NoProviderFound(GetType(), Configuration.Scope);
         }
         else
         {
-            _provider = Definition.ProviderInstance;
+            _provider = Configuration.ProviderInstance;
         }
 
         _namingConventions = context.DescriptorContext.Naming;
 
-        _operations = Definition.Operations.ToDictionary(
+        _operations = Configuration.Operations.ToDictionary(
             x => x.Id,
             SortOperation.FromDefinition);
 
@@ -104,16 +98,15 @@ public class SortConvention
             }
         }
 
-        _bindings = Definition.Bindings;
-        _defaultBinding = Definition.DefaultBinding;
-        _inputTypeConfigs = Definition.Configurations;
-        _enumTypeConfigs = Definition.EnumConfigurations;
-        _argumentName = Definition.ArgumentName;
+        _bindings = Configuration.Bindings;
+        _defaultBinding = Configuration.DefaultBinding;
+        _inputTypeConfigs = Configuration.Configurations;
+        _enumTypeConfigs = Configuration.EnumConfigurations;
+        _argumentName = Configuration.ArgumentName;
 
         if (_provider is ISortProviderConvention init)
         {
-            var extensions =
-                CollectExtensions(context.Services, Definition);
+            var extensions = CollectExtensions(context.Services, Configuration);
             init.Initialize(context, this);
             MergeExtensions(context, init, extensions);
             init.Complete(context);
@@ -308,8 +301,7 @@ public class SortConvention
             return false;
         }
 
-        if (runtimeType.Type.IsClass ||
-            runtimeType.Type.IsInterface)
+        if (runtimeType.Type.IsClass || runtimeType.Type.IsInterface)
         {
             type = typeof(SortInputType<>).MakeGenericType(runtimeType.Source);
             return true;

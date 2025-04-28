@@ -22,7 +22,7 @@ public partial class InterfaceType
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = InterfaceTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
@@ -31,7 +31,7 @@ public partial class InterfaceType
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -41,31 +41,31 @@ public partial class InterfaceType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InterfaceTypeConfiguration definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
         SetTypeIdentity(typeof(InterfaceType<>));
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InterfaceTypeConfiguration definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        Fields = OnCompleteFields(context, definition);
+        Fields = OnCompleteFields(context, configuration);
         context.DescriptorContext.OnSchemaCreated(schema => _schema = schema);
 
-        CompleteAbstractTypeResolver(definition.ResolveAbstractType);
-        _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
+        CompleteAbstractTypeResolver(configuration.ResolveAbstractType);
+        _implements = CompleteInterfaces(context, configuration.GetInterfaces(), this);
     }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        InterfaceTypeConfiguration definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -75,9 +75,9 @@ public partial class InterfaceType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        InterfaceTypeConfiguration definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnMakeExecutable(context, definition);
+        base.OnMakeExecutable(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -87,9 +87,9 @@ public partial class InterfaceType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        InterfaceTypeConfiguration definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnFinalizeType(context, definition);
+        base.OnFinalizeType(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {

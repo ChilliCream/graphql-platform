@@ -52,7 +52,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
     /// Returns the newly created interface type extension.
     /// </returns>
     public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;
@@ -61,14 +61,14 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = InterfaceTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -80,10 +80,10 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InterfaceTypeConfiguration definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
     }
 
     protected override void Merge(
@@ -98,22 +98,22 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
             interfaceType.AssertMutable();
 
             TypeExtensionHelper.MergeContextData(
-                Definition!,
-                interfaceType.Definition!);
+                Configuration!,
+                interfaceType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Definition!.Directives,
-                interfaceType.Definition!.Directives);
+                Configuration!.Directives,
+                interfaceType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeInterfaceFields(
                 context,
-                Definition!.Fields,
-                interfaceType.Definition!.Fields);
+                Configuration!.Fields,
+                interfaceType.Configuration!.Fields);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Tasks,
-                interfaceType.Definition!.Tasks);
+                Configuration!.Tasks,
+                interfaceType.Configuration!.Tasks);
         }
         else
         {

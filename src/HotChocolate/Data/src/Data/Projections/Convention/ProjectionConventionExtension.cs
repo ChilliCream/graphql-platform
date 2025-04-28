@@ -34,7 +34,7 @@ public class ProjectionConventionExtension
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected internal new void Initialize(IConventionContext context)
@@ -50,22 +50,22 @@ public class ProjectionConventionExtension
     {
         if (convention is ProjectionConvention projectionConvention &&
             Configuration is not null &&
-            projectionConvention.Definition is not null)
+            projectionConvention.Configuration is not null)
         {
-            projectionConvention.Definition.ProviderExtensions.AddRange(
+            projectionConvention.Configuration.ProviderExtensions.AddRange(
                 Configuration.ProviderExtensions);
 
-            projectionConvention.Definition.ProviderExtensionsTypes.AddRange(
+            projectionConvention.Configuration.ProviderExtensionsTypes.AddRange(
                 Configuration.ProviderExtensionsTypes);
 
             if (Configuration.Provider is not null)
             {
-                projectionConvention.Definition.Provider = Configuration.Provider;
+                projectionConvention.Configuration.Provider = Configuration.Provider;
             }
 
             if (Configuration.ProviderInstance is not null)
             {
-                projectionConvention.Definition.ProviderInstance = Configuration.ProviderInstance;
+                projectionConvention.Configuration.ProviderInstance = Configuration.ProviderInstance;
             }
         }
     }

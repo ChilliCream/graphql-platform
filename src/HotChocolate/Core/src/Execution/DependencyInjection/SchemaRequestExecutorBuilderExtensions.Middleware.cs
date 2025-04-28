@@ -164,7 +164,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                         {
                             var middlewareDefinition = new FieldMiddlewareConfiguration(
                                 middlewareRef.Middleware);
-                            field.MiddlewareDefinitions.Add(middlewareDefinition);
+                            field.MiddlewareConfigurations.Add(middlewareDefinition);
                         }
                     }
                 }

@@ -18,7 +18,7 @@ public class ProjectionConventionDescriptor
     protected ProjectionConventionDefinition Definition { get; } =
         new ProjectionConventionDefinition();
 
-    public ProjectionConventionDefinition CreateDefinition()
+    public ProjectionConventionDefinition CreateConfiguration()
     {
         return Definition;
     }

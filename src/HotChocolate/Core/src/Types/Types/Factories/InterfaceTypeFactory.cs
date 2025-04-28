@@ -10,7 +10,7 @@ internal sealed class InterfaceTypeFactory
 {
     public InterfaceType Create(IDescriptorContext context, InterfaceTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new InterfaceTypeConfiguration(
@@ -34,7 +34,7 @@ internal sealed class InterfaceTypeFactory
 
     public InterfaceTypeExtension Create(IDescriptorContext context, InterfaceTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
         var typeDefinition = new InterfaceTypeConfiguration(node.Name.Value)

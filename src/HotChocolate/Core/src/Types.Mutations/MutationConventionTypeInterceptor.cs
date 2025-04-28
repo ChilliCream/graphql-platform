@@ -110,7 +110,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 // if the mutation has any error attributes we will interpret that as an opt-in
                 // to the mutation conventions.
-                if (mutationField.ContextData.ContainsKey(ErrorDefinitions) &&
+                if (mutationField.ContextData.ContainsKey(ErrorConfigurations) &&
                     !mutationOptions.Apply)
                 {
                     mutationOptions = CreateErrorOptions(mutationOptions);
@@ -172,7 +172,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             isRepeatable: false,
             key: MutationResult);
 
-        mutation.MiddlewareDefinitions.Insert(0, middlewareDef);
+        mutation.MiddlewareConfigurations.Insert(0, middlewareDef);
     }
 
     private void TryApplyInputConvention(
@@ -266,7 +266,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         mutation.Arguments.Clear();
         mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
-        mutation.MiddlewareDefinitions.Insert(0, argumentMiddleware);
+        mutation.MiddlewareConfigurations.Insert(0, argumentMiddleware);
     }
 
     private void TryApplyPayloadConvention(
@@ -286,7 +286,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         // before starting to build the payload type we first will look for error definitions
         // an the mutation.
-        var errorDefinitions = _errorTypeHelper.GetErrorDefinitions(mutation);
+        var errorDefinitions = _errorTypeHelper.GetErrorConfigurations(mutation);
         FieldDef? errorField = null;
         var errorInterfaceIsRegistered = false;
         var errorInterfaceTypeRef = _errorTypeHelper.ErrorTypeInterfaceRef;
@@ -304,7 +304,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 _typeRegistry.TryRegister(
                     _context.TypeInspector.GetOutputTypeRef(errorDef.RuntimeType),
                     errorTypeRef);
-                ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
             }
 
             if (!errorInterfaceIsRegistered && _typeRegistry.TryGetTypeRef(errorInterfaceTypeRef, out _))
@@ -345,7 +345,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             }
 
             // we grab the definition to mutate the payload type.
-            var payloadTypeDef = obj.Definition!;
+            var payloadTypeDef = obj.Configuration!;
 
             // next we create a null middleware which will return null for any payload
             // field that we have on the payload type if a mutation error was returned.
@@ -369,7 +369,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 resultField.Type = EnsureNullable(resultField.Type);
 
                 // next we will add the null middleware as the first middleware element
-                resultField.MiddlewareDefinitions.Insert(0, nullMiddleware);
+                resultField.MiddlewareConfigurations.Insert(0, nullMiddleware);
             }
 
             // We will ensure that the mutation return value is actually not nullable.
@@ -413,7 +413,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     isRepeatable: false);
 
             // last but not least we insert the error middleware to the mutation field.
-            mutation.MiddlewareDefinitions.Insert(0, errorMiddleware);
+            mutation.MiddlewareConfigurations.Insert(0, errorMiddleware);
 
             // we return here since we handled the case where the user has provided a custom
             // payload type.
@@ -442,7 +442,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     key: MutationErrors,
                     isRepeatable: false);
 
-            mutation.MiddlewareDefinitions.Insert(0, errorMiddleware);
+            mutation.MiddlewareConfigurations.Insert(0, errorMiddleware);
         }
 
         // lastly we will create the mutation payload and replace with it the current mutation
@@ -459,7 +459,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         // we mustn't forget to drop the error definitions at this point since we do not
         // want to preserve them on the actual schema field.
-        mutation.ContextData.Remove(ErrorDefinitions);
+        mutation.ContextData.Remove(ErrorConfigurations);
     }
 
     private static InputObjectType CreateInputType(
@@ -528,11 +528,11 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private UnionType CreateErrorType(
         string typeName,
-        IReadOnlyList<ErrorDefinition> errorDefinitions)
+        IReadOnlyList<ErrorConfiguration> errorConfigurations)
     {
         var unionDef = new UnionTypeConfiguration(typeName);
 
-        foreach (var error in errorDefinitions)
+        foreach (var error in errorConfigurations)
         {
             unionDef.Types.Add(_context.TypeInspector.GetOutputTypeRef(error.SchemaType));
         }
@@ -614,7 +614,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorObject.Definition!.Interfaces.Add(typeRef);
+                    errorObject.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new(typeRef, Completed));
                 }
                 else if (possibleInterface.Type is UnionType unionType &&
@@ -622,7 +622,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = registeredType.TypeReference;
-                    unionType.Definition!.Types.Add(typeRef);
+                    unionType.Configuration!.Types.Add(typeRef);
                     possibleInterface.Dependencies.Add(new(typeRef, Completed));
                 }
             }
@@ -637,7 +637,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorInterface.Definition!.Interfaces.Add(typeRef);
+                    errorInterface.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new(typeRef, Completed));
                 }
             }

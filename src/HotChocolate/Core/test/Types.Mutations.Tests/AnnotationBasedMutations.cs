@@ -1759,7 +1759,7 @@ public class AnnotationBasedMutations
             ObjectFieldConfiguration mutationField)
         {
             mutationField.AddErrorType(context, typeof(SomeNewError));
-            mutationField.MiddlewareDefinitions.Add(
+            mutationField.MiddlewareConfigurations.Add(
                 new(next => async ctx =>
                 {
                     await next(ctx);

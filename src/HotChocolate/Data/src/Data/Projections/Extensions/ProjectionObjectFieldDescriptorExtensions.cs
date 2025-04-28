@@ -135,7 +135,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         var extension = descriptor.Extend();
 
-        extension.Configuration.MiddlewareDefinitions.Add(placeholder);
+        extension.Configuration.MiddlewareConfigurations.Add(placeholder);
         extension.Configuration.Flags |= FieldFlags.UsesProjections;
 
         extension
@@ -182,8 +182,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
 
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Projection);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Projection);
     }
 
     private static IQueryBuilder CreateMiddleware<TEntity>(IProjectionConvention convention)

@@ -86,7 +86,7 @@ public class UnionType
     /// Returns the newly created union type.
     /// </returns>
     public static UnionType CreateUnsafe(UnionTypeConfiguration definition)
-        => new() { Definition = definition };
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;
@@ -180,7 +180,7 @@ public class UnionType
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = UnionTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
@@ -189,7 +189,7 @@ public class UnionType
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -201,28 +201,28 @@ public class UnionType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        UnionTypeConfiguration definition)
+        UnionTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        foreach (var typeRef in definition.Types)
+        foreach (var typeRef in configuration.Types)
         {
             context.Dependencies.Add(new(typeRef));
         }
 
-        TypeDependencyHelper.CollectDirectiveDependencies(definition, context.Dependencies);
+        TypeDependencyHelper.CollectDirectiveDependencies(configuration, context.Dependencies);
 
         SetTypeIdentity(typeof(UnionType<>));
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        UnionTypeConfiguration definition)
+        UnionTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        CompleteTypeSet(context, definition);
-        CompleteResolveAbstractType(definition.ResolveAbstractType);
+        CompleteTypeSet(context, configuration);
+        CompleteResolveAbstractType(configuration.ResolveAbstractType);
     }
 
     private void CompleteTypeSet(

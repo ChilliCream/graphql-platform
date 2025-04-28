@@ -77,7 +77,7 @@ public class ArgumentDescriptor
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(ArgumentConfiguration definition)
+    protected override void OnCreateConfiguration(ArgumentConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -90,7 +90,7 @@ public class ArgumentDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

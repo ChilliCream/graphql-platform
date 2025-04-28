@@ -37,7 +37,7 @@ public class UnionTypeDescriptor
 
     protected internal override UnionTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(UnionTypeConfiguration definition)
+    protected override void OnCreateConfiguration(UnionTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
@@ -47,7 +47,7 @@ public class UnionTypeDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

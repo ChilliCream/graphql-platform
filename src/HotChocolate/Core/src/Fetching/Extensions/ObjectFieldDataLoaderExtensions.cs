@@ -29,7 +29,7 @@ public static class DataLoaderObjectFieldExtensions
             throw DataLoader_InvalidType(dataLoaderType);
         }
 
-        descriptor.Extend().Configuration.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
 
         descriptor
             .Extend()
@@ -92,8 +92,8 @@ public static class DataLoaderObjectFieldExtensions
         }
 
         var middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: DataLoader);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: DataLoader);
     }
 
     private static bool TryGetDataLoaderTypes(

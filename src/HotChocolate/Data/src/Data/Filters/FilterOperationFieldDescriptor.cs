@@ -26,7 +26,7 @@ public class FilterOperationFieldDescriptor
     protected internal new FilterOperationFieldConfiguration Configuration
         => base.Configuration;
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         FilterOperationFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
@@ -37,7 +37,7 @@ public class FilterOperationFieldDescriptor
             Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(configuration);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }
@@ -129,7 +129,7 @@ public class FilterOperationFieldDescriptor
         return this;
     }
 
-    public InputFieldConfiguration CreateFieldDefinition() => CreateConfiguration();
+    public InputFieldConfiguration CreateFieldConfiguration() => CreateConfiguration();
 
     public static FilterOperationFieldDescriptor New(
         IDescriptorContext context,

@@ -52,7 +52,7 @@ public class InterfaceTypeDescriptor
     protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
         new List<InterfaceFieldDescriptor>();
 
-    protected override void OnCreateDefinition(
+    protected override void OnCreateConfiguration(
         InterfaceTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
@@ -80,7 +80,7 @@ public class InterfaceTypeDescriptor
         Configuration.Fields.Clear();
         Configuration.Fields.AddRange(fields.Values);
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }

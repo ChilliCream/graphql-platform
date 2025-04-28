@@ -37,9 +37,9 @@ public partial class Schema
 
     protected override void OnAfterInitialize(
         ITypeDiscoveryContext context,
-        TypeSystemConfiguration definition)
+        TypeSystemConfiguration configuration)
     {
-        base.OnAfterInitialize(context, definition);
+        base.OnAfterInitialize(context, configuration);
 
         // we clear the configuration delegate to make sure that we do not hold on to any references
         // if we do not do this all the instances used during initialization will be kept in memory
@@ -52,19 +52,19 @@ public partial class Schema
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        SchemaTypeConfiguration definition)
+        SchemaTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        if (definition.HasDirectives)
+        if (configuration.HasDirectives)
         {
-            foreach (var directive in definition.Directives)
+            foreach (var directive in configuration.Directives)
             {
                 context.Dependencies.Add(new(directive.Type, TypeDependencyFulfilled.Completed));
             }
         }
 
-        foreach (var typeReference in definition.GetDirectives().Select(t => t.Type))
+        foreach (var typeReference in configuration.GetDirectives().Select(t => t.Type))
         {
             context.Dependencies.Add(new TypeDependency(typeReference));
         }
@@ -72,21 +72,21 @@ public partial class Schema
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        SchemaTypeConfiguration definition)
+        SchemaTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
         Services = context.Services;
-        Features = definition.Features.ToReadOnly();
+        Features = configuration.Features.ToReadOnly();
     }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        SchemaTypeConfiguration definition)
+        SchemaTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
-        Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
+        Directives = DirectiveCollection.CreateAndComplete(context, this, configuration.GetDirectives());
     }
 
     internal void CompleteSchema(SchemaTypesConfiguration schemaTypesConfiguration)

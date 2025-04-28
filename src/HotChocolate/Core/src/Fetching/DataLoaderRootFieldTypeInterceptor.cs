@@ -66,7 +66,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
                     var resultType = completionContext.TypeInspector.GetType(field.ResultType!);
                     if (resultType.IsArrayOrList && dataLoaderValueTypes.Contains(resultType.ElementType.Type))
                     {
-                        field.MiddlewareDefinitions.Insert(
+                        field.MiddlewareConfigurations.Insert(
                             0,
                             new FieldMiddlewareConfiguration(
                                 static next => context =>

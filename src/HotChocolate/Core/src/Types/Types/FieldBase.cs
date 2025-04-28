@@ -12,12 +12,12 @@ public abstract class FieldBase
     : IField
     , IFieldCompletion
 {
-    private FieldConfiguration? _definition;
+    private FieldConfiguration? _config;
     private FieldFlags _flags;
 
     protected FieldBase(FieldConfiguration configuration, int index)
     {
-        _definition = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
         Index = index;
 
         Name = configuration.Name.EnsureGraphQLName();
@@ -67,8 +67,8 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnCompleteField(context, declaringMember, _definition!);
-        ContextData = _definition!.GetContextData();
+        OnCompleteField(context, declaringMember, _config!);
+        ContextData = _config!.GetContextData();
     }
 
     protected virtual void OnCompleteField(
@@ -93,7 +93,7 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnCompleteMetadata(context, declaringMember, _definition!);
+        OnCompleteMetadata(context, declaringMember, _config!);
     }
 
     protected virtual void OnCompleteMetadata(
@@ -115,7 +115,7 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnMakeExecutable(context, declaringMember, _definition!);
+        OnMakeExecutable(context, declaringMember, _config!);
     }
 
     protected virtual void OnMakeExecutable(
@@ -135,8 +135,8 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnFinalizeField(context, declaringMember, _definition!);
-        _definition = null;
+        OnFinalizeField(context, declaringMember, _config!);
+        _config = null;
         _flags |= FieldFlags.Sealed;
     }
 

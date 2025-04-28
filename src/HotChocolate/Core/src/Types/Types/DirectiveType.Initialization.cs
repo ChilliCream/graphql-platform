@@ -19,7 +19,7 @@ public partial class DirectiveType
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = DirectiveTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
@@ -28,7 +28,7 @@ public partial class DirectiveType
                 return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -40,43 +40,43 @@ public partial class DirectiveType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        DirectiveTypeConfiguration definition)
+        DirectiveTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        RuntimeType = definition.RuntimeType == GetType()
+        RuntimeType = configuration.RuntimeType == GetType()
             ? typeof(object)
-            : definition.RuntimeType;
+            : configuration.RuntimeType;
 
         if (RuntimeType != typeof(object))
         {
             TypeIdentity = typeof(DirectiveType<>).MakeGenericType(RuntimeType);
         }
 
-        IsRepeatable = definition.IsRepeatable;
+        IsRepeatable = configuration.IsRepeatable;
 
-        TypeDependencyHelper.CollectDependencies(definition, context.Dependencies);
+        TypeDependencyHelper.CollectDependencies(configuration, context.Dependencies);
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        DirectiveTypeConfiguration definition)
+        DirectiveTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
         _inputParser = context.DescriptorContext.InputParser;
 
-        Locations =  definition.Locations;
-        Arguments = OnCompleteFields(context, definition);
-        IsPublic = definition.IsPublic;
-        Middleware = OnCompleteMiddleware(context, definition);
+        Locations =  configuration.Locations;
+        Arguments = OnCompleteFields(context, configuration);
+        IsPublic = configuration.IsPublic;
+        Middleware = OnCompleteMiddleware(context, configuration);
 
-        _createInstance = OnCompleteCreateInstance(context, definition);
-        _getFieldValues = OnCompleteGetFieldValues(context, definition);
-        _parse = OnCompleteParse(context, definition);
-        _format = OnCompleteFormat(context, definition);
+        _createInstance = OnCompleteCreateInstance(context, configuration);
+        _getFieldValues = OnCompleteGetFieldValues(context, configuration);
+        _parse = OnCompleteParse(context, configuration);
+        _format = OnCompleteFormat(context, configuration);
 
-        if (definition.Locations == 0)
+        if (configuration.Locations == 0)
         {
             context.ReportError(ErrorHelper.DirectiveType_NoLocations(Name, this));
         }
@@ -87,9 +87,9 @@ public partial class DirectiveType
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        DirectiveTypeConfiguration definition)
+        DirectiveTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
         foreach (IFieldCompletion field in Arguments)
         {
@@ -99,9 +99,9 @@ public partial class DirectiveType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        DirectiveTypeConfiguration definition)
+        DirectiveTypeConfiguration configuration)
     {
-        base.OnMakeExecutable(context, definition);
+        base.OnMakeExecutable(context, configuration);
 
         foreach (IFieldCompletion field in Arguments)
         {
@@ -111,9 +111,9 @@ public partial class DirectiveType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        DirectiveTypeConfiguration definition)
+        DirectiveTypeConfiguration configuration)
     {
-        base.OnFinalizeType(context, definition);
+        base.OnFinalizeType(context, configuration);
 
         foreach (IFieldCompletion field in Arguments)
         {

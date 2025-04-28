@@ -28,9 +28,9 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     protected IReadOnlyDictionary<string, ParameterInfo> Parameters { get; set; } =
         ImmutableDictionary<string, ParameterInfo>.Empty;
 
-    protected override void OnCreateDefinition(TDefinition definition)
+    protected override void OnCreateConfiguration(TDefinition definition)
     {
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         if (_arguments is not null)
         {
