@@ -10,6 +10,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="GreenDonut.Data" />
     <InternalsVisibleTo Include="GreenDonut.Data.EntityFramework" />
+    <InternalsVisibleTo Include="GreenDonut.Data.Marten" />
   </ItemGroup>
 
 </Project>
