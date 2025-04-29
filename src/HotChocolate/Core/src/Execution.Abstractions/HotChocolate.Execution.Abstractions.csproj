@@ -5,7 +5,11 @@
     <AssemblyName>HotChocolate.Execution.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
-  
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Abstractions" />
     <InternalsVisibleTo Include="HotChocolate.Abstractions.Tests" />

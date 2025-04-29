@@ -60,7 +60,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         }
 
         return BuildExecutionPlan(
-            // this is not ideal and we gonna rework this once we figured out
+            // this is not ideal and are we going to rework this once we figured out
             // introspection and defer and stream.
             planSteps.OfType<OperationPlanStep>().ToImmutableList(),
             operationDefinition);

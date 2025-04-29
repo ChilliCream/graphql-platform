@@ -68,7 +68,7 @@ public interface IRequestContext : IHasContextData
     DocumentNode? Document { get; set; }
 
     /// <summary>
-    /// Defines that the document was retrieved from cache.
+    /// Defines that the document was retrieved from the cache.
     /// </summary>
     bool IsCachedDocument { get; set; }
 
