@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.IO.Pipelines;
+using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.EventStreamResultFormatterEventSource;
 
@@ -66,7 +67,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-        var buffer = new ArrayWriter();
+        var buffer = new PooledArrayWriter();
 
         var scope = Log.FormatOperationResultStart();
         try
@@ -98,7 +99,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         CancellationToken ct)
     {
         var writer = PipeWriter.Create(outputStream);
-        ArrayWriter? buffer = null;
+        PooledArrayWriter? buffer = null;
         KeepAliveJob? keepAlive = null;
         List<Task>? streams = null;
 
@@ -112,7 +113,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                         var scope = Log.FormatOperationResultStart();
                         try
                         {
-                            buffer ??= new ArrayWriter();
+                            buffer ??= new PooledArrayWriter();
                             MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
 
                             writer.Write(buffer.GetWrittenSpan());
@@ -192,7 +193,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     {
         public async Task ProcessAsync(CancellationToken ct)
         {
-            var buffer = new ArrayWriter();
+            var buffer = new PooledArrayWriter();
             try
             {
                 await foreach (var result in responseStream.ReadResultsAsync()
@@ -297,7 +298,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         public static void WriteNextMessage(
             JsonResultFormatter payloadFormatter,
             IOperationResult result,
-            ArrayWriter writer)
+            PooledArrayWriter writer)
         {
             // write the SSE event field
             var span = writer.GetSpan(_nextEvent.Length);

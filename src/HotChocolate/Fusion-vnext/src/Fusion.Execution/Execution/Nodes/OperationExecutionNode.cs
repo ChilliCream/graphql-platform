@@ -1,9 +1,7 @@
 using System.Collections.Immutable;
-using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -56,10 +54,9 @@ public record OperationExecutionNode : ExecutionNode
 
     public override async Task<ExecutionStatus> ExecuteAsync(
         OperationPlanContext context,
-        Path executionPath,
         CancellationToken cancellationToken = default)
     {
-        var request = new GraphQLClientRequest
+        var request = new SourceSchemaClientRequest
         {
             OperationId = OperationId,
             Operation = Operation,
@@ -71,7 +68,7 @@ public record OperationExecutionNode : ExecutionNode
 
         if (response.IsSuccessful)
         {
-            await foreach (var result in response.ReadResultsAsync().WithCancellation(cancellationToken))
+            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
                 var fetchResult = FetchResult.From(this, result);
                 context.ResultStore.Add(fetchResult);
@@ -80,78 +77,4 @@ public record OperationExecutionNode : ExecutionNode
 
         return new ExecutionStatus(Id);
     }
-}
-
-public interface IGraphQLClient
-{
-    ValueTask<GraphQLClientResponse> ExecuteAsync(
-        GraphQLClientRequest request,
-        CancellationToken cancellationToken);
-}
-
-public abstract class GraphQLClientResponse
-{
-    public abstract IAsyncEnumerable<GraphQLResult> ReadResultsAsync();
-
-    public abstract bool IsSuccessful { get; }
-}
-
-public sealed class GraphQLClientRequest
-{
-    public required string OperationId { get; init; }
-
-    public required OperationDefinitionNode Operation { get; init; }
-
-    public ImmutableArray<VariableValues> Variables { get; init; } = [];
-}
-
-public sealed class GraphQLResult : IDisposable
-{
-    private readonly IDisposable? _resource;
-
-    public GraphQLResult(Path path, JsonDocument document)
-    {
-        _resource = document;
-        Path = path;
-
-        var root = document.RootElement;
-        if (root.ValueKind != JsonValueKind.Object)
-        {
-            return;
-        }
-
-        if(root.TryGetProperty("data", out var data))
-        {
-            Data = data;
-        }
-
-        if (root.TryGetProperty("errors", out var errors))
-        {
-            Errors = errors;
-        }
-
-        if (root.TryGetProperty("extensions", out var extensions))
-        {
-            Extensions = extensions;
-        }
-    }
-
-    public GraphQLResult(Path path, IDisposable resource, JsonElement data, JsonElement errors, JsonElement extensions)
-    {
-        _resource = resource;
-        Path = path;
-        Data = data;
-        Errors = errors;
-        Extensions = extensions;
-    }
-
-    public Path Path { get; }
-
-    public JsonElement Data { get; }
-
-    public JsonElement Errors { get; }
-
-    public JsonElement Extensions { get; }
-
-    public void Dispose() => _resource?.Dispose();
 }

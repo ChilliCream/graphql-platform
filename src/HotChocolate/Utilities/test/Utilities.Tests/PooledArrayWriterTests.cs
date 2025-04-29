@@ -1,14 +1,15 @@
+using HotChocolate.Buffers;
 using Xunit;
 
 namespace HotChocolate.Utilities;
 
-public class ArrayWriterTests
+public class PooledArrayWriterTests
 {
     [Fact]
     public void Constructor_ShouldInitializeProperly()
     {
         // Arrange & Act
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Assert
         Assert.NotNull(writer.GetInternalBuffer());
@@ -19,7 +20,7 @@ public class ArrayWriterTests
     public void GetWrittenMemory_ShouldReturnReadOnlyMemory()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act
         var memory = writer.GetWrittenMemory();
@@ -32,7 +33,7 @@ public class ArrayWriterTests
     public void GetWrittenSpan_ShouldReturnReadOnlySpan()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act
         var span = writer.GetWrittenSpan();
@@ -45,7 +46,7 @@ public class ArrayWriterTests
     public void Advance_ShouldAdvanceCorrectly()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         writer.GetSpan(10);
 
         // Act
@@ -59,7 +60,7 @@ public class ArrayWriterTests
     public void GetMemory_ShouldReturnMemoryWithCorrectSizeHint()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act
         var memory = writer.GetMemory(10);
@@ -72,7 +73,7 @@ public class ArrayWriterTests
     public void GetSpan_ShouldReturnSpanWithCorrectSizeHint()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act
         var span = writer.GetSpan(10);
@@ -85,7 +86,7 @@ public class ArrayWriterTests
     public void Dispose_ShouldDisposeCorrectly()
     {
         // Arrange
-        var writer = new ArrayWriter();
+        var writer = new PooledArrayWriter();
 
         // Act
         writer.Dispose();
@@ -100,7 +101,7 @@ public class ArrayWriterTests
     public void Advance_ShouldThrowWhenDisposed()
     {
         // Arrange
-        var writer = new ArrayWriter();
+        var writer = new PooledArrayWriter();
         writer.Dispose();
 
         // Act & Assert
@@ -111,7 +112,7 @@ public class ArrayWriterTests
     public void Advance_ShouldThrowWhenNegativeCount()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => writer.Advance(-1));
@@ -121,7 +122,7 @@ public class ArrayWriterTests
     public void Advance_ShouldThrowWhenCountGreaterThanCapacity()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(
@@ -132,7 +133,7 @@ public class ArrayWriterTests
     public void GetMemory_ShouldThrowWhenDisposed()
     {
         // Arrange
-        var writer = new ArrayWriter();
+        var writer = new PooledArrayWriter();
         writer.Dispose();
 
         // Act & Assert
@@ -143,7 +144,7 @@ public class ArrayWriterTests
     public void GetMemory_ShouldThrowWhenNegativeSizeHint()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => writer.GetMemory(-1));
@@ -153,7 +154,7 @@ public class ArrayWriterTests
     public void GetSpan_ShouldThrowWhenDisposed()
     {
         // Arrange
-        var writer = new ArrayWriter();
+        var writer = new PooledArrayWriter();
         writer.Dispose();
 
         // Act & Assert
@@ -164,7 +165,7 @@ public class ArrayWriterTests
     public void GetSpan_ShouldThrowWhenNegativeSizeHint()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => writer.GetSpan(-1));
@@ -174,7 +175,7 @@ public class ArrayWriterTests
     public void WriteBytesToSpan_ShouldWriteCorrectly()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         var testData = new byte[] { 1, 2, 3, 4, };
 
         // Act
@@ -192,7 +193,7 @@ public class ArrayWriterTests
     public void WriteBytesToMemory_ShouldWriteCorrectly()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         var testData = new byte[] { 1, 2, 3, 4, };
 
         // Act
@@ -210,7 +211,7 @@ public class ArrayWriterTests
     public void WriteBytesExceedingInitialBufferSize_ShouldExpandAndWriteCorrectly()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         var testData = new byte[1024];
 
         for (var i = 0; i < testData.Length; i++)
@@ -236,7 +237,7 @@ public class ArrayWriterTests
     public void ShouldAllocateSufficientMemory()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act
         // NB: ask for 0x3000 bytes because the initial 512 bytes buffer size is added
@@ -250,7 +251,7 @@ public class ArrayWriterTests
     public void ShouldResetCapacity()
     {
         // Arrange
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
 
         // Act
         writer.GetSpan(1000);

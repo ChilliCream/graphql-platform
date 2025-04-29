@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
@@ -217,7 +218,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         IOperationResult result,
         CancellationToken cancellationToken)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
@@ -235,7 +236,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         IReadOnlyList<IError> errors,
         CancellationToken cancellationToken)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
@@ -252,7 +253,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         string operationSessionId,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
         await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }
@@ -268,7 +269,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         }
         else
         {
-            using var writer = new ArrayWriter();
+            using var writer = new PooledArrayWriter();
             SerializeMessage(writer, Utf8Messages.Ping, payload);
             await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
         }
@@ -285,7 +286,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         }
         else
         {
-            using var writer = new ArrayWriter();
+            using var writer = new PooledArrayWriter();
             SerializeMessage(writer, Utf8Messages.Pong, payload);
             await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
         }
@@ -296,7 +297,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
         await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }

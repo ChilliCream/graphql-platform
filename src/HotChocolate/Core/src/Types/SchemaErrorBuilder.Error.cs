@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -42,7 +43,7 @@ public partial class SchemaErrorBuilder
 
         public override unsafe string ToString()
         {
-            using var buffer = new ArrayWriter();
+            using var buffer = new PooledArrayWriter();
 
             using var writer = new Utf8JsonWriter(buffer, _serializationOptions);
 

@@ -1,13 +1,13 @@
 using System.Buffers;
 using System.Runtime.InteropServices;
-using static HotChocolate.Utilities.Properties.UtilityResources;
+using static HotChocolate.Buffers.Properties.BuffersResources;
 
 namespace HotChocolate.Utilities;
 
 /// <summary>
 /// A <see cref="IBufferWriter{T}"/> that writes to a rented buffer.
 /// </summary>
-internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
+public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
 {
     private const int _initialBufferSize = 512;
     private byte[] _buffer;
@@ -16,9 +16,9 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArrayWriter"/> class.
+    /// Initializes a new instance of the <see cref="PooledArrayWriter"/> class.
     /// </summary>
-    public ArrayWriter()
+    public PooledArrayWriter()
     {
         _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
         _capacity = _buffer.Length;
@@ -49,7 +49,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// A <see cref="ReadOnlyMemory{T}"/> of the written portion of the buffer.
     /// </returns>
     public ReadOnlyMemory<byte> GetWrittenMemory()
-        => _buffer.AsMemory().Slice(0, _start);
+        => _buffer.AsMemory()[.._start];
 
     /// <summary>
     /// Gets the part of the buffer that has been written to.
@@ -75,7 +75,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     {
         if (_disposed)
         {
-            throw new ObjectDisposedException(nameof(ArrayWriter));
+            throw new ObjectDisposedException(nameof(PooledArrayWriter));
         }
 
         if (count < 0)
@@ -111,7 +111,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     {
         if (_disposed)
         {
-            throw new ObjectDisposedException(nameof(ArrayWriter));
+            throw new ObjectDisposedException(nameof(PooledArrayWriter));
         }
 
         if (sizeHint < 0)
@@ -142,7 +142,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     {
         if (_disposed)
         {
-            throw new ObjectDisposedException(nameof(ArrayWriter));
+            throw new ObjectDisposedException(nameof(PooledArrayWriter));
         }
 
         if (sizeHint < 0)
@@ -163,25 +163,25 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     public ArraySegment<byte> ToArraySegment() => new(_buffer, 0, _start);
 
     /// <summary>
-    /// Ensures that the internal buffer has the needed capacity.
+    /// Ensures that the internal buffer has the necessary capacity.
     /// </summary>
     /// <param name="neededCapacity">
-    /// The needed capacity on the internal buffer.
+    /// The necessary capacity on the internal buffer.
     /// </param>
     private void EnsureBufferCapacity(int neededCapacity)
     {
         // check if we have enough capacity available on the buffer.
         if (_capacity < neededCapacity)
         {
-            // if we need to expand the buffer we first capture the original buffer.
+            // if we need to expand the buffer, we first capture the original buffer.
             var buffer = _buffer;
 
             // next we determine the new size of the buffer, we at least double the size to avoid
             // expanding the buffer too often.
             var newSize = buffer.Length * 2;
 
-            // if that new buffer size is not enough to satisfy the needed capacity
-            // we add the needed capacity to the doubled buffer capacity.
+            // if that new buffer size is not enough to satisfy the necessary capacity,
+            // we add the necessary capacity to the doubled buffer capacity.
             if (neededCapacity > newSize - _start)
             {
                 newSize += neededCapacity;
@@ -191,14 +191,14 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
             // the new capacity requirements.
             _buffer = ArrayPool<byte>.Shared.Rent(newSize);
 
-            // the rented array might have a larger size than the needed capacity,
+            // the rented array might have a larger size than the necessary capacity,
             // so we will take the buffer length and calculate from that the free capacity.
             _capacity += _buffer.Length - buffer.Length;
 
-            // finally we copy the data from the original buffer to the new buffer.
+            // finally, we copy the data from the original buffer to the new buffer.
             buffer.AsSpan().CopyTo(_buffer);
 
-            // last but not least we return the original buffer to the array pool.
+            // last but not least, we return the original buffer to the array pool.
             ArrayPool<byte>.Shared.Return(buffer);
         }
     }

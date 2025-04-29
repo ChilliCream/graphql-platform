@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -21,7 +22,7 @@ public class OperationPlanContext
         throw new NotImplementedException();
     }
 
-    public IGraphQLClient GetClient(string schemaName)
+    public ISourceSchemaClient GetClient(string schemaName)
     {
         throw new NotImplementedException();
     }
@@ -118,7 +119,7 @@ public sealed class FetchResult : IComparable<FetchResult>, IDisposable
 
     public void Dispose() => _resource.Dispose();
 
-    public static FetchResult From(OperationExecutionNode node, GraphQLResult result)
+    public static FetchResult From(OperationExecutionNode node, SourceSchemaResult result)
     {
         return new FetchResult(result)
         {
@@ -132,9 +133,4 @@ public sealed class FetchResult : IComparable<FetchResult>, IDisposable
     }
 }
 
-public sealed class VariableValues
-{
-    public required Path Path { get; init; }
-
-    public required ObjectValueNode Values { get; init; }
-}
+public sealed record VariableValues(Path Path, ObjectValueNode Values);
