@@ -1,13 +1,13 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Execution.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public class ExecutionPlanCacheMiddleware(Cache<ExecutionPlan> cache)
+public class ExecutionPlanCacheMiddleware(Cache<OperationPlan> cache)
 {
-    private readonly Cache<ExecutionPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+    private readonly Cache<OperationPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
     public async ValueTask InvokeAsync(GraphQLRequestContext context, GraphQLRequestDelegate next)
     {
@@ -52,7 +52,7 @@ public class ExecutionPlanCacheMiddleware(Cache<ExecutionPlan> cache)
     {
         return static (factoryContext, next) =>
         {
-            var cache = factoryContext.Services.GetRequiredService<Cache<ExecutionPlan>>();
+            var cache = factoryContext.Services.GetRequiredService<Cache<OperationPlan>>();
             var middleware = new ExecutionPlanCacheMiddleware(cache);
             return requestContext => middleware.InvokeAsync(requestContext, next);
         };
