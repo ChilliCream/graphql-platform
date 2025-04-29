@@ -48,7 +48,7 @@ public interface IRequestContext : IHasContextData
 
     /// <summary>
     /// Notifies when the connection underlying this request is aborted
-    /// and thus request operations should be cancelled.
+    /// and thus request operations should be canceled.
     /// </summary>
     CancellationToken RequestAborted { get; set; }
 
