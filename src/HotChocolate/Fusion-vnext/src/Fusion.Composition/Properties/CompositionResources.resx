@@ -96,6 +96,9 @@
   <data name="FusionRequiresMutableDirectiveDefinition_Map_Description" xml:space="preserve">
     <value>The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type.</value>
   </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Requirements_Description" xml:space="preserve">
+    <value>A selection set on the annotated field that describes its requirements.</value>
+  </data>
   <data name="FusionRequiresMutableDirectiveDefinition_Schema_Description" xml:space="preserve">
     <value>The name of the source schema where this field has requirements to data on other source schemas.</value>
   </data>
