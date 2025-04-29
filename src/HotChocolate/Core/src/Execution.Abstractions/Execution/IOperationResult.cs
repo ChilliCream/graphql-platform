@@ -11,19 +11,19 @@ public interface IOperationResult : IExecutionResult
     int? RequestIndex { get; }
 
     /// <summary>
-    /// Gets the index of of the variable set that corresponds to this result.
+    /// Gets the index of the variable set that corresponds to this result.
     /// </summary>
     int? VariableIndex { get; }
 
     /// <summary>
     /// A string that was passed to the label argument of the @defer or @stream
-    /// directive that corresponds to this results.
+    /// directive that corresponds to this result.
     /// </summary>
     /// <value></value>
     string? Label { get; }
 
     /// <summary>
-    ///  A path to the insertion point that informs the client how to patch a
+    /// A path to the insertion point that informs the client how to patch a
     /// subsequent delta payload into the original payload.
     /// </summary>
     /// <value></value>
@@ -37,7 +37,7 @@ public interface IOperationResult : IExecutionResult
 
     /// <summary>
     /// The `items` entry in a stream payload is a list of results from the execution of
-    /// the associated @stream directive. This output will be a list of the same type of
+    /// the associated @stream directive. This output will be a list of the same type as
     /// the field with the associated `@stream` directive. If `items` is set to `null`,
     /// it indicates that an error has caused a `null` to bubble up to a field higher
     /// than the list field with the associated `@stream` directive.
@@ -50,7 +50,7 @@ public interface IOperationResult : IExecutionResult
     IReadOnlyList<IError>? Errors { get; }
 
     /// <summary>
-    /// Gets the additional information that are passed along
+    /// Gets the additional information that is passed along
     /// with the result and will be serialized for transport.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }

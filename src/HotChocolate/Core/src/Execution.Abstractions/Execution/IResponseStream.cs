@@ -7,7 +7,7 @@ namespace HotChocolate.Execution;
 public interface IResponseStream : IExecutionResult
 {
     /// <summary>
-    /// Reads the subscription results from the execution engine.
+    /// Reads the result stream.
     /// </summary>
     IAsyncEnumerable<IOperationResult> ReadResultsAsync();
 }

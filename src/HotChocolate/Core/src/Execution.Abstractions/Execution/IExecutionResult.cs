@@ -4,7 +4,7 @@ namespace HotChocolate.Execution;
 /// Represents the result of the GraphQL execution pipeline.
 /// </summary>
 /// <remarks>
-/// Execution results are by default disposable and disposing
+/// Execution results are by default disposable, and disposing
 /// them allows it to give back its used memory to the execution
 /// engine result pools.
 /// </remarks>

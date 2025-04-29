@@ -63,12 +63,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string OperationRequestBuilder_OperationIsNullOrEmpty {
-            get {
-                return ResourceManager.GetString("OperationRequestBuilder_OperationIsNullOrEmpty", resourceCulture);
-            }
-        }
-        
         internal static string State_KeyMustNotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("State_KeyMustNotBeNullOrEmpty", resourceCulture);
@@ -252,18 +246,6 @@ namespace HotChocolate.Properties {
         internal static string MutationError_ErrorsEmpty {
             get {
                 return ResourceManager.GetString("MutationError_ErrorsEmpty", resourceCulture);
-            }
-        }
-        
-        internal static string OperationDocumentId_InvalidOperationIdFormat {
-            get {
-                return ResourceManager.GetString("OperationDocumentId_InvalidOperationIdFormat", resourceCulture);
-            }
-        }
-        
-        internal static string OperationRequest_DocumentOrIdMustBeSet {
-            get {
-                return ResourceManager.GetString("OperationRequest_DocumentOrIdMustBeSet", resourceCulture);
             }
         }
         

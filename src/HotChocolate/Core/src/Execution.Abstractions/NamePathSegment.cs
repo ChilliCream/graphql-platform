@@ -5,7 +5,7 @@ namespace HotChocolate;
 
 /// <summary>
 /// An <see cref="IndexerPathSegment" /> represents a pointer to
-/// an named element in the result structure.
+/// a named element in the result structure.
 /// </summary>
 public sealed class NamePathSegment : Path
 {

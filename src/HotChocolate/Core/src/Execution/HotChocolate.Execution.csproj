@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
@@ -217,10 +218,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Projections\" />
   </ItemGroup>
 
 </Project>

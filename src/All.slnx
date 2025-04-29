@@ -79,6 +79,7 @@
     <Project Path="HotChocolate/Core/src/Authorization/HotChocolate.Authorization.csproj" />
     <Project Path="HotChocolate/Core/src/Core/HotChocolate.Core.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj" />
+    <Project Path="HotChocolate/Core/src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
     <Project Path="HotChocolate/Core/src/Execution/HotChocolate.Execution.csproj" />
     <Project Path="HotChocolate/Core/src/Features/HotChocolate.Features.csproj" />
@@ -120,6 +121,7 @@
     <Project Path="HotChocolate/Core/test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Mutations.Tests/HotChocolate.Types.Mutations.Tests.csproj" />
@@ -132,9 +134,6 @@
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
-  </Folder>
-  <Folder Name="/HotChocolate/Core/test/Types.Analyzer.Integration.Tests/">
-    <Project Path="HotChocolate/Core/test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/" />
   <Folder Name="/HotChocolate/CostAnalysis/src/">

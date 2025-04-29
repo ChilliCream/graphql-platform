@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using static HotChocolate.Properties.AbstractionResources;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
@@ -22,7 +22,7 @@ public sealed class OperationRequestBuilder
     /// Sets the GraphQL operation document that shall be executed.
     /// </summary>
     /// <param name="sourceText">
-    /// The GraphQL operation document source text.
+    /// The GraphQL operation-document source text.
     /// </param>
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
@@ -57,11 +57,7 @@ public sealed class OperationRequestBuilder
     /// </exception>
     public OperationRequestBuilder SetDocument(DocumentNode document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
+        ArgumentNullException.ThrowIfNull(document);
         _document = new OperationDocument(document);
         return this;
     }
@@ -149,7 +145,7 @@ public sealed class OperationRequestBuilder
         }
         else
         {
-            _variableValues = new List<IReadOnlyDictionary<string, object?>>(1) { variableValues, };
+            _variableValues = [variableValues];
             _readOnlyVariableValues = null;
         }
         return this;
@@ -283,11 +279,7 @@ public sealed class OperationRequestBuilder
         }
 
         _contextData ??= new Dictionary<string, object?>();
-
-        if (!_contextData.ContainsKey(name))
-        {
-            _contextData.Add(name, value);
-        }
+        _contextData.TryAdd(name, value);
         return this;
     }
 

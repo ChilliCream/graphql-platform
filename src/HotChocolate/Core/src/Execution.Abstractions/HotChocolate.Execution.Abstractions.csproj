@@ -3,15 +3,34 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Execution.Abstractions</PackageId>
     <AssemblyName>HotChocolate.Execution.Abstractions</AssemblyName>
-    <RootNamespace>HotChocolate.Execution</RootNamespace>
+    <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <InternalsVisibleTo Include="HotChocolate.Abstractions" />
+    <InternalsVisibleTo Include="HotChocolate.Abstractions.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Web\HotChocolate.Language.Web.csproj" />
+    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\ExecutionAbstractionsResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ExecutionAbstractionsResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\ExecutionAbstractionsResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ExecutionAbstractionsResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

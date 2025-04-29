@@ -32,7 +32,7 @@ public interface IOperationRequest : IExecutionRequest
     IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <summary>
-    /// GraphQL request flags allow to limit the GraphQL executor capabilities.
+    /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
     GraphQLRequestFlags Flags { get; }
 }

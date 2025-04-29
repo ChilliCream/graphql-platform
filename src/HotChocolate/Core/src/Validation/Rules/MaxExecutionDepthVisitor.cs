@@ -13,15 +13,15 @@ internal sealed class MaxExecutionDepthVisitor(
         DocumentNode node,
         IDocumentValidatorContext context)
     {
-        // if the depth analysis was skipped for this request we will just
+        // if the depth analysis was skipped for this request, we will just
         // stop traversing the graph.
-        if (context.ContextData.ContainsKey(SkipDepthAnalysis))
+        if (context.ContextData.ContainsKey(ExecutionContextData.SkipDepthAnalysis))
         {
             return Break;
         }
 
-        // if we have a request override we will pick it over the configured value.
-        if (context.ContextData.TryGetValue(MaxAllowedExecutionDepth, out var value) &&
+        // if we have a request override, we will pick it over the configured value.
+        if (context.ContextData.TryGetValue(ExecutionContextData.MaxAllowedExecutionDepth, out var value) &&
             value is int maxAllowedDepth)
         {
             context.Allowed = maxAllowedDepth;

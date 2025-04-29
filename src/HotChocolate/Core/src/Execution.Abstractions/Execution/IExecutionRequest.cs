@@ -1,5 +1,8 @@
 namespace HotChocolate.Execution;
 
+/// <summary>
+/// Represents a request to execute a GraphQL operation.
+/// </summary>
 public interface IExecutionRequest
 {
     /// <summary>

@@ -1,4 +1,4 @@
-using static HotChocolate.Properties.AbstractionResources;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
@@ -23,7 +23,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// A name of an operation in the GraphQL request document that shall be executed.
     /// </param>
     /// <param name="variableValues">
-    /// The list variable values for the GraphQL request.
+    /// The list of variable values for the GraphQL request.
     /// </param>
     /// <param name="extensions">
     /// The GraphQL request extension data.
@@ -109,7 +109,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     public IServiceProvider? Services { get; }
 
     /// <summary>
-    /// GraphQL request flags allow to limit the GraphQL executor capabilities.
+    /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
     public GraphQLRequestFlags Flags { get; }
 

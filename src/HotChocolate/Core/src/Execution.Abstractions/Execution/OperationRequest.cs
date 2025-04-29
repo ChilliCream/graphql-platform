@@ -1,4 +1,4 @@
-using static HotChocolate.Properties.AbstractionResources;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
@@ -418,7 +418,7 @@ public sealed class OperationRequest : IOperationRequest
     /// Creates a GraphQL request from a operation document source text.
     /// </summary>
     /// <param name="sourceText">
-    /// The GraphQL operation document source text.
+    /// The GraphQL operation-document source text.
     /// </param>
     /// <param name="documentHash">
     /// The hash of the persisted operation document.

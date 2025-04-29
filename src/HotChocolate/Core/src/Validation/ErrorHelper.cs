@@ -629,7 +629,7 @@ internal static class ErrorHelper
     {
         var message = Resources.ErrorHelper_IntrospectionNotAllowed;
 
-        if (context.ContextData.TryGetValue(IntrospectionMessage, out var value))
+        if (context.ContextData.TryGetValue(ExecutionContextData.IntrospectionMessage, out var value))
         {
             if (value is Func<string> messageFactory)
             {

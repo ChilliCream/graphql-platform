@@ -16,7 +16,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (node.Operation is OperationType.Query &&
-            !context.ContextData.ContainsKey(WellKnownContextData.IntrospectionAllowed))
+            !context.ContextData.ContainsKey(ExecutionContextData.IntrospectionAllowed))
         {
             return base.Enter(node, context);
         }

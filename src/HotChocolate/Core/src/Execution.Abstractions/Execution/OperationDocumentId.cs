@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static HotChocolate.Properties.AbstractionResources;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 

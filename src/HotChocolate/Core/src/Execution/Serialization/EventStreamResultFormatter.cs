@@ -224,9 +224,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             }
             catch (OperationCanceledException)
             {
-                // if the operation was canceled we do not need to log this
+                // if the operation was canceled, we do not need to log this
                 // and will stop gracefully.
-                return;
             }
             finally
             {

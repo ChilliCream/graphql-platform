@@ -65,9 +65,9 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
             }
         }
 
-        // lastly it might be that the request is allowed for the current session even
+        // Lastly, it might be that the request is allowed for the current session even
         // if it's not a persisted operation request.
-        if (context.ContextData.ContainsKey(WellKnownContextData.NonPersistedOperationAllowed))
+        if (context.ContextData.ContainsKey(ExecutionContextData.NonPersistedOperationAllowed))
         {
             return _next(context);
         }
