@@ -154,7 +154,7 @@ public sealed partial class OperationPlanner
                 var operationNode = new OperationExecutionNode
                 {
                     Id = step.Id,
-                    Definition = step.Definition,
+                    Operation = step.Definition,
                     SchemaName = step.SchemaName,
                     Requirements = requirements
                 };

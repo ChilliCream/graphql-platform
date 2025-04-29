@@ -5,7 +5,7 @@ namespace HotChocolate;
 /// <summary>
 /// An <see cref="Path" /> represents a pointer to an element in the result structure.
 /// </summary>
-public abstract class Path : IEquatable<Path>
+public abstract class Path : IEquatable<Path>, IComparable<Path>
 {
     private readonly Path? _parent;
 
@@ -156,8 +156,7 @@ public abstract class Path : IEquatable<Path>
             return false;
         }
 
-        if (Length.Equals(other.Length) &&
-            Parent.Equals(other.Parent))
+        if (Length.Equals(other.Length) && Parent.Equals(other.Parent))
         {
             return true;
         }
@@ -171,6 +170,99 @@ public abstract class Path : IEquatable<Path>
             null => false,
             Path p => Equals(p),
             _ => false,
+        };
+
+    /// <summary>
+    /// Compares the current instance with another object of the same type and returns
+    /// </summary>
+    /// <param name="other">
+    /// The object to compare with the current instance.
+    /// </param>
+    /// <returns>
+    /// A 32-bit signed integer that indicates the relative order of the objects being compared.
+    /// </returns>
+    public int CompareTo(Path? other)
+    {
+        if (other is null)
+        {
+            return -1;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return 0;
+        }
+
+        if (IsRoot)
+        {
+            return other.IsRoot ? 0 : -1;
+        }
+
+        if (other.IsRoot)
+        {
+            return 1;
+        }
+
+        // 1. Align to the same depth
+        var a = this;
+        var b = other;
+
+        var lenA = a.Length;
+        var lenB = b.Length;
+
+        if (lenA > lenB)
+        {
+            a = a.Skip(lenA - lenB);
+        }
+        else if (lenB > lenA)
+        {
+            b = b.Skip(lenB - lenA);
+        }
+
+        // 2. Walk aligned segments from root to leaf
+        var cmp = CompareFromRoot(a, b);
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        // 3. Same segments → shorter path wins
+        return Length.CompareTo(other.Length);
+    }
+
+    private Path Skip(int count)
+    {
+        var current = this;
+        for (var i = 0; i < count; i++)
+        {
+            current = current.Parent;
+        }
+        return current;
+    }
+
+    private static int CompareFromRoot(Path a, Path b)
+    {
+        if (a.IsRoot && b.IsRoot)
+        {
+            return 0;
+        }
+
+        var cmp = CompareFromRoot(a.Parent, b.Parent);
+        return cmp != 0 ? cmp : CompareCurrentSegment(a, b);
+    }
+
+    private static int CompareCurrentSegment(Path x, Path y)
+        => x switch
+        {
+            IndexerPathSegment ix when y is IndexerPathSegment iy
+                => ix.Index.CompareTo(iy.Index),
+            IndexerPathSegment when y is NamePathSegment
+                => -1,
+            NamePathSegment when y is IndexerPathSegment
+                => 1,
+            NamePathSegment nx when y is NamePathSegment ny
+                => string.CompareOrdinal(nx.Name, ny.Name),
+            _ => throw new NotSupportedException("Unexpected Path segment type.")
         };
 
     /// <summary>
@@ -213,6 +305,79 @@ public abstract class Path : IEquatable<Path>
     }
 
     public static Path Root => RootPathSegment.Instance;
+
+    public static Path Parse(string s)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(s);
+        return ParseInternal(s);
+    }
+
+    private static Path ParseInternal(ReadOnlySpan<char> s)
+    {
+        if (s.IsEmpty || s is "/")
+        {
+            return Root;
+        }
+
+        var current = Root;
+        var i = 0;
+
+        while (i < s.Length)
+        {
+            if (s[i] == '/')
+            {
+                i++; // skip '/'
+
+                var start = i;
+                while (i < s.Length && s[i] != '/' && s[i] != '[')
+                {
+                    i++;
+                }
+
+                if (start == i)
+                {
+                    throw new FormatException(
+                        $"Invalid path: empty name segment at position {start}.");
+                }
+
+                var nameSpan = s.Slice(start, i - start);
+                current = current.Append(nameSpan.ToString()); // allocate string only once!
+            }
+            else if (s[i] == '[')
+            {
+                i++; // skip '['
+
+                var start = i;
+                while (i < s.Length && s[i] != ']')
+                {
+                    i++;
+                }
+
+                if (i == s.Length)
+                {
+                    throw new FormatException(
+                        $"Invalid path: unterminated indexer at position {start}.");
+                }
+
+                var numberSpan = s.Slice(start, i - start);
+                if (!int.TryParse(numberSpan, out var index) || index < 0)
+                {
+                    throw new FormatException(
+                        $"Invalid path: invalid index '{numberSpan.ToString()}' at position {start}.");
+                }
+
+                current = current.Append(index);
+                i++; // skip ']'
+            }
+            else
+            {
+                throw new FormatException(
+                    $"Invalid path: unexpected character '{s[i]}' at position {i}.");
+            }
+        }
+
+        return current;
+    }
 
     private sealed class RootPathSegment : Path
     {

@@ -10,6 +10,7 @@ public abstract record ExecutionNode
 
     public abstract Task<ExecutionStatus> ExecuteAsync(
         OperationPlanContext context,
+        Path executionPath,
         CancellationToken cancellationToken = default);
 }
 

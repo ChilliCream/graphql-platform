@@ -31,7 +31,7 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         writer.WriteLine("schema: " + node.SchemaName);
         writer.WriteLine("operation: >-");
         writer.Indent();
-        var reader = new StringReader(node.Definition.ToString());
+        var reader = new StringReader(node.Operation.ToString());
         var line = reader.ReadLine();
         while (line != null)
         {
