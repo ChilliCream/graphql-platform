@@ -13,6 +13,8 @@ internal sealed class RedisPubSub : DefaultPubSub
     private readonly string _completed;
     private readonly int _topicBufferCapacity;
     private readonly TopicBufferFullMode _topicBufferFullMode;
+    private readonly string? _topicPrefix;
+
     public RedisPubSub(
         IConnectionMultiplexer connection,
         IMessageSerializer serializer,
@@ -25,6 +27,7 @@ internal sealed class RedisPubSub : DefaultPubSub
         _topicBufferCapacity = options.TopicBufferCapacity;
         _topicBufferFullMode = options.TopicBufferFullMode;
         _completed = serializer.CompleteMessage;
+        _topicPrefix = options.TopicPrefix;
     }
 
     protected override async ValueTask OnSendAsync<TMessage>(
@@ -37,7 +40,7 @@ internal sealed class RedisPubSub : DefaultPubSub
         // The object returned from GetSubscriber is a cheap pass-thru object that does not need
         // to be stored.
         var subscriber = _connection.GetSubscriber();
-        await subscriber.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
+        await subscriber.PublishAsync(GetPrefixedTopic(formattedTopic), serialized).ConfigureAwait(false);
     }
 
     protected override async ValueTask OnCompleteAsync(string formattedTopic)
@@ -45,7 +48,7 @@ internal sealed class RedisPubSub : DefaultPubSub
         // The object returned from GetSubscriber is a cheap pass-thru object that does not need
         // to be stored.
         var subscriber = _connection.GetSubscriber();
-        await subscriber.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
+        await subscriber.PublishAsync(GetPrefixedTopic(formattedTopic), _completed).ConfigureAwait(false);
     }
 
     protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(
@@ -53,10 +56,20 @@ internal sealed class RedisPubSub : DefaultPubSub
         int? bufferCapacity,
         TopicBufferFullMode? bufferFullMode)
         => new RedisTopic<TMessage>(
-            formattedTopic,
+            GetPrefixedTopic(formattedTopic),
             _connection,
             _serializer,
             bufferCapacity ?? _topicBufferCapacity,
             bufferFullMode ?? _topicBufferFullMode,
             DiagnosticEvents);
+
+    private string GetPrefixedTopic(string topic)
+    {
+        if (string.IsNullOrWhiteSpace(_topicPrefix))
+        {
+            return topic;
+        }
+
+        return $"{_topicPrefix}{topic}";
+    }
 }
