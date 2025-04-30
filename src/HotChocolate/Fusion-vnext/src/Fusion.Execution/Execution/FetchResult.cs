@@ -43,21 +43,39 @@ public sealed class FetchResult : IComparable<FetchResult>, IDisposable
     public JsonElement Extensions { get; init; }
 
     public JsonElement GetFromSourceData()
-        => _source ??= GetFromData(Source);
+        => _source ??= GetFromData(Data, Source);
 
-    public JsonElement GetFromData(SelectionPath path)
+    private static JsonElement GetFromData(JsonElement element, SelectionPath path)
     {
         if (path == SelectionPath.Root)
         {
-            return Data;
+            return element;
         }
 
-        var current = Data;
+        var current = element;
 
         foreach (var segment in path.Segments)
         {
-            if (current.ValueKind != JsonValueKind.Object)
+            if(current.ValueKind == JsonValueKind.Null)
             {
+                return current;
+            }
+
+            if (current.ValueKind != JsonValueKind.Object
+                || segment.Kind == SelectionPathSegmentKind.Root)
+            {
+                return default;
+            }
+
+            if(segment.Kind == SelectionPathSegmentKind.InlineFragment)
+            {
+                if (current.TryGetProperty("__typename", out var typeProperty)
+                    && typeProperty.ValueKind == JsonValueKind.String
+                    && typeProperty.ValueEquals(segment.Name))
+                {
+                    continue;
+                }
+
                 return default;
             }
 
@@ -96,6 +114,24 @@ public sealed class FetchResult : IComparable<FetchResult>, IDisposable
             Data = result.Data,
             Errors = result.Errors,
             Extensions = result.Extensions
+        };
+    }
+
+    public static FetchResult From(Path path, SelectionPath target, SelectionPath source, JsonDocument result)
+    {
+        var root = result.RootElement;
+        root.TryGetProperty("data", out var data);
+        root.TryGetProperty("errors", out var errors);
+        root.TryGetProperty("extensions", out var extensions);
+
+        return new FetchResult(result)
+        {
+            Path = path,
+            Target = target,
+            Source = source,
+            Data = data,
+            Errors = errors,
+            Extensions = extensions
         };
     }
 }
