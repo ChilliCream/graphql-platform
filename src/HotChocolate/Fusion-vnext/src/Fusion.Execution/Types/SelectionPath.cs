@@ -120,6 +120,29 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
         => ReferenceEquals(this, obj)
             || (obj is SelectionPath other && Equals(other));
 
+    public bool IsParentOfOrSame(SelectionPath path)
+    {
+        if(Equals(path))
+        {
+            return true;
+        }
+
+        if (Segments.Length >= path.Segments.Length - 1)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < path.Segments.Length; i++)
+        {
+            if (!Segments[i].Name.Equals(path.Segments[i].Name , StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public override int GetHashCode()
         => HashCode.Combine(_segments, Name, (int)Kind);
 

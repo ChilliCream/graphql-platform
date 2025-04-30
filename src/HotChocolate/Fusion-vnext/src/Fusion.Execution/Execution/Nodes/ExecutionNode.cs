@@ -2,15 +2,13 @@ using System.Collections.Immutable;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public abstract record ExecutionNode
+public abstract record ExecutionNode(int id, ImmutableArray<ExecutionNode> dependencies)
 {
-    public required int Id { get; init; }
+    public int Id => id;
 
-    public ImmutableArray<ExecutionNode> Dependencies { get; init; } = [];
+    public ImmutableArray<ExecutionNode> Dependencies => dependencies;
 
     public abstract Task<ExecutionStatus> ExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default);
 }
-
-public record ExecutionStatus(int Id);

@@ -9,15 +9,17 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 public class SourceSchemaHttpClient : ISourceSchemaClient
 {
-    private readonly IGraphQLHttpClientScope _clientScope;
-    private readonly Cache<string> _operationStringCache = new();
+    private readonly GraphQLHttpClient _client;
+    private readonly Cache<string> _operationStringCache;
 
     public SourceSchemaHttpClient(
-        IGraphQLHttpClientScope clientScope,
+        GraphQLHttpClient client,
         Cache<string> operationStringCache)
     {
-        _clientScope = clientScope
-            ?? throw new ArgumentNullException(nameof(clientScope));
+        _client = client
+            ?? throw new ArgumentNullException(nameof(client));
+        _operationStringCache = operationStringCache
+            ?? throw new ArgumentNullException(nameof(operationStringCache));
     }
 
     public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(
@@ -25,8 +27,7 @@ public class SourceSchemaHttpClient : ISourceSchemaClient
         CancellationToken cancellationToken)
     {
         var httpRequest = CreateHttpRequest(request);
-        var client = _clientScope.GetClient(request.OperationId);
-        var httpResponse = await client.SendAsync(httpRequest, cancellationToken);
+        var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
         return new Response(httpResponse, request.Variables);
     }
 

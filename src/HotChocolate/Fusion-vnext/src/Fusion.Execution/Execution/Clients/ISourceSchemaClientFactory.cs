@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Execution.Clients;
 
-public interface ISourceSchemaClientFactory
+public interface ISourceSchemaClientScope
 {
-    ISourceSchemaClient CreateClient(string name);
+    ISourceSchemaClient GetClient(string name);
 }
