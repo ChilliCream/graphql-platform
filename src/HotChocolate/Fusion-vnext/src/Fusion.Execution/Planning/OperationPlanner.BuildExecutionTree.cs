@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -151,13 +152,14 @@ public sealed partial class OperationPlanner
                     requirements = builder.ToImmutable();
                 }
 
-                var operationNode = new OperationExecutionNode
-                {
-                    Id = step.Id,
-                    Operation = step.Definition,
-                    SchemaName = step.SchemaName,
-                    Requirements = requirements
-                };
+                var operationNode = new OperationExecutionNode(
+                    step.Id,
+                    step.Definition,
+                    step.SchemaName,
+                    // TODO : fix path
+                    SelectionPath.Root,
+                    SelectionPath.Root,
+                    [.. step.Requirements.Values]);
 
                 completedNodes.Add(step.Id, operationNode);
             }

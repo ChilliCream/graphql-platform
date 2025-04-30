@@ -31,7 +31,6 @@ public sealed class OperationPlanContext
     public FetchResultStore ResultStore { get; } = new();
 
     public ImmutableArray<VariableValues> CreateVariables(
-        ImmutableArray<int> dependencies,
         ImmutableHashSet<string> variables,
         ImmutableArray<OperationRequirement> requirements)
     {

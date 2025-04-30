@@ -15,16 +15,13 @@ public record OperationExecutionNode : ExecutionNode
         string schemaName,
         SelectionPath target,
         SelectionPath source,
-        ImmutableArray<ExecutionNode> dependents,
-        ImmutableArray<ExecutionNode> dependencies,
         ImmutableArray<OperationRequirement> requirements)
-        : base(id, dependencies)
+        : base(id)
     {
         Operation = operation;
         SchemaName = schemaName;
         Target = target;
         Source = source;
-        Dependents = dependents;
         Requirements = requirements;
 
         // We compute the hash of the operation definition when it is set.
@@ -80,12 +77,12 @@ public record OperationExecutionNode : ExecutionNode
     /// Gets the execution nodes that depend on this operation to be completed
     /// before they can be executed.
     /// </summary>
-    public ImmutableArray<ExecutionNode> Dependents { get; } = [];
+    public ImmutableArray<ExecutionNode> Dependents { get; init; } = [];
 
     /// <summary>
     /// Gets the data requirements that are needed to execute this operation.
     /// </summary>
-    public ImmutableArray<OperationRequirement> Requirements { get; } = [];
+    public ImmutableArray<OperationRequirement> Requirements { get; init; } = [];
 
     /// <summary>
     /// Gets the variables that are needed to execute this operation.
