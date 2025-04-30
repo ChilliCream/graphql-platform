@@ -61,8 +61,7 @@ public sealed class FetchResult : IComparable<FetchResult>, IDisposable
                 return current;
             }
 
-            if (current.ValueKind != JsonValueKind.Object
-                || segment.Kind == SelectionPathSegmentKind.Root)
+            if (current.ValueKind != JsonValueKind.Object)
             {
                 return default;
             }

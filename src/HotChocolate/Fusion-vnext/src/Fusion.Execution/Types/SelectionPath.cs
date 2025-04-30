@@ -49,8 +49,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
 
     public static SelectionPath Parse(string s)
     {
-        var path = Root;
-        var current = path;
+        var current = Root;
 
         foreach (var segment in s.Split("."))
         {
@@ -65,7 +64,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
             }
         }
 
-        return path;
+        return current;
     }
 
     public override string ToString()

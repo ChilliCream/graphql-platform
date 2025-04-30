@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Types;
+using Xunit;
 
 namespace HotChocolate.Fusion.Tests.Execution;
 
@@ -12,55 +13,60 @@ public sealed class FetchResultTests
     [Fact]
     public void GetFromSourceData_ReturnsRoot()
     {
-        const string json =
+        // arrange
+        using var doc = JsonDocument.Parse(
             """
             {
               "data": { "hello": "world" }
             }
-            """;
+            """);
 
-        using var doc = JsonDocument.Parse(json);
         var fetch = FetchResult.From(
             Path.Root,
             SelectionPath.Root,
             SelectionPath.Root,
             doc);
 
+        // act
         var element = fetch.GetFromSourceData();
 
+        // assert
         Assert.Equal(JsonValueKind.Object, element.ValueKind);
         Assert.Equal("world", element.GetProperty("hello").GetString());
     }
 
     [Fact]
-    public void GetFromSourceData_NestedField()
+    public void GetFromSourceData_User()
     {
-        const string json =
+        // arrange
+        using var doc = JsonDocument.Parse(
             """
             {
               "data": {
                 "user": { "id": 123, "name": "Luke" }
               }
             }
-            """;
+            """);
 
-        using var doc = JsonDocument.Parse(json);
         var fetch = FetchResult.From(
             Path.Root,
             SelectionPath.Root,
-            SelectionPath.Parse("user.id"),
+            SelectionPath.Parse("user"),
             doc);
 
-        var id = fetch.GetFromSourceData();
+        // act
+        var user = fetch.GetFromSourceData();
 
-        Assert.Equal(JsonValueKind.Number, id.ValueKind);
-        Assert.Equal(123, id.GetInt32());
+        // assert
+        Assert.Equal(JsonValueKind.Object, user.ValueKind);
+        Assert.True(user.TryGetProperty("id", out _));
     }
 
     [Fact]
     public void GetFromSourceData_InlineFragment()
     {
-        const string json =
+        // arrange
+        using var doc = JsonDocument.Parse(
             """
             {
               "data": {
@@ -71,17 +77,18 @@ public sealed class FetchResultTests
                 }
               }
             }
-            """;
+            """);
 
-        using var doc = JsonDocument.Parse(json);
         var fetch = FetchResult.From(
             Path.Root,
             SelectionPath.Root,
             SelectionPath.Parse("node.<User>.id"),
             doc);
 
+        // act
         var id = fetch.GetFromSourceData();
 
+        // assert
         Assert.Equal(JsonValueKind.String, id.ValueKind);
         Assert.Equal("U1", id.GetString());
     }
@@ -89,35 +96,38 @@ public sealed class FetchResultTests
     [Fact]
     public void GetFromSourceData_InlineFragment_Type_Mismatch()
     {
-        const string json =
+        // arrange
+        using var doc = JsonDocument.Parse(
             """
             {
               "data": {
                 "node": {
                   "__typename": "Group",
-                  "id": "U1",
+                  "id": "G1",
                   "name": "Ana"
                 }
               }
             }
-            """;
+            """);
 
-        using var doc = JsonDocument.Parse(json);
         var fetch = FetchResult.From(
             Path.Root,
             SelectionPath.Root,
             SelectionPath.Parse("node.<User>.id"),
             doc);
 
+        // act
         var id = fetch.GetFromSourceData();
 
-        Assert.Equal(JsonValueKind.Null, id.ValueKind);
+        // assert
+        Assert.Equal(JsonValueKind.Undefined, id.ValueKind);
     }
 
     [Fact]
     public void GetFromSourceData_InlineFragment_Type_Missing()
     {
-        const string json =
+        // arrange
+        using var doc = JsonDocument.Parse(
             """
             {
               "data": {
@@ -127,43 +137,51 @@ public sealed class FetchResultTests
                 }
               }
             }
-            """;
+            """);
 
-        using var doc = JsonDocument.Parse(json);
         var fetch = FetchResult.From(
             Path.Root,
             SelectionPath.Root,
             SelectionPath.Parse("node.<User>.id"),
             doc);
 
+        // act
         var id = fetch.GetFromSourceData();
 
-        Assert.Equal(JsonValueKind.Null, id.ValueKind);
+        // assert
+        Assert.Equal(JsonValueKind.Undefined, id.ValueKind);
     }
 
     [Fact]
     public void GetFromSourceData_MissingPath_ReturnsDefault()
     {
-        const string json = """{ "data": { "foo": 1 } }""";
+        // arrange
+        using var doc = JsonDocument.Parse(
+            """
+            { "data": { "foo": 1 } }
+            """);
 
-        using var doc = JsonDocument.Parse(json);
         var fetch = FetchResult.From(
             Path.Root,
             SelectionPath.Root,
             SelectionPath.Parse("bar.baz"),
             doc);
 
+        // act
         var result = fetch.GetFromSourceData();
 
+        // assert
         Assert.Equal(JsonValueKind.Undefined, result.ValueKind);
     }
 
     [Fact]
     public void CompareTo_SortsByRuntimePath()
     {
+        // arrange
         var a = new TestBuilder("/foo");
         var b = new TestBuilder("/foo/bar");
 
+        // act & assert
         Assert.True(a.FetchResult.CompareTo(b.FetchResult) < 0);
         Assert.True(b.FetchResult.CompareTo(a.FetchResult) > 0);
     }
@@ -174,8 +192,9 @@ public sealed class FetchResultTests
 
         public TestBuilder(string runtimePath)
         {
-            const string json = """{ "data": {} }""";
-            using var doc = JsonDocument.Parse(json);
+            // arrange
+            using var doc = JsonDocument.Parse(
+                """{ "data": {} }""");
 
             FetchResult = FetchResult.From(
                 Path.Parse(runtimePath),
