@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Internal.FieldInitHelper;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
@@ -11,7 +12,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field or directive argument.
 /// </summary>
-public class Argument : FieldBase, IInputField
+public class Argument : FieldBase, IInputField, IInputValueDefinition
 {
     private Type _runtimeType = default!;
 
@@ -75,6 +76,10 @@ public class Argument : FieldBase, IInputField
     /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
     /// </summary>
     internal bool IsOptional { get; private set; }
+
+    IType IFieldDefinition.Type => Type;
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => throw new NotImplementedException();
 
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
@@ -152,5 +157,8 @@ public class Argument : FieldBase, IInputField
     /// <returns>
     /// A string that represents the current argument.
     /// </returns>
-    public override string ToString() => $"{Name}:{Type.Print()}";
+    public override string ToString() => Format(this).ToString(true);
+
+
+    public ISyntaxNode ToSyntaxNode() => Format(this);
 }

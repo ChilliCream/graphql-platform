@@ -29,7 +29,7 @@ public sealed partial class OperationCompiler
     private readonly List<Selection> _selections = [];
     private readonly HashSet<string> _directiveNames = new(Ordinal);
     private readonly List<FieldMiddleware> _pipelineComponents = [];
-    private readonly HashSet<int> _enqueuedSelectionSets = new();
+    private readonly HashSet<int> _enqueuedSelectionSets = [];
     private IncludeCondition[] _includeConditions = [];
     private CompilerContext? _deferContext;
 
@@ -152,7 +152,7 @@ public sealed partial class OperationCompiler
         {
             CompleteResolvers(request.Schema);
 
-            // if we do not have any optimizers we will copy
+            // if we do not have any optimizers, we will copy
             // the variants and seal them in one go.
             foreach (var item in _selectionVariants)
             {
@@ -162,10 +162,10 @@ public sealed partial class OperationCompiler
         }
         else
         {
-            // if we have optimizers we will first copy the variants to its array,
+            // if we have optimizers, we will first copy the variants to its array,
             // after that we will run the optimizers and give them a chance to do some
             // more mutations on the compiled selection variants.
-            // after we have executed all optimizers we will seal the selection variants.
+            // after we have executed all optimizers, we will seal the selection variants.
             var context = new OperationOptimizerContext(
                 request.Id,
                 request.Document,

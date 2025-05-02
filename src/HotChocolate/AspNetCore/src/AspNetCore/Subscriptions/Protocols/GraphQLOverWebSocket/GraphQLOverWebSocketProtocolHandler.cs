@@ -339,4 +339,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         message = new SubscribeMessage(id, request[0]);
         return true;
     }
+
+    private static IReadOnlyList<GraphQLRequest> Parse(object value)
+    {
+        throw new NotImplementedException();
+    }
 }

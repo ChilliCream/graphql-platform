@@ -9,6 +9,8 @@ public static class HotChocolateBaseTypeExtensions
 
     public static ITypeDefinition AsTypeDefinition(this IType type)
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         var depthRemaining = _maxDepth;
 
         while (true)
@@ -44,7 +46,7 @@ public static class HotChocolateBaseTypeExtensions
 
     public static bool Equals(this IType thisType, IType? otherType, TypeComparison comparison)
     {
-        ArgumentNullException.ThrowIfNull(thisType, nameof(thisType));
+        ArgumentNullException.ThrowIfNull(thisType);
 
         if(otherType is null)
         {

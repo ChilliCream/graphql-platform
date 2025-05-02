@@ -152,28 +152,6 @@ public static class TypeExtensions
     }
 
     /// <summary>
-    /// Defines if a type is an list type.
-    /// </summary>
-    /// <param name="type">
-    /// The type.
-    /// </param>
-    /// <returns>
-    /// Returns <c>true</c> if the type is an list type; otherwise, <c>false</c>.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="type"/> is <c>null</c>.
-    /// </exception>
-    public static bool IsListType(this IType type)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        return IsType(type, TypeKind.List);
-    }
-
-    /// <summary>
     /// Defines if a type is a scalar type.
     /// </summary>
     /// <param name="type">
@@ -392,26 +370,6 @@ public static class TypeExtensions
         return false;
     }
 
-    public static IType InnerType(this IType type)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type.Kind == TypeKind.NonNull)
-        {
-            return ((NonNullType)type).NullableType;
-        }
-
-        if (type.Kind == TypeKind.List)
-        {
-            return ((ListType)type).ElementType;
-        }
-
-        return type;
-    }
-
     public static IType NullableType(this IType type)
     {
         if (type is null)
@@ -620,33 +578,6 @@ public static class TypeExtensions
         }
 
         throw new NotSupportedException();
-    }
-
-    public static ITypeNode ToTypeNode(this IType type)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type is NonNullType nonNullType
-            && ToTypeNode(nonNullType.NullableType) is INullableTypeNode nullableTypeNode)
-        {
-            return new NonNullTypeNode(null, nullableTypeNode);
-        }
-
-        if (type is ListType listType)
-        {
-            return new ListTypeNode(null, ToTypeNode(listType.ElementType));
-        }
-
-        if (type is INamedType namedType)
-        {
-            return new NamedTypeNode(null, new NameNode(namedType.Name));
-        }
-
-        throw new NotSupportedException(
-            TypeResources.TypeExtensions_KindIsNotSupported);
     }
 
     public static ITypeNode ToTypeNode(

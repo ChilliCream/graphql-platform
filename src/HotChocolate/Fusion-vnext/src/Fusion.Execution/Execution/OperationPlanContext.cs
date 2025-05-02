@@ -31,12 +31,14 @@ public sealed class OperationPlanContext
 
     public IReadOnlyDictionary<string, IValueNode>? Variables { get; }
 
+    public ISchemaDefinition Schema => RequestContext.Schema;
+
     public GraphQLRequestContext RequestContext { get; }
 
     public FetchResultStore ResultStore { get; } = new();
 
     // NOTE: this version is too simple, we will rewrite it once we have implemented the SelectionSetMap.
-    public ImmutableArray<VariableValues> CreateVariables(
+    public ImmutableArray<VariableValues>? TryCreateVariables(
         SelectionPath currentPath,
         ImmutableArray<string> variables,
         ImmutableArray<OperationRequirement> requirements)
@@ -59,7 +61,7 @@ public sealed class OperationPlanContext
                 builder.Add(new VariableValues(path, new ObjectValueNode(variableValues)));
             }
 
-            return builder?.ToImmutable() ?? [];
+            return builder?.ToImmutable() ?? null;
         }
 
         return ImmutableArray<VariableValues>.Empty.Add(

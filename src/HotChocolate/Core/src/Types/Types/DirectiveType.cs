@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
@@ -18,6 +19,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class DirectiveType
     : TypeSystemObjectBase<DirectiveTypeConfiguration>
+    , IDirectiveDefinition
     , IHasRuntimeType
     , IHasTypeIdentity
 {
@@ -73,6 +75,8 @@ public partial class DirectiveType
     /// </summary>
     public FieldCollection<DirectiveArgument> Arguments { get; private set; } = default!;
 
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments => throw new NotImplementedException();
+
     /// <summary>
     /// Gets the directive field middleware.
     /// </summary>
@@ -120,6 +124,10 @@ public partial class DirectiveType
     /// </summary>
     internal bool IsPublic { get; private set; }
 
+    private Type? TypeIdentity { get; set; }
+
+    Type? IHasTypeIdentity.TypeIdentity => TypeIdentity;
+
     internal object CreateInstance(object?[] fieldValues)
         => _createInstance(fieldValues);
 
@@ -150,7 +158,7 @@ public partial class DirectiveType
         return (T)_inputParser.ParseLiteral(value, argument, typeof(T))!;
     }
 
-    private Type? TypeIdentity { get; set; }
+    public ISyntaxNode ToSyntaxNode() => Format(this);
 
-    Type? IHasTypeIdentity.TypeIdentity => TypeIdentity;
+    public override string ToString() => Format(this).ToString(true);
 }

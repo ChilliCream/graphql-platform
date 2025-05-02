@@ -93,11 +93,18 @@ public record OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
+        var variables = context.TryCreateVariables(Target, Variables, Requirements);
+
+        if (variables is null)
+        {
+            return new ExecutionStatus(Id, IsSkipped: true);
+        }
+
         var request = new SourceSchemaClientRequest
         {
             OperationId = OperationId,
             Operation = Operation,
-            Variables = context.CreateVariables(Target, Variables, Requirements),
+            Variables = variables.Value,
         };
 
         var client = context.GetClient(SchemaName);
@@ -112,6 +119,6 @@ public record OperationExecutionNode : ExecutionNode
             }
         }
 
-        return new ExecutionStatus(Id);
+        return new ExecutionStatus(Id, IsSkipped: false);
     }
 }

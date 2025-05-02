@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -22,6 +23,11 @@ public sealed class FetchResultStore
         }
 
         results.Add(result);
+    }
+
+    public IEnumerable<FetchResult> GetRootResults()
+    {
+        throw new NotImplementedException();
     }
 
     public IEnumerable<FetchResult> GetResults(SelectionPath path)
@@ -213,8 +219,7 @@ public sealed class FetchResultStore
                     return new StringValueNode(element.GetString()!);
 
                 case JsonValueKind.Number:
-                    var value = element.GetRawText();
-                    return Utf8GraphQLParser.Syntax.ParseValueLiteral(value);
+                    return Utf8GraphQLParser.Syntax.ParseValueLiteral(JsonMarshal.GetRawUtf8Value(element));
 
                 case JsonValueKind.True:
                     return BooleanValueNode.True;
