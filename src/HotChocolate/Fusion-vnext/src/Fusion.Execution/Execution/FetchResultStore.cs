@@ -1,74 +1,238 @@
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Text.Json;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
+// we must make this thread-safe
 public sealed class FetchResultStore
 {
-    private readonly ConcurrentDictionary<Path, List<FetchResult>> _results = new();
-    private readonly ConcurrentDictionary<SelectionPath, List<FetchResult>> _resultsBySelectionPath = new();
-    private readonly ConcurrentDictionary<int, List<FetchResult>> _resultsByExecutionNodeId = new();
-    private ImmutableHashSet<SelectionPath> _selectionPaths = [];
+    private readonly Dictionary<SelectionPath, List<FetchResult>> _resultsBySelectionPath = new();
+    private readonly HashSet<SelectionPath> _selectionPaths = [];
 
     public void AddResult(FetchResult result)
     {
-        var results = _results.GetOrAdd(result.Path, _ => []);
+        _selectionPaths.Add(result.Target);
 
-        lock (results)
+        if(!_resultsBySelectionPath.TryGetValue(result.Target, out var results))
         {
-            results.Add(result);
+            results = new List<FetchResult>();
+            _resultsBySelectionPath.Add(result.Target, results);
         }
 
-        var resultsBySelectionPath = _resultsBySelectionPath.GetOrAdd(result.Target, _ => []);
-
-        lock (resultsBySelectionPath)
-        {
-            resultsBySelectionPath.Add(result);
-        }
-
-        var resultsByExecutionNodeId = _resultsByExecutionNodeId.GetOrAdd(result.ExecutionNodeId, _ => []);
-
-        lock (resultsByExecutionNodeId)
-        {
-            resultsByExecutionNodeId.Add(result);
-        }
-
-        lock (_selectionPaths)
-        {
-            _selectionPaths = _selectionPaths.Add(result.Target);
-        }
+        results.Add(result);
     }
 
-    public IReadOnlyList<FetchResult> GetResults(SelectionPath path)
+    public IEnumerable<FetchResult> GetResults(SelectionPath path)
     {
-        List<FetchResult>? results = null;
-
         foreach (var selectionPath in _selectionPaths)
         {
-            if (selectionPath.IsParentOfOrSame(path))
+            if (!selectionPath.IsParentOfOrSame(path))
             {
-                results ??= [];
-                results.AddRange(_resultsBySelectionPath[selectionPath]);
+                continue;
+            }
+
+            foreach (var result in _resultsBySelectionPath[selectionPath])
+            {
+                yield return result;
             }
         }
-
-        return results ?? [];
     }
 
-    public IReadOnlyList<FetchResult> GetResults(IEnumerable<int> executionNodeIds)
+    public IEnumerable<(Path Path, List<ObjectFieldNode> Fields)> GetValues(
+        SelectionPath root,
+        ImmutableArray<(string Key, FieldPath Map)> requirements)
     {
-        List<FetchResult>? results = null;
+        ArgumentNullException.ThrowIfNull(root);
 
-        foreach (var executionNodeId in executionNodeIds)
+        var completed = new HashSet<Path>();
+
+        foreach (var result in GetResults(root))
         {
-            if (_resultsByExecutionNodeId.TryGetValue(executionNodeId, out var fetchResults))
+            var relativeRoot = root.RelativeTo(result.Target);
+            var rootElement = result.GetFromSourceData();
+
+            if (rootElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
-                results ??= [];
-                results.AddRange(fetchResults);
+                continue;
+            }
+
+            var current = new List<(JsonElement, Path)> { (rootElement, result.Path) };
+            var next = new List<(JsonElement, Path)>();
+            var currentList = new List<(JsonElement, Path)>();
+            var nextList = new List<(JsonElement, Path)>();
+
+            if (FanOutLists(result.Path, rootElement, currentList, nextList, next))
+            {
+                (current, next) = (next, current);
+            }
+
+            foreach (var segment in relativeRoot.Segments)
+            {
+                next.Clear();
+
+                foreach (var (element, path) in current)
+                {
+                    if (element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                    {
+                        continue;
+                    }
+
+                    if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
+                    {
+                        // __typename discriminator
+                        if (element.ValueKind == JsonValueKind.Object
+                            && element.TryGetProperty("__typename", out var t)
+                            && t.ValueKind == JsonValueKind.String
+                            && t.ValueEquals(segment.Name))
+                        {
+                            next.Add((element, path));
+                        }
+
+                        continue;
+                    }
+
+                    if (element.ValueKind is not JsonValueKind.Object
+                        || !element.TryGetProperty(segment.Name, out var property)
+                        || property.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                    {
+                        continue;
+                    }
+
+                    var nextPath = path.Append(segment.Name);
+
+                    if (!FanOutLists(nextPath, property, currentList, nextList, next))
+                    {
+                        next.Add((property, nextPath));
+                    }
+                }
+
+                (current, next) = (next, current);
+            }
+
+            foreach (var (element, path) in current)
+            {
+                if (!completed.Add(path)
+                    || element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                {
+                    continue;
+                }
+
+                var fields = new List<ObjectFieldNode>();
+
+                foreach (var (key, map) in requirements)
+                {
+                    fields.Add(FieldPathExtractor.Extract(key, element, map));
+                }
+
+                yield return (path, fields);
             }
         }
 
-        return results ?? [];
+        static bool FanOutLists(
+            Path path,
+            JsonElement element,
+            List<(JsonElement, Path)> currentList,
+            List<(JsonElement, Path)> nextList,
+            List<(JsonElement, Path)> next)
+        {
+            if (element.ValueKind is not JsonValueKind.Array)
+            {
+                return false;
+            }
+
+            nextList.Clear();
+            nextList.Add((element, path));
+            var isList = false;
+
+            do
+            {
+                (currentList, nextList) = (nextList, currentList);
+                nextList.Clear();
+
+                var idx = 0;
+                foreach (var (listElement, listPath) in currentList)
+                {
+                    foreach (var item in listElement.EnumerateArray())
+                    {
+                        if(!isList && item.ValueKind == JsonValueKind.Array)
+                        {
+                            isList = true;
+                        }
+
+                        next.Add((item, listPath.Append(idx++)));
+                    }
+                }
+            }
+            while (isList);
+            return true;
+        }
+    }
+
+    private static class FieldPathExtractor
+    {
+        public static ObjectFieldNode Extract(string key, JsonElement element, FieldPath map)
+        {
+            var stack = map.Reverse().GetEnumerator();
+
+            if (!stack.MoveNext())
+            {
+                throw new ArgumentException("The path must not be empty.", nameof(map));
+            }
+
+            var value = Visit(stack, element);
+            return new ObjectFieldNode(key, value);
+        }
+
+        private static IValueNode Visit(IEnumerator<FieldPath> stack, JsonElement element)
+        {
+            var segment = stack.Current;
+
+            if (!element.TryGetProperty(segment.Name, out var property) ||
+                property.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (stack.MoveNext())
+            {
+                var next = Visit(stack, property);
+                var field = new ObjectFieldNode(segment.Name, next);
+                return new ObjectValueNode(field);
+            }
+
+            return Visit(property);
+        }
+
+        private static IValueNode Visit(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.String:
+                    return new StringValueNode(element.GetString()!);
+
+                case JsonValueKind.Number:
+                    var value = element.GetRawText();
+                    return Utf8GraphQLParser.Syntax.ParseValueLiteral(value);
+
+                case JsonValueKind.True:
+                    return BooleanValueNode.True;
+
+                case JsonValueKind.False:
+                    return BooleanValueNode.False;
+
+                case JsonValueKind.Array:
+                    var items = new List<IValueNode>();
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        items.Add(Visit(item));
+                    }
+                    return new ListValueNode(items.ToImmutableArray());
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }

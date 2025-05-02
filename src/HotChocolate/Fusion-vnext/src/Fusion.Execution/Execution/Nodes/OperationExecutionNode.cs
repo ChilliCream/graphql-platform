@@ -32,7 +32,7 @@ public record OperationExecutionNode : ExecutionNode
         hash = hash[..length];
         OperationId = Convert.ToHexString(hash);
 
-        var variables = ImmutableHashSet.CreateBuilder<string>();
+        var variables = ImmutableArray.CreateBuilder<string>();
 
         foreach (var variableDef in operation.VariableDefinitions)
         {
@@ -87,7 +87,7 @@ public record OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the variables that are needed to execute this operation.
     /// </summary>
-    public ImmutableHashSet<string> Variables { get; }
+    public ImmutableArray<string> Variables { get; }
 
     public override async Task<ExecutionStatus> ExecuteAsync(
         OperationPlanContext context,
@@ -97,7 +97,7 @@ public record OperationExecutionNode : ExecutionNode
         {
             OperationId = OperationId,
             Operation = Operation,
-            Variables = context.CreateVariables(Variables, Requirements),
+            Variables = context.CreateVariables(Target, Variables, Requirements),
         };
 
         var client = context.GetClient(SchemaName);

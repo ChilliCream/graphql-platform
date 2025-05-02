@@ -5,135 +5,121 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class SelectionPath : IEquatable<SelectionPath>
 {
-    private readonly ImmutableArray<SelectionPath> _segments;
+    private readonly ImmutableArray<Segment> _segments;
 
-    private SelectionPath(
-        SelectionPath? parent,
-        string name,
-        SelectionPathSegmentKind kind)
+    private SelectionPath(ImmutableArray<Segment> segments)
     {
-        _segments = parent is not null
-            ? parent._segments.Add(this)
-            : ImmutableArray<SelectionPath>.Empty.Add(this);
-        Name = name;
-        Kind = kind;
+        _segments = segments;
     }
 
-    public SelectionPath? Parent
-        => _segments.Length > 0 ? _segments[^1] : null;
+    public bool IsRoot => _segments.IsEmpty;
 
-    public string Name { get; }
+    public SelectionPath? Parent =>
+        _segments.IsEmpty ? null : new SelectionPath(_segments.RemoveAt(_segments.Length - 1));
 
-    public bool IsRoot => Kind == SelectionPathSegmentKind.Root;
+    public ImmutableArray<Segment> Segments => _segments;
 
-    public SelectionPathSegmentKind Kind { get; }
+    public SelectionPath AppendField(string fieldName) =>
+        new(_segments.Add(new Segment(fieldName, SelectionPathSegmentKind.Field)));
 
-    public ImmutableArray<SelectionPath> Segments => _segments;
-
-    public SelectionPath AppendField(string fieldName)
-    {
-        return Kind == SelectionPathSegmentKind.Root
-            ? new SelectionPath(null, fieldName, SelectionPathSegmentKind.Field)
-            : new SelectionPath(this, fieldName, SelectionPathSegmentKind.Field);
-    }
-
-    public SelectionPath AppendFragment(string typeName)
-    {
-        return Kind == SelectionPathSegmentKind.Root
-            ? new SelectionPath(null, typeName, SelectionPathSegmentKind.InlineFragment)
-            : new SelectionPath(this, typeName, SelectionPathSegmentKind.InlineFragment);
-    }
+    public SelectionPath AppendFragment(string typeName) =>
+        new(_segments.Add(new Segment(typeName, SelectionPathSegmentKind.InlineFragment)));
 
     public static SelectionPath Root { get; } =
-        new(null, "root", SelectionPathSegmentKind.Root);
+        new(ImmutableArray<Segment>.Empty);
 
     public static SelectionPath Parse(string s)
     {
-        var current = Root;
-
-        foreach (var segment in s.Split("."))
+        if (string.IsNullOrEmpty(s))
         {
-            if (segment.StartsWith('<'))
-            {
-                var typeName = segment[1..^1];
-                current = current.AppendFragment(typeName);
-            }
-            else
-            {
-                current = current.AppendField(segment);
-            }
+            return Root;
         }
 
-        return current;
+        var builder = ImmutableArray.CreateBuilder<Segment>();
+
+        foreach (var segment in s.Split('.'))
+        {
+            builder.Add(
+                segment[0] == '<'
+                    ? new Segment(segment[1..^1], SelectionPathSegmentKind.InlineFragment)
+                    : new Segment(segment, SelectionPathSegmentKind.Field));
+        }
+
+        return new SelectionPath(builder.ToImmutable());
     }
 
     public override string ToString()
     {
-        var path = new StringBuilder();
-
-        foreach (var segment in _segments)
+        if (_segments.IsEmpty)
         {
-            if (segment.Kind == SelectionPathSegmentKind.Root)
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder();
+
+        foreach (var seg in _segments)
+        {
+            if (sb.Length > 0)
             {
-                continue;
+                sb.Append('.');
             }
 
-            if (path.Length > 0)
+            if (seg.Kind == SelectionPathSegmentKind.InlineFragment)
             {
-                path.Append('.');
-            }
-
-            if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
-            {
-                path.Append('<');
-                path.Append(segment.Name);
-                path.Append('>');
+                sb.Append('<').Append(seg.Name).Append('>');
             }
             else
             {
-                path.Append(segment.Name);
+                sb.Append(seg.Name);
             }
         }
 
-        return path.ToString();
+        return sb.ToString();
     }
 
-    public bool Equals(SelectionPath? other)
+    /// <summary>
+    /// Returns the portion of this path that comes <em>after</em> <paramref name="basePath"/>.
+    /// </summary>
+    /// <param name="basePath">
+    /// The path to remove from the start of this instance.
+    /// Must be the same as, or a parent of, the current path.
+    /// </param>
+    /// <returns>
+    /// A new <see cref="SelectionPath"/> representing the relative path,
+    /// or <see cref="SelectionPath.Root"/> if both paths are identical.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if <paramref name="basePath"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown if <paramref name="basePath"/> is not a parent of, or identical to, this path.
+    /// </exception>
+    public SelectionPath RelativeTo(SelectionPath basePath)
     {
-        if (other is null)
+        if (Equals(basePath))
+        {
+            return Root;
+        }
+
+        if (!basePath.IsParentOfOrSame(this))
+        {
+            throw new ArgumentException(nameof(basePath));
+        }
+
+        return new SelectionPath(_segments.RemoveRange(0, basePath._segments.Length));
+    }
+
+    public bool IsParentOfOrSame(SelectionPath other)
+    {
+        if (other._segments.Length < _segments.Length)
         {
             return false;
         }
 
-        if (ReferenceEquals(this, other))
+        for (var i = 0; i < _segments.Length; i++)
         {
-            return true;
-        }
-
-        return Kind == other.Kind
-            && Name == other.Name
-            && _segments.SequenceEqual(other._segments);
-    }
-
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj)
-            || (obj is SelectionPath other && Equals(other));
-
-    public bool IsParentOfOrSame(SelectionPath path)
-    {
-        if(Equals(path))
-        {
-            return true;
-        }
-
-        if (Segments.Length >= path.Segments.Length - 1)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < path.Segments.Length; i++)
-        {
-            if (!Segments[i].Name.Equals(path.Segments[i].Name , StringComparison.Ordinal))
+            if (_segments[i].Kind != other._segments[i].Kind ||
+                !string.Equals(_segments[i].Name, other._segments[i].Name, StringComparison.Ordinal))
             {
                 return false;
             }
@@ -142,12 +128,27 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
         return true;
     }
 
+    public bool Equals(SelectionPath? other) =>
+        other is not null && _segments.SequenceEqual(other._segments);
+
+    public override bool Equals(object? obj) =>
+        ReferenceEquals(this, obj) || obj is SelectionPath p && Equals(p);
+
     public override int GetHashCode()
-        => HashCode.Combine(_segments, Name, (int)Kind);
+    {
+        var hash = new HashCode();
+        foreach (var s in _segments)
+        {
+            hash.Add(s.Name);
+            hash.Add((int)s.Kind);
+        }
+        return hash.ToHashCode();
+    }
 
-    public static bool operator ==(SelectionPath? left, SelectionPath? right)
-        => Equals(left, right);
+    public static bool operator ==(SelectionPath? a, SelectionPath? b) => Equals(a, b);
+    public static bool operator !=(SelectionPath? a, SelectionPath? b) => !Equals(a, b);
 
-    public static bool operator !=(SelectionPath? left, SelectionPath? right)
-        => !Equals(left, right);
+    public sealed record Segment(string Name, SelectionPathSegmentKind Kind);
 }
+
+
