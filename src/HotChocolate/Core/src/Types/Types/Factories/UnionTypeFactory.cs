@@ -10,14 +10,14 @@ internal sealed class UnionTypeFactory
 {
     public UnionType Create(IDescriptorContext context, UnionTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new UnionTypeDefinition(
+        var typeDefinition = new UnionTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var namedType in node.Types)
@@ -32,10 +32,10 @@ internal sealed class UnionTypeFactory
 
     public UnionTypeExtension Create(IDescriptorContext context, UnionTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new UnionTypeDefinition(node.Name.Value);
+        var typeDefinition = new UnionTypeConfiguration(node.Name.Value);
         typeDefinition.BindTo = node.GetBindingValue();
 
         foreach (var namedType in node.Types)

@@ -3,9 +3,9 @@ namespace HotChocolate.Types;
 internal static class ErrorContextDataKeys
 {
     /// <summary>
-    /// Stores the definition of the errors on the context data
+    /// Stores the configuration of the errors on the context data
     /// </summary>
-    public const string ErrorDefinitions = "HotChocolate.Types.Errors.ErrorDefinitions";
+    public const string ErrorConfigurations = "HotChocolate.Types.Errors.ErrorConfigurations";
 
     /// <summary>
     /// Stores the errors on the Scoped context for the middleware

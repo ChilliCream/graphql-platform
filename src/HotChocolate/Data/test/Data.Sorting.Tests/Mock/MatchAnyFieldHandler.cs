@@ -8,6 +8,6 @@ public class MatchAnyQueryableFieldHandler
 {
     public override bool CanHandle(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition) => true;
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration) => true;
 }

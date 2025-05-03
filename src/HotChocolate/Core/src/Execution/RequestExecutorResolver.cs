@@ -562,11 +562,11 @@ internal sealed partial class RequestExecutorResolver
     {
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
             if (completionContext.IsSchema)
             {
-                definition.Name = schemaName;
+                configuration.Name = schemaName;
             }
         }
     }

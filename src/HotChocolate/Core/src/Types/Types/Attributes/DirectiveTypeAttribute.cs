@@ -58,6 +58,6 @@ public sealed class DirectiveTypeAttribute
             descriptor.Repeatable();
         }
 
-        descriptor.Extend().Definition.Arguments.BindingBehavior = BindingBehavior.Implicit;
+        descriptor.Extend().Configuration.Arguments.BindingBehavior = BindingBehavior.Implicit;
     }
 }

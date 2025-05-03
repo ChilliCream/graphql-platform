@@ -32,7 +32,7 @@ public class NodeTypeTests : TypeTestBase
             {
                 Assert.Equal("id", t.Name);
                 Assert.IsType<IdType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 

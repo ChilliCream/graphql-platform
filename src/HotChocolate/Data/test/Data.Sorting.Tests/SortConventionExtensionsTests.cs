@@ -36,7 +36,7 @@ public class SortConventionExtensionsTests
         // arrange
         var convention = new MockSortConvention(x => x.ArgumentName("Foo"));
         var extension = new SortConventionExtension(
-            x => x.ArgumentName(SortConventionDefinition.DefaultArgumentName));
+            x => x.ArgumentName(SortConventionConfiguration.DefaultArgumentName));
         var context = new ConventionContext(
             "Scope",
             new ServiceCollection().BuildServiceProvider(),
@@ -354,7 +354,7 @@ public class SortConventionExtensionsTests
         public void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
             => throw new NotImplementedException();
 
-        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition, ISortFieldDefinition fieldDefinition)
+        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeConfiguration typeConfiguration, ISortFieldConfiguration fieldConfiguration)
             => null;
     }
 
@@ -365,6 +365,6 @@ public class SortConventionExtensionsTests
         {
         }
 
-        public SortConventionDefinition? DefinitionAccessor => base.Definition;
+        public SortConventionConfiguration? DefinitionAccessor => base.Configuration;
     }
 }

@@ -127,14 +127,14 @@ public interface ISortConvention : IConvention
 
     bool TryGetFieldHandler(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition,
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortFieldHandler? handler);
 
     bool TryGetOperationHandler(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition fieldDefinition,
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortOperationHandler? handler);
 
     /// <summary>
@@ -164,6 +164,6 @@ public interface ISortConvention : IConvention
     /// </summary>
     ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition);
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration);
 }

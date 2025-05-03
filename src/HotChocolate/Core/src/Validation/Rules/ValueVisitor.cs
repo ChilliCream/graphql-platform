@@ -480,7 +480,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             if (right is NonNullTypeNode rightNonNull)
             {
                 return IsTypeCompatible(
-                    leftNonNull.Type,
+                    leftNonNull.NullableType,
                     rightNonNull.Type);
             }
             return false;

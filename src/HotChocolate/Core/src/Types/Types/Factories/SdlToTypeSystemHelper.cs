@@ -12,8 +12,8 @@ internal static class SdlToTypeSystemHelper
         IDescriptorContext context,
         TOwner owner,
         HotChocolate.Language.IHasDirectives ownerSyntax,
-        Stack<IDefinition> path)
-        where TOwner : IHasDirectiveDefinition, IDefinition
+        Stack<ITypeSystemConfiguration> path)
+        where TOwner : IDirectiveConfigurationProvider, ITypeSystemConfiguration
     {
         foreach (var directive in ownerSyntax.Directives)
         {

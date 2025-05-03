@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// some original enum type. For example, this might be used to represent additional local data,
 /// or by a GraphQL service which is itself an extension of another GraphQL service.
 /// </summary>
-public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
+public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
 {
     private Action<IEnumTypeDescriptor>? _configure;
 
@@ -47,24 +47,24 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
     /// <returns>
     /// Returns the newly created enum type extension.
     /// </returns>
-    public static EnumTypeExtension CreateUnsafe(EnumTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static EnumTypeExtension CreateUnsafe(EnumTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Enum;
 
-    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = EnumTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -82,10 +82,10 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
     }
 
     protected override void Merge(
@@ -100,19 +100,19 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
             enumType.AssertMutable();
 
             TypeExtensionHelper.MergeContextData(
-                Definition!,
-                enumType.Definition!);
+                Configuration!,
+                enumType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Definition!.Directives,
-                enumType.Definition!.Directives);
+                Configuration!.Directives,
+                enumType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Configurations,
-                enumType.Definition!.Configurations);
+                Configuration!.Tasks,
+                enumType.Configuration!.Tasks);
 
-            MergeValues(context, Definition!, enumType.Definition!);
+            MergeValues(context, Configuration!, enumType.Configuration!);
         }
         else
         {
@@ -124,8 +124,8 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
 
     private void MergeValues(
         ITypeCompletionContext context,
-        EnumTypeDefinition extension,
-        EnumTypeDefinition type)
+        EnumTypeConfiguration extension,
+        EnumTypeConfiguration type)
     {
         foreach (var enumValue in
             extension.Values.Where(t => t.RuntimeValue != null))

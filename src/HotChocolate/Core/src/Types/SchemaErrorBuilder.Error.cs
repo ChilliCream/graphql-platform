@@ -17,7 +17,7 @@ public partial class SchemaErrorBuilder
         private static readonly JsonWriterOptions _serializationOptions = new()
         {
             Indented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
         public string Message { get; set; } = default!;

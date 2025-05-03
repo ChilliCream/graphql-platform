@@ -129,7 +129,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0, } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
         {
             throw new SchemaException(errors);
         }
@@ -157,7 +157,7 @@ internal sealed class TypeInitializer
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
+                        ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
                         objectType.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -171,7 +171,7 @@ internal sealed class TypeInitializer
                         && interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
+                        ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
                         implementing.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -189,7 +189,7 @@ internal sealed class TypeInitializer
                     if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = objectType.TypeReference;
-                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
+                        ((UnionType)unionType.Type).Configuration!.Types.Add(typeRef);
                     }
                 }
             }
@@ -296,7 +296,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnAfterResolveRootType(
                 type.Context,
-                ((ObjectType)type.Type.Type).Definition!,
+                ((ObjectType)type.Type.Type).Configuration!,
                 type.Kind);
         }
     }
@@ -342,7 +342,7 @@ internal sealed class TypeInitializer
             {
                 if (extension.Type is INamedTypeExtension
                     {
-                        ExtendsType: { } extendsType,
+                        ExtendsType: { } extendsType
                     } namedTypeExtension)
                 {
                     var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
@@ -385,7 +385,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnBeforeCompleteMutation(
                 mutationType.Type,
-                ((ObjectType)mutationType.Type.Type).Definition!);
+                ((ObjectType)mutationType.Type.Type).Configuration!);
         }
     }
 
@@ -437,7 +437,7 @@ internal sealed class TypeInitializer
     {
         if (registeredType.Type is ObjectType objectType)
         {
-            foreach (var field in objectType.Definition!.Fields)
+            foreach (var field in objectType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {
@@ -447,7 +447,7 @@ internal sealed class TypeInitializer
         }
         else if(registeredType.Type is InterfaceType interfaceType)
         {
-            foreach (var field in interfaceType.Definition!.Fields)
+            foreach (var field in interfaceType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {
@@ -458,7 +458,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -509,7 +509,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            ObjectFieldDefinition definition,
+            ObjectFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)
@@ -523,7 +523,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        InterfaceFieldDefinition definition,
+        InterfaceFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -566,7 +566,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            InterfaceFieldDefinition definition,
+            InterfaceFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)

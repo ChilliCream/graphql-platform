@@ -13,5 +13,5 @@ public enum DependencyInjectionScope
     /// <summary>
     /// Use a separate service scope for the resolver.
     /// </summary>
-    Resolver,
+    Resolver
 }

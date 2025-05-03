@@ -623,10 +623,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         public override bool CanHandle(
             ITypeCompletionContext context,
-            ISortInputTypeDefinition typeDefinition,
-            ISortFieldDefinition fieldDefinition)
+            ISortInputTypeConfiguration typeConfiguration,
+            ISortFieldConfiguration fieldConfiguration)
         {
-            return fieldDefinition.Name == "complex_order_sum";
+            return fieldConfiguration.Name == "complex_order_sum";
         }
 
         public override bool TryHandleEnter(
@@ -679,10 +679,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     {
         public override bool CanHandle(
             ITypeCompletionContext context,
-            ISortInputTypeDefinition typeDefinition,
-            ISortFieldDefinition fieldDefinition)
+            ISortInputTypeConfiguration typeConfiguration,
+            ISortFieldConfiguration fieldConfiguration)
         {
-            return fieldDefinition.Name == "fields";
+            return fieldConfiguration.Name == "fields";
         }
     }
 
@@ -691,10 +691,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     {
         public override bool CanHandle(
             ITypeCompletionContext context,
-            ISortInputTypeDefinition typeDefinition,
-            ISortFieldDefinition fieldDefinition)
+            ISortInputTypeConfiguration typeConfiguration,
+            ISortFieldConfiguration fieldConfiguration)
         {
-            return fieldDefinition.Name == "sort";
+            return fieldConfiguration.Name == "sort";
         }
 
         public override bool TryHandleEnter(

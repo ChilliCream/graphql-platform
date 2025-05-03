@@ -39,7 +39,7 @@ public class ListTypeTests
         var type = new ListType(innerType);
 
         // act
-        var clrType = type.RuntimeType;
+        var clrType = type.ToRuntimeType();
 
         // assert
         Assert.Equal(typeof(List<string>), clrType);

@@ -10,14 +10,14 @@ internal sealed class EnumTypeFactory
 {
     public EnumType Create(IDescriptorContext context, EnumTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new EnumTypeDefinition(
+        var typeDefinition = new EnumTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -29,12 +29,12 @@ internal sealed class EnumTypeFactory
 
     public EnumTypeExtension Create(IDescriptorContext context, EnumTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new EnumTypeDefinition(node.Name.Value)
+        var typeDefinition = new EnumTypeConfiguration(node.Name.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -46,25 +46,25 @@ internal sealed class EnumTypeFactory
 
     private static void DeclareValues(
         IDescriptorContext context,
-        EnumTypeDefinition parent,
+        EnumTypeConfiguration parent,
         IReadOnlyCollection<EnumValueDefinitionNode> values,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var value in values)
         {
-            var valueDefinition = new EnumValueDefinition(
+            var valueDefinition = new EnumValueConfiguration(
                 value.Name.Value,
                 value.Description?.Value,
                 value.Name.Value)
             {
-                BindTo = value.GetBindingValue(),
+                BindTo = value.GetBindingValue()
             };
 
             SdlToTypeSystemHelper.AddDirectives(context, valueDefinition, value, path);
 
-            if (value.DeprecationReason() is { Length: > 0, } reason)
+            if (value.DeprecationReason() is { Length: > 0 } reason)
             {
                 valueDefinition.DeprecationReason = reason;
             }
