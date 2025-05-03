@@ -3,10 +3,10 @@ namespace HotChocolate.Types;
 public interface IReadOnlyDirectiveCollection : IReadOnlyList<IDirective>
 {
     /// <summary>
-    /// Gets a directive by its name.
+    /// Gets all directives of a certain directive definition.
     /// </summary>
     /// <param name="directiveName">
-    /// The name of the directive.
+    /// The name of the directive definition.
     /// </param>
     IEnumerable<IDirective> this[string directiveName] { get; }
 

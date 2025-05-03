@@ -19,7 +19,7 @@ public class DirectiveTests : TypeTestBase
             directiveType,
             directiveType.Format(fooDirective),
             fooDirective);
-        var directiveNode = directive.AsSyntaxNode();
+        var directiveNode = directive.ToSyntaxNode();
 
         // assert
         Assert.Equal(directiveType.Name, directiveNode.Name.Value);

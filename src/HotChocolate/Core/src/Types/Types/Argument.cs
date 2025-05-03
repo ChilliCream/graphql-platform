@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field or directive argument.
 /// </summary>
-public class Argument : FieldBase, IInputField, IInputValueDefinition
+public class Argument : FieldBase, IInputValueDefinition
 {
     private Type _runtimeType = default!;
 
@@ -157,8 +157,7 @@ public class Argument : FieldBase, IInputField, IInputValueDefinition
     /// <returns>
     /// A string that represents the current argument.
     /// </returns>
-    public override string ToString() => Format(this).ToString(true);
-
+    public string ToString() => ToSyntaxNode().ToString();
 
     public ISyntaxNode ToSyntaxNode() => Format(this);
 }

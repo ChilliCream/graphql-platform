@@ -523,7 +523,7 @@ public static class SchemaPrinter
         => new(null, new NameNode(namedType.Name));
 
     private static DirectiveNode PrintDirective(Directive directive)
-        => directive.AsSyntaxNode(true);
+        => directive.ToSyntaxNode(true);
 
     private static StringValueNode PrintDescription(string description)
     {

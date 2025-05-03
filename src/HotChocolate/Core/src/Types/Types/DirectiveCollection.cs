@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a collection of directives of a <see cref="ITypeSystemMember"/>.
 /// </summary>
-public sealed class DirectiveCollection : IDirectiveCollection
+public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
 {
     private readonly Directive[] _directives;
 
@@ -36,6 +36,9 @@ public sealed class DirectiveCollection : IDirectiveCollection
         }
     }
 
+    IEnumerable<IDirective> IReadOnlyDirectiveCollection.this[string directiveName]
+        => this[directiveName];
+
     private static IEnumerable<Directive> FindDirectives(Directive[] directives, string name)
     {
         for (var i = 0; i < directives.Length; i++)
@@ -51,6 +54,8 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
     /// <inheritdoc />
     public Directive this[int index] => _directives[index];
+
+    IDirective IReadOnlyList<IDirective>.this[int index] => this[index];
 
     /// <inheritdoc />
     public Directive? FirstOrDefault(string directiveName)
@@ -76,6 +81,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         return null;
     }
+
+    IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
+        => FirstOrDefault(directiveName);
+
 
     /// <inheritdoc />
     public Directive? FirstOrDefault<TRuntimeType>()
@@ -103,6 +112,9 @@ public sealed class DirectiveCollection : IDirectiveCollection
     /// <inheritdoc />
     public bool ContainsDirective(string directiveName)
         => FirstOrDefault(directiveName) is not null;
+
+    bool IReadOnlyDirectiveCollection.ContainsName(string directiveName)
+        => ContainsDirective(directiveName);
 
     /// <inheritdoc />
     public bool ContainsDirective<TRuntimeType>()
@@ -254,6 +266,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
+
+    IEnumerator<IDirective> IEnumerable<IDirective>.GetEnumerator()
+        => GetEnumerator();
+
 
     internal static DirectiveCollection Empty { get; } = new DirectiveCollection(Array.Empty<Directive>());
 }

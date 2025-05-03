@@ -15,5 +15,5 @@ public interface IOutputFieldInfo : IHasName, IHasSchemaCoordinate, IHasRuntimeT
     /// <summary>
     /// Gets the field arguments.
     /// </summary>
-    IFieldCollection<IInputField> Arguments { get; }
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }
 }
