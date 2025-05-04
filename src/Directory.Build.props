@@ -8,7 +8,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == ''">
