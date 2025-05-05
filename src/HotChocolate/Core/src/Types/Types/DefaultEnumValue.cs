@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 public sealed class DefaultEnumValue : EnumValue
 {
     private EnumValueConfiguration? _configuration;
-    private IDirectiveCollection _directives = null!;
+    private DirectiveCollection _directives = null!;
 
     public DefaultEnumValue(EnumValueConfiguration configuration)
     {
@@ -44,7 +44,7 @@ public sealed class DefaultEnumValue : EnumValue
 
     public override object Value { get; }
 
-    public override IDirectiveCollection Directives => _directives;
+    public override DirectiveCollection Directives => _directives;
 
     public override IReadOnlyDictionary<string, object?> ContextData { get; }
 

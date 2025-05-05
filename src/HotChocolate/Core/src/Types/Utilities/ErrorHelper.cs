@@ -238,7 +238,7 @@ internal static class ErrorHelper
     private static SchemaErrorBuilder SetType(
         this SchemaErrorBuilder errorBuilder,
         INamedType type)
-        => errorBuilder.SetTypeSystemObject((TypeSystemObjectBase)type);
+        => errorBuilder.SetTypeSystemObject((TypeSystemObject)type);
 
     private static SchemaErrorBuilder SetDirective(
         this SchemaErrorBuilder errorBuilder,
@@ -493,7 +493,7 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError NoFields(
-        ITypeSystemObject typeSystemObj,
+        TypeSystemObject typeSystemObj,
         IType type)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -505,7 +505,7 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError DuplicateFieldName(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         ITypeSystemMember declaringMember,
         IReadOnlyCollection<string> duplicateFieldNames)
     {

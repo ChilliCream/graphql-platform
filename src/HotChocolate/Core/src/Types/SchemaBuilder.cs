@@ -78,7 +78,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(schema));
         }
 
-        if (schema is TypeSystemObjectBase)
+        if (schema is TypeSystemObject)
         {
             _schema = _ => new SchemaTypeReference(schema);
         }

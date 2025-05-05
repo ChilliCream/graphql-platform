@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// A base class for all GraphQL type system objects that have a type system configuration.
 /// </summary>
-public abstract class TypeSystemObjectBase<TConfiguration> : TypeSystemObjectBase
+public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
     where TConfiguration : TypeSystemConfiguration
 {
     private TConfiguration? _configuration;

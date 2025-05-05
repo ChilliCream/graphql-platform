@@ -646,7 +646,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         return registeredType;
     }
 
-    private void RegisterType(TypeSystemObjectBase type)
+    private void RegisterType(TypeSystemObject type)
     {
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
@@ -654,7 +654,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     }
 
     private void RegisterErrorType(
-        TypeSystemObjectBase type,
+        TypeSystemObject type,
         string mutationName)
     {
         try

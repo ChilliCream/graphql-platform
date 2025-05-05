@@ -286,7 +286,7 @@ public partial class SchemaBuilder
         }
 
         private static RootTypeKind GetOperationKind(
-            TypeSystemObjectBase type,
+            TypeSystemObject type,
             ITypeInspector typeInspector,
             Dictionary<OperationType, TypeReference> operations)
         {
@@ -530,12 +530,12 @@ public partial class SchemaBuilder
                         namedType.Name,
                         operation,
                         namedType.GetType().FullName)
-                    .SetTypeSystemObject((TypeSystemObjectBase)namedType)
+                    .SetTypeSystemObject((TypeSystemObject)namedType)
                     .BuildException();
             }
         }
 
-        private static IReadOnlyCollection<TypeSystemObjectBase> RemoveUnreachableTypes(
+        private static IReadOnlyCollection<TypeSystemObject> RemoveUnreachableTypes(
             SchemaBuilder builder,
             TypeRegistry typeRegistry,
             SchemaTypesConfiguration configuration)

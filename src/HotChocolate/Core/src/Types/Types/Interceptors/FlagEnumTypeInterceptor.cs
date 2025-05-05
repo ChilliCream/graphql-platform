@@ -99,7 +99,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void RegisterType(TypeSystemObjectBase type)
+    private void RegisterType(TypeSystemObject type)
     {
         _typeInitializer.InitializeType(type);
     }

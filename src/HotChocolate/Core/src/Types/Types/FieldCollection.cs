@@ -2,26 +2,21 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
-public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IField
+public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvider
 {
     private readonly FrozenDictionary<string, T> _fieldsLookup;
     private readonly T[] _fields;
 
-    internal FieldCollection(T[] fields)
+    protected FieldCollection(T[] fields)
     {
         _fields = fields ?? throw new ArgumentNullException(nameof(fields));
         _fieldsLookup = _fields.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
-    }
-
-    private FieldCollection(Dictionary<string, T> fieldsLookup, T[] fields)
-    {
-        _fieldsLookup = fieldsLookup.ToFrozenDictionary(StringComparer.Ordinal);
-        _fields = fields;
     }
 
     public T this[string fieldName] => _fieldsLookup[fieldName];
@@ -71,28 +66,32 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 
     public static FieldCollection<T> Empty { get; } = new([]);
 
-    internal static FieldCollection<T> TryCreate(T[] fields, out IReadOnlyCollection<string>? duplicateFieldNames)
+    internal static bool EnsureNoDuplicates(
+        T[] fields,
+        [NotNullWhen(false)] out IReadOnlyCollection<string>? duplicateFieldNames)
     {
         var internalFields = fields ?? throw new ArgumentNullException(nameof(fields));
-        var internalLookup = new Dictionary<string, T>(internalFields.Length, StringComparer.Ordinal);
+        var names = TypeMemHelper.RentNameSet();
         HashSet<string>? duplicates = null;
 
         foreach (var field in internalFields)
         {
-            if (!internalLookup.TryAdd(field.Name, field))
+            if (!names.Add(field.Name))
             {
                 (duplicates ??= []).Add(field.Name);
             }
         }
 
+        TypeMemHelper.Return(names);
+
         if (duplicates?.Count > 0)
         {
             duplicateFieldNames = duplicates;
-            return Empty;
+            return false;
         }
 
         duplicateFieldNames = null;
-        return new FieldCollection<T>(internalLookup, fields);
+        return true;
     }
 
     private sealed class FieldEnumerator(T[] fields) : IEnumerator<T>
@@ -144,5 +143,54 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
         public void Dispose() { }
 
         internal static readonly EmptyFieldEnumerator Instance = new();
+    }
+}
+
+/// <summary>
+/// A collection of directive arguments.
+/// </summary>
+public sealed class DirectiveArgumentCollection : FieldCollection<DirectiveArgument>
+{
+    private FieldDefinitionCollection? _wrapper;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DirectiveArgumentCollection"/>.
+    /// </summary>
+    /// <param name="arguments">
+    /// The arguments that shall be contained in the collection.
+    /// </param>
+    public DirectiveArgumentCollection(DirectiveArgument[] arguments) : base(arguments)
+    {
+    }
+
+    internal IReadOnlyFieldDefinitionCollection<IInputValueDefinition> AsFieldDefinitionCollection()
+        => _wrapper ??= new FieldDefinitionCollection(this);
+
+    private sealed class FieldDefinitionCollection(DirectiveArgumentCollection arguments) : IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
+    {
+
+        public IInputValueDefinition this[string name] => arguments[name];
+
+        public IInputValueDefinition this[int index] => arguments[index];
+
+        public int Count => arguments.Count;
+
+        public bool ContainsName(string name) => arguments.ContainsField(name);
+
+        public IEnumerator<IInputValueDefinition> GetEnumerator() => arguments.GetEnumerator();
+
+        public bool TryGetField(string name, [NotNullWhen(true)] out IInputValueDefinition? field)
+        {
+            if (TryGetField(name, out var arg))
+            {
+                field = arg;
+                return true;
+            }
+
+            field = null;
+            return false;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

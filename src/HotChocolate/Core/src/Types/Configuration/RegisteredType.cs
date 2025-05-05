@@ -13,7 +13,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
     private List<TypeDependency>? _conditionals;
 
     public RegisteredType(
-        TypeSystemObjectBase type,
+        TypeSystemObject type,
         bool isInferred,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
@@ -44,7 +44,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
         }
     }
 
-    public TypeSystemObjectBase Type { get; }
+    public TypeSystemObject Type { get; }
 
     public TypeKind? Kind { get; }
 

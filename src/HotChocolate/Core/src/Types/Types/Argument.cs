@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -12,7 +13,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field or directive argument.
 /// </summary>
-public class Argument : FieldBase, IInputValueDefinition
+public class Argument : FieldBase, IInputValueDefinition, IInputFieldInfo
 {
     private Type _runtimeType = default!;
 
@@ -44,24 +45,10 @@ public class Argument : FieldBase, IInputValueDefinition
         {
             Formatter = new AggregateInputValueFormatter(formatters);
         }
-
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
-        DeprecationReason = definition.DeprecationReason;
     }
 
-    /// <summary>
-    /// Gets the type system member that declares this argument.
-    /// </summary>
-    public ITypeSystemMember DeclaringMember { get; private set; } = default!;
-
     /// <inheritdoc />
-    public IInputType Type { get; private set; } = default!;
-
-    /// <inheritdoc />
-    public bool IsDeprecated { get; }
-
-    /// <inheritdoc />
-    public string? DeprecationReason { get; }
+    public new IInputType Type => Unsafe.As<IInputType>(base.Type);
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;
@@ -105,11 +92,9 @@ public class Argument : FieldBase, IInputValueDefinition
 
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.GetRuntimeType()!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         IsOptional = isOptional;
-        DeclaringMember = declaringMember;
     }
 
     protected sealed override void OnCompleteMetadata(
@@ -151,13 +136,7 @@ public class Argument : FieldBase, IInputValueDefinition
         ArgumentConfiguration definition) =>
         base.OnFinalizeField(context, declaringMember, definition);
 
-    /// <summary>
-    /// Returns a string that represents the current argument.
-    /// </summary>
-    /// <returns>
-    /// A string that represents the current argument.
-    /// </returns>
-    public string ToString() => ToSyntaxNode().ToString();
+    public InputValueDefinitionNode ToSyntaxNode() => Format(this);
 
-    public ISyntaxNode ToSyntaxNode() => Format(this);
+    protected override ISyntaxNode FormatField() => ToSyntaxNode();
 }

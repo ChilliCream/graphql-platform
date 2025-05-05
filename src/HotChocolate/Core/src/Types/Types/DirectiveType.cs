@@ -18,7 +18,7 @@ namespace HotChocolate.Types;
 /// <para>https://spec.graphql.org/draft/#sec-Type-System.Directives</para>
 /// </summary>
 public partial class DirectiveType
-    : TypeSystemObjectBase<DirectiveTypeConfiguration>
+    : TypeSystemObject<DirectiveTypeConfiguration>
     , IDirectiveDefinition
     , IHasRuntimeType
     , IHasTypeIdentity
@@ -73,9 +73,10 @@ public partial class DirectiveType
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public FieldCollection<DirectiveArgument> Arguments { get; private set; } = default!;
+    public DirectiveArgumentCollection Arguments { get; private set; } = default!;
 
-    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments => throw new NotImplementedException();
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
+        => Arguments.AsFieldDefinitionCollection();
 
     /// <summary>
     /// Gets the directive field middleware.

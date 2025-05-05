@@ -9,6 +9,10 @@ internal sealed class EmptyInputFieldDefinitionCollection : IReadOnlyFieldDefini
 
     public IInputValueDefinition this[string name] => throw new ArgumentOutOfRangeException(nameof(name));
 
+    public IInputValueDefinition this[int index] => throw new ArgumentOutOfRangeException(nameof(index));
+
+    public int Count => 0;
+
     public bool TryGetField(string name, [NotNullWhen(true)] out IInputValueDefinition? field)
     {
         field = null;
@@ -28,4 +32,5 @@ internal sealed class EmptyInputFieldDefinitionCollection : IReadOnlyFieldDefini
     }
 
     public static EmptyInputFieldDefinitionCollection Instance { get; } = new();
+
 }

@@ -25,8 +25,6 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     IList<TypeDependency> ITypeDiscoveryContext.Dependencies => Dependencies;
 
-    ITypeSystemObject ITypeSystemObjectContext.Type => Type;
-
     public void ReportError(ISchemaError error)
     {
         if (error is null)

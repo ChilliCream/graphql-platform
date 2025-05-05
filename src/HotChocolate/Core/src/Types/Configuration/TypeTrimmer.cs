@@ -7,11 +7,11 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeTrimmer
 {
-    private readonly HashSet<TypeSystemObjectBase> _touched = [];
+    private readonly HashSet<TypeSystemObject> _touched = [];
     private readonly List<ObjectType> _rootTypes = [];
-    private readonly List<TypeSystemObjectBase> _discoveredTypes;
+    private readonly List<TypeSystemObject> _discoveredTypes;
 
-    public TypeTrimmer(IEnumerable<TypeSystemObjectBase> discoveredTypes)
+    public TypeTrimmer(IEnumerable<TypeSystemObject> discoveredTypes)
     {
         if (discoveredTypes is null)
         {
@@ -29,7 +29,7 @@ internal sealed class TypeTrimmer
         }
     }
 
-    public IReadOnlyCollection<TypeSystemObjectBase> Trim()
+    public IReadOnlyCollection<TypeSystemObject> Trim()
     {
         foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
         {
@@ -55,7 +55,7 @@ internal sealed class TypeTrimmer
         Visit(rootType);
     }
 
-    private void Visit(TypeSystemObjectBase type)
+    private void Visit(TypeSystemObject type)
     {
         if (_touched.Add(type))
         {
@@ -119,12 +119,12 @@ internal sealed class TypeTrimmer
         foreach (var field in type.Fields)
         {
             VisitDirectives(field);
-            Visit((TypeSystemObjectBase)field.Type.NamedType());
+            Visit((TypeSystemObject)field.Type.NamedType());
 
             foreach (var argument in field.Arguments)
             {
                 VisitDirectives(argument);
-                Visit((TypeSystemObjectBase)argument.Type.NamedType());
+                Visit((TypeSystemObject)argument.Type.NamedType());
             }
         }
     }
@@ -146,12 +146,12 @@ internal sealed class TypeTrimmer
         foreach (var field in type.Fields)
         {
             VisitDirectives(field);
-            Visit((TypeSystemObjectBase)field.Type.NamedType());
+            Visit((TypeSystemObject)field.Type.NamedType());
 
             foreach (var argument in field.Arguments)
             {
                 VisitDirectives(argument);
-                Visit((TypeSystemObjectBase)argument.Type.NamedType());
+                Visit((TypeSystemObject)argument.Type.NamedType());
             }
         }
 
@@ -160,7 +160,7 @@ internal sealed class TypeTrimmer
         {
             if (complexType.IsImplementing(type))
             {
-                Visit((TypeSystemObjectBase)complexType);
+                Visit((TypeSystemObject)complexType);
             }
         }
     }
@@ -172,7 +172,7 @@ internal sealed class TypeTrimmer
         foreach (var field in type.Fields)
         {
             VisitDirectives(field);
-            Visit((TypeSystemObjectBase)field.Type.NamedType());
+            Visit((TypeSystemObject)field.Type.NamedType());
         }
     }
 
@@ -181,7 +181,7 @@ internal sealed class TypeTrimmer
         foreach (var argument in type.Arguments)
         {
             VisitDirectives(argument);
-            Visit((TypeSystemObjectBase)argument.Type.NamedType());
+            Visit((TypeSystemObject)argument.Type.NamedType());
         }
     }
 

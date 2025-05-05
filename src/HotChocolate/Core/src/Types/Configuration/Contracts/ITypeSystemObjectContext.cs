@@ -13,7 +13,7 @@ public interface ITypeSystemObjectContext : IHasScope, IHasContextData
     /// <summary>
     /// The type system object that is being initialized.
     /// </summary>
-    ITypeSystemObject Type { get; }
+    TypeSystemObject Type { get; }
 
     /// <summary>
     /// A type reference that points to <see cref="Type"/>.

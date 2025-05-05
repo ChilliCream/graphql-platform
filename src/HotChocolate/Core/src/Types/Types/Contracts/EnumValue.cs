@@ -1,7 +1,9 @@
 #nullable enable
 
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Helpers;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
@@ -9,9 +11,8 @@ namespace HotChocolate.Types;
 /// Represents a GraphQL enum value.
 /// </summary>
 public abstract class EnumValue
-    : IHasDirectives
+    : IEnumValue
     , IHasReadOnlyContextData
-    , ITypeSystemMember
     , IEnumValueCompletion
 {
     /// <summary>
@@ -42,13 +43,16 @@ public abstract class EnumValue
     /// <summary>
     /// Gets the directives of this enum value.
     /// </summary>
-    public abstract IDirectiveCollection Directives { get; }
+    public abstract DirectiveCollection Directives { get; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <summary>
     /// Gets the context data dictionary that can be used by middleware components and
     /// resolvers to retrieve data during execution.
     /// </summary>
     public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
+
 
     /// <summary>
     /// Will be invoked before the metadata of this enum value is completed.
@@ -67,4 +71,8 @@ public abstract class EnumValue
 
     void IEnumValueCompletion.CompleteMetadata(ITypeCompletionContext context, ITypeSystemMember declaringMember)
         => OnCompleteMetadata(context, declaringMember);
+
+    public EnumValueDefinitionNode ToSyntaxNode() => Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode();
 }

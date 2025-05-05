@@ -9,6 +9,9 @@ internal sealed class EmptyOutputFieldDefinitionCollection : IReadOnlyFieldDefin
 
     public IOutputFieldDefinition this[string name] => throw new ArgumentOutOfRangeException(nameof(name));
 
+    public IOutputFieldDefinition this[int index] => throw new ArgumentOutOfRangeException(nameof(index));
+    public int Count => 0;
+
     public bool TryGetField(string name, [NotNullWhen(true)] out IOutputFieldDefinition? field)
     {
         field = null;

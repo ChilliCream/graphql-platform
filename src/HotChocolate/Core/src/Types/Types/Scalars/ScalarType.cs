@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 /// the leaves on these trees are GraphQL scalars.
 /// </summary>
 public abstract partial class ScalarType
-    : TypeSystemObjectBase<ScalarTypeConfiguration>
+    : TypeSystemObject<ScalarTypeConfiguration>
     , ILeafType
     , IHasDirectives
 {

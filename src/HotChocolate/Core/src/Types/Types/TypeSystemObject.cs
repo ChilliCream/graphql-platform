@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// The base class for all GraphQL type system objects.
 /// </summary>
-public abstract class TypeSystemObjectBase : ITypeSystemObject
+public abstract class TypeSystemObject : ITypeSystemMember
 {
     private TypeStatus _status;
     private string? _name;

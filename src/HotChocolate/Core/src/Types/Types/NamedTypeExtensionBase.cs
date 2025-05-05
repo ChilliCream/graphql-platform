@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 /// merged into the target type.
 /// </summary>
 public abstract class NamedTypeExtensionBase<TDefinition>
-    : TypeSystemObjectBase<TDefinition>
+    : TypeSystemObject<TDefinition>
     , INamedTypeExtensionMerger
     where TDefinition : TypeSystemConfiguration, ITypeConfiguration
 {

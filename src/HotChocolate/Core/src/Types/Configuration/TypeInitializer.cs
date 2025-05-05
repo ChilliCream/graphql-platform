@@ -23,7 +23,7 @@ internal sealed class TypeInitializer
     private readonly IDescriptorContext _context;
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
-    private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
+    private readonly Func<TypeSystemObject, RootTypeKind> _getTypeKind;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -39,7 +39,7 @@ internal sealed class TypeInitializer
         TypeRegistry typeRegistry,
         IReadOnlyList<TypeReference> initialTypes,
         IsOfTypeFallback? isOfType,
-        Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
+        Func<TypeSystemObject, RootTypeKind> getTypeKind,
         IReadOnlySchemaOptions options)
     {
         if (options is null)
@@ -239,7 +239,7 @@ internal sealed class TypeInitializer
     }
 
     internal RegisteredType InitializeType(
-        TypeSystemObjectBase type)
+        TypeSystemObject type)
     {
         var typeReg = new RegisteredType(
             type,

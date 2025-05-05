@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// The type configuration of the named GraphQL type.
 /// </typeparam>
 public abstract class NamedTypeBase<TConfiguration>
-    : TypeSystemObjectBase<TConfiguration>
+    : TypeSystemObject<TConfiguration>
     , INamedType
     , IHasDirectives
     , IHasRuntimeType

@@ -154,7 +154,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
 
     private sealed class ValidateIsSelectedPatternContext
     {
-        public ValidateIsSelectedPatternContext(ISchema schema, IObjectField field, SelectionSetNode pattern)
+        public ValidateIsSelectedPatternContext(ISchema schema, ObjectField field, SelectionSetNode pattern)
         {
             Schema = schema;
             Root = field;
@@ -166,13 +166,13 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
 
         public ISchema Schema { get; }
 
-        public IObjectField Root { get; }
+        public ObjectField Root { get; }
 
         public SelectionSetNode Pattern { get; }
 
-        public Stack<IOutputField> Field { get; } = new();
+        public Stack<IOutputFieldDefinition> Field { get; } = new();
 
-        public Stack<INamedType?> TypeContext { get; } = new();
+        public Stack<ITypeDefinition?> TypeContext { get; } = new();
 
         public ISchemaError? Error { get; set; }
     }
