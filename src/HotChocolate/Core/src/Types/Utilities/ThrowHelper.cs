@@ -95,7 +95,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException TypeCompletionContext_UnableToResolveType(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         TypeReference typeRef) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -107,8 +107,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException TypeInitializer_DuplicateTypeName(
-        ITypeSystemObject type,
-        ITypeSystemObject otherType) =>
+        TypeSystemObject type,
+        TypeSystemObject otherType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -120,7 +120,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException TypeInitializer_MutationDuplicateErrorName(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         string mutationName,
         string errorName,
         IReadOnlyList<ISchemaError> originalErrors)
@@ -194,7 +194,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SerializationException RequiredInputFieldIsMissing(
-        IInputField field,
+        IInputFieldInfo field,
         Path fieldPath)
         => new SerializationException(
             ErrorBuilder.New()
@@ -211,7 +211,7 @@ internal static class ThrowHelper
         T type,
         IReadOnlyList<string> invalidFieldNames,
         Path path)
-        where T : ITypeSystemMember, IHasName
+        where T : ITypeSystemMember, INameProvider
     {
         if (invalidFieldNames.Count == 1)
         {
@@ -282,7 +282,7 @@ internal static class ThrowHelper
     public static SerializationException NonNullInputViolation(
         ITypeSystemMember type,
         Path? path,
-        IInputField? field = null)
+        IInputFieldInfo? field = null)
     {
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_NonNullInputViolation)
@@ -471,7 +471,7 @@ internal static class ThrowHelper
 
     public static InvalidSchemaCoordinateException Schema_GetMember_InvalidCoordinate(
         SchemaCoordinate coordinate,
-        INamedType type)
+        ITypeDefinition type)
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
@@ -521,7 +521,7 @@ internal static class ThrowHelper
 
     public static SchemaException RelayIdFieldHelpers_NoFieldType(
         string fieldName,
-        ITypeSystemObject? type = null)
+        TypeSystemObject? type = null)
     {
         var builder = SchemaErrorBuilder.New();
         builder.SetMessage(ThrowHelper_RelayIdFieldHelpers_NoFieldType, fieldName);
@@ -573,7 +573,7 @@ internal static class ThrowHelper
         return new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_InputTypeExpected_Message, namedType.Name)
-                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetTypeSystemObject((TypeSystemObject)namedType)
                 .SetExtension("type", type.Print())
                 .Build());
     }
@@ -585,7 +585,7 @@ internal static class ThrowHelper
         return new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_OutputTypeExpected_Message, namedType.Name)
-                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetTypeSystemObject((TypeSystemObject)namedType)
                 .SetExtension("type", type.Print())
                 .Build());
     }

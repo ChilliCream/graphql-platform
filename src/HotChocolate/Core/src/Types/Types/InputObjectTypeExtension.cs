@@ -88,7 +88,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is InputObjectType inputObjectType)
         {

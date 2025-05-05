@@ -464,7 +464,7 @@ public sealed class InputParser
         return Deserialize(resultValue, type, path ?? _root, null);
     }
 
-    private object? Deserialize(object? resultValue, IType type, Path path, IInputField? field)
+    private object? Deserialize(object? resultValue, IType type, Path path, InputField? field)
     {
         if (resultValue is null or NullValueNode)
         {
@@ -505,7 +505,7 @@ public sealed class InputParser
         object resultValue,
         ListType type,
         Path path,
-        IInputField? field)
+        InputField? field)
     {
         if (resultValue is IList serializedList)
         {
@@ -623,7 +623,7 @@ public sealed class InputParser
         object resultValue,
         ILeafType type,
         Path path,
-        IInputField? field)
+        InputField? field)
     {
         if (resultValue is IValueNode node)
         {

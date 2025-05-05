@@ -40,7 +40,9 @@ public abstract class FieldBase
     /// <inheritdoc />
     public string? Description { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the type that declares this field.
+    /// </summary>
     public ITypeSystemMember DeclaringType { get; private set; }
 
     /// <inheritdoc />
@@ -49,7 +51,9 @@ public abstract class FieldBase
     /// <inheritdoc />
     public SchemaCoordinate Coordinate { get; private set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the index of this field in the declaring members field collection.
+    /// </summary>
     public int Index { get; }
 
     /// <inheritdoc />

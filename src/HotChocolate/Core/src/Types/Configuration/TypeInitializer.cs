@@ -399,7 +399,7 @@ internal sealed class TypeInitializer
         {
             processed.Add(extension);
 
-            if (extension.Type is INamedTypeExtensionMerger m)
+            if (extension.Type is ITypeDefinitionExtensionMerger m)
             {
                 if (m.Kind != namedType.Kind)
                 {

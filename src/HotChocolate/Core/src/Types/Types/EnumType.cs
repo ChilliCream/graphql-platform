@@ -31,6 +31,7 @@ namespace HotChocolate.Types;
 public partial class EnumType
     : NamedTypeBase<EnumTypeConfiguration>
     , IEnumTypeDefinition
+    , ILeafType
 {
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Enum;

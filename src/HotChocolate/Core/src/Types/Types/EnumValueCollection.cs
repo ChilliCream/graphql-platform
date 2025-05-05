@@ -7,12 +7,21 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Represents a collection of enum values.
+/// </summary>
 public sealed class EnumValueCollection : IReadOnlyList<EnumValue>, IReadOnlyDictionary<string, EnumValue>
 {
     private readonly EnumValue[] _values;
     private readonly FrozenDictionary<string, EnumValue> _nameLookup;
     private ReadOnlyEnumValueCollection? _readOnlyValues;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EnumValueCollection"/> class.
+    /// </summary>
+    /// <param name="values">
+    /// The enum values that are part of this collection.
+    /// </param>
     public EnumValueCollection(EnumValue[] values)
     {
         _values = values;
@@ -46,24 +55,18 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>, IReadOnlyDic
     IEnumerator<KeyValuePair<string, EnumValue>> IEnumerable<KeyValuePair<string, EnumValue>>.GetEnumerator()
         => _nameLookup.GetEnumerator();
 
-    private sealed class ReadOnlyEnumValueCollection : IReadOnlyEnumValueCollection
+    private sealed class ReadOnlyEnumValueCollection(
+        EnumValue[] values,
+        FrozenDictionary<string, EnumValue> nameLookup)
+        : IReadOnlyEnumValueCollection
     {
-        private readonly EnumValue[] _values;
-        private readonly FrozenDictionary<string, EnumValue> _nameLookup;
+        public IEnumValue this[string name] => nameLookup[name];
 
-        public ReadOnlyEnumValueCollection(EnumValue[] values, FrozenDictionary<string, EnumValue> nameLookup)
-        {
-            _values = values;
-            _nameLookup = nameLookup;
-        }
-
-        public IEnumValue this[string name] => _nameLookup[name];
-
-        public bool ContainsName(string name) => _nameLookup.ContainsKey(name);
+        public bool ContainsName(string name) => nameLookup.ContainsKey(name);
 
         public bool TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value)
         {
-            if (_nameLookup.TryGetValue(name, out var enumValue))
+            if (nameLookup.TryGetValue(name, out var enumValue))
             {
                 value = enumValue;
                 return true;
@@ -73,26 +76,19 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>, IReadOnlyDic
             return false;
         }
 
-        public IEnumerator<IEnumValue> GetEnumerator() => new Enumerator(_values);
+        public IEnumerator<IEnumValue> GetEnumerator() => new Enumerator(values);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        private struct Enumerator : IEnumerator<IEnumValue>
+        private struct Enumerator(EnumValue[] values) : IEnumerator<IEnumValue>
         {
-            private readonly EnumValue[] _values;
-            private int _index;
+            private int _index = -1;
 
-            public Enumerator(EnumValue[] values)
-            {
-                _values = values;
-                _index = -1;
-            }
-
-            public IEnumValue Current => _values[_index];
+            public IEnumValue Current => values[_index];
 
             object IEnumerator.Current => Current;
 
-            public bool MoveNext() => ++_index < _values.Length;
+            public bool MoveNext() => ++_index < values.Length;
 
             public void Reset() => _index = -1;
 

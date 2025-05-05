@@ -1,35 +1,39 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
-public class OutputFieldBase : FieldBase, IOutputField
+public class OutputFieldBase : FieldBase, IOutputFieldDefinition
 {
     private Type _runtimeType = default!;
 
     internal OutputFieldBase(OutputFieldConfiguration definition, int index)
         : base(definition, index)
     {
-        DeprecationReason = definition.DeprecationReason;
     }
 
-    /// <inheritdoc />
-    public new IComplexOutputType DeclaringType => (IComplexOutputType)base.DeclaringType;
+    /// <summary>
+    /// Gets the type that declares this field.
+    /// </summary>
+    public new IComplexTypeDefinition DeclaringType => Unsafe.As<IComplexTypeDefinition>(base.DeclaringType);
 
     /// <inheritdoc />
-    public IOutputType Type { get; private set; } = default!;
+    public new IOutputType Type => Unsafe.As<IOutputType>(base.Type);
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;
 
-    public FieldCollection<Argument> Arguments { get; private set; } =
-        FieldCollection<Argument>.Empty;
+    public ArgumentCollection Arguments { get; private set; } = ArgumentCollection.Empty;
 
-    IFieldCollection<IInputField> IOutputFieldInfo.Arguments => Arguments;
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IOutputFieldDefinition.Arguments
+        => Arguments.AsReadOnlyFieldDefinitionCollection();
 
     /// <summary>
     /// Defines if this field as an introspection field.
@@ -39,13 +43,6 @@ public class OutputFieldBase : FieldBase, IOutputField
 
     internal bool IsTypeNameField
         => (Flags & FieldFlags.TypeNameField) == FieldFlags.TypeNameField;
-
-    /// <inheritdoc />
-    public bool IsDeprecated
-        => (Flags & FieldFlags.Deprecated) == FieldFlags.Deprecated;
-
-    /// <inheritdoc />
-    public string? DeprecationReason { get; }
 
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
@@ -59,8 +56,6 @@ public class OutputFieldBase : FieldBase, IOutputField
         OutputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
-
-        Type = context.GetType<IOutputType>(definition.Type!).EnsureOutputType();
         _runtimeType = CompleteRuntimeType(Type, null);
 
         if (_runtimeType == typeof(object)
@@ -73,11 +68,16 @@ public class OutputFieldBase : FieldBase, IOutputField
         Arguments = OnCompleteArguments(context, definition);
     }
 
-    protected virtual FieldCollection<Argument> OnCompleteArguments(
+    protected virtual ArgumentCollection OnCompleteArguments(
         ITypeCompletionContext context,
         OutputFieldConfiguration definition)
     {
-        return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
+        return new ArgumentCollection(
+            CompleteFields(
+                context,
+                this,
+                definition.GetArguments(),
+                CreateArgument));
         static Argument CreateArgument(ArgumentConfiguration argDef, int index)
             => new(argDef, index);
     }
@@ -140,10 +140,15 @@ public class OutputFieldBase : FieldBase, IOutputField
     }
 
     /// <summary>
-    /// Returns a string that represents the current field.
+    /// Creates a <see cref="FieldDefinitionNode"/> that represents the output field.
     /// </summary>
     /// <returns>
-    /// A string that represents the current field.
+    /// The GraphQL syntax node that represents the output field.
     /// </returns>
-    public override string ToString() => $"{Name}:{Type.Print()}";
+    public FieldDefinitionNode ToSyntaxNode()
+        => Format(this);
+
+    /// <inheritdoc />
+    protected override ISyntaxNode FormatField()
+        => Format(this);
 }

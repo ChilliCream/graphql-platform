@@ -64,8 +64,6 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static FieldCollection<T> Empty { get; } = new([]);
-
     internal static bool EnsureNoDuplicates(
         T[] fields,
         [NotNullWhen(false)] out IReadOnlyCollection<string>? duplicateFieldNames)
@@ -161,6 +159,7 @@ public sealed class DirectiveArgumentCollection : FieldCollection<DirectiveArgum
     /// </param>
     public DirectiveArgumentCollection(DirectiveArgument[] arguments) : base(arguments)
     {
+        ArgumentNullException.ThrowIfNull(arguments);
     }
 
     internal IReadOnlyFieldDefinitionCollection<IInputValueDefinition> AsReadOnlyFieldDefinitionCollection()
@@ -168,7 +167,86 @@ public sealed class DirectiveArgumentCollection : FieldCollection<DirectiveArgum
 
     private sealed class FieldDefinitionCollection(DirectiveArgumentCollection arguments) : IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
     {
+        public IInputValueDefinition this[string name] => arguments[name];
 
+        public IInputValueDefinition this[int index] => arguments[index];
+
+        public int Count => arguments.Count;
+
+        public bool ContainsName(string name) => arguments.ContainsField(name);
+
+        public bool TryGetField(string name, [NotNullWhen(true)] out IInputValueDefinition? field)
+        {
+            if (arguments.TryGetField(name, out var arg))
+            {
+                field = arg;
+                return true;
+            }
+
+            field = null;
+            return false;
+        }
+
+        public IEnumerator<IInputValueDefinition> GetEnumerator() => arguments.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+}
+
+public sealed class InputFieldCollection : FieldCollection<InputField>
+{
+    private FieldDefinitionCollection? _wrapper;
+
+    public InputFieldCollection(InputField[] fields) : base(fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+    }
+
+    internal IReadOnlyFieldDefinitionCollection<IInputValueDefinition> AsReadOnlyFieldDefinitionCollection()
+        => _wrapper ??= new FieldDefinitionCollection(this);
+
+    private sealed class FieldDefinitionCollection(InputFieldCollection fields)
+        : IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
+    {
+        public IInputValueDefinition this[string name] => fields[name];
+
+        public IInputValueDefinition this[int index] => fields[index];
+
+        public int Count => fields.Count;
+
+        public bool ContainsName(string name) => fields.ContainsField(name);
+
+        public bool TryGetField(string name, [NotNullWhen(true)] out IInputValueDefinition? field)
+        {
+            if (fields.TryGetField(name, out var arg))
+            {
+                field = arg;
+                return true;
+            }
+
+            field = null;
+            return false;
+        }
+        public IEnumerator<IInputValueDefinition> GetEnumerator() => fields.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+}
+
+public sealed class ArgumentCollection : FieldCollection<Argument>
+{
+    private FieldDefinitionCollection? _wrapper;
+
+    public ArgumentCollection(Argument[] fields) : base(fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+    }
+
+    internal IReadOnlyFieldDefinitionCollection<IInputValueDefinition> AsReadOnlyFieldDefinitionCollection()
+        => _wrapper ??= new FieldDefinitionCollection(this);
+
+    private sealed class FieldDefinitionCollection(ArgumentCollection arguments) : IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
+    {
         public IInputValueDefinition this[string name] => arguments[name];
 
         public IInputValueDefinition this[int index] => arguments[index];
@@ -181,7 +259,7 @@ public sealed class DirectiveArgumentCollection : FieldCollection<DirectiveArgum
 
         public bool TryGetField(string name, [NotNullWhen(true)] out IInputValueDefinition? field)
         {
-            if (TryGetField(name, out var arg))
+            if (arguments.TryGetField(name, out var arg))
             {
                 field = arg;
                 return true;
@@ -193,4 +271,6 @@ public sealed class DirectiveArgumentCollection : FieldCollection<DirectiveArgum
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+
+    internal static ArgumentCollection Empty { get; } = new([]);
 }

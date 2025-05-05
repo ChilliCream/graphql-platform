@@ -7,16 +7,11 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public sealed class InputFormatter
+public sealed class InputFormatter(ITypeConverter converter)
 {
-    private readonly ITypeConverter _converter;
+    private readonly ITypeConverter _converter = converter ?? throw new ArgumentNullException(nameof(converter));
 
     public InputFormatter() : this(new DefaultTypeConverter()) { }
-
-    public InputFormatter(ITypeConverter converter)
-    {
-        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-    }
 
     public IValueNode FormatValue(object? runtimeValue, IType type, Path? path = null)
     {

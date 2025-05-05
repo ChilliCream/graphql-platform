@@ -13,9 +13,9 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents an input field of an <see cref="InputObjectType" />.
 /// </summary>
-public class InputField : FieldBase, IInputValueDefinition, IHasProperty
+public class InputField : FieldBase, IInputValueDefinition, IInputFieldInfo, IHasProperty
 {
-    private Type _runtimeType = default!;
+    private Type _runtimeType = null!;
 
     /// <summary>
     /// Initializes a new instance of <see cref="InputField"/> with the given
@@ -52,7 +52,9 @@ public class InputField : FieldBase, IInputValueDefinition, IHasProperty
     /// <inheritdoc />
     public IValueNode? DefaultValue { get; private set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the input value formatter.
+    /// </summary>
     public IInputValueFormatter? Formatter { get; }
 
     /// <summary>
