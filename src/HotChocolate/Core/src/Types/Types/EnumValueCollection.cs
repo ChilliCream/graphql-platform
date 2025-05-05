@@ -95,4 +95,5 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>, IReadOnlyDic
             public void Dispose() { }
         }
     }
+
 }

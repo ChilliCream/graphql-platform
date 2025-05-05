@@ -28,7 +28,7 @@ internal sealed class SchemaTypesConfiguration
     /// <summary>
     /// Gets all types of the schema.
     /// </summary>
-    public IReadOnlyList<INamedType>? Types { get; set; }
+    public IReadOnlyList<ITypeDefinition>? Types { get; set; }
 
     /// <summary>
     /// Gets all directives of the schema.

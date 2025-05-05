@@ -353,12 +353,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="TypeDependency_MustBeSchemaType" xml:space="preserve">
     <value>The specified type is not a schema type.</value>
   </data>
-  <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
-    <value>The type structure is invalid.</value>
-  </data>
-  <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
-    <value>The specified type kind is not supported.</value>
-  </data>
   <data name="TypeExtensions_NoListType" xml:space="preserve">
     <value>The specified type is not a valid list type.</value>
   </data>

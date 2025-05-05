@@ -170,7 +170,7 @@ internal sealed class SourceSchemaMerger
             mergedArgument = MergeArguments(mergedArgument, argumentInfo.Argument);
         }
 
-        mergedArgument.Type = mergedArgument.Type.ReplaceNameType(
+        mergedArgument.Type = mergedArgument.Type.ReplaceNamedType(
             _ => GetOrCreateType(mergedSchema, mergedArgument.Type));
 
         AddFusionInputFieldDirectives(mergedArgument, argumentGroup);
@@ -339,7 +339,7 @@ internal sealed class SourceSchemaMerger
         {
             DefaultValue = defaultValue,
             Description = description,
-            Type = fieldType.ReplaceNameType(_ => GetOrCreateType(mergedSchema, fieldType))
+            Type = fieldType.ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
         };
 
         AddFusionInputFieldDirectives(inputField, inputFieldGroup);
@@ -536,7 +536,7 @@ internal sealed class SourceSchemaMerger
         var outputField = new MutableOutputFieldDefinition(fieldName)
         {
             Description = description,
-            Type = fieldType.ReplaceNameType(_ => GetOrCreateType(mergedSchema, fieldType))
+            Type = fieldType.ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
         };
 
         // [ArgumentName: [{Argument, Field, Type, Schema}, ...], ...].

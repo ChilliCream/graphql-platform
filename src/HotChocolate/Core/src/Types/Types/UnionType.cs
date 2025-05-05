@@ -1,10 +1,13 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
@@ -53,8 +56,7 @@ public class UnionType
 {
     private const string _typeReference = "typeReference";
 
-    private readonly Dictionary<string, ObjectType> _typeMap = new();
-
+    private ObjectTypeCollection _typeMap = default!;
     private Action<IUnionTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
 
@@ -97,22 +99,23 @@ public class UnionType
     public override TypeKind Kind => TypeKind.Union;
 
     /// <summary>
-    /// Gets the <see cref="IObjectType" /> set of this union type.
+    /// Gets the <see cref="ObjectType" /> set of this union type.
     /// </summary>
-    public IReadOnlyDictionary<string, ObjectType> Types => _typeMap;
+    public ObjectTypeCollection Types => _typeMap;
 
-    IReadOnlyCollection<IObjectType> IUnionType.Types => _typeMap.Values;
+    IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types
+        => Types.AsReadOnlyObjectTypeDefinitionCollection();
 
     /// <inheritdoc />
-    public override bool IsAssignableFrom(INamedType namedType)
+    public override bool IsAssignableFrom(ITypeDefinition type)
     {
-        switch (namedType.Kind)
+        switch (type.Kind)
         {
             case TypeKind.Union:
-                return ReferenceEquals(namedType, this);
+                return ReferenceEquals(type, this);
 
             case TypeKind.Object:
-                return _typeMap.ContainsKey(((ObjectType)namedType).Name);
+                return _typeMap.ContainsName(type.Name);
 
             default:
                 return false;
@@ -131,35 +134,11 @@ public class UnionType
     /// specified <paramref name="objectType"/>; otherwise, <c>false</c> is returned.
     /// </returns>
     public bool ContainsType(ObjectType objectType)
-    {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
-
-        return _typeMap.ContainsKey(objectType.Name);
-    }
-
-    bool IUnionType.ContainsType(IObjectType objectType)
-    {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
-
-        return _typeMap.ContainsKey(objectType.Name);
-    }
+        => _typeMap.ContainsName(objectType.Name);
 
     /// <inheritdoc />
     public bool ContainsType(string typeName)
-    {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        return _typeMap.ContainsKey(typeName);
-    }
+        => _typeMap.ContainsName(typeName);
 
     /// <summary>
     /// Resolves the concrete type for the value of a type
@@ -177,9 +156,6 @@ public class UnionType
     /// </returns>
     public ObjectType? ResolveConcreteType(IResolverContext context, object resolverResult)
         => _resolveAbstractType?.Invoke(context, resolverResult);
-
-    IObjectType? IUnionType.ResolveConcreteType(IResolverContext context, object resolverResult)
-        => ResolveConcreteType(context, resolverResult);
 
     protected override UnionTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
@@ -234,17 +210,15 @@ public class UnionType
         ITypeCompletionContext context,
         UnionTypeConfiguration definition)
     {
-        var typeSet = new HashSet<ObjectType>();
+        var types = OnCompleteTypeSet(context, definition);
 
-        OnCompleteTypeSet(context, definition, typeSet);
-
-        foreach (var objectType in typeSet)
+        if (types.Length > 0)
         {
-            _typeMap[objectType.Name] = objectType;
+            _typeMap = new ObjectTypeCollection(types);
         }
-
-        if (typeSet.Count is 0)
+        else
         {
+            _typeMap = ObjectTypeCollection.Empty;
             context.ReportError(SchemaErrorBuilder.New()
                 .SetMessage(TypeResources.UnionType_MustHaveTypes)
                 .SetCode(ErrorCodes.Schema.MissingType)
@@ -253,21 +227,18 @@ public class UnionType
         }
     }
 
-    protected virtual void OnCompleteTypeSet(
+    protected virtual ObjectType[] OnCompleteTypeSet(
         ITypeCompletionContext context,
-        UnionTypeConfiguration definition,
-        ISet<ObjectType> typeSet)
+        UnionTypeConfiguration definition)
     {
+        var nameSet = TypeMemHelper.RentNameSet();
+        var types = new List<ObjectType>(definition.Types.Count);
+
         foreach (var typeReference in definition.Types)
         {
             if (context.TryGetType(typeReference, out IType? type))
             {
-                if (type is NonNullType nonNullType)
-                {
-                    type = nonNullType.NullableType;
-                }
-
-                if (type is not ObjectType objectType)
+                if (type.NamedType() is not ObjectType objectType)
                 {
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(
@@ -280,7 +251,10 @@ public class UnionType
                     continue;
                 }
 
-                typeSet.Add(objectType);
+                if (nameSet.Add(objectType.Name))
+                {
+                    types.Add(objectType);
+                }
             }
             else
             {
@@ -292,6 +266,9 @@ public class UnionType
                     .Build());
             }
         }
+
+        TypeMemHelper.Return(nameSet);
+        return [.. types];
     }
 
     private void CompleteResolveAbstractType(
@@ -303,7 +280,7 @@ public class UnionType
             // abstract type resolver.
             _resolveAbstractType = (c, r) =>
             {
-                foreach (var type in _typeMap.Values)
+                foreach (var type in _typeMap)
                 {
                     if (type.IsInstanceOfType(c, r))
                     {
@@ -319,4 +296,17 @@ public class UnionType
             _resolveAbstractType = resolveAbstractType;
         }
     }
+
+    /// <summary>
+    /// Creates a <see cref="UnionTypeDefinitionNode"/> that represents the union type.
+    /// </summary>
+    /// <returns>
+    /// The GraphQL syntax node that represents the union type.
+    /// </returns>
+    public new UnionTypeDefinitionNode ToSyntaxNode()
+        => Format(this);
+
+    /// <inheritdoc />
+    protected override ITypeDefinitionNode FormatType()
+        => Format(this);
 }

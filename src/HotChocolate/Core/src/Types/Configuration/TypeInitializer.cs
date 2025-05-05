@@ -319,14 +319,14 @@ internal sealed class TypeInitializer
 
             foreach (var typeName in extensions
                 .Select(t => t.Type)
-                .OfType<INamedTypeExtension>()
+                .OfType<ITypeDefinitionExtension>()
                 .Where(t => t.ExtendsType is null)
                 .Select(t => t.Name)
                 .Distinct())
             {
                 var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName));
 
-                if (type?.Type is INamedType namedType)
+                if (type?.Type is ITypeDefinition namedType)
                 {
                     MergeTypeExtension(
                         extensions.Where(t => t.Type.Name.EqualsOrdinal(typeName)),
@@ -340,18 +340,13 @@ internal sealed class TypeInitializer
 
             foreach (var extension in extensions.Except(processed))
             {
-                if (extension.Type is INamedTypeExtension
-                    {
-                        ExtendsType: { } extendsType
-                    } namedTypeExtension)
+                if (extension.Type is ITypeDefinitionExtension { ExtendsType: { } extendsType } namedTypeExtension)
                 {
-                    var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
+                    var isSchemaType = typeof(ITypeDefinition).IsAssignableFrom(extendsType);
                     extensionArray[0] = extension;
 
-                    foreach (var possibleMatchingType in types
-                        .Where(
-                            t =>
-                                t.Type is INamedType n && n.Kind == namedTypeExtension.Kind))
+                    foreach (var possibleMatchingType in types.Where(
+                        t => t.Type is ITypeDefinition n && n.Kind == namedTypeExtension.Kind))
 
                     {
                         if (isSchemaType && extendsType.IsInstanceOfType(possibleMatchingType.Type))
@@ -359,7 +354,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (ITypeDefinition)possibleMatchingType.Type,
                                 processed);
                         }
                         else if (!isSchemaType
@@ -369,7 +364,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (ITypeDefinition)possibleMatchingType.Type,
                                 processed);
                         }
                     }
@@ -379,7 +374,7 @@ internal sealed class TypeInitializer
 
         _interceptor.OnAfterMergeTypeExtensions();
 
-        var mutationType = _rootTypes.FirstOrDefault(t => t.Kind == OperationType.Mutation);
+        var mutationType = _rootTypes.Find(t => t.Kind == OperationType.Mutation);
 
         if (mutationType.IsInitialized)
         {
@@ -392,14 +387,14 @@ internal sealed class TypeInitializer
     private void MergeTypeExtension(
         IEnumerable<RegisteredType> extensions,
         RegisteredType registeredType,
-        INamedType namedType,
+        ITypeDefinition namedType,
         HashSet<RegisteredType> processed)
     {
         foreach (var extension in extensions)
         {
             processed.Add(extension);
 
-            if (extension.Type is ITypeDefinitionExtensionMerger m)
+            if (extension.Type is ITypeDefinitionExtension m)
             {
                 if (m.Kind != namedType.Kind)
                 {
@@ -410,7 +405,7 @@ internal sealed class TypeInitializer
                                     CultureInfo.InvariantCulture,
                                     TypeInitializer_Merge_KindDoesNotMatch,
                                     namedType.Name))
-                            .SetTypeSystemObject((ITypeSystemObject)namedType)
+                            .SetTypeSystemObject((TypeSystemObject)namedType)
                             .Build());
                 }
 

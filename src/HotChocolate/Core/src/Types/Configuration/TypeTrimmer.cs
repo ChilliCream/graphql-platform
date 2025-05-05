@@ -7,21 +7,17 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeTrimmer
 {
-    private readonly HashSet<TypeSystemObject> _touched = [];
-    private readonly List<ObjectType> _rootTypes = [];
-    private readonly List<TypeSystemObject> _discoveredTypes;
+    private readonly HashSet<ITypeSystemMember> _touched = [];
+    private readonly List<IObjectTypeDefinition> _rootTypes = [];
+    private readonly List<ITypeSystemMember> _discoveredTypes;
 
-    public TypeTrimmer(IEnumerable<TypeSystemObject> discoveredTypes)
+    public TypeTrimmer(IEnumerable<ITypeSystemMember> discoveredTypes)
     {
-        if (discoveredTypes is null)
-        {
-            throw new ArgumentNullException(nameof(discoveredTypes));
-        }
-
-        _discoveredTypes = discoveredTypes.ToList();
+        ArgumentNullException.ThrowIfNull(discoveredTypes);
+        _discoveredTypes = [.. discoveredTypes];
     }
 
-    public void AddOperationType(ObjectType? operationType)
+    public void AddOperationType(IObjectTypeDefinition? operationType)
     {
         if (operationType is not null)
         {
@@ -29,16 +25,21 @@ internal sealed class TypeTrimmer
         }
     }
 
-    public IReadOnlyCollection<TypeSystemObject> Trim()
+    public IReadOnlyCollection<ITypeSystemMember> Trim()
     {
-        foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
+        foreach (var type in _discoveredTypes)
         {
-            if (directiveType.IsExecutableDirective ||
-                directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated) ||
-                directiveType.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy))
+            if (type is not DirectiveType directiveDef)
             {
-                _touched.Add(directiveType);
-                VisitDirective(directiveType);
+                continue;
+            }
+
+            if (directiveDef.IsExecutableDirective
+                || directiveDef.Name.EqualsOrdinal(WellKnownDirectives.Deprecated)
+                || directiveDef.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy))
+            {
+                _touched.Add(directiveDef);
+                VisitDirective(directiveDef);
             }
         }
 
@@ -50,54 +51,54 @@ internal sealed class TypeTrimmer
         return _touched;
     }
 
-    private void VisitRoot(ObjectType rootType)
+    private void VisitRoot(IObjectTypeDefinition rootType)
     {
         Visit(rootType);
     }
 
-    private void Visit(TypeSystemObject type)
+    private void Visit(ITypeSystemMember type)
     {
         if (_touched.Add(type))
         {
             switch (type)
             {
-                case ScalarType s:
+                case IScalarTypeDefinition s:
                     VisitScalar(s);
                     break;
 
-                case EnumType e:
+                case IEnumTypeDefinition e:
                     VisitEnum(e);
                     break;
 
-                case ObjectType o:
+                case IObjectTypeDefinition o:
                     VisitObject(o);
                     break;
 
-                case UnionType u:
+                case IUnionTypeDefinition u:
                     VisitUnion(u);
                     break;
 
-                case InterfaceType i:
+                case IInterfaceTypeDefinition i:
                     VisitInterface(i);
                     break;
 
-                case DirectiveType d:
+                case IDirectiveDefinition d:
                     VisitDirective(d);
                     break;
 
-                case InputObjectType i:
+                case IInputObjectTypeDefinition i:
                     VisitInput(i);
                     break;
             }
         }
     }
 
-    private void VisitScalar(ScalarType type)
+    private void VisitScalar(IScalarTypeDefinition type)
     {
         VisitDirectives(type);
     }
 
-    private void VisitEnum(EnumType type)
+    private void VisitEnum(IEnumTypeDefinition type)
     {
         VisitDirectives(type);
 
@@ -107,7 +108,7 @@ internal sealed class TypeTrimmer
         }
     }
 
-    private void VisitObject(ObjectType type)
+    private void VisitObject(IObjectTypeDefinition type)
     {
         VisitDirectives(type);
 
@@ -119,77 +120,76 @@ internal sealed class TypeTrimmer
         foreach (var field in type.Fields)
         {
             VisitDirectives(field);
-            Visit((TypeSystemObject)field.Type.NamedType());
+            Visit(field.Type.NamedType());
 
             foreach (var argument in field.Arguments)
             {
                 VisitDirectives(argument);
-                Visit((TypeSystemObject)argument.Type.NamedType());
+                Visit(argument.Type.NamedType());
             }
         }
     }
 
-    private void VisitUnion(UnionType type)
+    private void VisitUnion(IUnionTypeDefinition type)
     {
         VisitDirectives(type);
 
-        foreach (var objectType in type.Types.Values)
+        foreach (var objectType in type.Types)
         {
             Visit(objectType);
         }
     }
 
-    private void VisitInterface(InterfaceType type)
+    private void VisitInterface(IInterfaceTypeDefinition type)
     {
         VisitDirectives(type);
 
         foreach (var field in type.Fields)
         {
             VisitDirectives(field);
-            Visit((TypeSystemObject)field.Type.NamedType());
+            Visit(field.Type.NamedType());
 
             foreach (var argument in field.Arguments)
             {
                 VisitDirectives(argument);
-                Visit((TypeSystemObject)argument.Type.NamedType());
+                Visit(argument.Type.NamedType());
             }
         }
 
-        foreach (var complexType in
-            _discoveredTypes.OfType<IComplexOutputType>())
+        foreach (var complexType in _discoveredTypes.OfType<IComplexTypeDefinition>())
         {
             if (complexType.IsImplementing(type))
             {
-                Visit((TypeSystemObject)complexType);
+                Visit(complexType);
             }
         }
     }
 
-    private void VisitInput(InputObjectType type)
+    private void VisitInput(IInputObjectTypeDefinition type)
     {
         VisitDirectives(type);
 
         foreach (var field in type.Fields)
         {
             VisitDirectives(field);
-            Visit((TypeSystemObject)field.Type.NamedType());
+            Visit(field.Type.NamedType());
         }
     }
 
-    private void VisitDirective(DirectiveType type)
+    private void VisitDirective(IDirectiveDefinition directive)
     {
-        foreach (var argument in type.Arguments)
+        foreach (var argument in directive.Arguments)
         {
             VisitDirectives(argument);
-            Visit((TypeSystemObject)argument.Type.NamedType());
+            Visit(argument.Type.NamedType());
         }
     }
 
-    private void VisitDirectives(IHasDirectives hasDirectives)
+    private void VisitDirectives(IDirectivesProvider directivesProvider)
     {
-        foreach (var type in hasDirectives.Directives.Select(t => t.Type))
+        foreach (var directive in directivesProvider.Directives)
         {
-            Visit(type);
+            Visit(directive.Definition);
         }
     }
 }

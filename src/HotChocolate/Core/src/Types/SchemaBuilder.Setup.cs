@@ -424,8 +424,8 @@ public partial class SchemaBuilder
 
             var types = RemoveUnreachableTypes(builder, typeRegistry, definition);
 
-            definition.Types = types.OfType<INamedType>().Distinct().ToArray();
-            definition.DirectiveTypes = types.OfType<DirectiveType>().Distinct().ToArray();
+            definition.Types = [.. types.OfType<ITypeDefinition>().Distinct()];
+            definition.DirectiveTypes = [.. types.OfType<DirectiveType>().Distinct()];
 
             return definition;
         }
@@ -457,7 +457,7 @@ public partial class SchemaBuilder
                     {
                         if (registeredType.Type is not ObjectType objectType)
                         {
-                            Throw((INamedType)registeredType.Type, expectedOperation);
+                            Throw((ITypeDefinition)registeredType.Type, expectedOperation);
                         }
 
                         return objectType;
@@ -480,7 +480,7 @@ public partial class SchemaBuilder
                     {
                         if (str.Type is not ObjectType ot)
                         {
-                            Throw((INamedType)str.Type, operation);
+                            Throw((ITypeDefinition)str.Type, operation);
                         }
 
                         return ot;
@@ -490,7 +490,7 @@ public partial class SchemaBuilder
                     {
                         if (registeredType.Type is not ObjectType ot)
                         {
-                            Throw((INamedType)registeredType.Type, operation);
+                            Throw((ITypeDefinition)registeredType.Type, operation);
                         }
 
                         return ot;
@@ -510,7 +510,7 @@ public partial class SchemaBuilder
 
                         if (type is not ObjectType ot)
                         {
-                            Throw((INamedType)type, operation);
+                            Throw((ITypeDefinition)type, operation);
                         }
 
                         return ot;
@@ -522,7 +522,7 @@ public partial class SchemaBuilder
             }
 
             [DoesNotReturn]
-            static void Throw(INamedType namedType, OperationType operation)
+            static void Throw(ITypeDefinition namedType, OperationType operation)
             {
                 throw SchemaErrorBuilder.New()
                     .SetMessage(
@@ -549,7 +549,7 @@ public partial class SchemaBuilder
                 return trimmer.Trim();
             }
 
-            return typeRegistry.Types.Select(t => t.Type).ToArray();
+            return [.. typeRegistry.Types.Select(t => t.Type)];
         }
     }
 

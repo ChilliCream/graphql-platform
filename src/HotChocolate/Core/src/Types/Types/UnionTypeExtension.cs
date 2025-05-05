@@ -94,7 +94,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is UnionType unionType)
         {

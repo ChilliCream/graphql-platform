@@ -27,7 +27,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
         IsInferred = isInferred;
         DescriptorContext = descriptorContext;
         TypeInterceptor = typeInterceptor;
-        IsExtension = Type is ITypeDefinitionExtensionMerger;
+        IsExtension = Type is ITypeDefinitionExtension;
         IsSchema = Type is ISchema;
         Scope = scope;
 
