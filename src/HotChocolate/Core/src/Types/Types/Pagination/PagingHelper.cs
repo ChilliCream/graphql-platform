@@ -197,7 +197,7 @@ public static class PagingHelper
         return false;
     }
 
-    public static PagingOptions GetPagingOptions(ISchema schema, IObjectField field)
+    public static PagingOptions GetPagingOptions(ISchema schema, ObjectField field)
     {
         if (field.ContextData.TryGetValue(WellKnownContextData.PagingOptions, out var o)
             && o is PagingOptions options)

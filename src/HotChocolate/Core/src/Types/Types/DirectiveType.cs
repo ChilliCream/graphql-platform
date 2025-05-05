@@ -4,8 +4,8 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using HotChocolate.Serialization;
 using static HotChocolate.Properties.TypeResources;
-using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
@@ -159,7 +159,21 @@ public partial class DirectiveType
         return (T)_inputParser.ParseLiteral(value, argument, typeof(T))!;
     }
 
-    public ISyntaxNode ToSyntaxNode() => Format(this);
+    /// <summary>
+    /// Returns the SDL representation of the current <see cref="DirectiveType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns the SDL representation of the current <see cref="DirectiveType"/>.
+    /// </returns>
+    public override string ToString() => SchemaDebugFormatter.Format(this).ToString(true);
 
-    public override string ToString() => Format(this).ToString(true);
+    /// <summary>
+    /// Creates a <see cref="DirectiveDefinitionNode"/> from the current <see cref="DirectiveType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="DirectiveDefinitionNode"/>.
+    /// </returns>
+    public DirectiveDefinitionNode ToSyntaxNode() => SchemaDebugFormatter.Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => SchemaDebugFormatter.Format(this);
 }
