@@ -104,7 +104,7 @@ public partial class TypeMapperGenerator
                         NullCheckBuilder
                             .Inline()
                             .SetCondition(propAccess)
-                            .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException)));
+                            .SetCode(CodeInlineBuilder.From("default")));
             }
         }
 
