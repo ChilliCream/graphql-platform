@@ -1,9 +1,24 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a GraphQL enum type definition.
+/// <para>
+/// GraphQL Enum types, like Scalar types, also represent leaf values in a GraphQL type system.
+/// However, Enum types describe the set of possible values.
+/// </para>
+/// <para>
+/// Enums are not references for a numeric value, but are unique values in their own right.
+/// They may serialize as a string: the name of the represented value.
+/// </para>
+/// <para>In this example, an Enum type called Direction is defined:</para>
+///
+/// <code>
+/// enum Direction {
+///   NORTH
+///   EAST
+///   SOUTH
+///   WEST
+/// }
+/// </code>
 /// </summary>
 public interface IEnumTypeDefinition : ITypeDefinition
 {
@@ -11,20 +26,4 @@ public interface IEnumTypeDefinition : ITypeDefinition
     /// Gets all possible values if this type.
     /// </summary>
     IReadOnlyEnumValueCollection Values { get; }
-
-    /// <summary>
-    /// Tries to get the <paramref name="value"/> for
-    /// the specified <paramref name="name"/>.
-    /// </summary>
-    /// <param name="name">
-    /// The GraphQL enum value name.
-    /// </param>
-    /// <param name="value">
-    /// The GraphQL enum value.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the <paramref name="name"/> represents a value of this enum type;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    bool TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value);
 }

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -14,9 +15,8 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private FrozenDictionary<string, EnumValue> _nameLookup = default!;
     private FrozenDictionary<object, EnumValue> _valueLookup = default!;
-    private ImmutableArray<EnumValue> _values;
+    private EnumValueCollection _values = default!;
     private INamingConventions _naming = default!;
     private Action<IEnumTypeDescriptor>? _configure;
 
@@ -98,7 +98,7 @@ public partial class EnumType
     {
         base.OnCompleteType(context, configuration);
 
-        var builder = ImmutableArray.CreateBuilder<EnumValue>(configuration.Values.Count);
+        var builder = new List<EnumValue>(configuration.Values.Count);
         var nameLookupBuilder = new Dictionary<string, EnumValue>(configuration.NameComparer);
         var valueLookupBuilder = new Dictionary<object, EnumValue>(configuration.ValueComparer);
         _naming = context.DescriptorContext.Naming;
@@ -128,8 +128,7 @@ public partial class EnumType
                     .Build());
         }
 
-        _values = builder.ToImmutable();
-        _nameLookup = nameLookupBuilder.ToFrozenDictionary(configuration.NameComparer);
+        _values = new EnumValueCollection([.. builder]);
         _valueLookup = valueLookupBuilder.ToFrozenDictionary(configuration.ValueComparer);
     }
 

@@ -25,7 +25,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public class EnumType<T> : EnumType, IEnumType<T>
+public class EnumType<T> : EnumType
 {
     private Action<IEnumTypeDescriptor<T>>? _configure;
 

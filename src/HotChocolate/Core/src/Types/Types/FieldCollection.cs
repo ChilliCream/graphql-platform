@@ -163,7 +163,7 @@ public sealed class DirectiveArgumentCollection : FieldCollection<DirectiveArgum
     {
     }
 
-    internal IReadOnlyFieldDefinitionCollection<IInputValueDefinition> AsFieldDefinitionCollection()
+    internal IReadOnlyFieldDefinitionCollection<IInputValueDefinition> AsReadOnlyFieldDefinitionCollection()
         => _wrapper ??= new FieldDefinitionCollection(this);
 
     private sealed class FieldDefinitionCollection(DirectiveArgumentCollection arguments) : IReadOnlyFieldDefinitionCollection<IInputValueDefinition>

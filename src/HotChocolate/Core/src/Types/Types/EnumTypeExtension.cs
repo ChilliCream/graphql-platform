@@ -90,7 +90,7 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is EnumType enumType)
         {

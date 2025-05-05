@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -13,14 +14,13 @@ namespace HotChocolate.Types;
 /// </typeparam>
 public abstract class NamedTypeBase<TConfiguration>
     : TypeSystemObject<TConfiguration>
-    , INamedType
-    , IHasDirectives
+    , ITypeDefinition
     , IHasRuntimeType
     , IHasTypeIdentity
     , IHasTypeConfiguration
     where TConfiguration : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeConfiguration
 {
-    private IDirectiveCollection? _directives;
+    private DirectiveCollection? _directives;
     private Type? _runtimeType;
 
     ITypeConfiguration? IHasTypeConfiguration.Configuration => Configuration;
@@ -29,7 +29,7 @@ public abstract class NamedTypeBase<TConfiguration>
     public abstract TypeKind Kind { get; }
 
     /// <inheritdoc />
-    public IDirectiveCollection Directives
+    public DirectiveCollection Directives
     {
         get
         {
@@ -54,6 +54,8 @@ public abstract class NamedTypeBase<TConfiguration>
         }
     }
 
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+
     /// <inheritdoc />
     public Type RuntimeType
     {
@@ -73,7 +75,7 @@ public abstract class NamedTypeBase<TConfiguration>
     public Type? TypeIdentity { get; private set; }
 
     /// <inheritdoc />
-    public virtual bool IsAssignableFrom(INamedType type)
+    public virtual bool IsAssignableFrom(ITypeDefinition type)
         => ReferenceEquals(type, this);
 
     /// <inheritdoc />
@@ -137,4 +139,23 @@ public abstract class NamedTypeBase<TConfiguration>
 
     public bool Equals(IType? other)
         => ReferenceEquals(this, other);
+
+    /// <summary>
+    /// Returns a string representation of the type.
+    /// </summary>
+    public sealed override string ToString()
+        => FormatType().ToString();
+
+    /// <summary>
+    /// Returns a <see cref="ITypeDefinitionNode"/> from the named type.
+    /// </summary>
+    /// <returns></returns>
+    public ITypeDefinitionNode ToSyntaxNode() => FormatType();
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => FormatType();
+
+    /// <summary>
+    /// Creates a <see cref="ISyntaxNode"/> from a type system member.
+    /// </summary>
+    protected abstract ITypeDefinitionNode FormatType();
 }

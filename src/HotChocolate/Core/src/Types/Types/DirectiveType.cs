@@ -76,7 +76,7 @@ public partial class DirectiveType
     public DirectiveArgumentCollection Arguments { get; private set; } = default!;
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
-        => Arguments.AsFieldDefinitionCollection();
+        => Arguments.AsReadOnlyFieldDefinitionCollection();
 
     /// <summary>
     /// Gets the directive field middleware.

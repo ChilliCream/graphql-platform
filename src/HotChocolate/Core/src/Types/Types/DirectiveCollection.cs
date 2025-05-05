@@ -270,6 +270,5 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
     IEnumerator<IDirective> IEnumerable<IDirective>.GetEnumerator()
         => GetEnumerator();
 
-
     internal static DirectiveCollection Empty { get; } = new DirectiveCollection(Array.Empty<Directive>());
 }
