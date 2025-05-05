@@ -13,6 +13,8 @@ public abstract class FieldBase
     : IFieldDefinition
     , IFieldCompletion
     , IHasSchemaCoordinate
+    , IHasFieldIndex
+    , IHasRuntimeType
 {
     private FieldConfiguration? _config;
     private FieldFlags _flags;

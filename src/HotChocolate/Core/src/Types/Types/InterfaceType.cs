@@ -1,6 +1,7 @@
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
@@ -22,10 +23,11 @@ namespace HotChocolate.Types;
 /// For example, an interface NamedEntity may describe a required field and types such
 /// as Person or Business may then implement this interface to guarantee this field will
 /// always exist.
-///
+/// </para>
+/// <para>
 /// Types may also implement multiple interfaces. For example, Business implements both
 /// the NamedEntity and ValuedEntity interfaces in the example below.
-///
+/// </para>
 /// <code>
 /// interface NamedEntity {
 ///   name: String
@@ -49,7 +51,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class InterfaceType
     : NamedTypeBase<InterfaceTypeConfiguration>
-    , IInterfaceType
+    , IInterfaceTypeDefinition
 {
     /// <summary>
     /// Initializes a new  instance of <see cref="InterfaceType"/>.
@@ -92,16 +94,19 @@ public partial class InterfaceType
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>
-    public IReadOnlyList<InterfaceType> Implements => _implements;
+    public IReadOnlyList<InterfaceType> Implements
+        => _implements;
 
-    IReadOnlyList<IInterfaceType> IComplexOutputType.Implements => _implements;
+    IReadOnlyInterfaceTypeDefinitionCollection IComplexTypeDefinition.Implements
+        => _implements;
 
     /// <summary>
-    /// Gets the field that this type exposes.
+    /// Gets the fields of this interface type.
     /// </summary>
-    public FieldCollection<InterfaceField> Fields { get; private set; } = default!;
+    public InterfaceFieldCollection Fields { get; private set; } = default!;
 
-    IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
+    IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> IComplexTypeDefinition.Fields
+        => Fields.AsReadOnlyFieldDefinitionCollection();
 
     /// <summary>
     /// Defines if this type is implementing an interface
@@ -111,7 +116,7 @@ public partial class InterfaceType
     /// The interface type name.
     /// </param>
     public bool IsImplementing(string typeName)
-        => _implements.Any(t => t.Name.EqualsOrdinal(typeName));
+        => _implements.ContainsName(typeName);
 
     /// <summary>
     /// Defines if this type is implementing the
@@ -121,21 +126,13 @@ public partial class InterfaceType
     /// The interface type.
     /// </param>
     public bool IsImplementing(InterfaceType interfaceType)
-        => Array.IndexOf(_implements, interfaceType) != -1;
+        => IsImplementing(interfaceType.Name);
 
-    /// <summary>
-    /// Defines if this type is implementing the
-    /// the given <paramref name="interfaceType" />.
-    /// </summary>
-    /// <param name="interfaceType">
-    /// The interface type.
-    /// </param>
-    public bool IsImplementing(IInterfaceType interfaceType)
-        => interfaceType is InterfaceType i &&
-           Array.IndexOf(_implements, i) != -1;
+    bool IComplexTypeDefinition.IsImplementing(IInterfaceTypeDefinition interfaceType)
+        => IsImplementing(interfaceType.Name);
 
     /// <inheritdoc />
-    public override bool IsAssignableFrom(INamedType namedType)
+    public override bool IsAssignableFrom(ITypeDefinition namedType)
     {
         switch (namedType.Kind)
         {
@@ -169,18 +166,9 @@ public partial class InterfaceType
         IResolverContext context,
         object resolverResult)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
+        ArgumentNullException.ThrowIfNull(context);
         return _resolveAbstractType!.Invoke(context, resolverResult);
     }
-
-    IObjectType? IInterfaceType.ResolveConcreteType(
-        IResolverContext context,
-        object resolverResult) =>
-        ResolveConcreteType(context, resolverResult);
 
     /// <summary>
     /// Override this to configure the type.
@@ -191,4 +179,17 @@ public partial class InterfaceType
     protected virtual void Configure(IInterfaceTypeDescriptor descriptor)
     {
     }
+
+    /// <summary>
+    /// Creates a <see cref="InterfaceTypeDefinitionNode"/> that represents the interface type.
+    /// </summary>
+    /// <returns>
+    /// The GraphQL syntax node that represents the interface type.
+    /// </returns>
+    public new InterfaceTypeDefinitionNode ToSyntaxNode()
+        => Format(this);
+
+    /// <inheritdoc />
+    protected override ITypeDefinitionNode FormatType()
+        => Format(this);
 }

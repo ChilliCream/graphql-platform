@@ -274,3 +274,44 @@ public sealed class ArgumentCollection : FieldCollection<Argument>
 
     internal static ArgumentCollection Empty { get; } = new([]);
 }
+
+public sealed class InterfaceFieldCollection : FieldCollection<InterfaceField>
+{
+    private FieldDefinitionCollection? _wrapper;
+
+    public InterfaceFieldCollection(InterfaceField[] fields) : base(fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+    }
+
+    internal IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> AsReadOnlyFieldDefinitionCollection()
+        => _wrapper ??= new FieldDefinitionCollection(this);
+
+    private sealed class FieldDefinitionCollection(InterfaceFieldCollection fields)
+        : IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>
+    {
+        public IOutputFieldDefinition this[string name] => fields[name];
+
+        public IOutputFieldDefinition this[int index] => fields[index];
+
+        public int Count => fields.Count;
+
+        public bool ContainsName(string name) => fields.ContainsField(name);
+
+        public bool TryGetField(string name, [NotNullWhen(true)] out IOutputFieldDefinition? field)
+        {
+            if (fields.TryGetField(name, out var fld))
+            {
+                field = fld;
+                return true;
+            }
+
+            field = null;
+            return false;
+        }
+
+        public IEnumerator<IOutputFieldDefinition> GetEnumerator() => fields.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+}

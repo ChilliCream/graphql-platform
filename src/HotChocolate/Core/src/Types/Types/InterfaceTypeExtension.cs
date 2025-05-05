@@ -9,11 +9,14 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// Interface type extensions are used to represent an interface which has been extended
 /// from some original interface.
-///
+/// </para>
+/// <para>
 /// For example, this might be used to represent common local data on many types,
 /// or by a GraphQL service which is itself an extension of another GraphQL service.
+/// </para>
 /// </summary>
 public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfiguration>
 {
@@ -88,7 +91,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is InterfaceType interfaceType)
         {

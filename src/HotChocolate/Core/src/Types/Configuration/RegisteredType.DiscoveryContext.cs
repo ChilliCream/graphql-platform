@@ -42,8 +42,8 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
         {
             switch (registeredType.Type)
             {
-                case INamedType namedType:
-                    kind = namedType.Kind;
+                case ITypeDefinition type:
+                    kind = type.Kind;
                     return true;
 
                 case DirectiveType:

@@ -189,7 +189,6 @@ public partial class InputObjectType
 
 file static class Extensions
 {
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsOneOf(this DirectiveConfiguration directiveDef)
         => directiveDef.Value is DirectiveNode node

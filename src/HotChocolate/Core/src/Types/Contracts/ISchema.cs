@@ -101,7 +101,7 @@ public interface ISchema
     /// Returns a collection with all possible object types
     /// for the given abstract type.
     /// </returns>
-    IReadOnlyList<ObjectType> GetPossibleTypes(INamedType abstractType);
+    IReadOnlyList<ObjectType> GetPossibleTypes(ITypeDefinition abstractType);
 
     /// <summary>
     /// Gets a directive type by its name.

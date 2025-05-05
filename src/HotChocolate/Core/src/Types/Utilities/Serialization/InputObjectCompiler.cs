@@ -167,18 +167,16 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputField, IHasProperty
-    {
-        return Expression.New(
+        where T : InputField, IHasProperty
+        => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
-    }
 
     private static Expression[] CompileAssignParameters<T>(
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputField, IHasProperty
+        where T : InputField, IHasProperty
     {
         var parameters = constructor.GetParameters();
 
@@ -230,7 +228,7 @@ internal static class InputObjectCompiler
         IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
-        where T : class, IInputField, IHasProperty
+        where T : IInputValueDefinition, IHasProperty, IHasFieldIndex, IHasRuntimeType
     {
         foreach (var field in fields)
         {
@@ -249,13 +247,14 @@ internal static class InputObjectCompiler
     }
 
     private static Expression GetFieldValue<T>(T field, Expression fieldValues)
-        where T : class, IInputField, IHasProperty
+        where T : IInputValueDefinition, IHasProperty, IHasFieldIndex
         => Expression.ArrayIndex(fieldValues, Expression.Constant(field.Index));
 
-    private static Expression SetFieldValue(
-        IInputField field,
+    private static Expression SetFieldValue<T>(
+        T field,
         Expression fieldValues,
         Expression fieldValue)
+        where T : IInputValueDefinition, IHasFieldIndex
     {
         Expression index = Expression.Constant(field.Index);
         Expression element = Expression.ArrayAccess(fieldValues, index);
