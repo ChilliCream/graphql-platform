@@ -34,18 +34,10 @@ public static class RelayIdFilterFieldExtensions
             .Extend()
             .OnBeforeCompletion((c, d) =>
             {
-                var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
-                var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
-                d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType));
+                d.Formatters.Add(new FilterGlobalIdInputValueFormatter(c.DescriptorContext.NodeIdSerializerAccessor));
             });
 
         return descriptor;
     }
 
-    private static IInputValueFormatter CreateSerializer(
-        ITypeCompletionContext completionContext,
-        Type namedType)
-        => new FilterGlobalIdInputValueFormatter(
-            completionContext.DescriptorContext.NodeIdSerializerAccessor,
-            namedType);
 }
