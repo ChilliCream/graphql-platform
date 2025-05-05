@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -20,4 +22,12 @@ public interface IInputObjectTypeDefinition : IInputTypeDefinition
     /// Gets the fields of this input object type.
     /// </summary>
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Fields { get; }
+
+    /// <summary>
+    /// Creates an <see cref="InputObjectTypeDefinitionNode"/> from the current <see cref="IInputObjectTypeDefinition"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns an <see cref="InputObjectTypeDefinitionNode"/>.
+    /// </returns>
+    new InputObjectTypeDefinitionNode ToSyntaxNode();
 }

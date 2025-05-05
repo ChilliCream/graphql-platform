@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -31,4 +33,12 @@ public interface IDirectiveDefinition
     /// a type system member.
     /// </summary>
     DirectiveLocation Locations { get; }
+
+    /// <summary>
+    /// Creates a <see cref="DirectiveDefinitionNode"/> from the current <see cref="IDirectiveDefinition"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="DirectiveDefinitionNode"/>.
+    /// </returns>
+    new DirectiveDefinitionNode ToSyntaxNode();
 }

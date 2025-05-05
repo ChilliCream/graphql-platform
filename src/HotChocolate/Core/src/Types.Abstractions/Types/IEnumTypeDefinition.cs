@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -26,4 +28,12 @@ public interface IEnumTypeDefinition : IOutputTypeDefinition, IInputTypeDefiniti
     /// Gets all possible values if this type.
     /// </summary>
     IReadOnlyEnumValueCollection Values { get; }
+
+    /// <summary>
+    /// Creates a <see cref="EnumTypeDefinitionNode"/> from the current <see cref="IEnumTypeDefinition"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="EnumTypeDefinitionNode"/>.
+    /// </returns>
+    new EnumTypeDefinitionNode ToSyntaxNode();
 }

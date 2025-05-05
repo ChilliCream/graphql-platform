@@ -22,7 +22,7 @@ public interface IResolverContext : IHasContextData
     /// <summary>
     /// Gets the object type on which the field resolver is being executed.
     /// </summary>
-    IObjectType ObjectType { get; }
+    IObjectTypeDefinition ObjectType { get; }
 
     /// <summary>
     /// Gets the operation from the query that is being executed.
@@ -251,7 +251,7 @@ public interface IResolverContext : IHasContextData
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
     IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
+        IObjectTypeDefinition typeContext,
         ISelection? selection = null,
         bool allowInternals = false);
 

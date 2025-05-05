@@ -67,16 +67,16 @@ internal sealed partial class TypeInfo
     /// <summary>
     /// If this type is a schema type, then this method defines if it is an input type.
     /// </summary>
-    public bool IsInputType() =>
-        IsSchemaType &&
-        typeof(IInputTypeDefinition).IsAssignableFrom(NamedType);
+    public bool IsInputType()
+        => IsSchemaType
+            && typeof(IInputTypeDefinition).IsAssignableFrom(NamedType);
 
     /// <summary>
     /// If this type is a schema type, then this method defines if it is an output type.
     /// </summary>
-    public bool IsOutputType() =>
-        IsSchemaType &&
-        typeof(IOutputTypeDefinition).IsAssignableFrom(NamedType);
+    public bool IsOutputType()
+        => IsSchemaType
+            && typeof(IOutputTypeDefinition).IsAssignableFrom(NamedType);
 
     /// <summary>
     /// Creates a type structure with the <paramref name="typeDefinition"/>.

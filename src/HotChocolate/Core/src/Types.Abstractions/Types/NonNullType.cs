@@ -4,7 +4,7 @@ using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
-public sealed class NonNullType : IWrapperType
+public sealed class NonNullType : IWrapperType, ISyntaxNodeProvider
 {
     public NonNullType(IType nullableType)
     {
@@ -29,7 +29,16 @@ public sealed class NonNullType : IWrapperType
     public override string ToString()
         => FormatTypeRef(this).ToString(true);
 
-    public ISyntaxNode ToSyntaxNode()
+    /// <summary>
+    /// Creates a <see cref="NonNullTypeNode"/> from the current <see cref="NonNullType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="NonNullTypeNode"/>.
+    /// </returns>
+    public NonNullTypeNode ToSyntaxNode()
+        => (NonNullTypeNode)FormatTypeRef(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => FormatTypeRef(this);
 
     public bool Equals(IType? other)

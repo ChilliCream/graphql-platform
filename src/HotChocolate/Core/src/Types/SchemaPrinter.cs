@@ -43,45 +43,32 @@ public static class SchemaPrinter
         bool indented = true,
         CancellationToken cancellationToken = default)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(stream);
 
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
 
         var document = PrintSchema(schema);
         await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
     }
 
     public static async ValueTask PrintAsync(
-        IEnumerable<INamedType> namedTypes,
+        IEnumerable<ITypeDefinition> typeDefinitions,
         Stream stream,
         bool indented = true,
         CancellationToken cancellationToken = default)
     {
-        if (namedTypes is null)
-        {
-            throw new ArgumentNullException(nameof(namedTypes));
-        }
-
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(typeDefinitions);
+        ArgumentNullException.ThrowIfNull(stream);
 
         var list = new List<IDefinitionNode>();
 
-        foreach (var namedType in namedTypes)
+        foreach (var typeDefinition in typeDefinitions)
         {
-            var typeDefinition =
-                namedType is ScalarType scalarType
+            var syntaxNode =
+                typeDefinition is ScalarType scalarType
                     ? PrintScalarType(scalarType)
-                    : PrintNonScalarTypeDefinition(namedType, false);
-            list.Add(typeDefinition);
+                    : PrintNonScalarTypeDefinition(typeDefinition, false);
+            list.Add(syntaxNode);
         }
 
         await new DocumentNode(list)
@@ -227,9 +214,9 @@ public static class SchemaPrinter
     }
 
     private static ITypeDefinitionNode PrintNonScalarTypeDefinition(
-        INamedType namedType,
-        bool printResolverKind) =>
-        namedType switch
+        ITypeDefinition typeDefinition,
+        bool printResolverKind)
+        => typeDefinition switch
         {
             ObjectType type => PrintObjectType(type, printResolverKind),
             InterfaceType type => PrintInterfaceType(type),
@@ -522,8 +509,8 @@ public static class SchemaPrinter
     private static NamedTypeNode PrintNamedType(INamedType namedType)
         => new(null, new NameNode(namedType.Name));
 
-    private static DirectiveNode PrintDirective(Directive directive)
-        => directive.ToSyntaxNode(true);
+    private static DirectiveNode PrintDirective(IDirective directive)
+        => directive.ToSyntaxNode();
 
     private static StringValueNode PrintDescription(string description)
     {

@@ -270,24 +270,18 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder AddType(INamedType namedType)
+    public ISchemaBuilder AddType(ITypeDefinition type)
     {
-        if (namedType is null)
-        {
-            throw new ArgumentNullException(nameof(namedType));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
-        _types.Add(_ => TypeReference.Create(namedType));
+        _types.Add(_ => TypeReference.Create(type));
         return this;
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder AddType(INamedTypeExtension typeExtension)
+    public ISchemaBuilder AddType(ITypeDefinitionExtension typeExtension)
     {
-        if (typeExtension is null)
-        {
-            throw new ArgumentNullException(nameof(typeExtension));
-        }
+        ArgumentNullException.ThrowIfNull(typeExtension);
 
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
@@ -295,10 +289,7 @@ public partial class SchemaBuilder : ISchemaBuilder
 
     internal void AddTypeReference(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _types.Add(_ => typeReference);
     }
@@ -306,10 +297,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddDirectiveType(DirectiveType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         _types.Add(_ => TypeReference.Create(type));
         return this;
@@ -318,10 +306,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddRootType(Type rootType, OperationType operation)
     {
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(rootType);
 
         if (!rootType.IsClass)
         {
@@ -362,10 +347,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation)
     {
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(rootType);
 
         if (_operations.ContainsKey(operation))
         {
@@ -385,10 +367,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder TryAddRootType(Func<ObjectType> rootType, OperationType operation)
     {
-        if (rootType is null)
-        {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+        ArgumentNullException.ThrowIfNull(rootType);
 
         if (_operations.ContainsKey(operation))
         {
@@ -411,10 +390,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddServices(IServiceProvider services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = _services is null ? services : new CombinedServiceProvider(_services, services);
 
@@ -439,10 +415,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
@@ -462,10 +435,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         if (!_typeInterceptors.Contains(interceptor))
         {

@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -25,7 +24,7 @@ public partial class SchemaErrorBuilder
 
         public string? Code { get; set; }
 
-        public ITypeSystemObject? TypeSystemObject { get; set; }
+        public TypeSystemObject? TypeSystemObject { get; set; }
 
         public IReadOnlyCollection<object>? Path { get; set; }
 
@@ -68,9 +67,9 @@ public partial class SchemaErrorBuilder
                 writer.WriteString("code", Code);
             }
 
-            if (TypeSystemObject is INamedType namedType)
+            if (TypeSystemObject is ITypeDefinition typeDefinition)
             {
-                writer.WriteString("type", namedType.Name);
+                writer.WriteString("type", typeDefinition.Name);
             }
 
             if (Path is { })
@@ -97,11 +96,11 @@ public partial class SchemaErrorBuilder
                 {
                     writer.WriteNullValue();
                 }
-                else if (item.Value is IField f)
+                else if (item.Value is IFieldDefinition f)
                 {
                     writer.WriteStringValue(f.Name);
                 }
-                else if (item.Value is INamedType n)
+                else if (item.Value is ITypeDefinition n)
                 {
                     writer.WriteStringValue(n.Name ?? n.GetType().FullName);
                 }

@@ -8,7 +8,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class ObjectTypeParameterExpressionBuilder()
-    : LambdaParameterExpressionBuilder<IObjectType>(ctx => ctx.ObjectType, isPure: true)
+    : LambdaParameterExpressionBuilder<IObjectTypeDefinition>(ctx => ctx.ObjectType, isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
@@ -16,7 +16,7 @@ internal sealed class ObjectTypeParameterExpressionBuilder()
 
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(ObjectType) == parameter.ParameterType ||
-           typeof(IObjectType) == parameter.ParameterType;
+           typeof(IObjectTypeDefinition) == parameter.ParameterType;
 
     public override Expression Build(ParameterExpressionBuilderContext context)
     {
