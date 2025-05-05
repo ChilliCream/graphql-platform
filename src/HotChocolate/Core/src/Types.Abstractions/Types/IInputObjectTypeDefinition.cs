@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public interface IInputObjectTypeDefinition : ITypeDefinition
+public interface IInputObjectTypeDefinition : IInputTypeDefinition
 {
     /// <summary>
     /// Gets the fields of this input object type.

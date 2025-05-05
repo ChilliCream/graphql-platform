@@ -4,7 +4,7 @@ namespace HotChocolate.Types;
 /// A complex output type can be an <see cref="IObjectTypeDefinition" />
 /// or an <see cref="IInterfaceTypeDefinition" />.
 /// </summary>
-public interface IComplexTypeDefinition : ITypeDefinition
+public interface IComplexTypeDefinition : IOutputTypeDefinition
 {
     /// <summary>
     /// Gets the interfaces that are implemented by this type.

@@ -20,7 +20,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public interface IEnumTypeDefinition : ITypeDefinition
+public interface IEnumTypeDefinition : IOutputTypeDefinition, IInputTypeDefinition
 {
     /// <summary>
     /// Gets all possible values if this type.

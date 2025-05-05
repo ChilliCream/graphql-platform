@@ -44,12 +44,14 @@ public class InputField : FieldBase, IInputValueDefinition, IInputFieldInfo, IHa
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>
-    public new InputObjectType DeclaringType => (InputObjectType)base.DeclaringType;
+    public new InputObjectType DeclaringType => Unsafe.As<InputObjectType>(base.DeclaringType);
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the default value of this field.
+    /// </summary>
     public IValueNode? DefaultValue { get; private set; }
 
     /// <summary>

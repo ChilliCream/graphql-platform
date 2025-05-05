@@ -6,6 +6,13 @@ internal sealed class EmptyInterfaceTypeDefinitionCollection : IReadOnlyInterfac
 {
     private EmptyInterfaceTypeDefinitionCollection() { }
 
+    public int Count => 0;
+
+    public IInterfaceTypeDefinition this[int index]
+        => throw new ArgumentException(
+            "The collection is empty.",
+            nameof(index));
+
     public bool ContainsName(string name)
         => false;
 

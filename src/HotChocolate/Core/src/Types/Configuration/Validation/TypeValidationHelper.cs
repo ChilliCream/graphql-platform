@@ -10,7 +10,7 @@ internal static class TypeValidationHelper
     private const char _prefixCharacter = '_';
 
     public static void EnsureTypeHasFields(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
         if (type.Fields.Count == 0 ||
@@ -21,7 +21,7 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureFieldDeprecationIsValid(
-        IInputObjectType type,
+        IInputObjectTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
         for (var i = 0; i < type.Fields.Count; i++)
@@ -36,7 +36,7 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureArgumentDeprecationIsValid(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
         for (var i = 0; i < type.Fields.Count; i++)
@@ -79,7 +79,7 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureFieldNamesAreValid(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
         for (var i = 0; i < type.Fields.Count; i++)
@@ -98,10 +98,11 @@ internal static class TypeValidationHelper
                     var argument = field.Arguments[j];
                     if (StartsWithTwoUnderscores(argument.Name))
                     {
-                        errors.Add(TwoUnderscoresNotAllowedOnArgument(
-                            type,
-                            field,
-                            argument));
+                        errors.Add(
+                            TwoUnderscoresNotAllowedOnArgument(
+                                type,
+                                field,
+                                argument));
                     }
                 }
             }
@@ -128,7 +129,7 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Arguments.Count; i++)
         {
-            IInputField field = type.Arguments[i];
+            var field = type.Arguments[i];
             if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
@@ -137,7 +138,7 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureInterfacesAreCorrectlyImplemented(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
         if (type.Implements.Count > 0)
@@ -151,8 +152,8 @@ internal static class TypeValidationHelper
 
     // https://spec.graphql.org/draft/#IsValidImplementation()
     private static void ValidateImplementation(
-        IComplexOutputType type,
-        IInterfaceType implementedType,
+        IComplexTypeDefinition type,
+        IInterfaceTypeDefinition implementedType,
         ICollection<ISchemaError> errors)
     {
         if (!IsFullyImplementingInterface(type, implementedType))
@@ -179,8 +180,8 @@ internal static class TypeValidationHelper
     }
 
     private static void ValidateArguments(
-        IOutputField field,
-        IOutputField implementedField,
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
         ICollection<ISchemaError> errors)
     {
         var implArgs = implementedField.Arguments.ToDictionary(t => t.Name);
@@ -190,36 +191,39 @@ internal static class TypeValidationHelper
             if (implArgs.TryGetValue(argument.Name, out var implementedArgument))
             {
                 implArgs.Remove(argument.Name);
-                if (!argument.Type.IsEqualTo(implementedArgument.Type))
+                if (!argument.Type.IsStructurallyEqual(implementedArgument.Type))
                 {
-                    errors.Add(InvalidArgumentType(
-                        field,
-                        implementedField,
-                        argument,
-                        implementedArgument));
+                    errors.Add(
+                        InvalidArgumentType(
+                            field,
+                            implementedField,
+                            argument,
+                            implementedArgument));
                 }
             }
             else if (argument.Type.IsNonNullType())
             {
-                errors.Add(AdditionalArgumentNotNullable(
-                    field,
-                    implementedField,
-                    argument));
+                errors.Add(
+                    AdditionalArgumentNotNullable(
+                        field,
+                        implementedField,
+                        argument));
             }
         }
 
         foreach (var missingArgument in implArgs.Values)
         {
-            errors.Add(ArgumentNotImplemented(
-                field,
-                implementedField,
-                missingArgument));
+            errors.Add(
+                ArgumentNotImplemented(
+                    field,
+                    implementedField,
+                    missingArgument));
         }
     }
 
     private static bool IsFullyImplementingInterface(
-        IComplexOutputType type,
-        IInterfaceType implementedType)
+        IComplexTypeDefinition type,
+        IInterfaceTypeDefinition implementedType)
     {
         foreach (var interfaceType in implementedType.Implements)
         {
@@ -268,7 +272,7 @@ internal static class TypeValidationHelper
             return true;
         }
 
-        if (fieldType is IComplexOutputType complexType &&
+        if (fieldType is IComplexTypeDefinition complexType &&
             implementedType is InterfaceType interfaceType &&
             complexType.IsImplementing(interfaceType))
         {
@@ -282,10 +286,10 @@ internal static class TypeValidationHelper
     {
         if (name.Length > 2)
         {
-            var firstTwoLetters = name.AsSpan().Slice(0, 2);
+            var firstTwoLetters = name.AsSpan()[..2];
 
-            if (firstTwoLetters[0] == _prefixCharacter &&
-                firstTwoLetters[1] == _prefixCharacter)
+            if (firstTwoLetters[0] == _prefixCharacter
+                && firstTwoLetters[1] == _prefixCharacter)
             {
                 return true;
             }

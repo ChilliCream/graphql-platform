@@ -560,7 +560,7 @@ public static class HotChocolateBaseTypeExtensions
     public static bool IsEqualTo(this IType x, IType y)
         => x.IsStructurallyEqual(y);
 
-    private static bool IsStructurallyEqual(this IType thisType, IType otherType)
+    public static bool IsStructurallyEqual(this IType thisType, IType otherType)
     {
         var depthRemaining = _maxDepth;
 

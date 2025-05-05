@@ -81,7 +81,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext);
+    ISelectionSet GetSelectionSet(ISelection selection, IObjectTypeDefinition typeContext);
 
     /// <summary>
     /// Gets the possible return types for the <paramref name="selection"/>.
@@ -95,7 +95,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    IEnumerable<IObjectType> GetPossibleTypes(ISelection selection);
+    IEnumerable<IObjectTypeDefinition> GetPossibleTypes(ISelection selection);
 
     /// <summary>
     /// Creates the include flags for the specified variable values.

@@ -37,7 +37,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public interface IUnionTypeDefinition : ITypeDefinition
+public interface IUnionTypeDefinition : IOutputTypeDefinition
 {
     /// <summary>
     /// Gets the <see cref="IObjectTypeDefinition" /> set of this union type.

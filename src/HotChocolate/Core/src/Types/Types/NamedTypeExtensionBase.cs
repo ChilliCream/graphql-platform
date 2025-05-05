@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 public abstract class NamedTypeExtensionBase<TConfiguration>
     : TypeSystemObject<TConfiguration>
     , ITypeDefinition
-    , ITypeDefinitionExtension
+    , ITypeDefinitionExtensionMerger
     where TConfiguration : TypeSystemConfiguration, ITypeConfiguration
 {
     /// <inheritdoc />
@@ -31,7 +31,7 @@ public abstract class NamedTypeExtensionBase<TConfiguration>
         ITypeCompletionContext context,
         ITypeDefinition type);
 
-    void ITypeDefinitionExtension.Merge(
+    void ITypeDefinitionExtensionMerger.Merge(
         ITypeCompletionContext context,
         ITypeDefinition type)
         => Merge(context, type);
@@ -56,7 +56,7 @@ public abstract class NamedTypeExtensionBase<TConfiguration>
 /// This internal interface is used by the type initialization to
 /// merge the type extension into the actual type.
 /// </summary>
-internal interface ITypeDefinitionExtension : ITypeDefinition
+internal interface ITypeDefinitionExtensionMerger : ITypeDefinitionExtension
 {
     /// <summary>
     /// Gets the type extended by this type extension.
@@ -70,3 +70,5 @@ internal interface ITypeDefinitionExtension : ITypeDefinition
     /// <param name="type">The target type into which we merge the type extension.</param>
     void Merge(ITypeCompletionContext context, ITypeDefinition type);
 }
+
+public interface ITypeDefinitionExtension : ITypeDefinition { }

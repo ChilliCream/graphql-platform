@@ -3,7 +3,6 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
-using IHasDirectives = HotChocolate.Types.IHasDirectives;
 using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
@@ -49,7 +48,7 @@ public interface ISchema
     /// <summary>
     /// Gets all the schema types.
     /// </summary>
-    IReadOnlyCollection<INamedType> Types { get; }
+    IReadOnlyCollection<ITypeDefinition> Types { get; }
 
     /// <summary>
     /// Gets all the directive types that are supported by this schema.
@@ -67,7 +66,7 @@ public interface ISchema
     /// specified type kind.
     /// </exception>
     [return: NotNull]
-    T GetType<T>(string typeName) where T : INamedType;
+    T GetType<T>(string typeName) where T : ITypeDefinition;
 
     /// <summary>
     /// Tries to get a type by its name and kind.
@@ -79,7 +78,7 @@ public interface ISchema
     /// <c>true</c>, if a type with the name exists and is of the specified
     /// kind, <c>false</c> otherwise.
     /// </returns>
-    bool TryGetType<T>(string typeName, [MaybeNullWhen(false)] out T type) where T : INamedType;
+    bool TryGetType<T>(string typeName, [MaybeNullWhen(false)] out T type) where T : ITypeDefinition;
 
     /// <summary>
     /// Tries to get the .net type representation of a schema type.

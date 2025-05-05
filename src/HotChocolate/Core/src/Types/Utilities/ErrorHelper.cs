@@ -40,8 +40,8 @@ internal static class ErrorHelper
 
     public static ISchemaError TwoUnderscoresNotAllowedOnArgument(
         IComplexTypeDefinition type,
-        OutputField field,
-        InputField argument)
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_TwoUnderscoresNotAllowedOnArgument)
@@ -111,10 +111,10 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError InvalidArgumentType(
-        OutputField field,
-        OutputField implementedField,
-        InputField argument,
-        InputField implementedArgument)
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
+        IInputValueDefinition argument,
+        IInputValueDefinition implementedArgument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_InvalidArgumentType,
@@ -129,9 +129,9 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError AdditionalArgumentNotNullable(
-        OutputField field,
-        OutputField implementedField,
-        InputField argument)
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_AdditionalArgumentNotNullable,
@@ -144,9 +144,9 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError ArgumentNotImplemented(
-        OutputField field,
-        OutputField implementedField,
-        InputField missingArgument)
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
+        IInputValueDefinition missingArgument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ArgumentNotImplemented,
@@ -263,7 +263,7 @@ internal static class ErrorHelper
 
     private static SchemaErrorBuilder SetImplementedField(
         this SchemaErrorBuilder errorBuilder,
-        OutputField field)
+        IOutputFieldDefinition field)
         => errorBuilder.SetField(field, "implementedField");
 
     private static SchemaErrorBuilder SetImplementedArgument(

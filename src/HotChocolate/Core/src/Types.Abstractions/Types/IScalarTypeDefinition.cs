@@ -1,3 +1,3 @@
 namespace HotChocolate.Types;
 
-public interface IScalarTypeDefinition : ITypeDefinition;
+public interface IScalarTypeDefinition : IOutputTypeDefinition, IInputTypeDefinition;

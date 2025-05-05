@@ -11,6 +11,11 @@ public interface IFieldDefinition
     , ISyntaxNodeProvider
 {
     /// <summary>
+    /// Gets the type definition that declares this field definition.
+    /// </summary>
+    ITypeDefinition DeclaringType { get; }
+
+    /// <summary>
     /// Gets the type system member that declares this field definition.
     /// </summary>
     ITypeSystemMember DeclaringMember { get; }

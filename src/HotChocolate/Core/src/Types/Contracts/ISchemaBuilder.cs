@@ -69,7 +69,7 @@ public interface ISchemaBuilder
     /// <exception cref="ArgumentNullException">
     /// <paramref name="namedType"/> is <c>null</c>
     /// </exception>
-    ISchemaBuilder AddType(INamedType namedType);
+    ISchemaBuilder AddType(ITypeDefinition namedType);
 
     /// <summary>
     /// Adds a GraphQL type extension to the schema.
@@ -83,7 +83,7 @@ public interface ISchemaBuilder
     /// <exception cref="ArgumentNullException">
     /// <paramref name="typeExtension"/> is <c>null</c>
     /// </exception>
-    ISchemaBuilder AddType(INamedTypeExtension typeExtension);
+    ISchemaBuilder AddType(ITypeDefinitionExtension typeExtension);
 
     /// <summary>
     /// Binds a .NET runtime type to a GraphQL schema type.

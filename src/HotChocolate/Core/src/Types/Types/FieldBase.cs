@@ -45,7 +45,7 @@ public abstract class FieldBase
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>
-    public ITypeSystemMember DeclaringType { get; private set; }
+    public ITypeDefinition DeclaringType { get; private set; }
 
     /// <inheritdoc />
     public ITypeSystemMember DeclaringMember { get; private set; }
@@ -102,7 +102,7 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember,
         FieldConfiguration definition)
     {
-        DeclaringType = context.Type;
+        DeclaringType = (ITypeDefinition)context.Type;
         DeclaringMember = context.Type;
         Flags = definition.Flags;
 

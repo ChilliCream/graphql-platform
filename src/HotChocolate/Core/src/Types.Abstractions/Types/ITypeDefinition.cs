@@ -21,3 +21,13 @@ public interface ITypeDefinition
     /// </summary>
     bool IsAssignableFrom(ITypeDefinition type);
 }
+
+/// <summary>
+/// Represents a GraphQL output type definition.
+/// </summary>
+public interface IOutputTypeDefinition : ITypeDefinition;
+
+/// <summary>
+/// Represents a GraphQL input type definition.
+/// </summary>
+public interface IInputTypeDefinition : ITypeDefinition;
