@@ -40,7 +40,7 @@ internal static class ErrorHelper
 
     public static ISchemaError TwoUnderscoresNotAllowedOnArgument(
         IComplexTypeDefinition type,
-        OutputFieldBase field,
+        OutputField field,
         InputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -83,8 +83,8 @@ internal static class ErrorHelper
 
     public static ISchemaError InvalidFieldType(
         IComplexTypeDefinition type,
-        OutputFieldBase field,
-        OutputFieldBase implementedField)
+        OutputField field,
+        OutputField implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_InvalidFieldType,
@@ -98,7 +98,7 @@ internal static class ErrorHelper
 
     public static ISchemaError FieldNotImplemented(
         IComplexTypeDefinition type,
-        OutputFieldBase implementedField)
+        OutputField implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_FieldNotImplemented,
@@ -111,8 +111,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError InvalidArgumentType(
-        OutputFieldBase field,
-        OutputFieldBase implementedField,
+        OutputField field,
+        OutputField implementedField,
         InputField argument,
         InputField implementedArgument)
         => SchemaErrorBuilder.New()
@@ -129,8 +129,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError AdditionalArgumentNotNullable(
-        OutputFieldBase field,
-        OutputFieldBase implementedField,
+        OutputField field,
+        OutputField implementedField,
         InputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -144,8 +144,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError ArgumentNotImplemented(
-        OutputFieldBase field,
-        OutputFieldBase implementedField,
+        OutputField field,
+        OutputField implementedField,
         InputField missingArgument)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -188,7 +188,7 @@ internal static class ErrorHelper
 
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
         IComplexTypeDefinition type,
-        OutputFieldBase field,
+        OutputField field,
         InputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -263,7 +263,7 @@ internal static class ErrorHelper
 
     private static SchemaErrorBuilder SetImplementedField(
         this SchemaErrorBuilder errorBuilder,
-        OutputFieldBase field)
+        OutputField field)
         => errorBuilder.SetField(field, "implementedField");
 
     private static SchemaErrorBuilder SetImplementedArgument(

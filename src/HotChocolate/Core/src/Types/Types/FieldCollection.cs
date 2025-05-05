@@ -315,3 +315,44 @@ public sealed class InterfaceFieldCollection : FieldCollection<InterfaceField>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
+
+public sealed class ObjectFieldCollection : FieldCollection<ObjectField>
+{
+    private FieldDefinitionCollection? _wrapper;
+
+    public ObjectFieldCollection(ObjectField[] fields) : base(fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+    }
+
+    internal IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> AsReadOnlyFieldDefinitionCollection()
+        => _wrapper ??= new FieldDefinitionCollection(this);
+
+    private sealed class FieldDefinitionCollection(ObjectFieldCollection fields)
+        : IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>
+    {
+        public IOutputFieldDefinition this[string name] => fields[name];
+
+        public IOutputFieldDefinition this[int index] => fields[index];
+
+        public int Count => fields.Count;
+
+        public bool ContainsName(string name) => fields.ContainsField(name);
+
+        public bool TryGetField(string name, [NotNullWhen(true)] out IOutputFieldDefinition? field)
+        {
+            if (fields.TryGetField(name, out var fld))
+            {
+                field = fld;
+                return true;
+            }
+
+            field = null;
+            return false;
+        }
+
+        public IEnumerator<IOutputFieldDefinition> GetEnumerator() => fields.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+}

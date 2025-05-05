@@ -60,7 +60,5 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     }
 
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }

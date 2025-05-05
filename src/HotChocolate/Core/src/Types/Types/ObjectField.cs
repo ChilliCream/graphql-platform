@@ -17,19 +17,19 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field of an <see cref="ObjectType"/>.
 /// </summary>
-public sealed class ObjectField : OutputFieldBase, IObjectTypeDefinition
+public sealed class ObjectField : OutputField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
 
-    internal ObjectField(ObjectFieldConfiguration definition, int index)
-        : base(definition, index)
+    internal ObjectField(ObjectFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        Member = definition.Member;
-        ResolverMember = definition.ResolverMember ?? definition.Member;
+        Member = configuration.Member;
+        ResolverMember = configuration.ResolverMember ?? configuration.Member;
         Middleware = _empty;
-        Resolver = definition.Resolver!;
-        ResolverExpression = definition.Expression;
-        SubscribeResolver = definition.SubscribeResolver;
+        Resolver = configuration.Resolver!;
+        ResolverExpression = configuration.Expression;
+        SubscribeResolver = configuration.SubscribeResolver;
     }
 
     /// <summary>

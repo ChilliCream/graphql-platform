@@ -59,7 +59,9 @@ public abstract class FieldBase
     public int Index { get; }
 
     /// <inheritdoc />
-    public IReadOnlyDirectiveCollection Directives { get; private set; }
+    public DirectiveCollection Directives { get; private set; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <inheritdoc />
     public bool IsDeprecated { get; }

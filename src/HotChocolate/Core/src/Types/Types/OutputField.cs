@@ -10,12 +10,12 @@ using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
-public class OutputFieldBase : FieldBase, IOutputFieldDefinition
+public abstract class OutputField : FieldBase, IOutputFieldDefinition
 {
     private Type _runtimeType = default!;
 
-    internal OutputFieldBase(OutputFieldConfiguration definition, int index)
-        : base(definition, index)
+    protected OutputField(OutputFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
     }
 

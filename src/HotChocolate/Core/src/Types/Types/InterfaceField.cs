@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// The index of the field in the declaring type.
 /// </param>
 public sealed class InterfaceField(InterfaceFieldConfiguration definition, int index)
-    : OutputFieldBase(definition, index)
+    : OutputField(definition, index)
 {
     /// <summary>
     /// Gets the type that declares this field.

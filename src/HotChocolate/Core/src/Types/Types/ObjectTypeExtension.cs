@@ -92,7 +92,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is ObjectType objectType)
         {
