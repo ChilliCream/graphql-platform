@@ -1,0 +1,406 @@
+query useOrgExplorerQueryRef_OrganizationQuery(
+  $aadObjectId: String!
+  $jobTitleFilter: [String]
+  $hybridLocationFilter: String
+  $directsToLoad: Int!
+  $worksWithToLoad: Int!
+  $withHighlights: Boolean = true
+  $withFiltering: Boolean = true
+) {
+  orgexplorer {
+    personInFocusV2(aadObjectId: $aadObjectId) {
+      debugInformation {
+        dataSource
+        isYggdrasilCacheEnabled
+      }
+      fullName
+      ...OrganizationNova
+      id
+    }
+  }
+}
+fragment ColumnPerson on PersonInFocusV2Type {
+  fullName
+  directReportsCount
+  ...Direct
+  ...ExpandedDirects
+}
+fragment Direct on PersonInFocusV2Type {
+  aadObjectId
+  email
+  fullName
+  jobTitle
+  profilePictureUrl
+  transitiveReportsCount
+  directReportsCount
+  location
+  ...PersonaPhotoBlobResolver
+  ...DirectsOverview
+  ...HighlightHint_DataFragment
+    @defer(
+      label: "Direct$defer$HighlightHint_DataFragment"
+      if: $withHighlights
+    )
+  ...PersonaPresenceBadge_PresenceFragment
+    @defer(label: "Direct$defer$PersonaPresenceBadge_PresenceFragment")
+  ...HybridLocation_PresenceFragment
+    @defer(label: "Direct$defer$HybridLocation_PresenceFragment")
+}
+fragment DirectsColonnade on PersonInFocusV2Type {
+  id
+  directReportsCount
+  isManager
+  directs(
+    first: $directsToLoad
+    jobTitleFilter: $jobTitleFilter
+    hybridLocationFilter: $hybridLocationFilter
+  ) {
+    edges {
+      node {
+        aadObjectId
+        directReportsCount
+        id
+        __typename
+      }
+      cursor
+    }
+    ...DirectsColonnadeList
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+  ...DirectsColonnadeHeader
+  ...DirectsColonnadeFiltering
+}
+fragment DirectsColonnadeFiltering on PersonInFocusV2Type {
+  ...NextLevelReportsTogglePersonInFocus
+  ...FilterDropDownMenu
+    @defer(
+      label: "DirectsColonnadeFiltering$defer$FilterDropDownMenu"
+      if: $withFiltering
+    )
+}
+fragment DirectsColonnadeHeader on PersonInFocusV2Type {
+  fullName
+  isMe
+}
+fragment DirectsColonnadeList on DirectsConnection {
+  edges {
+    node {
+      aadObjectId
+      ...ColumnPerson
+      directs(first: $directsToLoad) {
+        edges {
+          node {
+            aadObjectId
+            id
+          }
+        }
+      }
+      id
+    }
+  }
+}
+fragment DirectsOverview on PersonInFocusV2Type {
+  fullName
+  directReportsCount
+  transitiveReportsCount
+}
+fragment ExpandedDirects on PersonInFocusV2Type {
+  directs(first: $directsToLoad) {
+    edges {
+      node {
+        aadObjectId
+        ...Direct
+        id
+        __typename
+      }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+  id
+}
+fragment FilterDropDownMenu on PersonInFocusV2Type {
+  directsJobTitles @include(if: $withFiltering)
+}
+fragment HighlightHint_DataFragment on PersonInFocusV2Type {
+  highlights @include(if: $withHighlights) {
+    type
+    ...HighlightsFragment
+    ...HighlightPopupHintFragmentForTelemetry
+  }
+}
+fragment HighlightPopupHintFragmentForTelemetry on PersonaHighlightType {
+  type
+  id
+  metadata {
+    occurrenceType
+    displayRing
+  }
+}
+fragment HighlightsFragment on PersonaHighlightType {
+  hash
+  type
+  id
+  socialDistance
+  vieweeDisplayName
+  vieweeEmail
+  metadata {
+    occurrenceType
+  }
+  highlight {
+    __typename
+    ... on BirthdayType {
+      year
+      month
+      day
+    }
+    ... on PendingRSVPToMeetingType {
+      id
+      meetingId
+      meetingStartDateTime
+      meetingSubject
+      sendResponse
+    }
+    ... on PositionChangeType {
+      newPosition {
+        title
+        company {
+          companyName
+        }
+      }
+      positionChangeType
+      profileUrl
+    }
+    ... on NewHireType {
+      company {
+        companyName
+      }
+    }
+    ... on WorkAnniversaryType {
+      company {
+        companyName
+      }
+      yearsCompleted
+    }
+  }
+}
+fragment HybridLocation_PresenceFragment on PersonInFocusV2Type {
+  location
+  presence {
+    workLocation {
+      location
+    }
+    id
+  }
+}
+fragment ManagerChainToggleButton_PersonFragment on PersonInFocusV2Type {
+  fullName
+}
+fragment ManagerChain_PersonFragment on PersonInFocusV2Type {
+  managerChainTopToBottom(first: 100) {
+    nodes {
+      aadObjectId
+      fullName
+      profilePictureUrl
+      ...PersonaPhotoBlobResolver
+      ...Manager_PersonFragment
+      id
+    }
+  }
+  ...ManagerChainToggleButton_PersonFragment
+}
+fragment Manager_PersonFragment on PersonInFocusV2Type {
+  aadObjectId
+  department
+  fullName
+  jobTitle
+  profilePictureUrl
+  transitiveReportsCount
+  directReportsCount
+  ...PersonaPhotoBlobResolver
+  ...HighlightHint_DataFragment
+    @defer(
+      label: "Manager_PersonFragment$defer$HighlightHint_DataFragment"
+      if: $withHighlights
+    )
+  ...PersonaPresenceBadge_PresenceFragment
+    @defer(
+      label: "Manager_PersonFragment$defer$PersonaPresenceBadge_PresenceFragment"
+    )
+}
+fragment NextLevelReportsTogglePersonInFocus on PersonInFocusV2Type {
+  fullName
+}
+fragment OrganizationNova on PersonInFocusV2Type {
+  ...ManagerChain_PersonFragment
+  ...PeerPillsDirectManager
+  ...PersonInFocusView_PersonFragment
+  ...DirectsColonnade
+  ...WorksWithView
+  managersChain: managerChainTopToBottom(first: 1) {
+    nodes {
+      id
+    }
+  }
+  directsList: directs(first: 1) {
+    nodes {
+      id
+    }
+  }
+  workswith: workingWith(first: 1) {
+    nodes {
+      id
+    }
+  }
+}
+fragment PeerPillsDirectManager on PersonInFocusV2Type {
+  aadObjectId
+  fullName
+  manager: managerChainTopToBottom(last: 1) {
+    nodes {
+      aadObjectId
+      fullName
+      isMe
+      id
+    }
+  }
+  peers(first: $directsToLoad) {
+    edges {
+      node {
+        aadObjectId
+        fullName
+        ...PersonaPillPerson
+        id
+        __typename
+      }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+  id
+}
+fragment PersonInFocusCopyLinkButton on PersonInFocusV2Type {
+  aadObjectId
+}
+fragment PersonInFocusPersona_PersonFragment on PersonInFocusV2Type {
+  department
+  fullName
+  jobTitle
+  profilePictureUrl
+  location
+  ...PersonaPhotoBlobResolver
+  ...HighlightHint_DataFragment
+    @defer(
+      label: "PersonInFocusPersona_PersonFragment$defer$HighlightHint_DataFragment"
+      if: $withHighlights
+    )
+  ...PersonaPresenceBadge_PresenceFragment
+    @defer(
+      label: "PersonInFocusPersona_PersonFragment$defer$PersonaPresenceBadge_PresenceFragment"
+    )
+  ...HybridLocation_PresenceFragment
+    @defer(
+      label: "PersonInFocusPersona_PersonFragment$defer$HybridLocation_PresenceFragment"
+    )
+}
+fragment PersonInFocusView_PersonFragment on PersonInFocusV2Type {
+  aadObjectId
+  department
+  directReportsCount
+  fullName
+  jobTitle
+  isManager
+  email
+  manager: managerChainTopToBottom(last: 1) {
+    nodes {
+      aadObjectId
+      fullName
+      id
+    }
+  }
+  ...PersonInFocusPersona_PersonFragment
+  ...PersonInFocusCopyLinkButton
+  transitiveReportsCount
+}
+fragment PersonaPhotoBlobResolver on PersonInFocusV2Type {
+  profilePictureUrl
+}
+fragment PersonaPillPerson on PersonInFocusV2Type {
+  aadObjectId
+  fullName
+  profilePictureUrl
+  transitiveReportsCount
+  directReportsCount
+  ...PersonaPhotoBlobResolver
+}
+fragment PersonaPresenceBadge_PresenceFragment on PersonInFocusV2Type {
+  presence {
+    availability
+    calendarData {
+      isOutOfOffice
+    }
+    id
+  }
+}
+fragment PresenceOrHighlightsBadge_PresenceFragment on PersonInFocusV2Type {
+  highlights @include(if: $withHighlights) {
+    id
+  }
+  ...HighlightHint_DataFragment @include(if: $withHighlights)
+  presence {
+    availability
+    calendarData {
+      isOutOfOffice
+    }
+    id
+  }
+  ...PersonaPresenceBadge_PresenceFragment
+}
+fragment WorksWithCarousel on PersonInFocusV2Type {
+  fullName
+  workingWith(first: $worksWithToLoad) {
+    nodes {
+      aadObjectId
+      ...WorksWithPerson
+      id
+    }
+  }
+}
+fragment WorksWithHeader on PersonInFocusV2Type {
+  fullName
+  isMe
+  isManager
+}
+fragment WorksWithPerson on PersonInFocusV2Type {
+  aadObjectId
+  fullName
+  email
+  jobTitle
+  profilePictureUrl
+  ...PersonaPhotoBlobResolver
+  location
+  ...HybridLocation_PresenceFragment
+    @defer(label: "WorksWithPerson$defer$HybridLocation_PresenceFragment")
+  ...PresenceOrHighlightsBadge_PresenceFragment
+    @defer(
+      label: "WorksWithPerson$defer$PresenceOrHighlightsBadge_PresenceFragment"
+    )
+}
+fragment WorksWithView on PersonInFocusV2Type {
+  workingWith(first: $worksWithToLoad) {
+    nodes {
+      id
+    }
+  }
+  ...WorksWithHeader
+  ...WorksWithCarousel
+}

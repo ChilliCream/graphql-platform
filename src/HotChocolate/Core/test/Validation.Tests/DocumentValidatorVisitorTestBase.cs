@@ -37,7 +37,7 @@ public abstract class DocumentValidatorVisitorTestBase
     public void ContextIsNull()
     {
         // arrange
-        var query = Utf8GraphQLParser.Parse(@"{ foo }");
+        var query = Utf8GraphQLParser.Parse("{ foo }");
 
         // act
         var a = () => Rule.Validate(null!, query);
@@ -101,6 +101,19 @@ public abstract class DocumentValidatorVisitorTestBase
             Assert.Collection(context.Errors, elementInspectors);
         }
 
-        context.Errors.MatchSnapshot();
+        var snapshot = Snapshot.Create();
+
+        foreach (var error in context.Errors)
+        {
+            snapshot.Add(new
+            {
+                error.Message,
+                error.Locations,
+                Path = error.Path?.ToString(),
+                error.Extensions
+            });
+        }
+
+        snapshot.Match();
     }
 }
