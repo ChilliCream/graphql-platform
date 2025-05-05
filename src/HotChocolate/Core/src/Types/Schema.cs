@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -21,10 +23,45 @@ public partial class Schema
     : TypeSystemObject<SchemaTypeConfiguration>
     , ISchema
 {
-    private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
-    private SchemaTypes _types = default!;
-    private FrozenDictionary<string, DirectiveType> _directiveTypes = default!;
-    private AggregateSchemaDocumentFormatter? _formatter;
+    /// <summary>
+    /// The type that query operations will be rooted at.
+    /// </summary>
+    public ObjectType QueryType { get; } = null!;
+
+    IObjectTypeDefinition ISchemaDefinition.QueryType => QueryType;
+
+    /// <summary>
+    /// If this server supports mutation, the type that
+    /// mutation operations will be rooted at.
+    /// </summary>
+    public ObjectType? MutationType { get; }
+
+    IObjectTypeDefinition? ISchemaDefinition.MutationType => MutationType;
+
+    /// <summary>
+    /// If this server support subscription, the type that
+    /// subscription operations will be rooted at.
+    /// </summary>
+    public ObjectType? SubscriptionType { get; }
+
+    IObjectTypeDefinition? ISchemaDefinition.SubscriptionType => SubscriptionType;
+
+    /// <summary>
+    /// Gets all the schema types.
+    /// </summary>
+    public TypeDefinitionCollection Types => _types;
+
+    IReadOnlyTypeDefinitionCollection ISchemaDefinition.Types => Types;
+
+    /// <summary>
+    /// Gets all the directives that are supported by this schema.
+    /// </summary>
+    public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the schema features.
+    /// </summary>
+    public IFeatureCollection Features { get; private set; } = default!;
 
     /// <summary>
     /// Gets the schema directives.
@@ -38,38 +75,6 @@ public partial class Schema
     public IServiceProvider Services { get; private set; } = default!;
 
     /// <summary>
-    /// The type that query operations will be rooted at.
-    /// </summary>
-    public ObjectType QueryType => _types.QueryType;
-
-    /// <summary>
-    /// If this server supports mutation, the type that
-    /// mutation operations will be rooted at.
-    /// </summary>
-    public ObjectType? MutationType => _types.MutationType;
-
-    /// <summary>
-    /// If this server support subscription, the type that
-    /// subscription operations will be rooted at.
-    /// </summary>
-    public ObjectType? SubscriptionType => _types.SubscriptionType;
-
-    /// <summary>
-    /// Gets all the schema types.
-    /// </summary>
-    public IReadOnlyCollection<INamedType> Types => _types.GetTypes();
-
-    /// <summary>
-    /// Gets all the directives that are supported by this schema.
-    /// </summary>
-    public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; } = default!;
-
-    /// <summary>
-    /// Gets the schema features.
-    /// </summary>
-    public IFeatureCollection Features { get; private set; } = default!;
-
-    /// <summary>
     /// Specifies the time the schema was created.
     /// </summary>
     public DateTimeOffset CreatedAt => _createdAt;
@@ -79,48 +84,38 @@ public partial class Schema
     /// </summary>
     public static string DefaultName => "_Default";
 
-    /// <summary>
-    /// Gets a type by its name and kind.
-    /// </summary>
-    /// <typeparam name="T">The expected type kind.</typeparam>
-    /// <param name="typeName">The name of the type.</param>
-    /// <returns>The type.</returns>
-    /// <exception cref="ArgumentException">
-    /// The specified type does not exist or
-    /// is not of the specified type kind.
-    /// </exception>
-    [return: NotNull]
-    public T GetType<T>(string typeName)
-        where T : INamedType
-    {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
 
-        return _types.GetType<T>(typeName);
+    IReadOnlyDirectiveCollection ISchemaDefinition.Directives => throw new NotImplementedException();
+
+
+
+    public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions => throw new NotImplementedException();
+
+    public IObjectTypeDefinition? GetOperationType(OperationType operationType)
+    {
+        return operationType switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new ArgumentException(nameof(operationType)),
+        };
     }
 
-    /// <summary>
-    /// Tries to get a type by its name and kind.
-    /// </summary>
-    /// <typeparam name="T">The expected type kind.</typeparam>
-    /// <param name="typeName">The name of the type.</param>
-    /// <param name="type">The resolved type.</param>
-    /// <returns>
-    /// <c>true</c>, if a type with the name exists and is of the specified
-    /// kind, <c>false</c> otherwise.
-    /// </returns>
-    public bool TryGetType<T>(string typeName, [MaybeNullWhen(false)] out T type)
-        where T : INamedType
+    public IReadOnlyList<ObjectType> GetPossibleTypes(ITypeDefinition abstractType)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        return _types.TryGetType(typeName, out type);
+        ArgumentNullException.ThrowIfNull(abstractType);
+        return _possibleTypes.TryGetValue(abstractType.Name, out var types) ? types : [];
     }
+
+    IEnumerable<IObjectTypeDefinition> ISchemaDefinition.GetPossibleTypes(ITypeDefinition abstractType)
+        => GetPossibleTypes(abstractType);
+
+    public IEnumerable<INameProvider> GetAllDefinitions()
+    {
+        throw new NotImplementedException();
+    }
+
 
     /// <summary>
     /// Tries to get the .net type representation of a schema.
@@ -138,7 +133,7 @@ public partial class Schema
             throw new ArgumentNullException(nameof(typeName));
         }
 
-        return _types.TryGetClrType(typeName, out runtimeType);
+        return _types_.TryGetClrType(typeName, out runtimeType);
     }
 
     /// <summary>
@@ -157,7 +152,7 @@ public partial class Schema
             throw new ArgumentNullException(nameof(abstractType));
         }
 
-        if (_types.TryGetPossibleTypes(abstractType.Name, out var types))
+        if (_types_.TryGetPossibleTypes(abstractType.Name, out var types))
         {
             return types;
         }
@@ -233,10 +228,11 @@ public partial class Schema
         return null;
     }
 
+
     /// <summary>
-    /// Generates a schema document.
+    /// Creates a schema document from the current schema.
     /// </summary>
-    public DocumentNode ToDocument(bool includeSpecScalars = false)
+    public DocumentNode ToSyntaxNode(bool includeSpecScalars = false)
     {
         _formatter ??= new AggregateSchemaDocumentFormatter(
             Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
@@ -244,13 +240,125 @@ public partial class Schema
         return _formatter.Format(document);
     }
 
-    /// <summary>
-    /// Returns the schema SDL representation.
-    /// </summary>
-    public string Print() => ToDocument().Print();
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
+        => ToSyntaxNode();
 
     /// <summary>
     /// Returns the schema SDL representation.
     /// </summary>
-    public override string ToString() => Print();
+    public override string ToString() => ToSyntaxNode().Print();
+}
+
+public sealed class TypeDefinitionCollection : IReadOnlyTypeDefinitionCollection
+{
+    private readonly FrozenDictionary<string, ITypeDefinition> _typeLookup;
+    private readonly ITypeDefinition[] _types;
+
+    public TypeDefinitionCollection(ITypeDefinition[] types)
+    {
+        ArgumentNullException.ThrowIfNull(types);
+        _typeLookup = types.ToFrozenDictionary(t => t.Name);
+        _types = types;
+    }
+
+    /// <summary>
+    /// Gets a type by its name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the type.
+    /// </param>
+    /// <returns>
+    /// The type.
+    /// </returns>
+    public ITypeDefinition this[string name]
+        => _typeLookup[name];
+
+    /// <summary>
+    /// Gets a type by its name and kind.
+    /// </summary>
+    /// <typeparam name="T">The expected type kind.</typeparam>
+    /// <param name="name">The name of the type.</param>
+    /// <returns>The type.</returns>
+    /// <exception cref="ArgumentException">
+    /// The specified type does not exist or
+    /// is not of the specified type kind.
+    /// </exception>
+    [return: NotNull]
+    public T GetType<T>(string name)
+        where T : ITypeDefinition
+    {
+        if (_typeLookup.TryGetValue(name, out var t))
+        {
+            if (t is T casted)
+            {
+                return casted;
+            }
+
+            throw new InvalidOperationException(
+                $"The specified type '{name}' does not match the requested type.");
+        }
+
+        throw new ArgumentException("The specified type name does not exist.", nameof(name));
+    }
+
+    /// <summary>
+    /// Tries to get a type by its name and kind.
+    /// </summary>
+    /// <param name="name">The name of the type.</param>
+    /// <param name="type">The resolved type.</param>
+    /// <returns>
+    /// <c>true</c>, if a type with the name exists and is of the specified
+    /// kind, <c>false</c> otherwise.
+    /// </returns>
+    public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? type)
+    {
+        if (_typeLookup.TryGetValue(name, out var t))
+        {
+            type = t;
+            return true;
+        }
+
+        type = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to get a type by its name and kind.
+    /// </summary>
+    /// <typeparam name="T">The expected type kind.</typeparam>
+    /// <param name="name">The name of the type.</param>
+    /// <param name="type">The resolved type.</param>
+    /// <returns>
+    /// <c>true</c>, if a type with the name exists and is of the specified
+    /// kind, <c>false</c> otherwise.
+    /// </returns>
+    public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type)
+        where T : ITypeDefinition
+    {
+        if (_typeLookup.TryGetValue(name, out var t) && t is T casted)
+        {
+            type = casted;
+            return true;
+        }
+
+        type = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a type with the specified name exists.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the type.
+    /// </param>
+    /// <returns>
+    /// <c>true</c>, if a type with the specified name exists; otherwise, <c>false</c>.
+    /// </returns>
+    public bool ContainsName(string name) => _typeLookup.ContainsKey(name);
+
+    public IEnumerator<ITypeDefinition> GetEnumerator()
+        => Unsafe.As<IEnumerable<ITypeDefinition>>(_types).GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 }

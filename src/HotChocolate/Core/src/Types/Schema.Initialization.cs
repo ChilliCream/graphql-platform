@@ -1,4 +1,7 @@
+#nullable enable
+
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;
@@ -9,6 +12,12 @@ namespace HotChocolate;
 
 public partial class Schema
 {
+    private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
+    private SchemaTypes _types_ = default!;
+    private FrozenDictionary<string, DirectiveType> _directiveTypes = default!;
+    private AggregateSchemaDocumentFormatter? _formatter;
+    private TypeDefinitionCollection _types = null!;
+    private FrozenDictionary<string, ImmutableArray<ObjectType>> _possibleTypes = null!;
     private Action<ISchemaTypeDescriptor> _configure;
     private bool _sealed;
 
@@ -109,8 +118,48 @@ public partial class Schema
         }
 
         DirectiveTypes = schemaTypesConfiguration.DirectiveTypes;
-        _types = new SchemaTypes(schemaTypesConfiguration);
+        _types_ = new SchemaTypes(schemaTypesConfiguration);
         _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+        _possibleTypes = CreatePossibleTypeLookup(schemaTypesConfiguration.Types);
         _sealed = true;
+    }
+
+    private static FrozenDictionary<string, ImmutableArray<ObjectType>> CreatePossibleTypeLookup(
+        IReadOnlyCollection<ITypeDefinition> types)
+    {
+        var possibleTypes = new Dictionary<string, List<ObjectType>>(StringComparer.Ordinal);
+
+        foreach (var objectType in types.OfType<ObjectType>())
+        {
+            possibleTypes[objectType.Name] = [objectType];
+
+            foreach (var interfaceType in objectType.Implements)
+            {
+                if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
+                {
+                    pt = [];
+                    possibleTypes[interfaceType.Name] = pt;
+                }
+
+                pt.Add(objectType);
+            }
+        }
+
+        foreach (var unionType in types.OfType<UnionType>())
+        {
+            foreach (var objectType in unionType.Types)
+            {
+                if (!possibleTypes.TryGetValue(
+                    unionType.Name, out var pt))
+                {
+                    pt = [];
+                    possibleTypes[unionType.Name] = pt;
+                }
+
+                pt.Add(objectType);
+            }
+        }
+
+        return possibleTypes.ToFrozenDictionary(k => k.Key, v => v.Value.ToImmutableArray());
     }
 }

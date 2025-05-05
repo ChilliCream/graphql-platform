@@ -37,7 +37,7 @@ public interface ISchema
     /// <summary>
     /// Generates a schema document.
     /// </summary>
-    DocumentNode ToDocument(bool includeSpecScalars = false);
+    DocumentNode ToSyntaxNode(bool includeSpecScalars = false);
 
     /// <summary>
     /// Prints the schema SDL representation

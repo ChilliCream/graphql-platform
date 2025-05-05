@@ -3,6 +3,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate;
 
+/// <summary>
+/// A GraphQL Schema defines the capabilities of a GraphQL server. It
+/// exposes all available types and directives on the server, as well as
+/// the entry points for query, mutation, and subscription operations.
+/// </summary>
 public interface ISchemaDefinition : INameProvider, IDescriptionProvider, ISyntaxNodeProvider
 {
 
@@ -35,7 +40,7 @@ public interface ISchemaDefinition : INameProvider, IDescriptionProvider, ISynta
 
     IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions { get; }
 
-    IObjectTypeDefinition GetOperationType(OperationType operationType);
+    IObjectTypeDefinition? GetOperationType(OperationType operationType);
 
     /// <summary>
     /// Gets the possible object types to

@@ -99,42 +99,5 @@ internal sealed class SchemaTypes
         return false;
     }
 
-    private static Dictionary<string, List<ObjectType>> CreatePossibleTypeLookup(
-        IReadOnlyCollection<INamedType> types)
-    {
-        var possibleTypes = new Dictionary<string, List<ObjectType>>(StringComparer.Ordinal);
 
-        foreach (var objectType in types.OfType<ObjectType>())
-        {
-            possibleTypes[objectType.Name] = [objectType];
-
-            foreach (var interfaceType in objectType.Implements)
-            {
-                if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
-                {
-                    pt = [];
-                    possibleTypes[interfaceType.Name] = pt;
-                }
-
-                pt.Add(objectType);
-            }
-        }
-
-        foreach (var unionType in types.OfType<UnionType>())
-        {
-            foreach (var objectType in unionType.Types.Values)
-            {
-                if (!possibleTypes.TryGetValue(
-                    unionType.Name, out var pt))
-                {
-                    pt = [];
-                    possibleTypes[unionType.Name] = pt;
-                }
-
-                pt.Add(objectType);
-            }
-        }
-
-        return possibleTypes;
-    }
 }

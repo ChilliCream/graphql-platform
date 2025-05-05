@@ -24,7 +24,7 @@ public class DocumentAnalyzerTests
             SchemaHelper.Load(
                 new GraphQLFile[]
                 {
-                    new(schema.ToDocument()),
+                    new(schema.ToSyntaxNode()),
                     new(Utf8GraphQLParser.Parse(
                         @"extend scalar String @runtimeType(name: ""Abc"")")),
                 });
@@ -87,7 +87,7 @@ public class DocumentAnalyzerTests
             SchemaHelper.Load(
                 new GraphQLFile[]
                 {
-                    new(schema.ToDocument()),
+                    new(schema.ToSyntaxNode()),
                     new(Utf8GraphQLParser.Parse(
                         @"extend scalar String @runtimeType(name: ""Abc"")")),
                     new(Utf8GraphQLParser.Parse(

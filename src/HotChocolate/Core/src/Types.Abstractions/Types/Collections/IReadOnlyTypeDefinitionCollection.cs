@@ -42,5 +42,14 @@ public interface IReadOnlyTypeDefinitionCollection : IEnumerable<ITypeDefinition
     /// </returns>
     bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : ITypeDefinition;
 
+    /// <summary>
+    /// Checks if a type with the specified name exists.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the type.
+    /// </param>
+    /// <returns>
+    /// <c>true</c>, if a type with the specified name exists; otherwise, <c>false</c>.
+    /// </returns>
     bool ContainsName(string name);
 }
