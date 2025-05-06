@@ -16,18 +16,13 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public interface IInputObjectTypeDefinition : IInputTypeDefinition
+public interface IInputObjectTypeDefinition
+    : IInputTypeDefinition
+    , ISyntaxNodeProvider<InputObjectTypeDefinitionNode>
+    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Gets the fields of this input object type.
     /// </summary>
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Fields { get; }
-
-    /// <summary>
-    /// Creates an <see cref="InputObjectTypeDefinitionNode"/> from the current <see cref="IInputObjectTypeDefinition"/>.
-    /// </summary>
-    /// <returns>
-    /// Returns an <see cref="InputObjectTypeDefinitionNode"/>.
-    /// </returns>
-    new InputObjectTypeDefinitionNode ToSyntaxNode();
 }

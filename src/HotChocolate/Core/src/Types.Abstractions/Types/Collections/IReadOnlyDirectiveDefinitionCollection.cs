@@ -1,8 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
-public interface IReadOnlyDirectiveDefinitionCollection : IEnumerable<IDirectiveDefinition>
+/// <summary>
+/// Represents a read-only collection of directive definitions.
+/// </summary>
+public interface IReadOnlyDirectiveDefinitionCollection : IReadOnlyList<IDirectiveDefinition>
 {
     /// <summary>
     /// Gets a directive type by its name.
@@ -11,7 +17,7 @@ public interface IReadOnlyDirectiveDefinitionCollection : IEnumerable<IDirective
     /// The directive name.
     /// </param>
     /// <returns>
-    /// Returns directive type that was resolved by the given name
+    /// Returns directive type resolved by the given name
     /// or <c>null</c> if there is no directive with the specified name.
     /// </returns>
     /// <exception cref="ArgumentException">
@@ -35,5 +41,15 @@ public interface IReadOnlyDirectiveDefinitionCollection : IEnumerable<IDirective
     /// </returns>
     bool TryGetDirective(string name, [NotNullWhen(true)] out IDirectiveDefinition? directive);
 
+    /// <summary>
+    /// Determines whether the collection contains a directive definition with the specified name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the directive definition.
+    /// </param>
+    /// <returns>
+    /// <c>true</c>, if the collection contains a directive definition with the specified name;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     bool ContainsName(string name);
 }

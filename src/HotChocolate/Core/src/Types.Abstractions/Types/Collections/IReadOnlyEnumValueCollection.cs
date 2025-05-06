@@ -1,11 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 /// <summary>
 /// Represents a read-only collection of enum values.
 /// </summary>
-public interface IReadOnlyEnumValueCollection : IEnumerable<IEnumValue>
+public interface IReadOnlyEnumValueCollection : IReadOnlyList<IEnumValue>
 {
     /// <summary>
     /// Gets the enum value with the specified name.

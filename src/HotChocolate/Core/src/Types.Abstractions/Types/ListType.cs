@@ -5,8 +5,9 @@ namespace HotChocolate.Types;
 
 /// <summary>
 /// Represents a GraphQL list type.
+/// https://spec.graphql.org/October2021/#sec-List
 /// </summary>
-public sealed class ListType : IWrapperType, ISyntaxNodeProvider
+public sealed class ListType : IWrapperType, ISyntaxNodeProvider<ListTypeNode>
 {
     /// <summary>
     /// Represents a GraphQL list type definition.

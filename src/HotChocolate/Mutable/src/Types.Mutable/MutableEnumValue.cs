@@ -25,6 +25,11 @@ public class MutableEnumValue
         Name = name;
     }
 
+    /// <summary>
+    /// Gets the declaring type of the enum value.
+    /// </summary>
+    public MutableEnumTypeDefinition? DeclaringType { get; set; }
+
     /// <inheritdoc cref="INameProvider.Name" />
     public string Name
     {
@@ -65,6 +70,20 @@ public class MutableEnumValue
         }
     }
 
+    public SchemaCoordinate Coordinate
+    {
+        get
+        {
+            if (DeclaringType is null)
+            {
+                throw new InvalidOperationException(
+                    "The declaring type of the enum value is not set.");
+            }
+
+            return new SchemaCoordinate(DeclaringType.Name, Name, ofDirective: false);
+        }
+    }
+
     public DirectiveCollection Directives
         => _directives ??= [];
 
@@ -102,4 +121,9 @@ public class MutableEnumValue
     /// Returns a new instance of <see cref="MutableEnumValue"/>.
     /// </returns>
     public static MutableEnumValue Create(string name) => new(name);
+
+    EnumValueNode ISyntaxNodeProvider<EnumValueNode>.ToSyntaxNode()
+    {
+        throw new NotImplementedException();
+    }
 }

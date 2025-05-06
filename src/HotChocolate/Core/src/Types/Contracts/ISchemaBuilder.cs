@@ -25,7 +25,7 @@ public interface ISchemaBuilder
 
     ISchemaBuilder SetSchema(Type type);
 
-    ISchemaBuilder SetSchema(ISchema schema);
+    ISchemaBuilder SetSchema(Schema schema);
 
     ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure);
 
@@ -191,7 +191,7 @@ public interface ISchemaBuilder
     /// <returns>
     /// Returns a new GraphQL Schema.
     /// </returns>
-    ISchema Create();
+    Schema Create();
 
     /// <summary>
     /// Creates a new GraphQL Schema.
@@ -199,7 +199,7 @@ public interface ISchemaBuilder
     /// <returns>
     /// Returns a new GraphQL Schema.
     /// </returns>
-    ISchema Create(IDescriptorContext context);
+    Schema Create(IDescriptorContext context);
 
     IDescriptorContext CreateContext();
 }

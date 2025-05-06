@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Types.Collections;
 

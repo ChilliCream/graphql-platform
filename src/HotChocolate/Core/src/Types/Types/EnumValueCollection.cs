@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a collection of enum values.
 /// </summary>
-public sealed class EnumValueCollection : IReadOnlyList<EnumValue>, IReadOnlyDictionary<string, EnumValue>
+public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
 {
     private readonly EnumValue[] _values;
     private readonly FrozenDictionary<string, EnumValue> _nameLookup;
@@ -45,15 +45,6 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>, IReadOnlyDic
     public IEnumerator<EnumValue> GetEnumerator() => Unsafe.As<IEnumerable<EnumValue>>(_values).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    IEnumerable<string> IReadOnlyDictionary<string, EnumValue>.Keys => _nameLookup.Keys;
-
-    IEnumerable<EnumValue> IReadOnlyDictionary<string, EnumValue>.Values => _nameLookup.Values;
-
-    bool IReadOnlyDictionary<string, EnumValue>.ContainsKey(string key) => _nameLookup.ContainsKey(key);
-
-    IEnumerator<KeyValuePair<string, EnumValue>> IEnumerable<KeyValuePair<string, EnumValue>>.GetEnumerator()
-        => _nameLookup.GetEnumerator();
 
     private sealed class ReadOnlyEnumValueCollection(
         EnumValue[] values,

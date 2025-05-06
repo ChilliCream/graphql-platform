@@ -4,15 +4,12 @@ namespace HotChocolate.Types;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 
 /// <summary>
-/// A type system member that has directives.
+/// A type system member that has a schema coordinate.
 /// </summary>
-public interface IDirectivesProvider : ITypeSystemMember
+public interface ISchemaCoordinateProvider
 {
     /// <summary>
-    /// Gets the directives of the type system member.
+    /// Gets the schema coordinate of the type system member.
     /// </summary>
-    /// <value>
-    /// The directives of the type system member.
-    /// </value>
-    IReadOnlyDirectiveCollection Directives { get; }
+    SchemaCoordinate Coordinate { get; }
 }

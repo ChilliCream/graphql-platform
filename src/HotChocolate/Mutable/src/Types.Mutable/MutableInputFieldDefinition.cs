@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -37,6 +38,62 @@ public class MutableInputFieldDefinition
 
     /// <inheritdoc cref="IMutableFieldDefinition.Description" />
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Gets or sets the declaring member of the input field.
+    /// </summary>
+    public ITypeSystemMember? DeclaringMember
+    {
+        get => field;
+        set
+        {
+            if (value is not MutableInputObjectTypeDefinition
+                and not MutableDirectiveDefinition
+                and not MutableOutputFieldDefinition
+                and not null)
+            {
+                throw new ArgumentException(
+                    "The declaring member must be an input object type, a directive or an output field.",
+                    nameof(value));
+            }
+
+            field = value;
+        }
+    }
+
+    ITypeSystemMember IFieldDefinition.DeclaringMember
+        => DeclaringMember ?? throw new InvalidOperationException("The declaring member is not set.");
+
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate
+    {
+        get
+        {
+            switch (DeclaringMember)
+            {
+                case IInputObjectTypeDefinition typeDef:
+                    return new SchemaCoordinate(typeDef.Name, Name, ofDirective: false);
+
+                case IDirectiveDefinition directiveDef:
+                    return new SchemaCoordinate(directiveDef.Name, Name, ofDirective: true);
+
+                case IOutputFieldDefinition fieldDef:
+                    if (fieldDef.DeclaringMember is null)
+                    {
+                        throw new InvalidOperationException("The declaring member is not set.");
+                    }
+
+                    return new SchemaCoordinate(
+                        ((ITypeDefinition)fieldDef.DeclaringMember).Name,
+                        fieldDef.Name,
+                        Name,
+                        ofDirective: false);
+
+                default:
+                    throw new InvalidOperationException("The declaring type is not set.");
+            }
+        }
+    }
 
     IType IFieldDefinition.Type => _type;
 

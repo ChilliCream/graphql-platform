@@ -58,9 +58,8 @@ internal static class TypeValidationHelper
         DirectiveType type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Arguments.Count; i++)
+        foreach (var argument in type.Arguments)
         {
-            var argument = type.Arguments[i];
             if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
             {
                 errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
@@ -82,10 +81,8 @@ internal static class TypeValidationHelper
         IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
-
             if (!field.IsIntrospectionField)
             {
                 if (StartsWithTwoUnderscores(field.Name))
@@ -93,9 +90,8 @@ internal static class TypeValidationHelper
                     errors.Add(TwoUnderscoresNotAllowedField(type, field));
                 }
 
-                for (var j = 0; j < field.Arguments.Count; j++)
+                foreach (var argument in field.Arguments)
                 {
-                    var argument = field.Arguments[j];
                     if (StartsWithTwoUnderscores(argument.Name))
                     {
                         errors.Add(
@@ -113,9 +109,8 @@ internal static class TypeValidationHelper
         InputObjectType type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
             if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
@@ -124,15 +119,14 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureArgumentNamesAreValid(
-        DirectiveType type,
+        IDirectiveDefinition directiveDefinition,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Arguments.Count; i++)
+        foreach (var argument in directiveDefinition.Arguments)
         {
-            var field = type.Arguments[i];
-            if (StartsWithTwoUnderscores(field.Name))
+            if (StartsWithTwoUnderscores(argument.Name))
             {
-                errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
+                errors.Add(TwoUnderscoresNotAllowedOnArgument(directiveDefinition, argument));
             }
         }
     }
@@ -188,9 +182,8 @@ internal static class TypeValidationHelper
 
         foreach (var argument in field.Arguments)
         {
-            if (implArgs.TryGetValue(argument.Name, out var implementedArgument))
+            if (implArgs.Remove(argument.Name, out var implementedArgument))
             {
-                implArgs.Remove(argument.Name);
                 if (!argument.Type.IsStructurallyEqual(implementedArgument.Type))
                 {
                     errors.Add(
@@ -243,14 +236,21 @@ internal static class TypeValidationHelper
     {
         if (fieldType.IsNonNullType())
         {
-            fieldType = (IOutputType)fieldType.InnerType();
-
-            if (implementedType.IsNonNullType())
+            if (!implementedType.IsNonNullType())
             {
-                implementedType = (IOutputType)implementedType.InnerType();
+                return IsValidImplementationFieldType(
+                    (IOutputType)fieldType.InnerType(),
+                    implementedType);
             }
 
-            return IsValidImplementationFieldType(fieldType, implementedType);
+            return IsValidImplementationFieldType(
+                (IOutputType)fieldType.InnerType(),
+                (IOutputType)implementedType.InnerType());
+        }
+
+        if (implementedType.IsNonNullType())
+        {
+            return false;
         }
 
         if (fieldType.IsListType() && implementedType.IsListType())
@@ -265,16 +265,16 @@ internal static class TypeValidationHelper
             return true;
         }
 
-        if (fieldType is ObjectType objectType &&
-            implementedType is UnionType unionType &&
-            unionType.IsAssignableFrom(objectType))
+        if (fieldType is ObjectType objectType
+            && implementedType.Kind is TypeKind.Union
+            && implementedType.AsTypeDefinition().IsAssignableFrom(objectType))
         {
             return true;
         }
 
-        if (fieldType is IComplexTypeDefinition complexType &&
-            implementedType is InterfaceType interfaceType &&
-            complexType.IsImplementing(interfaceType))
+        if (fieldType is IComplexTypeDefinition complexType
+            && implementedType.Kind is TypeKind.Interface
+            && complexType.IsImplementing(implementedType.TypeName()))
         {
             return true;
         }

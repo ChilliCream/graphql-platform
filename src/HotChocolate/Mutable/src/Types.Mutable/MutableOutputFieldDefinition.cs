@@ -19,9 +19,14 @@ public class MutableOutputFieldDefinition
     private string? _deprecationReason;
     private DirectiveCollection? _directives;
     private InputFieldDefinitionCollection? _arguments;
-    private IType _type;
+    private IOutputType _type;
 
-    public MutableOutputFieldDefinition(string name, IType? type = null)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MutableOutputFieldDefinition"/> class.
+    /// </summary>
+    /// <param name="name">The name of the field.</param>
+    /// <param name="type">The type of the field.</param>
+    public MutableOutputFieldDefinition(string name, IOutputType? type = null)
     {
         Name = name;
         _type = type ?? NotSetType.Default;
@@ -36,6 +41,30 @@ public class MutableOutputFieldDefinition
 
     /// <inheritdoc cref="IMutableFieldDefinition.Description" />
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Gets or sets the declaring member of the field.
+    /// </summary>
+    public IComplexTypeDefinition? DeclaringMember { get; set; }
+
+    IComplexTypeDefinition IOutputFieldDefinition.DeclaringMember
+        => DeclaringMember ?? throw new InvalidOperationException("The declaring type is not set.");
+
+    ITypeSystemMember IFieldDefinition.DeclaringMember
+        => DeclaringMember ?? throw new InvalidOperationException("The declaring type is not set.");
+
+    public SchemaCoordinate Coordinate
+    {
+        get
+        {
+            if (DeclaringMember is null)
+            {
+                throw new InvalidOperationException("The declaring type is not set.");
+            }
+
+            return new SchemaCoordinate(DeclaringMember.Name, Name, ofDirective: false);
+        }
+    }
 
     /// <inheritdoc cref="IMutableFieldDefinition.IsDeprecated" />
     public bool IsDeprecated
@@ -77,7 +106,7 @@ public class MutableOutputFieldDefinition
     /// Gets the arguments that are accepted by this field.
     /// </summary>
     public InputFieldDefinitionCollection Arguments
-        => _arguments ??= new InputFieldDefinitionCollection();
+        => _arguments ??= new InputFieldDefinitionCollection(this);
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IOutputFieldDefinition.Arguments
         => _arguments ?? EmptyCollections.InputFieldDefinitions;
@@ -88,11 +117,19 @@ public class MutableOutputFieldDefinition
     /// <value>
     /// The type of the field.
     /// </value>
-    public IType Type
+    public IOutputType Type
     {
         get => _type;
         set => _type = value.ExpectOutputType();
     }
+
+    IType IMutableFieldDefinition.Type
+    {
+        get => Type;
+        set => Type = value.ExpectOutputType();
+    }
+
+    IType IFieldDefinition.Type => Type;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]

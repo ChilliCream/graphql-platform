@@ -2,15 +2,15 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
-public interface IInputValueDefinition : IFieldDefinition
+/// <summary>
+/// Represents a definition of a GraphQL input value.
+/// </summary>
+public interface IInputValueDefinition
+    : IFieldDefinition
+    , ISyntaxNodeProvider<InputValueDefinitionNode>
 {
-    IValueNode? DefaultValue { get; }
-
     /// <summary>
-    /// Creates an <see cref="InputValueDefinitionNode"/> from the current <see cref="IInputValueDefinition"/>.
+    /// Gets the default value of the input value.
     /// </summary>
-    /// <returns>
-    /// Returns an <see cref="InputValueDefinitionNode"/>.
-    /// </returns>
-    new InputValueDefinitionNode ToSyntaxNode();
+    IValueNode? DefaultValue { get; }
 }

@@ -44,13 +44,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public interface IInterfaceTypeDefinition : IComplexTypeDefinition
-{
-    /// <summary>
-    /// Creates an <see cref="InterfaceTypeDefinitionNode"/> from the current <see cref="IInterfaceTypeDefinition"/>.
-    /// </summary>
-    /// <returns>
-    /// Returns an <see cref="InterfaceTypeDefinitionNode"/>.
-    /// </returns>
-    new InterfaceTypeDefinitionNode ToSyntaxNode();
-}
+public interface IInterfaceTypeDefinition
+    : IComplexTypeDefinition
+    , ISyntaxNodeProvider<InterfaceTypeDefinitionNode>
+    , ISchemaCoordinateProvider;

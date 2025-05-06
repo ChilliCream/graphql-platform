@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 internal sealed class EmptyInputFieldDefinitionCollection : IReadOnlyFieldDefinitionCollection<IInputValueDefinition>
 {
@@ -26,10 +29,7 @@ internal sealed class EmptyInputFieldDefinitionCollection : IReadOnlyFieldDefini
         yield break;
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public static EmptyInputFieldDefinitionCollection Instance { get; } = new();
 

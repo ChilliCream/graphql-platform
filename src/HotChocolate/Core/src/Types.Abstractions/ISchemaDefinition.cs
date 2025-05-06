@@ -10,21 +10,18 @@ namespace HotChocolate;
 /// </summary>
 public interface ISchemaDefinition : INameProvider, IDescriptionProvider, ISyntaxNodeProvider
 {
-
     /// <summary>
-    /// The type that query operations will be rooted at.
+    /// Gets the GraphQL object type that represents the query root.
     /// </summary>
     IObjectTypeDefinition QueryType { get; }
 
     /// <summary>
-    /// If this server supports mutation, the type that
-    /// mutation operations will be rooted at.
+    /// Gets the GraphQL object type that represents the mutation root.
     /// </summary>
     IObjectTypeDefinition? MutationType { get; }
 
     /// <summary>
-    /// If this server support subscription, the type that
-    /// subscription operations will be rooted at.
+    /// Gets the GraphQL object type that represents the subscription root.
     /// </summary>
     IObjectTypeDefinition? SubscriptionType { get; }
 

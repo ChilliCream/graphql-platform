@@ -350,7 +350,7 @@ public static class SchemaParser
 
         foreach (var interfaceRef in node.Interfaces)
         {
-            type.Implements.Add(schema.Types.ResolveType<MutableInterfaceTypeDefinition>(interfaceRef));
+            type.Implements.Add(schema.Types.BuildType<MutableInterfaceTypeDefinition>(interfaceRef));
         }
 
         foreach (var fieldNode in node.Fields)
@@ -363,7 +363,7 @@ public static class SchemaParser
 
             var field = new MutableOutputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectOutputType();
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -383,7 +383,7 @@ public static class SchemaParser
 
                 var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
                 argument.Description = argumentNode.Description?.Value;
-                argument.Type = schema.Types.ResolveType(argumentNode.Type);
+                argument.Type = schema.Types.BuildType(argumentNode.Type);
                 argument.DefaultValue = argumentNode.DefaultValue;
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -427,7 +427,7 @@ public static class SchemaParser
 
             var field = new MutableInputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.Types.BuildType(fieldNode.Type);
             field.DefaultValue = fieldNode.DefaultValue;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
@@ -552,7 +552,7 @@ public static class SchemaParser
         {
             var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
             argument.Description = argumentNode.Description?.Value;
-            argument.Type = schema.Types.ResolveType(argumentNode.Type);
+            argument.Type = schema.Types.BuildType(argumentNode.Type);
             argument.DefaultValue = argumentNode.DefaultValue;
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -677,19 +677,19 @@ public static class SchemaParser
 
 file static class SchemaParserExtensions
 {
-    public static T ResolveType<T>(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
+    public static T BuildType<T>(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
         where T : IType
-        => (T)ResolveType(typesDefinition, typeRef);
+        => (T)BuildType(typesDefinition, typeRef);
 
-    public static IType ResolveType(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
+    public static IType BuildType(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
     {
         switch (typeRef)
         {
             case NonNullTypeNode nonNullTypeRef:
-                return new NonNullType(ResolveType(typesDefinition, nonNullTypeRef.Type));
+                return new NonNullType(BuildType(typesDefinition, nonNullTypeRef.Type));
 
             case ListTypeNode listTypeRef:
-                return new ListType(ResolveType(typesDefinition, listTypeRef.Type));
+                return new ListType(BuildType(typesDefinition, listTypeRef.Type));
 
             case NamedTypeNode namedTypeRef:
                 if (typesDefinition.TryGetType(namedTypeRef.Name.Value, out var type))

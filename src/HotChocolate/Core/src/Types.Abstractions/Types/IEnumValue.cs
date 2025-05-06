@@ -10,13 +10,5 @@ public interface IEnumValue
     , IDirectivesProvider
     , IDescriptionProvider
     , IDeprecationProvider
-    , ISyntaxNodeProvider
-{
-    /// <summary>
-    /// Creates an <see cref="EnumValueNode"/> from the current <see cref="IEnumValue"/>.
-    /// </summary>
-    /// <returns>
-    /// Returns an <see cref="EnumValueNode"/>.
-    /// </returns>
-    new EnumValueNode ToSyntaxNode();
-}
+    , ISyntaxNodeProvider<EnumValueNode>
+    , ISchemaCoordinateProvider;

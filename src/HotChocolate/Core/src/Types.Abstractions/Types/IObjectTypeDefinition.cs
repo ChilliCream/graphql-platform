@@ -20,13 +20,7 @@ namespace HotChocolate.Types;
 /// GraphQL’s introspection system.
 /// </para>
 /// </summary>
-public interface IObjectTypeDefinition : IComplexTypeDefinition
-{
-    /// <summary>
-    /// Creates an <see cref="ObjectTypeDefinitionNode"/> from the current <see cref="IObjectTypeDefinition"/>.
-    /// </summary>
-    /// <returns>
-    /// Returns an <see cref="ObjectTypeDefinitionNode"/>.
-    /// </returns>
-    new ObjectTypeDefinitionNode ToSyntaxNode();
-}
+public interface IObjectTypeDefinition
+    : IComplexTypeDefinition
+    , ISyntaxNodeProvider<ObjectTypeDefinitionNode>
+    , ISchemaCoordinateProvider;

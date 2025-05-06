@@ -1,10 +1,13 @@
 using System.Runtime.CompilerServices;
 
-namespace HotChocolate.Types.Mutable;
+#pragma warning disable IDE0130
+// ReSharper disable once CheckNamespace
+namespace HotChocolate.Types;
+#pragma warning restore IDE0130
 
-internal static class ArgumentAssertExtensions
+public static class HotChocolateTypeAbstractionsArgumentAssertExtensions
 {
-    public static IType ExpectInputType(
+    public static IInputType ExpectInputType(
         this IType type,
         [CallerArgumentExpression("type")] string name = "type")
     {
@@ -18,10 +21,10 @@ internal static class ArgumentAssertExtensions
             throw new ArgumentException("Must be an input type.", name);
         }
 
-        return type;
+        return (IInputType)type;
     }
 
-    public static IType ExpectOutputType(
+    public static IOutputType ExpectOutputType(
         this IType type,
         [CallerArgumentExpression("type")] string name = "type")
     {
@@ -35,6 +38,6 @@ internal static class ArgumentAssertExtensions
             throw new ArgumentException("Must be an output type.", name);
         }
 
-        return type;
+        return (IOutputType)type;
     }
 }

@@ -148,7 +148,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             }
 
             var pipeline = nodeResolverInfo.Pipeline;
-            var directives = (DirectiveCollection)objectType.Directives;
+            var directives = objectType.Directives;
             var length = directives.Count;
             ref var start = ref directives.GetReference();
 

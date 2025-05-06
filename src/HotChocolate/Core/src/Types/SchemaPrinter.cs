@@ -10,7 +10,7 @@ namespace HotChocolate;
 
 public static class SchemaPrinter
 {
-    public static string Print(ISchema schema)
+    public static string Print(Schema schema)
     {
         if (schema is null)
         {
@@ -21,7 +21,7 @@ public static class SchemaPrinter
         return document.Print();
     }
 
-    public static void Serialize(ISchema schema, TextWriter textWriter)
+    public static void Serialize(Schema schema, TextWriter textWriter)
     {
         if (schema is null)
         {
@@ -38,7 +38,7 @@ public static class SchemaPrinter
     }
 
     public static async ValueTask PrintAsync(
-        ISchema schema,
+        Schema schema,
         Stream stream,
         bool indented = true,
         CancellationToken cancellationToken = default)
@@ -77,7 +77,7 @@ public static class SchemaPrinter
     }
 
     public static DocumentNode PrintSchema(
-        ISchema schema,
+        Schema schema,
         bool includeSpecScalars = false,
         bool printResolverKind = false)
     {
@@ -121,8 +121,8 @@ public static class SchemaPrinter
         return new DocumentNode(null, typeDefinitions);
     }
 
-    private static IEnumerable<INamedType> GetNonScalarTypes(
-        ISchema schema)
+    private static IEnumerable<ITypeDefinition> GetNonScalarTypes(
+        Schema schema)
     {
         return schema.Types
            .Where(IsPublicAndNoScalar)
@@ -132,7 +132,7 @@ public static class SchemaPrinter
            .SelectMany(t => t);
     }
 
-    private static bool IsPublicAndNoScalar(INamedType type)
+    private static bool IsPublicAndNoScalar(ITypeDefinition type)
     {
         if (type.IsIntrospectionType() || type is ScalarType)
         {
@@ -165,7 +165,7 @@ public static class SchemaPrinter
         );
     }
 
-    private static SchemaDefinitionNode PrintSchemaTypeDefinition(ISchema schema)
+    private static SchemaDefinitionNode PrintSchemaTypeDefinition(Schema schema)
     {
         var operations = new List<OperationTypeDefinitionNode>();
 
@@ -307,7 +307,7 @@ public static class SchemaPrinter
             .Select(PrintDirective)
             .ToList();
 
-        var types = unionType.Types.Values
+        var types = unionType.Types
             .Select(PrintNamedType)
             .ToList();
 
@@ -466,7 +466,7 @@ public static class SchemaPrinter
     }
 
     private static InputValueDefinitionNode PrintInputField(
-        IInputField inputValue)
+        IInputValueDefinition inputValue)
     {
         var directives = inputValue.Directives
             .Select(PrintDirective)
@@ -498,7 +498,7 @@ public static class SchemaPrinter
             return new ListTypeNode(null, PrintType(lt.ElementType));
         }
 
-        if (type is INamedType namedType)
+        if (type is ITypeDefinition namedType)
         {
             return PrintNamedType(namedType);
         }
@@ -506,7 +506,7 @@ public static class SchemaPrinter
         throw new NotSupportedException();
     }
 
-    private static NamedTypeNode PrintNamedType(INamedType namedType)
+    private static NamedTypeNode PrintNamedType(ITypeDefinition namedType)
         => new(null, new NameNode(namedType.Name));
 
     private static DirectiveNode PrintDirective(IDirective directive)

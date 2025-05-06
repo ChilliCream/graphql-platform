@@ -8,12 +8,15 @@ namespace HotChocolate.Types;
 /// GraphQL document as an indicator that they should be evaluated differently by a
 /// validator, executor, or client tool such as a code generator.
 /// </para>
-/// <para>https://spec.graphql.org/draft/#sec-Type-System.Directives</para>
+/// <para>
+/// https://spec.graphql.org/draft/#sec-Type-System.Directives
+/// </para>
 /// </summary>
 public interface IDirectiveDefinition
     : INameProvider
     , IDescriptionProvider
-    , ISyntaxNodeProvider
+    , ISyntaxNodeProvider<DirectiveDefinitionNode>
+    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Defines if this directive is repeatable. Repeatable directives are often useful when

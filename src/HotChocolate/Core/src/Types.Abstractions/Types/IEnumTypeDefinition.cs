@@ -12,7 +12,6 @@ namespace HotChocolate.Types;
 /// They may serialize as a string: the name of the represented value.
 /// </para>
 /// <para>In this example, an Enum type called Direction is defined:</para>
-///
 /// <code>
 /// enum Direction {
 ///   NORTH
@@ -22,18 +21,14 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public interface IEnumTypeDefinition : IOutputTypeDefinition, IInputTypeDefinition
+public interface IEnumTypeDefinition
+    : IOutputTypeDefinition
+    , IInputTypeDefinition
+    , ISyntaxNodeProvider<EnumTypeDefinitionNode>
+    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Gets all possible values if this type.
     /// </summary>
     IReadOnlyEnumValueCollection Values { get; }
-
-    /// <summary>
-    /// Creates a <see cref="EnumTypeDefinitionNode"/> from the current <see cref="IEnumTypeDefinition"/>.
-    /// </summary>
-    /// <returns>
-    /// Returns a <see cref="EnumTypeDefinitionNode"/>.
-    /// </returns>
-    new EnumTypeDefinitionNode ToSyntaxNode();
 }

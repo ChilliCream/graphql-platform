@@ -14,9 +14,10 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a collection of directives of a <see cref="ITypeSystemMember"/>.
 /// </summary>
-public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
+public sealed class DirectiveCollection : IReadOnlyList<Directive>
 {
     private readonly Directive[] _directives;
+    private IReadOnlyDirectiveCollection? _wrapper;
 
     private DirectiveCollection(Directive[] directives)
     {
@@ -26,7 +27,12 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
     /// <inheritdoc />
     public int Count => _directives.Length;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets all directives of a certain directive definition.
+    /// </summary>
+    /// <param name="directiveName">
+    /// The name of the directive definition.
+    /// </param>
     public IEnumerable<Directive> this[string directiveName]
     {
         get
@@ -35,9 +41,6 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
             return directives.Length == 0 ? [] : FindDirectives(directives, directiveName);
         }
     }
-
-    IEnumerable<IDirective> IReadOnlyDirectiveCollection.this[string directiveName]
-        => this[directiveName];
 
     private static IEnumerable<Directive> FindDirectives(Directive[] directives, string name)
     {
@@ -52,12 +55,23 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the directive at the specified index.
+    /// </summary>
+    /// <param name="index">
+    /// The index of the directive to get.
+    /// </param>
     public Directive this[int index] => _directives[index];
 
-    IDirective IReadOnlyList<IDirective>.this[int index] => this[index];
-
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the first directive that matches the specified name.
+    /// </summary>
+    /// <param name="directiveName">
+    /// The name of the directive.
+    /// </param>
+    /// <returns>
+    /// The first directive that matches the specified name.
+    /// </returns>
     public Directive? FirstOrDefault(string directiveName)
     {
         directiveName.EnsureGraphQLName();
@@ -73,7 +87,6 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
                 return start;
             }
 
-            // move pointer
 #pragma warning disable CS8619
             start = ref Unsafe.Add(ref start, 1);
 #pragma warning restore CS8619
@@ -82,11 +95,15 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
         return null;
     }
 
-    IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
-        => FirstOrDefault(directiveName);
-
-
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the first directive that matches the specified runtime type.
+    /// </summary>
+    /// <typeparam name="TRuntimeType">
+    /// The runtime type of the directive.
+    /// </typeparam>
+    /// <returns>
+    /// The first directive that matches the specified runtime type.
+    /// </returns>
     public Directive? FirstOrDefault<TRuntimeType>()
     {
         var span = _directives.AsSpan();
@@ -100,7 +117,6 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
                 return start;
             }
 
-            // move pointer
 #pragma warning disable CS8619
             start = ref Unsafe.Add(ref start, 1);
 #pragma warning restore CS8619
@@ -109,14 +125,29 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
         return null;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Determines whether the collection contains a directive with the specified name.
+    /// </summary>
+    /// <param name="directiveName">
+    /// The name of the directive.
+    /// </param>
+    /// <returns>
+    /// <c>true</c>, if the collection contains a directive with the specified name;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     public bool ContainsDirective(string directiveName)
         => FirstOrDefault(directiveName) is not null;
 
-    bool IReadOnlyDirectiveCollection.ContainsName(string directiveName)
-        => ContainsDirective(directiveName);
-
-    /// <inheritdoc />
+    /// <summary>
+    /// Determines whether the collection contains a directive with the specified runtime type.
+    /// </summary>
+    /// <typeparam name="TRuntimeType">
+    /// The runtime type of the directive.
+    /// </typeparam>
+    /// <returns>
+    /// <c>true</c>, if the collection contains a directive with the specified runtime type;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     public bool ContainsDirective<TRuntimeType>()
         => FirstOrDefault<TRuntimeType>() is not null;
 
@@ -135,20 +166,9 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
         object source,
         IReadOnlyList<DirectiveConfiguration> definitions)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (definitions is null)
-        {
-            throw new ArgumentNullException(nameof(definitions));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(definitions);
 
         if (definitions.Count == 0)
         {
@@ -240,7 +260,7 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
             }
         }
 
-        // If we had any errors while building the directives list we will
+        // If we had any errors while building the directive list, we will
         // clean the null entries out so that the list is consistent.
         // We only do that, so we can collect other schema errors as well and do
         // not have to fully fail here but have one SchemaException at the end of
@@ -254,21 +274,43 @@ public sealed class DirectiveCollection : IReadOnlyDirectiveCollection
         return new DirectiveCollection(directives);
     }
 
+    internal IReadOnlyDirectiveCollection AsReadOnlyDirectiveCollection()
+        => _wrapper ??= new ReadOnlyDirectiveCollection(this);
+
     internal ReadOnlySpan<Directive> AsSpan()
         => _directives;
 
     internal ref Directive GetReference()
         => ref MemoryMarshal.GetArrayDataReference(_directives);
 
-    /// <inheritdoc />
     public IEnumerator<Directive> GetEnumerator()
-        => ((IEnumerable<Directive>)_directives).GetEnumerator();
+        => Unsafe.As<IEnumerable<Directive>>(_directives).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-    IEnumerator<IDirective> IEnumerable<IDirective>.GetEnumerator()
-        => GetEnumerator();
+    internal static DirectiveCollection Empty { get; } = new([]);
 
-    internal static DirectiveCollection Empty { get; } = new DirectiveCollection(Array.Empty<Directive>());
+    private sealed class ReadOnlyDirectiveCollection(DirectiveCollection directives) : IReadOnlyDirectiveCollection
+    {
+        public int Count => directives._directives.Length;
+
+        public IDirective this[int index]
+            => directives._directives[index];
+
+        public IEnumerable<IDirective> this[string directiveName]
+            => directives[directiveName];
+
+        public IDirective? FirstOrDefault(string directiveName)
+            => directives.FirstOrDefault(directiveName);
+
+        public bool ContainsName(string directiveName)
+            => directives.ContainsDirective(directiveName);
+
+        public IEnumerator<IDirective> GetEnumerator()
+            => directives.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
+    }
 }

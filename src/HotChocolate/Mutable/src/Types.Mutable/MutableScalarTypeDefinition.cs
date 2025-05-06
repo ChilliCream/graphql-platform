@@ -31,6 +31,9 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     /// <summary>
     /// Gets or sets a value indicating whether this scalar type is a spec scalar.
     /// </summary>

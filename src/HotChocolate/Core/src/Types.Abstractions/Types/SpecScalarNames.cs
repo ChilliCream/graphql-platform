@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Mutable;
+namespace HotChocolate.Types;
 
 public static class SpecScalarNames
 {

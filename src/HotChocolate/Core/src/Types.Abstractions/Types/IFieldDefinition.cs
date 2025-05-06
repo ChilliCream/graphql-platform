@@ -9,12 +9,8 @@ public interface IFieldDefinition
     , IDeprecationProvider
     , IDirectivesProvider
     , ISyntaxNodeProvider
+    , ISchemaCoordinateProvider
 {
-    /// <summary>
-    /// Gets the type definition that declares this field definition.
-    /// </summary>
-    ITypeDefinition DeclaringType { get; }
-
     /// <summary>
     /// Gets the type system member that declares this field definition.
     /// </summary>
@@ -23,6 +19,10 @@ public interface IFieldDefinition
     /// <summary>
     /// Gets or sets the type of the field.
     /// </summary>
-    /// <value></value>
     IType Type { get; }
+
+    /// <summary>
+    /// Specifies if this field is part of the introspection.
+    /// </summary>
+    bool IsIntrospectionField => Name.StartsWith("__");
 }

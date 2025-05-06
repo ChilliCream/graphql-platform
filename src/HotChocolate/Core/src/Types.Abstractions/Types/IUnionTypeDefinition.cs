@@ -39,18 +39,13 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public interface IUnionTypeDefinition : IOutputTypeDefinition
+public interface IUnionTypeDefinition
+    : IOutputTypeDefinition
+    , ISyntaxNodeProvider<UnionTypeDefinitionNode>
+    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Gets the <see cref="IObjectTypeDefinition" /> set of this union type.
     /// </summary>
     IReadOnlyObjectTypeDefinitionCollection Types { get; }
-
-    /// <summary>
-    /// Creates a <see cref="UnionTypeDefinitionNode"/> from the current <see cref="IUnionTypeDefinition"/>.
-    /// </summary>
-    /// <returns>
-    /// Returns a <see cref="UnionTypeDefinitionNode"/>.
-    /// </returns>
-    new UnionTypeDefinitionNode ToSyntaxNode();
 }

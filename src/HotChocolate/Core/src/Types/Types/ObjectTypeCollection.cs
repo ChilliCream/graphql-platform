@@ -7,9 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Types;
 
-public sealed class ObjectTypeCollection
-    : IReadOnlyList<ObjectType>
-    , IReadOnlyDictionary<string, ObjectType>
+public sealed class ObjectTypeCollection : IReadOnlyList<ObjectType>
 {
     private readonly ObjectType[] _values;
     private readonly FrozenDictionary<string, ObjectType> _nameLookup;
@@ -28,30 +26,11 @@ public sealed class ObjectTypeCollection
 
     public int Count => _values.Length;
 
-    IEnumerable<string> IReadOnlyDictionary<string, ObjectType>.Keys => _nameLookup.Keys;
-
-    IEnumerable<ObjectType> IReadOnlyDictionary<string, ObjectType>.Values => _nameLookup.Values;
-
     public bool ContainsName(string name)
         => _nameLookup.ContainsKey(name);
 
-    bool IReadOnlyDictionary<string, ObjectType>.ContainsKey(string key)
-        => _nameLookup.ContainsKey(key);
-
     public bool TryGetValue(string name, [NotNullWhen(true)] out ObjectType? value)
         => _nameLookup.TryGetValue(name, out value);
-
-    bool IReadOnlyDictionary<string, ObjectType>.TryGetValue(string key, [NotNullWhen(true)] out ObjectType? value)
-    {
-        if (_nameLookup.TryGetValue(key, out var type))
-        {
-            value = type;
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
 
     internal IReadOnlyObjectTypeDefinitionCollection AsReadOnlyObjectTypeDefinitionCollection()
         => _wrapper ??= new ReadOnlyObjectTypeDefinitionCollection(_values, _nameLookup);
@@ -61,15 +40,7 @@ public sealed class ObjectTypeCollection
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    IEnumerator<KeyValuePair<string, ObjectType>> IEnumerable<KeyValuePair<string, ObjectType>>.GetEnumerator()
-    {
-        foreach (var (key, value) in _nameLookup)
-        {
-            yield return new KeyValuePair<string, ObjectType>(key, value);
-        }
-    }
-
-    public static ObjectTypeCollection Empty { get; } = new ObjectTypeCollection([]);
+    public static ObjectTypeCollection Empty { get; } = new([]);
 
     private sealed class ReadOnlyObjectTypeDefinitionCollection(
         ObjectType[] values,

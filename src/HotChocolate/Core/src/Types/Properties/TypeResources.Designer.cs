@@ -711,18 +711,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string TypeExtensions_InvalidStructure {
-            get {
-                return ResourceManager.GetString("TypeExtensions_InvalidStructure", resourceCulture);
-            }
-        }
-        
-        internal static string TypeExtensions_KindIsNotSupported {
-            get {
-                return ResourceManager.GetString("TypeExtensions_KindIsNotSupported", resourceCulture);
-            }
-        }
-        
         internal static string TypeExtensions_NoListType {
             get {
                 return ResourceManager.GetString("TypeExtensions_NoListType", resourceCulture);
@@ -1176,12 +1164,6 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
             get {
                 return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
-            }
-        }
-        
-        internal static string Schema_GetDirectiveType_DoesNotExist {
-            get {
-                return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
             }
         }
         

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -52,20 +53,20 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError TwoUnderscoresNotAllowedOnArgument(
-        DirectiveType type,
-        InputField argument)
+        IDirectiveDefinition directiveDefinition,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_TwoUnderscoresNotAllowedOnArgument)
-            .SetDirective(type)
+            .SetDirective(directiveDefinition)
             .SetArgument(argument)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
 
-    public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(DirectiveType type)
+    public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(IDirectiveDefinition directiveDefinition)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName)
-            .SetDirective(type)
+            .SetDirective(directiveDefinition)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
 
@@ -83,8 +84,8 @@ internal static class ErrorHelper
 
     public static ISchemaError InvalidFieldType(
         IComplexTypeDefinition type,
-        OutputField field,
-        OutputField implementedField)
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_InvalidFieldType,
@@ -98,7 +99,7 @@ internal static class ErrorHelper
 
     public static ISchemaError FieldNotImplemented(
         IComplexTypeDefinition type,
-        OutputField implementedField)
+        IOutputFieldDefinition implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_FieldNotImplemented,
@@ -201,8 +202,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
-        DirectiveType directive,
-        InputField argument)
+        IDirectiveDefinition directive,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_RequiredArgumentCannotBeDeprecated,
@@ -242,8 +243,8 @@ internal static class ErrorHelper
 
     private static SchemaErrorBuilder SetDirective(
         this SchemaErrorBuilder errorBuilder,
-        DirectiveType type)
-        => errorBuilder.SetTypeSystemObject(type);
+        IDirectiveDefinition type)
+        => errorBuilder.SetTypeSystemObject((TypeSystemObject)type);
 
     private static SchemaErrorBuilder SetField(
         this SchemaErrorBuilder errorBuilder,

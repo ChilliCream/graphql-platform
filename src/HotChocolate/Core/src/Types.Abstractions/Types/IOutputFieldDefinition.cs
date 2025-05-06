@@ -4,7 +4,10 @@ namespace HotChocolate.Types;
 
 public interface IOutputFieldDefinition : IFieldDefinition
 {
-    new IComplexTypeDefinition DeclaringType { get; }
+    /// <summary>
+    /// Gets the type definition that declares this field definition.
+    /// </summary>
+    new IComplexTypeDefinition DeclaringMember { get; }
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }
 
@@ -15,4 +18,9 @@ public interface IOutputFieldDefinition : IFieldDefinition
     /// Returns a <see cref="FieldDefinitionNode"/>.
     /// </returns>
     new FieldDefinitionNode ToSyntaxNode();
+
+    /// <summary>
+    /// Gets or sets the type of the field.
+    /// </summary>
+    new IOutputType Type { get; }
 }

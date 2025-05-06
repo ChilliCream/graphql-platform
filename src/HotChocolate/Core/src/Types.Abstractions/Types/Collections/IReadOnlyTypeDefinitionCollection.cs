@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types;
 
-public interface IReadOnlyTypeDefinitionCollection : IEnumerable<ITypeDefinition>
+public interface IReadOnlyTypeDefinitionCollection : IReadOnlyList<ITypeDefinition>
 {
     ITypeDefinition this[string name] { get; }
 

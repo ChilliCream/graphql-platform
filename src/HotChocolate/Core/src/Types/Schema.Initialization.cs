@@ -12,13 +12,9 @@ namespace HotChocolate;
 
 public partial class Schema
 {
-    private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
-    private SchemaTypes _types_ = default!;
-    private FrozenDictionary<string, DirectiveType> _directiveTypes = default!;
     private AggregateSchemaDocumentFormatter? _formatter;
-    private TypeDefinitionCollection _types = null!;
     private FrozenDictionary<string, ImmutableArray<ObjectType>> _possibleTypes = null!;
-    private Action<ISchemaTypeDescriptor> _configure;
+    private Action<ISchemaTypeDescriptor>? _configure;
     private bool _sealed;
 
     protected internal Schema()
@@ -37,7 +33,7 @@ public partial class Schema
     {
         var descriptor = SchemaTypeDescriptor.New(context.DescriptorContext, GetType());
 
-        _configure(descriptor);
+        _configure?.Invoke(descriptor);
 
         context.DescriptorContext.ApplySchemaConfigurations(descriptor);
 
@@ -50,11 +46,10 @@ public partial class Schema
     {
         base.OnAfterInitialize(context, configuration);
 
-        // we clear the configuration delegate to make sure that we do not hold on to any references
-        // if we do not do this all the instances used during initialization will be kept in memory
-        // until the schema is phased out.
+        // We clear the configuration delegate to make sure that we do not hold on to any references.
+        // This ensures that all the instances used during initialization will be garbage collected.
         // We do this in OnAfterInitialized because after this point the schema is marked as
-        // initialized. This means that a subsequent call to Initialize will throw anyway, and
+        // initialized. This means that a later call to Initialize will throw anyway, and
         // therefore we do not need to keep the configuration delegate.
         _configure = null;
     }
@@ -65,17 +60,9 @@ public partial class Schema
     {
         base.OnRegisterDependencies(context, configuration);
 
-        if (configuration.HasDirectives)
+        foreach (var directive in configuration.GetDirectives())
         {
-            foreach (var directive in configuration.Directives)
-            {
-                context.Dependencies.Add(new(directive.Type, TypeDependencyFulfilled.Completed));
-            }
-        }
-
-        foreach (var typeReference in configuration.GetDirectives().Select(t => t.Type))
-        {
-            context.Dependencies.Add(new TypeDependency(typeReference));
+            context.Dependencies.Add(new TypeDependency(directive.Type, TypeDependencyFulfilled.Completed));
         }
     }
 
@@ -100,10 +87,7 @@ public partial class Schema
 
     internal void CompleteSchema(SchemaTypesConfiguration schemaTypesConfiguration)
     {
-        if (schemaTypesConfiguration is null)
-        {
-            throw new ArgumentNullException(nameof(schemaTypesConfiguration));
-        }
+        ArgumentNullException.ThrowIfNull(schemaTypesConfiguration);
 
         if (_sealed)
         {
@@ -117,49 +101,58 @@ public partial class Schema
                 "The schema type collections are not initialized.");
         }
 
-        DirectiveTypes = schemaTypesConfiguration.DirectiveTypes;
-        _types_ = new SchemaTypes(schemaTypesConfiguration);
-        _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
-        _possibleTypes = CreatePossibleTypeLookup(schemaTypesConfiguration.Types);
+        QueryType = schemaTypesConfiguration.QueryType!;
+        MutationType = schemaTypesConfiguration.MutationType;
+        SubscriptionType = schemaTypesConfiguration.SubscriptionType;
+        Types = new TypeDefinitionCollection(schemaTypesConfiguration.Types ?? []);
+        _possibleTypes = CreatePossibleTypeLookup(schemaTypesConfiguration.Types ?? []);
+        DirectiveTypes = new DirectiveTypeCollection(schemaTypesConfiguration.DirectiveTypes ?? []);
         _sealed = true;
     }
 
     private static FrozenDictionary<string, ImmutableArray<ObjectType>> CreatePossibleTypeLookup(
-        IReadOnlyCollection<ITypeDefinition> types)
+        ITypeDefinition[] types)
     {
-        var possibleTypes = new Dictionary<string, List<ObjectType>>(StringComparer.Ordinal);
+        var possibleTypes = new Dictionary<string, ImmutableArray<ObjectType>.Builder>(StringComparer.Ordinal);
 
-        foreach (var objectType in types.OfType<ObjectType>())
+        foreach (var type in types)
         {
-            possibleTypes[objectType.Name] = [objectType];
-
-            foreach (var interfaceType in objectType.Implements)
+            switch (type)
             {
-                if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
-                {
-                    pt = [];
-                    possibleTypes[interfaceType.Name] = pt;
-                }
+                case ObjectType ot:
+                    var builder = ImmutableArray.CreateBuilder<ObjectType>();
+                    builder.Add(ot);
+                    possibleTypes[ot.Name] = builder;
 
-                pt.Add(objectType);
+                    foreach (var interfaceType in ot.Implements)
+                    {
+                        if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
+                        {
+                            pt = ImmutableArray.CreateBuilder<ObjectType>();
+                            possibleTypes[interfaceType.Name] = pt;
+                        }
+
+                        pt.Add(ot);
+                    }
+
+                    break;
+
+                case UnionType ut:
+                    foreach (var objectType in ut.Types)
+                    {
+                        if (!possibleTypes.TryGetValue(ut.Name, out var pt))
+                        {
+                            pt = ImmutableArray.CreateBuilder<ObjectType>();
+                            possibleTypes[ut.Name] = pt;
+                        }
+
+                        pt.Add(objectType);
+                    }
+
+                    break;
             }
         }
 
-        foreach (var unionType in types.OfType<UnionType>())
-        {
-            foreach (var objectType in unionType.Types)
-            {
-                if (!possibleTypes.TryGetValue(
-                    unionType.Name, out var pt))
-                {
-                    pt = [];
-                    possibleTypes[unionType.Name] = pt;
-                }
-
-                pt.Add(objectType);
-            }
-        }
-
-        return possibleTypes.ToFrozenDictionary(k => k.Key, v => v.Value.ToImmutableArray());
+        return possibleTypes.ToFrozenDictionary(k => k.Key, v => v.Value.ToImmutable());
     }
 }
