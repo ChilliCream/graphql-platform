@@ -45,7 +45,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -76,7 +80,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -107,7 +115,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -173,7 +185,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -207,7 +223,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -241,7 +261,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -281,7 +305,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -321,7 +349,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -357,7 +389,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -394,7 +430,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -426,7 +466,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -458,7 +502,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -490,7 +538,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -523,7 +575,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -558,7 +614,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
         // at the moment we do not support projections on lists
         // so products will be empty, and we will just select the brand.Id
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -590,7 +650,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -626,7 +690,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -660,7 +728,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -692,7 +764,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -723,7 +799,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         await dataLoader.LoadAsync(1);
 
         // Assert
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .MatchMarkdownSnapshot();
     }
@@ -754,7 +834,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 }
                 """);
         // Assert
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .Add(result, "Result")
             .MatchMarkdownSnapshot();
@@ -787,7 +871,11 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 """);
 
         // Assert
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .Add(result, "Result")
             .MatchMarkdownSnapshot();

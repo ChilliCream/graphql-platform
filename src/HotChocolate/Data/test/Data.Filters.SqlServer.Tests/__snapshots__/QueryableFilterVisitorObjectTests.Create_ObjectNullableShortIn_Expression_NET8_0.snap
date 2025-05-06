@@ -30,10 +30,10 @@
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE EXISTS (
-    SELECT 1
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "f"."BarShort" OR ("p"."value" IS NULL AND "f"."BarShort" IS NULL))
+)
 ---------------
 
 13and14 Result:
@@ -68,10 +68,10 @@ WHERE EXISTS (
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE EXISTS (
-    SELECT 1
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "f"."BarShort" OR ("p"."value" IS NULL AND "f"."BarShort" IS NULL))
+)
 ---------------
 
 13andNull Result:
@@ -101,13 +101,13 @@ WHERE EXISTS (
 
 13andNull SQL:
 ---------------
-.param set @__p_0 '[13,null]'
+.param set @__p_0_without_nulls '[13]'
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE EXISTS (
-    SELECT 1
-    FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "f"."BarShort" OR ("p"."value" IS NULL AND "f"."BarShort" IS NULL))
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0_without_nulls) AS "p"
+) OR "f"."BarShort" IS NULL
 ---------------
