@@ -13,7 +13,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         if (!context.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks, out var value))
@@ -41,7 +41,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
             var field = context.Field.Peek();
             var typeContext = context.TypeContext.Peek() ?? field.Type.NamedType();
 
-            if (typeContext is IComplexOutputType complexOutputType)
+            if (typeContext is IComplexTypeDefinition complexOutputType)
             {
                 if (complexOutputType.Fields.TryGetField(node.Name.Value, out var objectField))
                 {
@@ -109,7 +109,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
         {
             if (node.TypeCondition is not null)
             {
-                var type = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+                var type = context.Schema.Types[node.TypeCondition.Name.Value];
                 var field = context.Field.Peek();
 
                 if (!type.IsAssignableFrom(field.Type.NamedType()))
@@ -154,7 +154,10 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
 
     private sealed class ValidateIsSelectedPatternContext
     {
-        public ValidateIsSelectedPatternContext(ISchema schema, ObjectField field, SelectionSetNode pattern)
+        public ValidateIsSelectedPatternContext(
+            ISchemaDefinition schema,
+            IOutputFieldDefinition field,
+            SelectionSetNode pattern)
         {
             Schema = schema;
             Root = field;
@@ -164,9 +167,9 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
             TypeContext.Push(null);
         }
 
-        public ISchema Schema { get; }
+        public ISchemaDefinition Schema { get; }
 
-        public ObjectField Root { get; }
+        public IOutputFieldDefinition Root { get; }
 
         public SelectionSetNode Pattern { get; }
 

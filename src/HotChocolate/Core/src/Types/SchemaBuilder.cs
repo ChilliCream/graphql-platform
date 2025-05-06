@@ -71,7 +71,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder SetSchema(ISchema schema)
+    public ISchemaBuilder SetSchema(Schema schema)
     {
         if (schema is null)
         {

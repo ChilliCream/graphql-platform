@@ -109,5 +109,5 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// <summary>
     /// Allows to subscribe to schema completed events.
     /// </summary>
-    void OnSchemaCreated(Action<ISchema> callback);
+    void OnSchemaCreated(Action<Schema> callback);
 }

@@ -8,7 +8,7 @@ using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate;
 
 /// <summary>
-/// Provides extension methods to <see cref="ISchema"/>.
+/// Provides extension methods to <see cref="Schema"/>.
 /// </summary>
 public static class SchemaExtensions
 {
@@ -20,7 +20,7 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the root operation object type.
     /// </returns>
-    public static ObjectType? GetOperationType(this ISchema schema, OperationType operation)
+    public static ObjectType? GetOperationType(this Schema schema, OperationType operation)
         => operation switch
         {
             OperationType.Query => schema.QueryType,
@@ -49,7 +49,7 @@ public static class SchemaExtensions
     /// <paramref name="schema"/> is <c>null</c>.
     /// </exception>
     public static bool TryGetMember(
-        this ISchema schema,
+        this Schema schema,
         string coordinateString,
         [NotNullWhen(true)] out ITypeSystemMember? member)
     {
@@ -82,7 +82,7 @@ public static class SchemaExtensions
     /// <paramref name="schema"/> is <c>null</c>.
     /// </exception>
     public static bool TryGetMember(
-        this ISchema schema,
+        this Schema schema,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out ITypeSystemMember? member)
     {
@@ -193,7 +193,7 @@ public static class SchemaExtensions
     /// specified <paramref name="coordinateString"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
-        this ISchema schema,
+        this Schema schema,
         string coordinateString)
         => GetMember(schema, SchemaCoordinate.Parse(coordinateString));
 
@@ -217,7 +217,7 @@ public static class SchemaExtensions
     /// specified <paramref name="coordinate"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
-        this ISchema schema,
+        this Schema schema,
         SchemaCoordinate coordinate)
     {
         if (schema is null)

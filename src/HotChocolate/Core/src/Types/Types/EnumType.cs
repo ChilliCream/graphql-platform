@@ -44,12 +44,6 @@ public partial class EnumType
     IReadOnlyEnumValueCollection IEnumTypeDefinition.Values => Values.AsReadOnlyEnumValueCollection();
 
     /// <summary>
-    /// Gets a dictionary that allows to look up the enum value by its name.
-    /// </summary>
-    [Obsolete("Use Values.NameLookup instead.")]
-    protected IReadOnlyDictionary<string, EnumValue> NameLookup => Values;
-
-    /// <summary>
     /// Gets a dictionary that allows to look up the enum value by its runtime value.
     /// </summary>
     protected IReadOnlyDictionary<object, EnumValue> ValueLookup => _valueLookup;

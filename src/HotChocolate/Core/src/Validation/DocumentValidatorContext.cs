@@ -11,10 +11,10 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
     private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
     private readonly List<IError> _errors = [];
 
-    private ISchema? _schema;
+    private Schema? _schema;
     private IOutputType? _nonNullString;
 
-    public ISchema Schema
+    public Schema Schema
     {
         get
         {

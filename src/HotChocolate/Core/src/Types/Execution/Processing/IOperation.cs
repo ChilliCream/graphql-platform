@@ -62,7 +62,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <summary>
     /// Gets the schema for which this operation is compiled.
     /// </summary>
-    ISchema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and

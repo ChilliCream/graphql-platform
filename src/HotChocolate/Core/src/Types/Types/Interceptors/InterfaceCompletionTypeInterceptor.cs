@@ -8,8 +8,8 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
-    private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
+    private readonly Dictionary<TypeSystemObject, TypeInfo> _typeInfos = [];
+    private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = [];
     private readonly HashSet<Type> _interfaceRuntimeTypes = [];
     private readonly HashSet<string> _completed = [];
     private readonly HashSet<string> _completedFields = [];

@@ -13,7 +13,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.
     /// </summary>
-    ISchema Schema { get; }
+    Schema Schema { get; }
 
     /// <summary>
     /// Gets the request executor version.

@@ -17,7 +17,7 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         NodeType? nodeType = null;

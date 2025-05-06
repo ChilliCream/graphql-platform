@@ -198,7 +198,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         throw ThrowHelper.Convention_ConventionCouldNotBeCreated(typeof(T), scope);
     }
 
-    public void OnSchemaCreated(Action<ISchema> callback)
+    public void OnSchemaCreated(Action<Schema> callback)
         => Schema.OnSchemaCreated(callback);
 
     private void CreateConventions<T>(

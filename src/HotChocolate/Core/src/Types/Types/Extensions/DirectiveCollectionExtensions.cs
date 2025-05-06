@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 
 public static class DirectiveCollectionExtensions
 {
-    public static T SingleOrDefault<T>(this IDirectiveCollection directives)
+    public static T SingleOrDefault<T>(this DirectiveCollection directives)
     {
         foreach (var directive in directives)
         {

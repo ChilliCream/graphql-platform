@@ -38,7 +38,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     }
 
     private void ValidatePipeline(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         SchemaCoordinate fieldCoordinate,
         IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {

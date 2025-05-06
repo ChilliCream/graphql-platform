@@ -470,7 +470,7 @@ public static partial class SchemaBuilderExtensions
 
     public static ISchemaBuilder SetSchema<TSchema>(
         this ISchemaBuilder builder)
-        where TSchema : ISchema
+        where TSchema : Schema
     {
         ArgumentNullException.ThrowIfNull(builder);
 

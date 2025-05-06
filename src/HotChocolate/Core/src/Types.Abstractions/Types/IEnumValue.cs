@@ -10,5 +10,5 @@ public interface IEnumValue
     , IDirectivesProvider
     , IDescriptionProvider
     , IDeprecationProvider
-    , ISyntaxNodeProvider<EnumValueNode>
+    , ISyntaxNodeProvider<EnumValueDefinitionNode>
     , ISchemaCoordinateProvider;

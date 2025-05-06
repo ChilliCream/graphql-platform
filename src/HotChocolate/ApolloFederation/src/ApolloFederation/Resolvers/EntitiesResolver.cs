@@ -10,7 +10,7 @@ namespace HotChocolate.ApolloFederation.Resolvers;
 internal static class EntitiesResolver
 {
     public static async Task<IReadOnlyList<object?>> ResolveAsync(
-        ISchema schema,
+        Schema schema,
         IReadOnlyList<Representation> representations,
         IResolverContext context)
     {

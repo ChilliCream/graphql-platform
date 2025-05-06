@@ -28,6 +28,11 @@ public abstract class NamedTypeBase<TConfiguration>
     /// <inheritdoc />
     public abstract TypeKind Kind { get; }
 
+    /// <summary>
+    /// Gets the schema coordinate of the named type.
+    /// </summary>
+    public SchemaCoordinate Coordinate { get; private set;}
+
     /// <inheritdoc />
     public DirectiveCollection Directives
     {
@@ -54,7 +59,7 @@ public abstract class NamedTypeBase<TConfiguration>
         }
     }
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives.AsReadOnlyDirectiveCollection();
 
     /// <inheritdoc />
     public Type RuntimeType
@@ -86,6 +91,15 @@ public abstract class NamedTypeBase<TConfiguration>
         base.OnRegisterDependencies(context, configuration);
 
         UpdateRuntimeType(configuration);
+    }
+
+    /// <inheritdoc />
+    protected override void OnCompleteName(
+        ITypeCompletionContext context,
+        TConfiguration configuration)
+    {
+        base.OnCompleteName(context, configuration);
+        Coordinate = new SchemaCoordinate(Name, ofDirective: false);
     }
 
     /// <inheritdoc />

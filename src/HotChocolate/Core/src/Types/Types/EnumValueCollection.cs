@@ -40,24 +40,27 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
         => _nameLookup.TryGetValue(name, out value);
 
     internal IReadOnlyEnumValueCollection AsReadOnlyEnumValueCollection()
-        => _readOnlyValues ??= new ReadOnlyEnumValueCollection(_values, _nameLookup);
+        => _readOnlyValues ??= new ReadOnlyEnumValueCollection(this);
 
     public IEnumerator<EnumValue> GetEnumerator() => Unsafe.As<IEnumerable<EnumValue>>(_values).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     private sealed class ReadOnlyEnumValueCollection(
-        EnumValue[] values,
-        FrozenDictionary<string, EnumValue> nameLookup)
+        EnumValueCollection values)
         : IReadOnlyEnumValueCollection
     {
-        public IEnumValue this[string name] => nameLookup[name];
+        public int Count => values._values.Length;
 
-        public bool ContainsName(string name) => nameLookup.ContainsKey(name);
+        public IEnumValue this[int index] => values._values[index];
+
+        public IEnumValue this[string name] => values._nameLookup[name];
+
+        public bool ContainsName(string name) => values._nameLookup.ContainsKey(name);
 
         public bool TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value)
         {
-            if (nameLookup.TryGetValue(name, out var enumValue))
+            if (values._nameLookup.TryGetValue(name, out var enumValue))
             {
                 value = enumValue;
                 return true;
@@ -67,24 +70,11 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
             return false;
         }
 
-        public IEnumerator<IEnumValue> GetEnumerator() => new Enumerator(values);
+        public IEnumerator<IEnumValue> GetEnumerator()
+            => values.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        private struct Enumerator(EnumValue[] values) : IEnumerator<IEnumValue>
-        {
-            private int _index = -1;
-
-            public IEnumValue Current => values[_index];
-
-            object IEnumerator.Current => Current;
-
-            public bool MoveNext() => ++_index < values.Length;
-
-            public void Reset() => _index = -1;
-
-            public void Dispose() { }
-        }
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 
 }

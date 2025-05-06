@@ -16,7 +16,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly IRequestContextEnricher[] _enricher;
 
     public RequestExecutor(
-        ISchema schema,
+        Schema schema,
         IServiceProvider applicationServices,
         IServiceProvider executorServices,
         RequestDelegate requestDelegate,
@@ -55,7 +55,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
     }
 
-    public ISchema Schema { get; }
+    public Schema Schema { get; }
 
     public IServiceProvider Services { get; }
 

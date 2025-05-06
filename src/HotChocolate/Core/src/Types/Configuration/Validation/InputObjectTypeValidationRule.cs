@@ -12,7 +12,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         if (!context.Options.StrictValidation)
@@ -24,7 +24,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         CycleValidationContext cycleValidationContext = new()
         {
             Visited = [],
-            CycleStartIndex = new Dictionary<InputObjectType, int>(),
+            CycleStartIndex = [],
             Errors = errors,
             FieldPath = []
         };

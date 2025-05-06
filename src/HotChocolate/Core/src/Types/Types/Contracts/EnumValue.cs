@@ -45,13 +45,15 @@ public abstract class EnumValue
     /// </summary>
     public abstract DirectiveCollection Directives { get; }
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives.AsReadOnlyDirectiveCollection();
 
     /// <summary>
     /// Gets the context data dictionary that can be used by middleware components and
     /// resolvers to retrieve data during execution.
     /// </summary>
     public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
+
+    public SchemaCoordinate Coordinate => throw new NotImplementedException();
 
 
     /// <summary>

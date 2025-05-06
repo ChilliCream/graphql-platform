@@ -10,7 +10,7 @@ internal sealed class EnsureFieldResultsDeclareErrorsRule : ISchemaValidationRul
 
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         var mutationType = schema.MutationType;

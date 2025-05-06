@@ -50,6 +50,11 @@ public partial class DirectiveType
         => new() { Configuration = definition };
 
     /// <summary>
+    /// Gets the schema coordinate of the directive type.
+    /// </summary>
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: true);
+
+    /// <summary>
     /// Gets the runtime type.
     /// The runtime type defines of which value the type is when it
     /// manifests in the execution engine.

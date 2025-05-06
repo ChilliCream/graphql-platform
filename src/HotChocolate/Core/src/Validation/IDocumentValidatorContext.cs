@@ -13,7 +13,7 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// Gets the schema on which the validation is executed.
     /// </summary>
-    ISchema Schema { get; }
+    Schema Schema { get; }
 
     /// <summary>
     /// Gets the unique document identifier.

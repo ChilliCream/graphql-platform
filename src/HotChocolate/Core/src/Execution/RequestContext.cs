@@ -7,7 +7,7 @@ using HotChocolate.Validation;
 namespace HotChocolate.Execution;
 
 internal sealed class RequestContext(
-    ISchema schema,
+    Schema schema,
     ulong executorVersion,
     IErrorHandler errorHandler,
     IExecutionDiagnosticEvents diagnosticEvents)
@@ -16,7 +16,7 @@ internal sealed class RequestContext(
     private readonly ConcurrentDictionary<string, object?> _contextData = new();
     private DocumentValidatorResult? _validationResult;
 
-    public ISchema Schema { get; } = schema;
+    public Schema Schema { get; } = schema;
 
     public ulong ExecutorVersion { get; } = executorVersion;
 

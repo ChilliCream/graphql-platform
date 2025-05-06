@@ -17,7 +17,7 @@ public interface IResolverContext : IHasContextData
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.
     /// </summary>
-    ISchema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the object type on which the field resolver is being executed.

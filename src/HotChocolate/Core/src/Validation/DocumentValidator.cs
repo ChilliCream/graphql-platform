@@ -64,7 +64,7 @@ public sealed class DocumentValidator : IDocumentValidator
 
     /// <inheritdoc />
     public ValueTask<DocumentValidatorResult> ValidateAsync(
-        ISchema schema,
+        Schema schema,
         DocumentNode document,
         OperationDocumentId documentId,
         IDictionary<string, object?> contextData,
@@ -170,7 +170,7 @@ public sealed class DocumentValidator : IDocumentValidator
     }
 
     private void PrepareContext(
-        ISchema schema,
+        Schema schema,
         DocumentNode document,
         OperationDocumentId documentId,
         DocumentValidatorContext context,

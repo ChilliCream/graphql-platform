@@ -1,6 +1,5 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -16,7 +15,7 @@ public partial class InterfaceType
     private InterfaceTypeCollection _implements = InterfaceTypeCollection.Empty;
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
-    private ISchema _schema = default!;
+    private Schema _schema = default!;
 
     protected override InterfaceTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
