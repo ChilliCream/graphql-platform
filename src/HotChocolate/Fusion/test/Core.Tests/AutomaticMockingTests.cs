@@ -1123,6 +1123,65 @@ public class AutomaticMockingTests
             """);
     }
 
+    [Fact]
+    public async Task Interface_Multiple_Types_Implementing_Interface()
+    {
+        // arrange
+        var schema =
+            """
+            type Query {
+              intrface: Interface
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object1 implements Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object2 implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+            """;
+        var request =
+            """
+            query {
+              intrface {
+                __typename
+                id
+                str
+                ... on Object2 {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "intrface": {
+                  "__typename": "Object2",
+                  "id": "1",
+                  "str": "string",
+                  "num": 123
+                }
+              }
+            }
+            """);
+    }
+
     #endregion
 
     #region Union
