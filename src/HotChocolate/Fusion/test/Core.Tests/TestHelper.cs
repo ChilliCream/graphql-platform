@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Snapshot = CookieCrumble.Snapshot;
