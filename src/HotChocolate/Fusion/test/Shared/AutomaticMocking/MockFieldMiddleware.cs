@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -83,8 +84,9 @@ internal sealed class MockFieldMiddleware
                 if (namedFieldType.IsCompositeType())
                 {
                     var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+                    var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
-                    context.ValueType = possibleTypes.First();
+                    context.ValueType = type;
                     context.Result = CreateObject(id);
                     return ValueTask.CompletedTask;
                 }
@@ -105,8 +107,9 @@ internal sealed class MockFieldMiddleware
                     if (namedFieldType.IsCompositeType())
                     {
                         var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+                        var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
-                        context.ValueType = possibleTypes.First();
+                        context.ValueType = type;
                         context.Result = CreateListOfObjects(ids, nullIndex);
                         return ValueTask.CompletedTask;
                     }
@@ -130,8 +133,9 @@ internal sealed class MockFieldMiddleware
         {
             int? id = hasIdFieldSelection ? ++mockingContext.IdCounter : null;
             var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+            var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
-            context.ValueType = possibleTypes.First();
+            context.ValueType = type;
             context.Result = CreateObject(id);
         }
         else if (fieldType.IsListType())
@@ -141,8 +145,9 @@ internal sealed class MockFieldMiddleware
                 var ids = Enumerable.Range(0, DefaultListSize)
                     .Select(_ => (object?)(hasIdFieldSelection ? ++mockingContext.IdCounter : null)).ToArray();
                 var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
+                var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
-                context.ValueType = possibleTypes.First();
+                context.ValueType = type;
                 context.Result = CreateListOfObjects(ids, nullIndex);
             }
             else if (namedFieldType is EnumType enumType)
@@ -164,6 +169,24 @@ internal sealed class MockFieldMiddleware
         }
 
         return ValueTask.CompletedTask;
+    }
+
+    private IType DetermineTypeForAbstractSelection(
+        IReadOnlyList<ObjectType> possibleTypes,
+        ISelection selection,
+        ISchema schema)
+    {
+        var inlineFragmentNode = selection.SelectionSet?.Selections
+            .FirstOrDefault(s =>
+                s is InlineFragmentNode inlineFragmentNode && inlineFragmentNode.TypeCondition is not null);
+
+        if (inlineFragmentNode is InlineFragmentNode { TypeCondition: {} typeCondition } &&
+            schema.TryGetType<INamedType>(typeCondition.Name.Value, out var type))
+        {
+            return type;
+        }
+
+        return possibleTypes.First();
     }
 
     private object? CreateScalarValue(INamedType scalarType, AutomaticMockingContext mockingContext)
