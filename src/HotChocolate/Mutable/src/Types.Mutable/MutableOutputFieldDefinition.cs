@@ -47,7 +47,7 @@ public class MutableOutputFieldDefinition
     /// </summary>
     public IComplexTypeDefinition? DeclaringMember { get; set; }
 
-    IComplexTypeDefinition IOutputFieldDefinition.DeclaringMember
+    IComplexTypeDefinition IOutputFieldDefinition.DeclaringType
         => DeclaringMember ?? throw new InvalidOperationException("The declaring type is not set.");
 
     ITypeSystemMember IFieldDefinition.DeclaringMember

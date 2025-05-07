@@ -27,11 +27,11 @@ internal sealed class NodeIdSerializerTypeInterceptor : TypeInterceptor
         }
     }
 
-    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
+    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, Schema schema)
     {
         // now that the schema is created we will look for the node interface and get all implementations and add
         // the serializer types for the node ids also to the map.
-        if (schema.TryGetType<InterfaceType>("Node", out var nodeType))
+        if (schema.Types.TryGetType<InterfaceType>("Node", out var nodeType))
         {
             foreach (var entityType in schema.GetPossibleTypes(nodeType))
             {

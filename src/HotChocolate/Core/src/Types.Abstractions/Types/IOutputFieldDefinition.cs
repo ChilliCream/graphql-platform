@@ -5,9 +5,9 @@ namespace HotChocolate.Types;
 public interface IOutputFieldDefinition : IFieldDefinition
 {
     /// <summary>
-    /// Gets the type definition that declares this field definition.
+    /// Gets the type definition that declares this output field definition.
     /// </summary>
-    new IComplexTypeDefinition DeclaringMember { get; }
+    IComplexTypeDefinition DeclaringType { get; }
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }
 

@@ -22,6 +22,19 @@ public sealed class TypeDefinitionCollection : IReadOnlyTypeDefinitionCollection
     }
 
     /// <summary>
+    /// Gets the number of types in the collection.
+    /// </summary>
+    public int Count => _types.Length;
+
+    /// <summary>
+    /// Gets a type by its index.
+    /// </summary>
+    /// <param name="index">The index of the type.</param>
+    /// <returns>The type.</returns>
+    public ITypeDefinition this[int index]
+        => _types[index];
+
+    /// <summary>
     /// Gets a type by its name.
     /// </summary>
     /// <param name="name">

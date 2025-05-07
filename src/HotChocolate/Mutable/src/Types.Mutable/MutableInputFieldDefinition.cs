@@ -78,13 +78,13 @@ public class MutableInputFieldDefinition
                     return new SchemaCoordinate(directiveDef.Name, Name, ofDirective: true);
 
                 case IOutputFieldDefinition fieldDef:
-                    if (fieldDef.DeclaringMember is null)
+                    if (fieldDef.DeclaringType is null)
                     {
                         throw new InvalidOperationException("The declaring member is not set.");
                     }
 
                     return new SchemaCoordinate(
-                        ((ITypeDefinition)fieldDef.DeclaringMember).Name,
+                        ((ITypeDefinition)fieldDef.DeclaringType).Name,
                         fieldDef.Name,
                         Name,
                         ofDirective: false);
