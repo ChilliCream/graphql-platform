@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -31,6 +32,10 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
                 _ => ScalarResultType.Unknown
             };
         }
+
+        // these properties are initialized
+        // in the type complete step.
+        Features = null!;
     }
 
     public TypeKind Kind => TypeKind.Scalar;
@@ -39,17 +44,14 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 
     public string? Description { get; }
 
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     public FusionDirectiveCollection Directives
     {
         get => _directives;
         private set
         {
-            if (_completed)
-            {
-                throw new InvalidOperationException(
-                    "The type is completed and cannot be modified.");
-            }
-
+            ThrowHelper.EnsureNotSealed(_completed);
             _directives = value;
         }
     }
@@ -59,14 +61,19 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 
     public ScalarResultType ScalarResultType { get; }
 
+    public IFeatureCollection Features
+    {
+        get;
+        private set
+        {
+            ThrowHelper.EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
+
     internal void Complete(CompositeScalarTypeCompletionContext context)
     {
-        if (_completed)
-        {
-            throw new InvalidOperationException(
-                "The type is completed and cannot be modified.");
-        }
-
+        ThrowHelper.EnsureNotSealed(_completed);
         Directives = context.Directives;
         _completed = true;
     }
