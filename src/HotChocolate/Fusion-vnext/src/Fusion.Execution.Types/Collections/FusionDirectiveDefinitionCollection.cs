@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
@@ -9,34 +10,46 @@ public sealed class FusionDirectiveDefinitionCollection
     : IReadOnlyDirectiveDefinitionCollection
     , IEnumerable<FusionDirectiveDefinition>
 {
-    private readonly FrozenDictionary<string, FusionDirectiveDefinition> _directives;
+    private readonly FusionDirectiveDefinition[] _directives;
+    private readonly FrozenDictionary<string, FusionDirectiveDefinition> _directiveLookup;
 
     public FusionDirectiveDefinitionCollection(FusionDirectiveDefinition[] directives)
     {
         ArgumentNullException.ThrowIfNull(directives);
-        _directives = directives.ToFrozenDictionary(t => t.Name);
+        _directives = directives;
+        _directiveLookup = directives.ToFrozenDictionary(t => t.Name);
     }
 
+    public int Count => _directiveLookup.Count;
+
     public FusionDirectiveDefinition this[string name]
-        => _directives[name];
+        => _directiveLookup[name];
 
     IDirectiveDefinition IReadOnlyDirectiveDefinitionCollection.this[string name]
-        => _directives[name];
+        => _directiveLookup[name];
 
-    public FusionDirectiveDefinition SkipDirective => _directives[SpecDirectiveNames.Skip.Name];
+    public FusionDirectiveDefinition this[int index]
+        => _directives[index];
 
-    public FusionDirectiveDefinition IncludeDirective => _directives[SpecDirectiveNames.Include.Name];
+    IDirectiveDefinition IReadOnlyList<IDirectiveDefinition>.this[int index]
+        => _directives[index];
+
+    public FusionDirectiveDefinition SkipDirective
+        => _directiveLookup[SpecDirectiveNames.Skip.Name];
+
+    public FusionDirectiveDefinition IncludeDirective
+        => _directiveLookup[SpecDirectiveNames.Include.Name];
 
     public bool TryGetDirective(
         string name,
         [NotNullWhen(true)] out FusionDirectiveDefinition? definition)
-        => _directives.TryGetValue(name, out definition);
+        => _directiveLookup.TryGetValue(name, out definition);
 
     bool IReadOnlyDirectiveDefinitionCollection.TryGetDirective(
         string name, [NotNullWhen(true)]
         out IDirectiveDefinition? definition)
     {
-        if (_directives.TryGetValue(name, out var d))
+        if (_directiveLookup.TryGetValue(name, out var d))
         {
             definition = d;
             return true;
@@ -47,10 +60,10 @@ public sealed class FusionDirectiveDefinitionCollection
     }
 
     public bool ContainsName(string name)
-        => _directives.ContainsKey(name);
+        => _directiveLookup.ContainsKey(name);
 
     public IEnumerable<FusionDirectiveDefinition> AsEnumerable()
-        => _directives.Values;
+        => Unsafe.As<IEnumerable<FusionDirectiveDefinition>>(_directives);
 
     public IEnumerator<FusionDirectiveDefinition> GetEnumerator()
         => AsEnumerable().GetEnumerator();
