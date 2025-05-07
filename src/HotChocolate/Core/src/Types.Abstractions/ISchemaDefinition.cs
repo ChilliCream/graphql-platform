@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,7 +9,12 @@ namespace HotChocolate;
 /// exposes all available types and directives on the server, as well as
 /// the entry points for query, mutation, and subscription operations.
 /// </summary>
-public interface ISchemaDefinition : INameProvider, IDescriptionProvider, ISyntaxNodeProvider
+public interface ISchemaDefinition
+    : INameProvider
+    , IDescriptionProvider
+    , IDirectivesProvider
+    , IFeatureProvider
+    , ISyntaxNodeProvider
 {
     /// <summary>
     /// Gets the GraphQL object type that represents the query root.
@@ -26,17 +32,24 @@ public interface ISchemaDefinition : INameProvider, IDescriptionProvider, ISynta
     IObjectTypeDefinition? SubscriptionType { get; }
 
     /// <summary>
-    /// Gets all the directive definitions that are supported by this schema.
-    /// </summary>
-    IReadOnlyDirectiveCollection Directives { get; }
-
-    /// <summary>
     /// Gets all the schema types.
     /// </summary>
     IReadOnlyTypeDefinitionCollection Types { get; }
 
+    /// <summary>
+    /// Gets all the directive definitions that are supported by this schema.
+    /// </summary>
     IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions { get; }
 
+    /// <summary>
+    /// Gets the operation type for the given operation type.
+    /// </summary>
+    /// <param name="operationType">
+    /// The operation type.
+    /// </param>
+    /// <returns>
+    /// Returns the operation type for the given operation type.
+    /// </returns>
     IObjectTypeDefinition? GetOperationType(OperationType operationType);
 
     /// <summary>

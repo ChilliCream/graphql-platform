@@ -97,7 +97,7 @@ public static class SchemaHelper
                     o.EnableFlagEnums = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
-                c => c.ContextData.Add(_typeInfosKey, typeInfos)))
+                c => c.Features.Add(_typeInfosKey, typeInfos)))
             .TryAddTypeInterceptor(
                 new LeafTypeInterceptor(leafTypes))
             .TryAddTypeInterceptor(

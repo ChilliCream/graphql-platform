@@ -249,11 +249,6 @@ public static class WellKnownContextData
     public const string PagingArguments = "HotChocolate.Types.PagingArguments";
 
     /// <summary>
-    /// Type key to access the paging options.
-    /// </summary>
-    public const string PagingOptions = "HotChocolate.Types.PagingOptions";
-
-    /// <summary>
     /// Type key to access the object type configuration hooks in the schema builder context data.
     /// </summary>
     public const string ObjectTypeConfigurations = "HotChocolate.Types.ObjectTypeConfigurations";

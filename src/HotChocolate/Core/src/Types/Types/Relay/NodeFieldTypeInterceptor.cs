@@ -100,7 +100,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         // In the projection interceptor we want to change the context data that is on this field
         // after the field is completed. We need at least 1 element on the context data to avoid
         // it to be replaced with ExtensionData.Empty
-        field.ContextData[WellKnownContextData.IsNodeField] = true;
+        field.Features[WellKnownContextData.IsNodeField] = true;
 
         fields.Insert(index, field);
     }
@@ -140,7 +140,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         // In the projection interceptor we want to change the context data that is on this field
         // after the field is completed. We need at least 1 element on the context data to avoid
         // it to be replaced with ExtensionData.Empty
-        field.ContextData[WellKnownContextData.IsNodesField] = true;
+        field.Features[WellKnownContextData.IsNodesField] = true;
 
         fields.Insert(index, field);
     }

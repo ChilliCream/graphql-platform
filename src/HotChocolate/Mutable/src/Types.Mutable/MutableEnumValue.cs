@@ -121,9 +121,4 @@ public class MutableEnumValue
     /// Returns a new instance of <see cref="MutableEnumValue"/>.
     /// </returns>
     public static MutableEnumValue Create(string name) => new(name);
-
-    EnumValueNode ISyntaxNodeProvider<EnumValueNode>.ToSyntaxNode()
-    {
-        throw new NotImplementedException();
-    }
 }

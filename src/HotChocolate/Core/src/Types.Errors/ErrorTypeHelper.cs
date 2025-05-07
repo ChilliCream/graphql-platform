@@ -26,7 +26,7 @@ internal sealed class ErrorTypeHelper
     {
         var errorTypes = GetErrorResultTypes(field);
 
-        if (field.ContextData.TryGetValue(ErrorConfigurations, out var value) &&
+        if (field.Features.TryGetValue(ErrorConfigurations, out var value) &&
             value is IReadOnlyList<ErrorConfiguration> errorConfigs)
         {
             if (errorTypes.Length == 0)

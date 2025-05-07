@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field or directive argument.
 /// </summary>
-public class Argument : FieldBase, IInputValueDefinition, IInputFieldInfo
+public class Argument : FieldBase, IInputValueDefinition, IInputValueInfo
 {
     private Type _runtimeType = default!;
 

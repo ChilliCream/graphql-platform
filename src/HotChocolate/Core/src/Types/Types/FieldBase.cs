@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -12,7 +13,6 @@ namespace HotChocolate.Types;
 public abstract class FieldBase
     : IFieldDefinition
     , IFieldCompletion
-    , IHasSchemaCoordinate
     , IHasFieldIndex
     , IHasRuntimeType
 {
@@ -31,7 +31,7 @@ public abstract class FieldBase
         Flags = configuration.Flags;
         DeclaringType = default!;
         DeclaringMember = default!;
-        ContextData = default!;
+        Features = default!;
         Directives = default!;
         Type = default!;
     }
@@ -87,7 +87,7 @@ public abstract class FieldBase
     }
 
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
+    public IFeatureCollection Features { get; private set; }
 
     internal void CompleteField(
         ITypeCompletionContext context,
@@ -95,7 +95,7 @@ public abstract class FieldBase
     {
         AssertMutable();
         OnCompleteField(context, declaringMember, _config!);
-        ContextData = _config!.GetContextData();
+        Features = _config!.GetFeatures();
     }
 
     protected virtual void OnCompleteField(
@@ -176,6 +176,7 @@ public abstract class FieldBase
     {
         AssertMutable();
         OnFinalizeField(context, declaringMember, _config!);
+        Features = Features.ToReadOnly();
         _config = null;
         _flags |= FieldFlags.Sealed;
     }

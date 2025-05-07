@@ -230,8 +230,8 @@ public class ObjectFieldDescriptor
                     }
 
                     Configuration.Flags |= FieldFlags.WithRequirements;
-                    Configuration.ContextData[FieldRequirementsSyntax] = requirements;
-                    Configuration.ContextData[FieldRequirementsEntity] = parameter.ParameterType;
+                    Configuration.Features[FieldRequirementsSyntax] = requirements;
+                    Configuration.Features[FieldRequirementsEntity] = parameter.ParameterType;
                 }
             }
 
@@ -483,14 +483,14 @@ public class ObjectFieldDescriptor
         if (!(requires?.Length > 0))
         {
             Configuration.Flags &= ~FieldFlags.WithRequirements;
-            Configuration.ContextData.Remove(FieldRequirementsSyntax);
-            Configuration.ContextData.Remove(FieldRequirementsEntity);
+            Configuration.Features.Remove(FieldRequirementsSyntax);
+            Configuration.Features.Remove(FieldRequirementsEntity);
             return this;
         }
 
         Configuration.Flags |= FieldFlags.WithRequirements;
-        Configuration.ContextData[FieldRequirementsSyntax] = requires;
-        Configuration.ContextData[FieldRequirementsEntity] = typeof(TParent);
+        Configuration.Features[FieldRequirementsSyntax] = requires;
+        Configuration.Features[FieldRequirementsEntity] = typeof(TParent);
         return this;
     }
 
@@ -499,14 +499,14 @@ public class ObjectFieldDescriptor
         if (!(requires?.Length > 0))
         {
             Configuration.Flags &= ~FieldFlags.WithRequirements;
-            Configuration.ContextData.Remove(FieldRequirementsSyntax);
-            Configuration.ContextData.Remove(FieldRequirementsEntity);
+            Configuration.Features.Remove(FieldRequirementsSyntax);
+            Configuration.Features.Remove(FieldRequirementsEntity);
             return this;
         }
 
         Configuration.Flags |= FieldFlags.WithRequirements;
-        Configuration.ContextData[FieldRequirementsSyntax] = requires;
-        Configuration.ContextData[FieldRequirementsEntity] = Configuration.SourceType;
+        Configuration.Features[FieldRequirementsSyntax] = requires;
+        Configuration.Features[FieldRequirementsEntity] = Configuration.SourceType;
         return this;
     }
 

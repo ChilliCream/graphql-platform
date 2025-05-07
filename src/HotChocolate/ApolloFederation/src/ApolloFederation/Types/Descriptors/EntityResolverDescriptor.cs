@@ -45,14 +45,14 @@ public sealed class EntityResolverDescriptor<TEntity>
     {
         if (Configuration.Resolver is not null)
         {
-            if (configuration.ContextData.TryGetValue(EntityResolver, out var value) &&
+            if (configuration.Features.TryGetValue(EntityResolver, out var value) &&
                 value is List<ReferenceResolverConfiguration> resolvers)
             {
                 resolvers.Add(Configuration.Resolver);
             }
             else
             {
-                configuration.ContextData.Add(
+                configuration.Features.Add(
                     EntityResolver,
                     new List<ReferenceResolverConfiguration>
                     {

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -14,17 +15,12 @@ namespace HotChocolate.Types;
 public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
     where TConfiguration : TypeSystemConfiguration
 {
-    private TConfiguration? _configuration;
-    private IReadOnlyDictionary<string, object?>? _contextData;
+    private IFeatureCollection? _features;
 
-    public override IReadOnlyDictionary<string, object?> ContextData
-        => _contextData ?? throw new TypeInitializationException();
+    public override IFeatureCollection Features
+        => _features ?? throw new TypeInitializationException();
 
-    protected internal TConfiguration? Configuration
-    {
-        get => _configuration;
-        protected set => _configuration = value;
-    }
+    protected internal TConfiguration? Configuration { get; protected set; }
 
     internal sealed override void Initialize(ITypeDiscoveryContext context)
     {
@@ -33,23 +29,23 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
         OnBeforeInitialize(context);
 
         Scope = context.Scope;
-        _configuration = CreateConfiguration(context);
+        Configuration = CreateConfiguration(context);
 
-        if (_configuration is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
         }
 
         // if we at this point already know the name we will just commit it.
-        if (!string.IsNullOrEmpty(_configuration.Name))
+        if (!string.IsNullOrEmpty(Configuration.Name))
         {
-            Name = _configuration.Name;
+            Name = Configuration.Name;
         }
 
-        RegisterConfigurationDependencies(context, _configuration);
+        RegisterConfigurationDependencies(context, Configuration);
 
-        OnAfterInitialize(context, _configuration);
+        OnAfterInitialize(context, Configuration);
 
         MarkInitialized();
     }
@@ -65,7 +61,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
     {
         AssertInitialized();
 
-        var config = _configuration!;
+        var config = Configuration!;
 
         OnBeforeCompleteName(context, config);
 
@@ -108,7 +104,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
     {
         AssertNamed();
 
-        var config = _configuration!;
+        var config = Configuration!;
 
         OnBeforeCompleteType(context, config);
 
@@ -116,7 +112,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
         Description = config.Description;
         OnCompleteType(context, config);
 
-        _contextData = config.GetContextData();
+        _features = config.GetFeatures();
 
         OnAfterCompleteType(context, config);
         ExecuteConfigurations(context, config, ApplyConfigurationOn.AfterCompletion);
@@ -132,7 +128,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
     {
         AssertTypeCompleted();
 
-        var config = _configuration!;
+        var config = Configuration!;
 
         OnBeforeCompleteMetadata(context, config);
         OnCompleteMetadata(context, config);
@@ -149,7 +145,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
     {
         AssertMetadataCompleted();
 
-        var definition = _configuration!;
+        var definition = Configuration!;
 
         OnBeforeMakeExecutable(context, definition);
         OnMakeExecutable(context, definition);
@@ -169,26 +165,12 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
     internal sealed override void FinalizeType(ITypeCompletionContext context)
     {
         // first we will call the OnFinalizeType hook.
-        OnFinalizeType(context, _configuration!);
-        var config = _configuration!;
+        OnFinalizeType(context, Configuration!);
+        var config = Configuration!;
 
         // next we will release the configuration here so that it can be collected by the GC.
-        _configuration = null;
-
-        // if the ExtensionData object has no data, we will release it so it can be
-        // collected by the GC.
-        if (_contextData!.Count == 0 && _contextData is not ImmutableDictionary<string, object?>)
-        {
-            _contextData = ImmutableDictionary<string, object?>.Empty;
-        }
-
-        // if contextData is still wrapped we will unwrap it here so that access is faster without
-        // any null checking.
-        else if (_contextData is ExtensionData extensionData &&
-            extensionData.TryGetInnerDictionary(out var dictionary))
-        {
-            _contextData = dictionary;
-        }
+        Configuration = null;
+        _features = _features?.ToReadOnly() ?? FeatureCollection.Empty;
 
         OnValidateType(context, config);
 
@@ -310,7 +292,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
             "The type must be initialized.");
 
         Debug.Assert(
-            _configuration is not null,
+            Configuration is not null,
             "Initialize must have been invoked before completing the type name.");
 
         if (!IsInitialized)
@@ -318,7 +300,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
             throw new InvalidOperationException();
         }
 
-        if (_configuration is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
@@ -332,7 +314,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
             "The type must be initialized.");
 
         Debug.Assert(
-            _configuration?.Name is not null,
+            Configuration?.Name is not null,
             "The name must have been completed before completing the type.");
 
         if (!IsNamed)
@@ -340,7 +322,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
             throw new InvalidOperationException();
         }
 
-        if (_configuration is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
@@ -358,7 +340,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
             throw new InvalidOperationException();
         }
 
-        if (_configuration is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
@@ -376,7 +358,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
             throw new InvalidOperationException();
         }
 
-        if (_configuration is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);

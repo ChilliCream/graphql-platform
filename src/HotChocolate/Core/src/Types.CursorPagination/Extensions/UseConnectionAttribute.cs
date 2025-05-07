@@ -148,7 +148,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             PagingOptions options)
         {
             options = context.GetPagingOptions(options);
-            definition.ContextData[WellKnownContextData.PagingOptions] = options;
+            definition.Features[WellKnownContextData.PagingOptions] = options;
 
             if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
             {

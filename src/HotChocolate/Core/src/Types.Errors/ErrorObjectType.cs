@@ -5,7 +5,7 @@ internal sealed class ErrorObjectType<T> : ObjectType<T>
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
         descriptor.Extend().OnBeforeCreate(RewriteMessageFieldToNonNullableStringType);
-        descriptor.Extend().Configuration.ContextData.MarkAsError();
+        descriptor.Extend().Configuration.Features.MarkAsError();
         descriptor.BindFieldsImplicitly();
     }
 

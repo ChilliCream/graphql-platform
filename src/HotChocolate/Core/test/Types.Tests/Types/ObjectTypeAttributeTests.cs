@@ -166,7 +166,7 @@ public class ObjectTypeAttributeTests
             MemberInfo member)
         {
             descriptor.Extend().OnBeforeCompletion(
-                (c, d) => d.ContextData.Add("abc", "def"));
+                (c, d) => d.Features.Add("abc", "def"));
         }
     }
 

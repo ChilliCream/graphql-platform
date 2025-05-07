@@ -167,7 +167,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                     }
                 }
 
-                definition.ContextData[WellKnownContextData.NodeResolver] =
+                definition.Features[WellKnownContextData.NodeResolver] =
                     new NodeResolverInfo(null, pipeline!);
             }
         }

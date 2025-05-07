@@ -23,7 +23,7 @@ internal sealed class NodeIdSerializerTypeInterceptor : TypeInterceptor
             }
 
             // next we make sure that its preserved on the schema for the runtime.
-            schemaTypeDef.ContextData[SerializerTypes] = value;
+            schemaTypeDef.Features[SerializerTypes] = value;
         }
     }
 

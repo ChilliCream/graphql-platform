@@ -31,7 +31,7 @@ public sealed class DefaultEnumValue : EnumValue
         DeprecationReason = configuration.DeprecationReason;
         IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
         Value = configuration.RuntimeValue;
-        ContextData = configuration.GetContextData();
+        ContextData = configuration.GetFeatures();
     }
 
     public override string Name { get; }

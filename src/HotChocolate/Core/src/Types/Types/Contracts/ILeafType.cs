@@ -8,7 +8,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a GraphQL leaf-type e.g., scalar or enum.
 /// </summary>
-public interface ILeafType : ITypeDefinition
+public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
 {
     /// <summary>
     /// Defines if the given <paramref name="valueSyntax"/> is possibly of this type.

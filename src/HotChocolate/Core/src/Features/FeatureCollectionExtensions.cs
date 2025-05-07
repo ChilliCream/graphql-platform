@@ -17,7 +17,7 @@ public static class FeatureCollectionExtensions
     public static TFeature GetRequired<TFeature>(this IFeatureCollection featureCollection)
         where TFeature : notnull
     {
-        if(featureCollection is null)
+        if (featureCollection is null)
         {
             throw new ArgumentNullException(nameof(featureCollection));
         }
@@ -35,12 +35,12 @@ public static class FeatureCollectionExtensions
     /// <returns>The requested feature.</returns>
     public static object GetRequired(this IFeatureCollection featureCollection, Type key)
     {
-        if(featureCollection is null)
+        if (featureCollection is null)
         {
             throw new ArgumentNullException(nameof(featureCollection));
         }
 
-        if(key is null)
+        if (key is null)
         {
             throw new ArgumentNullException(nameof(key));
         }
@@ -63,9 +63,19 @@ public static class FeatureCollectionExtensions
     /// </exception>
     public static IFeatureCollection ToReadOnly(this IFeatureCollection featureCollection)
     {
-        if(featureCollection is null)
+        if (featureCollection is null)
         {
             throw new ArgumentNullException(nameof(featureCollection));
+        }
+
+        if (featureCollection.IsReadOnly)
+        {
+            return featureCollection;
+        }
+
+        if (featureCollection.IsEmpty)
+        {
+            return EmptyFeatureCollection.Default;
         }
 
         return new ReadOnlyFeatureCollection(featureCollection);

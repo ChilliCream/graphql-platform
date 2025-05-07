@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents an input field of an <see cref="InputObjectType" />.
 /// </summary>
-public class InputField : FieldBase, IInputValueDefinition, IInputFieldInfo, IHasProperty
+public class InputField : FieldBase, IInputValueDefinition, IInputValueInfo, IHasProperty
 {
     private Type _runtimeType = null!;
 

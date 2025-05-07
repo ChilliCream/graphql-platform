@@ -194,7 +194,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SerializationException RequiredInputFieldIsMissing(
-        IInputFieldInfo field,
+        IInputValueInfo field,
         Path fieldPath)
         => new SerializationException(
             ErrorBuilder.New()
@@ -282,7 +282,7 @@ internal static class ThrowHelper
     public static SerializationException NonNullInputViolation(
         ITypeSystemMember type,
         Path? path,
-        IInputFieldInfo? field = null)
+        IInputValueInfo? field = null)
     {
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_NonNullInputViolation)

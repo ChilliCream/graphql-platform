@@ -73,7 +73,6 @@ public partial class Schema
         base.OnCompleteType(context, configuration);
 
         Services = context.Services;
-        Features = configuration.Features.ToReadOnly();
     }
 
     protected override void OnCompleteMetadata(

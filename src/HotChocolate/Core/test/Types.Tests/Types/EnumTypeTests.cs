@@ -477,7 +477,7 @@ public class EnumTypeTests : TypeTestBase
                 .Name("Foo")
                 .Value("bar")
                 .Extend()
-                .OnBeforeCreate(def => def.ContextData["baz"] = "qux"))
+                .OnBeforeCreate(def => def.Features["baz"] = "qux"))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 

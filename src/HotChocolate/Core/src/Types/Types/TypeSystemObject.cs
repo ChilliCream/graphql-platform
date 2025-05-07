@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
@@ -10,7 +11,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// The base class for all GraphQL type system objects.
 /// </summary>
-public abstract class TypeSystemObject : ITypeSystemMember
+public abstract class TypeSystemObject : ITypeSystemMember, IFeatureProvider
 {
     private TypeStatus _status;
     private string? _name;
@@ -68,7 +69,7 @@ public abstract class TypeSystemObject : ITypeSystemMember
         }
     }
 
-    public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
+    public abstract IFeatureCollection Features { get; }
 
     protected internal bool IsInitialized
         => _status is TypeStatus.Initialized

@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -8,6 +10,7 @@ public interface ITypeDefinition
     , INameProvider
     , IDescriptionProvider
     , IDirectivesProvider
+    , IFeatureProvider
     , ISyntaxNodeProvider
 {
     /// <summary>
@@ -25,9 +28,9 @@ public interface ITypeDefinition
 /// <summary>
 /// Represents a GraphQL output type definition.
 /// </summary>
-public interface IOutputTypeDefinition : ITypeDefinition;
+public interface IOutputTypeDefinition : ITypeDefinition, IOutputType;
 
 /// <summary>
 /// Represents a GraphQL input type definition.
 /// </summary>
-public interface IInputTypeDefinition : ITypeDefinition;
+public interface IInputTypeDefinition : ITypeDefinition, IInputType;

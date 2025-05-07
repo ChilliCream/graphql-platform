@@ -31,7 +31,7 @@ public sealed class InputParser
         _ignoreAdditionalInputFields = options.IgnoreAdditionalInputFields;
     }
 
-    public object? ParseLiteral(IValueNode value, IInputFieldInfo field, Type? targetType = null)
+    public object? ParseLiteral(IValueNode value, IInputValueInfo field, Type? targetType = null)
     {
         if (value is null)
         {
@@ -79,7 +79,7 @@ public sealed class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         if (value.Kind == SyntaxKind.NullValue)
         {
@@ -123,7 +123,7 @@ public sealed class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         if (resultValue.Kind == SyntaxKind.ListValue)
         {
@@ -313,7 +313,7 @@ public sealed class InputParser
         IValueNode resultValue,
         ILeafType type,
         Path path,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         try
         {
@@ -747,7 +747,7 @@ public sealed class InputParser
             : value;
     }
 
-    private static object? FormatValue(IInputFieldInfo field, object? value)
+    private static object? FormatValue(IInputValueInfo field, object? value)
         => value is null || field.Formatter is null
             ? value
             : field.Formatter.Format(value);

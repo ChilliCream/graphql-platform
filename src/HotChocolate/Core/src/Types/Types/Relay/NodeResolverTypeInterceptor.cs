@@ -145,7 +145,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // First we are adding a marker to the node type`s context data.
                 // We will replace this later with a NodeResolverInfo instance that
                 // allows the node field to resolve a node instance by its ID.
-                fieldTypeDef.ContextData[NodeResolver] = fieldDef.Name;
+                fieldTypeDef.Features[NodeResolver] = fieldDef.Name;
 
                 // We also want to ensure that the node id argument is always a non-null
                 // ID type. So, if the user has not specified that we are making sure of this
@@ -170,7 +170,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // Last we register the context data of our node with the type
                 // interceptors state.
                 // We do that to replace our marker with the actual NodeResolverInfo instance.
-                _nodes.Add(fieldTypeDef.ContextData);
+                _nodes.Add(fieldTypeDef.Features);
             }
         }
     }

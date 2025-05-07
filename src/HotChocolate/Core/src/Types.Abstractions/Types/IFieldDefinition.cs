@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -8,6 +10,7 @@ public interface IFieldDefinition
     , IDescriptionProvider
     , IDeprecationProvider
     , IDirectivesProvider
+    , IFeatureProvider
     , ISyntaxNodeProvider
     , ISchemaCoordinateProvider
 {

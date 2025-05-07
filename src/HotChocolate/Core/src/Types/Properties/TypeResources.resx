@@ -1003,4 +1003,7 @@ Type: `{0}`</value>
   <data name="SchemaBuilder_BindRuntimeType_ObjectNotAllowed" xml:space="preserve">
     <value>The type `System.Object` cannot be implicitly bound to a schema type.</value>
   </data>
+  <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
+    <value>The specified type kind is not supported.</value>
+  </data>
 </root>

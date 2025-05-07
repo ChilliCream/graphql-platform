@@ -18,9 +18,7 @@ namespace HotChocolate;
 public partial class Schema
     : TypeSystemObject<SchemaTypeConfiguration>
     , ISchemaDefinition
-    , IHasReadOnlyContextData
     , INodeIdRuntimeTypeLookup
-    , IFeatureProvider
 {
     /// <summary>
     /// Gets the GraphQL object type that represents the query root.
@@ -59,17 +57,12 @@ public partial class Schema
         => DirectiveTypes.AsReadOnlyDirectiveCollection();
 
     /// <summary>
-    /// Gets the schema features.
-    /// </summary>
-    public IFeatureCollection Features { get; private set; } = null!;
-
-    /// <summary>
     /// Gets the schema directives.
     /// </summary>
     /// <value></value>
     public DirectiveCollection Directives { get; private set; } = null!;
 
-    IReadOnlyDirectiveCollection ISchemaDefinition.Directives
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => Directives.AsReadOnlyDirectiveCollection();
 
     /// <summary>

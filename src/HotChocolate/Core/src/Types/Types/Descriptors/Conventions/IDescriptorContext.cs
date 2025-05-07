@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -14,7 +15,7 @@ namespace HotChocolate.Types.Descriptors;
 /// The descriptor context is passed around during the schema creation and
 /// allows access to conventions and context data.
 /// </summary>
-public interface IDescriptorContext : IHasContextData, IDisposable
+public interface IDescriptorContext : IFeatureProvider, IDisposable
 {
     /// <summary>
     /// Gets the schema options.

@@ -110,7 +110,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 // if the mutation has any error attributes we will interpret that as an opt-in
                 // to the mutation conventions.
-                if (mutationField.ContextData.ContainsKey(ErrorConfigurations) &&
+                if (mutationField.Features.ContainsKey(ErrorConfigurations) &&
                     !mutationOptions.Apply)
                 {
                     mutationOptions = CreateErrorOptions(mutationOptions);
@@ -459,7 +459,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         // we mustn't forget to drop the error definitions at this point since we do not
         // want to preserve them on the actual schema field.
-        mutation.ContextData.Remove(ErrorConfigurations);
+        mutation.Features.Remove(ErrorConfigurations);
     }
 
     private static InputObjectType CreateInputType(
@@ -505,7 +505,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 return parent;
             });
-        objectDef.ContextData.Add(MutationConventionDataField, dataFieldDef.Name);
+        objectDef.Features.Add(MutationConventionDataField, dataFieldDef.Name);
         objectDef.Fields.Add(dataFieldDef);
 
         // if the mutation has domain errors we will add the errors
@@ -544,7 +544,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         ObjectTypeConfiguration objectTypeDef,
         TypeReference errorInterfaceTypeRef)
     {
-        if (objectTypeDef.ContextData.IsError())
+        if (objectTypeDef.Features.IsError())
         {
             objectTypeDef.Interfaces.Add(errorInterfaceTypeRef);
         }

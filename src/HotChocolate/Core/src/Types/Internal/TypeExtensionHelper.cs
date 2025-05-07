@@ -153,9 +153,9 @@ public static class TypeExtensionHelper
         TypeSystemConfiguration extension,
         TypeSystemConfiguration type)
     {
-        if (extension.GetContextData().Count > 0)
+        if (extension.GetFeatures().Count > 0)
         {
-            type.ContextData.AddRange(extension.GetContextData());
+            type.Features.AddRange(extension.GetFeatures());
         }
     }
 

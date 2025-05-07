@@ -108,7 +108,7 @@ public class MutableSchemaDefinition
     public DirectiveCollection Directives
         => _directives ??= [];
 
-    IReadOnlyDirectiveCollection ISchemaDefinition.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <inheritdoc />
     public IFeatureCollection Features

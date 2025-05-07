@@ -50,7 +50,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // we capture the schema context data before everything else so that we can
         // set a marker if the authorization validation rules need to be executed.
-        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Configuration.ContextData);
+        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Configuration.Features);
     }
 
     private ITypeCompletionContext _tc = default!;
@@ -163,7 +163,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 }
             }
 
-            type.TypeDef.ContextData[NodeResolver] =
+            type.TypeDef.Features[NodeResolver] =
                 new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline);
         }
     }
@@ -195,7 +195,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                     // if the field contains the AnonymousAllowed flag we will not
                     // apply authorization on it.
-                    if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+                    if(fieldDef.GetFeatures().ContainsKey(AllowAnonymous))
                     {
                         continue;
                     }
@@ -370,7 +370,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // if the field contains the AnonymousAllowed flag we will not apply authorization
         // on it.
-        if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+        if(fieldDef.GetFeatures().ContainsKey(AllowAnonymous))
         {
             return;
         }
@@ -644,7 +644,7 @@ file static class AuthorizationTypeInterceptorExtensions
 {
     public static bool IsNodeField(this ObjectFieldConfiguration fieldDef)
     {
-        var contextData = fieldDef.GetContextData();
+        var contextData = fieldDef.GetFeatures();
 
         return contextData.ContainsKey(WellKnownContextData.IsNodeField) ||
             contextData.ContainsKey(WellKnownContextData.IsNodesField);
