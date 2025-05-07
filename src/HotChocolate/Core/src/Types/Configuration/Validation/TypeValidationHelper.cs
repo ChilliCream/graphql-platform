@@ -7,8 +7,6 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
-    private const char _prefixCharacter = '_';
-
     public static void EnsureTypeHasFields(
         IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
@@ -24,10 +22,8 @@ internal static class TypeValidationHelper
         IInputObjectTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
-
             if (field.IsDeprecated && field.Type.IsNonNullType() && field.DefaultValue is null)
             {
                 errors.Add(RequiredFieldCannotBeDeprecated(type, field));
@@ -39,13 +35,10 @@ internal static class TypeValidationHelper
         IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
-            for (var j = 0; j < field.Arguments.Count; j++)
+            foreach (var argument in field.Arguments)
             {
-                var argument = field.Arguments[j];
-
                 if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
                 {
                     errors.Add(RequiredArgumentCannotBeDeprecated(type, field, argument));
@@ -55,7 +48,7 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureArgumentDeprecationIsValid(
-        DirectiveType type,
+        IDirectiveDefinition type,
         ICollection<ISchemaError> errors)
     {
         foreach (var argument in type.Arguments)
@@ -284,17 +277,11 @@ internal static class TypeValidationHelper
 
     private static bool StartsWithTwoUnderscores(string name)
     {
-        if (name.Length > 2)
+        if (name.Length < 2)
         {
-            var firstTwoLetters = name.AsSpan()[..2];
-
-            if (firstTwoLetters[0] == _prefixCharacter
-                && firstTwoLetters[1] == _prefixCharacter)
-            {
-                return true;
-            }
+            return false;
         }
 
-        return false;
+        return name.AsSpan(0, 2).SequenceEqual("__");
     }
 }

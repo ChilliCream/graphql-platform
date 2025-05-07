@@ -535,7 +535,7 @@ public partial class SchemaBuilder
             }
         }
 
-        private static IReadOnlyCollection<TypeSystemObject> RemoveUnreachableTypes(
+        private static IReadOnlyCollection<ITypeSystemMember> RemoveUnreachableTypes(
             SchemaBuilder builder,
             TypeRegistry typeRegistry,
             SchemaTypesConfiguration configuration)

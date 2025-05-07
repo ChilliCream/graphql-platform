@@ -65,7 +65,8 @@ public abstract partial class ScalarType
     /// </summary>
     public DirectiveCollection Directives { get; private set; }
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives.AsReadOnlyDirectiveCollection();
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
 
     /// <summary>
     /// Provides access to the schema type converter.

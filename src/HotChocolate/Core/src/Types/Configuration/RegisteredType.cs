@@ -28,14 +28,14 @@ internal sealed partial class RegisteredType : IHasRuntimeType
         DescriptorContext = descriptorContext;
         TypeInterceptor = typeInterceptor;
         IsExtension = Type is ITypeDefinitionExtension;
-        IsSchema = Type is ISchema;
+        IsSchema = Type is Schema;
         Scope = scope;
 
-        if (type is INamedType nt)
+        if (type is ITypeDefinition typeDefinition)
         {
             IsNamedType = true;
-            IsIntrospectionType = nt.IsIntrospectionType();
-            Kind = nt.Kind;
+            IsIntrospectionType = typeDefinition.IsIntrospectionType();
+            Kind = typeDefinition.Kind;
         }
         else if (type is DirectiveType)
         {

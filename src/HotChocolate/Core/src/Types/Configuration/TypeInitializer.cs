@@ -319,7 +319,7 @@ internal sealed class TypeInitializer
 
             foreach (var typeName in extensions
                 .Select(t => t.Type)
-                .OfType<ITypeDefinitionExtension>()
+                .OfType<ITypeDefinitionExtensionMerger>()
                 .Where(t => t.ExtendsType is null)
                 .Select(t => t.Name)
                 .Distinct())
@@ -340,7 +340,7 @@ internal sealed class TypeInitializer
 
             foreach (var extension in extensions.Except(processed))
             {
-                if (extension.Type is ITypeDefinitionExtension { ExtendsType: { } extendsType } namedTypeExtension)
+                if (extension.Type is ITypeDefinitionExtensionMerger { ExtendsType: { } extendsType } namedTypeExtension)
                 {
                     var isSchemaType = typeof(ITypeDefinition).IsAssignableFrom(extendsType);
                     extensionArray[0] = extension;
@@ -394,7 +394,7 @@ internal sealed class TypeInitializer
         {
             processed.Add(extension);
 
-            if (extension.Type is ITypeDefinitionExtension m)
+            if (extension.Type is ITypeDefinitionExtensionMerger m)
             {
                 if (m.Kind != namedType.Kind)
                 {

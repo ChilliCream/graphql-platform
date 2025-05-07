@@ -71,4 +71,7 @@ internal interface ITypeDefinitionExtensionMerger : ITypeDefinitionExtension
     void Merge(ITypeCompletionContext context, ITypeDefinition type);
 }
 
+/// <summary>
+/// Represents a type definition extension.
+/// </summary>
 public interface ITypeDefinitionExtension : ITypeDefinition { }

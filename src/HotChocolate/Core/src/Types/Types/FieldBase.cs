@@ -61,7 +61,8 @@ public abstract class FieldBase
     /// <inheritdoc />
     public DirectiveCollection Directives { get; private set; }
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
 
     /// <inheritdoc />
     public bool IsDeprecated { get; }

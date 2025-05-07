@@ -93,7 +93,7 @@ public static class SchemaExtensions
 
         if (coordinate.OfDirective)
         {
-            if (schema.TryGetDirectiveType(coordinate.Name, out var directive))
+            if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -112,7 +112,7 @@ public static class SchemaExtensions
             return false;
         }
 
-        if (schema.TryGetType<INamedType>(coordinate.Name, out var type))
+        if (schema.Types.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {
@@ -124,8 +124,8 @@ public static class SchemaExtensions
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumType)type;
-                    if (enumType.TryGetValue(coordinate.MemberName, out var enumValue))
+                    var enumType = type.ExpectEnumType();
+                    if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         member = enumValue;
                         return true;
@@ -134,7 +134,7 @@ public static class SchemaExtensions
 
                 if (type.Kind is TypeKind.InputObject)
                 {
-                    var inputType = (InputObjectType)type;
+                    var inputType = type.ExpectInputObjectType();
                     if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
                         member = input;
@@ -149,7 +149,7 @@ public static class SchemaExtensions
                 return false;
             }
 
-            var complexType = (IComplexOutputType)type;
+            var complexType = type.ExpectComplexType();
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)
@@ -227,7 +227,7 @@ public static class SchemaExtensions
 
         if (coordinate.OfDirective)
         {
-            if (schema.TryGetDirectiveType(coordinate.Name, out var directive))
+            if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -245,7 +245,7 @@ public static class SchemaExtensions
             throw TypeThrowHelper.Schema_GetMember_DirectiveNotFound(coordinate);
         }
 
-        if (schema.TryGetType<INamedType>(coordinate.Name, out var type))
+        if (schema.Types.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {
@@ -282,7 +282,7 @@ public static class SchemaExtensions
                 throw TypeThrowHelper.Schema_GetMember_InvalidCoordinate(coordinate, type);
             }
 
-            var complexType = (IComplexOutputType)type;
+            var complexType = type.ExpectComplexType();
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)

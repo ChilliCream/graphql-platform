@@ -189,8 +189,8 @@ internal static class ErrorHelper
 
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
         IComplexTypeDefinition type,
-        OutputField field,
-        InputField argument)
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_RequiredArgumentCannotBeDeprecated,
@@ -214,8 +214,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError RequiredFieldCannotBeDeprecated(
-        InputObjectType type,
-        InputField field)
+        IInputObjectTypeDefinition type,
+        IInputValueDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_RequiredFieldCannotBeDeprecated,
