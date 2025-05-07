@@ -89,7 +89,7 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
-    public IType Type
+    public IInputType Type
     {
         get;
         private set
@@ -98,6 +98,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
             field = value;
         }
     }
+
+    IType IFieldDefinition.Type => Type;
 
     public IFeatureCollection Features
     {

@@ -7,14 +7,14 @@ namespace HotChocolate.Fusion.Types.Completion;
 internal ref struct CompositeInputFieldCompletionContext(
     ITypeSystemMember declaringMember,
     FusionDirectiveCollection directives,
-    IType type,
+    IInputType type,
     IFeatureCollection features)
 {
     public ITypeSystemMember DeclaringMember { get; } = declaringMember;
 
     public FusionDirectiveCollection Directives { get; } = directives;
 
-    public IType Type { get; } = type;
+    public IInputType Type { get; } = type;
 
     public IFeatureCollection Features { get; } = features;
 }

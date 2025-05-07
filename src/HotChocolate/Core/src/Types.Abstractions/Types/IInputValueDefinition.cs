@@ -10,6 +10,11 @@ public interface IInputValueDefinition
     , ISyntaxNodeProvider<InputValueDefinitionNode>
 {
     /// <summary>
+    /// Gets the type of the input value definition.
+    /// </summary>
+    new IInputType Type { get; }
+
+    /// <summary>
     /// Gets the default value of the input value.
     /// </summary>
     IValueNode? DefaultValue { get; }

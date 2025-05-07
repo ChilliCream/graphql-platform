@@ -16,14 +16,14 @@ public class MutableInputFieldDefinition
     , IMutableFieldDefinition
     , IFeatureProvider
 {
-    private IType _type;
+    private IInputType _type;
     private bool _isDeprecated;
     private DirectiveCollection? _directives;
 
     /// <summary>
     /// Represents a GraphQL input field definition.
     /// </summary>
-    public MutableInputFieldDefinition(string name, IType? type = null)
+    public MutableInputFieldDefinition(string name, IInputType? type = null)
     {
         Name = name;
         _type = type ?? NotSetType.Default;
@@ -84,7 +84,7 @@ public class MutableInputFieldDefinition
                     }
 
                     return new SchemaCoordinate(
-                        ((ITypeDefinition)fieldDef.DeclaringType).Name,
+                        fieldDef.DeclaringType.Name,
                         fieldDef.Name,
                         Name,
                         ofDirective: false);
@@ -94,8 +94,6 @@ public class MutableInputFieldDefinition
             }
         }
     }
-
-    IType IFieldDefinition.Type => _type;
 
     /// <summary>
     /// Gets or sets the default value for this input field.
@@ -140,11 +138,19 @@ public class MutableInputFieldDefinition
         => _directives ?? EmptyCollections.Directives;
 
     /// <inheritdoc cref="IMutableFieldDefinition.Type" />
-    public IType Type
+    public IInputType Type
     {
         get => _type;
         set => _type = value.ExpectInputType();
     }
+
+    IType IMutableFieldDefinition.Type
+    {
+        get => Type;
+        set => Type = value.ExpectInputType();
+    }
+
+    IType IFieldDefinition.Type => _type;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]
