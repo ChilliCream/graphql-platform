@@ -87,7 +87,11 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     kind = RequestMiddlewareParameterKind.Service;
                 }
 
-                ctorParameters.Add(new RequestMiddlewareParameterInfo(kind, parameterTypeName));
+                ctorParameters.Add(
+                    new RequestMiddlewareParameterInfo(
+                        kind,
+                        parameterTypeName,
+                        isNullable: !parameter.IsNonNullable()));
             }
 
             foreach (var parameter in invokeMethod.Parameters)
@@ -113,7 +117,11 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     kind = RequestMiddlewareParameterKind.Service;
                 }
 
-                invokeParameters.Add(new RequestMiddlewareParameterInfo(kind, parameterTypeName));
+                invokeParameters.Add(
+                    new RequestMiddlewareParameterInfo(
+                        kind,
+                        parameterTypeName,
+                        isNullable: !parameter.IsNonNullable()));
             }
 
             syntaxInfo = new RequestMiddlewareInfo(
