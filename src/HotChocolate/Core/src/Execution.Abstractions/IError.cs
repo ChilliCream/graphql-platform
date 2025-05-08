@@ -85,19 +85,6 @@ public interface IError
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
-    /// but with the specified <paramref name="path" />.
-    /// </summary>
-    /// <param name="path">
-    /// A path representing a certain syntax node of a query or schema.
-    /// </param>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but with the specified <paramref name="path" />.
-    /// </returns>
-    IError WithPath(IReadOnlyList<object> path);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
     /// but with the specified <paramref name="locations" />.
     /// </summary>
     /// <param name="locations">

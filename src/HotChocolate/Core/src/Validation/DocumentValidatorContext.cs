@@ -11,10 +11,10 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
     private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
     private readonly List<IError> _errors = [];
 
-    private Schema? _schema;
+    private ISchemaDefinition? _schema;
     private IOutputType? _nonNullString;
 
-    public Schema Schema
+    public ISchemaDefinition Schema
     {
         get
         {
@@ -28,7 +28,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         set
         {
             _schema = value;
-            NonNullString = new NonNullType(_schema.GetType<StringType>("String"));
+            NonNullString = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>("String"));
         }
     }
 
@@ -80,19 +80,19 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public ISet<string> Names { get; } = new HashSet<string>();
 
-    public IList<IType> Types { get; } = new List<IType>();
+    public IList<IType> Types { get; } = [];
 
-    public IList<DirectiveType> Directives { get; } = new List<DirectiveType>();
+    public IList<DirectiveType> Directives { get; } = [];
 
-    public IList<IOutputField> OutputFields { get; } = new List<IOutputField>();
+    public IList<IOutputFieldDefinition> OutputFields { get; } = [];
 
-    public IList<FieldNode> Fields { get; } = new List<FieldNode>();
+    public IList<FieldNode> Fields { get; } = [];
 
-    public IList<IInputField> InputFields { get; } = new List<IInputField>();
+    public IList<IInputValueDefinition> InputFields { get; } = [];
 
     public IReadOnlyCollection<IError> Errors => _errors;
 
-    public IList<object?> List { get; } = new List<object?>();
+    public IList<object?> List { get; } = [];
 
     public bool UnexpectedErrorsDetected { get; set; }
 
