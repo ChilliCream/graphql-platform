@@ -3,11 +3,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
-using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Utilities.ErrorHelper;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
-    private readonly List<IDictionary<string, object?>> _nodes = [];
+    private readonly OrderedDictionary<string, IFeatureCollection> _nodes = [];
 
     internal override uint Position => uint.MaxValue - 101;
 
@@ -145,7 +145,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // First, we are adding a marker to the node type's context data.
                 // We will replace this later with a NodeResolverInfo instance that
                 // allows the node field to resolve a node instance by its ID.
-                fieldTypeDef.Features[NodeResolver] = fieldDef.Name;
+                fieldTypeDef.Features.GetOrSet<NodeTypeFeature>();
 
                 // We also want to ensure that the node id argument is always a non-null
                 // ID type. So, if the user has not specified that, we are making sure of this
@@ -170,7 +170,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // Last we register the context data of our node with the type
                 // interceptors state.
                 // We do that to replace our marker with the actual NodeResolverInfo instance.
-                _nodes.Add(fieldTypeDef.Features);
+                _nodes.TryAdd(fieldDef.Name, fieldTypeDef.Features);
             }
         }
     }
@@ -182,12 +182,11 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             // After all types are completed, it is guaranteed that all
             // query field resolver pipelines are fully compiled.
             // So, we can start replacing our marker with the actual NodeResolverInfo.
-            foreach (var node in _nodes)
+            foreach (var (fieldName, features) in _nodes)
             {
-                var fieldName = (string)node[NodeResolver]!;
                 var field = QueryType.Fields[fieldName];
-
-                node[NodeResolver] = new NodeResolverInfo(field, field.Middleware);
+                var feature = features.GetOrSet<NodeTypeFeature>();
+                feature.NodeResolver = new NodeResolverInfo(field, field.Middleware);
             }
         }
     }
