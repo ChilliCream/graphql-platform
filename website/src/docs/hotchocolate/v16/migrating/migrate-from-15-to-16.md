@@ -12,6 +12,10 @@ Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
+## Skip/include disallowed on root subscription fields
+
+The `@skip` and `@include` directives are now disallowed on root subscription fields, as specified in the RFC: [Prevent @skip and @include on root subscription selection set](https://github.com/graphql/graphql-spec/pull/860).
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
