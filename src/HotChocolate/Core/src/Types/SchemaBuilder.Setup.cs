@@ -3,6 +3,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -56,13 +57,13 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
                 }
 
-                if (builder._schemaFirstTypeInterceptor is not null)
+                if (builder.Features.Get<TypeSystemFeature>()?.SchemaDocuments.Count > 0)
                 {
-                    typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
+                    typeInterceptors.Add(new SchemaFirstTypeInterceptor());
                 }
 
-                PagingDefaults.Apply(builder._pagingOptions);
-                context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
+                var pagingOptions = builder.Features.GetOrSet<PagingOptions>();
+                PagingDefaults.Apply(pagingOptions);
 
                 InitializeInterceptors(
                     context.Services,
@@ -101,8 +102,7 @@ public partial class SchemaBuilder
             var context = DescriptorContext.Create(
                 () => builder._options,
                 services,
-                builder._conventions,
-                builder._contextData,
+                builder.Features,
                 lazySchema,
                 typeInterceptor);
 
@@ -127,10 +127,7 @@ public partial class SchemaBuilder
                 types.Add(typeRef(context.TypeInspector));
             }
 
-            if (builder._documents.Count > 0)
-            {
-                types.AddRange(ParseDocuments(builder, context));
-            }
+            types.AddRange(ParseDocuments(builder, context));
 
             types.Add(builder._schema is null
                 ? new SchemaTypeReference(new Schema())
@@ -143,23 +140,28 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<TypeReference>();
-            var documents = new List<DocumentNode>();
-            context.ContextData[WellKnownContextData.SchemaDocuments] = documents;
-
-            foreach (var fetchSchema in builder._documents)
+            if (!builder.Features.TryGet(out TypeSystemFeature? feature)
+                || feature.SchemaDocuments.Count == 0)
             {
-                var schemaDocument = fetchSchema(context.Services);
-                schemaDocument = schemaDocument.RemoveBuiltInTypes();
-                documents.Add(schemaDocument);
+                return [];
+            }
 
-                var visitorContext = new SchemaSyntaxVisitorContext(
-                    context,
-                    builder._schemaFirstTypeInterceptor!.Directives);
-                var visitor = new SchemaSyntaxVisitor();
+            var types = new List<TypeReference>();
+            var visitor = new SchemaSyntaxVisitor();
+
+            foreach (var documentInfo in feature.SchemaDocuments)
+            {
+                var schemaDocument = documentInfo.Load(context.Services);
+                schemaDocument = schemaDocument.RemoveBuiltInTypes();
+
+                var visitorContext = new SchemaSyntaxVisitorContext(context)
+                {
+                    ScalarDirectives = feature.ScalarDirectives
+                };
 
                 visitor.Visit(schemaDocument, visitorContext);
                 types.AddRange(visitorContext.Types);
+                feature.ScalarDirectives = visitorContext.ScalarDirectives;
 
                 RegisterOperationName(
                     builder,
@@ -176,8 +178,7 @@ public partial class SchemaBuilder
                     OperationType.Subscription,
                     visitorContext.SubscriptionTypeName);
 
-                var directives =
-                    visitorContext.Directives ?? Array.Empty<DirectiveNode>();
+                var directives = visitorContext.Directives ?? [];
 
                 if (builder._schema is null && (directives.Count > 0 || visitorContext.Description != null))
                 {
@@ -260,7 +261,8 @@ public partial class SchemaBuilder
             List<T> interceptors)
             where T : class
         {
-            if (services is not EmptyServiceProvider && services.GetService<IEnumerable<T>>() is { } fromService)
+            if (services is not EmptyServiceProvider
+                && services.GetService<IEnumerable<T>>() is { } fromService)
             {
                 interceptors.AddRange(fromService);
             }
@@ -477,44 +479,44 @@ public partial class SchemaBuilder
                 switch (reference)
                 {
                     case SchemaTypeReference str:
-                    {
-                        if (str.Type is not ObjectType ot)
                         {
-                            Throw((ITypeDefinition)str.Type, operation);
-                        }
+                            if (str.Type is not ObjectType ot)
+                            {
+                                Throw((ITypeDefinition)str.Type, operation);
+                            }
 
-                        return ot;
-                    }
+                            return ot;
+                        }
 
                     case ExtendedTypeReference cr when typeRegistry.TryGetType(cr, out var registeredType):
-                    {
-                        if (registeredType.Type is not ObjectType ot)
                         {
-                            Throw((ITypeDefinition)registeredType.Type, operation);
-                        }
+                            if (registeredType.Type is not ObjectType ot)
+                            {
+                                Throw((ITypeDefinition)registeredType.Type, operation);
+                            }
 
-                        return ot;
-                    }
+                            return ot;
+                        }
 
                     case SyntaxTypeReference str:
-                    {
-                        var namedType = str.Type.NamedType();
-                        var type = typeRegistry.Types
-                            .Select(t => t.Type)
-                            .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
-
-                        if (type is null)
                         {
-                            return null;
-                        }
+                            var namedType = str.Type.NamedType();
+                            var type = typeRegistry.Types
+                                .Select(t => t.Type)
+                                .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
 
-                        if (type is not ObjectType ot)
-                        {
-                            Throw((ITypeDefinition)type, operation);
-                        }
+                            if (type is null)
+                            {
+                                return null;
+                            }
 
-                        return ot;
-                    }
+                            if (type is not ObjectType ot)
+                            {
+                                Throw((ITypeDefinition)type, operation);
+                            }
+
+                            return ot;
+                        }
 
                     default:
                         return null;

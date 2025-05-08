@@ -89,15 +89,23 @@ public partial class Schema
     /// <returns>
     /// Returns the GraphQL object type for the given <paramref name="operationType"/>
     /// </returns>
-    public IObjectTypeDefinition? GetOperationType(OperationType operationType)
+    public IObjectTypeDefinition GetOperationType(OperationType operationType)
     {
-        return operationType switch
+        var type = operationType switch
         {
             OperationType.Query => QueryType,
             OperationType.Mutation => MutationType,
             OperationType.Subscription => SubscriptionType,
             _ => throw new ArgumentException(nameof(operationType)),
         };
+
+        if (type is null)
+        {
+            throw new InvalidOperationException(
+                $"The specified operation type `{operationType}` is not supported.");
+        }
+
+        return type;
     }
 
     /// <summary>

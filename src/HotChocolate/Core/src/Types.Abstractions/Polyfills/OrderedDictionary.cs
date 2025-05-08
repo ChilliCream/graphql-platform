@@ -14,6 +14,21 @@ public class OrderedDictionary<TKey, TValue>
     private readonly List<TKey> _keys = [];
     private readonly Dictionary<TKey, TValue> _map = new();
 
+    public OrderedDictionary()
+    {
+    }
+
+    public OrderedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection)
+    {
+        ArgumentNullException.ThrowIfNull(collection);
+
+        foreach (var (key, value) in collection)
+        {
+            _map.Add(key, value);
+            _keys.Add(key);
+        }
+    }
+
     public KeyValuePair<TKey, TValue> GetAt(int index)
     {
         if (index < 0 || index >= _keys.Count)
@@ -121,9 +136,8 @@ public class OrderedDictionary<TKey, TValue>
 
     public bool Remove(TKey key)
     {
-        if (_map.ContainsKey(key))
+        if (_map.Remove(key))
         {
-            _map.Remove(key);
             _keys.RemoveAt(IndexOfKey(key));
             return true;
         }

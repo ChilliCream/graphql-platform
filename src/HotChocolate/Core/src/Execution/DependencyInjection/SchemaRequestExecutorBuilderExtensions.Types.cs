@@ -1,5 +1,7 @@
 using HotChocolate;
+using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -1707,17 +1709,13 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type scalarType,
         string typeName)
     {
-        builder.ConfigureSchema(b =>
-        {
-            if (!b.ContextData.TryGetValue(WellKnownContextData.ScalarNameOverrides, out var value)
-                || value is not List<(string, Type)> nameOverrides)
-            {
-                nameOverrides = new List<(string, Type)>();
-                b.ContextData[WellKnownContextData.ScalarNameOverrides] = nameOverrides;
-            }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(scalarType);
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
 
-            nameOverrides.Add((typeName, scalarType));
-        });
+        builder.ConfigureSchemaFeature(
+            f => f.GetOrSet<TypeSystemFeature>().ScalarNameOverrides.TryAdd(typeName, scalarType));
+
         return builder;
     }
 }

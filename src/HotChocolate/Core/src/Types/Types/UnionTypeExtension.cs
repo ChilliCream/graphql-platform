@@ -103,7 +103,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
             AssertMutable();
             unionType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
+            TypeExtensionHelper.MergeFeatures(
                 Configuration!,
                 unionType.Configuration!);
 

@@ -138,7 +138,7 @@ internal sealed class SourceSchemaMerger
         var description = argumentA.Description ?? argumentB.Description;
         var defaultValue = argumentA.DefaultValue ?? argumentB.DefaultValue;
 
-        return new MutableInputFieldDefinition(argumentA.Name, type)
+        return new MutableInputFieldDefinition(argumentA.Name, type.ExpectInputType())
         {
             DefaultValue = defaultValue,
             Description = description
@@ -170,8 +170,9 @@ internal sealed class SourceSchemaMerger
             mergedArgument = MergeArguments(mergedArgument, argumentInfo.Argument);
         }
 
-        mergedArgument.Type = mergedArgument.Type.ReplaceNamedType(
-            _ => GetOrCreateType(mergedSchema, mergedArgument.Type));
+        mergedArgument.Type = mergedArgument.Type
+            .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, mergedArgument.Type))
+            .ExpectInputType();
 
         AddFusionInputFieldDirectives(mergedArgument, argumentGroup);
 
@@ -330,7 +331,7 @@ internal sealed class SourceSchemaMerger
         for (var i = 1; i < inputFieldGroup.Length; i++)
         {
             var inputFieldInfo = inputFieldGroup[i];
-            fieldType = MostRestrictiveType(fieldType, inputFieldInfo.Field.Type);
+            fieldType = MostRestrictiveType(fieldType, inputFieldInfo.Field.Type).ExpectInputType();
             description ??= inputFieldInfo.Field.Description;
             defaultValue ??= inputFieldInfo.Field.DefaultValue;
         }
@@ -339,7 +340,9 @@ internal sealed class SourceSchemaMerger
         {
             DefaultValue = defaultValue,
             Description = description,
-            Type = fieldType.ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
+            Type = fieldType
+                .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
+                .ExpectInputType()
         };
 
         AddFusionInputFieldDirectives(inputField, inputFieldGroup);
@@ -529,14 +532,16 @@ internal sealed class SourceSchemaMerger
         for (var i = 1; i < fieldGroup.Length; i++)
         {
             var fieldInfo = fieldGroup[i];
-            fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type);
+            fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type).ExpectOutputType();
             description ??= fieldInfo.Field.Description;
         }
 
         var outputField = new MutableOutputFieldDefinition(fieldName)
         {
             Description = description,
-            Type = fieldType.ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
+            Type = fieldType
+                .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
+                .ExpectOutputType()
         };
 
         // [ArgumentName: [{Argument, Field, Type, Schema}, ...], ...].

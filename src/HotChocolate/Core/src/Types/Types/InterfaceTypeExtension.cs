@@ -100,7 +100,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
             AssertMutable();
             interfaceType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
+            TypeExtensionHelper.MergeFeatures(
                 Configuration!,
                 interfaceType.Configuration!);
 

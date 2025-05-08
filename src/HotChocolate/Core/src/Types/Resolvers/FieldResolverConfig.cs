@@ -2,11 +2,11 @@
 
 namespace HotChocolate.Resolvers;
 
-internal readonly struct FieldResolverConfig
+internal readonly struct FieldResolverConfiguration
 {
     private readonly bool _isEmpty;
 
-    public FieldResolverConfig(
+    public FieldResolverConfiguration(
         SchemaCoordinate fieldCoordinate,
         FieldResolverDelegate? resolver = null,
         PureFieldDelegate? pureResolver = null,

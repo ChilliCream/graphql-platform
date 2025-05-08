@@ -2,9 +2,9 @@
 
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -45,15 +45,8 @@ internal sealed class IsSelectedParameterExpressionBuilder
             definition.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask((ctx, def) =>
                     {
-                        if (!ctx.DescriptorContext.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks,
-                            out var value))
-                        {
-                            value = new List<IsSelectedPattern>();
-                            ctx.DescriptorContext.ContextData[WellKnownContextData.PatternValidationTasks] = value;
-                        }
-
-                        var patterns = (List<IsSelectedPattern>)value!;
-                        patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
+                        var feature = ctx.DescriptorContext.Features.GetOrSet<IsSelectedFeature>();
+                        feature.Patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
                     },
                     definition,
                     ApplyConfigurationOn.AfterCompletion));

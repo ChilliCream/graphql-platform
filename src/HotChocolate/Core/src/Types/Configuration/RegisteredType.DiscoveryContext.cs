@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -15,7 +16,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     public IDescriptorContext DescriptorContext { get; }
 
-    public IDictionary<string, object?> ContextData => DescriptorContext.ContextData;
+    public IFeatureCollection Features => DescriptorContext.Features;
 
     public IServiceProvider Services => DescriptorContext.Services;
 

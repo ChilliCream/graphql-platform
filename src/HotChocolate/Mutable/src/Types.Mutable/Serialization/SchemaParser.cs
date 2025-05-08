@@ -383,7 +383,7 @@ public static class SchemaParser
 
                 var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
                 argument.Description = argumentNode.Description?.Value;
-                argument.Type = schema.Types.BuildType(argumentNode.Type);
+                argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
                 argument.DefaultValue = argumentNode.DefaultValue;
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -427,7 +427,7 @@ public static class SchemaParser
 
             var field = new MutableInputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.BuildType(fieldNode.Type);
+            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectInputType();
             field.DefaultValue = fieldNode.DefaultValue;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
@@ -552,7 +552,7 @@ public static class SchemaParser
         {
             var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
             argument.Description = argumentNode.Description?.Value;
-            argument.Type = schema.Types.BuildType(argumentNode.Type);
+            argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
             argument.DefaultValue = argumentNode.DefaultValue;
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);

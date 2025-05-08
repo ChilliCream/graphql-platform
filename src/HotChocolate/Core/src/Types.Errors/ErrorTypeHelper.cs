@@ -1,4 +1,4 @@
-using static HotChocolate.Types.ErrorContextDataKeys;
+using HotChocolate.Features;
 
 namespace HotChocolate.Types;
 
@@ -26,18 +26,19 @@ internal sealed class ErrorTypeHelper
     {
         var errorTypes = GetErrorResultTypes(field);
 
-        if (field.Features.TryGetValue(ErrorConfigurations, out var value) &&
-            value is IReadOnlyList<ErrorConfiguration> errorConfigs)
+        var feature = field.Features.Get<ErrorFieldFeature>();
+
+        if (feature is not null)
         {
             if (errorTypes.Length == 0)
             {
-                return errorConfigs;
+                return feature.ErrorConfigurations;
             }
 
             _handled.Clear();
             _tempErrors.Clear();
 
-            foreach (var errorDef in errorConfigs)
+            foreach (var errorDef in feature.ErrorConfigurations)
             {
                 _handled.Add(errorDef.RuntimeType);
                 _tempErrors.Add(errorDef);
@@ -55,7 +56,7 @@ internal sealed class ErrorTypeHelper
 
             CreateErrorDefinitions(errorTypes, _handled, _tempErrors);
 
-            return _tempErrors.ToArray();
+            return [.. _tempErrors];
         }
 
         return [];
@@ -136,24 +137,15 @@ internal sealed class ErrorTypeHelper
             return;
         }
 
-        var key = typeof(ErrorInterfaceType).FullName!;
-
-        if (!context.ContextData.TryGetValue(key, out var value))
-        {
-            value = CreateErrorTypeRef(context);
-            context.ContextData.Add(key, value);
-        }
-
-        _errorInterfaceTypeRef = (ExtendedTypeReference)value!;
+        var feature = context.Features.GetOrSet<ErrorSchemaFeature>();
+        feature.ErrorInterfaceRef ??= CreateErrorTypeRef(context);
+        _errorInterfaceTypeRef = feature.ErrorInterfaceRef;
     }
 
     private static ExtendedTypeReference CreateErrorTypeRef(IDescriptorContext context)
     {
-        var errorInterfaceType =
-            context.ContextData.TryGetValue(ErrorType, out var value) &&
-            value is Type type
-                ? type
-                : typeof(ErrorInterfaceType);
+        var feature = context.Features.Get<ErrorSchemaFeature>();
+        var errorInterfaceType = feature?.ErrorInterface ?? typeof(ErrorInterfaceType);
 
         if (!context.TypeInspector.IsSchemaType(errorInterfaceType))
         {

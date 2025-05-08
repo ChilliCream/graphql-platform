@@ -87,7 +87,7 @@ public static class TypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                MergeContextData(extensionField, typeField);
+                MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -149,13 +149,16 @@ public static class TypeExtensionHelper
         }
     }
 
-    public static void MergeContextData(
+    public static void MergeFeatures(
         TypeSystemConfiguration extension,
         TypeSystemConfiguration type)
     {
-        if (extension.GetFeatures().Count > 0)
+        if (!extension.GetFeatures().IsEmpty)
         {
-            type.Features.AddRange(extension.GetFeatures());
+            foreach (var feature in extension.GetFeatures())
+            {
+                type.Features.Set(feature);
+            }
         }
     }
 

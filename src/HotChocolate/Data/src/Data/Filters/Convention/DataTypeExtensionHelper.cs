@@ -13,7 +13,7 @@ internal static class DataTypeExtensionHelper
         FilterInputTypeConfiguration extensionConfiguration,
         FilterInputTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
+        TypeExtensionHelper.MergeFeatures(
             extensionConfiguration,
             typeConfiguration);
 
@@ -37,7 +37,7 @@ internal static class DataTypeExtensionHelper
         SortEnumTypeConfiguration extensionConfiguration,
         SortEnumTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
+        TypeExtensionHelper.MergeFeatures(
             extensionConfiguration,
             typeConfiguration);
 
@@ -61,7 +61,7 @@ internal static class DataTypeExtensionHelper
         SortInputTypeConfiguration extensionConfiguration,
         SortInputTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
+        TypeExtensionHelper.MergeFeatures(
             extensionConfiguration,
             typeConfiguration);
 
@@ -177,7 +177,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -216,7 +216,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -246,7 +246,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }

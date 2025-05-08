@@ -567,12 +567,6 @@ namespace HotChocolate.Properties {
             }
         }
 
-        internal static string SchemaBuilderExtensions_SchemaIsEmpty {
-            get {
-                return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
-            }
-        }
-
         internal static string SchemaBuilder_Binding_CannotBeHandled {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Binding_CannotBeHandled", resourceCulture);
@@ -582,12 +576,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_Binding_Invalid {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Binding_Invalid", resourceCulture);
-            }
-        }
-
-        internal static string SchemaBuilder_ISchemaNotTso {
-            get {
-                return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
             }
         }
 

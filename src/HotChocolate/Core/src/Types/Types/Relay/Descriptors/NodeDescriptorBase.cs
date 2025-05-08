@@ -3,6 +3,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -125,7 +126,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                 .From(descriptorContext, Configuration.ResolverField)
                 .CreateConfiguration();
 
-            // after that all middleware should be available on the field definition and we can
+            // after that all middleware should be available on the field definition, and we can
             // start compiling the resolver and the resolver pipeline.
             if (Configuration.ResolverField.Resolver is null &&
                 Configuration.ResolverField.Member is not null)
@@ -167,8 +168,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                     }
                 }
 
-                definition.Features[WellKnownContextData.NodeResolver] =
-                    new NodeResolverInfo(null, pipeline!);
+                definition.Features.GetOrSet<NodeTypeFeature>().NodeResolver = new NodeResolverInfo(null, pipeline!);
             }
         }
     }
@@ -179,16 +179,8 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
         {
             var extensions = descriptor.Extend();
             var context = extensions.Context;
-
-            if (!context.ContextData.TryGetValue(WellKnownContextData.NodeIdResultFormatter, out var value) ||
-                value is null)
-            {
-                value = Create(context.NodeIdSerializerAccessor);
-                context.ContextData[WellKnownContextData.NodeIdResultFormatter] = value;
-            }
-
-            var formatter = (ResultFormatterConfiguration)value;
             var converters = extensions.Configuration.FormatterConfigurations;
+            var formatter = context.Features.GetOrSet(Create, context.NodeIdSerializerAccessor);
 
             if (!converters.Contains(formatter))
             {

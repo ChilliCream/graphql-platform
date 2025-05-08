@@ -1,5 +1,7 @@
 #nullable enable
 
+using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -486,6 +488,53 @@ public static partial class SchemaBuilderExtensions
         return builder.BindRuntimeType(typeof(TRuntimeType), typeof(TSchemaType));
     }
 
+    /// <summary>
+    /// Binds a .NET runtime type to a corresponding GraphQL schema type,
+    /// allowing the schema builder to infer and apply the correct type mapping.
+    /// </summary>
+    /// <param name="builder">
+    /// The schema builder instance.
+    /// </param>
+    /// <param name="runtimeType">
+    /// The .NET type used at runtime (e.g., a CLR class or struct).
+    /// </param>
+    /// <param name="schemaType">
+    /// The GraphQL type to bind to the specified runtime type (must implement <see cref="ITypeDefinition"/>).
+    /// </param>
+    /// <returns>
+    /// The schema builder instance.
+    /// </returns>
+    public static ISchemaBuilder BindRuntimeType(
+        this ISchemaBuilder builder,
+        Type runtimeType,
+        Type schemaType)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(schemaType);
+
+        if (runtimeType == typeof(object))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_BindRuntimeType_ObjectNotAllowed,
+                nameof(runtimeType));
+        }
+
+        if (!schemaType.IsSchemaType())
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_MustBeSchemaType,
+                nameof(schemaType));
+        }
+
+        var context = SchemaTypeReference.InferTypeContext(schemaType);
+        var binding = new RuntimeTypeBinding(runtimeType, schemaType, context);
+        var feature = builder.Features.GetOrSet<TypeSystemFeature>();
+        feature.RuntimeTypeBindings = feature.RuntimeTypeBindings.Add(runtimeType, binding);
+
+        return builder;
+    }
+
     public static ISchemaBuilder BindRuntimeType<TRuntimeType>(
         this ISchemaBuilder builder,
         string? typeName = null)
@@ -521,11 +570,9 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(typeName));
         }
 
-        if (context.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o)
-            && o is Dictionary<string, Type> runtimeTypes)
-        {
-            runtimeTypes[typeName] = runtimeType;
-        }
+        var binding = new RuntimeTypeNameBinding(runtimeType, typeName);
+        var feature = context.Features.GetOrSet<TypeSystemFeature>();
+        feature.RuntimeTypeNameBindings = feature.RuntimeTypeNameBindings.Add(runtimeType, binding);
     }
 
     private static ISchemaBuilder BindRuntimeTypeInternal(
@@ -535,11 +582,9 @@ public static partial class SchemaBuilderExtensions
     {
         InitializeResolverTypeInterceptor(builder);
 
-        if (builder.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o)
-            && o is Dictionary<string, Type> runtimeTypes)
-        {
-            runtimeTypes[typeName] = runtimeType;
-        }
+        var binding = new RuntimeTypeNameBinding(runtimeType, typeName);
+        var feature = builder.Features.GetOrSet<TypeSystemFeature>();
+        feature.RuntimeTypeNameBindings = feature.RuntimeTypeNameBindings.Add(runtimeType, binding);
 
         return builder;
     }

@@ -4,7 +4,6 @@ using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration.Validation;
@@ -16,12 +15,12 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
         ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
-        if (!context.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks, out var value))
+        if (!context.Features.TryGet(out IsSelectedFeature? feature))
         {
             return;
         }
 
-        foreach (var pattern in (List<IsSelectedPattern>)value!)
+        foreach (var pattern in feature.Patterns)
         {
             var objectField = schema.QueryType.Fields[pattern.FieldName];
             var validationContext = new ValidateIsSelectedPatternContext(schema, objectField, pattern.Pattern);

@@ -6,12 +6,12 @@ namespace HotChocolate.Features;
 /// A cached reference to a feature.
 /// </summary>
 /// <typeparam name="T">The feature type.</typeparam>
-public struct FeatureReference<T>
+public struct RequiredFeatureReference<T> where T : notnull
 {
     private T? _feature;
     private int _revision;
 
-    private FeatureReference(T? feature, int revision)
+    private RequiredFeatureReference(T? feature, int revision)
     {
         _feature = feature;
         _revision = revision;
@@ -20,21 +20,21 @@ public struct FeatureReference<T>
     /// <summary>
     /// Gets the default <see cref="FeatureReference{T}"/>.
     /// </summary>
-    public static readonly FeatureReference<T> Default = new(default, -1);
+    public static readonly RequiredFeatureReference<T> Default = new(default, -1);
 
     /// <summary>
     /// Gets the feature of type <typeparamref name="T"/> from <paramref name="features"/>.
     /// </summary>
     /// <param name="features">The <see cref="IFeatureCollection"/>.</param>
     /// <returns>The feature.</returns>
-    public T? Fetch(IFeatureCollection features)
+    public T Fetch(IFeatureCollection features)
     {
-        if (_revision == features.Revision)
+        if (_feature is not null && _revision == features.Revision)
         {
             return _feature;
         }
 
-        _feature = (T?)features[typeof(T)];
+        _feature = features.GetRequired<T>();
         _revision = features.Revision;
         return _feature;
     }

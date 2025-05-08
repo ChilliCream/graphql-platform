@@ -86,10 +86,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     /// </exception>
     public static bool IsListType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.Kind switch
         {
@@ -102,6 +99,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     public static bool IsInputType(this IType type)
     {
         ArgumentNullException.ThrowIfNull(type);
+
         return type.NamedType().Kind
             is TypeKind.InputObject
             or TypeKind.Enum
@@ -111,6 +109,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     public static bool IsOutputType(this IType type)
     {
         ArgumentNullException.ThrowIfNull(type);
+
         return type.NamedType().Kind
             is TypeKind.Interface
             or TypeKind.Object
@@ -122,12 +121,14 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     public static bool IsUnionType(this IType type)
     {
         ArgumentNullException.ThrowIfNull(type);
+
         return IsType(type, TypeKind.Union);
     }
 
     public static bool IsAbstractType(this IType type)
     {
         ArgumentNullException.ThrowIfNull(type);
+
         return IsType(type, TypeKind.Interface) || IsType(type, TypeKind.Union);
     }
 
@@ -145,10 +146,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     /// </exception>
     public static bool IsCompositeType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Object, TypeKind.Interface, TypeKind.Union);
     }
@@ -167,10 +165,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     /// </exception>
     public static bool IsComplexType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Object, TypeKind.Interface);
     }
@@ -189,10 +184,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     /// </exception>
     public static bool IsLeafType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Scalar, TypeKind.Enum);
     }
@@ -211,10 +203,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     /// </exception>
     public static bool IsScalarType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Scalar);
     }
@@ -233,46 +222,36 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     /// </exception>
     public static bool IsObjectType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Object);
     }
 
     public static bool IsEnumType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Enum);
     }
 
     public static bool IsInterfaceType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.Interface);
     }
 
     public static bool IsInputObjectType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return IsType(type, TypeKind.InputObject);
     }
 
     public static bool IsNamedType(this IType type)
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         switch (type.Kind)
         {
             case TypeKind.Enum:
@@ -348,10 +327,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
 
     public static IType InnerType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type switch
         {
@@ -372,10 +348,7 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
 
     public static ListType ListType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.List)
         {
@@ -438,13 +411,18 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     }
 
     public static IType ReplaceNamedType(this IType type, Func<string, ITypeDefinition> newNamedType)
-        => type switch
+    {
+        ArgumentNullException.ThrowIfNull(newNamedType);
+        ArgumentNullException.ThrowIfNull(type);
+
+        return type switch
         {
             ITypeDefinition namedType => newNamedType(namedType.Name),
             ListType listType => new ListType(ReplaceNamedType(listType.ElementType, newNamedType)),
             NonNullType nonNullType => new NonNullType(ReplaceNamedType(nonNullType.NullableType, newNamedType)),
             _ => throw new NotSupportedException(),
         };
+    }
 
     /// <summary>
     /// Gets the named type (the most inner type) from a type structure.
@@ -467,6 +445,8 @@ public static class HotChocolateTypeAbstractionsTypeExtensions
     /// </exception>
     public static T NamedType<T>(this IType type) where T : ITypeDefinition
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         var namedType = type.NamedType();
 
         if (namedType is T t)

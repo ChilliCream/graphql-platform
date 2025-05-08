@@ -219,7 +219,11 @@ public sealed class FetchResultStore
                     return new StringValueNode(element.GetString()!);
 
                 case JsonValueKind.Number:
+                    #if NET9_0_OR_GREATER
                     return Utf8GraphQLParser.Syntax.ParseValueLiteral(JsonMarshal.GetRawUtf8Value(element));
+                    #else
+                    return Utf8GraphQLParser.Syntax.ParseValueLiteral(element.GetRawText());
+                    #endif
 
                 case JsonValueKind.True:
                     return BooleanValueNode.True;

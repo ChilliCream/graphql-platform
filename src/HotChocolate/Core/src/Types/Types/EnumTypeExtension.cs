@@ -99,7 +99,7 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
             AssertMutable();
             enumType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
+            TypeExtensionHelper.MergeFeatures(
                 Configuration!,
                 enumType.Configuration!);
 
@@ -143,7 +143,7 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
                 {
                     existingValue.Ignore = enumValue.Ignore;
 
-                    TypeExtensionHelper.MergeContextData(enumValue, existingValue);
+                    TypeExtensionHelper.MergeFeatures(enumValue, existingValue);
 
                     TypeExtensionHelper.MergeDirectives(
                         context,

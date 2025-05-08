@@ -97,7 +97,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
             AssertMutable();
             inputObjectType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
+            TypeExtensionHelper.MergeFeatures(
                 Configuration!,
                 inputObjectType.Configuration!);
 

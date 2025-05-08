@@ -11,7 +11,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node descriptor allows to configure a node type.
+/// The node descriptor allows configuring a node type.
 /// </summary>
 /// <typeparam name="TNode">
 /// The node runtime type.

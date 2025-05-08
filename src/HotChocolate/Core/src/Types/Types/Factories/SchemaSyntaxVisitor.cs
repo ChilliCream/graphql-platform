@@ -155,7 +155,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
     {
         if (node.Directives.Count > 0)
         {
-            context.ScalarDirectives[node.Name.Value] = node.Directives;
+            context.ScalarDirectives = context.ScalarDirectives.SetItem(node.Name.Value, node.Directives);
         }
 
         return base.VisitChildren(node, context);
@@ -171,7 +171,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
             goto EXIT;
         }
 
-        if(context.DescriptorContext.TypeInterceptor.SkipDirectiveDefinition(node))
+        if (context.DescriptorContext.TypeInterceptor.SkipDirectiveDefinition(node))
         {
             goto EXIT;
         }

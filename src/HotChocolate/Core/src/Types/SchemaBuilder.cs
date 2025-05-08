@@ -1,14 +1,13 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Factories;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
-using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -21,15 +20,10 @@ namespace HotChocolate;
 public partial class SchemaBuilder : ISchemaBuilder
 {
     private delegate TypeReference CreateRef(ITypeInspector typeInspector);
-
-    private readonly Dictionary<string, object?> _contextData = [];
     private readonly List<FieldMiddleware> _globalComponents = [];
-    private readonly List<LoadSchemaDocument> _documents = [];
     private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = [];
-    private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = [];
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = [];
-    private SchemaFirstTypeInterceptor? _schemaFirstTypeInterceptor;
 
     private readonly List<object> _typeInterceptors =
     [
@@ -41,13 +35,11 @@ public partial class SchemaBuilder : ISchemaBuilder
     ];
 
     private SchemaOptions _options = new();
-    private PagingOptions _pagingOptions = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;
 
-    /// <inheritdoc />
-    public IDictionary<string, object?> ContextData => _contextData;
+    public IFeatureCollection Features { get; } = new FeatureCollection();
 
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(Type type)
@@ -73,46 +65,16 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(Schema schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (schema is TypeSystemObject)
-        {
-            _schema = _ => new SchemaTypeReference(schema);
-        }
-        else
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_ISchemaNotTso,
-                nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        _schema = _ => new SchemaTypeReference(schema);
         return this;
     }
 
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
+        ArgumentNullException.ThrowIfNull(configure);
         _schema = _ => new SchemaTypeReference(new Schema(configure));
-        return this;
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use ModifyOptions instead.")]
-    public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
-    {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        _options = SchemaOptions.FromOptions(options);
         return this;
     }
 
@@ -129,26 +91,6 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    [Obsolete("Use ModifyPagingOptions instead.")]
-    public ISchemaBuilder SetPagingOptions(PagingOptions options)
-    {
-        _pagingOptions = options;
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder ModifyPagingOptions(Action<PagingOptions> configure)
-    {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        configure(_pagingOptions);
-        return this;
-    }
-
-    /// <inheritdoc />
     public ISchemaBuilder Use(FieldMiddleware middleware)
     {
         if (middleware is null)
@@ -161,19 +103,6 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument)
-    {
-        if (loadSchemaDocument is null)
-        {
-            throw new ArgumentNullException(nameof(loadSchemaDocument));
-        }
-
-        _schemaFirstTypeInterceptor ??= new SchemaFirstTypeInterceptor();
-        _documents.Add(loadSchemaDocument);
-        return this;
-    }
-
-    /// <inheritdoc />
     public ISchemaBuilder AddType(Type type)
     {
         if (type is null)
@@ -182,89 +111,6 @@ public partial class SchemaBuilder : ISchemaBuilder
         }
 
         _types.Add(ti => ti.GetTypeRef(type));
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddConvention(
-        Type convention,
-        CreateConvention factory,
-        string? scope = null)
-    {
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
-
-        if (!_conventions.ContainsKey((convention, scope)))
-        {
-            AddConvention(convention, factory, scope);
-        }
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder AddConvention(
-        Type convention,
-        CreateConvention factory,
-        string? scope = null)
-    {
-        if (convention is null)
-        {
-            throw new ArgumentNullException(nameof(convention));
-        }
-
-        if (!_conventions.TryGetValue(
-            (convention, scope),
-            out var factories))
-        {
-            factories = [];
-            _conventions[(convention, scope)] = factories;
-        }
-
-        factories.Add(factory);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)
-    {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
-
-        if (schemaType is null)
-        {
-            throw new ArgumentNullException(nameof(schemaType));
-        }
-
-        if (!schemaType.IsSchemaType())
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_MustBeSchemaType,
-                nameof(schemaType));
-        }
-
-        if (runtimeType == typeof(object))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_BindRuntimeType_ObjectNotAllowed,
-                nameof(runtimeType));
-        }
-
-        var context = SchemaTypeReference.InferTypeContext(schemaType);
-        _clrTypes[runtimeType] =
-            (ti => ti.GetTypeRef(runtimeType, context),
-                ti => ti.GetTypeRef(schemaType, context));
 
         return this;
     }
@@ -394,21 +240,6 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         _services = _services is null ? services : new CombinedServiceProvider(_services, services);
 
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder SetContextData(string key, object? value)
-    {
-        _contextData[key] = value;
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder SetContextData(string key, Func<object?, object?> update)
-    {
-        _contextData.TryGetValue(key, out var value);
-        _contextData[key] = update(value);
         return this;
     }
 

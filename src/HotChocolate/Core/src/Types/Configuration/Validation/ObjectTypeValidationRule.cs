@@ -47,7 +47,7 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
 
                     if (nodeType is not null && nodeType.IsAssignableFrom(objectType))
                     {
-                        if (!objectType.ContextData.ContainsKey(NodeResolver))
+                        if (objectType.Features.Get<NodeTypeFeature>() is null)
                         {
                             errors.Add(ErrorHelper.NodeResolverMissing(objectType));
                         }

@@ -42,26 +42,6 @@ public static class WellKnownContextData
     public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
 
     /// <summary>
-    /// The key for setting resolver configurations.
-    /// </summary>
-    public const string ResolverConfigs = "HotChocolate.Types.ResolverConfigs";
-
-    /// <summary>
-    /// The key for setting resolver types.
-    /// </summary>
-    public const string ResolverTypes = "HotChocolate.Types.ResolverTypes";
-
-    /// <summary>
-    /// The key for setting runtime types.
-    /// </summary>
-    public const string RuntimeTypes = "HotChocolate.Types.RuntimeTypes";
-
-    /// <summary>
-    /// The key for setting root instances.
-    /// </summary>
-    public const string RootInstance = "HotChocolate.Types.RootInstance";
-
-    /// <summary>
     /// The key identifies the resolver scope on the local context.
     /// </summary>
     public const string ResolverServiceScope = "HotChocolate.Resolvers.ServiceScope";
@@ -80,16 +60,6 @@ public static class WellKnownContextData
     /// The key to the current schema.
     /// </summary>
     public const string Schema = "HotChocolate.Schema";
-
-    /// <summary>
-    /// The key to the schema building directives.
-    /// </summary>
-    public const string SchemaDirectives = "HotChocolate.Schema.Building.Directives";
-
-    /// <summary>
-    /// The key to the optional schema documents.
-    /// </summary>
-    public const string SchemaDocuments = "HotChocolate.Schema.Building.Documents";
 
     /// <summary>
     /// The key to get the user provided transport operation session id when executing
@@ -122,16 +92,6 @@ public static class WellKnownContextData
     /// the result set containing the patch ID shall be patched into.
     /// </summary>
     public const string PatchId = "HotChocolate.Execution.PatchId";
-
-    /// <summary>
-    /// The key to get the type discovery interceptors from the schema context data.
-    /// </summary>
-    public const string TypeDiscoveryHandlers = "HotChocolate.Execution.TypeDiscoveryHandlers";
-
-    /// <summary>
-    /// The key to get the node resolvers.
-    /// </summary>
-    public const string NodeResolver = "HotChocolate.Relay.Node.Resolver";
 
     /// <summary>
     /// The key to check if relay support is enabled.
@@ -239,11 +199,6 @@ public static class WellKnownContextData
     public const string TagOptions = "HotChocolate.Types.TagOptions";
 
     /// <summary>
-    /// Type key to access the internal schema options.
-    /// </summary>
-    public const string InternalSchemaOptions = "HotChocolate.Types.InternalSchemaOptions";
-
-    /// <summary>
     /// Type key to access the paging arguments in the local resolver state.
     /// </summary>
     public const string PagingArguments = "HotChocolate.Types.PagingArguments";
@@ -257,11 +212,6 @@ public static class WellKnownContextData
     /// Type key to access the node id result formatter on the descriptor context.
     /// </summary>
     public const string NodeIdResultFormatter = "HotChocolate.Relay.NodeIdResultFormatter";
-
-    /// <summary>
-    /// Type key to access the pattern validation tasks.
-    /// </summary>
-    public const string PatternValidationTasks = "HotChocolate.Validation.PatternValidationTasks";
 
     /// <summary>
     /// The key to retrieve the cost metrics from the global state.
@@ -307,9 +257,4 @@ public static class WellKnownContextData
     /// The key to determine whether the @authorize directive was already registered.
     /// </summary>
     public const string AreAuthorizeDirectivesRegistered = "HotChocolate.Authorization.AuthDirectivesRegistered";
-
-    /// <summary>
-    /// he key to get the scalar name overrides.
-    /// </summary>
-    public const string ScalarNameOverrides = "HotChocolate.Types.Scalars.Overrides";
 }

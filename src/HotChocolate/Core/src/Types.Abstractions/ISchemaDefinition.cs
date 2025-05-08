@@ -50,7 +50,10 @@ public interface ISchemaDefinition
     /// <returns>
     /// Returns the operation type for the given operation type.
     /// </returns>
-    IObjectTypeDefinition? GetOperationType(OperationType operationType);
+    /// <exception cref="ArgumentException">
+    /// The operation type is not supported.
+    /// </exception>
+    IObjectTypeDefinition GetOperationType(OperationType operationType);
 
     /// <summary>
     /// Gets the possible object types to

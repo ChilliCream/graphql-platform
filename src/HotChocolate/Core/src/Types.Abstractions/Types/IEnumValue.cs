@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -10,5 +11,12 @@ public interface IEnumValue
     , IDirectivesProvider
     , IDescriptionProvider
     , IDeprecationProvider
+    , IFeatureProvider
     , ISyntaxNodeProvider<EnumValueDefinitionNode>
-    , ISchemaCoordinateProvider;
+    , ISchemaCoordinateProvider
+{
+    /// <summary>
+    /// Gets the enum type that declares this value.
+    /// </summary>
+    IEnumTypeDefinition DeclaringType { get; }
+}

@@ -34,7 +34,7 @@ public class QueryExecutor
 
             if (task.Result.IsSkipped)
             {
-                // if a node is skipped, all dependants are skipped as well
+                // if a node is skipped, all dependents are skipped as well
                 PurgeSkippedNodes(node, waitingToRun);
             }
             else
@@ -84,9 +84,6 @@ public class QueryExecutor
                     // JsonMarshal.GetRawUtf8Value()
 
 
-
-
-
                     jsonWriter.WriteEndObject();
                 }
             }
@@ -119,7 +116,7 @@ public class QueryExecutor
         var fieldDef = type.Fields[field.Name.Value];
         var fieldTypeKind = fieldDef.Type.AsTypeDefinition().Kind;
 
-        if(!parentData.TryGetProperty(responseName, out var property)
+        if (!parentData.TryGetProperty(responseName, out var property)
             || property.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
         {
             writer.WriteNull(responseName);
@@ -129,7 +126,11 @@ public class QueryExecutor
         if (fieldTypeKind is TypeKind.Scalar or TypeKind.Enum)
         {
             writer.WritePropertyName(responseName);
+#if NET9_0_OR_GREATER
             writer.WriteRawValue(JsonMarshal.GetRawUtf8Value(property));
+#else
+            writer.WriteRawValue(property.GetRawText());
+#endif
             return;
         }
 
@@ -187,8 +188,6 @@ public class QueryExecutor
         }
         else
         {
-
-
         }
     }
 
@@ -238,6 +237,5 @@ public class QueryExecutor
 
 public sealed class SelectionVisitor
 {
-    public IEnumerable<FieldNode>
-
+    // public IEnumerable<FieldNode>
 }

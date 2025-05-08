@@ -23,7 +23,7 @@ public static class RelaySchemaBuilderExtensions
         this ISchemaBuilder schemaBuilder,
         bool registerNodeInterface)
     {
-        schemaBuilder.SetContextData(GlobalIdSupportEnabled, 1);
+        schemaBuilder.Features.Set(new NodeSchemaFeature());
 
         schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
 
