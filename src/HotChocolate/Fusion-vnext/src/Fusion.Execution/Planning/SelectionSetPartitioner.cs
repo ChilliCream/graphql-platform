@@ -273,14 +273,13 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
     private sealed class Context
     {
-
         public required string SchemaName { get; init; }
 
         public required bool AllowRequirements { get; init; }
 
         public required SelectionPath RootPath { get; init; }
 
-        public required ISelectionSetIndex SelectionSetIndex { get; init; } = null!;
+        public required ISelectionSetIndex SelectionSetIndex { get; set; } = null!;
 
         [field: AllowNull, MaybeNull]
         public SelectionSetIndexBuilder SelectionSetIndexBuilder

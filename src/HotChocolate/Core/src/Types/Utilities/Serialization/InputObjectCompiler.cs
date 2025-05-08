@@ -107,7 +107,7 @@ internal static class InputObjectCompiler
         expressions.Add(Expression.Assign(variable, instance));
         CompileSetProperties(variable, arguments.Values, _fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable }, expressions);
+        Expression body = Expression.Block([variable], expressions);
 
         var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
 
@@ -167,7 +167,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : IInputValueDefinition, IHasProperty
+        where T : class, IInputValueDefinition, IHasProperty, IHasRuntimeType, IHasFieldIndex
         => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
@@ -176,7 +176,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : IInputValueDefinition, IHasProperty
+        where T : class, IInputValueDefinition, IHasProperty, IHasRuntimeType, IHasFieldIndex
     {
         var parameters = constructor.GetParameters();
 
