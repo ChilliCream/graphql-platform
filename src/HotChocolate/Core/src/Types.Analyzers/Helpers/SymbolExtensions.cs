@@ -32,6 +32,13 @@ public static class SymbolExtensions
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
         => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+    public static string ToFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        var format = SymbolDisplayFormat.FullyQualifiedFormat
+            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+        return typeSymbol.ToDisplayString(format);
+    }
+
     public static bool IsParent(this IParameterSymbol parameter)
         => parameter.IsThis
             || parameter

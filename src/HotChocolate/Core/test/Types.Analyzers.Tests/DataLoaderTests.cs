@@ -318,6 +318,39 @@ public class DataLoaderTests
             """).MatchMarkdownAsync();
     }
 
+    /**
+     * test specific for <see href="https://github.com/ChilliCream/graphql-platform/pull/8264"/>
+     */
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_Nullable_Class_Instance_Result_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot([
+            """
+            namespace DataLoaderGen.Result;
+            public class TestResultClass {}
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+            using DataLoaderGen.Result;
+
+            namespace TestNamespace.DataLoaderGen;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<Dictionary<int, TestResultClass?>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
     [Fact]
     public async Task GenerateSource_BatchDataLoader_With_Optional_State_MatchesSnapshot()
     {
