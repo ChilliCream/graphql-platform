@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Features;
@@ -15,7 +16,6 @@ using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;
 
@@ -91,12 +91,9 @@ public partial class SchemaBuilder
             }
         }
 
-        public static DescriptorContext CreateContext(
-            SchemaBuilder builder,
-            LazySchema lazySchema)
+        public static DescriptorContext CreateContext(SchemaBuilder builder, LazySchema lazySchema)
         {
             var services = builder._services ?? CreateDefaultServiceProvider(lazySchema);
-
             var typeInterceptor = new AggregateTypeInterceptor();
 
             var context = DescriptorContext.Create(
@@ -245,11 +242,14 @@ public partial class SchemaBuilder
                 initializer.GlobalComponents.Add(component);
             }
 
-            foreach (var binding in builder._clrTypes)
+            if(builder.Features.Get<TypeSystemFeature>()?.RuntimeTypeBindings is { Count: > 0 } bindings)
             {
-                typeRegistry.TryRegister(
-                    (ExtendedTypeReference)binding.Value.Item1(context.TypeInspector),
-                    binding.Value.Item2.Invoke(context.TypeInspector));
+                foreach (var binding in bindings.Values)
+                {
+                    typeRegistry.TryRegister(
+                        binding.GetRuntimeTypeReference(context.TypeInspector),
+                        binding.GetSchemaTypeReference(context.TypeInspector));
+                }
             }
 
             return initializer;
@@ -585,7 +585,7 @@ public partial class SchemaBuilder
                 ];
             }
 
-            return new DefaultNodeIdSerializer(allSerializers, 1024);
+            return new DefaultNodeIdSerializer(allSerializers);
         });
 
         services.TryAddSingleton<INodeIdSerializerAccessor>(

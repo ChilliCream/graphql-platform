@@ -4,15 +4,15 @@ namespace HotChocolate.Execution.Requirements;
 
 internal sealed class FieldRequirementsMetadata
 {
-    private readonly Dictionary<SchemaCoordinate,  TypeNode> _allRequirements = new();
+    private readonly Dictionary<SchemaCoordinate, TypeNode> _allRequirements = [];
     private bool _sealed;
 
-    public TypeNode? GetRequirements(IObjectField field)
+    public TypeNode? GetRequirements(IObjectTypeDefinition field)
         => _allRequirements.GetValueOrDefault(field.Coordinate);
 
     public void TryAddRequirements(SchemaCoordinate fieldCoordinate, TypeNode requirements)
     {
-        if(_sealed)
+        if (_sealed)
         {
             throw new InvalidOperationException("The requirements are sealed.");
         }
@@ -20,6 +20,5 @@ internal sealed class FieldRequirementsMetadata
         _allRequirements.TryAdd(fieldCoordinate, requirements);
     }
 
-    public void Seal()
-        => _sealed = true;
+    public void Seal() => _sealed = true;
 }

@@ -23,10 +23,7 @@ public class ErrorBuilder : IErrorBuilder
 
     private ErrorBuilder(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         _message = error.Message;
         _code = error.Code;
@@ -46,12 +43,7 @@ public class ErrorBuilder : IErrorBuilder
 
     public IErrorBuilder SetMessage(string message)
     {
-        if (string.IsNullOrEmpty(message))
-        {
-            throw new ArgumentException(
-                AbstractionResources.Error_Message_Must_Not_Be_Null,
-                nameof(message));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(message);
 
         _message = message;
         return this;
@@ -82,8 +74,8 @@ public class ErrorBuilder : IErrorBuilder
         return this;
     }
 
-    public IErrorBuilder SetPath(IReadOnlyList<object>? path) =>
-        SetPath(path is null ? null : Path.FromList(path));
+    public IErrorBuilder SetPath(IReadOnlyList<object>? path)
+        => SetPath(path is null ? null : Path.FromList(path));
 
     public IErrorBuilder AddLocation(Location location)
     {

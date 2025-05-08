@@ -98,7 +98,7 @@ public partial class InterfaceType
         => _implements;
 
     IReadOnlyInterfaceTypeDefinitionCollection IComplexTypeDefinition.Implements
-        => _implements;
+        => _implements.AsReadOnlyInterfaceTypeDefinitionCollection();
 
     /// <summary>
     /// Gets the fields of this interface type.

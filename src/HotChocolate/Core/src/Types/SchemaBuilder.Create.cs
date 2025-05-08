@@ -19,7 +19,7 @@ public partial class SchemaBuilder
     }
 
     public DescriptorContext CreateContext()
-        => Setup.CreateContext(this, new());
+        => Setup.CreateContext(this, new LazySchema());
 
     IDescriptorContext ISchemaBuilder.CreateContext()
         => CreateContext();

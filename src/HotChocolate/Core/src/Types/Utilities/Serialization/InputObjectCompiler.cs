@@ -167,7 +167,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : InputField, IHasProperty
+        where T : IInputValueDefinition, IHasProperty
         => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
@@ -176,7 +176,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : InputField, IHasProperty
+        where T : IInputValueDefinition, IHasProperty
     {
         var parameters = constructor.GetParameters();
 

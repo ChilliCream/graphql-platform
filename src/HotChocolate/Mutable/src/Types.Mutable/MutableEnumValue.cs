@@ -11,8 +11,7 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableEnumValue
     : INamedTypeSystemMemberDefinition<MutableEnumValue>
-    , IEnumValue
-    , IFeatureProvider
+        , IEnumValue
 {
     private bool _isDeprecated;
     private DirectiveCollection? _directives;
@@ -29,6 +28,10 @@ public class MutableEnumValue
     /// Gets the declaring type of the enum value.
     /// </summary>
     public MutableEnumTypeDefinition? DeclaringType { get; set; }
+
+    IEnumTypeDefinition IEnumValue.DeclaringType
+        => DeclaringType ?? throw new InvalidOperationException(
+            "The declaring type of the enum value is not set.");
 
     /// <inheritdoc cref="INameProvider.Name" />
     public string Name

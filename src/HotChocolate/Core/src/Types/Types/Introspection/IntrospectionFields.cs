@@ -37,7 +37,7 @@ public static class IntrospectionFields
 
         descriptor.Configuration.PureResolver = Resolve;
 
-        static ISchema Resolve(IResolverContext ctx)
+        static ISchemaDefinition Resolve(IResolverContext ctx)
             => ctx.Schema;
 
         return CreateConfiguration(descriptor);
@@ -55,10 +55,10 @@ public static class IntrospectionFields
 
         descriptor.Configuration.PureResolver = Resolve;
 
-        static INamedType? Resolve(IResolverContext ctx)
+        static ITypeDefinition? Resolve(IResolverContext ctx)
         {
             var name = ctx.ArgumentValue<string>("name");
-            return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
+            return ctx.Schema.Types.TryGetType(name, out var type) ? type : null;
         }
 
         return CreateConfiguration(descriptor);

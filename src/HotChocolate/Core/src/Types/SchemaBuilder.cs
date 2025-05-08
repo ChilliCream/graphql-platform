@@ -23,7 +23,6 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly List<FieldMiddleware> _globalComponents = [];
     private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = [];
-    private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = [];
 
     private readonly List<object> _typeInterceptors =
     [
@@ -34,7 +33,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(StoreGlobalPagingOptionsTypeInterceptor)
     ];
 
-    private SchemaOptions _options = new();
+    private readonly SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;

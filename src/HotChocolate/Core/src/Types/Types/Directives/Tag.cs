@@ -1,7 +1,7 @@
 #nullable enable
 
+using System.Runtime.CompilerServices;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -60,7 +60,7 @@ public sealed class Tag
     /// </exception>
     public Tag(string name)
     {
-        if (!name.IsValidGraphQLName())
+        if (!IsValidTagName(name))
         {
             throw new ArgumentException(
                 TypeResources.TagDirective_Name_NotValid,
@@ -75,4 +75,69 @@ public sealed class Tag
     /// </summary>
     [GraphQLDescription("The name of the tag.")]
     public string Name { get; }
+
+    private static bool IsValidTagName(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return false;
+        }
+
+        var span = name.AsSpan();
+
+        if (IsLetterOrUnderscore(span[0]))
+        {
+            if (span.Length > 1)
+            {
+                for (var i = 1; i < span.Length; i++)
+                {
+                    if (!IsLetterOrDigitOrUnderscoreOrHyphen(span[i]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsLetterOrDigitOrUnderscoreOrHyphen(char c)
+    {
+        if (c is > (char)96 and < (char)123 or > (char)64 and < (char)91)
+        {
+            return true;
+        }
+
+        if (c is > (char)47 and < (char)58)
+        {
+            return true;
+        }
+
+        if (c == '_' || c == '-')
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsLetterOrUnderscore(char c)
+    {
+        if (c is > (char)96 and < (char)123 or > (char)64 and < (char)91)
+        {
+            return true;
+        }
+
+        if (c == '_')
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

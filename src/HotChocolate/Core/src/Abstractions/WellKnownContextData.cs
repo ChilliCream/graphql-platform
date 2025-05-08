@@ -99,16 +99,6 @@ public static class WellKnownContextData
     public const string IsRelaySupportEnabled = "HotChocolate.Relay.IsEnabled";
 
     /// <summary>
-    /// The key to check if the global identification spec is enabled.
-    /// </summary>
-    public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
-
-    /// <summary>
-    /// The key to get the serializer types.
-    /// </summary>
-    public const string SerializerTypes = "HotChocolate.Relay.SerializerTypes";
-
-    /// <summary>
     /// The key to get the node id from the context data.
     /// </summary>
     public const string NodeId = "HotChocolate.Relay.Node.Id";
@@ -192,11 +182,6 @@ public static class WellKnownContextData
     /// The key to access the authorization allowed flag on the member context.
     /// </summary>
     public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
-
-    /// <summary>
-    /// The key to access the tag options object.
-    /// </summary>
-    public const string TagOptions = "HotChocolate.Types.TagOptions";
 
     /// <summary>
     /// Type key to access the paging arguments in the local resolver state.

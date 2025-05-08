@@ -19,7 +19,7 @@ internal readonly struct FieldResolverConfiguration
 
         FieldCoordinate = fieldCoordinate;
         PureResolver = pureResolver;
-        Resolver = resolver ?? new FieldResolverDelegate(ctx => new(pureResolver!(ctx)));
+        Resolver = resolver ?? (ctx => new ValueTask<object?>(pureResolver!(ctx)));
         ResultType = resultType ?? typeof(object);
         _isEmpty = false;
     }

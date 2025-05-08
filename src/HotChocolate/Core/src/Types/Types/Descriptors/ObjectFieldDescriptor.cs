@@ -3,14 +3,12 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Properties.TypeResources;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -230,8 +228,7 @@ public class ObjectFieldDescriptor
                     }
 
                     Configuration.Flags |= FieldFlags.WithRequirements;
-                    Configuration.Features[FieldRequirementsSyntax] = requirements;
-                    Configuration.Features[FieldRequirementsEntity] = parameter.ParameterType;
+                    Configuration.Features.Set(new FieldRequirementFeature(requirements, parameter.ParameterType));
                 }
             }
 
@@ -483,14 +480,12 @@ public class ObjectFieldDescriptor
         if (!(requires?.Length > 0))
         {
             Configuration.Flags &= ~FieldFlags.WithRequirements;
-            Configuration.Features.Remove(FieldRequirementsSyntax);
-            Configuration.Features.Remove(FieldRequirementsEntity);
+            Configuration.Features.Set<FieldRequirementFeature>(null);
             return this;
         }
 
         Configuration.Flags |= FieldFlags.WithRequirements;
-        Configuration.Features[FieldRequirementsSyntax] = requires;
-        Configuration.Features[FieldRequirementsEntity] = typeof(TParent);
+        Configuration.Features.Set(new FieldRequirementFeature(requires, typeof(TParent)));
         return this;
     }
 
@@ -499,14 +494,12 @@ public class ObjectFieldDescriptor
         if (!(requires?.Length > 0))
         {
             Configuration.Flags &= ~FieldFlags.WithRequirements;
-            Configuration.Features.Remove(FieldRequirementsSyntax);
-            Configuration.Features.Remove(FieldRequirementsEntity);
+            Configuration.Features.Set<FieldRequirementFeature>(null);
             return this;
         }
 
         Configuration.Flags |= FieldFlags.WithRequirements;
-        Configuration.Features[FieldRequirementsSyntax] = requires;
-        Configuration.Features[FieldRequirementsEntity] = Configuration.SourceType;
+        Configuration.Features.Set(new FieldRequirementFeature(requires, Configuration.SourceType));
         return this;
     }
 

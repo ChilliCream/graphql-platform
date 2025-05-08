@@ -74,12 +74,12 @@ public partial class ObjectType
         => _implements;
 
     IReadOnlyInterfaceTypeDefinitionCollection IComplexTypeDefinition.Implements
-        => _implements;
+        => _implements.AsReadOnlyInterfaceTypeDefinitionCollection();
 
     /// <summary>
     /// Gets the field that this type exposes.
     /// </summary>
-    public ObjectFieldCollection Fields { get; private set; } = default!;
+    public ObjectFieldCollection Fields { get; private set; } = null!;
 
     IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> IComplexTypeDefinition.Fields
         => Fields.AsReadOnlyFieldDefinitionCollection();
@@ -115,7 +115,7 @@ public partial class ObjectType
     /// Override this to configure the type.
     /// </summary>
     /// <param name="descriptor">
-    /// The descriptor allows to configure the interface type.
+    /// The descriptor allows configuring the interface type.
     /// </param>
     protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
