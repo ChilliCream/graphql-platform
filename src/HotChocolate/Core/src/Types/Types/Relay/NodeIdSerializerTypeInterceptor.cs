@@ -4,8 +4,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using HotChocolate.Features;
 using static HotChocolate.Types.Relay.NodeConstants;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types.Relay;
 
@@ -16,14 +16,10 @@ internal sealed class NodeIdSerializerTypeInterceptor : TypeInterceptor
         if (configuration is SchemaTypeConfiguration schemaTypeDef)
         {
             // we ensure that the serializer type map exists.
-            if (!completionContext.DescriptorContext.ContextData.TryGetValue(SerializerTypes, out var value))
-            {
-                value = new Dictionary<string, Type>();
-                completionContext.DescriptorContext.ContextData[SerializerTypes] = value;
-            }
+            var feature = completionContext.DescriptorContext.Features.GetOrSet<NodeSchemaFeature>();
 
             // next we make sure that its preserved on the schema for the runtime.
-            schemaTypeDef.Features[SerializerTypes] = value;
+            schemaTypeDef.Features.Set(feature);
         }
     }
 
