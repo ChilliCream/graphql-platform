@@ -679,6 +679,14 @@ internal static class ErrorHelper
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 
+    public static IError SkipAndIncludeNotAllowedOnSubscriptionRootField(
+        ISelectionNode selection)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField)
+            .SetLocations([selection])
+            .SpecifiedBy("sec-Single-Root-Field", rfc: 860)
+            .Build();
+
     public static IError DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(
         ISelectionNode selection)
         => ErrorBuilder.New()
