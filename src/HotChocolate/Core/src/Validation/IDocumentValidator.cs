@@ -41,7 +41,7 @@ public interface IDocumentValidator
     /// The result of the document validation.
     /// </returns>
     ValueTask<DocumentValidatorResult> ValidateAsync(
-        Schema schema,
+        ISchemaDefinition schema,
         DocumentNode document,
         OperationDocumentId documentId,
         IDictionary<string, object?> contextData,

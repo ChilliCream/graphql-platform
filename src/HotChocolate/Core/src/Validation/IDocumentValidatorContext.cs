@@ -13,7 +13,7 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// Gets the schema on which the validation is executed.
     /// </summary>
-    Schema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the unique document identifier.
@@ -103,7 +103,7 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// The current visitation path of directive types.
     /// </summary>
-    IList<DirectiveType> Directives { get; }
+    IList<IDirectiveDefinition> Directives { get; }
 
     /// <summary>
     /// The current visitation path of output fields.

@@ -82,7 +82,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public IList<IType> Types { get; } = [];
 
-    public IList<DirectiveType> Directives { get; } = [];
+    public IList<IDirectiveDefinition> Directives { get; } = [];
 
     public IList<IOutputFieldDefinition> OutputFields { get; } = [];
 

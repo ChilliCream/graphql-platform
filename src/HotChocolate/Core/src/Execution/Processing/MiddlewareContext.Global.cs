@@ -52,11 +52,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .SetLocations([_selection.SyntaxNode])
+                .AddLocation([_selection.SyntaxNode])
                 .Build());
     }
 
-    public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+    public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
     {
         if (exception is null)
         {
@@ -82,7 +82,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
-                .SetLocations([_selection.SyntaxNode]);
+                .AddLocation([_selection.SyntaxNode]);
 
             configure?.Invoke(errorBuilder);
 

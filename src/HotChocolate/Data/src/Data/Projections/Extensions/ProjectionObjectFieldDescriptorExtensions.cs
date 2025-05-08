@@ -333,7 +333,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public void ReportError(IError error) => _context.ReportError(error);
 
-        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
             => _context.ReportError(exception, configure);
 
         public IReadOnlyList<ISelection> GetSelections(

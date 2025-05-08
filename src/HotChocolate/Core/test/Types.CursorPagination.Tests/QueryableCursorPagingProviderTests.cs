@@ -569,7 +569,7 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
         {
             throw new NotImplementedException();
         }

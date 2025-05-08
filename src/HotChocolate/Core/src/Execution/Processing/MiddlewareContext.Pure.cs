@@ -73,7 +73,7 @@ internal partial class MiddlewareContext
         public void ReportError(IError error)
             => throw new NotSupportedException();
 
-        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
             => throw new NotSupportedException();
 
         public IReadOnlyList<ISelection> GetSelections(

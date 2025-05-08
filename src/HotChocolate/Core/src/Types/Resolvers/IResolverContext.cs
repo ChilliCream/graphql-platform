@@ -230,7 +230,7 @@ public interface IResolverContext : IHasContextData
     /// <param name="configure">
     /// A delegate to further configure the error object.
     /// </param>
-    void ReportError(Exception exception, Action<IErrorBuilder>? configure = null);
+    void ReportError(Exception exception, Action<ErrorBuilder>? configure = null);
 
     /// <summary>
     /// Gets the pre-compiled selections for the selection-set
