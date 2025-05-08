@@ -97,10 +97,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Flags = FieldFlags.ParallelExecutable | FieldFlags.GlobalIdNodeField
         };
 
-        // In the projection interceptor we want to change the context data that is on this field
+        // In the projection interceptor we want to change the context data on this field
         // after the field is completed. We need at least 1 element on the context data to avoid
-        // it to be replaced with ExtensionData.Empty
-        field.Features[WellKnownContextData.IsNodeField] = true;
+        // it being replaced with ReadOnlyFeatureCollection.Default
+        field.TouchFeatures();
 
         fields.Insert(index, field);
     }
@@ -137,10 +137,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Flags = FieldFlags.ParallelExecutable | FieldFlags.GlobalIdNodesField
         };
 
-        // In the projection interceptor we want to change the context data that is on this field
+        // In the projection interceptor we want to change the context data on this field
         // after the field is completed. We need at least 1 element on the context data to avoid
-        // it to be replaced with ExtensionData.Empty
-        field.Features[WellKnownContextData.IsNodesField] = true;
+        // it being replaced with ReadOnlyFeatureCollection.Default.
+        field.TouchFeatures();
 
         fields.Insert(index, field);
     }

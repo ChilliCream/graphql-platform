@@ -140,16 +140,16 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                // Now that we know we can infer a node resolver form the annotated query field
+                // Now that we know we can infer a node resolver from the annotated query field,
                 // we will start mutating the type and field.
-                // First we are adding a marker to the node type`s context data.
+                // First, we are adding a marker to the node type's context data.
                 // We will replace this later with a NodeResolverInfo instance that
                 // allows the node field to resolve a node instance by its ID.
                 fieldTypeDef.Features[NodeResolver] = fieldDef.Name;
 
                 // We also want to ensure that the node id argument is always a non-null
-                // ID type. So, if the user has not specified that we are making sure of this
-                // by overwriting the arguments type reference.
+                // ID type. So, if the user has not specified that, we are making sure of this
+                // by overwriting the argument type reference.
                 argument.Type = typeInspector.GetTypeRef(typeof(NonNullType<IdType>));
 
                 // We also need to add an input formatter to the argument the decodes passed
@@ -179,7 +179,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
     {
         if (QueryType is not null && _nodes.Count > 0)
         {
-            // After all types are completed it is guaranteed that all
+            // After all types are completed, it is guaranteed that all
             // query field resolver pipelines are fully compiled.
             // So, we can start replacing our marker with the actual NodeResolverInfo.
             foreach (var node in _nodes)

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -625,28 +626,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 
     private State CreateState()
-    {
-        AuthorizationOptions? options = null;
-
-        if (_context.ContextData.TryGetValue(
-                WellKnownContextData.AuthorizationOptions,
-                out var value) &&
-            value is AuthorizationOptions opt)
-        {
-            options = opt;
-        }
-
-        return new State(options ?? new());
-    }
+        => new(_context.Features.GetOrSet<AuthorizationOptions>());
 }
 
 file static class AuthorizationTypeInterceptorExtensions
 {
     public static bool IsNodeField(this ObjectFieldConfiguration fieldDef)
     {
-        var contextData = fieldDef.GetFeatures();
-
-        return contextData.ContainsKey(WellKnownContextData.IsNodeField) ||
-            contextData.ContainsKey(WellKnownContextData.IsNodesField);
+        return (fieldDef.Flags & FieldFlags.GlobalIdNodeField) == FieldFlags.GlobalIdNodeField
+            || (fieldDef.Flags & FieldFlags.GlobalIdNodesField) == FieldFlags.GlobalIdNodesField;
     }
 }

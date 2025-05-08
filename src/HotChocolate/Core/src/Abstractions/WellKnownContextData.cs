@@ -124,16 +124,6 @@ public static class WellKnownContextData
     public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
 
     /// <summary>
-    /// The key to get check if a field is the node field.
-    /// </summary>
-    public const string IsNodeField = "HotChocolate.Relay.Node.IsNodeField";
-
-    /// <summary>
-    /// The key to get check if a field is the nodes field.
-    /// </summary>
-    public const string IsNodesField = "HotChocolate.Relay.Node.IsNodeField";
-
-    /// <summary>
     /// The key to the name of the data field when using the mutation convention.
     /// </summary>
     public const string MutationConventionDataField = "HotChocolate.Types.Mutations.Conventions.DataField";
