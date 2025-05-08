@@ -122,6 +122,12 @@ public class OperationVisitor : DocumentValidatorVisitor
     {
         context.Names.Add((node.Alias ?? node.Name).Value);
 
+        if (context.OperationType is OperationType.Subscription &&
+            node.Directives.HasSkipOrIncludeDirective())
+        {
+            context.ReportError(SkipAndIncludeNotAllowedOnSubscriptionRootField(node));
+        }
+
         if (context.OperationType is OperationType.Mutation or OperationType.Subscription &&
             node.Directives.HasStreamOrDeferDirective())
         {

@@ -24,6 +24,27 @@ public static class DirectiveCollectionExtensions
         return default!;
     }
 
+    internal static bool HasSkipOrIncludeDirective(this IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+
+            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Skip) ||
+                directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Include))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     internal static IValueNode? SkipValue(this IReadOnlyList<DirectiveNode> directives)
     {
         var directive = directives.GetSkipDirectiveNode();
