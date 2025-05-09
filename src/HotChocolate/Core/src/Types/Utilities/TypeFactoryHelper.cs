@@ -4,7 +4,7 @@ namespace HotChocolate.Utilities;
 
 internal static class TypeFactoryHelper
 {
-    public static INamedType PlaceHolder { get; } = new StringType();
+    public static ITypeDefinition PlaceHolder { get; } = new StringType();
 
     public static bool IsTypeStructureValid(IType type)
     {

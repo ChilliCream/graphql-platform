@@ -2,8 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -61,13 +59,13 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             return Skip;
         }
 
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexOutputType ot &&
+            type.NamedType() is IComplexTypeDefinition ot &&
             ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
@@ -92,8 +90,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         VariableDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetType<INamedType>(
-            node.Type.NamedType().Name.Value, out var variableType))
+        if (context.Schema.Types.TryGetType<ITypeDefinition>(
+            node.Type.NamedType().Name.Value,
+            out var variableType))
         {
             context.Types.Push(variableType);
             return base.Enter(node, context);
@@ -115,7 +114,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         DirectiveNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var d))
+        if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var d))
         {
             context.Directives.Push(d);
             return Continue;
@@ -196,9 +195,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Enter((IValueNode)node, context);
         }
 
-        if (namedType is InputObjectType inputObjectType)
+        if (namedType is IInputObjectTypeDefinition inputObjectType)
         {
-            if (inputObjectType.Directives.ContainsDirective(WellKnownDirectives.OneOf))
+            if (inputObjectType.Directives.ContainsName(DirectiveNames.OneOf.Name))
             {
                 if (node.Fields.Count == 0 || node.Fields.Count > 1)
                 {
@@ -242,7 +241,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
             for (var i = 0; i < inputObjectType.Fields.Count; i++)
             {
-                IInputField field = inputObjectType.Fields[i];
+                IInputValueDefinition field = inputObjectType.Fields[i];
                 if (field.Type.IsNonNullType() &&
                     field.DefaultValue.IsNull() &&
                     context.Names.Add(field.Name))
@@ -265,7 +264,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is InputObjectType it &&
+            type.NamedType() is IInputObjectTypeDefinition it &&
             it.Fields.TryGetField(node.Name.Value, out var field))
         {
             if (field.Type.IsNonNullType() &&
@@ -430,8 +429,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        if (internalType is ListType { ElementType: IInputType elementType, } &&
-            value is ListValueNode list)
+        if (internalType is ListType { ElementType: IInputType elementType, }
+            && value is ListValueNode list)
         {
             for (var i = 0; i < list.Items.Count; i++)
             {
@@ -443,45 +442,43 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return true;
         }
 
-        if (value.Kind is SyntaxKind.NullValue)
-        {
-            return true;
-        }
-
         if (inputType.Kind == TypeKind.NonNull && value.Kind == SyntaxKind.NullValue)
         {
             return false;
         }
 
-        inputType = (INamedInputType)inputType.NamedType();
+        if (value.Kind is SyntaxKind.NullValue)
+        {
+            return true;
+        }
+
+        inputType = (IInputType)inputType.AsTypeDefinition();
 
         if (inputType.IsEnumType())
         {
-            if (value is StringValueNode)
+            if (value is EnumValueNode enumValue)
             {
-                return false;
+                return inputType.ExpectEnumType().Values.ContainsName(enumValue.Value);
             }
 
-            return ((EnumType)inputType).IsInstanceOfType(value);
+            return false;
         }
 
         if (inputType.IsScalarType())
         {
-            return ((ScalarType)inputType).IsInstanceOfType(value);
+            return ((IScalarTypeDefinition)inputType).IsInstanceOfType(value);
         }
 
         return value.Kind is SyntaxKind.ObjectValue;
     }
 
-    private bool IsTypeCompatible(IType left, ITypeNode right)
+    private static bool IsTypeCompatible(IType left, ITypeNode right)
     {
         if (left is NonNullType leftNonNull)
         {
             if (right is NonNullTypeNode rightNonNull)
             {
-                return IsTypeCompatible(
-                    leftNonNull.NullableType,
-                    rightNonNull.Type);
+                return IsTypeCompatible(leftNonNull.NullableType, rightNonNull.Type);
             }
             return false;
         }
@@ -495,17 +492,15 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         {
             if (right is ListTypeNode rightList)
             {
-                return IsTypeCompatible(
-                    leftList.ElementType,
-                    rightList.Type);
+                return IsTypeCompatible(leftList.ElementType, rightList.Type);
             }
             return false;
         }
 
-        if (left is INamedType leftNamedType
+        if (left is ITypeDefinition leftNamedType
             && right is NamedTypeNode rightNamedType)
         {
-            return leftNamedType.Name.EqualsOrdinal(rightNamedType.Name.Value);
+            return leftNamedType.Name.Equals(rightNamedType.Name.Value, StringComparison.Ordinal);
         }
 
         return false;

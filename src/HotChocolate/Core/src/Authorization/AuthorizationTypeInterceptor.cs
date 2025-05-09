@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -50,7 +51,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // we capture the schema context data before everything else so that we can
         // set a marker if the authorization validation rules need to be executed.
-        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Configuration.ContextData);
+        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Configuration.Features);
     }
 
     private ITypeCompletionContext _tc = default!;
@@ -148,7 +149,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             }
 
             var pipeline = nodeResolverInfo.Pipeline;
-            var directives = (DirectiveCollection)objectType.Directives;
+            var directives = objectType.Directives;
             var length = directives.Count;
             ref var start = ref directives.GetReference();
 
@@ -163,7 +164,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 }
             }
 
-            type.TypeDef.ContextData[NodeResolver] =
+            type.TypeDef.Features[NodeResolver] =
                 new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline);
         }
     }
@@ -195,7 +196,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                     // if the field contains the AnonymousAllowed flag we will not
                     // apply authorization on it.
-                    if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+                    if(fieldDef.GetFeatures().ContainsKey(AllowAnonymous))
                     {
                         continue;
                     }
@@ -370,7 +371,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // if the field contains the AnonymousAllowed flag we will not apply authorization
         // on it.
-        if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+        if(fieldDef.GetFeatures().ContainsKey(AllowAnonymous))
         {
             return;
         }
@@ -625,28 +626,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 
     private State CreateState()
-    {
-        AuthorizationOptions? options = null;
-
-        if (_context.ContextData.TryGetValue(
-                WellKnownContextData.AuthorizationOptions,
-                out var value) &&
-            value is AuthorizationOptions opt)
-        {
-            options = opt;
-        }
-
-        return new State(options ?? new());
-    }
+        => new(_context.Features.GetOrSet<AuthorizationOptions>());
 }
 
 file static class AuthorizationTypeInterceptorExtensions
 {
     public static bool IsNodeField(this ObjectFieldConfiguration fieldDef)
     {
-        var contextData = fieldDef.GetContextData();
-
-        return contextData.ContainsKey(WellKnownContextData.IsNodeField) ||
-            contextData.ContainsKey(WellKnownContextData.IsNodesField);
+        return (fieldDef.Flags & FieldFlags.GlobalIdNodeField) == FieldFlags.GlobalIdNodeField
+            || (fieldDef.Flags & FieldFlags.GlobalIdNodesField) == FieldFlags.GlobalIdNodesField;
     }
 }

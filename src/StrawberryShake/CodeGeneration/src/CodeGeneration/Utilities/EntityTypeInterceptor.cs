@@ -29,11 +29,11 @@ internal sealed class EntityTypeInterceptor : TypeInterceptor
         {
             if (_typeEntityPatterns.TryGetValue(outputType.Name, out var pattern))
             {
-                configuration.ContextData[WellKnownContextData.Entity] = pattern;
+                configuration.Features[WellKnownContextData.Entity] = pattern;
             }
             else
             {
-                _outputTypes.Add(new TypeInfo(outputType, configuration.ContextData));
+                _outputTypes.Add(new TypeInfo(outputType, configuration.Features));
             }
         }
     }

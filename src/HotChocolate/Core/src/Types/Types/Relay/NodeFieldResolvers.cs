@@ -25,18 +25,16 @@ internal static class NodeFieldResolvers
         INodeIdSerializer serializer)
     {
         var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
-        var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
+        var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
         var typeName = deserializedId.TypeName;
 
-        // if the type has a registered node resolver we will execute it.
-        if (context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
-            type.ContextData.TryGetValue(NodeResolver, out var o) &&
-            o is NodeResolverInfo nodeResolverInfo)
+        // if the type has a registered node resolver, we will execute it.
+        if (context.Schema.Types.TryGetType<ObjectType>(typeName, out var type)
+            && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
         {
             SetLocalContext(context, nodeId, deserializedId, type);
-            TryReplaceArguments(context, nodeResolverInfo, Id, nodeId);
-
-            await nodeResolverInfo.Pipeline.Invoke(context);
+            TryReplaceArguments(context, feature.NodeResolver, Id, nodeId);
+            await feature.NodeResolver.Pipeline.Invoke(context);
         }
         else
         {
@@ -51,7 +49,7 @@ internal static class NodeFieldResolvers
     }
 
     /// <summary>
-    /// This is the resolver of the nodes field.
+    /// This is the resolver of the `nodes` field.
     /// </summary>
     public static async ValueTask ResolveManyNodeAsync(
         IMiddlewareContext context,
@@ -84,20 +82,17 @@ internal static class NodeFieldResolvers
                 ct.ThrowIfCancellationRequested();
 
                 var nodeId = (StringValueNode)list.Items[i];
-                var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
+                var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
                 var typeName = deserializedId.TypeName;
 
-                // if the type has a registered node resolver we will execute it.
-                if (schema.TryGetType<ObjectType>(typeName, out var type) &&
-                    type.ContextData.TryGetValue(NodeResolver, out var o) &&
-                    o is NodeResolverInfo nodeResolverInfo)
+                // if the type has a registered node resolver, we will execute it.
+                if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                    && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
                 {
                     var nodeContext = context.Clone();
-
                     SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                    TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
-
-                    tasks[i] = ExecutePipelineAsync(nodeContext, nodeResolverInfo);
+                    TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
+                    tasks[i] = ExecutePipelineAsync(nodeContext, feature.NodeResolver);
                 }
                 else
                 {
@@ -150,20 +145,19 @@ internal static class NodeFieldResolvers
         {
             var result = new object?[1];
             var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
-            var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
+            var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
             var typeName = deserializedId.TypeName;
 
-            // if the type has a registered node resolver we will execute it.
-            if (schema.TryGetType<ObjectType>(typeName, out var type) &&
-                type.ContextData.TryGetValue(NodeResolver, out var o) &&
-                o is NodeResolverInfo nodeResolverInfo)
+            // if the type has a registered node resolver, we will execute it.
+            if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
             {
                 var nodeContext = context.Clone();
 
                 SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
+                TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
 
-                result[0] = await ExecutePipelineAsync(nodeContext, nodeResolverInfo);
+                result[0] = await ExecutePipelineAsync(nodeContext, feature.NodeResolver);
             }
             else
             {
@@ -212,7 +206,7 @@ internal static class NodeFieldResolvers
     {
         if (nodeResolverInfo.Id is not null)
         {
-            // If the node resolver is a mapped from an actual field resolver,
+            // If the node resolver is mapped from an actual field resolver,
             // we will create a new argument value since the field resolvers argument could
             // have a different type and argument name.
             var idArg = new ArgumentValue(
@@ -226,7 +220,7 @@ internal static class NodeFieldResolvers
             // Note that in standard middleware we should restore the original
             // argument after we have invoked the next pipeline element.
             // However, the node field is under our control, and we can guarantee
-            // that there are no other middleware involved and allowed,
+            // that there is no other middleware involved and allowed,
             // meaning we skip the restore.
             context.ReplaceArgument(argumentName, idArg);
         }

@@ -129,7 +129,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         DirectiveNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var dt))
+        if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var dt))
         {
             if (context.Path.TryPeek(out var parent) &&
                 TryLookupLocation(parent, out var location) &&
@@ -154,7 +154,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         foreach (var directive in node.Directives)
         {
             // ValidateDirectiveAreUniquePerLocation
-            if (context.Schema.TryGetDirectiveType(directive.Name.Value, out var dt)
+            if (context.Schema.DirectiveDefinitions.TryGetDirective(directive.Name.Value, out var dt)
                 && !dt.IsRepeatable
                 && !context.Names.Add(directive.Name.Value))
             {
@@ -163,19 +163,21 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
             // Defer And Stream Directive Labels Are Unique
             if (node.Kind is Field or InlineFragment or FragmentSpread &&
-                (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Defer) ||
-                directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Stream)))
+                (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal) ||
+                directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
             {
-                if (directive.GetLabelArgumentValueOrDefault() is StringValueNode sn)
+                switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {
-                    if (!context.Declared.Add(sn.Value))
-                    {
-                        context.ReportError(context.DeferAndStreamDuplicateLabel(node, sn.Value));
-                    }
-                }
-                else if (directive.GetLabelArgumentValueOrDefault() is VariableNode vn)
-                {
-                    context.ReportError(context.DeferAndStreamLabelIsVariable(node, vn.Name.Value));
+                    case StringValueNode sn:
+                        if (!context.Declared.Add(sn.Value))
+                        {
+                            context.ReportError(context.DeferAndStreamDuplicateLabel(node, sn.Value));
+                        }
+                        break;
+
+                    case VariableNode vn:
+                        context.ReportError(context.DeferAndStreamLabelIsVariable(node, vn.Name.Value));
+                        break;
                 }
             }
         }
@@ -209,15 +211,15 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
                 switch (((OperationDefinitionNode)node).Operation)
                 {
                     case OperationType.Query:
-                        location = Types.DirectiveLocation.Query;
+                        location = DirectiveLoc.Query;
                         return true;
 
                     case OperationType.Mutation:
-                        location = Types.DirectiveLocation.Mutation;
+                        location = DirectiveLoc.Mutation;
                         return true;
 
                     case OperationType.Subscription:
-                        location = Types.DirectiveLocation.Subscription;
+                        location = DirectiveLoc.Subscription;
                         return true;
 
                     default:

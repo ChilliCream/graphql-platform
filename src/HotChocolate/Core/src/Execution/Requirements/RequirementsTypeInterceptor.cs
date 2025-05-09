@@ -40,14 +40,14 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
                 // if the source generator already compiled the
                 // requirements we will take it and skip compilation.
-                if (fieldDef.ContextData.TryGetValue(FieldRequirements, out var value))
+                if (fieldDef.Features.TryGetValue(FieldRequirements, out var value))
                 {
                     _metadata.TryAddRequirements(fieldCoordinate, (TypeNode)value!);
                     continue;
                 }
 
-                var requirements = (string)fieldDef.ContextData[FieldRequirementsSyntax]!;
-                var entityType = runtimeType ?? (Type)fieldDef.ContextData[FieldRequirementsEntity]!;
+                var requirements = (string)fieldDef.Features[FieldRequirementsSyntax]!;
+                var entityType = runtimeType ?? (Type)fieldDef.Features[FieldRequirementsEntity]!;
 
                 var propertyNodes = PropertyTreeBuilder.Build(
                     fieldCoordinate,

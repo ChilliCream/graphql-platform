@@ -3,8 +3,6 @@ using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Validation.Rules;
@@ -89,7 +87,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             context.FieldSets.Add(selectionSet, fields);
         }
 
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             if (node.IsStreamable())
             {
@@ -100,7 +98,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) && type.NamedType() is IComplexOutputType ct)
+        if (context.Types.TryPeek(out var type) && type.NamedType() is IComplexTypeDefinition ct)
         {
             if (ct.Fields.TryGetField(node.Name.Value, out var of))
             {
@@ -161,7 +159,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             && type.NamedType() is { Kind: TypeKind.Union, } unionType
             && HasFields(node))
         {
-            context.ReportError(context.UnionFieldError(node, (UnionType)unionType));
+            context.ReportError(context.UnionFieldError(node, unionType.ExpectUnionType()));
             return Skip;
         }
 
@@ -229,7 +227,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsTypeNameField(string fieldName)
-        => fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
+        => fieldName.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal);
 
     private static void TryMergeFieldsInSet(
         IDocumentValidatorContext context,
@@ -261,7 +259,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 var fieldB = fields[j];
 
                 if (ReferenceEquals(fieldA.SyntaxNode, fieldB.SyntaxNode)
-                    || !fieldA.ResponseName.EqualsOrdinal(fieldB.ResponseName))
+                    || !fieldA.ResponseName.Equals(fieldB.ResponseName, StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -381,9 +379,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 typeB = typeB.InnerType();
             }
 
-            if (typeA.IsType(TypeKind.List) || typeB.IsType(TypeKind.List))
+            if (typeA.IsListType() || typeB.IsListType())
             {
-                if (!typeA.IsType(TypeKind.List) || !typeB.IsType(TypeKind.List))
+                if (!typeA.IsListType() || !typeB.IsListType())
                 {
                     return false;
                 }
@@ -393,24 +391,18 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        if (typeA.IsType(TypeKind.Scalar, TypeKind.Enum) || typeB.IsType(TypeKind.Scalar, TypeKind.Enum))
+        if (typeA.IsLeafType() || typeB.IsLeafType())
         {
             return ReferenceEquals(typeA, typeB);
         }
 
-        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union)
-            && typeB.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
-        {
-            return true;
-        }
-
-        return false;
+        return typeA.IsCompositeType() && typeB.IsCompositeType();
     }
 
     private static bool SameStreamDirective(FieldInfo fieldA, FieldInfo fieldB)
     {
-        var streamA = fieldA.SyntaxNode.GetStreamDirectiveNode();
-        var streamB = fieldB.SyntaxNode.GetStreamDirectiveNode();
+        var streamA = fieldA.SyntaxNode.GetStreamDirective();
+        var streamB = fieldB.SyntaxNode.GetStreamDirective();
 
         // if both fields do not have any stream directive they are mergeable.
         if (streamA is null)
@@ -461,5 +453,56 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         current.Clear();
+    }
+}
+
+file static class DirectiveExtensions
+{
+    public static bool StreamDirectiveEquals(
+        this DirectiveNode streamA,
+        DirectiveNode streamB)
+    {
+        var argsA = CreateStreamArgs(streamA);
+        var argsB = CreateStreamArgs(streamB);
+
+        return BySyntax.Equals(argsA.If, argsB.If)
+            && BySyntax.Equals(argsA.InitialCount, argsB.InitialCount)
+            && BySyntax.Equals(argsA.Label, argsB.Label);
+    }
+
+    private static StreamArgs CreateStreamArgs(DirectiveNode directiveNode)
+    {
+        var args = new StreamArgs();
+
+        for (var i = 0; i < directiveNode.Arguments.Count; i++)
+        {
+            var argument = directiveNode.Arguments[i];
+
+            switch (argument.Name.Value)
+            {
+                case DirectiveNames.Stream.Arguments.If:
+                    args.If = argument.Value;
+                    break;
+
+                case DirectiveNames.Stream.Arguments.Label:
+                    args.Label = argument.Value;
+                    break;
+
+                case DirectiveNames.Stream.Arguments.InitialCount:
+                    args.InitialCount = argument.Value;
+                    break;
+            }
+        }
+
+        return args;
+    }
+
+    private ref struct StreamArgs
+    {
+        public IValueNode? If { get; set; }
+
+        public IValueNode? Label { get; set; }
+
+        public IValueNode? InitialCount { get; set; }
     }
 }

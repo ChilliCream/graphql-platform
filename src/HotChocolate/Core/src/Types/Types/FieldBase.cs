@@ -1,4 +1,6 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
@@ -9,8 +11,10 @@ using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types;
 
 public abstract class FieldBase
-    : IField
+    : IFieldDefinition
     , IFieldCompletion
+    , IHasFieldIndex
+    , IHasRuntimeType
 {
     private FieldConfiguration? _config;
     private FieldFlags _flags;
@@ -22,10 +26,14 @@ public abstract class FieldBase
 
         Name = configuration.Name.EnsureGraphQLName();
         Description = configuration.Description;
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = configuration.DeprecationReason;
         Flags = configuration.Flags;
         DeclaringType = default!;
-        ContextData = default!;
+        DeclaringMember = default!;
+        Features = default!;
         Directives = default!;
+        Type = default!;
     }
 
     /// <inheritdoc />
@@ -34,17 +42,36 @@ public abstract class FieldBase
     /// <inheritdoc />
     public string? Description { get; }
 
+    /// <summary>
+    /// Gets the type that declares this field.
+    /// </summary>
+    public ITypeDefinition DeclaringType { get; private set; }
+
     /// <inheritdoc />
-    public ITypeSystemObject DeclaringType { get; private set; }
+    public ITypeSystemMember DeclaringMember { get; private set; }
 
     /// <inheritdoc />
     public SchemaCoordinate Coordinate { get; private set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the index of this field in the declaring members field collection.
+    /// </summary>
     public int Index { get; }
 
     /// <inheritdoc />
-    public IDirectiveCollection Directives { get; private set; }
+    public DirectiveCollection Directives { get; private set; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
+
+    /// <inheritdoc />
+    public bool IsDeprecated { get; }
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; }
+
+    /// <inheritdoc />
+    public IType Type { get; private set; }
 
     /// <inheritdoc />
     public abstract Type RuntimeType { get; }
@@ -60,7 +87,7 @@ public abstract class FieldBase
     }
 
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
+    public IFeatureCollection Features { get; private set; }
 
     internal void CompleteField(
         ITypeCompletionContext context,
@@ -68,7 +95,7 @@ public abstract class FieldBase
     {
         AssertMutable();
         OnCompleteField(context, declaringMember, _config!);
-        ContextData = _config!.GetContextData();
+        Features = _config!.GetFeatures();
     }
 
     protected virtual void OnCompleteField(
@@ -76,11 +103,21 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember,
         FieldConfiguration definition)
     {
-        DeclaringType = context.Type;
-        Coordinate = declaringMember is IField field
-            ? new SchemaCoordinate(context.Type.Name, field.Name, definition.Name)
-            : new SchemaCoordinate(context.Type.Name, definition.Name);
+        DeclaringType = (ITypeDefinition)context.Type;
+        DeclaringMember = context.Type;
         Flags = definition.Flags;
+
+        if (declaringMember is IFieldDefinition field)
+        {
+            DeclaringMember = field;
+            Coordinate = new SchemaCoordinate(context.Type.Name, field.Name, definition.Name);
+        }
+        else
+        {
+            Coordinate = new SchemaCoordinate(context.Type.Name, definition.Name);
+        }
+
+        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
     }
 
     void IFieldCompletion.CompleteField(
@@ -101,8 +138,11 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember,
         FieldConfiguration definition)
     {
-        Directives = DirectiveCollection.CreateAndComplete(
-            context, this, definition.GetDirectives());
+        Directives =
+            DirectiveCollection.CreateAndComplete(
+                context,
+                this,
+                definition.GetDirectives());
     }
 
     void IFieldCompletion.CompleteMetadata(
@@ -136,6 +176,7 @@ public abstract class FieldBase
     {
         AssertMutable();
         OnFinalizeField(context, declaringMember, _config!);
+        Features = Features.ToReadOnly();
         _config = null;
         _flags |= FieldFlags.Sealed;
     }
@@ -159,4 +200,18 @@ public abstract class FieldBase
             throw ThrowHelper.FieldBase_Sealed();
         }
     }
+
+    /// <summary>
+    /// Returns a string representation of the field.
+    /// </summary>
+    public sealed override string ToString()
+        => FormatField().ToString();
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
+        => FormatField();
+
+    /// <summary>
+    /// Creates a <see cref="ISyntaxNode"/> from a type system member.
+    /// </summary>
+    protected abstract ISyntaxNode FormatField();
 }

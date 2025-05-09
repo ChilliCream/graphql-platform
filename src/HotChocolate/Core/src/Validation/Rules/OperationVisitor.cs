@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
 using static HotChocolate.Validation.ErrorHelper;
 
 namespace HotChocolate.Validation.Rules;
@@ -107,7 +106,7 @@ public class OperationVisitor : DocumentValidatorVisitor
             {
                 context.ReportError(context.SubscriptionSingleRootField(node));
             }
-            else if (IntrospectionFields.TypeName.Equals(context.Names.Single()))
+            else if (IntrospectionFieldNames.TypeName.Equals(context.Names.Single()))
             {
                 context.ReportError(context.SubscriptionNoTopLevelIntrospectionField(node));
             }
@@ -155,5 +154,29 @@ public class OperationVisitor : DocumentValidatorVisitor
         }
 
         return base.Enter(node, context);
+    }
+}
+
+file static class DirectiveExtensions
+{
+    internal static bool HasStreamOrDeferDirective(this IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+
+            if (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
+                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

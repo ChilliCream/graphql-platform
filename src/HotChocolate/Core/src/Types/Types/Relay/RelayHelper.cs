@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -8,18 +9,13 @@ internal static class RelayHelper
 {
     public static MutationPayloadOptions GetMutationPayloadOptions(
         this IDescriptorContext context)
-    {
-        if (context.ContextData.TryGetValue(typeof(MutationPayloadOptions).FullName!, out var o) &&
-            o is MutationPayloadOptions casted)
-        {
-            return casted;
-        }
+        => context.Features.GetOrSet<MutationPayloadOptions>();
 
-        return new MutationPayloadOptions();
-    }
-
-    public static ISchemaBuilder SetMutationPayloadOptions(
+    public static ISchemaBuilder ModifyMutationPayloadOptions(
         this ISchemaBuilder schemaBuilder,
-        MutationPayloadOptions options) =>
-        schemaBuilder.SetContextData(typeof(MutationPayloadOptions).FullName!, options);
+        Action<MutationPayloadOptions>? configure = null)
+    {
+        configure?.Invoke(schemaBuilder.Features.GetOrSet<MutationPayloadOptions>());
+        return schemaBuilder;
+    }
 }

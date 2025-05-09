@@ -31,7 +31,7 @@ public class InputObjectTypeExtensionTests
             .AddType(new InputObjectTypeExtension(d => d
                 .Name("FooInput")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .Create();
 
         // assert
@@ -51,7 +51,7 @@ public class InputObjectTypeExtensionTests
                 .Name("FooInput")
                 .Field("description")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .Create();
 
         // assert

@@ -39,7 +39,7 @@ public static class ExecutionObjectFieldDescriptorExtensions
 
         descriptor
             .Extend()
-            .OnBeforeCreate(d => RegisterOptimizer(d.ContextData, optimizer));
+            .OnBeforeCreate(d => RegisterOptimizer(d.Features, optimizer));
 
         return descriptor;
     }

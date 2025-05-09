@@ -150,7 +150,7 @@ public class TypeFactoryTests : TypeTestBase
 
         Assert.True(type.Fields["a"].IsDeprecated);
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.DeprecationDefaultReason,
             type.Fields["a"].DeprecationReason);
 
         schema.ToString().MatchSnapshot();

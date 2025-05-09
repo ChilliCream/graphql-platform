@@ -22,7 +22,7 @@ public class LeafTypeInterceptor : TypeInterceptor
     {
         if (completionContext.Type is ILeafType leafType && configuration is not null)
         {
-            _leafTypes.Add(new LeafType(leafType, configuration.ContextData));
+            _leafTypes.Add(new LeafType(leafType, configuration.Features));
         }
     }
 

@@ -13,7 +13,7 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// Gets the schema on which the validation is executed.
     /// </summary>
-    ISchema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the unique document identifier.
@@ -103,12 +103,12 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// The current visitation path of directive types.
     /// </summary>
-    IList<DirectiveType> Directives { get; }
+    IList<IDirectiveDefinition> Directives { get; }
 
     /// <summary>
     /// The current visitation path of output fields.
     /// </summary>
-    IList<IOutputField> OutputFields { get; }
+    IList<IOutputFieldDefinition> OutputFields { get; }
 
     /// <summary>
     /// The current visitation path of selections.
@@ -118,7 +118,7 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// The current visitation path of input fields.
     /// </summary>
-    IList<IInputField> InputFields { get; }
+    IList<IInputValueDefinition> InputFields { get; }
 
     /// <summary>
     /// A list to track validation errors that occurred during the visitation.

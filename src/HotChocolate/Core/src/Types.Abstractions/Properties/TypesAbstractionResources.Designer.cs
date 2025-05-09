@@ -50,5 +50,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NonNullType_InnerTypeCannotBeNonNull", resourceCulture);
             }
         }
+        
+        internal static string TypeExtensions_InvalidStructure {
+            get {
+                return ResourceManager.GetString("TypeExtensions_InvalidStructure", resourceCulture);
+            }
+        }
+        
+        internal static string TypeExtensions_KindIsNotSupported {
+            get {
+                return ResourceManager.GetString("TypeExtensions_KindIsNotSupported", resourceCulture);
+            }
+        }
     }
 }

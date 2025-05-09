@@ -101,11 +101,16 @@ public partial class InputObjectType
         }
     }
 
-    protected virtual FieldCollection<InputField> OnCompleteFields(
+    protected virtual InputFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
         InputObjectTypeConfiguration definition)
     {
-        return CompleteFields(context, this, definition.Fields, CreateField);
+        return new InputFieldCollection(
+            CompleteFields(
+                context,
+                this,
+                definition.Fields,
+                CreateField));
         static InputField CreateField(InputFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }
@@ -184,9 +189,8 @@ public partial class InputObjectType
 
 file static class Extensions
 {
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsOneOf(this DirectiveConfiguration directiveDef)
         => directiveDef.Value is DirectiveNode node
-            && node.Name.Value.EqualsOrdinal(WellKnownDirectives.OneOf);
+            && node.Name.Value.EqualsOrdinal(DirectiveNames.OneOf.Name);
 }

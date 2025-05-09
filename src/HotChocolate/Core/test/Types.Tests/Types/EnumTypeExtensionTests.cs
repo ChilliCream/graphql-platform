@@ -111,7 +111,7 @@ public class EnumTypeExtensionTests
             .AddType(new EnumTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .Create();
 
         // assert

@@ -46,7 +46,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
     {
         descriptor
             .Extend()
-            .OnBeforeCreate(x => x.ContextData[ProjectionConvention.IsProjectedKey] = isProjected);
+            .OnBeforeCreate(x => x.Features[ProjectionConvention.IsProjectedKey] = isProjected);
 
         return descriptor;
     }
@@ -175,9 +175,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
         string? scope)
     {
         var convention = context.DescriptorContext.GetProjectionConvention(scope);
-        RegisterOptimizer(definition.ContextData, convention.CreateOptimizer());
+        RegisterOptimizer(definition.Features, convention.CreateOptimizer());
 
-        definition.ContextData[ProjectionContextIdentifier] = true;
+        definition.Features[ProjectionContextIdentifier] = true;
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
@@ -333,7 +333,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public void ReportError(IError error) => _context.ReportError(error);
 
-        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
             => _context.ReportError(exception, configure);
 
         public IReadOnlyList<ISelection> GetSelections(

@@ -212,7 +212,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.DeprecationDefaultReason,
             fooType.Fields["bar"].DeprecationReason);
         Assert.True(fooType.Fields["bar"].IsDeprecated);
     }

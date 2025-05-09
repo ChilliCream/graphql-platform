@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -16,27 +17,25 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field of an <see cref="ObjectType"/>.
 /// </summary>
-public sealed class ObjectField : OutputFieldBase, IObjectField
+public sealed class ObjectField : OutputField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
 
-    internal ObjectField(ObjectFieldConfiguration definition, int index)
-        : base(definition, index)
+    internal ObjectField(ObjectFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        Member = definition.Member;
-        ResolverMember = definition.ResolverMember ?? definition.Member;
+        Member = configuration.Member;
+        ResolverMember = configuration.ResolverMember ?? configuration.Member;
         Middleware = _empty;
-        Resolver = definition.Resolver!;
-        ResolverExpression = definition.Expression;
-        SubscribeResolver = definition.SubscribeResolver;
+        Resolver = configuration.Resolver!;
+        ResolverExpression = configuration.Expression;
+        SubscribeResolver = configuration.SubscribeResolver;
     }
 
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>
-    public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
-
-    IObjectType IObjectField.DeclaringType => DeclaringType;
+    public new ObjectType DeclaringType => Unsafe.As<ObjectType>(base.DeclaringType);
 
     /// <summary>
     /// Defines if this field can be executed in parallel with other fields.

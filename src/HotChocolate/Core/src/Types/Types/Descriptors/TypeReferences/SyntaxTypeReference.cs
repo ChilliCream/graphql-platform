@@ -15,7 +15,7 @@ public sealed class SyntaxTypeReference
         ITypeNode type,
         TypeContext context,
         string? scope = null,
-        Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
+        Func<IDescriptorContext, TypeSystemObject>? factory = null)
         : base(
             factory is null ? TypeReferenceKind.Syntax : TypeReferenceKind.Factory,
             context,
@@ -39,7 +39,7 @@ public sealed class SyntaxTypeReference
     /// <summary>
     /// Gets a factory to create this type. Note, a factory is optional.
     /// </summary>
-    public Func<IDescriptorContext, TypeSystemObjectBase>? Factory { get; }
+    public Func<IDescriptorContext, TypeSystemObject>? Factory { get; }
 
     /// <inheritdoc />
     public bool Equals(SyntaxTypeReference? other)
@@ -129,14 +129,14 @@ public sealed class SyntaxTypeReference
         => new(Type, Context, scope);
 
     public SyntaxTypeReference WithFactory(
-        Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
+        Func<IDescriptorContext, TypeSystemObject>? factory = null)
         => new(Type, Context, Scope, Factory);
 
     public SyntaxTypeReference With(
         Optional<ITypeNode> type = default,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default,
-        Optional<Func<IDescriptorContext, TypeSystemObjectBase>?> factory = default)
+        Optional<Func<IDescriptorContext, TypeSystemObject>?> factory = default)
     {
         if (type is { HasValue: true, Value: null })
         {

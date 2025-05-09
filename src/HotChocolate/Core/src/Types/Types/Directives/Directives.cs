@@ -9,13 +9,13 @@ public static class Directives
 {
     private static readonly HashSet<string> _directiveNames =
     [
-        WellKnownDirectives.Skip,
-        WellKnownDirectives.Include,
-        WellKnownDirectives.Deprecated,
-        WellKnownDirectives.Stream,
-        WellKnownDirectives.Defer,
-        WellKnownDirectives.OneOf,
-        WellKnownDirectives.SemanticNonNull
+        DirectiveNames.Skip.Name,
+        DirectiveNames.Include.Name,
+        DirectiveNames.Deprecated.Name,
+        DirectiveNames.Stream.Name,
+        DirectiveNames.Defer.Name,
+        DirectiveNames.OneOf.Name,
+        DirectiveNames.SemanticNonNull.Name
     ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(

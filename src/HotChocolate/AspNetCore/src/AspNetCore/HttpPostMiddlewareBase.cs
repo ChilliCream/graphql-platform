@@ -51,7 +51,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         }
         else
         {
-            // if the request is not a post request we will just invoke the next
+            // if the request is not a post request, we will just invoke the next
             // middleware and do nothing:
             await NextAsync(context);
         }

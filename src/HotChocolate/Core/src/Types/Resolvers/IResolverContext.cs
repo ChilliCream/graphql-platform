@@ -17,12 +17,12 @@ public interface IResolverContext : IHasContextData
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.
     /// </summary>
-    ISchema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the object type on which the field resolver is being executed.
     /// </summary>
-    IObjectType ObjectType { get; }
+    IObjectTypeDefinition ObjectType { get; }
 
     /// <summary>
     /// Gets the operation from the query that is being executed.
@@ -230,7 +230,7 @@ public interface IResolverContext : IHasContextData
     /// <param name="configure">
     /// A delegate to further configure the error object.
     /// </param>
-    void ReportError(Exception exception, Action<IErrorBuilder>? configure = null);
+    void ReportError(Exception exception, Action<ErrorBuilder>? configure = null);
 
     /// <summary>
     /// Gets the pre-compiled selections for the selection-set
@@ -251,7 +251,7 @@ public interface IResolverContext : IHasContextData
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
     IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
+        IObjectTypeDefinition typeContext,
         ISelection? selection = null,
         bool allowInternals = false);
 

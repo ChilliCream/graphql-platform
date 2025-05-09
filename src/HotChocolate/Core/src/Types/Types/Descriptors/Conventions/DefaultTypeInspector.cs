@@ -816,9 +816,9 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         // we allow these as parameter type.
         var parameterType = parameter.ParameterType;
 
-        if (typeof(ISchema).IsAssignableFrom(parameterType) ||
-            typeof(IObjectType).IsAssignableFrom(parameterType) ||
-            typeof(IOutputField).IsAssignableFrom(parameterType))
+        if (typeof(ISchemaDefinition).IsAssignableFrom(parameterType) ||
+            typeof(IObjectTypeDefinition).IsAssignableFrom(parameterType) ||
+            typeof(IOutputFieldDefinition).IsAssignableFrom(parameterType))
         {
             return true;
         }

@@ -43,7 +43,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     public ISet<string> Scalars { get; } = new HashSet<string>();
 
     public void Register(
-        TypeSystemObjectBase obj,
+        TypeSystemObject obj,
         string? scope,
         bool inferred = false,
         Action<RegisteredType>? configure = null)
@@ -158,7 +158,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     }
 
     private RegisteredType InitializeType(
-        TypeSystemObjectBase typeSystemObject,
+        TypeSystemObject typeSystemObject,
         string? scope,
         bool isInferred)
     {

@@ -143,7 +143,7 @@ internal static class DirectiveClassMiddlewareFactory
 
             if (parameter.ParameterType == typeof(DirectiveNode))
             {
-                return Expression.Constant(_directive.AsSyntaxNode(), typeof(DirectiveNode));
+                return Expression.Constant(_directive.ToSyntaxNode(), typeof(DirectiveNode));
             }
 
             return  Expression.Constant(_directive.AsValue<object>(), _runtimeType);

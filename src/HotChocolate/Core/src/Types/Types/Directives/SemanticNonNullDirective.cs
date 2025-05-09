@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Types;
 
-[DirectiveType(WellKnownDirectives.SemanticNonNull, DirectiveLocation.FieldDefinition, IsRepeatable = false)]
+[DirectiveType(DirectiveNames.SemanticNonNull.Name, DirectiveLocation.FieldDefinition, IsRepeatable = false)]
 public sealed class SemanticNonNullDirective(IReadOnlyList<int> levels)
 {
     [GraphQLType<ListType<NonNullType<IntType>>>]

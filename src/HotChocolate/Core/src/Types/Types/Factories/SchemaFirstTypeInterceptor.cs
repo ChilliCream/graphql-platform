@@ -24,10 +24,10 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
         {
             foreach (var directive in directives)
             {
-                if (directive.Name.Value.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy))
+                if (directive.Name.Value.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name))
                 {
                     if (directive.Arguments.Count == 1
-                        && directive.Arguments[0].Name.Value.EqualsOrdinal("url")
+                        && directive.Arguments[0].Name.Value.EqualsOrdinal(DirectiveNames.SpecifiedBy.Arguments.Url)
                         && directive.Arguments[0].Value is StringValueNode url)
                     {
                         scalarTypeDef.SpecifiedBy = new Uri(url.Value);

@@ -4,7 +4,10 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 /// <summary>
 /// Represents a collection of argument value assignments.
@@ -139,13 +142,23 @@ public sealed class ArgumentAssignmentCollection : IReadOnlyList<ArgumentAssignm
         }
     }
 
+    /// <summary>
+    /// Returns an enumerable collection of the argument assignments.
+    /// </summary>
+    /// <returns>
+    /// An enumerable collection of the argument assignments.
+    /// </returns>
     public IEnumerable<ArgumentAssignment> AsEnumerable()
         => _arguments;
 
+    /// <summary>
+    /// Returns an enumerator that iterates through the argument assignments.
+    /// </summary>
+    /// <returns>
+    /// An enumerator that iterates through the argument assignments.
+    /// </returns>
     public IEnumerator<ArgumentAssignment> GetEnumerator()
-    {
-        return ((IEnumerable<ArgumentAssignment>)_arguments).GetEnumerator();
-    }
+        => AsEnumerable().GetEnumerator();
 
     /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator()

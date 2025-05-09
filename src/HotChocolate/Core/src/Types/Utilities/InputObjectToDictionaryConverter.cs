@@ -47,7 +47,7 @@ internal class InputObjectToDictionaryConverter
         }
         else if (type.IsLeafType())
         {
-            VisitLeaf((INamedInputType)type.NamedType(), obj, setValue);
+            VisitLeaf((ILeafType)type.NamedType(), obj, setValue);
         }
         else if (type.IsInputObjectType())
         {
@@ -99,7 +99,7 @@ internal class InputObjectToDictionaryConverter
         }
     }
 
-    private void VisitLeaf(INamedInputType type, object obj, Action<object> setValue)
+    private void VisitLeaf(ILeafType type, object obj, Action<object> setValue)
     {
         if (type is IHasRuntimeType hasClrType)
         {

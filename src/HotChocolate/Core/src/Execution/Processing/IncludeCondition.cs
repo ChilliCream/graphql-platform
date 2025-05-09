@@ -96,8 +96,8 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// The object to compare with the current instance.
     /// </param>
     /// <returns>
-    /// <see langword="true" /> if <paramref name="obj" /> and this instance are the same
-    /// type and represent the same value; otherwise, <see langword="false" />.
+    /// <see langword="true" /> if <paramref name="obj" /> and this instance is the same
+    /// type and represents the same value; otherwise, <see langword="false" />.
     /// </returns>
     public override bool Equals(object? obj)
         => obj is IncludeCondition other && Equals(other);
@@ -147,12 +147,12 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
                 continue;
             }
 
-            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Skip))
+            if (directive.Name.Value.EqualsOrdinal(DirectiveNames.Skip))
             {
                 skip = directive.Arguments[0].Value;
             }
 
-            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Include))
+            if (directive.Name.Value.EqualsOrdinal(DirectiveNames.Include))
             {
                 include = directive.Arguments[0].Value;
             }

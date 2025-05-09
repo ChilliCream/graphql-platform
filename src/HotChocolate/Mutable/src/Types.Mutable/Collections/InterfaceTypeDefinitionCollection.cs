@@ -14,36 +14,85 @@ public sealed class InterfaceTypeDefinitionCollection
 
     public MutableInterfaceTypeDefinition this[int index]
     {
-        get => _interfaces[index];
-        set => _interfaces[index] = value;
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            return _interfaces[index];
+        }
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+            ArgumentNullException.ThrowIfNull(value);
+
+            _interfaces[index] = value;
+        }
     }
 
+    IInterfaceTypeDefinition IReadOnlyList<IInterfaceTypeDefinition>.this[int index]
+        => this[index];
+
+
     public void Add(MutableInterfaceTypeDefinition item)
-        => _interfaces.Add(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        _interfaces.Add(item);
+    }
 
     public bool Remove(MutableInterfaceTypeDefinition item)
-        => _interfaces.Remove(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _interfaces.Remove(item);
+    }
 
     public int IndexOf(MutableInterfaceTypeDefinition item)
-        => _interfaces.IndexOf(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _interfaces.IndexOf(item);
+    }
 
     public void Insert(int index, MutableInterfaceTypeDefinition item)
-        => _interfaces.Insert(index, item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        _interfaces.Insert(index, item);
+    }
 
     public void RemoveAt(int index)
-        => _interfaces.RemoveAt(index);
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        _interfaces.RemoveAt(index);
+    }
+
+    public bool ContainsName(string name)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _interfaces.Exists(t => t.Name.Equals(name));
+    }
+
+    public bool Contains(MutableInterfaceTypeDefinition item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _interfaces.Contains(item);
+    }
 
     public void Clear()
         => _interfaces.Clear();
 
-    public bool ContainsName(string name)
-        => _interfaces.Exists(t => t.Name.Equals(name));
-
-    public bool Contains(MutableInterfaceTypeDefinition item)
-        => _interfaces.Contains(item);
-
     public void CopyTo(MutableInterfaceTypeDefinition[] array, int arrayIndex)
-        => _interfaces.CopyTo(array, arrayIndex);
+    {
+        ArgumentNullException.ThrowIfNull(array);
+        ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+
+        _interfaces.CopyTo(array, arrayIndex);
+    }
 
     public IEnumerable<MutableInterfaceTypeDefinition> AsEnumerable()
         => _interfaces;

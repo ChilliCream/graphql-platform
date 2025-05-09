@@ -33,7 +33,7 @@ public class UnionTypeExtensionTests
             .AddType(new UnionTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .Create();
 
         // assert

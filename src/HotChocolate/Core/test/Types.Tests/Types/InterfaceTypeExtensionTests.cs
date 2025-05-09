@@ -65,7 +65,7 @@ public class InterfaceTypeExtensionTests
         var type = schema.GetType<InterfaceType>("Foo");
         Assert.True(type.Fields["description"].IsDeprecated);
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.DeprecationDefaultReason,
             type.Fields["description"].DeprecationReason);
     }
 
@@ -100,7 +100,7 @@ public class InterfaceTypeExtensionTests
             .AddType(new InterfaceTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -121,7 +121,7 @@ public class InterfaceTypeExtensionTests
                 .Name("Foo")
                 .Field("description")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -146,7 +146,7 @@ public class InterfaceTypeExtensionTests
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Extend()
-                    .OnBeforeCreate(c => c.ContextData["foo"] = "bar"))))
+                    .OnBeforeCreate(c => c.Features["foo"] = "bar"))))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 

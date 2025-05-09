@@ -32,7 +32,7 @@ public class IntrospectionRuleTests
             }
             """,
             [
-                new(WellKnownContextData.IntrospectionMessage, new Func<string>(() => "Bar"))
+                new(ExecutionContextData.IntrospectionMessage, new Func<string>(() => "Bar"))
             ]);
     }
 
@@ -49,7 +49,7 @@ public class IntrospectionRuleTests
             }
             """,
             [
-                new(WellKnownContextData.IntrospectionMessage, "Baz")
+                new(ExecutionContextData.IntrospectionMessage, "Baz")
             ]);
     }
 
@@ -96,7 +96,7 @@ public class IntrospectionRuleTests
             }
             """,
             [
-                new(WellKnownContextData.IntrospectionAllowed, null)
+                new(ExecutionContextData.IntrospectionAllowed, null)
             ]);
     }
 
@@ -113,7 +113,7 @@ public class IntrospectionRuleTests
             }
             """,
             [
-                new(WellKnownContextData.IntrospectionAllowed, null)
+                new(ExecutionContextData.IntrospectionAllowed, null)
             ]);
     }
 

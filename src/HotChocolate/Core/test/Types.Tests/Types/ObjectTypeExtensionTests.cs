@@ -195,7 +195,7 @@ public class ObjectTypeExtensionTests
         var type = schema.GetType<ObjectType>("Foo");
         Assert.True(type.Fields["description"].IsDeprecated);
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.DeprecationDefaultReason,
             type.Fields["description"].DeprecationReason);
         schema.ToString().MatchSnapshot();
     }
@@ -209,7 +209,7 @@ public class ObjectTypeExtensionTests
             .AddTypeExtension(new ObjectTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
@@ -226,7 +226,7 @@ public class ObjectTypeExtensionTests
                 .Name("Foo")
                 .Field("description")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
@@ -247,7 +247,7 @@ public class ObjectTypeExtensionTests
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Extend()
-                    .OnBeforeCreate(c => c.ContextData["foo"] = "bar"))))
+                    .OnBeforeCreate(c => c.Features["foo"] = "bar"))))
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");

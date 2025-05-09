@@ -39,7 +39,7 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
             .Create(node =>
             {
                 if (node is FragmentSpreadNode spread &&
-                    spread.Directives.Any(t => t.Name.Value.EqualsOrdinal(WellKnownDirectives.Defer)))
+                    spread.Directives.Any(t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer)))
                 {
                     context.Deferred.Add(spread.Name.Value);
                 }

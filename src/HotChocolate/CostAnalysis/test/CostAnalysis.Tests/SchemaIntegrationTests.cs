@@ -44,7 +44,7 @@ public sealed class SchemaIntegrationTests
             """);
 
         // act
-        var result = schema.ToDocument();
+        var result = schema.ToSyntaxNode();
 
         // assert
         result.MatchSnapshot();
@@ -84,7 +84,7 @@ public sealed class SchemaIntegrationTests
             """);
 
         // act
-        var result = schema.ToDocument();
+        var result = schema.ToSyntaxNode();
 
         // assert
         result.MatchSnapshot();

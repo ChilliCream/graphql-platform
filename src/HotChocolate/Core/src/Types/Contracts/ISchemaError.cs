@@ -20,7 +20,7 @@ public interface ISchemaError
     /// </summary>
     string? Code { get; }
 
-    ITypeSystemObject? TypeSystemObject { get; }
+    TypeSystemObject? TypeSystemObject { get; }
 
     IReadOnlyCollection<ISyntaxNode> SyntaxNodes { get; }
 

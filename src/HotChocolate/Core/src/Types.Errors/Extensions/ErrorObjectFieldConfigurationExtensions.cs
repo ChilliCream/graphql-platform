@@ -45,11 +45,11 @@ public static class ErrorObjectFieldConfigurationExtensions
                 .BuildException();
         }
 
-        if (!configuration.ContextData.TryGetValue(ErrorConfigurations, out var value) ||
+        if (!configuration.Features.TryGetValue(ErrorConfigurations, out var value) ||
             value is not List<ErrorConfiguration> errorFactories)
         {
             errorFactories = [];
-            configuration.ContextData[ErrorConfigurations] = errorFactories;
+            configuration.Features[ErrorConfigurations] = errorFactories;
         }
 
         var errorConfigs = ErrorFactoryCompiler.Compile(errorType);

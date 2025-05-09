@@ -357,7 +357,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         IReadOnlyList<ReferenceResolverConfiguration> resolvers;
         {
-            var contextData = typeCfg.GetContextData();
+            var contextData = typeCfg.GetFeatures();
 
             if (!contextData.TryGetValue(EntityResolver, out var resolversObject))
             {
@@ -374,7 +374,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         if (resolvers.Count == 1)
         {
-            typeCfg.ContextData[EntityResolver] = resolvers[0].Resolver;
+            typeCfg.Features[EntityResolver] = resolvers[0].Resolver;
         }
         else
         {
@@ -404,7 +404,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
             current = Expression.Block(new[] { variable, }, current, variable);
 
-            typeCfg.ContextData[EntityResolver] =
+            typeCfg.Features[EntityResolver] =
                 Expression.Lambda<FieldResolverDelegate>(current, context).Compile();
         }
     }
@@ -474,7 +474,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (objectTypeCfg.Fields.Any(f => f.ContextData.TryGetValue(KeyMarker, out var resolvable) &&
+        if (objectTypeCfg.Fields.Any(f => f.Features.TryGetValue(KeyMarker, out var resolvable) &&
                 resolvable is true))
         {
             _entityTypes.Add(objectType);
@@ -489,7 +489,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         // if we find key markers on our fields, we need to construct the key directive
         // from the annotated fields.
         {
-            var foundMarkers = objectTypeCfg.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker));
+            var foundMarkers = objectTypeCfg.Fields.Any(f => f.Features.ContainsKey(KeyMarker));
 
             if (!foundMarkers)
             {
@@ -503,7 +503,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         foreach (var fieldDefinition in fields)
         {
-            if (fieldDefinition.ContextData.TryGetValue(KeyMarker, out var value) &&
+            if (fieldDefinition.Features.TryGetValue(KeyMarker, out var value) &&
                 value is bool currentResolvable)
             {
                 if (resolvable is null)

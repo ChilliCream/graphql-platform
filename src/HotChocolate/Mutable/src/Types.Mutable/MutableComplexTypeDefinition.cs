@@ -16,7 +16,6 @@ public abstract class MutableComplexTypeDefinition
 {
     private DirectiveCollection? _directives;
     private InterfaceTypeDefinitionCollection? _implements;
-    private readonly OutputFieldDefinitionCollection _fields = [];
 
     /// <summary>
     /// Represents the base class for a GraphQL object type definition or an interface type definition.
@@ -24,6 +23,7 @@ public abstract class MutableComplexTypeDefinition
     protected MutableComplexTypeDefinition(string name)
     {
         Name = name;
+        Fields = new OutputFieldDefinitionCollection(this);
     }
 
     /// <inheritdoc />
@@ -60,11 +60,10 @@ public abstract class MutableComplexTypeDefinition
     /// <value>
     /// The fields of this type.
     /// </value>
-    public OutputFieldDefinitionCollection Fields
-        => _fields;
+    public OutputFieldDefinitionCollection Fields { get; }
 
     IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> IComplexTypeDefinition.Fields
-        => _fields;
+        => Fields;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]
@@ -80,6 +79,20 @@ public abstract class MutableComplexTypeDefinition
     /// <inheritdoc />
     public abstract bool IsAssignableFrom(ITypeDefinition type);
 
+    /// <inheritdoc />
+    public bool IsImplementing(string typeName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
+        return Implements.ContainsName(typeName);
+    }
+
+    /// <inheritdoc />
+    public bool IsImplementing(IInterfaceTypeDefinition interfaceType)
+    {
+        ArgumentNullException.ThrowIfNull(interfaceType);
+        return Implements.Contains(interfaceType);
+    }
+
     /// <summary>
     /// Gets the string representation of this instance.
     /// </summary>
@@ -93,12 +106,13 @@ public abstract class MutableComplexTypeDefinition
     /// Creates a <see cref="ComplexTypeDefinitionNodeBase"/> from a
     /// <see cref="MutableComplexTypeDefinition"/>.
     /// </summary>
-    public ComplexTypeDefinitionNodeBase ToSyntaxNode() => this switch
-    {
-        MutableInterfaceTypeDefinition i => SchemaDebugFormatter.Format(i),
-        MutableObjectTypeDefinition o => SchemaDebugFormatter.Format(o),
-        _ => throw new ArgumentOutOfRangeException()
-    };
+    public ComplexTypeDefinitionNodeBase ToSyntaxNode()
+        => this switch
+        {
+            MutableInterfaceTypeDefinition i => SchemaDebugFormatter.Format(i),
+            MutableObjectTypeDefinition o => SchemaDebugFormatter.Format(o),
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode();
 }

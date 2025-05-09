@@ -42,7 +42,7 @@ public sealed class CostSyntaxRewriterTests
 
         // act
         var result = _costSyntaxRewriter.Rewrite(
-            schema.ToDocument(),
+            schema.ToSyntaxNode(),
             new CostSyntaxRewriter.Context(schema));
 
         // assert
@@ -84,7 +84,7 @@ public sealed class CostSyntaxRewriterTests
 
         // act
         var result = _costSyntaxRewriter.Rewrite(
-            schema.ToDocument(),
+            schema.ToSyntaxNode(),
             new CostSyntaxRewriter.Context(schema));
 
         // assert

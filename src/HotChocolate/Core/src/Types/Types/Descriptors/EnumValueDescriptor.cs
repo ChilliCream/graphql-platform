@@ -87,7 +87,7 @@ public class EnumValueDescriptor
 
     public IEnumValueDescriptor Deprecated()
     {
-        Configuration.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
         return this;
     }
 

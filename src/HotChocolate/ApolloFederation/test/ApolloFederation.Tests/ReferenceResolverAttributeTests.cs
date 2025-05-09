@@ -216,11 +216,11 @@ public class ReferenceResolverAttributeTests
         result.MatchSnapshot();
     }
 
-    private ValueTask<object?> ResolveRef(ISchema schema, ObjectType type)
+    private ValueTask<object?> ResolveRef(Schema schema, ObjectType type)
         => ResolveRef(schema, type, new ObjectValueNode(new ObjectFieldNode("id", "abc")));
 
     private async ValueTask<object?> ResolveRef(
-        ISchema schema,
+        Schema schema,
         ObjectType type,
         ObjectValueNode representation)
     {
