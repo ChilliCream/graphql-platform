@@ -115,7 +115,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Features.Set(pagingOptions);
                 d.Flags |= FieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
@@ -235,7 +235,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Features.Set(pagingOptions);
                 d.Flags |= FieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null

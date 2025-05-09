@@ -73,12 +73,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     public bool AttributesAreApplied { get; set; }
 
     /// <summary>
-    /// Gets state that is available during schema initialization.
-    /// </summary>
-    public ImmutableDictionary<string, object?> State { get; set; }
-        = ImmutableDictionary<string, object?>.Empty;
-
-    /// <summary>
     /// Gets lazy configuration of this definition and all dependent definitions.
     /// </summary>
     public virtual IEnumerable<ITypeSystemConfigurationTask> GetTasks()
@@ -143,11 +137,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             }
         }
 
-        if (State is { Count: > 0 })
-        {
-            target.State = State;
-        }
-
         target.Name = Name;
         target.Description = Description;
         target.AttributesAreApplied = AttributesAreApplied;
@@ -178,25 +167,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             foreach (var item in _features)
             {
                 target._features[item.Key] = item.Value;
-            }
-        }
-
-        if (State is { Count: > 0 })
-        {
-            if (target.State.Count == 0)
-            {
-                target.State = State;
-            }
-            else
-            {
-                var state = ImmutableDictionary.CreateBuilder<string, object?>();
-                if (target.State.Count > 0)
-                {
-                    state.AddRange(target.State);
-                }
-
-                state.AddRange(State);
-                target.State = state.ToImmutable();
             }
         }
 

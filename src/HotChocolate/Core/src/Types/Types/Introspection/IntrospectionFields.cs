@@ -7,29 +7,14 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Introspection;
 
-public static class IntrospectionFields
+internal static class IntrospectionFields
 {
-    /// <summary>
-    /// Gets the field name of the __typename introspection field.
-    /// </summary>
-    public static string TypeName => "__typename";
-
-    /// <summary>
-    /// Gets the field name of the __schema introspection field.
-    /// </summary>
-    public static string Schema => "__schema";
-
-    /// <summary>
-    /// Gets the field name of the __type introspection field.
-    /// </summary>
-    public static string Type => "__type";
-
     private static readonly PureFieldDelegate _typeNameResolver =
         ctx => ctx.ObjectType.Name;
 
     internal static ObjectFieldConfiguration CreateSchemaField(IDescriptorContext context)
     {
-        var descriptor = ObjectFieldDescriptor.New(context, Schema);
+        var descriptor = ObjectFieldDescriptor.New(context, IntrospectionFieldNames.Schema);
 
         descriptor
             .Description(TypeResources.SchemaField_Description)
@@ -45,7 +30,7 @@ public static class IntrospectionFields
 
     internal static ObjectFieldConfiguration CreateTypeField(IDescriptorContext context)
     {
-        var descriptor = ObjectFieldDescriptor.New(context, Type);
+        var descriptor = ObjectFieldDescriptor.New(context, IntrospectionFieldNames.Type);
 
         descriptor
             .Description(TypeResources.TypeField_Description)
@@ -66,7 +51,7 @@ public static class IntrospectionFields
 
     internal static ObjectFieldConfiguration CreateTypeNameField(IDescriptorContext context)
     {
-        var descriptor = ObjectFieldDescriptor.New(context, TypeName);
+        var descriptor = ObjectFieldDescriptor.New(context, IntrospectionFieldNames.TypeName);
 
         descriptor
             .Description(TypeResources.TypeNameField_Description)

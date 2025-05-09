@@ -41,7 +41,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated()"/>
     protected void Deprecated()
     {
-        Configuration.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Description(string)"/>

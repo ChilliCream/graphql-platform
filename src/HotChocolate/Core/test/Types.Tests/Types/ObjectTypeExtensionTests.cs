@@ -195,7 +195,7 @@ public class ObjectTypeExtensionTests
         var type = schema.GetType<ObjectType>("Foo");
         Assert.True(type.Fields["description"].IsDeprecated);
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.DeprecationDefaultReason,
             type.Fields["description"].DeprecationReason);
         schema.ToString().MatchSnapshot();
     }

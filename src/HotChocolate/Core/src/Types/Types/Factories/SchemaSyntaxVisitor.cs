@@ -166,7 +166,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         SchemaSyntaxVisitorContext context)
     {
         if (context.DescriptorContext.Options.EnableTag &&
-            node.Name.Value.EqualsOrdinal(WellKnownDirectives.Tag))
+            node.Name.Value.EqualsOrdinal(DirectiveNames.Tag.Name))
         {
             goto EXIT;
         }

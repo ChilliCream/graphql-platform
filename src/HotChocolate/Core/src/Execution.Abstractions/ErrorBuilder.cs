@@ -156,7 +156,7 @@ public sealed class ErrorBuilder
     /// </summary>
     /// <param name="error">The error.</param>
     /// <returns>The error builder.</returns>
-    public static ErrorBuilder From(IError error)
+    public static ErrorBuilder FromError(IError error)
     {
         OrderedDictionary<string, object?>? extensions = null;
         List<Location>? locations = null;

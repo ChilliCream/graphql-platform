@@ -1,16 +1,11 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation;
 
 public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 {
-    internal static ObjectField TypeNameField { get; } =
-        new(IntrospectionFields.CreateTypeNameField(DescriptorContext.Create()), default);
-
     protected TypeDocumentValidatorVisitor(SyntaxVisitorOptions options = default)
         : base(options)
     {
@@ -47,7 +42,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
             return Continue;
         }
 
-        if (context.Schema.TryGetType<INamedOutputType>(
+        if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
             node.TypeCondition.Name.Value,
             out var type))
         {
@@ -63,7 +58,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
         FragmentDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetType<INamedOutputType>(
+        if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
             node.TypeCondition.Name.Value,
             out var namedOutputType))
         {

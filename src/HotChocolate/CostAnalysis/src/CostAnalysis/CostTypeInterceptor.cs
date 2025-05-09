@@ -49,9 +49,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
-                if (fieldDef.State.Count > 0
-                    && fieldDef.State.TryGetValue(WellKnownContextData.PagingOptions, out var value)
-                    && value is PagingOptions options
+                if (fieldDef.Features.TryGet(out PagingOptions? options)
                     && !fieldDef.HasListSizeDirective()
                     && ((fieldDef.Flags & FieldFlags.Connection) == FieldFlags.Connection
                         || (fieldDef.Flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment))

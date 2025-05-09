@@ -192,5 +192,5 @@ file static class Extensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsOneOf(this DirectiveConfiguration directiveDef)
         => directiveDef.Value is DirectiveNode node
-            && node.Name.Value.EqualsOrdinal(WellKnownDirectives.OneOf);
+            && node.Name.Value.EqualsOrdinal(DirectiveNames.OneOf.Name);
 }

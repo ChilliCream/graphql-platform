@@ -844,7 +844,7 @@ internal sealed class SourceSchemaMerger
 
             enumValue.Directives.Add(
                 new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionEnumValue],
+                    _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionEnumValue],
                     new ArgumentAssignment(ArgumentNames.Schema, schema)));
         }
     }
@@ -877,7 +877,7 @@ internal sealed class SourceSchemaMerger
             }
 
             field.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionField], arguments));
+                new Directive(_fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionField], arguments));
         }
     }
 
@@ -889,7 +889,7 @@ internal sealed class SourceSchemaMerger
         {
             complexType.Directives.Add(
                 new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionImplements],
+                    _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionImplements],
                     new ArgumentAssignment(
                         ArgumentNames.Schema,
                         new EnumValueNode(_schemaConstantNames[sourceSchema])),
@@ -916,7 +916,7 @@ internal sealed class SourceSchemaMerger
 
             argument.Directives.Add(
                 new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionInputField],
+                    _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionInputField],
                     arguments));
         }
     }
@@ -940,7 +940,7 @@ internal sealed class SourceSchemaMerger
 
             inputField.Directives.Add(
                 new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionInputField],
+                    _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionInputField],
                     arguments));
         }
     }
@@ -979,7 +979,7 @@ internal sealed class SourceSchemaMerger
 
             type.Directives.Add(
                 new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionLookup],
+                    _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionLookup],
                     new ArgumentAssignment(ArgumentNames.Schema, schemaArgument),
                     new ArgumentAssignment(ArgumentNames.Key, keyArgument),
                     new ArgumentAssignment(ArgumentNames.Field, fieldArgument),
@@ -1015,7 +1015,7 @@ internal sealed class SourceSchemaMerger
 
             foreach (var argument in sourceField.Arguments)
             {
-                var requireDirective = argument.Directives.FirstOrDefault(DirectiveNames.Require);
+                var requireDirective = argument.Directives.FirstOrDefault(WellKnownDirectiveNames.Require);
 
                 if (requireDirective?.Arguments[ArgumentNames.Field] is StringValueNode fieldArg)
                 {
@@ -1042,7 +1042,7 @@ internal sealed class SourceSchemaMerger
 
                 field.Directives.Add(
                     new Directive(
-                        _fusionDirectiveDefinitions[DirectiveNames.FusionRequires],
+                        _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionRequires],
                         new ArgumentAssignment(ArgumentNames.Schema, schemaArgument),
                         new ArgumentAssignment(ArgumentNames.Field, fieldArgument),
                         new ArgumentAssignment(ArgumentNames.Map, mapArgument)));
@@ -1060,7 +1060,7 @@ internal sealed class SourceSchemaMerger
 
             type.Directives.Add(
                 new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionType],
+                    _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionType],
                     new ArgumentAssignment(ArgumentNames.Schema, schema)));
         }
     }
@@ -1075,7 +1075,7 @@ internal sealed class SourceSchemaMerger
 
             unionType.Directives.Add(
                 new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionUnionMember],
+                    _fusionDirectiveDefinitions[WellKnownDirectiveNames.FusionUnionMember],
                     new ArgumentAssignment(ArgumentNames.Schema, schema),
                     new ArgumentAssignment(ArgumentNames.Member, sourceMemberType.Name)));
         }
@@ -1128,11 +1128,11 @@ internal sealed class SourceSchemaMerger
         return new Dictionary<string, MutableDirectiveDefinition>()
         {
             {
-                DirectiveNames.FusionEnumValue,
+                WellKnownDirectiveNames.FusionEnumValue,
                 new FusionEnumValueMutableDirectiveDefinition(schemaEnumType)
             },
             {
-                DirectiveNames.FusionField,
+                WellKnownDirectiveNames.FusionField,
                 new FusionFieldMutableDirectiveDefinition(
                     schemaEnumType,
                     stringType,
@@ -1140,15 +1140,15 @@ internal sealed class SourceSchemaMerger
                     booleanType)
             },
             {
-                DirectiveNames.FusionImplements,
+                WellKnownDirectiveNames.FusionImplements,
                 new FusionImplementsMutableDirectiveDefinition(schemaEnumType, stringType)
             },
             {
-                DirectiveNames.FusionInputField,
+                WellKnownDirectiveNames.FusionInputField,
                 new FusionInputFieldMutableDirectiveDefinition(schemaEnumType, stringType)
             },
             {
-                DirectiveNames.FusionLookup,
+                WellKnownDirectiveNames.FusionLookup,
                 new FusionLookupMutableDirectiveDefinition(
                     schemaEnumType,
                     fieldSelectionSetType,
@@ -1157,18 +1157,18 @@ internal sealed class SourceSchemaMerger
                     fieldSelectionPathType)
             },
             {
-                DirectiveNames.FusionRequires,
+                WellKnownDirectiveNames.FusionRequires,
                 new FusionRequiresMutableDirectiveDefinition(
                     schemaEnumType,
                     fieldDefinitionType,
                     fieldSelectionMapType)
             },
             {
-                DirectiveNames.FusionType,
+                WellKnownDirectiveNames.FusionType,
                 new FusionTypeMutableDirectiveDefinition(schemaEnumType)
             },
             {
-                DirectiveNames.FusionUnionMember,
+                WellKnownDirectiveNames.FusionUnionMember,
                 new FusionUnionMemberMutableDirectiveDefinition(schemaEnumType, stringType)
             }
         }.ToFrozenDictionary();

@@ -33,8 +33,8 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
         foreach (var directiveType in configuration.DirectiveTypes!)
         {
             if (directiveType is { IsTypeSystemDirective: true, IsExecutableDirective: false } &&
-                !directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated) &&
-                !directiveType.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy) &&
+                !directiveType.Name.EqualsOrdinal(DirectiveNames.Deprecated.Name) &&
+                !directiveType.Name.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name) &&
                 !_usedDirectives.Contains(directiveType))
             {
                 (discarded ??= []).Add(directiveType);

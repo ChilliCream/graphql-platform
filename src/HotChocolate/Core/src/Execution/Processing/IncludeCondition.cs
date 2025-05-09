@@ -147,12 +147,12 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
                 continue;
             }
 
-            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Skip))
+            if (directive.Name.Value.EqualsOrdinal(DirectiveNames.Skip))
             {
                 skip = directive.Arguments[0].Value;
             }
 
-            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Include))
+            if (directive.Name.Value.EqualsOrdinal(DirectiveNames.Include))
             {
                 include = directive.Arguments[0].Value;
             }

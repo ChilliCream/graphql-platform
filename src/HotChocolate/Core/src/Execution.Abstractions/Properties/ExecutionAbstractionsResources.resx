@@ -27,4 +27,7 @@
   <data name="OperationRequestBuilder_OperationIsNullOrEmpty" xml:space="preserve">
     <value>The operation source text mustn't be null or empty.</value>
   </data>
+  <data name="AggregateError_Message" xml:space="preserve">
+    <value>For error details look at the `Errors` property.</value>
+  </data>
 </root>

@@ -416,7 +416,7 @@ public static class CompositeSchemaBuilder
         CompositeSchemaContext schemaContext)
     {
         var directives = CompletionTools.CreateDirectiveCollection(typeDefinitionNode.Directives, schemaContext);
-        typeDefinition.Complete(new CompositeScalarTypeCompletionContext(directives));
+        typeDefinition.Complete(new CompositeScalarTypeCompletionContext(default, directives));
     }
 
     private static void CompleteDirectiveType(

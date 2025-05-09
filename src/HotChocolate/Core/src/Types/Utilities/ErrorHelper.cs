@@ -441,7 +441,7 @@ internal static class ErrorHelper
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
-            .AddLocation(fieldNodes)
+            .AddLocations(fieldNodes)
             .Build();
 
     public static ISchemaError NodeResolver_MustHaveExactlyOneIdArg(
@@ -488,7 +488,7 @@ internal static class ErrorHelper
                 ErrorHelper_FetchedToManyNodesAtOnce,
                 maxAllowedNodes,
                 requestNodes)
-            .AddLocation(fieldNodes)
+            .AddLocations(fieldNodes)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();

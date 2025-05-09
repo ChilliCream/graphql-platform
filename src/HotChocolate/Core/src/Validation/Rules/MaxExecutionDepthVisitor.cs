@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Validation.Options;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Validation.Rules;
 

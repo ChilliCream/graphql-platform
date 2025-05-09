@@ -316,7 +316,7 @@ public sealed partial class OperationCompiler
                 // For now, we only allow streams on lists of composite types.
                 if (selection.SyntaxNode.IsStreamable())
                 {
-                    var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
+                    var streamDirective = selection.SyntaxNode.GetStreamDirective();
                     var nullValue = NullValueNode.Default;
                     var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
                     long ifConditionFlags = 0;

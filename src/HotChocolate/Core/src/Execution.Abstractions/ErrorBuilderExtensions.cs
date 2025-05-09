@@ -17,12 +17,30 @@ public static class ErrorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        if(node.Location is null)
+        if (node.Location is null)
         {
             return builder;
         }
 
         builder.AddLocation(new Location(node.Location.Line, node.Location.Column));
+        return builder;
+    }
+
+    public static ErrorBuilder AddLocations(this ErrorBuilder builder, IEnumerable<ISyntaxNode> nodes)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(nodes);
+
+        foreach (var node in nodes)
+        {
+            if (node.Location is null)
+            {
+                continue;
+            }
+
+            builder.AddLocation(new Location(node.Location.Line, node.Location.Column));
+        }
+
         return builder;
     }
 }

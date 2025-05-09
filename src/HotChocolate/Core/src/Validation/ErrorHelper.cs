@@ -500,7 +500,7 @@ internal static class ErrorHelper
     public static IError ArgumentNotUnique(
         this IDocumentValidatorContext context,
         ArgumentNode node,
-        IOutputFieldDefinition? field = null,
+        SchemaCoordinate? field = null,
         IDirectiveDefinition? directive = null)
     {
         var builder = ErrorBuilder.New()
@@ -508,14 +508,14 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
 
-        if (field is { })
+        if (field.HasValue)
         {
             builder
-                .SetExtension("type", field.DeclaringType.Name)
-                .SetExtension("field", field.Name);
+                .SetExtension("type", field.Value.Name)
+                .SetExtension("field", field.Value.MemberName);
         }
 
-        if (directive is { })
+        if (directive is not null)
         {
             builder.SetExtension("directive", directive.Name);
         }
@@ -530,7 +530,7 @@ internal static class ErrorHelper
         this IDocumentValidatorContext context,
         ISyntaxNode node,
         string argumentName,
-        IOutputFieldDefinition? field = null,
+        SchemaCoordinate? field = null,
         IDirectiveDefinition? directive = null)
     {
         var builder = ErrorBuilder.New()
@@ -538,14 +538,14 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
 
-        if (field is { })
+        if (field.HasValue)
         {
             builder
-                .SetExtension("type", field.DeclaringType.Name)
-                .SetExtension("field", field.Name);
+                .SetExtension("type", field.Value.Name)
+                .SetExtension("field", field.Value.MemberName);
         }
 
-        if (directive is { })
+        if (directive is not null)
         {
             builder.SetExtension("directive", directive.Name);
         }
@@ -559,7 +559,7 @@ internal static class ErrorHelper
     public static IError ArgumentDoesNotExist(
         this IDocumentValidatorContext context,
         ArgumentNode node,
-        IOutputFieldDefinition? field = null,
+        SchemaCoordinate? field = null,
         IDirectiveDefinition? directive = null)
     {
         var builder = ErrorBuilder.New()
@@ -567,14 +567,14 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
 
-        if (field is { })
+        if (field.HasValue)
         {
             builder
-                .SetExtension("type", field.DeclaringType.Name)
-                .SetExtension("field", field.Name);
+                .SetExtension("type", field.Value.Name)
+                .SetExtension("field", field.Value.MemberName);
         }
 
-        if (directive is { })
+        if (directive is not null)
         {
             builder.SetExtension("directive", directive.Name);
         }
@@ -653,7 +653,7 @@ internal static class ErrorHelper
     public static IError OneOfMustHaveExactlyOneField(
         this IDocumentValidatorContext context,
         ISyntaxNode node,
-        IInputValueDefinition type)
+        IInputObjectTypeDefinition type)
         => ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name)
             .AddLocation(node)

@@ -162,7 +162,7 @@ internal sealed class __Type : ObjectType
 
         public static object? OneOf(IResolverContext context)
             => context.Parent<IType>() is IInputObjectTypeDefinition iot
-                ? iot.Directives.ContainsName(WellKnownDirectives.OneOf)
+                ? iot.Directives.ContainsName(DirectiveNames.OneOf.Name)
                 : null;
 
         public static object? SpecifiedBy(IResolverContext context)

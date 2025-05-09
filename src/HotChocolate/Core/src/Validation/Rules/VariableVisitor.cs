@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -101,7 +99,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         context.Unused.Add(variableName);
         context.Declared.Add(variableName);
 
-        if (context.Schema.TryGetType<INamedType>(
+        if (context.Schema.Types.TryGetType<ITypeDefinition>(
             node.Type.NamedType().Name.Value, out var type) &&
             !type.IsInputType())
         {
@@ -120,13 +118,13 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             return Skip;
         }
 
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexOutputType ot &&
+            type.NamedType() is IComplexTypeDefinition ot &&
             ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
@@ -151,7 +149,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         DirectiveNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var d))
+        if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var d))
         {
             context.Directives.Push(d);
             return Continue;
@@ -215,7 +213,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is InputObjectType it &&
+            type.NamedType() is IInputObjectTypeDefinition it &&
             it.Fields.TryGetField(node.Name.Value, out var field))
         {
             context.InputFields.Push(field);
@@ -347,7 +345,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         }
 
         if (variableType is NamedTypeNode vn
-            && locationType is INamedType lt)
+            && locationType is ITypeDefinition lt)
         {
             return string.Equals(
                 vn.Name.Value,

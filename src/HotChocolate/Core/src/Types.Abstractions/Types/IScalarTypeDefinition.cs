@@ -6,4 +6,14 @@ public interface IScalarTypeDefinition
     : IOutputTypeDefinition
     , IInputTypeDefinition
     , ISyntaxNodeProvider<ScalarTypeDefinitionNode>
-    , ISchemaCoordinateProvider;
+    , ISchemaCoordinateProvider
+{
+    /// <summary>
+    /// Checks if the value is an instance of this type.
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <returns>
+    /// <c>true</c> if the value is an instance of this type; otherwise, <c>false</c>.
+    /// </returns>
+    bool IsInstanceOfType(IValueNode value);
+}

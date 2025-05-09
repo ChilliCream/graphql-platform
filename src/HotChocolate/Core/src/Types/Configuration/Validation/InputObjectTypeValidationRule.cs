@@ -123,7 +123,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         ICollection<ISchemaError> errors,
         ref List<string>? temp)
     {
-        if (!type.Directives.ContainsDirective(WellKnownDirectives.OneOf))
+        if (!type.Directives.ContainsDirective(DirectiveNames.OneOf.Name))
         {
             return;
         }

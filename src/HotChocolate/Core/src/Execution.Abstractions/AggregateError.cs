@@ -1,11 +1,9 @@
-using static HotChocolate.Properties.AbstractionResources;
-
 namespace HotChocolate;
 
 /// <summary>
 /// An aggregate error allows to pass a collection of error in a single error object.
 /// </summary>
-public class AggregateError : Error
+public sealed record AggregateError : Error
 {
     /// <summary>
     /// Initializes a new instance of <see cref="AggregateError"/>.
@@ -14,14 +12,18 @@ public class AggregateError : Error
     /// The errors.
     /// </param>
     public AggregateError(IEnumerable<IError> errors)
-        : base(AggregateError_Message)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
-        Errors = errors.ToArray();
+        Message = ExecutionAbstractionsResources.AggregateError_Message;
+        Errors = [.. errors];
+
+        if (Errors.Count == 0)
+        {
+            throw new ArgumentException(
+                "At least one error is required.",
+                nameof(errors));
+        }
     }
 
     /// <summary>
@@ -31,13 +33,22 @@ public class AggregateError : Error
     /// The errors.
     /// </param>
     public AggregateError(params IError[] errors)
-        : base(AggregateError_Message)
     {
-        Errors = errors ?? throw new ArgumentNullException(nameof(errors));
+        ArgumentNullException.ThrowIfNull(errors);
+
+        if (errors.Length == 0)
+        {
+            throw new ArgumentException(
+                "At least one error is required.",
+                nameof(errors));
+        }
+
+        Message = ExecutionAbstractionsResources.AggregateError_Message;
+        Errors = errors;
     }
 
     /// <summary>
     /// Gets the actual errors.
     /// </summary>
-    public IReadOnlyList<IError> Errors { get; }
+    public IReadOnlyList<IError> Errors { get; init; }
 }

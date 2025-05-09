@@ -6,7 +6,7 @@ namespace HotChocolate;
 /// <summary>
 /// Represents a GraphQL execution error.
 /// </summary>
-public sealed record Error : IError
+public record Error : IError
 {
     private string? _message;
 

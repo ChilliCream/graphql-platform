@@ -3,8 +3,6 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using static HotChocolate.Types.SpecifiedByDirectiveType.Names;
-using static HotChocolate.WellKnownDirectives;
 
 namespace HotChocolate;
 
@@ -99,7 +97,12 @@ public static class SchemaPrinter
             typeDefinitions.Insert(0, PrintSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated };
+        var builtInDirectives = new HashSet<string>
+        {
+            DirectiveNames.Skip.Name,
+            DirectiveNames.Include.Name,
+            DirectiveNames.Deprecated.Name
+        };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes
@@ -372,9 +375,9 @@ public static class SchemaPrinter
         {
             directives.Add(
                 new DirectiveNode(
-                    SpecifiedBy,
+                    DirectiveNames.SpecifiedBy.Name,
                     new ArgumentNode(
-                        Url,
+                        DirectiveNames.SpecifiedBy.Arguments.Url,
                         new StringValueNode(scalarType.SpecifiedBy.ToString()))));
         }
 
@@ -452,15 +455,17 @@ public static class SchemaPrinter
     {
         if (isDeprecated)
         {
-            if (DeprecationDefaultReason.EqualsOrdinal(deprecationReason))
+            if (DirectiveNames.Deprecated.Arguments.DefaultReason. EqualsOrdinal(deprecationReason))
             {
-                directives.Add(new DirectiveNode(Deprecated));
+                directives.Add(new DirectiveNode(DirectiveNames.Deprecated.Name));
             }
             else
             {
                 directives.Add(new DirectiveNode(
-                    Deprecated,
-                    new ArgumentNode("reason", deprecationReason)));
+                    DirectiveNames.Deprecated.Name,
+                    new ArgumentNode(
+                        DirectiveNames.Deprecated.Arguments.Reason,
+                        deprecationReason)));
             }
         }
     }
@@ -521,9 +526,7 @@ public static class SchemaPrinter
 
         // Get rid of any unnecessary whitespace.
         description = description.Trim();
-
-        var isBlock = description.Contains("\n");
-
+        var isBlock = description.AsSpan().Contains('\n');
         return new StringValueNode(null, description, isBlock);
     }
 }

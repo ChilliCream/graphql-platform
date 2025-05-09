@@ -171,9 +171,6 @@
   <data name="SingleValueExtensionData_KeyIsEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
-  <data name="AggregateError_Message" xml:space="preserve">
-    <value>For error details look at the `Errors` property.</value>
-  </data>
   <data name="ResultValue_NameIsNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or whitespace.</value>
   </data>

@@ -35,8 +35,8 @@ internal sealed class TypeTrimmer
             }
 
             if (directiveDef.IsExecutableDirective
-                || directiveDef.Name.EqualsOrdinal(WellKnownDirectives.Deprecated)
-                || directiveDef.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy))
+                || directiveDef.Name.EqualsOrdinal(DirectiveNames.Deprecated.Name)
+                || directiveDef.Name.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name))
             {
                 _touched.Add(directiveDef);
                 VisitDirective(directiveDef);

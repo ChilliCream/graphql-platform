@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -110,13 +108,13 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             return Skip;
         }
 
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexOutputType ot &&
+            type.NamedType() is IComplexTypeDefinition ot &&
             ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
@@ -143,7 +141,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     {
         context.Names.Add(node.Name.Value);
 
-        if (context.Schema.TryGetType<INamedOutputType>(
+        if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
             node.TypeCondition.Name.Value,
             out var type))
         {
@@ -182,9 +180,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
             return Continue;
         }
 
-        if (context.Schema.TryGetType<INamedOutputType>(
-            node.TypeCondition.Name.Value,
-            out var type))
+        if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(node.TypeCondition.Name.Value, out var type))
         {
             if (type.IsCompositeType())
             {
@@ -227,8 +223,8 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     private void ValidateFragmentSpreadIsPossible(
         ISyntaxNode node,
         IDocumentValidatorContext context,
-        INamedType parentType,
-        INamedType typeCondition)
+        ITypeDefinition parentType,
+        ITypeDefinition typeCondition)
     {
         if (!IsCompatibleType(context, parentType, typeCondition))
         {
@@ -239,16 +235,16 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
 
     private static bool IsCompatibleType(
         IDocumentValidatorContext context,
-        INamedType parentType,
-        INamedType typeCondition)
+        ITypeDefinition parentType,
+        ITypeDefinition typeCondition)
     {
         if (parentType.IsAssignableFrom(typeCondition))
         {
             return true;
         }
 
-        IReadOnlyCollection<ObjectType> types1 = context.Schema.GetPossibleTypes(parentType);
-        IReadOnlyCollection<ObjectType> types2 = context.Schema.GetPossibleTypes(typeCondition);
+        var types1 = context.Schema.GetPossibleTypes(parentType);
+        var types2 = context.Schema.GetPossibleTypes(typeCondition);
 
         foreach (var a in types1)
         {

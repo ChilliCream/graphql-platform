@@ -65,7 +65,7 @@ public class InterfaceTypeExtensionTests
         var type = schema.GetType<InterfaceType>("Foo");
         Assert.True(type.Fields["description"].IsDeprecated);
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.DeprecationDefaultReason,
             type.Fields["description"].DeprecationReason);
     }
 

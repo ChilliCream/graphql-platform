@@ -2,8 +2,6 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -33,13 +31,13 @@ internal sealed class MaxAllowedFieldCycleDepthVisitor(
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             return Skip;
         }
 
         if (context.Types.TryPeek(out var type)
-            && type.NamedType() is IComplexOutputType ot
+            && type.NamedType() is IComplexTypeDefinition ot
             && ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             // we are ignoring introspection fields in this visitor.
