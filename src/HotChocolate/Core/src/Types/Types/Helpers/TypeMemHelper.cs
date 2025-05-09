@@ -6,14 +6,14 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Helpers;
 
 /// <summary>
-/// This internal helper is used centralize rented maps and list during type initialization.
+/// This internal helper is used to centralize rented maps and list during type initialization.
 /// This ensures that we can release these helper objects when the schema is created.
 /// </summary>
 internal static class TypeMemHelper
 {
-    private static Dictionary<string, ObjectFieldDefinition>? _objectFieldDefinitionMap;
-    private static Dictionary<string, InterfaceFieldDefinition>? _interfaceFieldDefinitionMap;
-    private static Dictionary<string, InputFieldDefinition>? _inputFieldDefinitionMap;
+    private static Dictionary<string, ObjectFieldConfiguration>? _objectFieldConfigurationMap;
+    private static Dictionary<string, InterfaceFieldConfiguration>? _interfaceFieldConfigurationMap;
+    private static Dictionary<string, InputFieldConfiguration>? _inputFieldConfigurationMap;
     private static Dictionary<string, InputField>? _inputFieldMap;
     private static Dictionary<string, InputField>? _inputFieldMapOrdinalIgnoreCase;
     private static Dictionary<string, DirectiveArgument>? _directiveArgumentMap;
@@ -23,34 +23,34 @@ internal static class TypeMemHelper
     private static HashSet<string>? _nameSet;
     private static HashSet<string>? _nameSetOrdinalIgnoreCase;
 
-    public static Dictionary<string, ObjectFieldDefinition> RentObjectFieldDefinitionMap()
-        => Interlocked.Exchange(ref _objectFieldDefinitionMap, null) ??
-            new Dictionary<string, ObjectFieldDefinition>(StringComparer.Ordinal);
+    public static Dictionary<string, ObjectFieldConfiguration> RentObjectFieldConfigurationMap()
+        => Interlocked.Exchange(ref _objectFieldConfigurationMap, null) ??
+            new Dictionary<string, ObjectFieldConfiguration>(StringComparer.Ordinal);
 
-    public static void Return(Dictionary<string, ObjectFieldDefinition> map)
+    public static void Return(Dictionary<string, ObjectFieldConfiguration> map)
     {
         map.Clear();
-        Interlocked.CompareExchange(ref _objectFieldDefinitionMap, map, null);
+        Interlocked.CompareExchange(ref _objectFieldConfigurationMap, map, null);
     }
 
-    public static Dictionary<string, InterfaceFieldDefinition> RentInterfaceFieldDefinitionMap()
-        => Interlocked.Exchange(ref _interfaceFieldDefinitionMap, null) ??
-            new Dictionary<string, InterfaceFieldDefinition>(StringComparer.Ordinal);
+    public static Dictionary<string, InterfaceFieldConfiguration> RentInterfaceFieldConfigurationMap()
+        => Interlocked.Exchange(ref _interfaceFieldConfigurationMap, null) ??
+            new Dictionary<string, InterfaceFieldConfiguration>(StringComparer.Ordinal);
 
-    public static void Return(Dictionary<string, InterfaceFieldDefinition> map)
+    public static void Return(Dictionary<string, InterfaceFieldConfiguration> map)
     {
         map.Clear();
-        Interlocked.CompareExchange(ref _interfaceFieldDefinitionMap, map, null);
+        Interlocked.CompareExchange(ref _interfaceFieldConfigurationMap, map, null);
     }
 
-    public static Dictionary<string, InputFieldDefinition> RentInputFieldDefinitionMap()
-        => Interlocked.Exchange(ref _inputFieldDefinitionMap, null) ??
-            new Dictionary<string, InputFieldDefinition>(StringComparer.Ordinal);
+    public static Dictionary<string, InputFieldConfiguration> RentInputFieldConfigurationMap()
+        => Interlocked.Exchange(ref _inputFieldConfigurationMap, null) ??
+            new Dictionary<string, InputFieldConfiguration>(StringComparer.Ordinal);
 
-    public static void Return(Dictionary<string, InputFieldDefinition> map)
+    public static void Return(Dictionary<string, InputFieldConfiguration> map)
     {
         map.Clear();
-        Interlocked.CompareExchange(ref _inputFieldDefinitionMap, map, null);
+        Interlocked.CompareExchange(ref _inputFieldConfigurationMap, map, null);
     }
 
     public static Dictionary<string, InputField> RentInputFieldMap()
@@ -143,14 +143,14 @@ internal static class TypeMemHelper
     }
 
     // We allow the helper to clear all pooled objects so that after
-    // building the schema we can release the memory.
+    // building the schema, we can release the memory.
     // There is a risk of extra allocation here if we build
     // multiple schemas at the same time.
     public static void Clear()
     {
-        Interlocked.Exchange(ref _objectFieldDefinitionMap, null);
-        Interlocked.Exchange(ref _interfaceFieldDefinitionMap, null);
-        Interlocked.Exchange(ref _inputFieldDefinitionMap, null);
+        Interlocked.Exchange(ref _objectFieldConfigurationMap, null);
+        Interlocked.Exchange(ref _interfaceFieldConfigurationMap, null);
+        Interlocked.Exchange(ref _inputFieldConfigurationMap, null);
         Interlocked.Exchange(ref _inputFieldMap, null);
         Interlocked.Exchange(ref _inputFieldMapOrdinalIgnoreCase, null);
         Interlocked.Exchange(ref _directiveArgumentMap, null);

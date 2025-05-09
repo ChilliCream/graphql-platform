@@ -40,7 +40,7 @@ internal sealed class InputObjectTypeUsageAnalyzer(ISchema schema) : SyntaxWalke
                         type = elementType;
                         continue;
 
-                    case NonNullType { Type: IInputType innerType }:
+                    case NonNullType { NullableType: IInputType innerType }:
                         type = innerType;
                         continue;
 

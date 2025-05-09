@@ -12,22 +12,22 @@ public class InputField : FieldBase, IInputField, IHasProperty
 {
     private Type _runtimeType = default!;
 
-    public InputField(InputFieldDefinition definition, int index)
-        : base(definition, index)
+    public InputField(InputFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        DefaultValue = definition.DefaultValue;
-        Property = definition.Property;
+        DefaultValue = configuration.DefaultValue;
+        Property = configuration.Property;
 
-        var formatters = definition.GetFormatters();
+        var formatters = configuration.GetFormatters();
         Formatter = formatters.Count switch
         {
             0 => null,
             1 => formatters[0],
-            _ => new AggregateInputValueFormatter(formatters),
+            _ => new AggregateInputValueFormatter(formatters)
         };
 
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
-        DeprecationReason = definition.DeprecationReason;
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = configuration.DeprecationReason;
     }
 
     /// <inheritdoc />
@@ -67,13 +67,13 @@ public class InputField : FieldBase, IInputField, IHasProperty
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteField(context, declaringMember, (InputFieldDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteField(context, declaringMember, (InputFieldConfiguration)definition);
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 
@@ -86,13 +86,13 @@ public class InputField : FieldBase, IInputField, IHasProperty
     protected sealed override void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteMetadata(context, declaringMember, (InputFieldDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteMetadata(context, declaringMember, (InputFieldConfiguration)definition);
 
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         base.OnCompleteMetadata(context, declaringMember, definition);
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
@@ -101,25 +101,25 @@ public class InputField : FieldBase, IInputField, IHasProperty
     protected sealed override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnMakeExecutable(context, declaringMember, (InputFieldDefinition)definition);
+        FieldConfiguration definition)
+        => OnMakeExecutable(context, declaringMember, (InputFieldConfiguration)definition);
 
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
         => base.OnMakeExecutable(context, declaringMember, definition);
 
     protected sealed override void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => base.OnFinalizeField(context, declaringMember, (InputFieldDefinition)definition);
+        FieldConfiguration definition)
+        => base.OnFinalizeField(context, declaringMember, (InputFieldConfiguration)definition);
 
     protected virtual void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
         => base.OnFinalizeField(context, declaringMember, definition);
 
 

@@ -10,6 +10,7 @@ public interface INamedType
     , IHasName
     , IHasDescription
     , IHasReadOnlyContextData
+    , IHasRuntimeType
 {
     /// <summary>
     /// Determines whether an instance of a specified type <paramref name="type" />

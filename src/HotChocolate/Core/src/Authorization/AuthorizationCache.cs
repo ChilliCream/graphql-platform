@@ -1,29 +1,19 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Utilities;
+using HotChocolate.Caching.Memory;
 
 namespace HotChocolate.Authorization;
 
-internal sealed class AuthorizationCache
+internal sealed class AuthorizationCache(int capacity = 256)
 {
-    private readonly Cache<AuthorizeDirective[]> _cache;
-
-    public AuthorizationCache(int capacity = 100)
-    {
-        _cache = new Cache<AuthorizeDirective[]>(capacity);
-    }
+    private readonly Cache<AuthorizeDirective[]> _cache = new(capacity);
 
     public int Capacity => _cache.Capacity;
 
-    public int Count => _cache.Usage;
+    public int Count => _cache.Count;
 
-    public bool TryGetDirectives(
-        string documentId,
-        [NotNullWhen(true)] out AuthorizeDirective[]? directives)
+    public bool TryGetDirectives(string documentId, [NotNullWhen(true)] out AuthorizeDirective[]? directives)
         => _cache.TryGet(documentId, out directives);
 
     public void TryAddDirectives(string documentId, AuthorizeDirective[] directives)
-        => _cache.GetOrCreate(documentId, () => directives);
-
-    public void Clear()
-        => _cache.Clear();
+        => _cache.GetOrCreate(documentId, static (_, d) => d, directives);
 }

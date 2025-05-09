@@ -65,8 +65,9 @@ type Product
     @fusion__field(schema: SHIPPING)
     @fusion__requires(
         schema: SHIPPING
+        requirements: "dimension { height width }"
         field: "estimatedDelivery(postCode: String, height: Int!, width: Int!): Int!"
-        map: ["dimension.height", "dimension.width"]
+        map: [null, "dimension.height", "dimension.width"]
     )
 }
 
@@ -224,6 +225,7 @@ directive @fusion__inputField(
 
 directive @fusion__requires(
   schema: fusion__Schema!
+  requirements: fusion__FieldSelectionSet!
   field: fusion__FieldDefinition!
   map: [fusion__FieldSelectionMap]!
 ) repeatable on FIELD_DEFINITION

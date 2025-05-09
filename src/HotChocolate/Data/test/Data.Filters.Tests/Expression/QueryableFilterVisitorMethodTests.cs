@@ -91,10 +91,10 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
 
         public override bool CanHandle(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
         {
-            return fieldDefinition is FilterOperationFieldDefinition { Id: 155, };
+            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 155, };
         }
 
         public override bool TryHandleEnter(
@@ -142,11 +142,11 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
 
         public override bool CanHandle(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
         {
             _extendedType ??= context.TypeInspector.GetReturnType(_method);
-            return fieldDefinition is FilterOperationFieldDefinition { Id: 156, };
+            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 156, };
         }
 
         public override bool TryHandleEnter(

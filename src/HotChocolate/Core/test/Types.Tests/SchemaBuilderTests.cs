@@ -2102,22 +2102,22 @@ public class SchemaBuilderTests
     public class MockConvention : Convention<MockConventionDefinition>, IMockConvention
     {
         public bool IsExtended { get; set; }
-        public new MockConventionDefinition Definition => base.Definition;
-        protected override MockConventionDefinition CreateDefinition(IConventionContext context)
+        public new MockConventionDefinition Configuration => base.Configuration;
+        protected override MockConventionDefinition CreateConfiguration(IConventionContext context)
         {
             return new MockConventionDefinition();
         }
 
         protected internal override void Complete(IConventionContext context)
         {
-            IsExtended = Definition.IsExtended;
+            IsExtended = Configuration.IsExtended;
             base.Complete(context);
         }
     }
 
     public class MockConventionExtension : ConventionExtension<MockConventionDefinition>
     {
-        protected override MockConventionDefinition CreateDefinition(IConventionContext context)
+        protected override MockConventionDefinition CreateConfiguration(IConventionContext context)
         {
             return new MockConventionDefinition();
         }
@@ -2126,7 +2126,7 @@ public class SchemaBuilderTests
         {
             if (convention is MockConvention mockConvention)
             {
-                mockConvention.Definition.IsExtended = true;
+                mockConvention.Configuration.IsExtended = true;
             }
         }
     }
@@ -2182,9 +2182,9 @@ public class SchemaBuilderTests
         }
         protected override void OnCompleteName(
             ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
+            ObjectTypeConfiguration configuration)
         {
-            base.OnCompleteName(context, definition);
+            base.OnCompleteName(context, configuration);
             Context = context.DescriptorContext;
         }
     }
@@ -2273,16 +2273,16 @@ public class SchemaBuilderTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            definition.TouchContextData();
+            configuration.TouchContextData();
         }
 
         public override void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            definition.ContextData.Add("touched", true);
+            configuration.ContextData.Add("touched", true);
         }
     }
 

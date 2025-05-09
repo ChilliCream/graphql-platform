@@ -11,25 +11,19 @@ using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
-public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
+public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     [
-        new Foo { Bar = true, }, new Foo { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     private static readonly Bar[] _barEntities =
     [
-        new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
     ];
-
-    private readonly MongoResource _resource;
-
-    public MongoDbAggregateFluentTests(MongoResource resource)
-    {
-        _resource = resource;
-    }
 
     [Fact]
     public async Task BsonElement_Rename()
@@ -38,7 +32,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
         var tester = CreateSchema(
             () =>
             {
-                var collection = _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
+                var collection = resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
                 collection.InsertMany(_fooEntities);
                 return collection.Aggregate().AsExecutable();
             });
@@ -75,7 +69,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
             () =>
             {
                 var collection =
-                    _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
+                    resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_barEntities);
                 return collection.Aggregate().AsExecutable();
@@ -131,8 +125,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                     .Name("Query")
                     .Field("root")
                     .Type<ListType<ObjectType<TEntity>>>()
-                    .Resolve(
-                        async ctx => await new ValueTask<IExecutable<TEntity>>(resolver()))
+                    .Resolve(async _ => await new ValueTask<IExecutable<TEntity>>(resolver()))
                     .Use(
                         next => async context =>
                         {

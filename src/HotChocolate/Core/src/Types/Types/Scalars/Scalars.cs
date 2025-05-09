@@ -33,7 +33,7 @@ public static class Scalars
 
         { typeof(DateOnly), typeof(LocalDateType) },
         { typeof(TimeOnly), typeof(LocalTimeType) },
-        { typeof(JsonElement), typeof(JsonType) },
+        { typeof(JsonElement), typeof(JsonType) }
     };
 
     private static readonly Dictionary<string, Type> _nameLookup = new()
@@ -89,7 +89,7 @@ public static class Scalars
         { typeof(double?), ValueKind.Float },
         { typeof(decimal?), ValueKind.Float },
         { typeof(bool), ValueKind.Float },
-        { typeof(bool?), ValueKind.Float },
+        { typeof(bool?), ValueKind.Float }
     };
 
     private static readonly HashSet<string> _specScalars =
@@ -98,7 +98,7 @@ public static class Scalars
         ScalarNames.String,
         ScalarNames.Int,
         ScalarNames.Float,
-        ScalarNames.Boolean,
+        ScalarNames.Boolean
     ];
 
     internal static bool TryGetScalar(

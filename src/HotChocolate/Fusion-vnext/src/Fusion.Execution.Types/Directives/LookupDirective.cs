@@ -15,7 +15,8 @@ internal sealed class LookupDirective(
     string schemaName,
     SelectionSetNode key,
     FieldDefinitionNode field,
-    ImmutableArray<string> map)
+    ImmutableArray<string> map,
+    ImmutableArray<string> path)
 {
     public string SchemaName { get; } = schemaName;
 
@@ -24,4 +25,6 @@ internal sealed class LookupDirective(
     public FieldDefinitionNode Field { get; } = field;
 
     public ImmutableArray<string> Map { get; } = map;
+
+    public ImmutableArray<string> Path { get; } = path;
 }

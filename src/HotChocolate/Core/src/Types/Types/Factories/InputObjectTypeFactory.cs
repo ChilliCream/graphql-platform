@@ -12,14 +12,14 @@ internal sealed class InputObjectTypeFactory
         IDescriptorContext context,
         InputObjectTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new InputObjectTypeDefinition(
+        var typeDefinition = new InputObjectTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -31,12 +31,12 @@ internal sealed class InputObjectTypeFactory
 
     public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new InputObjectTypeDefinition(node.Name.Value)
+        var typeDefinition = new InputObjectTypeConfiguration(node.Name.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
@@ -48,24 +48,24 @@ internal sealed class InputObjectTypeFactory
 
     private static void DeclareFields(
         IDescriptorContext context,
-        InputObjectTypeDefinition parent,
+        InputObjectTypeConfiguration parent,
         IReadOnlyCollection<InputValueDefinitionNode> fields,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var inputField in fields)
         {
-            var inputFieldDefinition = new InputFieldDefinition(
+            var inputFieldDefinition = new InputFieldConfiguration(
                 inputField.Name.Value,
                 inputField.Description?.Value,
                 TypeReference.Create(inputField.Type),
                 inputField.DefaultValue)
             {
-                BindTo = inputField.GetBindingValue(),
+                BindTo = inputField.GetBindingValue()
             };
 
-            if (inputField.DeprecationReason() is { Length: > 0, } reason)
+            if (inputField.DeprecationReason() is { Length: > 0 } reason)
             {
                 inputFieldDefinition.DeprecationReason = reason;
             }

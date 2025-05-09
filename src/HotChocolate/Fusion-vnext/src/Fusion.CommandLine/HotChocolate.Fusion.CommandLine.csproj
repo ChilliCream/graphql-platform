@@ -4,8 +4,9 @@
     <AssemblyName>fusion</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
-    <PublishAot>true</PublishAot>
+    <PublishAot>false</PublishAot>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <PackageId>HotChocolate.Fusion.CommandLine</PackageId>
     <ToolCommandName>fusion</ToolCommandName>
   </PropertyGroup>
 

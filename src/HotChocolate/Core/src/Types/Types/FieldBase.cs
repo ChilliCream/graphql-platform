@@ -12,17 +12,17 @@ public abstract class FieldBase
     : IField
     , IFieldCompletion
 {
-    private FieldDefinitionBase? _definition;
+    private FieldConfiguration? _config;
     private FieldFlags _flags;
 
-    protected FieldBase(FieldDefinitionBase definition, int index)
+    protected FieldBase(FieldConfiguration configuration, int index)
     {
-        _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
         Index = index;
 
-        Name = definition.Name.EnsureGraphQLName();
-        Description = definition.Description;
-        Flags = definition.Flags;
+        Name = configuration.Name.EnsureGraphQLName();
+        Description = configuration.Description;
+        Flags = configuration.Flags;
         DeclaringType = default!;
         ContextData = default!;
         Directives = default!;
@@ -67,14 +67,14 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnCompleteField(context, declaringMember, _definition!);
-        ContextData = _definition!.GetContextData();
+        OnCompleteField(context, declaringMember, _config!);
+        ContextData = _config!.GetContextData();
     }
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
         DeclaringType = context.Type;
         Coordinate = declaringMember is IField field
@@ -93,13 +93,13 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnCompleteMetadata(context, declaringMember, _definition!);
+        OnCompleteMetadata(context, declaringMember, _config!);
     }
 
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
         Directives = DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
@@ -115,13 +115,13 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnMakeExecutable(context, declaringMember, _definition!);
+        OnMakeExecutable(context, declaringMember, _config!);
     }
 
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
     }
 
@@ -135,15 +135,15 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnFinalizeField(context, declaringMember, _definition!);
-        _definition = null;
+        OnFinalizeField(context, declaringMember, _config!);
+        _config = null;
         _flags |= FieldFlags.Sealed;
     }
 
     protected virtual void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
     }
 

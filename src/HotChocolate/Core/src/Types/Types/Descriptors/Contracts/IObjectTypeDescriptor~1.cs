@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// The runtime type.
 /// </typeparam>
 public interface IObjectTypeDescriptor<TRuntimeType>
-    : IDescriptor<ObjectTypeDefinition>
+    : IDescriptor<ObjectTypeConfiguration>
     , IFluent
 {
     /// <summary>

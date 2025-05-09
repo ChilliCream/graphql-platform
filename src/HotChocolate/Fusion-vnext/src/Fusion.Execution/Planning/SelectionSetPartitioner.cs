@@ -6,22 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public readonly ref struct SelectionSetPartitionerInput
-{
-    public required string SchemaName { get; init; }
-    public required SelectionSet SelectionSet { get; init; }
-    public required ISelectionSetIndex SelectionSetIndex { get; init; }
-    public SelectionSetNode? ProvidedSelectionSetNode { get; init; }
-    public bool AllowRequirements { get; init; }
-}
-
-public record SelectionSetPartitionerResult(
-    SelectionSetNode? Resolvable,
-    ImmutableStack<SelectionSet> Unresolvable,
-    ImmutableStack<FieldSelection> FieldsWithRequirements,
-    ISelectionSetIndex SelectionSetIndex);
-
-public class SelectionSetPartitioner(FusionSchemaDefinition schema)
+internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
 {
     public SelectionSetPartitionerResult Partition(
         SelectionSetPartitionerInput input)
@@ -64,9 +49,7 @@ public class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         for (var i = 0; i < selectionSetNode.Selections.Count; i++)
         {
-            var selection = selectionSetNode.Selections[i];
-
-            switch (selection)
+            switch (selectionSetNode.Selections[i])
             {
                 case FieldNode fieldNode:
                 {
@@ -319,11 +302,9 @@ public class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
         }
 
-        public ImmutableStack<SelectionSet> Unresolvable { get; set; }
-            = ImmutableStack<SelectionSet>.Empty;
+        public ImmutableStack<SelectionSet> Unresolvable { get; set; } = [];
 
-        public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; }
-            = ImmutableStack<FieldSelection>.Empty;
+        public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; } = [];
 
         public Stack<ISyntaxNode> Nodes { get; } = new();
 

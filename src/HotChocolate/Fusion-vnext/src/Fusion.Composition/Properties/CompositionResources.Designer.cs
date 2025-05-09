@@ -303,6 +303,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A selection set on the annotated field that describes its requirements..
+        /// </summary>
+        internal static string FusionRequiresMutableDirectiveDefinition_Requirements_Description {
+            get {
+                return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Requirements_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the source schema where this field has requirements to data on other source schemas..
         /// </summary>
         internal static string FusionRequiresMutableDirectiveDefinition_Schema_Description {

@@ -551,10 +551,10 @@ public class SchemaFirstTests
         public void ApplyConfiguration(
             IDescriptorContext context,
             DirectiveNode directiveNode,
-            IDefinition definition,
-            Stack<IDefinition> path)
+            ITypeSystemConfiguration definition,
+            Stack<ITypeSystemConfiguration> path)
         {
-            if (definition is ObjectFieldDefinition objectField)
+            if (definition is ObjectFieldConfiguration objectField)
             {
                 objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
             }

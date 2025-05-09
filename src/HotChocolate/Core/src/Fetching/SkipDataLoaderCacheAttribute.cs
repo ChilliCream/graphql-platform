@@ -14,5 +14,5 @@ public sealed class SkipDataLoaderCacheAttribute : ObjectFieldDescriptorAttribut
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
-        => descriptor.Extend().Definition.Flags |= FieldFlags.UsesProjections;
+        => descriptor.Extend().Configuration.Flags |= FieldFlags.UsesProjections;
 }

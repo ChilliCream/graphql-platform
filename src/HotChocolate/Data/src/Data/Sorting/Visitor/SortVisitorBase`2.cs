@@ -24,7 +24,7 @@ public abstract class SortVisitorBase<TContext, T>
     protected abstract ISyntaxVisitorAction OnOperationEnter(
         TContext context,
         ISortField field,
-        ISortEnumValue? sortEnumValue,
+        SortEnumValue? sortEnumValue,
         EnumValueNode enumValueNode);
 
     protected override ISyntaxVisitorAction Enter(

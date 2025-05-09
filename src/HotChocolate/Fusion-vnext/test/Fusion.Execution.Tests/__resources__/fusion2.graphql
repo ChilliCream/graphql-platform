@@ -35,6 +35,7 @@ type Product
     @fusion__field(schema: SHIPPING)
     @fusion__requires(
       schema: SHIPPING
+      requirements: "internalId"
       field: "internalSomeOther(internalId: String!): String!"
       map: ["internalId"]
     )

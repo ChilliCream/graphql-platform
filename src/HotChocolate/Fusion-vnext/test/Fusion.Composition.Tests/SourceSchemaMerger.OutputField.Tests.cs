@@ -13,7 +13,11 @@ public sealed class SourceSchemaMergerOutputFieldTests
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -125,6 +129,7 @@ public sealed class SourceSchemaMergerOutputFieldTests
                     """
                     # Schema A
                     type Product {
+                        percent: Int
                         discountPercentage(percent: Int): Int
                     }
                     """,
@@ -142,7 +147,9 @@ public sealed class SourceSchemaMergerOutputFieldTests
                     discountPercentage: Int
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
-                        @fusion__requires(schema: B, field: "discountPercentage(percent: Int): Int", map: [ "percent" ])
+                        @fusion__requires(schema: B, requirements: "percent", field: "discountPercentage(percent: Int): Int", map: [ "percent" ])
+                    percent: Int
+                        @fusion__field(schema: A)
                 }
                 """
             },
