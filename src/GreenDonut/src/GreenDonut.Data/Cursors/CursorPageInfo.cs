@@ -8,13 +8,23 @@ public readonly ref struct CursorPageInfo
     /// <summary>
     /// Initializes a new instance of the <see cref="CursorPageInfo"/> struct.
     /// </summary>
+    /// <param name="nullsFirst">Defines if null values should be considered first in the ordering.</param>
+    public CursorPageInfo(bool nullsFirst)
+    {
+        NullsFirst = nullsFirst;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CursorPageInfo"/> struct.
+    /// </summary>
+    /// <param name="nullsFirst">Defines if null values should be considered first in the ordering.</param>
     /// <param name="offset">Offset indicating the number of items/pages skipped.</param>
     /// <param name="pageIndex">The zero-based index of the current page.</param>
     /// <param name="totalCount">Total number of items available in the dataset.</param>
     /// <exception cref="ArgumentException">
     /// Thrown if an offset greater than zero is specified with a totalCount of zero.
     /// </exception>
-    public CursorPageInfo(int offset, int pageIndex, int totalCount)
+    public CursorPageInfo(bool nullsFirst, int offset, int pageIndex, int totalCount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(pageIndex);
         ArgumentOutOfRangeException.ThrowIfNegative(totalCount);
@@ -29,6 +39,7 @@ public readonly ref struct CursorPageInfo
         Offset = offset;
         PageIndex = pageIndex;
         TotalCount = totalCount;
+        NullsFirst = nullsFirst;
     }
 
     /// <summary>
@@ -48,23 +59,31 @@ public readonly ref struct CursorPageInfo
     public int TotalCount { get; }
 
     /// <summary>
+    /// Defines if null values should be considered first in the ordering.
+    /// </summary>
+    public bool NullsFirst { get; }
+
+    /// <summary>
     /// Deconstructs the <see cref="CursorPageInfo"/> into individual components.
     /// </summary>
+    /// <param name="nullsFirst">The nulls first order if no valid data or <c>false</c> and nulls last order for <c>true</c>.</param>
     /// <param name="offset">The offset, or <c>null</c> if no valid data.</param>
     /// <param name="pageIndex">The page number, or <c>null</c> if no valid data.</param>
     /// <param name="totalCount">The total count, or <c>null</c> if no valid data.</param>
-    public void Deconstruct(out int? offset, out int? pageIndex, out int? totalCount)
+    public void Deconstruct(out bool nullsFirst, out int? offset, out int? pageIndex, out int? totalCount)
     {
         if (TotalCount == 0)
         {
             offset = null;
             pageIndex = null;
             totalCount = null;
+            nullsFirst = false;
             return;
         }
 
         offset = Offset;
         pageIndex = PageIndex;
         totalCount = TotalCount;
+        nullsFirst = NullsFirst;
     }
 }

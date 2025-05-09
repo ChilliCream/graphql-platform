@@ -19,8 +19,12 @@ namespace GreenDonut.Data.Cursors;
 /// <param name="TotalCount">
 /// The total number of items in the dataset, if known. Can be <c>null</c> if not available.
 /// </param>
+/// <param name="NullsFirst">
+/// Defines if null values should be considered first in the ordering.
+/// </param>
 public record Cursor(
     ImmutableArray<object?> Values,
+    bool NullsFirst = false,
     int? Offset = null,
     int? PageIndex = null,
     int? TotalCount = null)
