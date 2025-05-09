@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Collections;
@@ -42,6 +43,16 @@ internal sealed class SatisfiabilityPath : IEnumerable<SatisfiabilityPathItem>
         return item;
     }
 
+    public SatisfiabilityPathItem Peek()
+    {
+        if (_stack.Count == 0)
+        {
+            throw new InvalidOperationException("Stack is empty.");
+        }
+
+        return _stack.Peek();
+    }
+
     public bool TryPeek([MaybeNullWhen(false)] out SatisfiabilityPathItem item)
     {
         if (_stack.Count == 0)
@@ -52,6 +63,12 @@ internal sealed class SatisfiabilityPath : IEnumerable<SatisfiabilityPathItem>
 
         item = _stack.Peek();
         return true;
+    }
+
+    public void Clear()
+    {
+        _stack.Clear();
+        _hashSet.Clear();
     }
 
     public IEnumerator<SatisfiabilityPathItem> GetEnumerator()
@@ -75,8 +92,10 @@ internal sealed record SatisfiabilityPathItem(
     MutableComplexTypeDefinition Type,
     string SchemaName)
 {
+    public ITypeDefinition FieldType { get; } = Field.Type.InnerType().AsTypeDefinition();
+
     public override string ToString()
     {
-        return $"{SchemaName}:{Type.Name}.{Field.Name}";
+        return $"{SchemaName}:{Type.Name}.{Field.Name}<{FieldType.Name}>";
     }
 }

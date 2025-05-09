@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
+using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Extensions;
 
@@ -13,34 +14,89 @@ internal static class MutableOutputFieldDefinitionExtensions
         field.Directives.Add(new Directive(new MutableDirectiveDefinition(Lookup)));
     }
 
-    public static ImmutableArray<string> GetFusionRequiresMap(
+    public static string? GetFusionFieldProvides(
         this MutableOutputFieldDefinition field,
         string schemaName)
     {
-        var fusionRequiresDirectives =
+        var fusionFieldDirective =
+            field.Directives.AsEnumerable().FirstOrDefault(
+                d =>
+                    d.Name == FusionField
+                    && (string)d.Arguments[Schema].Value! == schemaName);
+
+        if (fusionFieldDirective?.Arguments.TryGetValue(
+                WellKnownArgumentNames.Provides,
+                out var provides) == true)
+        {
+            return (string?)provides.Value;
+        }
+
+        return null;
+    }
+
+    public static SelectionSetNode? GetFusionRequiresRequirements(
+        this MutableOutputFieldDefinition field,
+        string schemaName)
+    {
+        var fusionRequiresDirective =
             field.Directives
                 .AsEnumerable()
-                .Where(
+                .FirstOrDefault(
                     d =>
                         d.Name == FusionRequires
                         && (string)d.Arguments[Schema].Value! == schemaName);
 
-        var map = fusionRequiresDirectives.SelectMany(
-            d => ((ListValueNode)d.Arguments[Map]).Items.Select(i => ((StringValueNode)i).Value));
+        if (fusionRequiresDirective is null)
+        {
+            return null;
+        }
 
-        return [.. map];
+        var requirements = (string)fusionRequiresDirective.Arguments[Requirements].Value!;
+
+        return ParseSelectionSet($"{{ {requirements} }}");
     }
 
-    public static ImmutableArray<string> GetSchemaNames(this MutableOutputFieldDefinition field)
+    public static ImmutableArray<string> GetSchemaNames(
+        this MutableOutputFieldDefinition field,
+        string? first = null)
     {
         var fusionFieldDirectives =
             field.Directives.AsEnumerable().Where(d => d.Name == FusionField);
 
-        return [.. fusionFieldDirectives.Select(d => (string)d.Arguments[Schema].Value!)];
+        var schemaNames =
+            fusionFieldDirectives.Select(d => (string)d.Arguments[Schema].Value!).ToList();
+
+        if (first is not null && schemaNames.Contains(first))
+        {
+            schemaNames = schemaNames.Where(n => n != first).Prepend(first).ToList();
+        }
+
+        return [.. schemaNames];
     }
 
     public static bool HasInternalDirective(this MutableOutputFieldDefinition type)
     {
         return type.Directives.ContainsName(Internal);
+    }
+
+    public static bool IsPartial(this MutableOutputFieldDefinition field, string schemaName)
+    {
+        var fusionFieldDirective =
+            field.Directives.AsEnumerable().FirstOrDefault(
+                d =>
+                    d.Name == FusionField
+                    && (string)d.Arguments[Schema].Value! == schemaName);
+
+        if (fusionFieldDirective is null)
+        {
+            return false;
+        }
+
+        if (fusionFieldDirective.Arguments.TryGetValue(Partial, out var partial))
+        {
+            return (bool)partial.Value!;
+        }
+
+        return false;
     }
 }

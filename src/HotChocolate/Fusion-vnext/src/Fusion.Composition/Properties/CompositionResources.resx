@@ -330,6 +330,27 @@
   <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
   </data>
+  <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
+  </data>
+  <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoOtherSchemasContainField" xml:space="preserve">
+    <value>No other schemas contain the field '{0}.{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the required field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to required field '{2}'.</value>
+  </data>
   <data name="RequireMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
     <value>Represents a selection path map syntax.</value>
   </data>
@@ -342,14 +363,8 @@
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
   </data>
-  <data name="SatisfiabilityValidator_NoOtherSchemasContainField" xml:space="preserve">
-    <value>No other schemas contain this field.</value>
-  </data>
   <data name="SatisfiabilityValidator_UnableToAccessFieldOnPath" xml:space="preserve">
     <value>Unable to access the field '{0}.{1}' on path '{2}'.</value>
-  </data>
-  <data name="SatisfiabilityValidator_UnableToAccessRequiredField" xml:space="preserve">
-    <value>Unable to access the required field '{0}.{1}'.</value>
   </data>
   <data name="SatisfiabilityValidator_UnableToSatisfyRequirement" xml:space="preserve">
     <value>Unable to satisfy the requirement '{0}' on field '{1}'.</value>

@@ -996,6 +996,69 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cycle detected in requirement: {0} -&gt; {1}..
+        /// </summary>
+        internal static string RequirementsValidator_CycleDetected {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_CycleDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_NoLookupsFoundForType {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoLookupsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No other schemas contain the field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_NoOtherSchemasContainField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoOtherSchemasContainField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToAccessFieldOnPath {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToAccessFieldOnPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToSatisfyRequirement {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToSatisfyRequirementForLookup {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirementForLookup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to transition between schemas &apos;{0}&apos; and &apos;{1}&apos; for access to required field &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToTransitionBetweenSchemas {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToTransitionBetweenSchemas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Represents a selection path map syntax..
         /// </summary>
         internal static string RequireMutableDirectiveDefinition_Argument_Field_Description {
@@ -1032,29 +1095,11 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No other schemas contain this field..
-        /// </summary>
-        internal static string SatisfiabilityValidator_NoOtherSchemasContainField {
-            get {
-                return ResourceManager.GetString("SatisfiabilityValidator_NoOtherSchemasContainField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
         /// </summary>
         internal static string SatisfiabilityValidator_UnableToAccessFieldOnPath {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessFieldOnPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos;..
-        /// </summary>
-        internal static string SatisfiabilityValidator_UnableToAccessRequiredField {
-            get {
-                return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessRequiredField", resourceCulture);
             }
         }
         

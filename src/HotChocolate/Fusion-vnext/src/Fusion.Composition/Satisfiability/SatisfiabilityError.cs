@@ -1,12 +1,14 @@
 using System.Collections.Immutable;
 using System.Text;
 
-namespace HotChocolate.Fusion.Errors;
+namespace HotChocolate.Fusion.Satisfiability;
 
 internal sealed class SatisfiabilityError(
     string message,
     ImmutableArray<SatisfiabilityError>? errors = null)
 {
+    public string Message { get; } = message;
+
     public override string ToString()
     {
         return ToString(indentationLevel: 0);
@@ -16,7 +18,7 @@ internal sealed class SatisfiabilityError(
     {
         var indent = new string(' ', indentationLevel * 2);
         var stringBuilder = new StringBuilder();
-        stringBuilder.Append($"{indent}{message}");
+        stringBuilder.Append($"{indent}{Message}");
 
         if (errors is not null)
         {
