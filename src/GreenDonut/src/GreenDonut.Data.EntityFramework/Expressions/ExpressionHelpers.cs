@@ -86,7 +86,7 @@ internal static class ExpressionHelpers
                 // To avoid skipping any rows, NULL values are significant for the primary sorting condition. 
                 // For all secondary sorting conditions, NULL values are treated as last,
                 // ensuring consistent behavior across different databases.
-                if (cursor.NullsFirst)
+                if (i == 0 && cursor.NullsFirst)
                 {
                     expression = BuildNullsFirstExpression(expression!, cursor.Values[i], keyExpr, cursorExpr[i], greaterThan, key.CompareMethod.MethodInfo);
                 }
