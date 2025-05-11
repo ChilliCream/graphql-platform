@@ -36,14 +36,10 @@ public sealed class FusionUnionTypeDefinition(
 
     internal void Complete(CompositeUnionTypeCompletionContext context)
     {
-        if (_completed)
-        {
-            throw new NotSupportedException(
-                "The type definition is sealed and cannot be modified.");
-        }
+        ThrowHelper.EnsureNotSealed(_completed);
 
-        _directives = new FusionDirectiveCollection(context.Directives);
-        _types = new FusionObjectTypeDefinitionCollection(context.Types);
+        _directives = context.Directives;
+        _types = context.Types;
         _completed = true;
     }
 

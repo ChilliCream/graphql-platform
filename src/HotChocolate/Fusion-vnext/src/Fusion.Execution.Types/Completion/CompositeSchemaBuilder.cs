@@ -49,6 +49,16 @@ public static class CompositeSchemaBuilder
                     typeDefinitions.Add(interfaceType.Name.Value, interfaceType);
                     break;
 
+                case UnionTypeDefinitionNode unionType:
+                    types.Add(CreateUnionType(unionType));
+                    typeDefinitions.Add(unionType.Name.Value, unionType);
+                    break;
+
+                case InputObjectTypeDefinitionNode inputObjectType:
+                    types.Add(CreateInputObjectType(inputObjectType));
+                    typeDefinitions.Add(inputObjectType.Name.Value, inputObjectType);
+                    break;
+
                 case ScalarTypeDefinitionNode scalarType:
                     types.Add(CreateScalarType(scalarType));
                     typeDefinitions.Add(scalarType.Name.Value, scalarType);
@@ -110,6 +120,23 @@ public static class CompositeSchemaBuilder
             definition.Name.Value,
             definition.Description?.Value,
             CreateOutputFields(definition.Fields));
+    }
+
+    private static FusionUnionTypeDefinition CreateUnionType(
+        UnionTypeDefinitionNode definition)
+    {
+        return new FusionUnionTypeDefinition(
+            definition.Name.Value,
+            definition.Description?.Value);
+    }
+
+    private static FusionInputObjectTypeDefinition CreateInputObjectType(
+        InputObjectTypeDefinitionNode definition)
+    {
+        return new FusionInputObjectTypeDefinition(
+            definition.Name.Value,
+            definition.Description?.Value,
+            CreateInputFields(definition.Fields));
     }
 
     private static FusionOutputFieldDefinitionCollection CreateOutputFields(
@@ -223,6 +250,20 @@ public static class CompositeSchemaBuilder
                         schemaContext);
                     break;
 
+                case FusionUnionTypeDefinition unionType:
+                    CompleteUnionType(
+                        unionType,
+                        schemaContext.GetTypeDefinition<UnionTypeDefinitionNode>(unionType.Name),
+                        schemaContext);
+                    break;
+
+                case FusionInputObjectTypeDefinition inputObjectType:
+                    CompleteInputObjectType(
+                        inputObjectType,
+                        schemaContext.GetTypeDefinition<InputObjectTypeDefinitionNode>(inputObjectType.Name),
+                        schemaContext);
+                    break;
+
                 case FusionScalarTypeDefinition scalarType:
                     CompleteScalarType(
                         scalarType,
@@ -299,6 +340,16 @@ public static class CompositeSchemaBuilder
                 interfaces,
                 sources,
                 FeatureCollection.Empty));
+    }
+
+    private static void CompleteUnionType(
+        FusionUnionTypeDefinition type,
+        UnionTypeDefinitionNode typeDef,
+        CompositeSchemaContext schemaContext)
+    {
+        var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
+        var types = CompletionTools.CreateObjectTypeCollection(typeDef.Types, schemaContext);
+        type.Complete(new CompositeUnionTypeCompletionContext(directives, types));
     }
 
     private static void CompleteOutputField(
@@ -391,6 +442,20 @@ public static class CompositeSchemaBuilder
                 ? schemaContext.GetType(type)
                 : schemaContext.GetType(sourceType, type.NamedType().Name.Value);
         }
+    }
+
+    private static void CompleteInputObjectType(
+        FusionInputObjectTypeDefinition inputObjectType,
+        InputObjectTypeDefinitionNode inputObjectTypeDef,
+        CompositeSchemaContext schemaContext)
+    {
+        foreach (var fieldDef in inputObjectTypeDef.Fields)
+        {
+            CompleteInputField(inputObjectType.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
+        }
+
+        var directives = CompletionTools.CreateDirectiveCollection(inputObjectTypeDef.Directives, schemaContext);
+        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(directives));
     }
 
     private static void CompleteInputField(
