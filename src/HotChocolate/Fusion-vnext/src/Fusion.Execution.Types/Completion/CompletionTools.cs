@@ -62,7 +62,7 @@ internal static class CompletionTools
         IReadOnlyList<NamedTypeNode> interfaceTypes,
         CompositeSchemaContext context)
     {
-        if(interfaceTypes.Count == 0)
+        if (interfaceTypes.Count == 0)
         {
             return FusionInterfaceTypeDefinitionCollection.Empty;
         }
@@ -75,6 +75,25 @@ internal static class CompletionTools
         }
 
         return new FusionInterfaceTypeDefinitionCollection(temp);
+    }
+
+    public static FusionObjectTypeDefinitionCollection CreateObjectTypeCollection(
+        IReadOnlyList<NamedTypeNode> types,
+        CompositeSchemaContext context)
+    {
+        if (types.Count == 0)
+        {
+            return FusionObjectTypeDefinitionCollection.Empty;
+        }
+
+        var temp = new FusionObjectTypeDefinition[types.Count];
+
+        for (var i = 0; i < types.Count; i++)
+        {
+            temp[i] = (FusionObjectTypeDefinition)context.GetType(types[i]);
+        }
+
+        return new FusionObjectTypeDefinitionCollection(temp);
     }
 
     public static SourceObjectTypeCollection CreateSourceObjectTypeCollection(

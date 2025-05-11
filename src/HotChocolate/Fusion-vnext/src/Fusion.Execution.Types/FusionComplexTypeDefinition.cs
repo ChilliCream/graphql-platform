@@ -38,11 +38,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         get => _directives;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
             _directives = value;
         }
@@ -59,11 +55,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         get => _implements;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
             _implements = value;
         }
@@ -94,11 +86,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         get => _sources;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
             _sources = value;
         }
@@ -106,11 +94,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 
     private protected void Complete()
     {
-        if (_completed)
-        {
-            throw new NotSupportedException(
-                "The type definition is sealed and cannot be modified.");
-        }
+        ThrowHelper.EnsureNotSealed(_completed);
 
         _completed = true;
     }

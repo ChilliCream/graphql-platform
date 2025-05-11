@@ -32,4 +32,6 @@ public sealed class FusionObjectTypeDefinitionCollection
 
     IEnumerator IEnumerable.GetEnumerator()
         => AsEnumerable().GetEnumerator();
+
+    public static FusionObjectTypeDefinitionCollection Empty { get; } = new([]);
 }
