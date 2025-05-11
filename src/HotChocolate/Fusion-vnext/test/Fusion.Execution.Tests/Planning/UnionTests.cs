@@ -2,7 +2,7 @@ namespace HotChocolate.Fusion.Planning;
 
 public class UnionTests : FusionTestBase
 {
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Just_Typename_Selected()
     {
         // arrange

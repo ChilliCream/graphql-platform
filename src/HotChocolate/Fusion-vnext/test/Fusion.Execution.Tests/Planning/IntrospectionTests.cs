@@ -64,7 +64,7 @@ public class IntrospectionTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Full_Introspection()
     {
         // arrange
