@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
@@ -20,7 +21,12 @@ internal sealed class SourceSchemaPreprocessor(
 
         if (context.Options.ApplyShareableToAllTypes)
         {
-            ApplyShareableToAllTypes(context);
+            var shareableDirectiveDefinition = new ShareableMutableDirectiveDefinition();
+
+            // TODO: Check that these do not already exist
+            context.Schema.DirectiveDefinitions.Add(shareableDirectiveDefinition);
+
+            ApplyShareableToAllTypes(context, shareableDirectiveDefinition);
         }
 
         return schema;
@@ -32,6 +38,14 @@ internal sealed class SourceSchemaPreprocessor(
         {
             return;
         }
+
+        var fieldSelectionSetType = MutableScalarTypeDefinition.Create(WellKnownTypeNames.FieldSelectionSet);
+        var keyDirectiveDefinition = new KeyMutableDirectiveDefinition(fieldSelectionSetType);
+        var lookupDirectiveDefinition = new LookupMutableDirectiveDefinition();
+
+        // TODO: Check that these do not already exist
+        context.Schema.DirectiveDefinitions.Add(keyDirectiveDefinition);
+        context.Schema.DirectiveDefinitions.Add(lookupDirectiveDefinition);
 
         foreach (var queryField in queryType.Fields)
         {
@@ -58,24 +72,24 @@ internal sealed class SourceSchemaPreprocessor(
             {
                 if (resultObjectType.Fields.TryGetField(keyOutputFieldName, out var keyField))
                 {
-                    queryField.ApplyLookupDirective();
+                    queryField.ApplyLookupDirective(lookupDirectiveDefinition);
 
-                    resultObjectType.ApplyKeyDirective([keyField.Name]);
+                    resultObjectType.ApplyKeyDirective(keyDirectiveDefinition, [keyField.Name]);
                 }
             }
             else if (resultType is MutableInterfaceTypeDefinition resultInterfaceType)
             {
                 if (resultInterfaceType.Fields.TryGetField(keyOutputFieldName, out var keyField))
                 {
-                    queryField.ApplyLookupDirective();
+                    queryField.ApplyLookupDirective(lookupDirectiveDefinition);
 
-                    resultInterfaceType.ApplyKeyDirective([keyField.Name]);
+                    resultInterfaceType.ApplyKeyDirective(keyDirectiveDefinition, [keyField.Name]);
 
                     foreach (var objectType in context.Schema.Types.OfType<MutableObjectTypeDefinition>())
                     {
                         if (objectType.Implements.ContainsName(resultInterfaceType.Name))
                         {
-                            objectType.ApplyKeyDirective([keyField.Name]);
+                            objectType.ApplyKeyDirective(keyDirectiveDefinition, [keyField.Name]);
                         }
                     }
                 }
@@ -83,11 +97,12 @@ internal sealed class SourceSchemaPreprocessor(
         }
     }
 
-    private static void ApplyShareableToAllTypes(SourceSchemaPreprocessorContext context)
+    private static void ApplyShareableToAllTypes(SourceSchemaPreprocessorContext context,
+        ShareableMutableDirectiveDefinition shareableDirectiveDefinition)
     {
         foreach (var objectType in context.Schema.Types.OfType<MutableObjectTypeDefinition>())
         {
-            objectType.ApplyShareableDirective();
+            objectType.ApplyShareableDirective(shareableDirectiveDefinition);
         }
     }
 }
