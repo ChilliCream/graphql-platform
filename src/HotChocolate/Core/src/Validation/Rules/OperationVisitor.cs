@@ -174,7 +174,7 @@ public class OperationVisitor : DocumentValidatorVisitor
 
         public HashSet<string> ResponseNames { get; } = [];
 
-        public override void Reset()
+        protected internal override void Reset()
         {
             OperationType = default;
             OperationNames.Clear();

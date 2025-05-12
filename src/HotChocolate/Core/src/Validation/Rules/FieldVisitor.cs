@@ -494,11 +494,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
         public FieldDepthCycleTracker FieldDepth { get; } = new();
 
-        public IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; } =
-            new Dictionary<SelectionSetNode, IList<FieldInfo>>();
+        public Dictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; } = [];
 
-        public ISet<(FieldNode, FieldNode)> FieldTuples { get; } =
-            new HashSet<(FieldNode, FieldNode)>();
+        public HashSet<(FieldNode, FieldNode)> FieldTuples { get; } = [];
 
         public IList<FieldInfo> RentFieldInfoList()
         {
@@ -514,11 +512,12 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return list;
         }
 
-        public override void OnInitialize(DocumentValidatorContext context)
+        protected internal override void OnInitialize(DocumentValidatorContext context)
             => NonNullString = new NonNullType(context.Schema.Types.GetType<IScalarTypeDefinition>("String"));
 
-        public override void Reset()
+        protected internal override void Reset()
         {
+            NonNullString = null!;
             CurrentFieldPairs.Clear();
             NextFieldPairs.Clear();
             ProcessedFieldPairs.Clear();

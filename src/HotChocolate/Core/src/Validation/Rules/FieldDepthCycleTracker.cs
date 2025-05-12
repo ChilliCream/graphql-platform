@@ -81,7 +81,7 @@ internal sealed class FieldDepthCycleTracker : ValidatorFeature
     /// <summary>
     /// Resets the field depth tracker.
     /// </summary>
-    public override void Reset()
+    protected internal override void Reset()
     {
         _limits.AddRange(_coordinates.Values);
         _coordinates.Clear();

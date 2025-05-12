@@ -70,4 +70,12 @@ public interface ISchemaDefinition
     /// Gets all the definitions that are part of this schema (type definitions and directive definitions).
     /// </summary>
     IEnumerable<INameProvider> GetAllDefinitions();
+
+    /// <summary>
+    /// Returns a string that represents the current schema.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current schema.
+    /// </returns>
+    string ToString();
 }

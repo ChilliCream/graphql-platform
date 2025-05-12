@@ -45,13 +45,13 @@ public sealed class DocumentValidatorRule : IDocumentValidatorRule
     public DocumentValidatorRule(
         DocumentValidatorVisitor visitor,
         bool isCacheable = true,
-        ushort property = ushort.MaxValue)
+        ushort priority = ushort.MaxValue)
     {
         ArgumentNullException.ThrowIfNull(visitor);
 
         _visitor = visitor;
         IsCacheable = isCacheable;
-        Priority = property;
+        Priority = priority;
     }
 
     public ushort Priority { get; }

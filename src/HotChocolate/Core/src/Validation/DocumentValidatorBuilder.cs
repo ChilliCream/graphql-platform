@@ -1,20 +1,39 @@
+using HotChocolate.Validation.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation;
 
+/// <summary>
+/// The <see cref="DocumentValidatorBuilder"/> is used to create a new <see cref="DocumentValidator"/>.
+/// </summary>
 public sealed class DocumentValidatorBuilder
 {
     private readonly List<RuleConfiguration> _rules = [];
     private IServiceProvider _services = EmptyServiceProvider.Instance;
-    private int _maxAllowedErrors;
+    private ValidationOptions _options = new();
+    private List<Action<IServiceProvider, ValidationOptions>>? _optionModifiers;
 
-    private DocumentValidatorBuilder()
-    {
-    }
+    private DocumentValidatorBuilder() { }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="DocumentValidatorBuilder"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a new instance of <see cref="DocumentValidatorBuilder"/>.
+    /// </returns>
     public static DocumentValidatorBuilder New() => new();
 
+    /// <summary>
+    /// Sets the service provider that will be used within the
+    /// <see cref="DocumentValidator"/> to resolve services.
+    /// </summary>
+    /// <param name="services">
+    /// The service provider.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
+    /// </returns>
     public DocumentValidatorBuilder SetServices(IServiceProvider services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -22,58 +41,195 @@ public sealed class DocumentValidatorBuilder
         return this;
     }
 
-    public DocumentValidatorBuilder SetMaxAllowedErrors(int maxErrors)
+    /// <summary>
+    /// Modifies the <see cref="ValidationOptions"/>.
+    /// </summary>
+    /// <param name="configure">
+    /// The configuration action.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
+    /// </returns>
+    public DocumentValidatorBuilder ModifyOptions(
+        Action<ValidationOptions> configure)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(maxErrors);
-        _maxAllowedErrors = maxErrors;
+        ArgumentNullException.ThrowIfNull(configure);
+        _optionModifiers ??= [];
+        _optionModifiers.Add((_, o) => configure(o));
         return this;
     }
 
+    /// <summary>
+    /// Modifies the <see cref="ValidationOptions"/>.
+    /// </summary>
+    /// <param name="configure">
+    /// The configuration action.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
+    /// </returns>
+    public DocumentValidatorBuilder ModifyOptions(
+        Action<IServiceProvider, ValidationOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        _optionModifiers ??= [];
+        _optionModifiers.Add(configure);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a rule to the <see cref="DocumentValidator"/>.
+    /// </summary>
+    /// <param name="factory">
+    /// The factory to create the validation rule.
+    /// </param>
+    /// <param name="isEnabled">
+    /// A delegate to determine if the rule is enabled and if it needs to be created
+    /// when the <see cref="DocumentValidator"/> is built.
+    /// </param>
+    /// <typeparam name="TRule">
+    /// The rule type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
+    /// </returns>
     public DocumentValidatorBuilder AddRule<TRule>(
-        int priority = ushort.MaxValue)
+        Func<IServiceProvider, ValidationOptions, TRule>? factory = null,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
         where TRule : class, IDocumentValidatorRule
     {
         ArgumentNullException.ThrowIfNull(typeof(TRule));
-        _rules.Add(RuleConfiguration.CreateRule<TRule>(priority));
+        _rules.Add(RuleConfiguration.CreateRule<TRule>(isEnabled, factory));
         return this;
     }
 
+    /// <summary>
+    /// Removes a rule from the <see cref="DocumentValidator"/>.
+    /// </summary>
+    /// <typeparam name="TRule">
+    /// The rule type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
+    /// </returns>
+    public DocumentValidatorBuilder RemoveRule<TRule>()
+        where TRule : class, IDocumentValidatorRule
+    {
+        _rules.RemoveAll(r => r.Rule == typeof(TRule) && !r.IsVisitor);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a visitor to the <see cref="DocumentValidator"/> that
+    /// will be used to create a validation rule.
+    /// </summary>
+    /// <param name="factory">
+    /// The factory to create the validation visitor.
+    /// </param>
+    /// <param name="isEnabled">
+    /// A delegate to determine if the visitor is enabled and if it needs to be created
+    /// when the <see cref="DocumentValidator"/> is built.
+    /// </param>
+    /// <param name="priority">
+    /// The priority of the visitor.
+    /// </param>
+    /// <param name="isCacheable">
+    /// A flag to determine if the visitor is cacheable.
+    /// </param>
+    /// <typeparam name="TVisitor">
+    /// The visitor type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
+    /// </returns>
     public DocumentValidatorBuilder AddVisitor<TVisitor>(
-        int priority = ushort.MaxValue)
+        Func<IServiceProvider, ValidationOptions, TVisitor>? factory = null,
+        Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null,
+        ushort priority = ushort.MaxValue,
+        bool isCacheable = true)
         where TVisitor : DocumentValidatorVisitor
     {
         ArgumentNullException.ThrowIfNull(typeof(TVisitor));
-        _rules.Add(RuleConfiguration.CreateVisitor<TVisitor>(priority));
+        _rules.Add(RuleConfiguration.CreateVisitor<TVisitor>(isEnabled, factory, priority, isCacheable));
         return this;
     }
 
+    /// <summary>
+    /// Removes a visitor from the <see cref="DocumentValidator"/>.
+    /// </summary>
+    /// <typeparam name="TVisitor">
+    /// The visitor type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
+    /// </returns>
+    public DocumentValidatorBuilder RemoveVisitor<TVisitor>()
+        where TVisitor : DocumentValidatorVisitor
+    {
+        _rules.RemoveAll(r => r.Rule == typeof(TVisitor) && r.IsVisitor);
+        return this;
+    }
+
+    /// <summary>
+    /// Builds the <see cref="DocumentValidator"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns the <see cref="DocumentValidator"/>.
+    /// </returns>
     public DocumentValidator Build()
     {
+        _options ??= new ValidationOptions { MaxAllowedErrors = 1 };
         var completed = new HashSet<Type>();
         var rules = new List<IDocumentValidatorRule>();
 
         foreach (var configuration in _rules.OrderBy(r => r.Priority))
         {
+            if (configuration.IsEnabled?.Invoke(_services, _options) == false)
+            {
+                continue;
+            }
+
             if (configuration.IsVisitor)
             {
-                var visitor = CreateInstance<DocumentValidatorVisitor>(configuration.Rule);
-                rules.Add(new DocumentValidatorRule(visitor));
+                var visitor = CreateInstance<DocumentValidatorVisitor>(
+                    configuration.Rule,
+                    configuration.Factory,
+                    _services,
+                    _options);
+
+                var rule = new DocumentValidatorRule(
+                    visitor,
+                    configuration.IsCacheable ?? true,
+                    configuration.Priority ?? ushort.MaxValue);
+
+                rules.Add(rule);
             }
             else
             {
-                var rule = CreateInstance<IDocumentValidatorRule>(configuration.Rule);
+                var rule = CreateInstance<IDocumentValidatorRule>(
+                    configuration.Rule,
+                    configuration.Factory,
+                    _services,
+                    _options);
+
                 rules.Add(rule);
             }
         }
 
         var contextPool = _services.GetService<ObjectPool<DocumentValidatorContext>>();
         contextPool ??= new DocumentValidatorContextPool();
-        return new DocumentValidator(contextPool, [.. rules], _maxAllowedErrors);
+        return new DocumentValidator(contextPool, [.. rules], _options.MaxAllowedErrors);
     }
 
-    private T CreateInstance<T>(Type type)
+    private static T CreateInstance<T>(
+        Type type,
+        Func<IServiceProvider, ValidationOptions, object>? factory,
+        IServiceProvider services,
+        ValidationOptions options)
     {
-        var instance = ActivatorUtilities.GetServiceOrCreateInstance(_services, type);
+        var instance = factory is null
+            ? ActivatorUtilities.GetServiceOrCreateInstance(services, type)
+            : factory(services, options);
 
         if (instance is not T casted)
         {
@@ -86,31 +242,58 @@ public sealed class DocumentValidatorBuilder
 
     private sealed class RuleConfiguration
     {
-        private RuleConfiguration(Type rule, int priority, bool isCacheable, bool isVisitor = false)
+        private RuleConfiguration(
+            Type rule,
+            ushort? priority,
+            bool? isCacheable,
+            Func<IServiceProvider, ValidationOptions, bool>? isEnabled,
+            Func<IServiceProvider, ValidationOptions, object>? factory,
+            bool isVisitor = false)
         {
             Rule = rule;
             Priority = priority;
             IsCacheable = isCacheable;
             IsVisitor = isVisitor;
+            IsEnabled = isEnabled;
+            Factory = factory;
         }
 
         public readonly Type Rule;
 
-        public readonly int Priority;
+        public readonly ushort? Priority;
 
-        public readonly bool IsCacheable;
+        public readonly bool? IsCacheable;
 
         public readonly bool IsVisitor;
 
+        public readonly Func<IServiceProvider, ValidationOptions, bool>? IsEnabled;
+
+        public readonly Func<IServiceProvider, ValidationOptions, object>? Factory;
+
         public static RuleConfiguration CreateRule<TRule>(
-            int priority = ushort.MaxValue)
+            Func<IServiceProvider, ValidationOptions, bool>? isEnabled,
+            Func<IServiceProvider, ValidationOptions, object>? factory)
             where TRule : IDocumentValidatorRule
-            => new(typeof(TRule), priority, isCacheable: true);
+            => new RuleConfiguration(
+                typeof(TRule),
+                priority: null,
+                isCacheable: null,
+                isEnabled: isEnabled,
+                factory: factory);
 
         public static RuleConfiguration CreateVisitor<TVisitor>(
-            int priority = ushort.MaxValue)
+            Func<IServiceProvider, ValidationOptions, bool>? isEnabled,
+            Func<IServiceProvider, ValidationOptions, object>? factory,
+            ushort priority = ushort.MaxValue,
+            bool isCacheable = false)
             where TVisitor : DocumentValidatorVisitor
-            => new(typeof(TVisitor), priority, isCacheable: false, isVisitor: true);
+            => new RuleConfiguration(
+                typeof(TVisitor),
+                priority: priority,
+                isCacheable: isCacheable,
+                isEnabled: isEnabled,
+                factory: factory,
+                isVisitor: true);
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider

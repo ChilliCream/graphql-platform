@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
@@ -45,6 +46,11 @@ public sealed class DocumentValidator
         _nonCacheableRules = [.. rules.Where(rule => rule.IsCacheable)];
         _maxAllowedErrors = maxAllowedErrors > 0 ? maxAllowedErrors : 1;
     }
+
+    /// <summary>
+    /// Gets the rules that are used to validate the GraphQL operation document.
+    /// </summary>
+    public ImmutableArray<IDocumentValidatorRule> Rules => ImmutableCollectionsMarshal.AsImmutableArray(_allRules);
 
     /// <summary>
     /// Validates the GraphQL operation <paramref name="document"/> against the given <paramref name="schema"/>.

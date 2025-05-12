@@ -111,7 +111,7 @@ internal sealed class MaxExecutionDepthVisitor(
 
         public int Count { get; set; }
 
-        public override void Reset()
+        protected internal override void Reset()
         {
             Allowed = 0;
             Max = 0;

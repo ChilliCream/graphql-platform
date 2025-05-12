@@ -166,10 +166,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task MissingRequiredArgNonNullBooleanArg()
+    public void MissingRequiredArgNonNullBooleanArg()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     arguments {
                         ... missingRequiredArg
@@ -179,25 +179,25 @@ public class DocumentValidatorTests
                 fragment missingRequiredArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: null)
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The argument `nonNullBooleanArg` is required.",
                 t.Message));
     }
 
     [Fact]
-    public async Task DisallowedSecondRootField()
+    public void DisallowedSecondRootField()
     {
-        await ExpectErrors(
-            @"
-                subscription sub {
-                    newMessage {
-                        body
-                        sender
-                    }
-                    disallowedSecondRootFieldNonExisting
+        ExpectErrors(
+            """
+            subscription sub {
+                newMessage {
+                    body
+                    sender
                 }
-            ",
+                disallowedSecondRootFieldNonExisting
+            }
+            """,
             t => Assert.Equal(
                 $"Subscription operations must have exactly one root field.",
                 t.Message),
@@ -208,25 +208,25 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task FieldIsNotDefinedOnTypeInFragment()
+    public void FieldIsNotDefinedOnTypeInFragment()
     {
-        await ExpectErrors(
-            @"
-                {
-                    dog {
-                        ... fieldNotDefined
-                        ... aliasedLyingFieldTargetNotDefined
-                    }
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ... fieldNotDefined
+                    ... aliasedLyingFieldTargetNotDefined
                 }
+            }
 
-                fragment fieldNotDefined on Dog {
-                    meowVolume
-                }
+            fragment fieldNotDefined on Dog {
+                meowVolume
+            }
 
-                fragment aliasedLyingFieldTargetNotDefined on Dog {
-                    barkVolume: kawVolume
-                }
-            ",
+            fragment aliasedLyingFieldTargetNotDefined on Dog {
+                barkVolume: kawVolume
+            }
+            """,
             t => Assert.Equal(
                 "The field `meowVolume` does not exist " +
                 "on the type `Dog`.",
@@ -238,20 +238,20 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task VariableNotUsedWithinFragment()
+    public void VariableNotUsedWithinFragment()
     {
-        await ExpectErrors(
-            @"
-                query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
-                    dog {
-                        ...isHouseTrainedWithoutVariableFragment
-                    }
+        ExpectErrors(
+            """
+            query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
+                dog {
+                    ...isHouseTrainedWithoutVariableFragment
                 }
+            }
 
-                fragment isHouseTrainedWithoutVariableFragment on Dog {
-                    barkVolume
-                }
-            ",
+            fragment isHouseTrainedWithoutVariableFragment on Dog {
+                barkVolume
+            }
+            """,
             t => Assert.Equal(
                 "The following variables were not used: " +
                 "atOtherHomes.",
@@ -259,30 +259,27 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task SkipDirectiveIsInTheWrongPlace()
+    public void SkipDirectiveIsInTheWrongPlace()
     {
-        await ExpectErrors(
-            @"
-                query @skip(if: $foo) {
-                    field
-                }
-            ");
+        ExpectErrors(
+            """
+            query @skip(if: $foo) {
+                field
+            }
+            """);
     }
 
     [Fact]
-    public async Task QueriesWithInvalidVariableTypes()
+    public void QueriesWithInvalidVariableTypes()
     {
         // arrange
-        await ExpectErrors(
+        ExpectErrors(
             null,
-            new ServiceCollection()
-                .AddValidation()
-                .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue)
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IDocumentValidatorFactory>()
-                .CreateValidator(),
-            @"
+            DocumentValidatorBuilder.New()
+                .AddDefaultRules()
+                .ModifyOptions(o => o.MaxAllowedErrors = int.MaxValue)
+                .Build(),
+                """
                 query takesCat($cat: Cat) {
                     # ...
                 }
@@ -297,7 +294,8 @@ public class DocumentValidatorTests
 
                 query takesCatOrDog($catOrDog: CatOrDog) {
                     # ...
-                }",
+                }
+                """,
             t => Assert.Equal(
                 "Operation `takesCat` has a empty selection set. Root types without " +
                 "subfields are disallowed.",
@@ -341,15 +339,15 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task ConflictingBecauseAlias()
+    public void ConflictingBecauseAlias()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 fragment conflictingBecauseAlias on Dog {
                     name: nickname
                     name
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The specified fragment `conflictingBecauseAlias` " +
                 "is not used within the current document.",
@@ -357,10 +355,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task InvalidFieldArgName()
+    public void InvalidFieldArgName()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         ... invalidArgName
@@ -370,7 +368,7 @@ public class DocumentValidatorTests
                 fragment invalidArgName on Dog {
                     doesKnowCommand(command: CLEAN_UP_HOUSE)
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The argument `command` does not exist.",
                 t.Message),
@@ -380,10 +378,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task UnusedFragment()
+    public void UnusedFragment()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 fragment nameFragment on Dog { # unused
                     name
                 }
@@ -393,7 +391,7 @@ public class DocumentValidatorTests
                         name
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The specified fragment `nameFragment` " +
                 "is not used within the current document.",
@@ -401,10 +399,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task DuplicateFragments()
+    public void DuplicateFragments()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         ...fragmentOne
@@ -420,17 +418,17 @@ public class DocumentValidatorTests
                         name
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "There are multiple fragments with the name `fragmentOne`.",
                 t.Message));
     }
 
     [Fact]
-    public async Task ScalarSelectionsNotAllowedOnInt()
+    public void ScalarSelectionsNotAllowedOnInt()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         barkVolume {
@@ -438,7 +436,7 @@ public class DocumentValidatorTests
                         }
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "Field \"barkVolume\" must not have a selection since type \"Int\" has no " +
                 "subfields.",
@@ -446,10 +444,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task InlineFragOnScalar()
+    public void InlineFragOnScalar()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                        ... inlineFragOnScalar
@@ -461,17 +459,17 @@ public class DocumentValidatorTests
                         somethingElse
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "Fragments can only be declared on unions, interfaces, and objects.",
                 t.Message));
     }
 
     [Fact]
-    public async Task FragmentCycle1()
+    public void FragmentCycle1()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         ...nameFragment
@@ -487,7 +485,7 @@ public class DocumentValidatorTests
                     barkVolume
                     ...nameFragment
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
@@ -497,16 +495,16 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task UndefinedFragment()
+    public void UndefinedFragment()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         ...undefinedFragment
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The specified fragment `undefinedFragment` " +
                 "does not exist.",
@@ -514,10 +512,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task FragmentDoesNotMatchType()
+    public void FragmentDoesNotMatchType()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         ...fragmentDoesNotMatchType
@@ -527,7 +525,7 @@ public class DocumentValidatorTests
                 fragment fragmentDoesNotMatchType on Human {
                     name
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The parent type does not match the type condition on " +
                 "the fragment.",
@@ -535,10 +533,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task NotExistingTypeOnInlineFragment()
+    public void NotExistingTypeOnInlineFragment()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         ...inlineNotExistingType
@@ -550,7 +548,7 @@ public class DocumentValidatorTests
                         name
                     }
                 }
-            ",
+            """,
             t =>
             {
                 Assert.Equal(
@@ -560,17 +558,17 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task InvalidInputObjectFieldsExist()
+    public void InvalidInputObjectFieldsExist()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
                     {
                         name
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The specified input object field " +
                 "`favoriteCookieFlavor` does not exist.",
@@ -578,49 +576,49 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task RequiredFieldIsNull()
+    public void RequiredFieldIsNull()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     findDog2(complex: { name: null })
                     {
                         name
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "`name` is a required field and cannot be null.",
                 t.Message));
     }
 
     [Fact]
-    public async Task NameFieldIsAmbiguous()
+    public void NameFieldIsAmbiguous()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     findDog(complex: { name: ""A"", name: ""B"" })
                     {
                         name
                     }
                 }
-            ",
+            """,
             t =>
                 Assert.Equal("There can be only one input field named `name`.", t.Message));
     }
 
     [Fact]
-    public async Task UnsupportedDirective()
+    public void UnsupportedDirective()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     dog {
                         name @foo(bar: true)
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The specified directive `foo` " +
                 "is not supported by the current schema.",
@@ -628,10 +626,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task StringIntoInt()
+    public void StringIntoInt()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 {
                     arguments {
                         ...stringIntoInt
@@ -641,7 +639,7 @@ public class DocumentValidatorTests
                 fragment stringIntoInt on Arguments {
                     intArgField(intArg: ""123"")
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "The specified argument value does not match the " +
                 "argument type.",
@@ -649,18 +647,15 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task MaxDepthRuleIsIncluded()
+    public void MaxDepthRuleIsIncluded()
     {
-        await ExpectErrors(
+        ExpectErrors(
             null,
-            new ServiceCollection()
-                .AddValidation()
+            DocumentValidatorBuilder.New()
+                .AddDefaultRules()
                 .AddMaxExecutionDepthRule(1)
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IDocumentValidatorFactory>()
-                .CreateValidator(),
-            @"
+                .Build(),
+            """
                 query {
                     catOrDog
                     {
@@ -669,7 +664,7 @@ public class DocumentValidatorTests
                         }
                     }
                 }
-            ",
+            """,
             t =>
             {
                 Assert.Equal(
@@ -680,10 +675,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task GoodBooleanArgDefault2()
+    public void GoodBooleanArgDefault2()
     {
-        await ExpectValid(
-            @"
+        ExpectValid(
+            """
                 query {
                     arguments {
                         ... goodBooleanArgDefault
@@ -693,20 +688,22 @@ public class DocumentValidatorTests
                 fragment goodBooleanArgDefault on Arguments {
                     optionalNonNullBooleanArgField2
                 }
-            ");
+            """);
     }
 
     [Fact]
-    public async Task StarWars_Query_Is_Valid()
+    public void StarWars_Query_Is_Valid()
     {
-        await ExpectValid(
-            SchemaBuilder.New().AddStarWarsTypes().Create(),
+        ExpectValid(
+            SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create(),
             null,
             FileResource.Open("StarWars_Request.graphql"));
     }
 
     [Fact]
-    public async Task DuplicatesWillBeIgnoredOnFieldMerging()
+    public void DuplicatesWillBeIgnoredOnFieldMerging()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -716,198 +713,184 @@ public class DocumentValidatorTests
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("InvalidIntrospectionQuery.graphql"));
 
-        var originalOperation = ((OperationDefinitionNode)document.Definitions[0]);
+        var originalOperation = (OperationDefinitionNode)document.Definitions[0];
         var operationWithDuplicates = originalOperation.WithSelectionSet(
             originalOperation.SelectionSet.WithSelections(
-                new List<ISelectionNode>
-                {
+                [
                     originalOperation.SelectionSet.Selections[0],
                     originalOperation.SelectionSet.Selections[0],
-                }));
+                ]));
 
         document = document.WithDefinitions(
-            new List<IDefinitionNode>(document.Definitions.Skip(1)) { operationWithDuplicates, });
+            [
+                .. document.Definitions.Skip(1),
+                operationWithDuplicates
+            ]);
 
-        var services = new ServiceCollection()
-            .AddValidation()
-            .Services
-            .BuildServiceProvider();
-
-        var factory = services.GetRequiredService<IDocumentValidatorFactory>();
-        var validator = factory.CreateValidator();
+        var validator = CreateValidator();
 
         // act
-        var result = await validator.ValidateAsync(
-            schema,
-            document,
-            new OperationDocumentId("abc"),
-            new Dictionary<string, object?>(),
-            false);
+        var result = validator.Validate(schema, document);
 
         // assert
         Assert.False(result.HasErrors);
     }
 
     [Fact]
-    public async Task Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
+    public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
     {
-        await ExpectValid(
-            @"
-                query ($a: Boolean!) {
-                    dog {
-                        ... inlineFragOnScalar
-                        owner @include(if: $a) {
-                            address
-                        }
-                    }
-                }
-
-                fragment inlineFragOnScalar on Dog {
+        DocumentValidatorTests.ExpectValid(
+            """
+            query ($a: Boolean!) {
+                dog {
+                    ... inlineFragOnScalar
                     owner @include(if: $a) {
-                        name
+                        address
                     }
                 }
-            ");
+            }
+
+            fragment inlineFragOnScalar on Dog {
+                owner @include(if: $a) {
+                    name
+                }
+            }
+            """);
     }
 
     [Fact]
-    public async Task Ensure_Recursive_Fragments_Fail()
+    public void Ensure_Recursive_Fragments_Fail()
     {
-        await ExpectErrors("fragment f on Query{...f} {...f}");
+        ExpectErrors("fragment f on Query{...f} {...f}");
     }
 
     [Fact]
-    public async Task Ensure_Recursive_Fragments_Fail_2()
+    public void Ensure_Recursive_Fragments_Fail_2()
     {
-        await ExpectErrors(
-            @"
-                fragment f on Query {
+        ExpectErrors(
+            """
+            fragment f on Query {
+                ...f
+                f {
                     ...f
                     f {
                         ...f
-                        f {
-                            ...f
-                        }
                     }
                 }
+            }
 
-                {...f}");
+            {...f}
+            """);
     }
 
     [Fact]
-    public async Task Short_Long_Names()
+    public void Short_Long_Names()
     {
-        await ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
+        ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
     }
 
     [Fact]
-    public async Task Anonymous_empty_query_repeated_25000()
+    public void Anonymous_empty_query_repeated_25000()
     {
-        await ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
+        ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
     }
 
     [Fact]
-    public async Task Type_query_repeated_6250()
+    public void Type_query_repeated_6250()
     {
-        await ExpectErrors(FileResource.Open("__type_query_repeated_6250.graphql"));
+        ExpectErrors(FileResource.Open("__type_query_repeated_6250.graphql"));
     }
 
     [Fact]
-    public async Task Typename_query_repeated_4167()
+    public void Typename_query_repeated_4167()
     {
-        await ExpectErrors(FileResource.Open("__typename_query_repeated_4167.graphql"));
+        ExpectErrors(FileResource.Open("__typename_query_repeated_4167.graphql"));
     }
 
     [Fact]
-    public async Task Typename_query()
+    public void Typename_query()
     {
-        await ExpectValid(FileResource.Open("__typename_query.graphql"));
+        DocumentValidatorTests.ExpectValid(FileResource.Open("__typename_query.graphql"));
     }
 
     [Fact]
-    public async Task Produce_Many_Errors_100_query()
+    public void Produce_Many_Errors_100_query()
     {
-        await ExpectErrors(FileResource.Open("100_query.graphql"));
+        ExpectErrors(FileResource.Open("100_query.graphql"));
     }
 
     [Fact]
-    public async Task Produce_Many_Errors_1000_query()
+    public void Produce_Many_Errors_1000_query()
     {
-        await ExpectErrors(FileResource.Open("1000_query.graphql"));
+        ExpectErrors(FileResource.Open("1000_query.graphql"));
     }
 
     [Fact]
-    public async Task Produce_Many_Errors_10000_query()
+    public void Produce_Many_Errors_10000_query()
     {
-        await ExpectErrors(FileResource.Open("10000_query.graphql"));
+        ExpectErrors(FileResource.Open("10000_query.graphql"));
     }
 
     [Fact]
-    public async Task Produce_Many_Errors_25000_query()
+    public void Produce_Many_Errors_25000_query()
     {
-        await ExpectErrors(FileResource.Open("25000_query.graphql"));
+        ExpectErrors(FileResource.Open("25000_query.graphql"));
     }
 
     [Fact]
-    public async Task Produce_Many_Errors_30000_query()
+    public void Produce_Many_Errors_30000_query()
     {
-        await ExpectErrors(FileResource.Open("30000_query.graphql"));
+        ExpectErrors(FileResource.Open("30000_query.graphql"));
     }
 
     [Fact]
-    public async Task Produce_Many_Errors_50000_query()
+    public void Produce_Many_Errors_50000_query()
     {
-        await ExpectErrors(FileResource.Open("50000_query.graphql"));
+        ExpectErrors(FileResource.Open("50000_query.graphql"));
     }
 
     [Fact]
-    public async Task Introspection_Cycle_Detected()
-    {
-        await ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
-    }
+    public void Introspection_Cycle_Detected()
+        => ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
 
-    private Task ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
+    private static void ExpectValid(string sourceText)
+        => ExpectValid(null, null, sourceText);
 
-    private async Task ExpectValid(ISchema? schema, IDocumentValidator? validator, string sourceText)
+    private static void ExpectValid(
+        ISchemaDefinition? schema,
+        DocumentValidator? validator,
+        string sourceText)
     {
         // arrange
         schema ??= ValidationUtils.CreateSchema();
         validator ??= CreateValidator();
-        var query = Utf8GraphQLParser.Parse(sourceText);
+        var operation = Utf8GraphQLParser.Parse(sourceText);
 
         // act
-        var result = await validator.ValidateAsync(
-            schema,
-            query,
-            new OperationDocumentId("abc"),
-            new Dictionary<string, object?>(),
-            false);
+        var result = validator.Validate(schema, operation);
 
         // assert
         Assert.Empty(result.Errors);
     }
 
-    private async Task ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
-        await ExpectErrors(null, null, sourceText, elementInspectors);
+    private static void ExpectErrors(
+        string sourceText,
+        params Action<IError>[] elementInspectors)
+        => ExpectErrors(null, null, sourceText, elementInspectors);
 
-    private async Task ExpectErrors(
-        ISchema? schema,
-        IDocumentValidator? validator,
+    private static void ExpectErrors(
+        ISchemaDefinition? schema,
+        DocumentValidator? validator,
         string sourceText,
         params Action<IError>[] elementInspectors)
     {
         // arrange
         schema ??= ValidationUtils.CreateSchema();
         validator ??= CreateValidator();
-        var query = Utf8GraphQLParser.Parse(sourceText, new ParserOptions(maxAllowedFields: int.MaxValue));
+        var document = Utf8GraphQLParser.Parse(sourceText, new ParserOptions(maxAllowedFields: int.MaxValue));
 
         // act
-        var result = await validator.ValidateAsync(
-            schema,
-            query,
-            new OperationDocumentId("abc"),
-            new Dictionary<string, object?>(),
-            false);
+        var result = validator.Validate(schema, document);
 
         // assert
         Assert.NotEmpty(result.Errors);
@@ -920,13 +903,10 @@ public class DocumentValidatorTests
         result.Errors.MatchSnapshot();
     }
 
-    private static IDocumentValidator CreateValidator()
+    private static DocumentValidator CreateValidator()
     {
-        return new ServiceCollection()
-            .AddValidation()
-            .Services
-            .BuildServiceProvider()
-            .GetRequiredService<IDocumentValidatorFactory>()
-            .CreateValidator();
+        return DocumentValidatorBuilder.New()
+            .AddDefaultRules()
+            .Build();
     }
 }

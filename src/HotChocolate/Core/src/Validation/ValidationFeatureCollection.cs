@@ -8,17 +8,16 @@ using HotChocolate.Features;
 namespace HotChocolate.Validation;
 
 /// <summary>
-/// Default implementation for <see cref="IFeatureCollection"/>.
+/// Validation feature collection implementation for <see cref="IFeatureCollection"/>.
 /// </summary>
 internal sealed class ValidationFeatureCollection : IFeatureCollection
 {
     private static readonly KeyComparer _featureKeyComparer = new();
-    private readonly int _initialCapacity;
     private Dictionary<Type, object>? _features;
     private volatile int _containerRevision;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FeatureCollection"/>.
+    /// Initializes a new instance of <see cref=" ValidationFeatureCollection"/>.
     /// </summary>
     public ValidationFeatureCollection()
     {
@@ -74,7 +73,7 @@ internal sealed class ValidationFeatureCollection : IFeatureCollection
                 return;
             }
 
-            _features ??= new Dictionary<Type, object>(_initialCapacity);
+            _features ??= [];
             _features[key] = value;
             _containerRevision++;
         }
@@ -161,9 +160,4 @@ internal sealed class ValidationFeatureCollection : IFeatureCollection
         public int GetHashCode(KeyValuePair<Type, object> obj) =>
             obj.Key.GetHashCode();
     }
-
-    /// <summary>
-    /// Gets an empty feature collection.
-    /// </summary>
-    public static IFeatureCollection Empty => EmptyFeatureCollection.Default;
 }

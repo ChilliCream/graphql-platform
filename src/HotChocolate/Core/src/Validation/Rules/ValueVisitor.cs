@@ -520,6 +520,6 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     {
         public HashSet<string> InputFieldNames { get; } = [];
 
-        public override void Reset() => InputFieldNames.Clear();
+        protected internal override void Reset() => InputFieldNames.Clear();
     }
 }

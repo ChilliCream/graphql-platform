@@ -76,12 +76,12 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
         if (feature.Unused.Count > 0)
         {
-            context.ReportError(context.VariableNotUsed(node));
+            context.ReportError(context.VariableNotUsed(node, feature.Unused));
         }
 
         if (feature.Used.Count > 0)
         {
-            context.ReportError(context.VariableNotDeclared(node));
+            context.ReportError(context.VariableNotDeclared(node, feature.Used));
         }
 
         return base.Leave(node, context);
@@ -366,7 +366,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
         public HashSet<string> Unused { get; } = [];
 
-        public override void Reset()
+        protected internal override void Reset()
         {
             VariableNames.Clear();
             Used.Clear();

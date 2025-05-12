@@ -252,6 +252,6 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     {
         public HashSet<string> DirectiveNames { get; } = [];
 
-        public override void Reset() => DirectiveNames.Clear();
+        protected internal override void Reset() => DirectiveNames.Clear();
     }
 }

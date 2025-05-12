@@ -190,7 +190,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         {
             if (type.IsCompositeType())
             {
-                FragmentVisitor.ValidateFragmentSpreadIsPossible(
+                ValidateFragmentSpreadIsPossible(
                     node, context,
                     context.Types.Peek().NamedType(),
                     type);
@@ -269,6 +269,6 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     {
         public HashSet<string> FragmentNames { get; } = [];
 
-        public override void Reset() => FragmentNames.Clear();
+        protected internal override void Reset() => FragmentNames.Clear();
     }
 }

@@ -182,6 +182,6 @@ internal sealed class ArgumentVisitor()
     {
         public HashSet<string> ArgumentNames { get; } = [];
 
-        public override void Reset() => ArgumentNames.Clear();
+        protected internal override void Reset() => ArgumentNames.Clear();
     }
 }

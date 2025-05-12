@@ -7,21 +7,11 @@ namespace HotChocolate.Validation;
 
 public abstract class DocumentValidatorVisitorTestBase
 {
-    protected DocumentValidatorVisitorTestBase(Action<IValidationBuilder> configure)
+    protected DocumentValidatorVisitorTestBase(Action<DocumentValidatorBuilder> configure)
     {
-        var serviceCollection = new ServiceCollection();
-
-        var builder = serviceCollection
-            .AddValidation()
-            .ConfigureValidation(c => c.RulesModifiers.Add((_, r) => r.Rules.Clear()))
-            .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue);
+        var builder = DocumentValidatorBuilder.New();
         configure(builder);
-
-        IServiceProvider services = serviceCollection.BuildServiceProvider();
-
-        Rule = services
-            .GetRequiredService<IValidationConfiguration>()
-            .GetRules(Schema.DefaultName).First();
+        Rule = builder.Build().Rules[0];
 
         StarWars = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -31,45 +21,18 @@ public abstract class DocumentValidatorVisitorTestBase
 
     protected IDocumentValidatorRule Rule { get; }
 
-    protected ISchema StarWars { get; }
-
-    [Fact]
-    public void ContextIsNull()
-    {
-        // arrange
-        var query = Utf8GraphQLParser.Parse(@"{ foo }");
-
-        // act
-        var a = () => Rule.Validate(null!, query);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(a);
-    }
-
-    [Fact]
-    public void QueryIsNull()
-    {
-        // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
-
-        // act
-        var a = () => Rule.Validate(context, null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(a);
-    }
+    protected ISchemaDefinition StarWars { get; }
 
     protected void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
 
-    protected void ExpectValid(ISchema? schema, string sourceText)
+    protected void ExpectValid(ISchemaDefinition? schema, string sourceText)
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
-        var query = Utf8GraphQLParser.Parse(sourceText);
-        context.Prepare(query);
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document, schema);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.False(context.UnexpectedErrorsDetected);
@@ -80,18 +43,19 @@ public abstract class DocumentValidatorVisitorTestBase
         => ExpectErrors(null, sourceText, elementInspectors);
 
     protected void ExpectErrors(
-        ISchema? schema,
+        ISchemaDefinition? schema,
         string sourceText,
         params Action<IError>[] elementInspectors)
     {
         // arrange
-        var context = ValidationUtils.CreateContext(schema);
-        context.MaxAllowedErrors = int.MaxValue;
-        var query = Utf8GraphQLParser.Parse(sourceText);
-        context.Prepare(query);
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(
+            document,
+            schema,
+            maxAllowedErrors: int.MaxValue);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.NotEmpty(context.Errors);
