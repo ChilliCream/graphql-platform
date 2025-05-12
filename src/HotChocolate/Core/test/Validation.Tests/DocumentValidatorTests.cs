@@ -8,48 +8,42 @@ namespace HotChocolate.Validation;
 public class DocumentValidatorTests
 {
     [Fact]
-    public async Task DocumentIsNull()
+    public void DocumentIsNull()
     {
         // arrange
         var schema = ValidationUtils.CreateSchema();
         var queryValidator = CreateValidator();
 
         // act
-        async Task Error() =>
-            await queryValidator.ValidateAsync(
+        void Error() =>
+            queryValidator.Validate(
                 schema,
-                null!,
-                new OperationDocumentId("abc"),
-                new Dictionary<string, object?>(),
-                false);
+                null!);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Error);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
-    public async Task SchemaIsNull()
+    public void SchemaIsNull()
     {
         // arrange
         var queryValidator = CreateValidator();
 
         // act
-        async Task Error() =>
-            await queryValidator.ValidateAsync(
+        void Error() =>
+            queryValidator.Validate(
                 null!,
-                new DocumentNode(null, new List<IDefinitionNode>()),
-                new OperationDocumentId("abc"),
-                new Dictionary<string, object?>(),
-                false);
+                new DocumentNode(null, new List<IDefinitionNode>()));
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Error);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
-    public async Task QueryWithTypeSystemDefinitions()
+    public void QueryWithTypeSystemDefinitions()
     {
-        await ExpectErrors(
+        ExpectErrors(
             """
             query getDogName {
                 dog {
@@ -73,9 +67,9 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task QueryWithOneAnonymousAndOneNamedOperation()
+    public void QueryWithOneAnonymousAndOneNamedOperation()
     {
-        await ExpectErrors(
+        ExpectErrors(
             """
             {
                 dog {
@@ -102,9 +96,9 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task TwoQueryOperationsWithTheSameName()
+    public void TwoQueryOperationsWithTheSameName()
     {
-        await ExpectErrors(
+        ExpectErrors(
             """
             query getName {
                 dog {
@@ -126,17 +120,17 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task OperationWithTwoVariablesThatHaveTheSameName()
+    public void OperationWithTwoVariablesThatHaveTheSameName()
     {
-        await ExpectErrors(
-            @"
+        ExpectErrors(
+            """
                 query houseTrainedQuery(
                     $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
                         isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }
-            ",
+            """,
             t => Assert.Equal(
                 "A document containing operations that " +
                 "define more than one variable with the same " +
@@ -145,10 +139,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public async Task DuplicateArgument()
+    public void DuplicateArgument()
     {
-        await ExpectErrors(
-             @"
+        ExpectErrors(
+            """
                 {
                     arguments {
                         ... goodNonNullArg
@@ -158,11 +152,11 @@ public class DocumentValidatorTests
                     nonNullBooleanArgField(
                         nonNullBooleanArg: true, nonNullBooleanArg: true)
                 }
-            ",
-        t => Assert.Equal(
-            $"More than one argument with the same name in an argument set " +
-            "is ambiguous and invalid.",
-            t.Message));
+            """,
+            t => Assert.Equal(
+                $"More than one argument with the same name in an argument set " +
+                "is ambiguous and invalid.",
+                t.Message));
     }
 
     [Fact]
