@@ -17,7 +17,7 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Execution.MustBeInputType)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
                 .SetExtension("type", variableDefinition.Type.ToString())
-                .AddLocation([variableDefinition])
+                .AddLocation(variableDefinition)
                 .Build());
     }
 
@@ -31,7 +31,7 @@ internal static class ThrowHelper
                     variableDefinition.Variable.Name.Value)
                 .SetCode(ErrorCodes.Execution.NonNullViolation)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
-                .AddLocation([variableDefinition])
+                .AddLocation(variableDefinition)
                 .Build());
     }
 
@@ -49,7 +49,7 @@ internal static class ThrowHelper
                 variableDefinition.Variable.Name.Value)
             .SetCode(ErrorCodes.Execution.InvalidType)
             .SetExtension("variable", variableDefinition.Variable.Name.Value)
-            .AddLocation([variableDefinition]);
+            .AddLocation(variableDefinition);
 
         if (exception is not null)
         {
@@ -73,7 +73,7 @@ internal static class ThrowHelper
                     ThrowHelper_FieldDoesNotExistOnType,
                     selection.Name.Value,
                     typeName)
-                .AddLocation([selection])
+                .AddLocation(selection)
                 .Build());
     }
 
@@ -124,7 +124,7 @@ internal static class ThrowHelper
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_ResolverContext_LiteralsNotSupported_Message)
             .SetPath(path)
-            .AddLocation([field])
+            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .SetExtension("requestedType", requestedType.FullName)
@@ -138,7 +138,7 @@ internal static class ThrowHelper
                 argumentName,
                 requestedType.FullName ?? requestedType.Name)
             .SetPath(path)
-            .AddLocation([field])
+            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .SetExtension("requestedType", requestedType.FullName)
@@ -153,7 +153,7 @@ internal static class ThrowHelper
                 actualType.FullName ?? actualType.Name,
                 requestedType.FullName ?? actualType.Name)
             .SetPath(path)
-            .AddLocation([field])
+            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .SetExtension("requestedType", requestedType.FullName)
@@ -168,7 +168,7 @@ internal static class ThrowHelper
                 argumentName,
                 field.Name.Value)
             .SetPath(path)
-            .AddLocation([field])
+            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .Build());
@@ -181,7 +181,7 @@ internal static class ThrowHelper
         DocumentNode documentNode) =>
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_OperationResolverHelper_NoOperationFound_Message)
-            .AddLocation([documentNode])
+            .AddLocation(documentNode)
             .Build());
 
     public static GraphQLException OperationResolverHelper_MultipleOperation(
@@ -189,7 +189,8 @@ internal static class ThrowHelper
         OperationDefinitionNode secondOperation) =>
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_OperationResolverHelper_MultipleOperation_Message)
-            .AddLocation([firstOperation, secondOperation])
+            .AddLocation(firstOperation)
+            .AddLocation(secondOperation)
             .Build());
 
     public static GraphQLException OperationResolverHelper_InvalidOperationName(
@@ -198,7 +199,7 @@ internal static class ThrowHelper
             .SetMessage(
                 ThrowHelper_OperationResolverHelper_InvalidOperationName_Message,
                 operationName)
-            .AddLocation([documentNode])
+            .AddLocation(documentNode)
             .SetExtension("operationName", operationName)
             .Build());
 
@@ -224,14 +225,14 @@ internal static class ThrowHelper
     public static GraphQLException FieldVisibility_ValueNotSupported(IValueNode value) =>
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_FieldVisibility_ValueNotSupported_Message)
-            .AddLocation([value])
+            .AddLocation(value)
             .Build());
 
     public static GraphQLException QueryCompiler_CompositeTypeSelectionSet(
         FieldNode selection) =>
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message)
-            .AddLocation([selection])
+            .AddLocation(selection)
             .Build());
 
     public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
@@ -272,10 +273,10 @@ internal static class ThrowHelper
             .SetExtension(nameof(field), field.ToString())
             .Build());
 
-    public static ArgumentException SelectionSet_TypeContextInvalid(IObjectType typeContext)
+    public static ArgumentException SelectionSet_TypeContextInvalid(IObjectTypeDefinition typeContext)
         => new(string.Format(SelectionVariants_TypeContextInvalid, typeContext.Name));
 
-    public static InvalidOperationException SelectionSet_TypeAlreadyAdded(IObjectType typeContext)
+    public static InvalidOperationException SelectionSet_TypeAlreadyAdded(IObjectTypeDefinition typeContext)
         => new(string.Format(ThrowHelper_SelectionSet_TypeAlreadyAdded, typeContext.Name));
 
     public static ArgumentException Operation_NoSelectionSet()

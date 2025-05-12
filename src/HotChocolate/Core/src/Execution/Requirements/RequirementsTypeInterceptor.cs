@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.WellKnownContextData;
@@ -40,14 +41,15 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
                 // if the source generator already compiled the
                 // requirements we will take it and skip compilation.
-                if (fieldDef.Features.TryGetValue(FieldRequirements, out var value))
+                if (fieldDef.Features.TryGet<TypeNode>(out var value))
                 {
-                    _metadata.TryAddRequirements(fieldCoordinate, (TypeNode)value!);
+                    _metadata.TryAddRequirements(fieldCoordinate, value);
                     continue;
                 }
 
-                var requirements = (string)fieldDef.Features[FieldRequirementsSyntax]!;
-                var entityType = runtimeType ?? (Type)fieldDef.Features[FieldRequirementsEntity]!;
+                var feature = fieldDef.Features.GetRequired<FieldRequirementFeature>();
+                var requirements = feature.Requirements;
+                var entityType = runtimeType ?? feature.EntityType;
 
                 var propertyNodes = PropertyTreeBuilder.Build(
                     fieldCoordinate,
