@@ -50,7 +50,7 @@ public abstract class DocumentValidatorVisitorTestBase
     public void QueryIsNull()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
 
         // act
         var a = () => Rule.Validate(context, null!);
@@ -64,7 +64,7 @@ public abstract class DocumentValidatorVisitorTestBase
     protected void ExpectValid(ISchema? schema, string sourceText)
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+        DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
         var query = Utf8GraphQLParser.Parse(sourceText);
         context.Prepare(query);
 

@@ -20,7 +20,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.OK));
 
         var middleware = DocumentValidationMiddleware.Create(
             _ => default,
@@ -61,7 +61,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.OK));
 
         var middleware = DocumentValidationMiddleware.Create(
             _ => default,
@@ -103,7 +103,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.OK));
 
         var middleware = DocumentValidationMiddleware.Create(
             _ => default,
@@ -128,7 +128,7 @@ public class DocumentValidationMiddlewareTests
         await middleware.InvokeAsync(requestContext.Object);
 
         // assert
-        Assert.Equal(DocumentValidatorResult.Ok, requestContext.Object.ValidationResult);
+        Assert.Equal(DocumentValidatorResult.OK, requestContext.Object.ValidationResult);
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<IDictionary<string, object?>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.OK));
 
         var middleware = DocumentValidationMiddleware.Create(
             _ => throw new Exception("Should not be called."),

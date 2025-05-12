@@ -62,13 +62,13 @@ internal sealed class ReadPersistedOperationMiddleware
                 context.DocumentId = documentId;
                 context.Document = GetOrParseDocument(operationDocument);
                 context.DocumentHash = GetDocumentHash(operationDocument);
-                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.ValidationResult = DocumentValidatorResult.OK;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = true;
 
                 if (_options.SkipPersistedDocumentValidation)
                 {
-                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.ValidationResult = DocumentValidatorResult.OK;
                 }
 
                 _diagnosticEvents.RetrievedDocumentFromStorage(context);

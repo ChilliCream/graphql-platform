@@ -14,7 +14,7 @@ public static class ValidationUtils
             ContextData = new Dictionary<string, object?>(),
         };
 
-    public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)
+    public static void Prepare(this DocumentValidatorContext context, DocumentNode document)
     {
         context.Fragments.Clear();
 

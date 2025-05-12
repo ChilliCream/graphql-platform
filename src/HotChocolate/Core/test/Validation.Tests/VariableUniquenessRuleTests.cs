@@ -43,7 +43,7 @@ public class VariableUniquenessRuleTests
     public void NoOperationHasVariablesThatShareTheSameName()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     dog @skip(if: $foo) {
@@ -67,7 +67,7 @@ public class VariableUniquenessRuleTests
     public void TwoOperationsThatShareVariableName()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 query A($atOtherHomes: Boolean) {
                   ...HouseTrainedFragment

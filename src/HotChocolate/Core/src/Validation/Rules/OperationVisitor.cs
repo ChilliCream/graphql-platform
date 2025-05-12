@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -37,13 +38,14 @@ public class OperationVisitor : DocumentValidatorVisitor
 {
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         var hasAnonymousOp = false;
         var opCount = 0;
         OperationDefinitionNode? anonymousOp = null;
+        var operationNames = context.Features.GetOrSet<OperationVisitorFeature>().OperationNames;
 
-        context.Names.Clear();
+        operationNames.Clear();
 
         for (var i = 0; i < node.Definitions.Count; i++)
         {
@@ -59,7 +61,7 @@ public class OperationVisitor : DocumentValidatorVisitor
                     hasAnonymousOp = true;
                     anonymousOp = operation;
                 }
-                else if (!context.Names.Add(operation.Name.Value))
+                else if (!operationNames.Add(operation.Name.Value))
                 {
                     context.ReportError(context.OperationNameNotUnique(
                         operation,
@@ -78,10 +80,10 @@ public class OperationVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.Names.Clear();
-        context.OperationType = node.Operation;
+        var feature = context.Features.GetOrSet<OperationVisitorFeature>();
+        feature.OperationType = node.Operation;
 
         if (node.Operation == OperationType.Mutation)
         {
@@ -98,15 +100,17 @@ public class OperationVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
+        var responseNames = context.Features.GetRequired<OperationVisitorFeature>().ResponseNames;
+
         if (node.Operation == OperationType.Subscription)
         {
-            if (context.Names.Count > 1)
+            if (responseNames.Count > 1)
             {
                 context.ReportError(context.SubscriptionSingleRootField(node));
             }
-            else if (IntrospectionFieldNames.TypeName.Equals(context.Names.Single()))
+            else if (IntrospectionFieldNames.TypeName.Equals(responseNames.Single()))
             {
                 context.ReportError(context.SubscriptionNoTopLevelIntrospectionField(node));
             }
@@ -117,12 +121,14 @@ public class OperationVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.Names.Add((node.Alias ?? node.Name).Value);
+        var feature = context.Features.GetRequired<OperationVisitorFeature>();
 
-        if (context.OperationType is OperationType.Mutation or OperationType.Subscription &&
-            node.Directives.HasStreamOrDeferDirective())
+        feature.ResponseNames.Add((node.Alias ?? node.Name).Value);
+
+        if (feature.OperationType is OperationType.Mutation or OperationType.Subscription
+            && node.Directives.HasStreamOrDeferDirective())
         {
             context.ReportError(DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(node));
         }
@@ -132,10 +138,12 @@ public class OperationVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         InlineFragmentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.OperationType is OperationType.Mutation or OperationType.Subscription &&
-            node.Directives.HasStreamOrDeferDirective())
+        var operationType = context.Features.GetRequired<OperationVisitorFeature>().OperationType;
+
+        if (operationType is OperationType.Mutation or OperationType.Subscription
+            && node.Directives.HasStreamOrDeferDirective())
         {
             context.ReportError(DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(node));
         }
@@ -145,15 +153,33 @@ public class OperationVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FragmentSpreadNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.OperationType is OperationType.Mutation or OperationType.Subscription &&
-            node.Directives.HasStreamOrDeferDirective())
+        var operationType = context.Features.GetRequired<OperationVisitorFeature>().OperationType;
+
+        if (operationType is OperationType.Mutation or OperationType.Subscription
+            && node.Directives.HasStreamOrDeferDirective())
         {
             context.ReportError(DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(node));
         }
 
         return base.Enter(node, context);
+    }
+
+    private sealed class OperationVisitorFeature : ValidatorFeature
+    {
+        public OperationType OperationType { get; set; }
+
+        public HashSet<string> OperationNames { get; } = [];
+
+        public HashSet<string> ResponseNames { get; } = [];
+
+        public override void Reset()
+        {
+            OperationType = default;
+            OperationNames.Clear();
+            ResponseNames.Clear();
+        }
     }
 }
 

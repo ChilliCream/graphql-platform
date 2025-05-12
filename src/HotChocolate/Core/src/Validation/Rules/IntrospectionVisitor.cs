@@ -11,7 +11,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
 {
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (node.Operation is OperationType.Query &&
             !context.ContextData.ContainsKey(ExecutionContextData.IntrospectionAllowed))
@@ -24,7 +24,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {

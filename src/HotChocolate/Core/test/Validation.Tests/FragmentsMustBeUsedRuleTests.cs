@@ -46,7 +46,7 @@ public class FragmentsMustBeUsedRuleTests
     public void UsedFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
@@ -72,7 +72,7 @@ public class FragmentsMustBeUsedRuleTests
     public void UsedNestedFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name

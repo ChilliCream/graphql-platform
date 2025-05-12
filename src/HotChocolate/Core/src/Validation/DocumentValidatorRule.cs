@@ -22,7 +22,7 @@ public class DocumentValidatorRule<TVisitor>
 
     public bool IsCacheable { get; }
 
-    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
     {
         if (context is null)
         {
@@ -33,6 +33,35 @@ public class DocumentValidatorRule<TVisitor>
         {
             throw new ArgumentNullException(nameof(document));
         }
+
+        _visitor.Visit(document, context);
+    }
+}
+
+public sealed class DocumentValidatorRule : IDocumentValidatorRule
+{
+    private readonly DocumentValidatorVisitor _visitor;
+
+    public DocumentValidatorRule(
+        DocumentValidatorVisitor visitor,
+        bool isCacheable = true,
+        ushort property = ushort.MaxValue)
+    {
+        ArgumentNullException.ThrowIfNull(visitor);
+
+        _visitor = visitor;
+        IsCacheable = isCacheable;
+        Priority = property;
+    }
+
+    public ushort Priority { get; }
+
+    public bool IsCacheable { get; }
+
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
 
         _visitor.Visit(document, context);
     }

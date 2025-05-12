@@ -1,5 +1,9 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation;
 

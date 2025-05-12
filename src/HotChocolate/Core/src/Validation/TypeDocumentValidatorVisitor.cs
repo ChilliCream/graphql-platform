@@ -13,7 +13,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Schema.GetOperationType(node.Operation) is { } type)
         {
@@ -27,7 +27,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         VariableDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Variables[node.Variable.Name.Value] = node;
         return Continue;
@@ -35,7 +35,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         InlineFragmentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (node.TypeCondition is null)
         {
@@ -56,7 +56,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FragmentDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
             node.TypeCondition.Name.Value,
@@ -72,7 +72,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
        OperationDefinitionNode node,
-       IDocumentValidatorContext context)
+       DocumentValidatorContext context)
     {
         context.Types.Pop();
         context.Variables.Clear();
@@ -81,7 +81,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         InlineFragmentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (node.TypeCondition is { })
         {
@@ -93,7 +93,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         FragmentDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         return Continue;

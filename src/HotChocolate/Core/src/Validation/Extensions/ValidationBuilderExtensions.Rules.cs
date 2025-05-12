@@ -1,12 +1,13 @@
 using System.Collections.Immutable;
 using HotChocolate;
+using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
 using HotChocolate.Validation.Rules;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods for configuring an <see cref="IValidationBuilder"/>
+/// Extension methods for configuring an <see cref="DocumentValidatorBuilder"/>
 /// </summary>
 public static partial class HotChocolateValidationBuilderExtensions
 {
@@ -34,10 +35,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/June2018/#sec-Required-Arguments
     /// </summary>
-    public static IValidationBuilder AddArgumentRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddArgumentRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.TryAddValidationVisitor<ArgumentVisitor>();
+        return builder.AddVisitor<ArgumentVisitor>();
     }
 
     /// <summary>
@@ -68,10 +69,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
     /// </summary>
-    public static IValidationBuilder AddDirectiveRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddDirectiveRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.TryAddValidationVisitor<DirectiveVisitor>();
+        return builder.AddVisitor<DirectiveVisitor>();
     }
 
     /// <summary>
@@ -89,17 +90,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/June2018/#sec-Executable-Definitions
     /// </summary>
-    public static IValidationBuilder AddDocumentRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddDocumentRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.ConfigureValidation(
-            m => m.RulesModifiers.Add((_, r) =>
-            {
-                if (r.Rules.All(t => t.GetType() != typeof(DocumentRule)))
-                {
-                    r.Rules.Add(new DocumentRule());
-                }
-            }));
+        return builder.AddRule<DocumentRule>();
     }
 
     /// <summary>
@@ -119,10 +113,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
     /// </summary>
-    public static IValidationBuilder AddFieldRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddFieldRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.TryAddValidationVisitor<FieldVisitor>();
+        return builder.AddVisitor<FieldVisitor>();
     }
 
     /// <summary>
@@ -184,10 +178,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
     /// </summary>
-    public static IValidationBuilder AddFragmentRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddFragmentRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.TryAddValidationVisitor<FragmentVisitor>();
+        return builder.AddVisitor<FragmentVisitor>();
     }
 
     /// <summary>
@@ -222,10 +216,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
     /// </summary>
-    public static IValidationBuilder AddValueRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddValueRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.TryAddValidationVisitor<ValueVisitor>();
+        return builder.AddVisitor<ValueVisitor>();
     }
 
     /// <summary>
@@ -270,10 +264,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
     /// </summary>
-    public static IValidationBuilder AddVariableRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddVariableRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.TryAddValidationVisitor<VariableVisitor>();
+        return builder.AddVisitor<VariableVisitor>();
     }
 
     /// <summary>
@@ -295,10 +289,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     ///
     /// https://spec.graphql.org/June2018/#sec-Single-root-field
     /// </summary>
-    public static IValidationBuilder AddOperationRules(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder AddOperationRules(
+        this DocumentValidatorBuilder builder)
     {
-        return builder.TryAddValidationVisitor<OperationVisitor>();
+        return builder.AddVisitor<OperationVisitor>();
     }
 
     /// <summary>
@@ -320,17 +314,17 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// A delegate that defines if the rule is enabled.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IValidationBuilder"/> for configuration chaining.
+    /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
     /// </returns>
-    public static IValidationBuilder AddMaxExecutionDepthRule(
-        this IValidationBuilder builder,
+    public static DocumentValidatorBuilder AddMaxExecutionDepthRule(
+        this DocumentValidatorBuilder builder,
         int maxAllowedExecutionDepth,
         bool skipIntrospectionFields = false,
         bool allowRequestOverrides = false,
         Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
     {
         return builder
-            .TryAddValidationVisitor(
+            .AddVisitor(
                 (_, o) => new MaxExecutionDepthVisitor(o),
                 priority: 2,
                 isCacheable: !allowRequestOverrides,
@@ -346,9 +340,9 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// Adds a validation rule that only allows requests to use `__schema` or `__type`
     /// if the request carries an introspection allowed flag.
     /// </summary>
-    public static IValidationBuilder AddIntrospectionAllowedRule(
-        this IValidationBuilder builder)
-        => builder.TryAddValidationVisitor(
+    public static DocumentValidatorBuilder AddIntrospectionAllowedRule(
+        this DocumentValidatorBuilder builder)
+        => builder.AddVisitor(
             (_, _) => new IntrospectionVisitor(),
             priority: 0,
             isCacheable: false,
@@ -357,9 +351,9 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// <summary>
     /// Adds a validation rule that restricts the depth of a GraphQL introspection request.
     /// </summary>
-    public static IValidationBuilder AddIntrospectionDepthRule(
-        this IValidationBuilder builder)
-        => builder.TryAddValidationVisitor<IntrospectionDepthVisitor>(
+    public static DocumentValidatorBuilder AddIntrospectionDepthRule(
+        this DocumentValidatorBuilder builder)
+        => builder.AddVisitor<IntrospectionDepthVisitor>(
             priority: 1,
             factory: (_, o) => new IntrospectionDepthVisitor(o),
             isEnabled: (_, o) => !o.DisableDepthRule);
@@ -367,12 +361,12 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// <summary>
     /// Adds a validation rule that restricts the depth of coordinate cycles in GraphQL operations.
     /// </summary>
-    public static IValidationBuilder AddMaxAllowedFieldCycleDepthRule(
-        this IValidationBuilder builder,
+    public static DocumentValidatorBuilder AddMaxAllowedFieldCycleDepthRule(
+        this DocumentValidatorBuilder builder,
         ushort? defaultCycleLimit = 3,
         (SchemaCoordinate Coordinate, ushort MaxAllowed)[]? coordinateCycleLimits = null,
         Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
-        => builder.TryAddValidationVisitor(
+        => builder.AddVisitor(
             (_, _) => new MaxAllowedFieldCycleDepthVisitor(
                 coordinateCycleLimits?.ToImmutableArray()
                     ?? ImmutableArray<(SchemaCoordinate, ushort)>.Empty,
@@ -383,7 +377,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// <summary>
     /// Removes a validation rule that restricts the depth of coordinate cycles in GraphQL operations.
     /// </summary>
-    public static IValidationBuilder RemoveMaxAllowedFieldCycleDepthRule(
-        this IValidationBuilder builder)
+    public static DocumentValidatorBuilder RemoveMaxAllowedFieldCycleDepthRule(
+        this DocumentValidatorBuilder builder)
         => builder.TryRemoveValidationVisitor<MaxAllowedFieldCycleDepthVisitor>();
 }

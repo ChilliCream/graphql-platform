@@ -15,7 +15,7 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void CorrectTypeOnFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -40,7 +40,7 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void CorrectTypeOnInlineFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -67,7 +67,7 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void CorrectTypeOnInlineFragment2()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {

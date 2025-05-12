@@ -216,7 +216,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         public ushort Priority => ushort.MaxValue;
         public bool IsCacheable => true;
 
-        public void Validate(IDocumentValidatorContext context, DocumentNode document)
+        public void Validate(DocumentValidatorContext context, DocumentNode document)
         {
             throw new NotImplementedException();
         }

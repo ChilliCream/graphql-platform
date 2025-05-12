@@ -40,7 +40,7 @@ internal sealed class DocumentCacheMiddleware
                 context.DocumentId = request.DocumentId;
                 context.DocumentHash = document.Hash;
                 context.Document = document.Body;
-                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.ValidationResult = DocumentValidatorResult.OK;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = document.IsPersisted;
                 addToCache = false;
@@ -52,7 +52,7 @@ internal sealed class DocumentCacheMiddleware
                 context.DocumentId = request.DocumentHash;
                 context.DocumentHash = document.Hash;
                 context.Document = document.Body;
-                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.ValidationResult = DocumentValidatorResult.OK;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = document.IsPersisted;
                 addToCache = false;
@@ -65,7 +65,7 @@ internal sealed class DocumentCacheMiddleware
                 {
                     context.DocumentId = context.DocumentHash;
                     context.Document = document.Body;
-                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.ValidationResult = DocumentValidatorResult.OK;
                     context.IsCachedDocument = true;
                     context.IsPersistedDocument = document.IsPersisted;
                     addToCache = false;

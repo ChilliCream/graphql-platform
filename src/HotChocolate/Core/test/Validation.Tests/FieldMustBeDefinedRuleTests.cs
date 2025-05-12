@@ -54,7 +54,7 @@ public class FieldMustBeDefinedRuleTests
     public void InterfaceFieldSelectionOnPet()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
@@ -110,7 +110,7 @@ public class FieldMustBeDefinedRuleTests
     public void InDirectFieldSelectionOnUnion()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
@@ -173,7 +173,7 @@ public class FieldMustBeDefinedRuleTests
     public void IntrospectionFieldsOnInterface()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
@@ -198,7 +198,7 @@ public class FieldMustBeDefinedRuleTests
     public void IntrospectionFieldsOnUnion()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
@@ -223,7 +223,7 @@ public class FieldMustBeDefinedRuleTests
     public void IntrospectionFieldsOnObject()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 query {
                     catOrDog {
@@ -248,7 +248,7 @@ public class FieldMustBeDefinedRuleTests
     public void Ensure_Non_Existent_Root_Types_Cause_Error()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext(CreateQueryOnlySchema());
+        DocumentValidatorContext context = ValidationUtils.CreateContext(CreateQueryOnlySchema());
         var query = Utf8GraphQLParser.Parse(
             """
             subscription {

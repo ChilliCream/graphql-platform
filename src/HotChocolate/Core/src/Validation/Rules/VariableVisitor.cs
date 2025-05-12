@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -59,28 +60,26 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.Names.Clear();
-        context.Unused.Clear();
-        context.Used.Clear();
-        context.Declared.Clear();
+        context.Features.GetOrSet<VariableVisitorFeature>().Reset();
         return base.Enter(node, context);
     }
 
     protected override ISyntaxVisitorAction Leave(
        OperationDefinitionNode node,
-       IDocumentValidatorContext context)
+       DocumentValidatorContext context)
     {
-        context.Unused.ExceptWith(context.Used);
-        context.Used.ExceptWith(context.Declared);
+        var feature = context.Features.GetRequired<VariableVisitorFeature>();
+        feature.Unused.ExceptWith(feature.Used);
+        feature.Used.ExceptWith(feature.Declared);
 
-        if (context.Unused.Count > 0)
+        if (feature.Unused.Count > 0)
         {
             context.ReportError(context.VariableNotUsed(node));
         }
 
-        if (context.Used.Count > 0)
+        if (feature.Used.Count > 0)
         {
             context.ReportError(context.VariableNotDeclared(node));
         }
@@ -90,14 +89,16 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         VariableDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
+        var feature = context.Features.GetRequired<VariableVisitorFeature>();
+
         base.Enter(node, context);
 
         var variableName = node.Variable.Name.Value;
 
-        context.Unused.Add(variableName);
-        context.Declared.Add(variableName);
+        feature.Unused.Add(variableName);
+        feature.Declared.Add(variableName);
 
         if (context.Schema.Types.TryGetType<ITypeDefinition>(
             node.Type.NamedType().Name.Value, out var type) &&
@@ -106,7 +107,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             context.ReportError(context.VariableNotInputType(node, variableName));
         }
 
-        if (!context.Names.Add(variableName))
+        if (!feature.VariableNames.Add(variableName))
         {
             context.ReportError(context.VariableNameNotUnique(node, variableName));
         }
@@ -116,7 +117,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
@@ -138,7 +139,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         context.OutputFields.Pop();
@@ -147,7 +148,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         DirectiveNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var d))
         {
@@ -161,7 +162,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         DirectiveNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Directives.Pop();
         return Continue;
@@ -169,7 +170,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ArgumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Directives.TryPeek(out var directive))
         {
@@ -201,7 +202,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         ArgumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.InputFields.Pop();
         context.Types.Pop();
@@ -210,7 +211,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ObjectFieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
             type.NamedType() is IInputObjectTypeDefinition it &&
@@ -226,7 +227,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         ObjectFieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.InputFields.Pop();
         context.Types.Pop();
@@ -235,9 +236,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         VariableNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.Used.Add(node.Name.Value);
+        context.Features.GetRequired<VariableVisitorFeature>().Used.Add(node.Name.Value);
 
         var parent = context.Path.Peek();
 
@@ -253,8 +254,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
                 out var variableDefinition)
             && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
         {
-            context.ReportError(ErrorHelper.VariableIsNotCompatible(
-                context, node, variableDefinition));
+            context.ReportError(ErrorHelper.VariableIsNotCompatible(context, node, variableDefinition));
         }
 
         return Skip;
@@ -262,7 +262,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ListValueNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) && type.IsListType())
         {
@@ -274,7 +274,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         ListValueNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         return Continue;
@@ -354,5 +354,24 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         }
 
         return false;
+    }
+
+    private sealed class VariableVisitorFeature : ValidatorFeature
+    {
+        public HashSet<string> VariableNames { get; } = [];
+
+        public HashSet<string> Used { get; } = [];
+
+        public HashSet<string> Declared { get; } = [];
+
+        public HashSet<string> Unused { get; } = [];
+
+        public override void Reset()
+        {
+            VariableNames.Clear();
+            Used.Clear();
+            Declared.Clear();
+            Unused.Clear();
+        }
     }
 }

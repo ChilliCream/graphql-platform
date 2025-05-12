@@ -12,7 +12,7 @@ internal sealed class AuthorizeValidationRule(AuthorizationCache cache) : IDocum
 
     public bool IsCacheable => false;
 
-    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
     {
         if (context.Schema.ContextData.ContainsKey(WellKnownContextData.AuthorizationRequestPolicy))
         {

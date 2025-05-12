@@ -12,7 +12,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
 {
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (!context.ContextData.TryGetValue(AuthContextData.Directives, out var value) ||
             value is not HashSet<AuthorizeDirective> authDirectives)
@@ -28,7 +28,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         var result = base.Enter(node, context);
 
@@ -40,7 +40,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
@@ -122,7 +122,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.OutputFields.Pop();
         context.Types.Pop();
@@ -131,7 +131,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         SelectionSetNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
             type.NamedType() is { Kind: TypeKind.Union, } &&
@@ -145,7 +145,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction VisitChildren(
         FragmentSpreadNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Fragments.TryGetValue(node.Name.Value, out var fragment) &&
             context.VisitedFragments.Add(fragment.Name.Value))
@@ -184,6 +184,6 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         => fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
 
     private static HashSet<AuthorizeDirective> GetAuthDirectives(
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
         => (HashSet<AuthorizeDirective>)context.ContextData[AuthContextData.Directives]!;
 }

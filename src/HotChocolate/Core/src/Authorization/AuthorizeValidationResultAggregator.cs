@@ -16,7 +16,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
     }
 
     public async ValueTask AggregateAsync(
-        IDocumentValidatorContext context,
+        DocumentValidatorContext context,
         DocumentNode document,
         CancellationToken ct)
     {

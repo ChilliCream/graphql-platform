@@ -43,7 +43,7 @@ public class FragmentSpreadTargetDefinedRuleTests
     public void DefinedFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
         var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {

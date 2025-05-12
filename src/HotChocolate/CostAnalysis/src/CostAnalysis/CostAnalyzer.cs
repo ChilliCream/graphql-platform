@@ -18,7 +18,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
     private readonly InputCostVisitor _inputCostVisitor = new();
     private InputCostVisitorContext? _inputCostVisitorContext;
 
-    public CostMetrics Analyze(OperationDefinitionNode operation, IDocumentValidatorContext context)
+    public CostMetrics Analyze(OperationDefinitionNode operation, DocumentValidatorContext context)
     {
         Visit(operation, context);
 
@@ -33,7 +33,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.FieldSets.Clear();
         context.SelectionSets.Clear();
@@ -43,7 +43,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
     protected override ISyntaxVisitorAction Leave(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         // add operation cost
         var type = context.Types.Peek();
@@ -56,7 +56,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         var selectionSet = context.SelectionSets.Peek();
 
@@ -107,7 +107,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.OutputFields.Pop();
         context.Types.Pop();
@@ -116,7 +116,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
     protected override ISyntaxVisitorAction Enter(
         SelectionSetNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type)
             && type.NamedType() is { Kind: TypeKind.Union }
@@ -136,7 +136,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
     protected override ISyntaxVisitorAction Leave(
         SelectionSetNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (!context.Path.TryPeek(out var parent))
         {
@@ -197,7 +197,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
     protected override ISyntaxVisitorAction VisitChildren(
         FragmentSpreadNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Fragments.TryGetValue(node.Name.Value, out var fragment)
             && context.VisitedFragments.Add(fragment.Name.Value))
@@ -237,7 +237,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
     private (double TypeCost, double FieldCost) CalculateSelectionSetCost(
         ObjectType possibleType,
         IList<FieldInfo> fields,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         _processed.Clear();
 

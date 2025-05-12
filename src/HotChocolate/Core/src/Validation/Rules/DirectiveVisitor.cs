@@ -1,7 +1,7 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using static HotChocolate.Language.SyntaxKind;
 using DirectiveLoc = HotChocolate.Types.DirectiveLocation;
 using IHasDirectives = HotChocolate.Language.IHasDirectives;
@@ -57,7 +57,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ISyntaxNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         switch (node.Kind)
         {
@@ -66,7 +66,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
             case InlineFragment:
             case FragmentSpread:
             case FragmentDefinition:
-            case SyntaxKind.Directive:
+            case Directive:
             case VariableDefinition:
             case OperationDefinition:
             case Document:
@@ -78,8 +78,21 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     }
 
     protected override ISyntaxVisitorAction Enter(
+        DocumentNode node,
+        DocumentValidatorContext context)
+    {
+        // The document node is the root node that is entered once per visitation.
+        // We use this hook to ensure that the directive visitor feature is created
+        // and we can use it in consecutive visits of child nodes without extra
+        // checks at each point.
+        // We do use a GetOrSet here because the context is a pooled object.
+        context.Features.GetOrSet<DirectiveVisitorFeature>();
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         ValidateDirectives(node, context);
         return Continue;
@@ -87,7 +100,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         VariableDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         ValidateDirectives(node, context);
         return Continue;
@@ -95,7 +108,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         ValidateDirectives(node, context);
         return Continue;
@@ -103,7 +116,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         InlineFragmentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         ValidateDirectives(node, context);
         return Continue;
@@ -111,7 +124,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FragmentDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         ValidateDirectives(node, context);
         return Continue;
@@ -119,7 +132,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FragmentSpreadNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         ValidateDirectives(node, context);
         return Continue;
@@ -127,7 +140,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         DirectiveNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var dt))
         {
@@ -147,16 +160,18 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 
     private static void ValidateDirectives<T>(
         T node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
         where T : ISyntaxNode, IHasDirectives
     {
-        context.Names.Clear();
+        var directiveNames = context.Features.GetRequired<DirectiveVisitorFeature>().DirectiveNames;
+        directiveNames.Clear();
+
         foreach (var directive in node.Directives)
         {
             // ValidateDirectiveAreUniquePerLocation
             if (context.Schema.DirectiveDefinitions.TryGetDirective(directive.Name.Value, out var dt)
                 && !dt.IsRepeatable
-                && !context.Names.Add(directive.Name.Value))
+                && !directiveNames.Add(directive.Name.Value))
             {
                 context.ReportError(context.DirectiveMustBeUniqueInLocation(directive));
             }
@@ -169,7 +184,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
                 switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {
                     case StringValueNode sn:
-                        if (!context.Declared.Add(sn.Value))
+                        if (!directiveNames.Add(sn.Value))
                         {
                             context.ReportError(context.DeferAndStreamDuplicateLabel(node, sn.Value));
                         }
@@ -231,5 +246,12 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
                 location = default;
                 return false;
         }
+    }
+
+    private sealed class DirectiveVisitorFeature : ValidatorFeature
+    {
+        public HashSet<string> DirectiveNames { get; } = [];
+
+        public override void Reset() => DirectiveNames.Clear();
     }
 }

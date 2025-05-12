@@ -10,7 +10,7 @@ public class IntrospectionDepthRuleTests()
     [Fact] public void Introspection_With_Cycles_Will_Fail()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
 
         var query = Utf8GraphQLParser.Parse(FileResource.Open("introspection_with_cycle.graphql"));
         context.Prepare(query);
@@ -28,7 +28,7 @@ public class IntrospectionDepthRuleTests()
     public void Introspection_Without_Cycles()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
 
         var query = Utf8GraphQLParser.Parse(FileResource.Open("introspection_without_cycle.graphql"));
         context.Prepare(query);
@@ -48,7 +48,7 @@ public class MaxAllowedFieldCycleDepthRuleTests()
     public void Max_3_Cycles_Allowed_Success()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
 
         var query = Utf8GraphQLParser.Parse(
             """
@@ -79,7 +79,7 @@ public class MaxAllowedFieldCycleDepthRuleTests()
     public void Max_3_Cycles_Allowed_Fail()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
 
         var query = Utf8GraphQLParser.Parse(
             """
@@ -130,7 +130,7 @@ public class MaxAllowedFieldCycleDepthRuleTests()
             .GetRequiredService<IValidationConfiguration>()
             .GetRules(Schema.DefaultName).First();
 
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
 
         var query = Utf8GraphQLParser.Parse(
             """
@@ -175,7 +175,7 @@ public class MaxAllowedFieldCycleDepthRuleTests()
             .GetRequiredService<IValidationConfiguration>()
             .GetRules(Schema.DefaultName).First();
 
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentValidatorContext context = ValidationUtils.CreateContext();
 
         var query = Utf8GraphQLParser.Parse(
             """

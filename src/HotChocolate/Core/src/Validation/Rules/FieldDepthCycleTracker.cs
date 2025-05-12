@@ -1,14 +1,14 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Validation;
+namespace HotChocolate.Validation.Rules;
 
 /// <summary>
 /// Allows to track field cycle depths in a GraphQL query.
 /// </summary>
-public sealed class FieldDepthCycleTracker
+internal sealed class FieldDepthCycleTracker : ValidatorFeature
 {
-    private readonly Dictionary<SchemaCoordinate, CoordinateLimit> _coordinates = new();
-    private readonly List<CoordinateLimit> _limits = new();
+    private readonly Dictionary<SchemaCoordinate, CoordinateLimit> _coordinates = [];
+    private readonly List<CoordinateLimit> _limits = [];
     private ushort? _defaultMaxAllowed;
 
     /// <summary>
@@ -81,7 +81,7 @@ public sealed class FieldDepthCycleTracker
     /// <summary>
     /// Resets the field depth tracker.
     /// </summary>
-    public void Reset()
+    public override void Reset()
     {
         _limits.AddRange(_coordinates.Values);
         _coordinates.Clear();

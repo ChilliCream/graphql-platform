@@ -7,13 +7,14 @@ namespace HotChocolate.Validation;
 internal static class ErrorHelper
 {
     public static IError VariableNotUsed(
-        this IDocumentValidatorContext context,
-        OperationDefinitionNode node)
+        this DocumentValidatorContext context,
+        OperationDefinitionNode node,
+        IEnumerable<string> unusedVariables)
     {
         return ErrorBuilder.New()
             .SetMessage(
                 "The following variables were not used: " +
-                $"{string.Join(", ", context.Unused)}.")
+                $"{string.Join(", ", unusedVariables)}.")
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variables-Used")
@@ -21,13 +22,14 @@ internal static class ErrorHelper
     }
 
     public static IError VariableNotDeclared(
-        this IDocumentValidatorContext context,
-        OperationDefinitionNode node)
+        this DocumentValidatorContext context,
+        OperationDefinitionNode node,
+        IEnumerable<string> usedVariables)
     {
         return ErrorBuilder.New()
             .SetMessage(
                 "The following variables were not declared: " +
-                $"{string.Join(", ", context.Used)}.")
+                $"{string.Join(", ", usedVariables)}.")
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variable-Uses-Defined")
@@ -35,7 +37,7 @@ internal static class ErrorHelper
     }
 
     public static IError VariableIsNotCompatible(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         VariableNode variable,
         VariableDefinitionNode variableDefinition)
     {
@@ -55,7 +57,7 @@ internal static class ErrorHelper
     }
 
     public static IError DirectiveNotValidInLocation(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         DirectiveNode node)
     {
         return ErrorBuilder.New()
@@ -67,7 +69,7 @@ internal static class ErrorHelper
     }
 
     public static IError DirectiveNotSupported(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         DirectiveNode node)
     {
         return ErrorBuilder.New()
@@ -81,7 +83,7 @@ internal static class ErrorHelper
     }
 
     public static IError DirectiveMustBeUniqueInLocation(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         DirectiveNode node) =>
         ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_DirectiveMustBeUniqueInLocation)
@@ -91,7 +93,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError TypeSystemDefinitionNotAllowed(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         IDefinitionNode node)
     {
         return ErrorBuilder.New()
@@ -102,7 +104,7 @@ internal static class ErrorHelper
     }
 
     public static IError UnionFieldError(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         SelectionSetNode node,
         IUnionTypeDefinition type)
     {
@@ -116,7 +118,7 @@ internal static class ErrorHelper
     }
 
     public static IError FieldDoesNotExist(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FieldNode node,
         IComplexTypeDefinition outputType)
     {
@@ -134,7 +136,7 @@ internal static class ErrorHelper
     }
 
     public static IError LeafFieldsCannotHaveSelections(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FieldNode node,
         IComplexTypeDefinition declaringType,
         IType fieldType)
@@ -155,7 +157,7 @@ internal static class ErrorHelper
     }
 
     public static IError ArgumentValueIsNotCompatible(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ArgumentNode node,
         IInputType locationType,
         IValueNode value)
@@ -172,7 +174,7 @@ internal static class ErrorHelper
     }
 
     public static IError FieldValueIsNotCompatible(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         IInputValueDefinition field,
         IInputType locationType,
         IValueNode valueNode)
@@ -189,7 +191,7 @@ internal static class ErrorHelper
     }
 
     public static IError VariableDefaultValueIsNotCompatible(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         VariableDefinitionNode node,
         IInputType locationType,
         IValueNode valueNode)
@@ -208,7 +210,7 @@ internal static class ErrorHelper
     }
 
     public static IError NoSelectionOnCompositeField(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FieldNode node,
         IComplexTypeDefinition declaringType,
         IType fieldType)
@@ -229,7 +231,7 @@ internal static class ErrorHelper
     }
 
     public static IError NoSelectionOnRootType(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         OperationDefinitionNode node,
         IType fieldType)
     {
@@ -246,7 +248,7 @@ internal static class ErrorHelper
     }
 
     public static IError FieldIsRequiredButNull(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         string fieldName)
     {
@@ -260,7 +262,7 @@ internal static class ErrorHelper
     }
 
     public static IError FieldsAreNotMergeable(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FieldInfo fieldA,
         FieldInfo fieldB)
     {
@@ -281,7 +283,7 @@ internal static class ErrorHelper
     }
 
     public static IError OperationNotSupported(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         OperationType operationType)
     {
         return ErrorBuilder.New()
@@ -292,7 +294,7 @@ internal static class ErrorHelper
     }
 
     public static IError FragmentNameNotUnique(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FragmentDefinitionNode fragmentDefinition)
     {
         return ErrorBuilder.New()
@@ -306,7 +308,7 @@ internal static class ErrorHelper
     }
 
     public static IError FragmentNotUsed(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FragmentDefinitionNode fragmentDefinition)
     {
         return ErrorBuilder.New()
@@ -321,7 +323,7 @@ internal static class ErrorHelper
     }
 
     public static IError FragmentCycleDetected(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FragmentSpreadNode fragmentSpread)
     {
         return ErrorBuilder.New()
@@ -334,7 +336,7 @@ internal static class ErrorHelper
     }
 
     public static IError FragmentDoesNotExist(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FragmentSpreadNode fragmentSpread)
     {
         return ErrorBuilder.New()
@@ -349,7 +351,7 @@ internal static class ErrorHelper
     }
 
     public static IError FragmentNotPossible(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         ITypeDefinition typeCondition,
         ITypeDefinition parentType)
@@ -366,7 +368,7 @@ internal static class ErrorHelper
     }
 
     public static IError FragmentTypeConditionUnknown(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         NamedTypeNode typeCondition)
     {
@@ -383,7 +385,7 @@ internal static class ErrorHelper
     }
 
     public static IError FragmentOnlyCompositeType(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         ITypeDefinition type)
     {
@@ -398,7 +400,7 @@ internal static class ErrorHelper
     }
 
     public static IError InputFieldAmbiguous(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ObjectFieldNode field)
     {
         return ErrorBuilder.New()
@@ -411,7 +413,7 @@ internal static class ErrorHelper
     }
 
     public static IError InputFieldDoesNotExist(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ObjectFieldNode field)
     {
         return ErrorBuilder.New()
@@ -426,7 +428,7 @@ internal static class ErrorHelper
     }
 
     public static IError InputFieldRequired(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         string fieldName)
     {
@@ -440,7 +442,7 @@ internal static class ErrorHelper
     }
 
     public static IError OperationNameNotUnique(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         OperationDefinitionNode operation,
         string operationName)
     {
@@ -455,7 +457,7 @@ internal static class ErrorHelper
     }
 
     public static IError OperationAnonymousMoreThanOne(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         OperationDefinitionNode operation,
         int operations)
     {
@@ -468,7 +470,7 @@ internal static class ErrorHelper
     }
 
     public static IError VariableNotInputType(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         VariableDefinitionNode node,
         string variableName)
     {
@@ -483,7 +485,7 @@ internal static class ErrorHelper
     }
 
     public static IError VariableNameNotUnique(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         VariableDefinitionNode node,
         string variableName)
     {
@@ -498,7 +500,7 @@ internal static class ErrorHelper
     }
 
     public static IError ArgumentNotUnique(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ArgumentNode node,
         SchemaCoordinate? field = null,
         IDirectiveDefinition? directive = null)
@@ -527,7 +529,7 @@ internal static class ErrorHelper
     }
 
     public static IError ArgumentRequired(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         string argumentName,
         SchemaCoordinate? field = null,
@@ -557,7 +559,7 @@ internal static class ErrorHelper
     }
 
     public static IError ArgumentDoesNotExist(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ArgumentNode node,
         SchemaCoordinate? field = null,
         IDirectiveDefinition? directive = null)
@@ -586,7 +588,7 @@ internal static class ErrorHelper
     }
 
     public static IError SubscriptionSingleRootField(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         OperationDefinitionNode operation)
     {
         return ErrorBuilder.New()
@@ -597,7 +599,7 @@ internal static class ErrorHelper
     }
 
     public static IError SubscriptionNoTopLevelIntrospectionField(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         OperationDefinitionNode operation)
     {
         return ErrorBuilder.New()
@@ -608,7 +610,7 @@ internal static class ErrorHelper
     }
 
     public static IError MaxExecutionDepth(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         OperationDefinitionNode operation,
         int allowedExecutionDepth,
         int detectedExecutionDepth)
@@ -624,7 +626,7 @@ internal static class ErrorHelper
     }
 
     public static IError IntrospectionNotAllowed(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         FieldNode field)
     {
         var message = Resources.ErrorHelper_IntrospectionNotAllowed;
@@ -651,7 +653,7 @@ internal static class ErrorHelper
     }
 
     public static IError OneOfMustHaveExactlyOneField(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         IInputObjectTypeDefinition type)
         => ErrorBuilder.New()
@@ -663,7 +665,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError OneOfVariablesMustBeNonNull(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode node,
         SchemaCoordinate fieldCoordinate,
         string variableName)
@@ -688,7 +690,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError DeferAndStreamDuplicateLabel(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode selection,
         string label)
         => ErrorBuilder.New()
@@ -700,7 +702,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError DeferAndStreamLabelIsVariable(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode selection,
         string variable)
         => ErrorBuilder.New()
@@ -712,7 +714,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError StreamOnNonListField(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode selection)
         => ErrorBuilder.New()
             .SetMessage("@stream directive is only valid on list fields.")
@@ -722,7 +724,7 @@ internal static class ErrorHelper
             .Build();
 
     public static void ReportMaxIntrospectionDepthOverflow(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode selection)
     {
         context.FatalErrorDetected = true;
@@ -736,7 +738,7 @@ internal static class ErrorHelper
     }
 
     public static void ReportMaxCoordinateCycleDepthOverflow(
-        this IDocumentValidatorContext context,
+        this DocumentValidatorContext context,
         ISyntaxNode selection)
     {
         context.FatalErrorDetected = true;
