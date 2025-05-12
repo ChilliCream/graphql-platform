@@ -73,6 +73,28 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     }
                     """
                 ]
+            },
+            // Non-nullable default values.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        field1(type: Enum1! = FOO): [Baz!]!
+                        field2(type: [Int!]! = [1]): [Baz!]!
+                        field3(type: Input1! = { field1: 1 }): [Baz!]!
+                    }
+
+                    enum Enum1 {
+                        FOO
+                        BAR
+                    }
+
+                    input Input1 {
+                        field1: Int!
+                    }
+                    """
+                ]
             }
         };
     }
