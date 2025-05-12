@@ -81,11 +81,6 @@ internal static class CompletionTools
         IReadOnlyList<NamedTypeNode> types,
         CompositeSchemaContext context)
     {
-        if (types.Count == 0)
-        {
-            return FusionObjectTypeDefinitionCollection.Empty;
-        }
-
         var temp = new FusionObjectTypeDefinition[types.Count];
 
         for (var i = 0; i < types.Count; i++)
