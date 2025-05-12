@@ -8,7 +8,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the schema on which the query is being executed.
     /// </summary>
-    public ISchema Schema
+    public ISchemaDefinition Schema
     {
         get
         {
@@ -70,7 +70,7 @@ internal sealed partial class OperationContext
     /// The type context.
     /// </param>
     /// <returns></returns>
-    public ISelectionSet CollectFields(ISelection selection, IObjectType typeContext)
+    public ISelectionSet CollectFields(ISelection selection, IObjectTypeDefinition typeContext)
     {
         AssertInitialized();
         return Operation.GetSelectionSet(selection, typeContext);

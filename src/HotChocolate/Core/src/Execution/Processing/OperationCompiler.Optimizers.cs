@@ -37,7 +37,7 @@ public partial class OperationCompiler
 
     private static ImmutableArray<ISelectionSetOptimizer> ResolveOptimizers(
         ImmutableArray<ISelectionSetOptimizer> optimizers,
-        IObjectField field)
+        ObjectField field)
     {
         if (!TryGetOptimizers(field.ContextData, out var fieldOptimizers))
         {

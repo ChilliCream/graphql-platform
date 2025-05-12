@@ -20,7 +20,7 @@ internal sealed class Operation : IOperation
         DocumentNode document,
         OperationDefinitionNode definition,
         ObjectType rootType,
-        ISchema schema)
+        ISchemaDefinition schema)
     {
         Id = id;
         Document = document;
@@ -59,9 +59,9 @@ internal sealed class Operation : IOperation
 
     public IReadOnlyDictionary<string, object?> ContextData => _contextData;
 
-    public ISchema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
-    public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
+    public ISelectionSet GetSelectionSet(ISelection selection, IObjectTypeDefinition typeContext)
     {
         if (selection is null)
         {
@@ -83,7 +83,7 @@ internal sealed class Operation : IOperation
         return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);
     }
 
-    public IEnumerable<IObjectType> GetPossibleTypes(ISelection selection)
+    public IEnumerable<IObjectTypeDefinition> GetPossibleTypes(ISelection selection)
     {
         if (selection is null)
         {

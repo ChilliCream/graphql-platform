@@ -58,7 +58,7 @@ public readonly struct OperationCompilerRequest
         DocumentNode document,
         OperationDefinitionNode definition,
         ObjectType rootType,
-        ISchema schema,
+        ISchemaDefinition schema,
         ImmutableArray<IOperationOptimizer>? operationOptimizers = null,
         ImmutableArray<ISelectionSetOptimizer>? selectionSetOptimizers = null)
     {
@@ -102,7 +102,7 @@ public readonly struct OperationCompilerRequest
     /// <summary>
     /// Gets the schema against which the operation shall be executed.
     /// </summary>
-    public ISchema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
     public ImmutableArray<IOperationOptimizer> OperationOptimizers { get; }
 

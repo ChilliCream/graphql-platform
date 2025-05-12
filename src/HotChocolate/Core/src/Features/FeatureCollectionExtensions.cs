@@ -29,6 +29,11 @@ public static class FeatureCollectionExtensions
         return feature;
     }
 
+    public static TFeature GetOrSet<TFeature>(
+        this IFeatureCollection featureCollection,
+        TFeature value)
+        => GetOrSet(featureCollection, static state => state, value);
+
     public static TFeature GetOrSet<TFeature, TState>(
         this IFeatureCollection featureCollection,
         Func<TState, TFeature> factory,

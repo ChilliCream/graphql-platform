@@ -19,7 +19,7 @@ internal sealed partial class OperationContext
     private readonly ResultBuilder _resultBuilder;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
     private IRequestContext _requestContext = default!;
-    private ISchema _schema = default!;
+    private ISchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private ResolverProvider _resolvers = default!;
     private IExecutionDiagnosticEvents _diagnosticEvents = default!;

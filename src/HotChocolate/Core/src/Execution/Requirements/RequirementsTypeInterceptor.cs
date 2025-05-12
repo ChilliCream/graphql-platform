@@ -2,7 +2,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Requirements;
 
@@ -63,6 +62,6 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterCreateSchemaInternal(
         IDescriptorContext context,
-        ISchema schema)
+        Schema schema)
         => _metadata.Seal();
 }

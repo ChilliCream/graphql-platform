@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Security.Authentication.ExtendedProtection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -20,22 +21,19 @@ public sealed partial class OperationCompiler
 {
     private readonly InputParser _parser;
     private readonly CreateFieldPipeline _createFieldPipeline;
-    private readonly Queue<BacklogItem> _backlog = new();
-    private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = new();
-    private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = new();
-    private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
-    private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
-    private readonly Dictionary<string, object?> _contextData = new();
+    private readonly Queue<BacklogItem> _backlog = [];
+    private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = [];
+    private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = [];
+    private readonly Dictionary<int, SelectionVariants> _selectionVariants = [];
+    private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = [];
+    private readonly Dictionary<string, object?> _contextData = [];
     private readonly List<Selection> _selections = [];
     private readonly HashSet<string> _directiveNames = new(Ordinal);
     private readonly List<FieldMiddleware> _pipelineComponents = [];
     private readonly HashSet<int> _enqueuedSelectionSets = [];
     private IncludeCondition[] _includeConditions = [];
     private CompilerContext? _deferContext;
-
-    private ImmutableArray<IOperationOptimizer> _operationOptimizers =
-        ImmutableArray<IOperationOptimizer>.Empty;
-
+    private ImmutableArray<IOperationOptimizer> _operationOptimizers = [];
     private int _nextSelectionId;
     private int _nextSelectionSetRefId;
     private int _nextSelectionSetId;
@@ -80,7 +78,7 @@ public sealed partial class OperationCompiler
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = [new(request.Definition.SelectionSet, 0)];
 
-            var context = new CompilerContext(request.Schema, request.Document);
+            var context = new CompilerContext((Schema)request.Schema, request.Document);
             context.Initialize(request.RootType, variants, infos, rootPath, selectionSetOptimizers);
             CompileSelectionSet(context);
 
@@ -223,7 +221,7 @@ public sealed partial class OperationCompiler
         return operation;
     }
 
-    private void CompleteResolvers(ISchema schema)
+    private void CompleteResolvers(Schema schema)
     {
         ref var searchSpace = ref GetReference(AsSpan(_selections));
 
@@ -233,7 +231,7 @@ public sealed partial class OperationCompiler
 
             if (selection.ResolverPipeline is null && selection.PureResolver is null)
             {
-                var field = selection.Field;
+                var field = Unsafe.As<ObjectField>(selection.Field);
                 var syntaxNode = selection.SyntaxNode;
                 var resolver = CreateFieldPipeline(
                     schema,
@@ -577,12 +575,12 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private static bool DoesTypeApply(IType typeCondition, IObjectType current)
+    private static bool DoesTypeApply(IType typeCondition, IObjectTypeDefinition current)
         => typeCondition.Kind switch
         {
             TypeKind.Object => ReferenceEquals(typeCondition, current),
             TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
-            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
+            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsName(current.Name),
             _ => false,
         };
 
