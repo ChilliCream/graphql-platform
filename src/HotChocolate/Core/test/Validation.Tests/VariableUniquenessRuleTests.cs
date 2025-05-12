@@ -15,17 +15,15 @@ public class VariableUniquenessRuleTests
     public void OperationWithTwoVariablesThatHaveTheSameName()
     {
         // arrange
-        var context = ValidationUtils.CreateContext();
-        context.MaxAllowedErrors = int.MaxValue;
-
-        var query = Utf8GraphQLParser.Parse(@"
-                query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
-                    dog {
-                        isHouseTrained(atOtherHomes: $atOtherHomes)
-                    }
+        var query = Utf8GraphQLParser.Parse(
+            """
+            query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
+                dog {
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
-            ");
-        context.Prepare(query);
+            }
+            """);
+        var context = ValidationUtils.CreateContext(query);
 
         // act
         Rule.Validate(context, query);
@@ -43,18 +41,18 @@ public class VariableUniquenessRuleTests
     public void NoOperationHasVariablesThatShareTheSameName()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                query ($foo: Boolean = true, $bar: Boolean = false) {
-                    dog @skip(if: $foo) {
-                        isHouseTrained
-                    }
-                    dog @skip(if: $bar) {
-                        isHouseTrained
-                    }
+        var query = Utf8GraphQLParser.Parse(
+            """
+            query ($foo: Boolean = true, $bar: Boolean = false) {
+                dog @skip(if: $foo) {
+                    isHouseTrained
                 }
-            ");
-        context.Prepare(query);
+                dog @skip(if: $bar) {
+                    isHouseTrained
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(query);
 
         // act
         Rule.Validate(context, query);
@@ -67,23 +65,23 @@ public class VariableUniquenessRuleTests
     public void TwoOperationsThatShareVariableName()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                query A($atOtherHomes: Boolean) {
-                  ...HouseTrainedFragment
-                }
+        var query = Utf8GraphQLParser.Parse(
+            """
+            query A($atOtherHomes: Boolean) {
+              ...HouseTrainedFragment
+            }
 
-                query B($atOtherHomes: Boolean) {
-                  ...HouseTrainedFragment
-                }
+            query B($atOtherHomes: Boolean) {
+              ...HouseTrainedFragment
+            }
 
-                fragment HouseTrainedFragment on Query {
-                  dog {
-                    isHouseTrained(atOtherHomes: $atOtherHomes)
-                  }
-                }
-            ");
-        context.Prepare(query);
+            fragment HouseTrainedFragment on Query {
+              dog {
+                isHouseTrained(atOtherHomes: $atOtherHomes)
+              }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(query);
 
         // act
         Rule.Validate(context, query);
