@@ -559,6 +559,7 @@ public partial class SchemaBuilder
     {
         services.TryAddSingleton(lazySchema);
         services.TryAddSingleton(static sp => sp.GetRequiredService<LazySchema>().Schema);
+        services.TryAddSingleton<ISchemaDefinition>(sp => sp.GetRequiredService<LazySchema>().Schema);
 
         // If there was now node id serializer registered we will register the default one as a fallback.
         services.TryAddSingleton<INodeIdSerializer>(static sp =>

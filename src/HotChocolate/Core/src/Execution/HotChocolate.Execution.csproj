@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 

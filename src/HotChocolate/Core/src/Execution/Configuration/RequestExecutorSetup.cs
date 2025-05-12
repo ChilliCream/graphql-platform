@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Options;
+using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Configuration;
@@ -15,11 +16,12 @@ public sealed class RequestExecutorSetup
     private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = [];
     private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = [];
     private readonly List<ITypeModule> _typeModules = [];
+    private readonly List<Action<IServiceProvider, DocumentValidatorBuilder>> _onBuildDocumentValidatorHooks = [];
 
     /// <summary>
     /// This allows to specify a schema and short-circuit the schema creation.
     /// </summary>
-    public ISchema? Schema { get; set; }
+    public Schema? Schema { get; set; }
 
     /// <summary>
     /// Gets or sets the schema builder that is used to create the schema.
@@ -67,6 +69,12 @@ public sealed class RequestExecutorSetup
         => _onRequestExecutorEvictedHooks;
 
     /// <summary>
+    /// Gets the actions that are invoked to configure the document validator.
+    /// </summary>
+    public IList<Action<IServiceProvider, DocumentValidatorBuilder>> OnBuildDocumentValidatorHooks
+        => _onBuildDocumentValidatorHooks;
+
+    /// <summary>
     /// Gets the type modules that are used to configure the schema.
     /// </summary>
     public IList<ITypeModule> TypeModules
@@ -102,7 +110,7 @@ public sealed class RequestExecutorSetup
         options._onRequestExecutorEvictedHooks.AddRange(_onRequestExecutorEvictedHooks);
         options._typeModules.AddRange(_typeModules);
 
-        if(DefaultPipelineFactory is not null)
+        if (DefaultPipelineFactory is not null)
         {
             options.DefaultPipelineFactory = DefaultPipelineFactory;
         }

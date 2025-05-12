@@ -74,4 +74,4 @@ internal interface ITypeDefinitionExtensionMerger : ITypeDefinitionExtension
 /// <summary>
 /// Represents a type definition extension.
 /// </summary>
-public interface ITypeDefinitionExtension : ITypeDefinition { }
+public interface ITypeDefinitionExtension : ITypeDefinition;

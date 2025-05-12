@@ -218,7 +218,7 @@ internal static class ThrowHelper
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_CollectVariablesVisitor_NoCompatibleType_Message)
             .SetCode(ErrorCodes.Execution.AutoMapVarError)
-            .SetPath(path)
+            .SetPath(Path.FromList(path))
             .AddLocation(node)
             .Build());
 

@@ -277,7 +277,22 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     internal static Path FromList(params object[] elements)
         => FromList((IReadOnlyList<object>)elements);
 
-    internal static Path FromList(IReadOnlyList<object> path)
+    /// <summary>
+    /// Creates a new path from a list of elements.
+    /// </summary>
+    /// <param name="path">
+    /// The path elements.
+    /// </param>
+    /// <returns>
+    /// Returns a new path.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="path"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// The path contains an element that is not supported.
+    /// </exception>
+    public static Path FromList(IReadOnlyList<object> path)
     {
         if (path is null)
         {

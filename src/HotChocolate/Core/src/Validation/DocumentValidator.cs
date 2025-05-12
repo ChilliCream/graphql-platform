@@ -53,6 +53,11 @@ public sealed class DocumentValidator
     public ImmutableArray<IDocumentValidatorRule> Rules => ImmutableCollectionsMarshal.AsImmutableArray(_allRules);
 
     /// <summary>
+    /// Gets a value indicating whether the document validator has non-cacheable rules.
+    /// </summary>
+    public bool HasNonCacheableRules => _nonCacheableRules.Length > 0;
+
+    /// <summary>
     /// Validates the GraphQL operation <paramref name="document"/> against the given <paramref name="schema"/>.
     /// </summary>
     /// <param name="schema">

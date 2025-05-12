@@ -13,6 +13,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -346,7 +347,7 @@ internal sealed partial class RequestExecutorResolver
                 var provider = sp.GetRequiredService<ObjectPoolProvider>();
 
                 var policy = new RequestContextPooledObjectPolicy(
-                    sp.GetRequiredService<ISchema>(),
+                    sp.GetRequiredService<Schema>(),
                     sp.GetRequiredService<IErrorHandler>(),
                     sp.GetRequiredService<IExecutionDiagnosticEvents>(),
                     version);
@@ -355,7 +356,7 @@ internal sealed partial class RequestExecutorResolver
 
         serviceCollection.AddSingleton<IRequestExecutor>(
             sp => new RequestExecutor(
-                sp.GetRequiredService<ISchema>(),
+                sp.GetRequiredService<Schema>(),
                 _applicationServices,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),
@@ -363,7 +364,7 @@ internal sealed partial class RequestExecutorResolver
                 sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
 
-        serviceCollection.AddSingleton<OperationCompilerOptimizers>(
+        serviceCollection.AddSingleton(
             sp =>
             {
                 var optimizers = sp.GetServices<IOperationCompilerOptimizer>();
@@ -392,6 +393,8 @@ internal sealed partial class RequestExecutorResolver
 
         OnConfigureSchemaServices(context, serviceCollection, setup);
 
+        BuildDocumentValidator(serviceCollection, setup.OnBuildDocumentValidatorHooks);
+
         SchemaBuilder.AddCoreSchemaServices(serviceCollection, lazy);
 
         var schemaServices = serviceCollection.BuildServiceProvider();
@@ -409,7 +412,24 @@ internal sealed partial class RequestExecutorResolver
         return schemaServices;
     }
 
-    private static async ValueTask<ISchema> CreateSchemaAsync(
+    private static void BuildDocumentValidator(
+        IServiceCollection serviceCollection,
+        IList<Action<IServiceProvider, DocumentValidatorBuilder>> hooks)
+    {
+        serviceCollection.AddSingleton(sp =>
+        {
+            var builder = DocumentValidatorBuilder.New().AddDefaultRules();
+
+            foreach (var hook in hooks)
+            {
+                hook(sp, builder);
+            }
+
+            return builder.Build();
+        });
+    }
+
+    private static async ValueTask<Schema> CreateSchemaAsync(
         ConfigurationContext context,
         RequestExecutorSetup setup,
         RequestExecutorOptions executorOptions,
@@ -426,7 +446,7 @@ internal sealed partial class RequestExecutorResolver
         context
             .SchemaBuilder
             .AddServices(schemaServices)
-            .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions);
+            .Features.Set(executorOptions);
 
         var descriptorContext = context.DescriptorContext;
 
@@ -435,15 +455,9 @@ internal sealed partial class RequestExecutorResolver
                .WithCancellation(cancellationToken)
                .ConfigureAwait(false))
         {
-            switch (member)
+            if (member is ITypeDefinition typeDefinition)
             {
-                case INamedType namedType:
-                    context.SchemaBuilder.AddType(namedType);
-                    break;
-
-                case INamedTypeExtension typeExtension:
-                    context.SchemaBuilder.AddType(typeExtension);
-                    break;
+                context.SchemaBuilder.AddType(typeDefinition);
             }
         }
 
@@ -458,7 +472,7 @@ internal sealed partial class RequestExecutorResolver
         return schema;
     }
 
-    private static void AssertSchemaNameValid(ISchema schema, string expectedSchemaName)
+    private static void AssertSchemaNameValid(Schema schema, string expectedSchemaName)
     {
         if (!schema.Name.EqualsOrdinal(expectedSchemaName))
         {
@@ -640,15 +654,14 @@ internal sealed partial class RequestExecutorResolver
     }
 
     private sealed class RequestContextPooledObjectPolicy(
-        ISchema schema,
+        Schema schema,
         IErrorHandler errorHandler,
         IExecutionDiagnosticEvents diagnosticEvents,
         ulong executorVersion)
         : PooledObjectPolicy<RequestContext>
     {
-        private readonly ISchema _schema = schema ??
+        private readonly Schema _schema = schema ??
             throw new ArgumentNullException(nameof(schema));
-
         private readonly IErrorHandler _errorHandler = errorHandler ??
             throw new ArgumentNullException(nameof(errorHandler));
         private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??

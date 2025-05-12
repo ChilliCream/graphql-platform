@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 
@@ -8,7 +9,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Encapsulates all GraphQL-specific information about an individual GraphQL request.
 /// </summary>
-public interface IRequestContext : IHasContextData
+public interface IRequestContext : IFeatureProvider, IHasContextData
 {
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.
