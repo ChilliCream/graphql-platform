@@ -65,6 +65,100 @@ public class IntrospectionTests : FusionTestBase
     }
 
     [Fact(Skip = "Not yet supported")]
+    public void Type_Lookup()
+    {
+        // arrange
+        var subgraphA = new TestSubgraph(
+            """
+            type Query {
+              object1: Object1
+              object2: Object2
+            }
+
+            type Object1 {
+              field: Int
+            }
+
+            type Object2 {
+              field: String
+            }
+            """);
+
+        var subgraphs = new TestSubgraphCollection(subgraphA);
+        var schema = subgraphs.BuildFusionSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query testQuery {
+              __type(name: "Object1") {
+                name
+              }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            NOT SUPPORTED
+            """);
+    }
+
+    [Fact(Skip = "Not yet supported")]
+    public void Type_Lookup_With_Alias()
+    {
+        // arrange
+        var subgraphA = new TestSubgraph(
+            """
+            type Query {
+              object1: Object1
+              object2: Object2
+            }
+
+            type Object1 {
+              field: Int
+            }
+
+            type Object2 {
+              field: String
+            }
+            """);
+
+        var subgraphs = new TestSubgraphCollection(subgraphA);
+        var schema = subgraphs.BuildFusionSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query testQuery {
+              typeA: __type(name: "Object1") {
+                name
+              }
+              typeB: __type(name: "Object2") {
+                name
+                fields {
+                  name
+                  type {
+                    name
+                    kind
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            NOT SUPPORTED
+            """);
+    }
+
+    [Fact(Skip = "Not yet supported")]
     public void Full_Introspection()
     {
         // arrange
