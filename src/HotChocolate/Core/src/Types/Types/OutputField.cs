@@ -19,6 +19,11 @@ public abstract class OutputField : FieldBase, IOutputFieldDefinition
     {
     }
 
+    protected OutputField(OutputField original, IType type)
+        : base(original, type)
+    {
+    }
+
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>

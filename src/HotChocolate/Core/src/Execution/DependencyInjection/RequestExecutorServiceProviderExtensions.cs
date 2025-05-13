@@ -52,7 +52,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// <returns>
     /// Returns the <see cref="IRequestExecutor" />.
     /// </returns>
-    public static async ValueTask<ISchemaDefinition> BuildSchemaAsync(
+    public static async ValueTask<Schema> BuildSchemaAsync(
         this IRequestExecutorBuilder builder,
         string? schemaName = default,
         CancellationToken cancellationToken = default)

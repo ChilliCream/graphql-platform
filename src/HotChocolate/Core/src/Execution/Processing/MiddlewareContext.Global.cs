@@ -25,7 +25,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IServiceProvider RequestServices => _operationContext.Services;
 
-    public ISchemaDefinition Schema => _operationContext.Schema;
+    public Schema Schema => _operationContext.Schema;
 
     public IOperation Operation => _operationContext.Operation;
 

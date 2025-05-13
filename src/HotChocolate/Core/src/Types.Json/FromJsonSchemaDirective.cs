@@ -34,8 +34,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
 
                         if (namedType is ScalarType scalarType)
                         {
-                            JsonObjectTypeExtensions.InferResolver(
-                                ctx.Type, def, scalarType, propertyName);
+                            JsonObjectTypeExtensions.InferResolver(ctx.Type, def, scalarType, propertyName);
                             return;
                         }
 

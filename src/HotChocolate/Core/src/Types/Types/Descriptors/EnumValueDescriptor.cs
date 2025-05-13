@@ -11,10 +11,7 @@ public class EnumValueDescriptor
     protected EnumValueDescriptor(IDescriptorContext context, object runtimeValue)
         : base(context)
     {
-        if (runtimeValue is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeValue));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeValue);
 
         Configuration.RuntimeValue = runtimeValue;
         Configuration.Description = context.Naming.GetEnumValueDescription(runtimeValue);

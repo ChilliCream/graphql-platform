@@ -79,8 +79,7 @@ public class EnumType<T> : EnumType
     protected override EnumTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
-        var descriptor =
-            EnumTypeDescriptor.New<T>(context.DescriptorContext);
+        var descriptor = EnumTypeDescriptor.New<T>(context.DescriptorContext);
 
         _configure!(descriptor);
         _configure = null;

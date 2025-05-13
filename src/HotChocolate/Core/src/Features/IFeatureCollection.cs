@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Reflection.Metadata;
 
 namespace HotChocolate.Features;
 

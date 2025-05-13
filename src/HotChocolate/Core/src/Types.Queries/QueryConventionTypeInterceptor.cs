@@ -7,7 +7,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
-    private readonly List<ObjectTypeConfiguration> _typeDefs = new();
+    private readonly List<ObjectTypeConfiguration> _typeDefs = [];
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private IDescriptorContext _context = default!;

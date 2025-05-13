@@ -8,7 +8,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the schema on which the query is being executed.
     /// </summary>
-    public ISchemaDefinition Schema
+    public Schema Schema
     {
         get
         {

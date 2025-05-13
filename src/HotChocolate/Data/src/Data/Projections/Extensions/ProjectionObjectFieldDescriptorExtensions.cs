@@ -220,7 +220,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 value is ObjectType objectType &&
                 objectType.RuntimeType != typeof(object))
             {
-                var fieldProxy = new NodeFieldProxy(context.Selection.Field, objectType);
+                var fieldProxy = new ObjectField(context.Selection.Field, objectType);
                 var selection = CreateProxySelection(context.Selection, fieldProxy);
                 context = new MiddlewareContextProxy(context, selection, objectType);
             }
@@ -228,10 +228,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
             //for use case when projection is used with Mutation Conventions
             else if (context.Operation.Type is OperationType.Mutation &&
                 context.Selection.Type.NamedType() is ObjectType mutationPayloadType &&
-                mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null)
-                    is string dataFieldName)
+                mutationPayloadType.Features.TryGet(out MutationPayloadInfo? mutationInfo))
             {
-                var dataField = mutationPayloadType.Fields[dataFieldName];
+                var dataField = mutationPayloadType.Fields[mutationInfo.DataField];
                 var payloadSelectionSet = context.Operation.GetSelectionSet(context.Selection, mutationPayloadType);
                 var selection = UnwrapMutationPayloadSelection(payloadSelectionSet, dataField);
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
@@ -248,31 +247,25 @@ public static class ProjectionObjectFieldDescriptorExtensions
         }
     }
 
-    private sealed class MiddlewareContextProxy : IMiddlewareContext
+    private sealed class MiddlewareContextProxy(
+        IMiddlewareContext context,
+        ISelection selection,
+        ObjectType objectType)
+        : IMiddlewareContext
     {
-        private readonly IMiddlewareContext _context;
-
-        public MiddlewareContextProxy(
-            IMiddlewareContext context,
-            ISelection selection,
-            IObjectType objectType)
-        {
-            _context = context;
-            Selection = selection;
-            ObjectType = objectType;
-        }
+        private readonly IMiddlewareContext _context = context;
 
         public IDictionary<string, object?> ContextData => _context.ContextData;
 
-        public ISchema Schema => _context.Schema;
+        public Schema Schema => _context.Schema;
 
-        public IObjectType ObjectType { get; }
+        public ObjectType ObjectType { get; } = objectType;
 
         public IOperation Operation => _context.Operation;
 
         public IOperationResultBuilder OperationResult => _context.OperationResult;
 
-        public ISelection Selection { get; }
+        public ISelection Selection { get; } = selection;
 
         public IVariableValueCollection Variables => _context.Variables;
 
@@ -337,7 +330,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             => _context.ReportError(exception, configure);
 
         public IReadOnlyList<ISelection> GetSelections(
-            IObjectType typeContext,
+            IObjectTypeDefinition typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
             => _context.GetSelections(typeContext, selection, allowInternals);
@@ -373,7 +366,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         IResolverContext IResolverContext.Clone() => _context.Clone();
     }
 
-    private static Selection CreateProxySelection(ISelection selection, NodeFieldProxy field)
+    private static Selection CreateProxySelection(ISelection selection, ObjectField field)
     {
         var includeConditionsSource = ((Selection)selection).IncludeConditions;
         var includeConditions = new long[includeConditionsSource.Length];
@@ -394,67 +387,5 @@ public static class ProjectionObjectFieldDescriptorExtensions
         proxy.SetSelectionSetId(((Selection)selection).SelectionSetId);
         proxy.Seal(selection.DeclaringOperation, selection.DeclaringSelectionSet);
         return proxy;
-    }
-
-    private sealed class NodeFieldProxy : IObjectField
-    {
-        private readonly IObjectField _nodeField;
-        private readonly ObjectType _type;
-        private readonly Type _runtimeType;
-
-        public NodeFieldProxy(IObjectField nodeField, ObjectType type)
-        {
-            _nodeField = nodeField;
-            _type = type;
-            _runtimeType = type.RuntimeType;
-        }
-
-        public IObjectType DeclaringType => _nodeField.DeclaringType;
-
-        public bool IsParallelExecutable => _nodeField.IsParallelExecutable;
-
-        public DependencyInjectionScope DependencyInjectionScope => _nodeField.DependencyInjectionScope;
-
-        public FieldDelegate Middleware => _nodeField.Middleware;
-
-        public FieldResolverDelegate? Resolver => _nodeField.Resolver;
-
-        public PureFieldDelegate? PureResolver => _nodeField.PureResolver;
-
-        public SubscribeResolverDelegate? SubscribeResolver => _nodeField.SubscribeResolver;
-
-        public IResolverResultPostProcessor? ResultPostProcessor => _nodeField.ResultPostProcessor;
-
-        public MemberInfo? Member => _nodeField.Member;
-
-        public MemberInfo? ResolverMember => _nodeField.ResolverMember;
-
-        public bool IsIntrospectionField => _nodeField.IsIntrospectionField;
-
-        public bool IsDeprecated => _nodeField.IsDeprecated;
-
-        public string? DeprecationReason => _nodeField.DeprecationReason;
-
-        public int Index => _nodeField.Index;
-
-        public string? Description => _nodeField.Description;
-
-        public IDirectiveCollection Directives => _nodeField.Directives;
-
-        public IReadOnlyDictionary<string, object?> ContextData => _nodeField.ContextData;
-
-        public IOutputType Type => _type;
-
-        public IFieldCollection<IInputField> Arguments => _nodeField.Arguments;
-
-        public string Name => _nodeField.Name;
-
-        public SchemaCoordinate Coordinate => _nodeField.Coordinate;
-
-        public Type RuntimeType => _runtimeType;
-
-        IComplexOutputType IOutputField.DeclaringType => _nodeField.DeclaringType;
-
-        ITypeSystemObject IField.DeclaringType => ((IField)_nodeField).DeclaringType;
     }
 }

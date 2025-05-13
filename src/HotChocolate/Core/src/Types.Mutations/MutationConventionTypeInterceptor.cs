@@ -1,12 +1,12 @@
+using HotChocolate.Features;
 using HotChocolate.Types.Helpers;
-using static HotChocolate.WellKnownMiddleware;
-using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Types.ErrorContextDataKeys;
 using static HotChocolate.Types.ThrowHelper;
 using static HotChocolate.Utilities.ThrowHelper;
-using static HotChocolate.WellKnownContextData;
+using static HotChocolate.WellKnownMiddleware;
 
 namespace HotChocolate.Types;
 
@@ -72,7 +72,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     }
 
     public override void OnAfterCompleteTypeNames()
-        => _mutations = _context.ContextData.GetMutationFields();
+        => _mutations = _context.GetMutationFields();
 
     internal override void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
@@ -93,10 +93,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // on the mutations.
         if (_mutationTypeDef is not null)
         {
-            HashSet<MutationContextData> unprocessed = [.._mutations,];
+            HashSet<MutationContextData> unprocessed = [.. _mutations,];
             var defLookup = _mutations.ToDictionary(t => t.Definition);
             var nameLookup = _mutations.ToDictionary(t => t.Name);
-            var rootOptions = CreateOptions(_context.ContextData);
+            var rootOptions = CreateOptions(_context);
 
             foreach (var mutationField in _mutationTypeDef.Fields)
             {
@@ -110,8 +110,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 // if the mutation has any error attributes we will interpret that as an opt-in
                 // to the mutation conventions.
-                if (mutationField.Features.ContainsKey(ErrorConfigurations) &&
-                    !mutationOptions.Apply)
+                if (mutationField.Features.TryGet(out ErrorFieldFeature? _)
+                    && !mutationOptions.Apply)
                 {
                     mutationOptions = CreateErrorOptions(mutationOptions);
                 }
@@ -229,15 +229,15 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
             var formatters = argument.GetFormatters();
             var formatter = formatters.Count switch
-                {
-                    0 => null,
-                    1 => formatters[0],
-                    _ => new AggregateInputValueFormatter(formatters),
-                };
+            {
+                0 => null,
+                1 => formatters[0],
+                _ => new AggregateInputValueFormatter(formatters),
+            };
 
             var defaultValue = argument.DefaultValue;
 
-            if(defaultValue is null && argument.RuntimeDefaultValue is not null)
+            if (defaultValue is null && argument.RuntimeDefaultValue is not null)
             {
                 defaultValue =
                     _context.InputFormatter.FormatValue(
@@ -340,7 +340,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             if (payloadType.IsListType() || payloadType.NamedType() is not ObjectType obj)
             {
                 _completionContext.ReportError(
-                    MutationPayloadMustBeObject(payloadType.NamedType()));
+                    MutationPayloadMustBeObject(
+                        payloadType.NamedType()));
                 return;
             }
 
@@ -459,7 +460,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         // we mustn't forget to drop the error definitions at this point since we do not
         // want to preserve them on the actual schema field.
-        mutation.Features.Remove(ErrorConfigurations);
+        mutation.Features.Set<ErrorFieldFeature>(null);
     }
 
     private static InputObjectType CreateInputType(
@@ -505,7 +506,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 return parent;
             });
-        objectDef.Features.Add(MutationConventionDataField, dataFieldDef.Name);
+        objectDef.Features.Set(new MutationPayloadInfo(dataFieldDef.Name));
         objectDef.Fields.Add(dataFieldDef);
 
         // if the mutation has domain errors we will add the errors
@@ -544,28 +545,24 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         ObjectTypeConfiguration objectTypeDef,
         TypeReference errorInterfaceTypeRef)
     {
-        if (objectTypeDef.Features.IsError())
+        if (objectTypeDef.IsError())
         {
             objectTypeDef.Interfaces.Add(errorInterfaceTypeRef);
         }
     }
 
     private static Options CreateOptions(
-        IDictionary<string, object?> contextData)
+        IDescriptorContext context)
     {
-        if (contextData.TryGetValue(MutationContextDataKeys.Options, out var value) &&
-            value is MutationConventionOptions options)
-        {
-            return new Options(
-                options.InputTypeNamePattern,
-                options.InputArgumentName,
-                options.PayloadTypeNamePattern,
-                options.PayloadErrorTypeNamePattern,
-                options.PayloadErrorsFieldName,
-                options.ApplyToAllMutations);
-        }
+        var options = context.Features.GetOrSet<MutationConventionOptions>();
 
-        return new Options(null, null, null, null, null, null);
+        return new Options(
+             options.InputTypeNamePattern,
+             options.InputArgumentName,
+             options.PayloadTypeNamePattern,
+             options.PayloadErrorTypeNamePattern,
+             options.PayloadErrorsFieldName,
+             options.ApplyToAllMutations);
     }
 
     private static Options CreateOptions(
@@ -701,9 +698,9 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private static ITypeNode CreateTypeNode(IType type)
         => type switch
         {
-            NonNullType nnt => new NonNullTypeNode((INullableTypeNode) CreateTypeNode(nnt.NullableType)),
+            NonNullType nnt => new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.NullableType)),
             ListType lt => new ListTypeNode(CreateTypeNode(lt.ElementType)),
-            INamedType nt => new NamedTypeNode(nt.Name),
+            ITypeDefinition nt => new NamedTypeNode(nt.Name),
             _ => throw new NotSupportedException("Type is not supported."),
         };
 

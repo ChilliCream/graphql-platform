@@ -55,7 +55,7 @@ internal partial class MiddlewareContext
             _argumentValues = default!;
         }
 
-        public ISchemaDefinition Schema => parentContext.Schema;
+        public Schema Schema => parentContext.Schema;
 
         public ObjectType ObjectType => _parentType;
 

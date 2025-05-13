@@ -11,3 +11,5 @@ internal sealed class ErrorSchemaFeature
 
     public ExtendedTypeReference? ErrorInterfaceRef { get; set; }
 }
+
+internal sealed class ErrorTypeFeature;

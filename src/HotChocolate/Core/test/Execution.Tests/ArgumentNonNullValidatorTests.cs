@@ -23,7 +23,7 @@ public class ArgumentNonNullValidatorTests
             .Use(_ => _ => default)
             .Create();
 
-        IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
+        IInputValueDefinition field = schema.QueryType.Fields["test"].Arguments["bar"];
 
         // act
         var report =

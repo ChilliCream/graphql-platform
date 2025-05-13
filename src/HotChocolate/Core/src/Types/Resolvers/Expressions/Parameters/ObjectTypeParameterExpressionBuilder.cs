@@ -31,5 +31,5 @@ internal sealed class ObjectTypeParameterExpressionBuilder()
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.ObjectType;
+        => (T)(object)context.ObjectType;
 }

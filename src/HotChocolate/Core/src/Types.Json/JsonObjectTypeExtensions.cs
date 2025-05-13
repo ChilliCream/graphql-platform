@@ -104,7 +104,7 @@ public static class JsonObjectTypeExtensions
     }
 
     internal static void InferResolver(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         ObjectFieldConfiguration def,
         ScalarType scalarType,
         string propertyName)

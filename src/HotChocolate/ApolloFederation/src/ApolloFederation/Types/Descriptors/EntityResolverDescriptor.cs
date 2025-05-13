@@ -2,12 +2,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -45,20 +45,8 @@ public sealed class EntityResolverDescriptor<TEntity>
     {
         if (Configuration.Resolver is not null)
         {
-            if (configuration.Features.TryGetValue(EntityResolver, out var value) &&
-                value is List<ReferenceResolverConfiguration> resolvers)
-            {
-                resolvers.Add(Configuration.Resolver);
-            }
-            else
-            {
-                configuration.Features.Add(
-                    EntityResolver,
-                    new List<ReferenceResolverConfiguration>
-                    {
-                        Configuration.Resolver,
-                    });
-            }
+            var resolvers = Configuration.Features.GetOrSet<List<ReferenceResolverConfiguration>>();
+            resolvers.Add(Configuration.Resolver);
         }
     }
 

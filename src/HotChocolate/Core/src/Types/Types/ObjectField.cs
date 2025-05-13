@@ -32,6 +32,24 @@ public sealed class ObjectField : OutputField
         SubscribeResolver = configuration.SubscribeResolver;
     }
 
+    internal ObjectField(ObjectField original, IType type)
+        : base(original, type)
+    {
+        Member = original.Member;
+        ResolverMember = original.ResolverMember ?? original.Member;
+        Middleware = _empty;
+        Resolver = original.Resolver!;
+        ResolverExpression = original.ResolverExpression;
+        SubscribeResolver = original.SubscribeResolver;
+        ResultPostProcessor = original.ResultPostProcessor;
+        PureResolver = original.PureResolver;
+        IsParallelExecutable = original.IsParallelExecutable;
+        DependencyInjectionScope = original.DependencyInjectionScope;
+        Middleware = original.Middleware;
+        Flags = original.Flags;
+    }
+
+
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>

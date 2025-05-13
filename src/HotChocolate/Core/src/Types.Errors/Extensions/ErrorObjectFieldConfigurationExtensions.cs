@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using static HotChocolate.Types.ErrorContextDataKeys;
 using static HotChocolate.Types.Properties.ErrorResources;
 
@@ -23,37 +24,20 @@ public static class ErrorObjectFieldConfigurationExtensions
         IDescriptorContext context,
         Type errorType)
     {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(errorType);
 
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (errorType is null)
-        {
-            throw new ArgumentNullException(nameof(errorType));
-        }
-
-        if (!context.ContextData.ContainsKey(ErrorConventionEnabled))
+        if (!context.Features.TryGet<ErrorSchemaFeature>(out var _))
         {
             throw SchemaErrorBuilder.New()
                 .SetMessage(ErrorConventionDisabled_Message, errorType.Name, configuration.Name)
                 .BuildException();
         }
 
-        if (!configuration.Features.TryGetValue(ErrorConfigurations, out var value) ||
-            value is not List<ErrorConfiguration> errorFactories)
-        {
-            errorFactories = [];
-            configuration.Features[ErrorConfigurations] = errorFactories;
-        }
-
         var errorConfigs = ErrorFactoryCompiler.Compile(errorType);
-        errorFactories.AddRange(errorConfigs);
+        var feature = configuration.Features.GetOrSet<ErrorFieldFeature>();
+        feature.ErrorConfigurations.AddRange(errorConfigs);
 
         foreach (var errorConfig in errorConfigs)
         {

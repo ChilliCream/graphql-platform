@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Features;
 using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -27,12 +28,16 @@ public static class MutationRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddMutationConventions(
         this IRequestExecutorBuilder builder,
         bool applyToAllMutations = true)
-        => AddMutationConventions(
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return AddMutationConventions(
             builder,
             new MutationConventionOptions
             {
                 ApplyToAllMutations = applyToAllMutations,
             });
+    }
 
     /// <summary>
     /// Enables mutation conventions which will simplify creating GraphQL mutations.
@@ -53,16 +58,13 @@ public static class MutationRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         MutationConventionOptions options)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder
             .ConfigureSchema(c =>
             {
-                c.ContextData[MutationContextDataKeys.Options] = options;
-                c.ContextData[ErrorContextDataKeys.ErrorConventionEnabled] = true;
+                c.Features.Set(options);
+                c.Features.GetOrSet<ErrorSchemaFeature>();
             })
             .AddFieldResultTypeDiscovery()
             .TryAddTypeInterceptor<MutationConventionTypeInterceptor>()

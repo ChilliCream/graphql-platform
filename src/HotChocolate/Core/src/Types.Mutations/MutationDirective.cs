@@ -20,12 +20,7 @@ internal sealed class MutationDirective : ISchemaDirective
 
         fieldDef.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
-                (c, d) =>
-                {
-                    c.ContextData
-                        .GetMutationFields()
-                        .Add(CreateMutationContextData(directiveNode, d));
-                },
+                (c, d) => c.GetMutationFields().Add(CreateMutationContextData(directiveNode, d)),
                 fieldDef,
                 ApplyConfigurationOn.BeforeNaming));
     }

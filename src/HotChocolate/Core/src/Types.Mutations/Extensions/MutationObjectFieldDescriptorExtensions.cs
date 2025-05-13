@@ -30,9 +30,9 @@ public static class MutationObjectFieldDescriptorExtensions
 
         descriptor.Extend().OnBeforeNaming((c, d) =>
         {
-            c.ContextData
-                .GetMutationFields()
-                .Add(new(d,
+            c.GetMutationFields().Add(
+                new MutationContextData(
+                    d,
                     options.InputTypeName,
                     options.InputArgumentName,
                     options.PayloadTypeName,

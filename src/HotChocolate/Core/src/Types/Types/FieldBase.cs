@@ -36,6 +36,25 @@ public abstract class FieldBase
         Type = default!;
     }
 
+    protected FieldBase(FieldBase original, IType type)
+    {
+        ArgumentNullException.ThrowIfNull(original);
+        ArgumentNullException.ThrowIfNull(type);
+
+        _config = original._config;
+        Index = original.Index;
+        Name = original.Name;
+        Description = original.Description;
+        IsDeprecated = original.IsDeprecated;
+        DeprecationReason = original.DeprecationReason;
+        Flags = original.Flags;
+        DeclaringType = original.DeclaringType;
+        DeclaringMember = original.DeclaringMember;
+        Features = original.Features;
+        Directives = original.Directives;
+        Type = type;
+    }
+
     /// <inheritdoc />
     public string Name { get; }
 
