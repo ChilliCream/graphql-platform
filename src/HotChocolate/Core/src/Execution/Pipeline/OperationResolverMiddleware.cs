@@ -84,7 +84,7 @@ internal sealed class OperationResolverMiddleware
 
     private static ObjectType? ResolveOperationType(
         OperationType operationType,
-        ISchema schema)
+        Schema schema)
         => operationType switch
         {
             OperationType.Query => schema.QueryType,

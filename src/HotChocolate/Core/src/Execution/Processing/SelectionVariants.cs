@@ -6,11 +6,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class SelectionVariants(int id) : ISelectionVariants
 {
-    private IObjectTypeDefinition? _firstType;
+    private ObjectType? _firstType;
     private SelectionSet? _firstSelectionSet;
-    private IObjectTypeDefinition? _secondType;
+    private ObjectType? _secondType;
     private SelectionSet? _secondSelectionSet;
-    private Dictionary<IObjectTypeDefinition, SelectionSet>? _map;
+    private Dictionary<ObjectType, SelectionSet>? _map;
     private bool _readOnly;
 
     /// <inheritdoc />
@@ -19,10 +19,10 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
     /// <inheritdoc />
     public IOperation DeclaringOperation { get; private set; } = default!;
 
-    public IEnumerable<IObjectTypeDefinition> GetPossibleTypes()
+    public IEnumerable<ObjectType> GetPossibleTypes()
         => _map?.Keys ?? GetPossibleTypesLazy();
 
-    public bool IsPossibleType(IObjectTypeDefinition typeContext)
+    public bool IsPossibleType(ObjectType typeContext)
     {
         if(_map is not null)
         {
@@ -42,7 +42,7 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
         return false;
     }
 
-    private IEnumerable<IObjectTypeDefinition> GetPossibleTypesLazy()
+    private IEnumerable<ObjectType> GetPossibleTypesLazy()
     {
         yield return _firstType!;
 
@@ -52,7 +52,7 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
         }
     }
 
-    public ISelectionSet GetSelectionSet(IObjectTypeDefinition typeContext)
+    public ISelectionSet GetSelectionSet(ObjectType typeContext)
     {
         if (_map is not null)
         {
@@ -79,7 +79,7 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
         throw SelectionSet_TypeContextInvalid(typeContext);
     }
 
-    internal bool ContainsSelectionSet(IObjectTypeDefinition typeContext)
+    internal bool ContainsSelectionSet(ObjectType typeContext)
     {
         if (_map is not null)
         {
@@ -136,7 +136,7 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
             }
             else
             {
-                _map = new Dictionary<IObjectTypeDefinition, SelectionSet>
+                _map = new Dictionary<ObjectType, SelectionSet>
                 {
                     { _firstType, _firstSelectionSet! },
                     { _secondType, _secondSelectionSet! },

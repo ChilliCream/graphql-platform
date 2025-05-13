@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 
@@ -31,6 +32,8 @@ internal sealed class RequestContext(
     public IOperationRequest Request { get; private set; } = default!;
 
     public IDictionary<string, object?> ContextData => _contextData;
+
+    public IFeatureCollection Features { get; } = new FeatureCollection();
 
     public CancellationToken RequestAborted { get; set; }
 

@@ -24,7 +24,7 @@ public interface ISelection : IOptionalSelection
     /// <summary>
     /// Gets the field that was selected.
     /// </summary>
-    IOutputFieldDefinition Field { get; }
+    ObjectField Field { get; }
 
     /// <summary>
     /// Gets the type of the selection.
@@ -44,7 +44,7 @@ public interface ISelection : IOptionalSelection
     /// <summary>
     /// Gets the type that declares the field that is selected by this selection.
     /// </summary>
-    IObjectTypeDefinition DeclaringType { get; }
+    ObjectType DeclaringType { get; }
 
     /// <summary>
     /// Gets the selectionSet that declares this selection.

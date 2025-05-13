@@ -7,7 +7,7 @@ internal sealed class FieldRequirementsMetadata
     private readonly Dictionary<SchemaCoordinate, TypeNode> _allRequirements = [];
     private bool _sealed;
 
-    public TypeNode? GetRequirements(IObjectTypeDefinition field)
+    public TypeNode? GetRequirements(IOutputFieldDefinition field)
         => _allRequirements.GetValueOrDefault(field.Coordinate);
 
     public void TryAddRequirements(SchemaCoordinate fieldCoordinate, TypeNode requirements)

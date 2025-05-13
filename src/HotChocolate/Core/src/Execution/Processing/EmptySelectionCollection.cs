@@ -20,7 +20,7 @@ internal sealed class EmptySelectionCollection : ISelectionCollection
     public ISelectionCollection Select(ReadOnlySpan<string> fieldNames)
         => Instance;
 
-    public ISelectionCollection Select(INamedType typeContext)
+    public ISelectionCollection Select(ITypeDefinition typeContext)
         => Instance;
 
     public bool IsSelected(string fieldName)

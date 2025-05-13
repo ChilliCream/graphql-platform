@@ -64,7 +64,7 @@ internal sealed class DocumentParserMiddleware
                             ErrorBuilder.New()
                                 .SetMessage(ex.Message)
                                 .SetCode(ErrorCodes.Execution.SyntaxError)
-                                .AddLocation(ex.Line, ex.Column)
+                                .AddLocation(new Location(ex.Line, ex.Column))
                                 .Build());
 
                         context.Exception = ex;

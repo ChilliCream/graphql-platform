@@ -1,11 +1,5 @@
-using HotChocolate.Configuration;
 using HotChocolate.Features;
-using HotChocolate.Properties;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
-using HotChocolate.Utilities;
-using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 

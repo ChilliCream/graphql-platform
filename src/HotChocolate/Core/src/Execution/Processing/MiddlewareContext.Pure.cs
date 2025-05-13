@@ -55,9 +55,9 @@ internal partial class MiddlewareContext
             _argumentValues = default!;
         }
 
-        public ISchema Schema => parentContext.Schema;
+        public ISchemaDefinition Schema => parentContext.Schema;
 
-        public IObjectType ObjectType => _parentType;
+        public ObjectType ObjectType => _parentType;
 
         public IOperation Operation => parentContext.Operation;
 
@@ -77,7 +77,7 @@ internal partial class MiddlewareContext
             => throw new NotSupportedException();
 
         public IReadOnlyList<ISelection> GetSelections(
-            IObjectType typeContext,
+            IObjectTypeDefinition typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
             => throw new NotSupportedException();

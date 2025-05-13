@@ -130,14 +130,62 @@ public interface ISchemaBuilder : IFeatureProvider
     /// </exception>
     ISchemaBuilder TryAddRootType(Func<ObjectType> rootType, OperationType operation);
 
+    /// <summary>
+    /// Adds a GraphQL directive type to the schema.
+    /// </summary>
+    /// <param name="type">
+    /// The GraphQL directive type.
+    /// </param>
+    /// <returns>
+    /// Returns the schema builder to chain in further configuration.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>
+    /// </exception>
     ISchemaBuilder AddDirectiveType(DirectiveType type);
 
+    /// <summary>
+    /// Sets the type resolver that is used to determine the GraphQL type from a runtime value.
+    /// </summary>
+    /// <param name="isOfType">
+    /// The type resolver.
+    /// </param>
+    /// <returns>
+    /// Returns the schema builder to chain in further configuration.
+    /// </returns>
     ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType);
 
+    /// <summary>
+    /// Adds services to the schema.
+    /// </summary>
+    /// <param name="services">
+    /// The services.
+    /// </param>
+    /// <returns>
+    /// Returns the schema builder to chain in further configuration.
+    /// </returns>
     ISchemaBuilder AddServices(IServiceProvider services);
 
+    /// <summary>
+    /// Adds a type interceptor to the schema.
+    /// </summary>
+    /// <param name="interceptor">
+    /// The type interceptor.
+    /// </param>
+    /// <returns>
+    /// Returns the schema builder to chain in further configuration.
+    /// </returns>
     ISchemaBuilder TryAddTypeInterceptor(Type interceptor);
 
+    /// <summary>
+    /// Adds a type interceptor to the schema.
+    /// </summary>
+    /// <param name="interceptor">
+    /// The type interceptor.
+    /// </param>
+    /// <returns>
+    /// Returns the schema builder to chain in further configuration.
+    /// </returns>
     ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor);
 
     /// <summary>
@@ -156,5 +204,11 @@ public interface ISchemaBuilder : IFeatureProvider
     /// </returns>
     Schema Create(IDescriptorContext context);
 
+    /// <summary>
+    /// Creates the schema building context.
+    /// </summary>
+    /// <returns>
+    /// Returns the schema building context.
+    /// </returns>
     IDescriptorContext CreateContext();
 }

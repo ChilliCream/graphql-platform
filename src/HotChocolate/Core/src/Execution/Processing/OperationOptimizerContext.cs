@@ -24,7 +24,7 @@ public readonly ref struct OperationOptimizerContext
         string id,
         DocumentNode document,
         OperationDefinitionNode definition,
-        ISchemaDefinition schema,
+        Schema schema,
         ObjectType rootType,
         SelectionVariants[] variants,
         IncludeCondition[] includeConditions,
@@ -63,12 +63,12 @@ public readonly ref struct OperationOptimizerContext
     /// <summary>
     /// Gets the schema for which the query is compiled.
     /// </summary>
-    public ISchemaDefinition Schema { get; }
+    public Schema Schema { get; }
 
     /// <summary>
     /// Gets the root type on which the operation is executed.
     /// </summary>
-    public IObjectTypeDefinition RootType => _rootType;
+    public ObjectType RootType => _rootType;
 
     /// <summary>
     /// Gets the prepared root selections for this operation.
@@ -117,7 +117,7 @@ public readonly ref struct OperationOptimizerContext
     /// <returns>
     /// Returns a <see cref="FieldDelegate" /> representing the field resolver pipeline.
     /// </returns>
-    public FieldDelegate CompileResolverPipeline(IOutputFieldDefinition field, FieldNode selection)
+    public FieldDelegate CompileResolverPipeline(ObjectField field, FieldNode selection)
         => _createFieldPipeline(Schema, field, selection);
 
     /// <summary>

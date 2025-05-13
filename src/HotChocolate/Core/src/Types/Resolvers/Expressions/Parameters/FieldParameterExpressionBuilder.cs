@@ -31,5 +31,5 @@ internal sealed class FieldParameterExpressionBuilder()
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.Selection.Field;
+        => (T)(object)context.Selection.Field;
 }

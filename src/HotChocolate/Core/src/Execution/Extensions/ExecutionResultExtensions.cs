@@ -16,15 +16,8 @@ public static class ExecutionResultExtensions
         IBufferWriter<byte> writer,
         bool withIndentations = true)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (withIndentations)
         {
@@ -56,10 +49,7 @@ public static class ExecutionResultExtensions
         this IExecutionResult result,
         bool withIndentations = true)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
         if (result is IOperationResult queryResult)
         {

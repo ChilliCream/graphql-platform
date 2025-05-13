@@ -22,7 +22,7 @@ public interface IResolverContext : IHasContextData
     /// <summary>
     /// Gets the object type on which the field resolver is being executed.
     /// </summary>
-    IObjectTypeDefinition ObjectType { get; }
+    ObjectType ObjectType { get; }
 
     /// <summary>
     /// Gets the operation from the query that is being executed.

@@ -11,7 +11,7 @@ namespace HotChocolate.Execution;
 public static class RequestExecutorServiceProviderExtensions
 {
     /// <summary>
-    /// Gets the <see cref="ISchema" /> from the <see cref="IServiceProvider"/>.
+    /// Gets the <see cref="ISchemaDefinition" /> from the <see cref="IServiceProvider"/>.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceProvider"/>.
@@ -25,7 +25,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// <returns>
     /// Returns the <see cref="IRequestExecutor" />.
     /// </returns>
-    public static async ValueTask<ISchema> GetSchemaAsync(
+    public static async ValueTask<ISchemaDefinition> GetSchemaAsync(
         this IServiceProvider services,
         string? schemaName = default,
         CancellationToken cancellationToken = default)
@@ -38,7 +38,7 @@ public static class RequestExecutorServiceProviderExtensions
     }
 
     /// <summary>
-    /// Builds the <see cref="ISchema" /> from the <see cref="IRequestExecutorBuilder"/>.
+    /// Builds the <see cref="ISchemaDefinition" /> from the <see cref="IRequestExecutorBuilder"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
@@ -52,7 +52,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// <returns>
     /// Returns the <see cref="IRequestExecutor" />.
     /// </returns>
-    public static async ValueTask<ISchema> BuildSchemaAsync(
+    public static async ValueTask<ISchemaDefinition> BuildSchemaAsync(
         this IRequestExecutorBuilder builder,
         string? schemaName = default,
         CancellationToken cancellationToken = default)

@@ -10,8 +10,6 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class RequestClassMiddlewareFactory
 {
-    private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
-
     private static readonly PropertyInfo _getSchemaName =
         typeof(IRequestCoreMiddlewareContext)
             .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaName))!;
@@ -31,10 +29,6 @@ internal static class RequestClassMiddlewareFactory
     private static readonly MethodInfo _getService =
         typeof(IServiceProvider)
             .GetMethod(nameof(IServiceProvider.GetService))!;
-
-    private static readonly MethodInfo _createValidator =
-        typeof(IDocumentValidatorFactory)
-            .GetMethod(nameof(IDocumentValidatorFactory.CreateValidator))!;
 
     internal static RequestCoreMiddleware Create<TMiddleware>()
         where TMiddleware : class
@@ -65,21 +59,7 @@ internal static class RequestClassMiddlewareFactory
         Expression services = Expression.Property(context, _appServices);
         Expression schemaServices = Expression.Property(context, _schemaServices);
 
-        Expression validatorFactory =
-            Expression.Convert(
-                Expression.Call(
-                    services,
-                    _getService,
-                    Expression.Constant(_validatorFactory)),
-                _validatorFactory);
-
-        Expression getValidator =
-            Expression.Call(
-                validatorFactory,
-                _createValidator,
-                schemaName);
-
-        var list = new List<IParameterHandler> { new TypeParameterHandler(typeof(IDocumentValidator), getValidator) };
+        var list = new List<IParameterHandler>();
 
         var constructor = middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
@@ -92,6 +72,7 @@ internal static class RequestClassMiddlewareFactory
             }
         }
 
+        AddService<DocumentValidator>(list, schemaServices);
         AddService<IErrorHandler>(list, schemaServices);
         AddService<IExecutionDiagnosticEvents>(list, schemaServices);
         AddService<IOperationDocumentStorage>(list, schemaServices);

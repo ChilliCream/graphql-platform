@@ -25,7 +25,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IServiceProvider RequestServices => _operationContext.Services;
 
-    public ISchema Schema => _operationContext.Schema;
+    public ISchemaDefinition Schema => _operationContext.Schema;
 
     public IOperation Operation => _operationContext.Operation;
 
@@ -52,7 +52,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocation([_selection.SyntaxNode])
+                .AddLocation(_selection.SyntaxNode)
                 .Build());
     }
 
@@ -82,7 +82,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
-                .AddLocation([_selection.SyntaxNode]);
+                .AddLocation(_selection.SyntaxNode);
 
             configure?.Invoke(errorBuilder);
 
@@ -154,9 +154,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
     {
         if (!_hasResolverResult)
         {
-            _resolverResult = Field.Resolver is null
+            _resolverResult = _selection.Field.Resolver is null
                 ? null
-                : await Field.Resolver(this).ConfigureAwait(false);
+                : await _selection.Field.Resolver(this).ConfigureAwait(false);
             _hasResolverResult = true;
         }
 

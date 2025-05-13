@@ -227,7 +227,7 @@ internal sealed class SelectionExpressionBuilder
 
     private static void TryAddAnyLeafField(
         TypeNode parent,
-        IObjectType selectionType)
+        ObjectType selectionType)
     {
         // if we could not collect anything it means that either all fields
         // are skipped or that __typename is the only field that is selected.
@@ -345,7 +345,7 @@ internal sealed class SelectionExpressionBuilder
     {
         public TypeNode? GetRequirements(ISelection selection)
         {
-            var flags = ((ObjectField)selection.Field).Flags;
+            var flags = selection.Field.Flags;
             return (flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements
                 ? Requirements.GetRequirements(selection.Field)
                 : null;

@@ -144,11 +144,13 @@ public sealed partial class OperationCompiler
             request.RootType,
             request.Schema);
 
+        var schema = Unsafe.As<Schema>(request.Schema);
+
         var variants = new SelectionVariants[_selectionVariants.Count];
 
         if (_operationOptimizers.Length == 0)
         {
-            CompleteResolvers(request.Schema);
+            CompleteResolvers(schema);
 
             // if we do not have any optimizers, we will copy
             // the variants and seal them in one go.
@@ -168,7 +170,7 @@ public sealed partial class OperationCompiler
                 request.Id,
                 request.Document,
                 request.Definition,
-                request.Schema,
+                schema,
                 request.RootType,
                 variants,
                 _includeConditions,
@@ -204,7 +206,7 @@ public sealed partial class OperationCompiler
                 optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
 
-            CompleteResolvers(request.Schema);
+            CompleteResolvers(schema);
 
             variantsSpan = variants.AsSpan();
             variantsStart = ref GetReference(variantsSpan)!;
@@ -281,7 +283,7 @@ public sealed partial class OperationCompiler
             }
 
             // Determines if the type is a composite type.
-            if (fieldType.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
+            if (fieldType.IsCompositeType())
             {
                 if (selection.SelectionSet is null)
                 {
@@ -316,7 +318,7 @@ public sealed partial class OperationCompiler
                 {
                     var streamDirective = selection.SyntaxNode.GetStreamDirective();
                     var nullValue = NullValueNode.Default;
-                    var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                    var ifValue = streamDirective?.GetArgumentValue(DirectiveNames.Stream.Arguments.If) ?? nullValue;
                     long ifConditionFlags = 0;
 
                     if (ifValue.Kind is not SyntaxKind.NullValue)
@@ -523,7 +525,7 @@ public sealed partial class OperationCompiler
             {
                 var deferDirective = directives.GetDeferDirectiveNode();
                 var nullValue = NullValueNode.Default;
-                var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                var ifValue = deferDirective?.GetArgumentValue(DirectiveNames.Defer.Arguments.If) ?? nullValue;
 
                 long ifConditionFlags = 0;
 

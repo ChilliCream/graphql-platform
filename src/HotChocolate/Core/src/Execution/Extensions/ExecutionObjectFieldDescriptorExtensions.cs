@@ -27,19 +27,12 @@ public static class ExecutionObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         ISelectionSetOptimizer optimizer)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (optimizer is null)
-        {
-            throw new ArgumentNullException(nameof(optimizer));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(optimizer);
 
         descriptor
             .Extend()
-            .OnBeforeCreate(d => RegisterOptimizer(d.Features, optimizer));
+            .OnBeforeCreate(d => RegisterOptimizer(d, optimizer));
 
         return descriptor;
     }

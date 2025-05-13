@@ -20,8 +20,8 @@ public class Selection : ISelection
 
     public Selection(
         int id,
-        IObjectTypeDefinition declaringType,
-        IOutputFieldDefinition field,
+        ObjectType declaringType,
+        ObjectField field,
         IType type,
         FieldNode syntaxNode,
         string responseName,
@@ -91,7 +91,7 @@ public class Selection : ISelection
     public SelectionExecutionStrategy Strategy { get; private set; }
 
     /// <inheritdoc />
-    public IObjectTypeDefinition DeclaringType { get; }
+    public ObjectType DeclaringType { get; }
 
     /// <inheritdoc />
     public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
@@ -99,7 +99,7 @@ public class Selection : ISelection
     public IOperation DeclaringOperation { get; private set; } = default!;
 
     /// <inheritdoc />
-    public IOutputFieldDefinition Field { get; }
+    public ObjectField Field { get; }
 
     /// <inheritdoc />
     public IType Type { get; }
@@ -409,8 +409,8 @@ public class Selection : ISelection
     {
         public Sealed(
             int id,
-            IObjectTypeDefinition declaringType,
-            IOutputFieldDefinition field,
+            ObjectType declaringType,
+            ObjectField field,
             IType type,
             FieldNode syntaxNode,
             string responseName,

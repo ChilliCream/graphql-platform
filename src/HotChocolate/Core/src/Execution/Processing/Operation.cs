@@ -61,7 +61,7 @@ internal sealed class Operation : IOperation
 
     public ISchemaDefinition Schema { get; }
 
-    public ISelectionSet GetSelectionSet(ISelection selection, IObjectTypeDefinition typeContext)
+    public ISelectionSet GetSelectionSet(ISelection selection, ObjectType typeContext)
     {
         if (selection is null)
         {
@@ -83,7 +83,7 @@ internal sealed class Operation : IOperation
         return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);
     }
 
-    public IEnumerable<IObjectTypeDefinition> GetPossibleTypes(ISelection selection)
+    public IEnumerable<ObjectType> GetPossibleTypes(ISelection selection)
     {
         if (selection is null)
         {

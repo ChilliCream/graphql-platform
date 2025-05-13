@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -9,86 +10,203 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
+    /// <summary>
+    /// Applies a field middleware to all fields of the schema.
+    /// </summary>
+    /// <typeparam name="TMiddleware">
+    /// The type of the middleware.
+    /// </typeparam>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    /// <remarks>
+    /// The middleware will be applied to all fields and will wrap all fields in an asynchronous
+    /// field delegate which will have big performance implications. This extension point is
+    /// meant for testing scenarios. Use a type interceptor if you want to more control over
+    /// where a field middleware is applied.
+    /// </remarks>
     public static IRequestExecutorBuilder UseField<TMiddleware>(
         this IRequestExecutorBuilder builder)
         where TMiddleware : class
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         return builder.UseField(
             FieldClassMiddlewareFactory.Create<TMiddleware>());
     }
 
+    /// <summary>
+    /// Applies a field middleware to a specific field.
+    /// </summary>
+    /// <typeparam name="TMiddleware">
+    /// The type of the middleware.
+    /// </typeparam>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="factory">
+    /// The factory that creates the middleware.
+    /// </param>
+    /// <returns>The request executor builder.</returns>
+    /// <remarks>
+    /// The middleware will be applied to all fields and will wrap all fields in an asynchronous
+    /// field delegate which will have big performance implications. This extension point is
+    /// meant for testing scenarios. Use a type interceptor if you want to more control over
+    /// where a field middleware is applied.
+    /// </remarks>
     public static IRequestExecutorBuilder UseField<TMiddleware>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
         return builder.UseField(
             FieldClassMiddlewareFactory.Create(factory));
     }
 
+    /// <summary>
+    /// Applies a field middleware to all fields of the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="middleware">
+    /// The middleware.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// <paramref name="middleware"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The middleware will be applied to all fields and will wrap all fields in an asynchronous
+    /// field delegate which will have big performance implications. This extension point is
+    /// meant for testing scenarios. Use a type interceptor if you want to more control over
+    /// where a field middleware is applied.
+    /// </remarks>
+    public static IRequestExecutorBuilder UseField(
+        this IRequestExecutorBuilder builder,
+        FieldMiddleware middleware)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(middleware);
+
+        return builder.ConfigureSchema(b => b.Use(middleware));
+    }
+
+    /// <summary>
+    /// Applies a field middleware to a specific field.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="fieldReference">
+    /// The field reference.
+    /// </param>
+    /// <param name="middleware">
+    /// The middleware.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
     public static IRequestExecutorBuilder MapField(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference,
         FieldMiddleware middleware)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(fieldReference);
+        ArgumentNullException.ThrowIfNull(middleware);
+
         return builder.MapFieldMiddleware(fieldReference, middleware);
     }
 
+    /// <summary>
+    /// Applies a field middleware to a specific field.
+    /// </summary>
+    /// <typeparam name="TMiddleware">
+    /// The type of the middleware.
+    /// </typeparam>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="fieldReference">
+    /// The field reference.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
     public static IRequestExecutorBuilder MapField<TMiddleware>(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference)
         where TMiddleware : class
     {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(fieldReference);
+
         var classMiddleware = FieldClassMiddlewareFactory.Create<TMiddleware>();
         return builder.MapFieldMiddleware(fieldReference, classMiddleware);
     }
 
+    /// <summary>
+    /// Applies a field middleware to a specific field.
+    /// </summary>
+    /// <typeparam name="TMiddleware">
+    /// The type of the middleware.
+    /// </typeparam>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="fieldReference">
+    /// The field reference.
+    /// </param>
+    /// <param name="factory">
+    /// The factory that creates the middleware.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// <paramref name="fieldReference"/> is <c>null</c>.
+    /// <paramref name="factory"/> is <c>null</c>.
+    /// </exception>
     public static IRequestExecutorBuilder MapField<TMiddleware>(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(fieldReference);
+        ArgumentNullException.ThrowIfNull(factory);
+
         var classMiddleware = FieldClassMiddlewareFactory.Create(factory);
         return builder.MapFieldMiddleware(fieldReference, classMiddleware);
-    }
-
-    public static IRequestExecutorBuilder UseField(
-        this IRequestExecutorBuilder builder,
-        FieldMiddleware middleware)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
-
-        return builder.ConfigureSchema(b => b.Use(middleware));
     }
 
     private static IRequestExecutorBuilder MapFieldMiddleware(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference,
         FieldMiddleware middleware)
-        => builder
-            .TryAddTypeInterceptor(typeof(ApplyFieldMiddlewareInterceptor))
-            .ConfigureSchema(b => b
-                .SetContextData(
-                    ApplyFieldMiddlewareInterceptor.ContextKey,
-                    obj =>
-                    {
-                        if (obj is not FieldMiddlewareLookup lookup)
-                        {
-                            lookup = new FieldMiddlewareLookup();
-                        }
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(fieldReference);
+        ArgumentNullException.ThrowIfNull(middleware);
 
-                        lookup.RegisterFieldMiddleware(fieldReference, middleware);
-                        return lookup;
-                    }));
+        return builder
+            .TryAddTypeInterceptor<ApplyFieldMiddlewareInterceptor>()
+            .ConfigureSchema(b => b.Features
+                .GetOrSet<FieldMiddlewareLookup>()
+                .RegisterFieldMiddleware(fieldReference, middleware));
+    }
 
     private sealed class FieldMiddlewareLookup
     {
@@ -128,11 +246,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     {
         public const string ContextKey = "HotChocolate.Execution.FieldMiddlewareLookup";
 
-        private bool CanHandle(ITypeSystemObjectContext context) =>
-            context.Type is ObjectType { Name: { } typeName, } &&
-            context.ContextData.TryGetValue(ContextKey, out var value) &&
-            value is FieldMiddlewareLookup lookup &&
-            lookup.HasFieldMiddleware(typeName);
+        private static bool CanHandle(ITypeSystemObjectContext context)
+            => context.Type is ObjectType { Name: { } typeName }
+                && context.Features.TryGet<FieldMiddlewareLookup>(out var lookup)
+                && lookup.HasFieldMiddleware(typeName);
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
@@ -143,16 +260,12 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 return;
             }
 
-            if (!completionContext.ContextData.TryGetValue(ContextKey, out var value) ||
-                value is not FieldMiddlewareLookup lookup)
-            {
-                return;
-            }
-
             if (configuration is not ObjectTypeConfiguration def)
             {
                 return;
             }
+
+            var lookup = completionContext.Features.GetRequired<FieldMiddlewareLookup>();
 
             foreach (var field in def.Fields)
             {

@@ -1,7 +1,6 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Execution.Options.PersistedOperationOptions;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -19,15 +18,13 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IPersistedOperationOptionsAccessor options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+        ArgumentNullException.ThrowIfNull(options);
 
-        _next = next
-            ?? throw new ArgumentNullException(nameof(next));
-        _diagnosticEvents = diagnosticEvents
-            ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+
+        _next = next;
+        _diagnosticEvents = diagnosticEvents;
 
         // prepare options.
         _options = options.PersistedOperations;
