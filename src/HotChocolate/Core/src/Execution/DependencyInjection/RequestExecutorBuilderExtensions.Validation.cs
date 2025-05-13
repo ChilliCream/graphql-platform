@@ -297,8 +297,20 @@ public static partial class RequestExecutorBuilderExtensions
         return builder;
     }
 
-    private static IRequestExecutorBuilder ConfigureValidation(
-        IRequestExecutorBuilder builder,
+    /// <summary>
+    /// Configures the underlying <see cref="DocumentValidatorBuilder"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// The delegate to configure the <see cref="DocumentValidatorBuilder"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
+    public static IRequestExecutorBuilder ConfigureValidation(
+        this IRequestExecutorBuilder builder,
         Action<IServiceProvider, DocumentValidatorBuilder> configure)
         => Configure(builder, b => b.OnBuildDocumentValidatorHooks.Add(configure));
 }

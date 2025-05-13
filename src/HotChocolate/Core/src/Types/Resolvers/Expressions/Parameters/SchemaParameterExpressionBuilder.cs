@@ -34,5 +34,5 @@ internal sealed class SchemaParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.Schema;
+        => (T)(object)context.Schema;
 }
