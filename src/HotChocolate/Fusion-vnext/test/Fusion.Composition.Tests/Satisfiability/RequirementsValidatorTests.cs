@@ -8,6 +8,8 @@ using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
+// IGNORE THIS FILE, IT'S A MESS.
+
 public sealed class RequirementsValidatorTests
 {
 //     [Fact]

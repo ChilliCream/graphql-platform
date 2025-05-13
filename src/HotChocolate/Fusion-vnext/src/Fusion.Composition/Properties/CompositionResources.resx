@@ -333,6 +333,9 @@
   <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
   </data>
+  <data name="RequirementsValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
   <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
   </data>
@@ -346,7 +349,7 @@
     <value>Unable to satisfy the requirement '{0}'.</value>
   </data>
   <data name="RequirementsValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
-    <value>Unable to satisfy the requirement '{0}' for lookup '{1}'.</value>
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
   </data>
   <data name="RequirementsValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
     <value>Unable to transition between schemas '{0}' and '{1}' for access to required field '{2}'.</value>
@@ -370,7 +373,7 @@
     <value>Unable to satisfy the requirement '{0}' on field '{1}'.</value>
   </data>
   <data name="SatisfiabilityValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
-    <value>Unable to satisfy the requirement '{0}' for lookup '{1}'.</value>
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
   </data>
   <data name="SatisfiabilityValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
     <value>Unable to transition between schemas '{0}' and '{1}' for access to field '{2}'.</value>

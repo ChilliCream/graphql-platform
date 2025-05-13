@@ -71,13 +71,12 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                     if (fieldErrors.Length != 0)
                     {
                         var type = context.TypeContext.Peek();
-                        var field = type.Fields[fieldNode.Name.Value];
 
                         errors.Add(new SatisfiabilityError(
                             string.Format(
                                 RequirementsValidator_UnableToAccessFieldOnPath,
                                 type.Name,
-                                field.Name,
+                                fieldNode.Name.Value,
                                 context.Path),
                             [.. fieldErrors]));
                     }
@@ -123,10 +122,22 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
         FieldNode fieldNode,
         RequirementsValidatorContext context)
     {
-        var type = context.TypeContext.Peek();
-        var field = type.Fields[fieldNode.Name.Value];
-        var schemaNames = field.GetSchemaNames().Remove(context.ExcludeSchemaName); // todo exclude at level 1 only?
         var errors = new List<SatisfiabilityError>();
+        var type = context.TypeContext.Peek();
+
+        if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
+        {
+            errors.Add(
+                new SatisfiabilityError(
+                    string.Format(
+                        RequirementsValidator_FieldDoesNotExistOnType,
+                        fieldNode.Name.Value,
+                        type.Name)));
+
+            return [.. errors];
+        }
+
+        var schemaNames = field.GetSchemaNames().Remove(context.ExcludeSchemaName); // todo exclude at level 1 only?
         var previousSchemaName = context.Path.Peek().SchemaName;
 
         foreach (var schemaName in schemaNames)
@@ -185,7 +196,6 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
             }
 
             // Validate transition between source schemas.
-            var transitioned = false;
             if (previousSchemaName != schemaName)
             {
                 //Debug.WriteLine($"Validating transition between schemas '{previousSchemaName}' and '{schemaName}'.");
@@ -215,8 +225,6 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                     continue;
                 }
 
-                transitioned = true;
-
                 //Debug.Unindent();
                 //Debug.WriteLine("Transition validated.");
             }
@@ -230,14 +238,6 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
             {
                 //Debug.WriteLine("LEAF NODE - BREAK");
                 context.Path.Pop();
-
-                //tmp ugly
-                if (transitioned)
-                {
-                    context.Path.Pop();
-                    //Debug.WriteLine($"[{context.Path}] (AFTER POP FOR LOOKUP)");
-                }
-
                 errors.Clear();
                 break;
             }
@@ -282,12 +282,6 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
             context.Path.Pop();
             //Debug.WriteLine($"[{context.Path}] (AFTER POP)");
 
-            if (transitioned)
-            {
-                context.Path.Pop();
-                //Debug.WriteLine($"[{context.Path}] (AFTER POP FOR LOOKUP)");
-            }
-
             if (errors.Count == 0)
             {
                 //Debug.WriteLine("BREAK!");
@@ -305,9 +299,7 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                         field.Name)));
         }
 
-        //Debug.WriteLine(errors.Count == 0
-            // ? $"Found option for '{type.Name}.{field.Name}'."
-            // : $"Option not found for '{type.Name}.{field.Name}'.");
+        //Debug.WriteLine(errors.Count == 0 ? $"Found option for '{type.Name}.{field.Name}'." : $"Option not found for '{type.Name}.{field.Name}'.");
 
         return [.. errors];
     }
@@ -368,26 +360,23 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
 
             //Debug.Unindent();
 
-            var (lookupField, lookupType) =
-                schema.QueryType!.GetFieldAndTypeAtPath(lookupFieldName, lookupPathArg);
-
-            var lookupPathItem =
-                new SatisfiabilityPathItem(lookupField, lookupType, transitionToSchemaName);
-
             if (requirementErrors.IsEmpty)
             {
-                //Debug.WriteLine($"All requirements satisfied for lookup '{lookupPathItem}'.");
-                context.Path.Push(lookupPathItem);
-                //Debug.WriteLine($"[{context.Path}] (AFTER PUSH FOR LOOKUP)");
+                //Debug.WriteLine($"All requirements satisfied for lookup '{lookupFieldName}'.");
                 return [];
             }
+
+            var lookupName = lookupPathArg is null
+                ? lookupFieldName
+                : $"{lookupPathArg}.{lookupFieldName}";
 
             errors.Add(
                 new SatisfiabilityError(
                     string.Format(
                         RequirementsValidator_UnableToSatisfyRequirementForLookup,
                         lookupRequirements.ToString(indented: false),
-                        lookupPathItem),
+                        lookupName,
+                        transitionToSchemaName),
                     requirementErrors));
         }
 

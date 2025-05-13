@@ -18,29 +18,6 @@ internal static class MutableObjectTypeDefinitionExtensions
             d => d.Name == FusionType && (string)d.Arguments[Schema].Value! == schemaName);
     }
 
-    public static (MutableOutputFieldDefinition, MutableObjectTypeDefinition) GetFieldAndTypeAtPath(
-        this MutableObjectTypeDefinition type,
-        string fieldName,
-        string? path)
-    {
-        if (path is null)
-        {
-            return (type.Fields[fieldName], type);
-        }
-
-        var pathItems = path.Split('.');
-        var field = type.Fields[pathItems[0]];
-
-        for (var i = 1; i < pathItems.Length; i++)
-        {
-            field = ((MutableObjectTypeDefinition)field.Type.NullableType()).Fields[pathItems[i]];
-        }
-
-        var fieldType = (MutableObjectTypeDefinition)field.Type.NullableType();
-
-        return (fieldType.Fields[fieldName], fieldType);
-    }
-
     public static IEnumerable<IDirective> GetFusionLookupDirectives(
         this MutableObjectTypeDefinition type,
         string schemaName,

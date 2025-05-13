@@ -1005,6 +1005,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
         /// </summary>
         internal static string RequirementsValidator_NoLookupsFoundForType {
@@ -1041,7 +1050,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
         /// </summary>
         internal static string RequirementsValidator_UnableToSatisfyRequirementForLookup {
             get {
@@ -1113,7 +1122,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
         /// </summary>
         internal static string SatisfiabilityValidator_UnableToSatisfyRequirementForLookup {
             get {

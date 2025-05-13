@@ -120,14 +120,14 @@ public sealed class SatisfiabilityValidatorTests
             """
             Unable to access the field 'Product.sku' on path 'B:Query.productById<Product>'.
               Unable to transition between schemas 'B' and 'A' for access to field 'A:Product.sku<String>'.
-                Unable to satisfy the requirement '{ id sku }' for lookup 'A:Query.productByIdSku<Product>'.
+                Unable to satisfy the requirement '{ id sku }' for lookup 'productByIdSku' in schema 'A'.
                   Unable to satisfy the requirement 'sku'.
                     Unable to access the required field 'Product.sku' on path 'B:Query.productById<Product>'.
                         No other schemas contain the field 'Product.sku'.
 
             Unable to access the field 'Product.name' on path 'B:Query.productById<Product>'.
               Unable to transition between schemas 'B' and 'A' for access to field 'A:Product.name<String>'.
-                Unable to satisfy the requirement '{ id sku }' for lookup 'A:Query.productByIdSku<Product>'.
+                Unable to satisfy the requirement '{ id sku }' for lookup 'productByIdSku' in schema 'A'.
                   Unable to satisfy the requirement 'sku'.
                     Unable to access the required field 'Product.sku' on path 'B:Query.productById<Product>'.
                         No other schemas contain the field 'Product.sku'.
@@ -179,28 +179,28 @@ public sealed class SatisfiabilityValidatorTests
             """
             Unable to access the field 'Product.sku' on path 'A:Query.productById<Product>'.
               Unable to transition between schemas 'A' and 'B' for access to field 'B:Product.sku<String>'.
-                Unable to satisfy the requirement '{ sku }' for lookup 'B:Query.productBySku<Product>'.
+                Unable to satisfy the requirement '{ sku }' for lookup 'productBySku' in schema 'B'.
                   Unable to satisfy the requirement 'sku'.
                     Unable to access the required field 'Product.sku' on path 'A:Query.productById<Product>'.
                       No other schemas contain the field 'Product.sku'.
 
             Unable to access the field 'Product.stock' on path 'A:Query.productById<Product>'.
               Unable to transition between schemas 'A' and 'B' for access to field 'B:Product.stock<Int>'.
-                Unable to satisfy the requirement '{ sku }' for lookup 'B:Query.productBySku<Product>'.
+                Unable to satisfy the requirement '{ sku }' for lookup 'productBySku' in schema 'B'.
                   Unable to satisfy the requirement 'sku'.
                     Unable to access the required field 'Product.sku' on path 'A:Query.productById<Product>'.
                       No other schemas contain the field 'Product.sku'.
 
             Unable to access the field 'Product.id' on path 'B:Query.productBySku<Product>'.
               Unable to transition between schemas 'B' and 'A' for access to field 'A:Product.id<ID>'.
-                Unable to satisfy the requirement '{ id }' for lookup 'A:Query.productById<Product>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'productById' in schema 'A'.
                   Unable to satisfy the requirement 'id'.
                     Unable to access the required field 'Product.id' on path 'B:Query.productBySku<Product>'.
                       No other schemas contain the field 'Product.id'.
 
             Unable to access the field 'Product.description' on path 'B:Query.productBySku<Product>'.
               Unable to transition between schemas 'B' and 'A' for access to field 'A:Product.description<String>'.
-                Unable to satisfy the requirement '{ id }' for lookup 'A:Query.productById<Product>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'productById' in schema 'A'.
                   Unable to satisfy the requirement 'id'.
                     Unable to access the required field 'Product.id' on path 'B:Query.productBySku<Product>'.
                       No other schemas contain the field 'Product.id'.
@@ -373,14 +373,14 @@ public sealed class SatisfiabilityValidatorTests
             """
             Unable to access the field 'Category.id' on path 'A:Query.productById<Product> -> A:Product.category<Category>'.
               Unable to transition between schemas 'A' and 'B' for access to field 'B:Category.id<ID>'.
-                Unable to satisfy the requirement '{ id }' for lookup 'B:Query.categoryById<Category>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'categoryById' in schema 'B'.
                   Unable to satisfy the requirement 'id'.
                     Unable to access the required field 'Category.id' on path 'A:Product.category<Category>'.
                         No other schemas contain the field 'Category.id'.
 
             Unable to access the field 'Category.description' on path 'A:Query.productById<Product> -> A:Product.category<Category>'.
               Unable to transition between schemas 'A' and 'B' for access to field 'B:Category.description<String>'.
-                Unable to satisfy the requirement '{ id }' for lookup 'B:Query.categoryById<Category>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'categoryById' in schema 'B'.
                   Unable to satisfy the requirement 'id'.
                     Unable to access the required field 'Category.id' on path 'A:Product.category<Category>'.
                         No other schemas contain the field 'Category.id'.
@@ -444,10 +444,9 @@ public sealed class SatisfiabilityValidatorTests
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites
 
     [Fact]
-    //
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/abstract-types
     public void AbstractTypes()
     {
-        // todo use abstract lookup instead for PublisherType in schema A?
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(
@@ -455,8 +454,7 @@ public sealed class SatisfiabilityValidatorTests
                 """
                 # Schema A
                 type Query {
-                    agencyById(id: ID!): Agency @lookup @inaccessible # Added
-                    groupById(id: ID!): Group @lookup @inaccessible # Added
+                    publisherTypeById(id: ID!): PublisherType @lookup @inaccessible # Added
                 }
 
                 type Agency @key(fields: "id") {
@@ -669,6 +667,59 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/child-type-mismatch
+    public void ChildTypeMismatch()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type User {
+                    id: ID @shareable
+                }
+
+                type Query {
+                    users: [User!]!
+                }
+                """,
+                """
+                # Schema B
+                union Account = User | Admin
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    name: String
+                    similarAccounts: [Account!]!
+                }
+
+                type Admin {
+                    id: ID
+                    name: String @shareable
+                    similarAccounts: [Account!]!
+                }
+
+                type Query {
+                    accounts: [Account!]!
+                    userById(id: ID!): User @lookup @inaccessible # Added
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/circular-reference-interface
     public void CircularReferenceInterface()
     {
@@ -701,6 +752,358 @@ public sealed class SatisfiabilityValidatorTests
                 type Book @key(fields: "id") {
                     id: ID!
                     price: Float @shareable
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/complex-entity-call
+    public void ComplexEntityCall()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query { # Added
+                    productById(id: String!): Product @lookup @inaccessible
+                    productByIdAndPid(id: String!, pid: String!): Product @lookup @inaccessible
+                }
+
+                type Product @key(fields: "id") @key(fields: "id pid") {
+                    id: String!
+                    pid: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query { # Added
+                    productListByProductsIdAndPid(
+                        key: [ProductIdAndPidInput!]! @is(field: "products[{id pid}]")
+                    ): ProductList @lookup @inaccessible
+                    productByIdAndPid(id: String!, pid: String): Product @lookup @inaccessible
+                }
+
+                input ProductIdAndPidInput { # Added
+                    id: String!
+                    pid: String
+                }
+
+                type ProductList @key(fields: "products { id pid }") {
+                    products: [Product!]!
+                    first: Product @shareable
+                    selected: Product @shareable
+                }
+
+                type Product @key(fields: "id pid") {
+                    id: String!
+                    pid: String
+                }
+                """,
+                """
+                # Schema C
+                type Query { # Added
+                    productListByProductsIdAndPidAndCategoryAndSelected(
+                        products: [ProductIdAndPidAndCategoryInput!]!
+                            @is(field: "products[{ id pid category: category.{ id tag } }]")
+                        selectedId: String! @is(field: "selected.id")
+                    ): ProductList @lookup @inaccessible
+                    productByIdAndPidAndCategory(
+                        id: String!
+                        pid: String
+                        category: CategoryIdAndTagInput! @is(field: "category.{ id tag }")
+                    ): Product @lookup @inaccessible
+                    categoryByIdAndTag(id: String!, tag: String): Category @lookup @inaccessible
+                }
+
+                input ProductIdAndPidAndCategoryInput {
+                    id: String!
+                    pid: String
+                    category: CategoryIdAndTagInput!
+                }
+
+                input CategoryIdAndTagInput {
+                    id: String!
+                    tag: String
+                }
+
+                type ProductList
+                    @key(fields: "products { id pid category { id tag } } selected { id }") {
+                    products: [Product!]!
+                    first: Product @shareable
+                    selected: Product @shareable
+                }
+
+                type Product @key(fields: "id pid category { id tag }") {
+                    id: String!
+                    price: Price
+                    pid: String
+                    category: Category
+                }
+
+                type Category @key(fields: "id tag") {
+                    id: String!
+                    tag: String
+                }
+
+                type Price {
+                    price: Float!
+                }
+                """,
+                """
+                # Schema D
+                type Query {
+                    topProducts: ProductList!
+                    productListByProductsId(
+                        products: [ProductIdInput!]! @is(field: "products[id]")
+                    ): ProductList @lookup @inaccessible # Added
+                    productById(id: String!): Product @lookup @inaccessible # Added
+                    categoryById(id: String!): Category @lookup @inaccessible # Added
+                }
+
+                input ProductIdInput {
+                    id: String!
+                }
+
+                type ProductList @key(fields: "products { id }") {
+                    products: [Product!]!
+                }
+
+                type Product @key(fields: "id") {
+                    id: String! @external
+                    category: Category @shareable
+                }
+
+                type Category @key(fields: "id") {
+                    mainProduct: Product! @shareable
+                    id: String!
+                    tag: String @shareable
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/keys-mashup
+    public void KeysMashup()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    aById(id: ID!): A @lookup @inaccessible # Added
+                }
+
+                type A
+                    @key(fields: "id", resolvable: true)
+                    @key(fields: "pId", resolvable: false)
+                    @key(fields: "compositeId { one two }", resolvable: false)
+                    @key(fields: "id compositeId { two three }", resolvable: false) {
+                    id: ID!
+                    pId: ID!
+                    compositeId: CompositeID!
+                    name: String!
+                }
+
+                type CompositeID {
+                    one: ID!
+                    two: ID!
+                    three: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    b: B
+                    aByIdAndCompositeId(
+                        id: ID!
+                        compositeId: CompositeIDInput!
+                    ): A @lookup @inaccessible # Added
+                }
+
+                input CompositeIdInput {
+                    two: ID!
+                    three: ID!
+                }
+
+                type B @key(fields: "id") {
+                    id: ID!
+                    a: [A!]!
+                }
+
+                type A
+                    @key(fields: "compositeId { one two }", resolvable: false)
+                    @key(fields: "id compositeId { two three }", resolvable: true)
+                    @key(fields: "pId", resolvable: false)
+                    @key(fields: "id", resolvable: false) {
+                    id: ID!
+                    pId: ID!
+                    compositeId: CompositeID!
+                    name: String! @external
+                    nameInB: String! @requires(fields: "name")
+                }
+
+                type CompositeID {
+                    one: ID!
+                    two: ID!
+                    three: ID!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/mutations
+    public void Mutations()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Mutation {
+                    addProduct(input: AddProductInput!): Product!
+                    multiply(by: Int!, requestId: String!): Int!
+                }
+
+                type Query {
+                    product(id: ID!): Product!
+                    products: [Product!]!
+                }
+
+                input AddProductInput {
+                    name: String!
+                    price: Float!
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    name: String!
+                    price: Float!
+                }
+                """,
+                """
+                # Schema B
+                type Product @key(fields: "id") {
+                    id: ID!
+                    price: Float! @external
+                    isExpensive: Boolean! @requires(fields: "price")
+                    isAvailable: Boolean!
+                }
+
+                type Query { # Added
+                    productById(id: ID!): Product @lookup @inaccessible
+                }
+
+                type Mutation {
+                    delete(requestId: String!): Int!
+                }
+                """,
+                """
+                # Schema C
+                type Mutation {
+                    add(num: Int!, requestId: String!): Int!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/node
+    public void Node()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productNode: Node
+                    categoryNode: Node
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Product implements Node @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Category implements Node @key(fields: "id") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query { # Added
+                    node(id: ID!): Node @lookup @inaccessible
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Product implements Node @key(fields: "id") @shareable {
+                    id: ID!
+                    name: String!
+                    price: Float!
+                }
+
+                type Category implements Node @key(fields: "id") {
+                    id: ID!
+                    name: String!
                 }
                 """
             ]),
@@ -1211,52 +1614,6 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void NodeLookup()
-    {
-        // arrange
-        var merger = new SourceSchemaMerger(
-            CreateSchemaDefinitions(
-            [
-                """
-                # Schema A
-                type Query {
-                    productById(id: ID!): Product @lookup
-                }
-
-                type Product {
-                    id: ID!
-                }
-                """,
-                """
-                # Schema B
-                type Query {
-                    node(id: ID!): Node @lookup
-                }
-
-                type Product implements Node {
-                    id: ID!
-                    name: String
-                }
-
-                interface Node {
-                    id: ID!
-                }
-                """
-            ]),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
-
-        var schema = merger.Merge().Value;
-        var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
-
-        // act
-        var result = satisfiabilityValidator.Validate();
-
-        // assert
-        Assert.True(result.IsSuccess);
-    }
-
-    [Fact]
     public void NonRootLookup()
     {
         // arrange
@@ -1550,12 +1907,12 @@ public sealed class SatisfiabilityValidatorTests
               Unable to satisfy the requirement '{ category { name } section { name } }' on field 'A:Product.title<String>'.
                 Unable to satisfy the requirement 'category { name }'.
                   Unable to access the required field 'Product.category' on path 'A:Query.productById<Product>'.
-                    Unable to access the required field 'Category.name' on path 'A:Query.productById<Product> -> B:Query.productById<Product> -> B:Product.category<Category>'.
+                    Unable to access the required field 'Category.name' on path 'A:Query.productById<Product> -> B:Product.category<Category>'.
                       Unable to transition between schemas 'B' and 'C' for access to required field 'C:Category.name<String>'.
                         No lookups found for type 'Category' in schema 'C'.
                 Unable to satisfy the requirement 'section { name }'.
                   Unable to access the required field 'Product.section' on path 'A:Query.productById<Product>'.
-                    Unable to access the required field 'Section.name' on path 'A:Query.productById<Product> -> B:Query.productById<Product> -> B:Product.section<Section>'.
+                    Unable to access the required field 'Section.name' on path 'A:Query.productById<Product> -> B:Product.section<Section>'.
                       Unable to transition between schemas 'B' and 'C' for access to required field 'C:Section.name<String>'.
                         No lookups found for type 'Section' in schema 'C'.
 

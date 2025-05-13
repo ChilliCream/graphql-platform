@@ -86,19 +86,11 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
 
             //Debug.WriteLine($"Checking satisfiability for field '{pathItem}'.");
 
-            Debug.WriteLine(context.Path);
+            //Debug.WriteLine(context.Path);
 
             // Validate that we are not in a cycle.
             if (!context.CycleDetectionPath.Push(pathItem))
             {
-                cycle = true;
-                continue;
-            }
-
-            if (context.Path.Contains(pathItem))
-            {
-                //tmp
-                context.CycleDetectionPath.Pop();
                 cycle = true;
                 continue;
             }
@@ -135,7 +127,6 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
             }
 
             // Validate transition between source schemas.
-            var transitioned = false;
             if (previousSchemaName is not null && previousSchemaName != schemaName)
             {
                 //Debug.WriteLine($"Validating transition between schemas '{previousSchemaName}' and '{schemaName}'.");
@@ -159,14 +150,12 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
 
                     continue;
                 }
-
-                transitioned = true;
             }
 
             optionCount++;
 
             context.Path.Push(pathItem);
-            Debug.WriteLine($"[{context.Path}] (AFTER PUSH)");
+            //Debug.WriteLine($"[{context.Path}] (AFTER PUSH)");
 
             // Visit each of the possible types that the field may return.
             if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
@@ -187,15 +176,9 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
             }
 
             context.Path.Pop();
-            Debug.WriteLine($"[{context.Path}] (AFTER POP)");
+            //Debug.WriteLine($"[{context.Path}] (AFTER POP)");
 
             context.CycleDetectionPath.Pop();
-
-            if (transitioned)
-            {
-                // context.Path.Pop();
-                // Debug.WriteLine($"[{context.Path}] (AFTER POP FOR LOOKUP)");
-            }
 
             // When we reach a leaf field, we can break early as we only need a single option.
             if (fieldType.IsLeafType())
@@ -216,6 +199,8 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                     field.Name,
                     context.Path),
                 [.. errors]);
+
+            //Debug.WriteLine(error);
 
             log.Write(
                 new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
@@ -277,41 +262,23 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
 
             //Debug.Unindent();
 
-            var (lookupField, lookupType) =
-                schema.QueryType!.GetFieldAndTypeAtPath(lookupFieldName, lookupPathArg);
-
-            var lookupPathItem =
-                new SatisfiabilityPathItem(lookupField, lookupType, transitionToSchemaName);
-
             if (requirementErrors.IsEmpty)
             {
-                //Debug.WriteLine($"All requirements satisfied for lookup '{lookupPathItem}'.");
-
-                // TODO Try not pushing lookups to the path?
-                // if (!context.Path.Push(lookupPathItem))
-                // {
-                //     Debug.WriteLine($"Cycle detected for lookup '{lookupPathItem}'.");
-                //
-                //     errors.Add(
-                //         new SatisfiabilityError(
-                //             string.Format(
-                //                 SatisfiabilityValidator_CycleDetected,
-                //                 context.Path,
-                //                 lookupPathItem)));
-                //
-                //     continue;
-                // }
-                //
-                // Debug.WriteLine($"[{context.Path}] (AFTER PUSH FOR LOOKUP)");
+                //Debug.WriteLine($"All requirements satisfied for lookup '{lookupFieldName}'.");
                 return [];
             }
+
+            var lookupName = lookupPathArg is null
+                ? lookupFieldName
+                : $"{lookupPathArg}.{lookupFieldName}";
 
             errors.Add(
                 new SatisfiabilityError(
                     string.Format(
                         SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
                         lookupRequirements.ToString(indented: false),
-                        lookupPathItem),
+                        lookupName,
+                        transitionToSchemaName),
                     requirementErrors));
         }
 
