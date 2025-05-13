@@ -45,7 +45,7 @@ internal sealed class ExportCommand : Command
             .GetRequiredService<IRequestExecutorResolver>()
             .GetRequestExecutorAsync(schemaName, cancellationToken);
 
-        var sdl = schema.Schema.Print();
+        var sdl = schema.Schema.ToString();
 
         if (output is not null)
         {

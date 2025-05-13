@@ -5,11 +5,11 @@ using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using static HotChocolate.Transport.Sockets.WellKnownProtocols;
-using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.AspNetCore.Subscriptions.ConnectionContextKeys;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
+using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
@@ -177,17 +177,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     return;
                 }
 
-                var syntaxError = new Error(
-                    ex.Message,
-                    locations: new[]
-                    {
-                        new Location(ex.Line, ex.Column),
-                    });
+                var syntaxError = new Error
+                {
+                    Message = ex.Message,
+                    Locations = [new Location(ex.Line, ex.Column)]
+                };
 
                 await SendErrorMessageAsync(
                     session,
                     idProp.GetString()!,
-                    new[] { syntaxError, },
+                    [syntaxError],
                     cancellationToken);
             }
 

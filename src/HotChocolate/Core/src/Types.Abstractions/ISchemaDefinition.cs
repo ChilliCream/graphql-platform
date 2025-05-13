@@ -78,4 +78,9 @@ public interface ISchemaDefinition
     /// A string that represents the current schema.
     /// </returns>
     string ToString();
+
+    /// <summary>
+    /// The default name of a schema.
+    /// </summary>
+    public static string DefaultName => "default";
 }
