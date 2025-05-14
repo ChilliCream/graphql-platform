@@ -14,7 +14,7 @@ public class TypeInitializationOrderTests
             .AddType<QueryExtensionType_A>()
             .AddType<QueryExtensionType_B>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -26,7 +26,7 @@ public class TypeInitializationOrderTests
             .AddType<QueryExtensionType_B>()
             .AddType<QueryExtensionType_A>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot(postFix: "BA");
     }
 

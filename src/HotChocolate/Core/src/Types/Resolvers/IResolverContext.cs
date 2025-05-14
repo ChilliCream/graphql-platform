@@ -252,7 +252,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
     IReadOnlyList<ISelection> GetSelections(
-        IObjectTypeDefinition typeContext,
+        ObjectType typeContext,
         ISelection? selection = null,
         bool allowInternals = false);
 

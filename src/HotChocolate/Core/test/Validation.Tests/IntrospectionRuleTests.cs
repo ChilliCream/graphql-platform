@@ -11,7 +11,7 @@ public class IntrospectionRuleTests
         ExpectErrors(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __schema
@@ -25,7 +25,7 @@ public class IntrospectionRuleTests
         ExpectErrors(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __schema
@@ -42,7 +42,7 @@ public class IntrospectionRuleTests
         ExpectErrors(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __schema
@@ -59,7 +59,7 @@ public class IntrospectionRuleTests
         ExpectErrors(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __type(name: "foo")
@@ -73,7 +73,7 @@ public class IntrospectionRuleTests
         ExpectValid(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __typename
@@ -87,7 +87,7 @@ public class IntrospectionRuleTests
         ExpectValid(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __schema {
@@ -106,7 +106,7 @@ public class IntrospectionRuleTests
         ExpectValid(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule()
-                .ModifyValidationOptions(o => o.DisableIntrospection = true),
+                .ModifyOptions(o => o.DisableIntrospection = true),
             """
             {
                 __type(name: "foo")
@@ -117,7 +117,7 @@ public class IntrospectionRuleTests
             ]);
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddDocumentFromString(
                 FileResource.Open("IntrospectionSchema.graphql"))

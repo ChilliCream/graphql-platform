@@ -11,10 +11,10 @@ public class DocumentValidationMiddlewareTests
     public async Task DocumentIsValidated_SkipValidation()
     {
         // arrange
-        var validator = new Mock<IDocumentValidator>();
-        validator.SetupGet(t => t.HasDynamicRules).Returns(false);
-        validator.Setup(t => t.ValidateAsync(
-                It.IsAny<ISchema>(),
+        var validator = new Mock<DocumentValidator>();
+        validator.SetupGet(t => t.HasNonCacheableRules).Returns(false);
+        validator.Setup(t => t.Validate(
+                It.IsAny<Schema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object?>>(),

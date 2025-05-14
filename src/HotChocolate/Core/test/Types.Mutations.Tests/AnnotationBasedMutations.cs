@@ -1215,7 +1215,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1232,7 +1232,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1286,7 +1286,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1300,7 +1300,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]

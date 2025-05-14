@@ -22,7 +22,7 @@ public class StarWarsCodeFirstTests
         var executor = await CreateExecutorAsync();
 
         // act
-        var schema = executor.Schema.Print();
+        var schema = executor.Schema.ToString();
 
         // assert
         schema.MatchSnapshot();

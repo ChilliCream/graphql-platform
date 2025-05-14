@@ -16,11 +16,11 @@ public class TypeScopeInterceptorTests
             .AddQueryType<Foo>()
             .TryAddTypeInterceptor(new TypeScopeInterceptor(types))
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
 
         Assert.Collection(
-            types.OfType<INamedType>().Select(t => t.Name).OrderBy(t => t),
+            types.OfType<ITypeDefinition>().Select(t => t.Name).OrderBy(t => t),
             name => Assert.Equal("A_Bar", name),
             name => Assert.Equal("B_Bar", name),
             name => Assert.Equal("C_Baz", name));

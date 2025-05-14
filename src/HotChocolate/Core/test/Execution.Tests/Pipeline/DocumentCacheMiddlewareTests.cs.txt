@@ -28,7 +28,7 @@ public class DocumentCacheMiddlewareTests
         cache.TryAddDocument("a", new CachedDocument(document, null, false));
 
         var requestContext = new Mock<IRequestContext>();
-        var schema = new Mock<ISchema>();
+        var schema = new Mock<Schema>();
         requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
         requestContext.SetupGet(t => t.Request).Returns(request);
         requestContext.SetupProperty(t => t.DocumentId);
@@ -66,7 +66,7 @@ public class DocumentCacheMiddlewareTests
         cache.TryAddDocument("a", new CachedDocument(document, null, false));
 
         var requestContext = new Mock<IRequestContext>();
-        var schema = new Mock<ISchema>();
+        var schema = new Mock<Schema>();
         requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
         requestContext.SetupGet(t => t.Request).Returns(request);
         requestContext.SetupProperty(t => t.DocumentId);
@@ -104,7 +104,7 @@ public class DocumentCacheMiddlewareTests
         cache.TryAddDocument("b", new CachedDocument(document, null, false));
 
         var requestContext = new Mock<IRequestContext>();
-        var schema = new Mock<ISchema>();
+        var schema = new Mock<Schema>();
         requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
         requestContext.SetupGet(t => t.Request).Returns(request);
         requestContext.SetupProperty(t => t.DocumentId);
