@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Configuration;
 
-internal class SchemaDocumentInfo
+internal sealed class SchemaDocumentInfo
 {
     private readonly Func<IServiceProvider, DocumentNode>? _loadDocument;
 

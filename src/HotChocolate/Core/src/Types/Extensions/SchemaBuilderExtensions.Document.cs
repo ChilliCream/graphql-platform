@@ -73,7 +73,9 @@ public static partial class SchemaBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(document);
 
-        return builder.AddDocument(document);
+        var feature = builder.Features.GetOrSet<TypeSystemFeature>();
+        feature.SchemaDocuments.Add(new SchemaDocumentInfo(document));
+        return builder;
     }
 
     /// <summary>

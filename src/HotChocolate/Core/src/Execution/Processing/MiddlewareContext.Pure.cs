@@ -78,7 +78,7 @@ internal partial class MiddlewareContext
             => throw new NotSupportedException();
 
         public IReadOnlyList<ISelection> GetSelections(
-            IObjectTypeDefinition typeContext,
+            ObjectType typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
             => throw new NotSupportedException();
