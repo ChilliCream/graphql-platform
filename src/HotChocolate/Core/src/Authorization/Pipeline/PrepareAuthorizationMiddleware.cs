@@ -1,4 +1,3 @@
-using HotChocolate.Authorization.Properties;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Authorization.Pipeline;
@@ -7,7 +6,7 @@ internal sealed class PrepareAuthorizationMiddleware(RequestDelegate next)
 {
     public ValueTask InvokeAsync(IRequestContext context)
     {
-        context.EnsureAuthorizationRequestInfoExists();
+        context.EnsureAuthorizationRequestDataExists();
         return next(context);
     }
 

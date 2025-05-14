@@ -12,7 +12,7 @@ public class ErrorBuilderTests
     public void FromError()
     {
         // arrange
-        IError error = new Error ("123");
+        IError error = new Error { Message = "123" };
 
         // act
         error = ErrorBuilder.FromError(error).Build();
@@ -25,12 +25,14 @@ public class ErrorBuilderTests
     public void FromError_WithExtensions()
     {
         // arrange
-        IError error = new Error (
-            "123",
-            extensions: new OrderedDictionary<string, object?>
+        IError error = new Error
+        {
+            Message = "123",
+            Extensions = new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
-            });
+            }
+        };
 
         // act
         var builder = ErrorBuilder.FromError(error);
@@ -47,13 +49,13 @@ public class ErrorBuilderTests
     {
         // arrange
         IError error = new Error
-        (
-            "123",
-            extensions: new OrderedDictionary<string, object?>
+        {
+            Message = "123",
+            Extensions = new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
             }
-        );
+        };
 
         // act
         error = ErrorBuilder.FromError(error).ClearExtensions().Build();
@@ -68,14 +70,14 @@ public class ErrorBuilderTests
     {
         // arrange
         IError error = new Error
-        (
-            "123",
-            extensions: new OrderedDictionary<string, object?>
+        {
+            Message = "123",
+            Extensions = new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
                 {"bar", "foo"},
             }
-        );
+        };
 
         // act
         error = ErrorBuilder.FromError(error)
@@ -93,12 +95,12 @@ public class ErrorBuilderTests
     {
         // arrange
         IError error = new Error
-        (
-            "123",
-            locations: ImmutableList<Location>
+        {
+            Message = "123",
+            Locations = ImmutableList<Location>
                 .Empty
                 .Add(new Location(1, 2))
-        );
+        };
 
         // act
         var builder = ErrorBuilder.FromError(error);
@@ -116,12 +118,12 @@ public class ErrorBuilderTests
     {
         // arrange
         IError error = new Error
-        (
-            "123",
-            locations: ImmutableList<Location>
+        {
+            Message = "123",
+            Locations = ImmutableList<Location>
                 .Empty
                 .Add(new Location(1, 2))
-        );
+        };
 
         // act
         error = ErrorBuilder.FromError(error).ClearLocations().Build();
@@ -189,7 +191,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .SetPath(new List<object> { "foo", })
+            .SetPath(Path.FromList(new[] { "foo" }))
             .Build();
 
         // assert
@@ -203,7 +205,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .SetPath(Path.FromList("foo"))
+            .SetPath(Path.FromList(new[] { "foo" }))
             .Build();
 
         // assert
@@ -251,7 +253,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .AddLocation(2, 3)
+            .AddLocation(new Location(2, 3))
             .AddLocation(new Location(4, 5))
             .Build();
 
@@ -267,7 +269,7 @@ public class ErrorBuilderTests
     {
         // arrange
         var syntaxNode = new StringValueNode(
-            new HotChocolate.Language.Location(1, 2, 3, 4),
+            new Language.Location(1, 2, 3, 4),
             "abc",
             false);
 
@@ -305,7 +307,7 @@ public class ErrorBuilderTests
         // arrange
         // act
         Action action = () => ErrorBuilder.New()
-            .AddLocation(0, 3);
+            .AddLocation(new Location(0, 3));
 
         // assert
         Assert.Throws<ArgumentOutOfRangeException>(action);
@@ -317,7 +319,7 @@ public class ErrorBuilderTests
         // arrange
         // act
         Action action = () => ErrorBuilder.New()
-            .AddLocation(2, 0);
+            .AddLocation(new Location(2, 0));
 
         // assert
         Assert.Throws<ArgumentOutOfRangeException>(action);

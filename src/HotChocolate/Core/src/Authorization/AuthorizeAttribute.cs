@@ -79,7 +79,7 @@ public class AuthorizeAttribute : DescriptorAttribute
         {
             if (Apply is ApplyPolicy.Validation)
             {
-                field.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+                field.Extend().Context.MarkForRequestLevelAuthorization();
             }
 
             field.Directive(CreateDirective());

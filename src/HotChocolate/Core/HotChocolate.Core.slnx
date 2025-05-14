@@ -84,6 +84,9 @@
     <Project Path="test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
   </Folder>
+  <Folder Name="/test/Execution.Abstractions.Tests/">
+    <Project Path="test/Execution.Abstractions.Tests/HotChocolate.Execution.Abstractions.Tests.csproj" />
+  </Folder>
   <Folder Name="/test/Types.Analyzer.Integration.Tests/">
     <Project Path="test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
   </Folder>

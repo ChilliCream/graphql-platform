@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate;
 
 public class ErrorTests
@@ -6,7 +8,7 @@ public class ErrorTests
     public void WithCode()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
         error = error.WithCode("foo");
@@ -19,7 +21,11 @@ public class ErrorTests
     public void RemoveCode()
     {
         // arrange
-        IError error = new Error("123", code: "foo");
+        IError error = new Error
+        {
+            Message = "123",
+            Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", "bar")
+        };
 
         // act
         error = error.WithCode(null);
@@ -32,11 +38,7 @@ public class ErrorTests
     public void WithException()
     {
         // arrange
-        IError error = new Error
-        (
-            "123"
-        );
-
+        IError error = new Error { Message = "123" };
         var exception = new Exception();
 
         // act
@@ -51,10 +53,10 @@ public class ErrorTests
     {
         // arrange
         IError error = new Error
-        (
-            "123",
-            exception: new Exception()
-        );
+        {
+            Message = "123",
+            Exception = new Exception()
+        };
 
         Assert.NotNull(error.Exception);
 
@@ -69,7 +71,7 @@ public class ErrorTests
     public void WithExtensions()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
         error = error.WithExtensions(
@@ -89,7 +91,7 @@ public class ErrorTests
     public void AddExtensions()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
         error = error.SetExtension("a", "b").SetExtension("c", "d");
@@ -113,7 +115,7 @@ public class ErrorTests
     public void RemoveExtensions()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
         error = error.WithExtensions(
             new Dictionary<string, object?>
             {
@@ -138,7 +140,7 @@ public class ErrorTests
     public void WithLocations()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
         error = error.WithLocations(new List<Location> { new(1, 2), });
@@ -157,7 +159,7 @@ public class ErrorTests
     public void WithMessage()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
         error = error.WithMessage("456");
@@ -170,7 +172,7 @@ public class ErrorTests
     public void WithMessage_MessageNull_ArgumentException()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
         Action action = () => error.WithMessage(null!);
@@ -183,7 +185,7 @@ public class ErrorTests
     public void WithMessage_MessageEmpty_ArgumentException()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
         Action action = () => error.WithMessage(string.Empty);
@@ -196,10 +198,10 @@ public class ErrorTests
     public void WithPath()
     {
         // arrange
-        IError error = new Error("123");
+        IError error = new Error { Message = "123" };
 
         // act
-        error = error.WithPath(Path.FromList("foo"));
+        error = error.WithPath(Path.FromList(new[] { "foo" }));
 
         // assert
         Assert.Equal("/foo", error.Path!.Print());

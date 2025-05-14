@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -11,6 +13,7 @@ public sealed record AggregateError : Error
     /// <param name="errors">
     /// The errors.
     /// </param>
+    [SetsRequiredMembers]
     public AggregateError(IEnumerable<IError> errors)
     {
         ArgumentNullException.ThrowIfNull(errors);
@@ -32,6 +35,7 @@ public sealed record AggregateError : Error
     /// <param name="errors">
     /// The errors.
     /// </param>
+    [SetsRequiredMembers]
     public AggregateError(params IError[] errors)
     {
         ArgumentNullException.ThrowIfNull(errors);

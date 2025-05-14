@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -12,7 +13,7 @@ namespace HotChocolate.Resolvers;
 /// The resolver context represent the execution context for a specific
 /// field that is being resolved.
 /// </summary>
-public interface IResolverContext : IHasContextData
+public interface IResolverContext : IHasContextData, IFeatureProvider
 {
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.

@@ -12,7 +12,7 @@ namespace HotChocolate.Fetching;
 
 internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 {
-    private IRootServiceProvider? _services;
+    private IServiceProvider? _services;
     private HashSet<Type>? _dataLoaderValueTypes;
     private ObjectType _queryType = default!;
 
@@ -23,7 +23,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
-        _services = context.Services.GetService<IRootServiceProvider>();
+        _services = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
     }
 
     public override bool IsEnabled(IDescriptorContext context)

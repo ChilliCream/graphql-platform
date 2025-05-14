@@ -121,7 +121,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
 
     /// <inheritdoc />
     public IParameterBindingResolver ParameterBindingResolver
-        => Services.GetRequiredService<IRootServiceProvider>().GetRequiredService<IParameterBindingResolver>();
+        => Services.GetRequiredService<IRootServiceProviderAccessor>()
+            .ServiceProvider.GetRequiredService<IParameterBindingResolver>();
 
     /// <inheritdoc />
     public IFeatureCollection Features { get; }

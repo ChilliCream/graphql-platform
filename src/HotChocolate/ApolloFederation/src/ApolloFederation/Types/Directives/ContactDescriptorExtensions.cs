@@ -164,7 +164,7 @@ public static class ContactDescriptorExtensions
         builder.ConfigureSchema(
             (sp, sb) =>
             {
-                var contact = contactResolver(sp.GetApplicationServices());
+                var contact = contactResolver(sp.GetRootServiceProvider());
 
                 if (contact is null)
                 {

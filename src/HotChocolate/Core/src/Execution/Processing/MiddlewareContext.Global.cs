@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Properties;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -38,6 +39,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;
+
+    public IFeatureCollection Features => _operationContext.Features;
 
     public void ReportError(string errorMessage)
     {
@@ -254,7 +257,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         // Since resolver tasks are pooled and returned to the pool after they are executed
         // we need to complete the task manually when the resolver task of the current context
         // is completed.
-        RegisterForCleanup(() => resolverTask.CompleteUnsafeAsync());
+        RegisterForCleanup(resolverTask.CompleteUnsafeAsync);
 
         return resolverTask.Context;
     }

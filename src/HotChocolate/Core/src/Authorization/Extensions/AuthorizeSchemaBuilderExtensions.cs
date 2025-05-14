@@ -21,10 +21,7 @@ public static class AuthorizeSchemaBuilderExtensions
     /// </exception>
     public static ISchemaBuilder AddAuthorizeDirectiveType(this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (!builder.AreAuthorizeDirectivesRegistered())
         {

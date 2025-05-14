@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -203,9 +204,10 @@ internal partial class MiddlewareContext
         }
 
         public IServiceProvider RequestServices
-        {
-            get => parentContext.RequestServices;
-        }
+            => parentContext.RequestServices;
+
+        public IFeatureCollection Features
+            => parentContext.Features;
 
         public object Service(Type service)
             => parentContext.Service(service);

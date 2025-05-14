@@ -13,7 +13,7 @@ public class UseResolverResultPostProcessorAttribute<T>
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
-        var services = context.Services.GetRequiredService<IRootServiceProvider>();
+        var services = context.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var postProcessor = ActivatorUtilities.GetServiceOrCreateInstance<T>(services);
         descriptor.ExtendWith(c => c.Configuration.ResultPostProcessor = postProcessor);
     }

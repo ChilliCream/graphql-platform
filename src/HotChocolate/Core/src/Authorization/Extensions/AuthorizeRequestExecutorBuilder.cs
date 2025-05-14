@@ -72,30 +72,10 @@ public static class AuthorizeRequestExecutorBuilder
         this IRequestExecutorBuilder builder,
         Action<AuthorizationOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        builder.ConfigureSchema(
-            sb =>
-            {
-                const string key = WellKnownContextData.AuthorizationOptions;
-
-                if (!sb.ContextData.TryGetValue(key, out var value) ||
-                    value is not AuthorizationOptions options)
-                {
-                    options = new AuthorizationOptions();
-                    sb.ContextData.Add(key, options);
-                }
-
-                configure(options);
-            });
+        builder.ConfigureSchema(sb => configure(sb.GetAuthorizationOptions()));
         return builder;
     }
 
@@ -115,6 +95,8 @@ public static class AuthorizeRequestExecutorBuilder
         this IRequestExecutorBuilder builder)
         where T : class, IAuthorizationHandler
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         builder.AddAuthorizationCore();
         builder.Services.RemoveAll<IAuthorizationHandler>();
         builder.Services.AddScoped<IAuthorizationHandler, T>();
@@ -141,6 +123,9 @@ public static class AuthorizeRequestExecutorBuilder
         Func<IServiceProvider, T> factory)
         where T : class, IAuthorizationHandler
     {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
         builder.AddAuthorizationCore();
         builder.Services.RemoveAll<IAuthorizationHandler>();
         builder.Services.AddScoped<IAuthorizationHandler>(factory);

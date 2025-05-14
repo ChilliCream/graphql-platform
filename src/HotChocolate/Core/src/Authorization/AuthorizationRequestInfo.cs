@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace HotChocolate.Authorization;
 
-public class AuthorizationRequestInfo
+public class AuthorizationRequestData
 {
     public IAuthorizationHandler? Handler { get; set; }
 

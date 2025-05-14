@@ -349,7 +349,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             PagingProviderEntry? defaultEntry = null;
 
             // if we find an application service provider we will prefer that one.
-            var applicationServices = services.GetService<IRootServiceProvider>();
+            var applicationServices = services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
 
             if (applicationServices is not null)
             {

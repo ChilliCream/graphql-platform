@@ -34,7 +34,7 @@ internal sealed class AllowAnonymousDirectiveType
 
         if (definition is ObjectFieldConfiguration fieldDef)
         {
-            fieldDef.Features[WellKnownContextData.AllowAnonymous] = true;
+            fieldDef.AllowAnonymous();
         }
     }
 

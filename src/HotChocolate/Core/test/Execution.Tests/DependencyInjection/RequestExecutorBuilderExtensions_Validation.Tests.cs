@@ -75,7 +75,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddIntrospectionAllowedRule()
+            .DisableIntrospection()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -91,7 +91,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AllowIntrospection(false)
+            .DisableIntrospection(disable: true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -107,7 +107,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AllowIntrospection(true)
+            .DisableIntrospection(disable: false)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -123,7 +123,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AllowIntrospection(false)
+            .DisableIntrospection()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -140,7 +140,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddIntrospectionAllowedRule()
+            .DisableIntrospection()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -157,7 +157,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddIntrospectionAllowedRule()
+            .DisableIntrospection()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -175,7 +175,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-                .AddIntrospectionAllowedRule()
+                .DisableIntrospection()
                 .BuildRequestExecutorAsync();
 
         var results = new List<string>();

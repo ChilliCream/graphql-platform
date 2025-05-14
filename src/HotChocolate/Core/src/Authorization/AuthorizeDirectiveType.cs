@@ -63,7 +63,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
 
         if (IsValidationAuthRule(directiveNode))
         {
-            context.ContextData[WellKnownContextData.AuthorizationRequestPolicy] = true;
+            context.MarkForRequestLevelAuthorization();
         }
 
         static bool IsValidationAuthRule(DirectiveNode directiveNode)
