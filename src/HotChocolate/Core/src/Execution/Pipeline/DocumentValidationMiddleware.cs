@@ -80,14 +80,16 @@ internal sealed class DocumentValidationMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var documentValidator = core.SchemaServices.GetRequiredService<DocumentValidator>();
-            var middleware = Create(next, diagnosticEvents, documentValidator);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var documentValidator = core.SchemaServices.GetRequiredService<DocumentValidator>();
+                var middleware = Create(next, diagnosticEvents, documentValidator);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(DocumentValidationMiddleware));
 
     internal static DocumentValidationMiddleware Create(
         RequestDelegate next,

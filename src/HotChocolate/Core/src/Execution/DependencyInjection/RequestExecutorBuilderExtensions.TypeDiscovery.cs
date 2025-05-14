@@ -35,18 +35,11 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IDescriptorContext, T> factory)
         where T : TypeDiscoveryHandler
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         builder.ConfigureSchemaFeature(
-            features =>  features.GetOrSet<TypeSystemFeature>().TypeDiscoveryHandlers.Add(factory));
+            features => features.GetOrSet<TypeSystemFeature>().TypeDiscoveryHandlers.Add(factory));
         return builder;
     }
 }

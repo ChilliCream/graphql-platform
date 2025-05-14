@@ -144,29 +144,9 @@ public static class WellKnownContextData
     public const string CacheControlConstraints = "HotChocolate.Caching.CacheControlConstraints";
 
     /// <summary>
-    /// The key to retrieve the authorization options from the context.
-    /// </summary>
-    public const string AuthorizationOptions = "HotChocolate.Authorization.Options";
-
-    /// <summary>
-    /// The key to check if this schema contains request policies.
-    /// </summary>
-    public const string AuthorizationRequestPolicy = "HotChocolate.Authorization.RequestPolicy";
-
-    /// <summary>
     /// The key to access the user state on the global context.
     /// </summary>
     public const string UserState = "HotChocolate.Authorization.UserState";
-
-    /// <summary>
-    /// The key to access the authorization handler on the global context.
-    /// </summary>
-    public const string AuthorizationHandler = "HotChocolate.Authorization.AuthorizationHandler";
-
-    /// <summary>
-    /// The key to access the authorization allowed flag on the member context.
-    /// </summary>
-    public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
 
     /// <summary>
     /// Type key to access the paging arguments in the local resolver state.
@@ -222,9 +202,4 @@ public static class WellKnownContextData
     /// The key to access the compiled requirements.
     /// </summary>
     public const string FieldRequirements = "HotChocolate.Types.ObjectField.Requirements";
-
-    /// <summary>
-    /// The key to determine whether the @authorize directive was already registered.
-    /// </summary>
-    public const string AreAuthorizeDirectivesRegistered = "HotChocolate.Authorization.AuthDirectivesRegistered";
 }

@@ -282,15 +282,10 @@ internal sealed partial class RequestExecutorResolver
         await typeModuleChangeMonitor.ConfigureAsync(context, cancellationToken)
             .ConfigureAwait(false);
 
-        serviceCollection.AddSingleton<IApplicationServiceProvider>(
-            _ => new DefaultApplicationServiceProvider(_applicationServices));
+        serviceCollection.AddSingleton<IRootServiceProviderAccessor>(
+            new RootServiceProviderAccessor(_applicationServices));
 
-        serviceCollection.AddSingleton(
-            new SchemaSetupInfo(
-                context.SchemaName,
-                version,
-                setup.DefaultPipelineFactory,
-                setup.Pipeline));
+        serviceCollection.AddSingleton(new SchemaSetupInfo(context.SchemaName, version));
 
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
@@ -303,8 +298,8 @@ internal sealed partial class RequestExecutorResolver
             static s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IPreparedOperationCache>(
-            _ => new DefaultPreparedOperationCache(
-                _applicationServices.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
+            static sp => new DefaultPreparedOperationCache(
+                sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
 
@@ -323,21 +318,8 @@ internal sealed partial class RequestExecutorResolver
             serviceCollection.AddSingleton(diagnosticEventListener);
         }
 
-        serviceCollection.AddSingleton(
-            static sp =>
-            {
-                var appServices = sp.GetRequiredService<IApplicationServiceProvider>();
-                var schemaInfo = sp.GetRequiredService<SchemaSetupInfo>();
-
-                return CreatePipeline(
-                    schemaInfo.SchemaName,
-                    schemaInfo.DefaultPipelineFactory,
-                    schemaInfo.Pipeline,
-                    sp,
-                    appServices,
-                    sp.GetRequiredService<IRequestExecutorOptionsAccessor>());
-            });
-
+        serviceCollection.AddSingleton<RequestPipelineHolder>();
+        serviceCollection.AddSingleton(static sp => sp.GetRequiredService<RequestPipelineHolder>().Pipeline);
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
         serviceCollection.TryAddSingleton(
@@ -355,17 +337,17 @@ internal sealed partial class RequestExecutorResolver
             });
 
         serviceCollection.AddSingleton<IRequestExecutor>(
-            sp => new RequestExecutor(
+            static sp => new RequestExecutor(
                 sp.GetRequiredService<Schema>(),
-                _applicationServices,
+                sp.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
-                sp.GetApplicationService<DefaultRequestContextAccessor>(),
-                version));
+                sp.GetRootServiceProvider().GetRequiredService<DefaultRequestContextAccessor>(),
+                sp.GetRequiredService<SchemaSetupInfo>().Version));
 
         serviceCollection.AddSingleton(
-            sp =>
+            static sp =>
             {
                 var optimizers = sp.GetServices<IOperationCompilerOptimizer>();
                 var selectionSetOptimizers = ImmutableArray.CreateBuilder<ISelectionSetOptimizer>();
@@ -408,6 +390,16 @@ internal sealed partial class RequestExecutorResolver
                     typeModuleChangeMonitor,
                     cancellationToken)
                 .ConfigureAwait(false);
+
+        schemaServices.GetRequiredService<RequestPipelineHolder>().Pipeline =
+            CreatePipeline(
+                context.SchemaName,
+                setup.DefaultPipelineFactory,
+                setup.Pipeline,
+                setup.PipelineModifiers,
+                schemaServices,
+                _applicationServices,
+                schemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>());
 
         return schemaServices;
     }
@@ -484,8 +476,9 @@ internal sealed partial class RequestExecutorResolver
 
     private static RequestDelegate CreatePipeline(
         string schemaName,
-        Action<IList<RequestCoreMiddleware>>? defaultPipelineFactory,
-        IList<RequestCoreMiddleware> pipeline,
+        Action<IList<RequestCoreMiddlewareConfiguration>>? defaultPipelineFactory,
+        IList<RequestCoreMiddlewareConfiguration> pipeline,
+        IList<Action<IList<RequestCoreMiddlewareConfiguration>>> pipelineModifiers,
         IServiceProvider schemaServices,
         IServiceProvider applicationServices,
         IRequestExecutorOptionsAccessor options)
@@ -494,6 +487,11 @@ internal sealed partial class RequestExecutorResolver
         {
             defaultPipelineFactory ??= RequestExecutorBuilderExtensions.AddDefaultPipeline;
             defaultPipelineFactory(pipeline);
+        }
+
+        foreach (var modifier in pipelineModifiers)
+        {
+            modifier(pipeline);
         }
 
         var factoryContext = new RequestCoreMiddlewareContext(
@@ -506,7 +504,7 @@ internal sealed partial class RequestExecutorResolver
 
         for (var i = pipeline.Count - 1; i >= 0; i--)
         {
-            next = pipeline[i](factoryContext, next);
+            next = pipeline[i].Middleware(factoryContext, next);
         }
 
         return next;
@@ -767,18 +765,16 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed class SchemaSetupInfo(
-        string schemaName,
-        ulong version,
-        Action<IList<RequestCoreMiddleware>>? defaultPipelineFactory,
-        IList<RequestCoreMiddleware> pipeline)
+    private sealed record SchemaSetupInfo(string SchemaName, ulong Version);
+
+    private sealed class RequestPipelineHolder
     {
-        public string SchemaName { get; } = schemaName;
+        private RequestDelegate? _pipeline;
 
-        public ulong Version { get; } = version;
-
-        public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; } = defaultPipelineFactory;
-
-        public IList<RequestCoreMiddleware> Pipeline { get; } = pipeline;
+        public RequestDelegate Pipeline
+        {
+            get => _pipeline ?? throw new InvalidOperationException("The request pipeline is not ready yet.");
+            set => _pipeline = value;
+        }
     }
 }

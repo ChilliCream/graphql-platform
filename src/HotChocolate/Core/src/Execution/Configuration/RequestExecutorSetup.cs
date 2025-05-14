@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Options;
 using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Configuration;
 
@@ -11,7 +10,8 @@ public sealed class RequestExecutorSetup
 {
     private readonly List<OnConfigureSchemaBuilderAction> _onConfigureSchemaBuilderHooks = [];
     private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = [];
-    private readonly List<RequestCoreMiddleware> _pipeline = [];
+    private readonly List<RequestCoreMiddlewareConfiguration> _pipeline = [];
+    private readonly List<Action<IList<RequestCoreMiddlewareConfiguration>>> _pipelineModifiers = [];
     private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = [];
     private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = [];
     private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = [];
@@ -83,13 +83,19 @@ public sealed class RequestExecutorSetup
     /// <summary>
     /// Gets the middleware that make up the request pipeline.
     /// </summary>
-    public IList<RequestCoreMiddleware> Pipeline
+    public IList<RequestCoreMiddlewareConfiguration> Pipeline
         => _pipeline;
+
+    /// <summary>
+    /// Gets the pipeline modifiers that allow to mutate the pipeline before it is compiled.
+    /// </summary>
+    public IList<Action<IList<RequestCoreMiddlewareConfiguration>>> PipelineModifiers
+        => _pipelineModifiers;
 
     /// <summary>
     /// Gets or sets the default pipeline factory.
     /// </summary>
-    public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; set; }
+    public Action<IList<RequestCoreMiddlewareConfiguration>>? DefaultPipelineFactory { get; set; }
 
     /// <summary>
     /// Copies the options to the specified other options object.
@@ -117,6 +123,3 @@ public sealed class RequestExecutorSetup
     }
 }
 
-public delegate void OnConfigureSchemaServices(
-    ConfigurationContext context,
-    IServiceCollection services);

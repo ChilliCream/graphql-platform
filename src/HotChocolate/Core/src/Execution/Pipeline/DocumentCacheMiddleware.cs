@@ -99,15 +99,17 @@ internal sealed class DocumentCacheMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var documentCache = core.Services.GetRequiredService<IDocumentCache>();
-            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var documentCache = core.Services.GetRequiredService<IDocumentCache>();
+                var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(DocumentCacheMiddleware));
 
     internal static DocumentCacheMiddleware Create(
         RequestDelegate next,

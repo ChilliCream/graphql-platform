@@ -112,7 +112,7 @@ internal static class RequestClassMiddlewareFactory
     }
 
     private static void AddOptions(
-        IList<IParameterHandler> parameterHandlers,
+        List<IParameterHandler> parameterHandlers,
         IRequestExecutorOptionsAccessor options)
     {
         parameterHandlers.Add(new TypeParameterHandler(
@@ -126,23 +126,13 @@ internal static class RequestClassMiddlewareFactory
             Expression.Constant(options)));
     }
 
-    private sealed class SchemaNameParameterHandler : IParameterHandler
+    private sealed class SchemaNameParameterHandler(Expression schemaName) : IParameterHandler
     {
-        private readonly Expression _schemaName;
-
-        public SchemaNameParameterHandler(Expression schemaName)
-        {
-            _schemaName = schemaName;
-        }
-
         public bool CanHandle(ParameterInfo parameter)
-        {
-            return parameter.ParameterType == typeof(string) && parameter.Name == "schemaName";
-        }
+            => parameter.ParameterType == typeof(string)
+                && parameter.Name == "schemaName";
 
         public Expression CreateExpression(ParameterInfo parameter)
-        {
-            return _schemaName;
-        }
+            => schemaName;
     }
 }

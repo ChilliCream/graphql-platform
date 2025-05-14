@@ -18,7 +18,7 @@ public sealed partial class DescriptorContext
         {
             _schemaServices = schemaServices ??
                 throw new ArgumentNullException(nameof(schemaServices));
-            _appServices = _schemaServices.GetService<IApplicationServiceProvider>();
+            _appServices = _schemaServices.GetService<IRootServiceProvider>();
         }
 
         public IReadOnlyList<IParameterExpressionBuilder> GetParameterExpressionBuilders()

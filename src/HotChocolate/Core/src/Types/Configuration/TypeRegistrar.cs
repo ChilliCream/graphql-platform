@@ -33,7 +33,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         _interceptor = typeInterceptor ??
             throw new ArgumentNullException(nameof(typeInterceptor));
         _schemaServices = context.Services;
-        _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
+        _applicationServices = context.Services.GetService<IRootServiceProvider>();
 
         _combinedServices = _applicationServices is null
             ? _schemaServices

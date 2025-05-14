@@ -1,5 +1,6 @@
 using HotChocolate;
 using HotChocolate.Authorization;
+using HotChocolate.Authorization.Pipeline;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -9,7 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Provides extension methods for the GraphQL builder.
 /// </summary>
-public static class HotChocolateAuthorizeRequestExecutorBuilder
+public static class AuthorizeRequestExecutorBuilder
 {
     /// <summary>
     /// Adds the authorization support to the schema.
@@ -37,8 +38,18 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         builder.AddValidationRule(
             (s, _) => new AuthorizeValidationRule(
                 s.GetRequiredService<AuthorizationCache>()));
-        builder.AddValidationResultAggregator(
-            (s, _) => new AuthorizeValidationResultAggregator(s));
+
+        var prepareAuthorization = PrepareAuthorizationMiddleware.Create();
+        builder.InsertUseRequest(
+            before: "DocumentValidationMiddleware",
+            middleware: prepareAuthorization.Middleware,
+            key: prepareAuthorization.Key);
+
+        var authorizeRequest = AuthorizeRequestMiddleware.Create();
+        builder.AppendUseRequest(
+            after: "DocumentValidationMiddleware",
+            middleware: authorizeRequest.Middleware,
+            key: authorizeRequest.Key);
         return builder;
     }
 

@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Authorization;
@@ -16,11 +17,11 @@ public sealed class AuthorizationContext
     /// <param name="document">The GraphQL request document.</param>
     /// <param name="documentId">A unique string identifying the GraphQL document</param>
     public AuthorizationContext(
-        ISchema schema,
+        Schema schema,
         IServiceProvider services,
         IDictionary<string, object?> contextData,
         DocumentNode document,
-        string documentId)
+        OperationDocumentId documentId)
     {
         Schema = schema;
         Services = services;
@@ -32,7 +33,7 @@ public sealed class AuthorizationContext
     /// <summary>
     /// Gets the GraphQL schema.
     /// </summary>
-    public ISchema Schema { get; }
+    public Schema Schema { get; }
 
     /// <summary>
     /// Gets the application services.
@@ -52,5 +53,5 @@ public sealed class AuthorizationContext
     /// <summary>
     /// Gets a unique string identifying the GraphQL request document.
     /// </summary>
-    public string DocumentId { get; }
+    public OperationDocumentId DocumentId { get; }
 }

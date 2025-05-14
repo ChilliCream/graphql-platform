@@ -564,14 +564,12 @@ public partial class SchemaBuilder
         // If there was now node id serializer registered we will register the default one as a fallback.
         services.TryAddSingleton<INodeIdSerializer>(static sp =>
         {
-            var appServices = sp.GetService<IApplicationServiceProvider>();
+            var appServices = sp.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
             INodeIdValueSerializer[]? allSerializers = null;
 
             if (appServices is not null)
             {
-                allSerializers = sp.GetRequiredService<IApplicationServiceProvider>()
-                    .GetServices<INodeIdValueSerializer>()
-                    .ToArray();
+                allSerializers = [.. appServices.GetServices<INodeIdValueSerializer>()];
             }
 
             if (allSerializers is null || allSerializers.Length == 0)

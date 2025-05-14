@@ -74,7 +74,7 @@ public static partial class RequestExecutorBuilderExtensions
                 {
                     var schema = sp.GetRequiredService<Schema>();
                     var boundSerializers = new List<BoundNodeIdValueSerializer>();
-                    var allSerializers = sp.GetApplicationServices().GetServices<INodeIdValueSerializer>().ToArray();
+                    var allSerializers = sp.GetRootServiceProvider().GetServices<INodeIdValueSerializer>().ToArray();
                     var feature = schema.Features.Get<NodeSchemaFeature>();
 
                     if (feature is not null)

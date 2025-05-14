@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Types.Introspection;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Net.Http.Headers;
 
@@ -101,7 +101,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         var scopeSet = false;
         var varySet = false;
 
-        ExtractCacheControlDetailsFromDirectives(field.Directives);
+        ExtractCacheControlDetailsFromDirectives(field);
 
         if (!maxAgeSet || !sharedMaxAgeSet || !scopeSet || !varySet)
         {
@@ -109,11 +109,11 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             // directive on the field, so we try to infer these details
             // from the type of the field.
 
-            if (field.Type is IHasDirectives type)
+            if (field.Type is IDirectivesProvider type)
             {
                 // The type of the field is complex and can therefore be
                 // annotated with a @cacheControl directive.
-                ExtractCacheControlDetailsFromDirectives(type.Directives);
+                ExtractCacheControlDetailsFromDirectives(type);
             }
         }
 
@@ -135,11 +135,11 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         }
 
         void ExtractCacheControlDetailsFromDirectives(
-            IDirectiveCollection directives)
+            IDirectivesProvider typeSystemMember)
         {
-            var directive = directives
-                .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
-                .AsValue<CacheControlDirective>();
+            var directive = (typeSystemMember.Directives
+                .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
+                ?.AsValue<CacheControlDirective>();
 
             if (directive is not null)
             {
@@ -232,7 +232,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             var field = Unsafe.Add(ref start, i).Field;
 
             if (field.IsIntrospectionField &&
-                !field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+                !field.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName))
             {
                 return true;
             }

@@ -375,7 +375,7 @@ public static class PagingObjectFieldDescriptorExtensions
             PagingProviderEntry? defaultEntry = null;
 
             // if we find an application service provider we will prefer that one.
-            var applicationServices = services.GetService<IApplicationServiceProvider>();
+            var applicationServices = services.GetService<IRootServiceProvider>();
 
             if (applicationServices is not null)
             {

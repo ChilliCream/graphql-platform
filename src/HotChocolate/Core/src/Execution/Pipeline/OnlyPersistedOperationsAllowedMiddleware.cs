@@ -22,7 +22,6 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
         ArgumentNullException.ThrowIfNull(options);
 
-
         _next = next;
         _diagnosticEvents = diagnosticEvents;
 
@@ -75,12 +74,14 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
         return default;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
-            var middleware = new OnlyPersistedOperationsAllowedMiddleware(next, diagnosticEvents, options);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
+                var middleware = new OnlyPersistedOperationsAllowedMiddleware(next, diagnosticEvents, options);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(OnlyPersistedOperationsAllowedMiddleware));
 }

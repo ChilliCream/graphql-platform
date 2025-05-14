@@ -98,18 +98,20 @@ internal sealed class ReadPersistedOperationMiddleware
         return null;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var documentHashAlgorithm = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var middleware = new ReadPersistedOperationMiddleware(
-                next,
-                diagnosticEvents,
-                persistedOperationStore,
-                documentHashAlgorithm,
-                core.Options.PersistedOperations);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
+                var documentHashAlgorithm = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var middleware = new ReadPersistedOperationMiddleware(
+                    next,
+                    diagnosticEvents,
+                    persistedOperationStore,
+                    documentHashAlgorithm,
+                    core.Options.PersistedOperations);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(ReadPersistedOperationMiddleware));
 }

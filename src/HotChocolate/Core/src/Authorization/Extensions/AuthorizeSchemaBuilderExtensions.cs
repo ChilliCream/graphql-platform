@@ -26,7 +26,7 @@ public static class AuthorizeSchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (!builder.ContextData.ContainsKey(WellKnownContextData.AreAuthorizeDirectivesRegistered))
+        if (!builder.AreAuthorizeDirectivesRegistered())
         {
             var authorize = new AuthorizeDirectiveType();
             var allowAnonymous = new AllowAnonymousDirectiveType();
@@ -36,9 +36,8 @@ public static class AuthorizeSchemaBuilderExtensions
                 .AddDirectiveType(allowAnonymous)
                 .TryAddSchemaDirective(authorize)
                 .TryAddSchemaDirective(allowAnonymous)
-                .TryAddTypeInterceptor<AuthorizationTypeInterceptor>();
-
-            builder.SetContextData(WellKnownContextData.AreAuthorizeDirectivesRegistered, true);
+                .TryAddTypeInterceptor<AuthorizationTypeInterceptor>()
+                .MarkAuthorizeDirectivesRegistered();
         }
 
         return builder;
