@@ -448,8 +448,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 kind is DataLoaderKind.Group ? "[]" : string.Empty,
                 value.IsValueType ? string.Empty : "?");
             _writer.WriteIndentedLine(
-                "global::{0} resultMap)",
-                ExtractMapType(method.ReturnType));
+                "{0} resultMap)",
+                ExtractMapType(method.ReturnType).ToFullyQualifiedWithNullRefQualifier());
         }
 
         _writer.WriteIndentedLine("{");

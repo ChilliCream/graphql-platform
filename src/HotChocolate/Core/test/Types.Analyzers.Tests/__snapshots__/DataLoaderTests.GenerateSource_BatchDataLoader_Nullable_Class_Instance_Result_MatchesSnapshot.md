@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_With_Group_Only_On_Class_MatchesSnapshot
+# GenerateSource_BatchDataLoader_Nullable_Class_Instance_Result_MatchesSnapshot
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -13,15 +13,15 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using GreenDonut;
 
-namespace TestNamespace
+namespace TestNamespace.DataLoaderGen
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, global::TestNamespace.Entity>
+        : global::GreenDonut.IDataLoader<int, global::DataLoaderGen.Result.TestResultClass>
     {
     }
 
     public sealed partial class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity>
+        : global::GreenDonut.DataLoaderBase<int, global::DataLoaderGen.Result.TestResultClass>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -38,58 +38,30 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity?>> results,
-            global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity> context,
+            global::System.Memory<GreenDonut.Result<global::DataLoaderGen.Result.TestResultClass?>> results,
+            global::GreenDonut.DataLoaderFetchContext<global::DataLoaderGen.Result.TestResultClass> context,
             global::System.Threading.CancellationToken ct)
         {
-            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.DataLoaderGen.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity?>> results,
-            global::System.Collections.Generic.IReadOnlyDictionary<int, global::TestNamespace.Entity> resultMap)
+            global::System.Span<GreenDonut.Result<global::DataLoaderGen.Result.TestResultClass?>> results,
+            global::System.Collections.Generic.Dictionary<int, global::DataLoaderGen.Result.TestResultClass?> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
                 if (resultMap.TryGetValue(key, out var value))
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<global::DataLoaderGen.Result.TestResultClass?>.Resolve(value);
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?>.Resolve(default(global::TestNamespace.Entity));
+                    results[i] = global::GreenDonut.Result<global::DataLoaderGen.Result.TestResultClass?>.Resolve(default(global::DataLoaderGen.Result.TestResultClass));
                 }
-            }
-        }
-    }
-    public interface IGroup1
-    {
-        IEntityByIdDataLoader EntityById { get; }
-    }
-
-    public sealed partial class Group1 : IGroup1
-    {
-        private readonly IServiceProvider _services;
-        private IEntityByIdDataLoader? _entityById;
-
-        public Group1(IServiceProvider services)
-        {
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
-        }
-        public IEntityByIdDataLoader EntityById
-        {
-            get
-            {
-                if (_entityById is null)
-                {
-                    _entityById = _services.GetRequiredService<IEntityByIdDataLoader>();
-                }
-
-                return _entityById!;
             }
         }
     }
@@ -118,8 +90,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
-            builder.AddDataLoader<global::TestNamespace.IEntityByIdDataLoader, global::TestNamespace.EntityByIdDataLoader>();
-            builder.Services.AddScoped<global::TestNamespace.IGroup1, global::TestNamespace.Group1>();
+            builder.AddDataLoader<global::TestNamespace.DataLoaderGen.IEntityByIdDataLoader, global::TestNamespace.DataLoaderGen.EntityByIdDataLoader>();
             return builder;
         }
     }
