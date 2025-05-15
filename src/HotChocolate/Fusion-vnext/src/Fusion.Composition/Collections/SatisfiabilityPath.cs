@@ -92,10 +92,14 @@ internal sealed record SatisfiabilityPathItem(
     MutableComplexTypeDefinition Type,
     string SchemaName)
 {
-    public ITypeDefinition FieldType { get; } = Field.Type.InnerType().AsTypeDefinition();
+    public ITypeDefinition FieldType { get; } = Field.Type.AsTypeDefinition();
+
+    private readonly int _hashCode = HashCode.Combine(Field, Type, SchemaName);
 
     public override string ToString()
     {
         return $"{SchemaName}:{Type.Name}.{Field.Name}<{FieldType.Name}>";
     }
+
+    public override int GetHashCode() => _hashCode;
 }

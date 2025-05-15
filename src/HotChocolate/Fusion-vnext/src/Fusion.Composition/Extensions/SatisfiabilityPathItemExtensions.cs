@@ -11,7 +11,8 @@ internal static class SatisfiabilityPathItemExtensions
     /// Determines if the <see cref="SatisfiabilityPathItem"/> provides the given field on the given
     /// type and schema.
     /// </summary>
-    public static bool Provides(this SatisfiabilityPathItem item,
+    public static bool Provides(
+        this SatisfiabilityPathItem item,
         MutableOutputFieldDefinition field,
         MutableObjectTypeDefinition type,
         string schemaName,
