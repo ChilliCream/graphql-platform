@@ -784,6 +784,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
+        if (typeof(IEnumerable<object>).IsAssignableFrom(returnType))
+        {
+            return false;
+        }
+
         // All other types may cause errors and need to have an explicit configuration.
         if (typeof(ITypeSystemMember).IsAssignableFrom(returnType))
         {
