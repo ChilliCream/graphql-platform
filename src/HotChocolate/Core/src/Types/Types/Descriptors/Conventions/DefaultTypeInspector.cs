@@ -3,6 +3,7 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -784,7 +785,29 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
-        if (typeof(IEnumerable<object>).IsAssignableFrom(returnType))
+        if (typeof(IEnumerable<object>)== returnType ||
+            typeof(IAsyncEnumerable<object>) == returnType ||
+            typeof(IReadOnlyCollection<object>) == returnType ||
+            typeof(IReadOnlyList<object>) == returnType ||
+            typeof(ICollection<object>) == returnType ||
+            typeof(IList<object>) == returnType ||
+            typeof(IList) == returnType ||
+            typeof(ICollection) == returnType ||
+            typeof(List<object>) == returnType ||
+            typeof(Array) == returnType ||
+            typeof(object[]) == returnType ||
+            typeof(ImmutableArray<object>) == returnType ||
+            typeof(ImmutableList<object>) == returnType ||
+            typeof(ImmutableHashSet<object>) == returnType ||
+            typeof(ImmutableDictionary<object, object>) == returnType ||
+            typeof(HashSet<object>) == returnType ||
+            typeof(Dictionary<object, object>) == returnType ||
+            typeof(ConcurrentBag<object>) == returnType ||
+            typeof(ConcurrentDictionary<object, object>) == returnType ||
+            typeof(ConcurrentQueue<object>) == returnType ||
+            typeof(ConcurrentStack<object>) == returnType ||
+            typeof(Queue<object>) == returnType ||
+            typeof(Stack<object>) == returnType)
         {
             return false;
         }
