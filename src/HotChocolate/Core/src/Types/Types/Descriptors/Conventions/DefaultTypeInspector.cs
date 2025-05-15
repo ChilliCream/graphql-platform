@@ -715,6 +715,12 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
+        if(member.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+            member.IsDefined(typeof(DescriptorAttribute), true))
+        {
+            return true;
+        }
+
         if (member.DeclaringType == typeof(object))
         {
             return false;
@@ -841,7 +847,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private static bool CanHandleParameter(ParameterInfo parameter, bool allowObjectType)
     {
         // schema, object type and object field can be injected into a resolver, so
-        // we allow these as parameter type.
+        // we allow these as a parameter type.
         var parameterType = parameter.ParameterType;
 
         if (typeof(ISchema).IsAssignableFrom(parameterType) ||
@@ -948,5 +954,3 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         return false;
     }
 }
-
-
