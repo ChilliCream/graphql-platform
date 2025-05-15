@@ -52,7 +52,9 @@ public class FilterInputTypeDescriptor<T>
                 fields,
                 handledProperties,
                 include: (_, member)
-                    => member is PropertyInfo && !handledProperties.Contains(member));
+                    => member is PropertyInfo p
+                        && !handledProperties.Contains(member)
+                        && !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
         }
 
         base.OnCompleteFields(fields, handledProperties);
