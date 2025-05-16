@@ -181,7 +181,7 @@ public static class SortingObjectFieldDescriptorExtensions
                     argumentDefinition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>((context, def) =>
                         {
-                            var namedType = context.GetType<INamedType>(argumentTypeReference);
+                            var namedType = context.GetType<ITypeDefinition>(argumentTypeReference);
                             def.Type = TypeReference.Parse($"[{namedType.Name}!]");
                         },
                         argumentDefinition,

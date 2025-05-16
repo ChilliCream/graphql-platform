@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
@@ -89,7 +88,7 @@ public partial class Schema
     /// <returns>
     /// Returns the GraphQL object type for the given <paramref name="operationType"/>
     /// </returns>
-    public IObjectTypeDefinition GetOperationType(OperationType operationType)
+    public ObjectType GetOperationType(OperationType operationType)
     {
         var type = operationType switch
         {
@@ -107,6 +106,8 @@ public partial class Schema
 
         return type;
     }
+    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operationType)
+        => GetOperationType(operationType);
 
     /// <summary>
     /// Gets the possible object types to

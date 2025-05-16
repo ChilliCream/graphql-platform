@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 public class SelectionSet
 {
     public SelectionSet(
-        INamedType type,
+        ITypeDefinition type,
         SelectionSetNode syntaxNode,
         IReadOnlyList<FieldSelection> fields,
         IReadOnlyList<FragmentNode> fragmentNodes)
@@ -17,7 +17,7 @@ public class SelectionSet
         FragmentNodes = fragmentNodes;
     }
 
-    public INamedType Type { get; }
+    public ITypeDefinition Type { get; }
 
     public SelectionSetNode SyntaxNode { get; }
 

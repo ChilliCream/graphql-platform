@@ -13,7 +13,7 @@ public sealed class OutputTypeModel : ITypeModel
         string name,
         string? description,
         OutputModelKind kind,
-        INamedType type,
+        ITypeDefinition type,
         SelectionSetNode selectionSet,
         IReadOnlyList<OutputFieldModel> fields,
         IReadOnlyList<OutputTypeModel>? implements = null,
@@ -39,7 +39,7 @@ public sealed class OutputTypeModel : ITypeModel
 
     public bool IsFragment => (Kind & OutputModelKind.Fragment) == OutputModelKind.Fragment;
 
-    public INamedType Type { get; }
+    public ITypeDefinition Type { get; }
 
     public SelectionSetNode SelectionSet { get; }
 

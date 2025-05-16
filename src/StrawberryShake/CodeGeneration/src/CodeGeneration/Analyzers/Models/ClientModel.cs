@@ -68,7 +68,7 @@ public class ClientModel
     /// <summary>
     /// The analyzed schema
     /// </summary>
-    public ISchema Schema { get; }
+    public Schema Schema { get; }
 
     /// <summary>
     /// Gets the operations

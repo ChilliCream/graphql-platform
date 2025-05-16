@@ -33,9 +33,7 @@ public class ObjectTypeAttributeTests
             .Create();
 
         // assert
-        Assert.Equal(
-            "def",
-            schema.QueryType.Fields["field"].ContextData["abc"]);
+        Assert.NotNull(schema.QueryType.Fields["field"].Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -48,9 +46,7 @@ public class ObjectTypeAttributeTests
             .Create();
 
         // assert
-        Assert.Equal(
-            "def",
-            schema.QueryType.Fields["foo"].ContextData["abc"]);
+        Assert.NotNull(schema.QueryType.Fields["foo"].Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -75,7 +71,7 @@ public class ObjectTypeAttributeTests
             .Create();
 
         // assert
-        Assert.True(schema.GetType<ObjectType>("Object3").Fields.ContainsField("abc"));
+        Assert.True(schema.Types.GetType<ObjectType>("Object3").Fields.ContainsField("abc"));
     }
 
     [Fact]
@@ -150,14 +146,14 @@ public class ObjectTypeAttributeTests
 
     public class Object2
     {
-        [PropertyAddContextData]
+        [PropertyAddFeature]
         public string GetField()
         {
             throw new NotImplementedException();
         }
     }
 
-    public class PropertyAddContextDataAttribute
+    public class PropertyAddFeatureAttribute
         : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
@@ -166,7 +162,7 @@ public class ObjectTypeAttributeTests
             MemberInfo member)
         {
             descriptor.Extend().OnBeforeCompletion(
-                (c, d) => d.Features.Add("abc", "def"));
+                (c, d) => d.Features.Set(new CustomFeature()));
         }
     }
 
@@ -202,4 +198,6 @@ public class ObjectTypeAttributeTests
     {
         public string? Bar { get; }
     }
+
+    public class CustomFeature;
 }

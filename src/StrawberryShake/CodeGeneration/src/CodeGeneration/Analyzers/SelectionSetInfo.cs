@@ -5,13 +5,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public readonly struct SelectionSetInfo : IEquatable<SelectionSetInfo>
 {
-    public SelectionSetInfo(INamedType type, SelectionSetNode selectionSet)
+    public SelectionSetInfo(ITypeDefinition type, SelectionSetNode selectionSet)
     {
         Type = type;
         SelectionSet = selectionSet;
     }
 
-    public INamedType Type { get; }
+    public ITypeDefinition Type { get; }
 
     public SelectionSetNode SelectionSet { get; }
 

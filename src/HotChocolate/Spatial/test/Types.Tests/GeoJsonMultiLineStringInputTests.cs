@@ -211,6 +211,6 @@ public class GeoJsonMultiLineStringInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
     }
 }

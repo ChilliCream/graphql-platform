@@ -234,7 +234,7 @@ public class SortInputTypeTest : SortTestBase
 
         // assert
         schema.MatchSnapshot();
-        schema.Print().MatchSnapshot();
+        Schema.ToString().MatchSnapshot();
     }
 
     public class IgnoreTest

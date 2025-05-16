@@ -14,7 +14,7 @@ public class ObjectIdTypeTests
         var executor = await CreateSchema();
 
         // act
-        var schema = executor.Schema.Print();
+        var schema = executor.Schema.ToString();
 
         // assert
         schema.MatchSnapshot();

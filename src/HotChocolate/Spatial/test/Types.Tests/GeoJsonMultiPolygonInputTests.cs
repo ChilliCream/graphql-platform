@@ -237,6 +237,6 @@ public class GeoJsonMultiPolygonInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
     }
 }

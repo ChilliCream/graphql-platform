@@ -31,7 +31,7 @@ public class GeoJsonLineStringInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONLineStringInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONLineStringInput");
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public class GeoJsonLineStringInputTests
                 .Resolve("ghi"))
             .Create();
 
-        var type = schema.GetType<InputObjectType>("GeoJSONLineStringInput");
+        var type = schema.Types.GetType<InputObjectType>("GeoJSONLineStringInput");
 
         var node = new ObjectValueNode(
             new ObjectFieldNode("type", new EnumValueNode("LineString")),

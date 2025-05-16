@@ -2,6 +2,7 @@ using Moq;
 
 namespace HotChocolate.Types;
 
+[Obsolete("Use IsStructurallyEqual(this IType x, IType y) instead.")]
 public class TypeExtensionsTests
 {
     [Fact]
@@ -136,7 +137,7 @@ public class TypeExtensionsTests
     public static void NamedType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.NamedType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.NamedType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -172,7 +173,7 @@ public class TypeExtensionsTests
     public static void IsNonNullType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsNonNullType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsNonNullType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -234,7 +235,7 @@ public class TypeExtensionsTests
     public static void IsCompositeType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsCompositeType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsCompositeType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -297,7 +298,7 @@ public class TypeExtensionsTests
     public static void IsComplexType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsComplexType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsComplexType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -347,7 +348,7 @@ public class TypeExtensionsTests
     public static void IsLeafType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsLeafType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsLeafType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -383,7 +384,7 @@ public class TypeExtensionsTests
     public static void IsListType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsListType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsListType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -419,7 +420,7 @@ public class TypeExtensionsTests
     public static void IsScalarType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsScalarType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsScalarType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -456,7 +457,7 @@ public class TypeExtensionsTests
     public static void IsObjectType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsObjectType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsObjectType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -493,7 +494,7 @@ public class TypeExtensionsTests
     public static void IsInterfaceType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsInterfaceType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsInterfaceType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -530,7 +531,7 @@ public class TypeExtensionsTests
     public static void IsEnumType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsEnumType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsEnumType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -567,7 +568,7 @@ public class TypeExtensionsTests
     public static void IsUnionType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsUnionType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsUnionType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -604,7 +605,7 @@ public class TypeExtensionsTests
     public static void IsInputObjectType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsInputObjectType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsInputObjectType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -640,7 +641,7 @@ public class TypeExtensionsTests
     public static void IsInputType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsInputType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsInputType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -676,7 +677,7 @@ public class TypeExtensionsTests
     public static void IsOutputType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsOutputType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsOutputType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -726,7 +727,7 @@ public class TypeExtensionsTests
     public static void IsAbstractType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsAbstractType(null!);
+        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsAbstractType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

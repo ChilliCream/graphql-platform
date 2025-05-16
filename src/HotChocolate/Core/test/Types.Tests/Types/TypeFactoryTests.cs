@@ -84,7 +84,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Simple");
+        var type = schema.Types.GetType<InterfaceType>("Simple");
 
         Assert.Equal("Simple", type.Name);
         Assert.Equal(2, type.Fields.Count);
@@ -121,7 +121,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Simple");
+        var type = schema.Types.GetType<InterfaceType>("Simple");
 
         Assert.True(type.Fields["a"].IsDeprecated);
         Assert.Equal("reason123", type.Fields["a"].DeprecationReason);
@@ -146,11 +146,11 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Simple");
+        var type = schema.Types.GetType<InterfaceType>("Simple");
 
         Assert.True(type.Fields["a"].IsDeprecated);
         Assert.Equal(
-            DirectiveNames.DeprecationDefaultReason,
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
             type.Fields["a"].DeprecationReason);
 
         schema.ToString().MatchSnapshot();
@@ -183,7 +183,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("X");
+        var type = schema.Types.GetType<UnionType>("X");
 
         Assert.Equal("X", type.Name);
         Assert.Equal(2, type.Types.Count);
@@ -204,7 +204,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Abc");
+        var type = schema.Types.GetType<EnumType>("Abc");
 
         Assert.Equal("Abc", type.Name);
         Assert.Collection(type.Values,
@@ -231,7 +231,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Abc");
+        var type = schema.Types.GetType<EnumType>("Abc");
 
         var value = type.Values.FirstOrDefault(t => t.Name == "B");
         Assert.NotNull(value);
@@ -257,7 +257,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("Simple");
+        var type = schema.Types.GetType<InputObjectType>("Simple");
 
         Assert.Equal("Simple", type.Name);
         Assert.Equal(2, type.Fields.Count);
@@ -288,7 +288,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetDirectiveType("foo");
+        var type = schema.DirectiveTypes["foo"];
 
         Assert.Equal("foo", type.Name);
         Assert.False(type.IsRepeatable);
@@ -319,7 +319,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetDirectiveType("foo");
+        var type = schema.DirectiveTypes["foo"];
 
         Assert.Equal("foo", type.Name);
         Assert.True(type.IsRepeatable);

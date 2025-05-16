@@ -19,7 +19,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -37,7 +37,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -55,7 +55,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -73,7 +73,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 

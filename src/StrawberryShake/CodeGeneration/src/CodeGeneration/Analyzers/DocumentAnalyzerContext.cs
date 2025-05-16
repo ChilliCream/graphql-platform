@@ -17,7 +17,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
     private readonly FieldCollector _fieldCollector;
 
     public DocumentAnalyzerContext(
-        ISchema schema,
+        Schema schema,
         DocumentNode document)
     {
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
@@ -30,7 +30,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         _fieldCollector = new FieldCollector(schema, document);
     }
 
-    public ISchema Schema { get; }
+    public Schema Schema { get; }
 
     public DocumentNode Document { get; }
 
@@ -97,7 +97,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         _typeModels[name] = typeModel;
     }
 
-    public void RegisterType(INamedType type)
+    public void RegisterType(ITypeDefinition type)
     {
         if (type is ILeafType leafType && _typeModels.Values.All(x => x.Type.Name != type.Name))
         {
@@ -113,7 +113,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
     }
 
     public void RegisterSelectionSet(
-        INamedType namedType,
+        ITypeDefinition namedType,
         SelectionSetNode from,
         SelectionSetNode to)
     {

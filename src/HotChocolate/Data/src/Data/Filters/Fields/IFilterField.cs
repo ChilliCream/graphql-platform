@@ -4,16 +4,16 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterField : IInputField
+public interface IFilterField : IInputValueDefinition
 {
     /// <summary>
     /// The type which declares this field.
     /// </summary>
-    new IFilterInputType DeclaringType { get; }
+    IFilterInputType DeclaringType { get; }
 
     MemberInfo? Member { get; }
 
-    new IExtendedType? RuntimeType { get; }
+    IExtendedType? RuntimeType { get; }
 
     IFilterFieldHandler Handler { get; }
 

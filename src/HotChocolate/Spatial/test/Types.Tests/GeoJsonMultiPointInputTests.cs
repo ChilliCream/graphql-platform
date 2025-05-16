@@ -208,6 +208,6 @@ public class GeoJsonMultiPointInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiPointInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiPointInput");
     }
 }

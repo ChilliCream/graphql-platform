@@ -42,7 +42,7 @@ internal partial class MiddlewareContext
     }
 
     public IReadOnlyList<ISelection> GetSelections(
-        IObjectTypeDefinition typeContext,
+        ObjectType typeContext,
         ISelection? selection = null,
         bool allowInternals = false)
     {
@@ -55,8 +55,7 @@ internal partial class MiddlewareContext
             return [];
         }
 
-        var objectType = Unsafe.As<IObjectTypeDefinition, ObjectType>(ref typeContext);
-        var selectionSet = _operationContext.CollectFields(selection, objectType);
+        var selectionSet = _operationContext.CollectFields(selection, typeContext);
 
         if (selectionSet.IsConditional)
         {

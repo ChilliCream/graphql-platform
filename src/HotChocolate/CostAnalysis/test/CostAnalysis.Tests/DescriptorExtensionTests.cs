@@ -19,7 +19,7 @@ public sealed class DescriptorExtensionTests
             .Use(next => next)
             .Create();
 
-        var query = schema.GetType<ObjectType>(OperationTypeNames.Query);
+        var query = schema.Types.GetType<ObjectType>(OperationTypeNames.Query);
 
         var costDirective = query.Fields["field"]
             .Arguments["a"]
@@ -46,11 +46,11 @@ public sealed class DescriptorExtensionTests
             .Use(next => next)
             .Create();
 
-        var enumType1 = schema.GetType<EnumType>("Example");
+        var enumType1 = schema.Types.GetType<EnumType>("Example");
         var directive1 = enumType1.Directives.Single(d => d.Type.Name == "cost");
         var costDirective1 = directive1.AsValue<CostDirective>();
 
-        var enumType2 = schema.GetType<EnumType>(nameof(ExampleEnum));
+        var enumType2 = schema.Types.GetType<EnumType>(nameof(ExampleEnum));
         var directive2 = enumType2.Directives.Single(d => d.Type.Name == "cost");
         var costDirective2 = directive2.AsValue<CostDirective>();
 
@@ -78,7 +78,7 @@ public sealed class DescriptorExtensionTests
             .Use(next => next)
             .Create();
 
-        var input = schema.GetType<InputObjectType>("input");
+        var input = schema.Types.GetType<InputObjectType>("input");
         var directive = input.Fields["field"].Directives.Single(d => d.Type.Name == "cost");
         var costDirective = directive.AsValue<CostDirective>();
 
@@ -100,7 +100,7 @@ public sealed class DescriptorExtensionTests
             .Use(next => next)
             .Create();
 
-        var query = schema.GetType<ObjectType>(OperationTypeNames.Query);
+        var query = schema.Types.GetType<ObjectType>(OperationTypeNames.Query);
         var directive = query.Fields["field"].Directives.Single(d => d.Type.Name == "cost");
         var costDirective = directive.AsValue<CostDirective>();
 
@@ -122,7 +122,7 @@ public sealed class DescriptorExtensionTests
             .Use(next => next)
             .Create();
 
-        var query = schema.GetType<ObjectType>(OperationTypeNames.Query);
+        var query = schema.Types.GetType<ObjectType>(OperationTypeNames.Query);
         var directive = query.Directives.Single(d => d.Type.Name == "cost");
         var costDirective = directive.AsValue<CostDirective>();
 
@@ -148,7 +148,7 @@ public sealed class DescriptorExtensionTests
             .Use(next => next)
             .Create();
 
-        var query = schema.GetType<ObjectType>(OperationTypeNames.Query);
+        var query = schema.Types.GetType<ObjectType>(OperationTypeNames.Query);
         var directive = query.Fields["field"].Directives.Single(d => d.Type.Name == "listSize");
         var listSizeDirective = directive.AsValue<ListSizeDirective>();
 

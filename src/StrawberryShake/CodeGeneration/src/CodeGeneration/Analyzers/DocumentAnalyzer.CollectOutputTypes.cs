@@ -108,7 +108,7 @@ public partial class DocumentAnalyzer
         foreach (var variableDefinition in
                  context.OperationDefinition.VariableDefinitions)
         {
-            var namedInputType = context.Schema.GetType<INamedInputType>(
+            var namedInputType = context.schema.Types.GetType<INamedInputType>(
                 variableDefinition.Type.NamedType().Name.Value);
 
             arguments.Add(new ArgumentModel(
