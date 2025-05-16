@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
   </ItemGroup>
 
   <ItemGroup>

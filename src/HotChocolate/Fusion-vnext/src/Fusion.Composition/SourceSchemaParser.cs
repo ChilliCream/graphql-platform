@@ -19,6 +19,7 @@ internal sealed class SourceSchemaParser(IEnumerable<string> sourceSchemas, ICom
         var sortedSetBuilder = ImmutableSortedSet.CreateBuilder(
             new SchemaByNameComparer<MutableSchemaDefinition>());
 
+        // TODO: Needs to handle two source schemas with the same name
         foreach (var sourceSchema in sourceSchemas)
         {
             try

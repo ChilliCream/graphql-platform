@@ -1,10 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion;
 
@@ -39,7 +43,7 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-     protected static ExecutionPlan PlanOperation(
+    protected static ExecutionPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {
@@ -60,5 +64,52 @@ public abstract class FusionTestBase
         var formatter = new YamlExecutionPlanFormatter();
         var actual = formatter.Format(plan);
         actual.MatchInlineSnapshot(expected + Environment.NewLine);
+    }
+
+    protected record TestSubgraph([StringSyntax("graphql")] string Schema, bool Preprocess = true);
+
+    protected class TestSubgraphCollection(params TestSubgraph[] subgraphs)
+    {
+        public FusionSchemaDefinition BuildFusionSchema()
+        {
+            var compositionLog = new CompositionLog();
+            var schemas = subgraphs.Select(GetSchemaFromSubgraph);
+            var composer = new SchemaComposer(schemas, compositionLog);
+            var result = composer.Compose();
+
+            if (!result.IsSuccess)
+            {
+                throw new InvalidOperationException(result.Errors[0].Message);
+            }
+
+            var compositeSchemaDoc = result.Value.ToSyntaxNode();
+            return CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        }
+
+        private static string GetSchemaFromSubgraph(TestSubgraph subgraph, int index)
+        {
+            var schema = SchemaParser.Parse(subgraph.Schema);
+
+            if (subgraph.Preprocess)
+            {
+                schema = new SourceSchemaPreprocessor(schema).Process();
+            }
+
+            var schemaNameDirective = schema.Directives.FirstOrDefault(WellKnownDirectiveNames.SchemaName);
+
+            if (schemaNameDirective is null)
+            {
+                var subgraphName = $"Subgraph_{index + 1}";
+                var stringType = BuiltIns.String.Create();
+                var schemaNameDirectiveDefinition = new SchemaNameMutableDirectiveDefinition(stringType);
+
+                schema.DirectiveDefinitions.Add(schemaNameDirectiveDefinition);
+
+                schema.Directives.Add(new Directive(schemaNameDirectiveDefinition,
+                    [new ArgumentAssignment(WellKnownArgumentNames.Value, subgraphName)]));
+            }
+
+            return schema.ToString();
+        }
     }
 }

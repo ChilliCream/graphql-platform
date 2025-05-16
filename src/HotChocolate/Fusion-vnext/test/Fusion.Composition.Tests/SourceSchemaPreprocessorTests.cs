@@ -64,6 +64,17 @@ public sealed class SourceSchemaPreprocessorTests
               @key(fields: "id") {
               id: ID!
             }
+
+            scalar FieldSelectionSet
+
+            "The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas."
+            directive @key("Represents a selection set syntax." fields: FieldSelectionSet!) repeatable on OBJECT | INTERFACE
+
+            "The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key."
+            directive @lookup on FIELD_DEFINITION
+
+            "The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked."
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
             """);
     }
 
@@ -106,6 +117,17 @@ public sealed class SourceSchemaPreprocessorTests
               id: ID!
               other: String
             }
+
+            scalar FieldSelectionSet
+
+            "The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas."
+            directive @key("Represents a selection set syntax." fields: FieldSelectionSet!) repeatable on OBJECT | INTERFACE
+
+            "The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key."
+            directive @lookup on FIELD_DEFINITION
+
+            "The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked."
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
             """);
     }
 
@@ -154,6 +176,17 @@ public sealed class SourceSchemaPreprocessorTests
               name: String!
               other: String
             }
+
+            scalar FieldSelectionSet
+
+            "The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas."
+            directive @key("Represents a selection set syntax." fields: FieldSelectionSet!) repeatable on OBJECT | INTERFACE
+
+            "The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key."
+            directive @lookup on FIELD_DEFINITION
+
+            "The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked."
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
             """);
     }
 
@@ -194,6 +227,9 @@ public sealed class SourceSchemaPreprocessorTests
               id: ID!
               other: String
             }
+
+            "The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked."
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
             """);
     }
 
@@ -234,6 +270,9 @@ public sealed class SourceSchemaPreprocessorTests
               id: ID!
               other: String
             }
+
+            "The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked."
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
             """);
     }
 
@@ -274,6 +313,9 @@ public sealed class SourceSchemaPreprocessorTests
               id: ID!
               other: String
             }
+
+            "The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked."
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
             """);
     }
 
@@ -312,6 +354,9 @@ public sealed class SourceSchemaPreprocessorTests
               @shareable {
               id: ID!
             }
+
+            "The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked."
+            directive @shareable repeatable on OBJECT | FIELD_DEFINITION
             """);
     }
 }
