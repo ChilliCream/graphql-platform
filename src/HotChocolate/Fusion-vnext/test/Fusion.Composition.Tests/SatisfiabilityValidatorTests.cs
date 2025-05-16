@@ -28,7 +28,7 @@ public sealed class SatisfiabilityValidatorTests
                 }
 
                 type User {
-                    id: ID!
+                    id: ID! @shareable
                     name: String
                 }
                 """,
@@ -44,7 +44,7 @@ public sealed class SatisfiabilityValidatorTests
                 }
 
                 type User {
-                    id: ID!
+                    id: ID! @shareable
                     membershipStatus: String
                 }
                 """
@@ -280,7 +280,7 @@ public sealed class SatisfiabilityValidatorTests
                     address: Address
                 }
 
-                type Address {
+                type Address @shareable {
                     street: String
                     city: String
                 }
@@ -296,7 +296,7 @@ public sealed class SatisfiabilityValidatorTests
                     shippingAddress: Address
                 }
 
-                type Address {
+                type Address @shareable {
                     street: String
                     city: String
                     country: String
@@ -352,7 +352,7 @@ public sealed class SatisfiabilityValidatorTests
                     categoryById(id: ID!): Category @lookup
                 }
 
-                type Category {
+                type Category @key(fields: "id") {
                     id: ID!
                     description: String
                 }
