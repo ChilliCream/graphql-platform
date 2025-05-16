@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
-public static class HotChocolateTypeAbstractionsDirectiveExtensions
+public static class HotChocolateTypesAbstractionsDirectiveExtensions
 {
     public static bool IsStreamable(this FieldNode field)
     {

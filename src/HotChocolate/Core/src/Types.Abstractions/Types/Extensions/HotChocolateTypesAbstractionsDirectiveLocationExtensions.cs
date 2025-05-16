@@ -1,9 +1,12 @@
 
 using System.Collections.Immutable;
 
+#pragma warning disable IDE0130
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
+#pragma warning restore IDE0130
 
-public static class DirectiveLocationExtensions
+public static class HotChocolateTypesAbstractionsDirectiveLocationExtensions
 {
     private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> _typeToLang =
        new()

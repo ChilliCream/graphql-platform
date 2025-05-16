@@ -26,12 +26,12 @@ file static class Extensions
     {
         var definition = descriptor.Extend().Configuration;
 
-        if ((definition.Flags & FieldFlags.FilterOperationField) == FieldFlags.FilterOperationField)
+        if ((definition.Flags & CoreFieldFlags.FilterOperation) == CoreFieldFlags.FilterOperation)
         {
-            definition.Flags &= ~FieldFlags.FilterOperationField;
+            definition.Flags &= ~CoreFieldFlags.FilterOperation;
         }
 
-        definition.Flags |= FieldFlags.FilterExpensiveOperationField;
+        definition.Flags |= CoreFieldFlags.FilterOperationExpensive;
 
         return descriptor;
     }

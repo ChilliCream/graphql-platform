@@ -17,6 +17,8 @@ internal sealed class EmptyDirectiveCollection : IReadOnlyDirectiveCollection
 
     public IDirective? FirstOrDefault(string directiveName) => null;
 
+    public IDirective? FirstOrDefault(Type runtimeType) => null;
+
     public bool ContainsName(string directiveName) => false;
 
     public IEnumerator<IDirective> GetEnumerator()

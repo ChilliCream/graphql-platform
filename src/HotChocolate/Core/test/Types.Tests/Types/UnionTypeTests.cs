@@ -88,7 +88,7 @@ public class UnionTypeTests
             .Type<BarType>()));
 
         // assert
-        Assert.Collection(fooBarType.Types.Values,
+        Assert.Collection(fooBarType.Types,
             t => Assert.Equal("Foo", t.Name),
             t => Assert.Equal("Bar", t.Name));
     }
@@ -103,7 +103,7 @@ public class UnionTypeTests
             b => b.AddTypes(new FooType(), new BarType()));
 
         // assert
-        Assert.Collection(fooBarType.Types.Values,
+        Assert.Collection(fooBarType.Types,
             t => Assert.Equal("Foo", t.Name),
             t => Assert.Equal("Bar", t.Name));
     }
@@ -118,7 +118,7 @@ public class UnionTypeTests
             b => b.AddTypes(new FooType(), new BarType()));
 
         // assert
-        Assert.Collection(fooBarType.Types.Values,
+        Assert.Collection(fooBarType.Types,
             t => Assert.Equal("Baz", t.Name),
             t => Assert.Equal("Foo", t.Name),
             t => Assert.Equal("Bar", t.Name));

@@ -209,8 +209,8 @@ internal sealed class SelectionExpressionBuilder
         }
 
         var flags = ((ObjectField)selection.Field).Flags;
-        if ((flags & FieldFlags.Connection) == FieldFlags.Connection
-            || (flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment)
+        if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
+            || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {
             return;
         }
@@ -346,7 +346,7 @@ internal sealed class SelectionExpressionBuilder
         public TypeNode? GetRequirements(ISelection selection)
         {
             var flags = selection.Field.Flags;
-            return (flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements
+            return (flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }

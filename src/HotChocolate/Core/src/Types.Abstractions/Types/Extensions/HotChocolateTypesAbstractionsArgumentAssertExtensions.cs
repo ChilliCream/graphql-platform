@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace HotChocolate.Types;
 #pragma warning restore IDE0130
 
-public static class HotChocolateTypeAbstractionsArgumentAssertExtensions
+public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
 {
     public static IInputType ExpectInputType(
         this IType type,

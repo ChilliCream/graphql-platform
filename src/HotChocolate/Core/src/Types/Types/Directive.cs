@@ -145,6 +145,11 @@ public sealed class Directive : IDirective
         return _syntaxNode;
     }
 
+    public T ToValue<T>() where T : notnull
+    {
+        throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Implicitly casts <see cref="Directive"/> to <see cref="DirectiveNode"/>.
     /// </summary>

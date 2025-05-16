@@ -44,10 +44,10 @@ public abstract class OutputField : FieldBase, IOutputFieldDefinition
     /// Defines if this field as an introspection field.
     /// </summary>
     public bool IsIntrospectionField
-        => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+        => (Flags & CoreFieldFlags.Introspection) == CoreFieldFlags.Introspection;
 
     internal bool IsTypeNameField
-        => (Flags & FieldFlags.TypeNameField) == FieldFlags.TypeNameField;
+        => (Flags & CoreFieldFlags.TypeNameIntrospectionField) == CoreFieldFlags.TypeNameIntrospectionField;
 
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,

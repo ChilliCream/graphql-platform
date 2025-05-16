@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.CostAnalysis.Properties;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -11,14 +12,15 @@ internal static class ErrorHelper
         double maxFieldCost,
         bool reportMetrics)
         => ResultHelper.CreateError(
-            new Error(
-                CostAnalysisResources.ErrorHelper_MaxFieldCostReached,
-                ErrorCodes.Execution.CostExceeded,
-                extensions: new Dictionary<string, object?>
-                {
-                    { "fieldCost", costMetrics.FieldCost },
-                    { nameof(maxFieldCost), maxFieldCost }
-                }),
+            new Error
+            {
+                Message = CostAnalysisResources.ErrorHelper_MaxFieldCostReached,
+                Extensions =
+                    ImmutableDictionary<string, object?>.Empty
+                        .Add("code", ErrorCodes.Execution.CostExceeded)
+                        .Add("fieldCost", costMetrics.FieldCost)
+                        .Add("maxFieldCost", maxFieldCost)
+            },
             reportMetrics ? costMetrics : null);
 
     public static IExecutionResult MaxTypeCostReached(
@@ -26,14 +28,15 @@ internal static class ErrorHelper
         double maxTypeCost,
         bool reportMetrics)
         => ResultHelper.CreateError(
-            new Error(
-                CostAnalysisResources.ErrorHelper_MaxTypeCostReached,
-                ErrorCodes.Execution.CostExceeded,
-                extensions: new Dictionary<string, object?>
-                {
-                    { "typeCost", costMetrics.TypeCost },
-                    { nameof(maxTypeCost), maxTypeCost }
-                }),
+            new Error
+            {
+                Message = CostAnalysisResources.ErrorHelper_MaxTypeCostReached,
+                Extensions =
+                    ImmutableDictionary<string, object?>.Empty
+                        .Add("code", ErrorCodes.Execution.CostExceeded)
+                        .Add("typeCost", costMetrics.TypeCost)
+                        .Add("maxTypeCost", maxTypeCost)
+            },
             reportMetrics ? costMetrics : null);
 
     public static IError ExactlyOneSlicingArgMustBeDefined(
@@ -56,7 +59,7 @@ internal static class ErrorHelper
             .SetMessage("Exactly one slicing argument must be defined.")
             .SetCode(ErrorCodes.Execution.OneSlicingArgumentRequired)
             .AddLocation(fieldNode)
-            .SetPath(errorPath)
+            .SetPath(Path.FromList(errorPath))
             .Build();
     }
 }

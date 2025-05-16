@@ -7,7 +7,7 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types;
 #pragma warning restore IDE0130
 
-public static class HotChocolateTypeAbstractionsTypeExtensions
+public static class HotChocolateTypesAbstractionsTypeExtensions
 {
     private const int _maxDepth = 16;
 

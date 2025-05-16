@@ -60,16 +60,16 @@ public sealed class ObjectField : OutputField
     /// </summary>
     public bool IsParallelExecutable
     {
-        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        get => (Flags & CoreFieldFlags.ParallelExecutable) == CoreFieldFlags.ParallelExecutable;
         private set
         {
             if (value)
             {
-                Flags |= FieldFlags.ParallelExecutable;
+                Flags |= CoreFieldFlags.ParallelExecutable;
             }
             else
             {
-                Flags &= ~FieldFlags.ParallelExecutable;
+                Flags &= ~CoreFieldFlags.ParallelExecutable;
             }
         }
     }
@@ -223,12 +223,12 @@ public sealed class ObjectField : OutputField
 
         // if the source generator has configured this field, we will not try to infer a post processor with
         // reflection.
-        if ((Flags & FieldFlags.SourceGenerator) != FieldFlags.SourceGenerator
+        if ((Flags & CoreFieldFlags.SourceGenerator) != CoreFieldFlags.SourceGenerator
             && ResultPostProcessor is null
             && PureResolver is null
-            && ((Flags & FieldFlags.Stream) == FieldFlags.Stream
-                || (Flags & FieldFlags.Connection) == FieldFlags.Connection
-                || (Flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment
+            && ((Flags & CoreFieldFlags.Stream) == CoreFieldFlags.Stream
+                || (Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
+                || (Flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment
                 || Type.IsListType()))
         {
             ResultPostProcessor =

@@ -227,7 +227,7 @@ public class ObjectFieldDescriptor
                         continue;
                     }
 
-                    Configuration.Flags |= FieldFlags.WithRequirements;
+                    Configuration.Flags |= CoreFieldFlags.WithRequirements;
                     Configuration.Features.Set(new FieldRequirementFeature(requirements, parameter.ParameterType));
                 }
             }
@@ -479,12 +479,12 @@ public class ObjectFieldDescriptor
     {
         if (!(requires?.Length > 0))
         {
-            Configuration.Flags &= ~FieldFlags.WithRequirements;
+            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
             Configuration.Features.Set<FieldRequirementFeature>(null);
             return this;
         }
 
-        Configuration.Flags |= FieldFlags.WithRequirements;
+        Configuration.Flags |= CoreFieldFlags.WithRequirements;
         Configuration.Features.Set(new FieldRequirementFeature(requires, typeof(TParent)));
         return this;
     }
@@ -493,12 +493,12 @@ public class ObjectFieldDescriptor
     {
         if (!(requires?.Length > 0))
         {
-            Configuration.Flags &= ~FieldFlags.WithRequirements;
+            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
             Configuration.Features.Set<FieldRequirementFeature>(null);
             return this;
         }
 
-        Configuration.Flags |= FieldFlags.WithRequirements;
+        Configuration.Flags |= CoreFieldFlags.WithRequirements;
         Configuration.Features.Set(new FieldRequirementFeature(requires, Configuration.SourceType));
         return this;
     }

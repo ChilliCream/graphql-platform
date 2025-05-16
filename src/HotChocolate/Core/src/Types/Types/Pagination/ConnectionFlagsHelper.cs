@@ -25,7 +25,7 @@ public static class ConnectionFlagsHelper
             static (_, ctx) =>
             {
                 if (ctx.Selection.Field is ObjectField field
-                    && !field.Flags.HasFlag(FieldFlags.Connection))
+                    && !field.Flags.HasFlag(CoreFieldFlags.Connection))
                 {
                     return ConnectionFlags.None;
                 }

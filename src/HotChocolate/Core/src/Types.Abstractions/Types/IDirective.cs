@@ -23,4 +23,11 @@ public interface IDirective : INameProvider, ISyntaxNodeProvider<DirectiveNode>
     /// Gets the arguments of the directive.
     /// </summary>
     ArgumentAssignmentCollection Arguments { get; }
+
+    /// <summary>
+    /// Converts the directive to a value of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type to convert the directive to.</typeparam>
+    /// <returns>The value of the directive.</returns>
+    T ToValue<T>() where T : notnull;
 }

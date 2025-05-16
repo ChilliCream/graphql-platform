@@ -50,7 +50,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 options.QueryFieldName ?? _defaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
-            _queryField.Flags |= FieldFlags.MutationQueryField;
+            _queryField.Flags |= CoreFieldFlags.MutationQueryField;
 
             foreach (var field in _mutationConfig.Fields)
             {

@@ -28,4 +28,9 @@ public interface IFieldDefinition
     /// Specifies if this field is part of the introspection.
     /// </summary>
     bool IsIntrospectionField => Name.StartsWith("__");
+
+    /// <summary>
+    /// Gets flags that describe additional properties of this field.
+    /// </summary>
+    FieldFlags Flags { get; }
 }

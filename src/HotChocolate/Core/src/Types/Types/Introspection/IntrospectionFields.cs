@@ -20,7 +20,9 @@ internal static class IntrospectionFields
             .Description(TypeResources.SchemaField_Description)
             .Type<NonNullType<__Schema>>();
 
-        descriptor.Configuration.PureResolver = Resolve;
+        var configuration = descriptor.Configuration;
+        configuration.PureResolver = Resolve;
+        configuration.Flags |= CoreFieldFlags.SchemaIntrospectionField | CoreFieldFlags.Introspection;
 
         static ISchemaDefinition Resolve(IResolverContext ctx)
             => ctx.Schema;
@@ -38,7 +40,9 @@ internal static class IntrospectionFields
             .Type<__Type>()
             .Resolve(Resolve);
 
-        descriptor.Configuration.PureResolver = Resolve;
+        var configuration = descriptor.Configuration;
+        configuration.PureResolver = Resolve;
+        configuration.Flags |= CoreFieldFlags.TypeIntrospectionField | CoreFieldFlags.Introspection;
 
         static ITypeDefinition? Resolve(IResolverContext ctx)
         {
@@ -57,17 +61,17 @@ internal static class IntrospectionFields
             .Description(TypeResources.TypeNameField_Description)
             .Type<NonNullType<StringType>>();
 
-        var definition = descriptor.Extend().Configuration;
-        definition.PureResolver = _typeNameResolver;
-        definition.Flags |= FieldFlags.TypeNameField;
+        var configuration = descriptor.Extend().Configuration;
+        configuration.PureResolver = _typeNameResolver;
+        configuration.Flags |= CoreFieldFlags.TypeNameIntrospectionField | CoreFieldFlags.Introspection;
 
         return CreateConfiguration(descriptor);
     }
 
     private static ObjectFieldConfiguration CreateConfiguration(ObjectFieldDescriptor descriptor)
     {
-        var definition = descriptor.CreateConfiguration();
-        definition.IsIntrospectionField = true;
-        return definition;
+        var configuration = descriptor.CreateConfiguration();
+        configuration.IsIntrospectionField = true;
+        return configuration;
     }
 }

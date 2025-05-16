@@ -90,7 +90,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
             Names.Items,
             CollectionSegmentType_Items_Description,
             pureResolver: GetItems)
-            { Flags = FieldFlags.ItemsField });
+            { Flags = CoreFieldFlags.CollectionSegmentItemsField });
 
 
         if (withTotalCount)
@@ -100,7 +100,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
                 pureResolver: GetTotalCount)
             {
-                Flags = FieldFlags.TotalCount
+                Flags = CoreFieldFlags.TotalCount
             });
         }
 
@@ -117,7 +117,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         => context.Parent<CollectionSegment>().TotalCount;
 
     private static bool IsItemsField(ObjectFieldConfiguration field)
-        => (field.Flags & FieldFlags.ItemsField) == FieldFlags.ItemsField;
+        => (field.Flags & CoreFieldFlags.CollectionSegmentItemsField) == CoreFieldFlags.CollectionSegmentItemsField;
 
     internal static class Names
     {

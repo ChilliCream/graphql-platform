@@ -17,7 +17,7 @@ public class UnionTypeExtensionTests
 
         // assert
         var type = schema.Types.GetType<FooType>("Foo");
-        Assert.Collection(type.Types.Values,
+        Assert.Collection(type.Types,
             t => Assert.IsType<AType>(t),
             t => Assert.IsType<BType>(t));
     }
@@ -33,12 +33,12 @@ public class UnionTypeExtensionTests
             .AddType(new UnionTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.Features["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features.Set(new CustomFeature()))))
             .Create();
 
         // assert
         var type = schema.Types.GetType<UnionType>("Foo");
-        Assert.True(type.ContextData.ContainsKey("foo"));
+        Assert.NotNull(type.Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class UnionTypeExtensionTests
 
         // assert
         var type = schema.Types.GetType<FooType>("Foo");
-        Assert.Collection(type.Types.Values,
+        Assert.Collection(type.Types,
             t => Assert.IsType<AType>(t),
             t => Assert.IsType<BType>(t));
     }
@@ -226,4 +226,6 @@ public class UnionTypeExtensionTests
             descriptor.Location(DirectiveLocation.Union);
         }
     }
+
+    public sealed class CustomFeature;
 }

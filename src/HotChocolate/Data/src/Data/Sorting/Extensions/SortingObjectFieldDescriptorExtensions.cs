@@ -175,7 +175,7 @@ public static class SortingObjectFieldDescriptorExtensions
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
-                        Flags = FieldFlags.SortArgument
+                        Flags = CoreFieldFlags.SortArgument
                     };
 
                     argumentDefinition.Tasks.Add(

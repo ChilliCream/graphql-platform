@@ -95,6 +95,36 @@ public sealed class DirectiveCollection : IReadOnlyList<Directive>
         return null;
     }
 
+        /// <summary>
+    /// Gets the first directive that matches the specified runtime type.
+    /// </summary>
+    /// <param name="runtimeType">
+    /// The runtime type of the directive.
+    /// </param>
+    /// <returns>
+    /// The first directive that matches the specified runtime type.
+    /// </returns>
+    public Directive? FirstOrDefault(Type runtimeType)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeType);
+
+        var span = _directives.AsSpan();
+        ref var start = ref MemoryMarshal.GetReference(span);
+        ref var end = ref Unsafe.Add(ref start, span.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if (start.Type.RuntimeType == runtimeType)
+            {
+                return start;
+            }
+
+            start = ref Unsafe.Add(ref start, 1)!;
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Gets the first directive that matches the specified runtime type.
     /// </summary>
@@ -105,25 +135,7 @@ public sealed class DirectiveCollection : IReadOnlyList<Directive>
     /// The first directive that matches the specified runtime type.
     /// </returns>
     public Directive? FirstOrDefault<TRuntimeType>()
-    {
-        var span = _directives.AsSpan();
-        ref var start = ref MemoryMarshal.GetReference(span);
-        ref var end = ref Unsafe.Add(ref start, span.Length);
-
-        while (Unsafe.IsAddressLessThan(ref start, ref end))
-        {
-            if (start.AsValue<object>() is TRuntimeType)
-            {
-                return start;
-            }
-
-#pragma warning disable CS8619
-            start = ref Unsafe.Add(ref start, 1);
-#pragma warning restore CS8619
-        }
-
-        return null;
-    }
+        => FirstOrDefault(typeof(TRuntimeType));
 
     /// <summary>
     /// Determines whether the collection contains a directive with the specified name.
@@ -303,6 +315,9 @@ public sealed class DirectiveCollection : IReadOnlyList<Directive>
 
         public IDirective? FirstOrDefault(string directiveName)
             => directives.FirstOrDefault(directiveName);
+
+        public IDirective? FirstOrDefault(Type runtimeType)
+            => directives.FirstOrDefault(runtimeType);
 
         public bool ContainsName(string directiveName)
             => directives.ContainsDirective(directiveName);

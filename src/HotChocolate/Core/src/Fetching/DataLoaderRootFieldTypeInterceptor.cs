@@ -90,8 +90,8 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     private static bool IsUsableFieldConnection(ObjectFieldConfiguration field)
     {
-        var isConnection = (field.Flags & FieldFlags.Connection) == FieldFlags.Connection;
-        var usesProjection = (field.Flags & FieldFlags.UsesProjections) == FieldFlags.UsesProjections;
+        var isConnection = (field.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection;
+        var usesProjection = (field.Flags & CoreFieldFlags.UsesProjections) == CoreFieldFlags.UsesProjections;
 
         return isConnection
             && !usesProjection

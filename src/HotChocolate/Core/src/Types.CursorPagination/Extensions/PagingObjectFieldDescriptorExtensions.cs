@@ -131,7 +131,7 @@ public static class PagingObjectFieldDescriptorExtensions
                 var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
                 d.Features.Set(pagingOptions);
-                d.Flags |= FieldFlags.Connection;
+                d.Flags |= CoreFieldFlags.Connection;
 
                 CreatePagingArguments(d.Arguments, backward);
 
@@ -217,7 +217,7 @@ public static class PagingObjectFieldDescriptorExtensions
                 var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
                 d.Features.Set(pagingOptions);
-                d.Flags |= FieldFlags.Connection;
+                d.Flags |= CoreFieldFlags.Connection;
 
                 CreatePagingArguments(d.Arguments, backward);
 

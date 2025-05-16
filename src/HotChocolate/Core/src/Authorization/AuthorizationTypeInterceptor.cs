@@ -627,7 +627,7 @@ file static class AuthorizationTypeInterceptorExtensions
 {
     public static bool IsNodeField(this ObjectFieldConfiguration fieldDef)
     {
-        return (fieldDef.Flags & FieldFlags.GlobalIdNodeField) == FieldFlags.GlobalIdNodeField
-            || (fieldDef.Flags & FieldFlags.GlobalIdNodesField) == FieldFlags.GlobalIdNodesField;
+        return (fieldDef.Flags & CoreFieldFlags.GlobalIdNodeField) == CoreFieldFlags.GlobalIdNodeField
+            || (fieldDef.Flags & CoreFieldFlags.GlobalIdNodesField) == CoreFieldFlags.GlobalIdNodesField;
     }
 }

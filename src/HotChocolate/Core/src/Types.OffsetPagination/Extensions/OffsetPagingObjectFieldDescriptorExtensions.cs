@@ -116,7 +116,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             : null;
                 }
                 d.Features.Set(pagingOptions);
-                d.Flags |= FieldFlags.CollectionSegment;
+                d.Flags |= CoreFieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -236,7 +236,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             : null;
                 }
                 d.Features.Set(pagingOptions);
-                d.Flags |= FieldFlags.CollectionSegment;
+                d.Flags |= CoreFieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -268,7 +268,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         }
 
         var skip = descriptor.Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>());
-        skip.Extend().Configuration.Flags |= FieldFlags.SkipArgument;
+        skip.Extend().Configuration.Flags |= CoreFieldFlags.CollectionSegmentSkipArgument;
 
         return descriptor
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());

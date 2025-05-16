@@ -17,7 +17,7 @@ public abstract class FieldBase
     , IHasRuntimeType
 {
     private FieldConfiguration? _config;
-    private FieldFlags _flags;
+    private CoreFieldFlags _coreFlags;
 
     protected FieldBase(FieldConfiguration configuration, int index)
     {
@@ -95,15 +95,17 @@ public abstract class FieldBase
     /// <inheritdoc />
     public abstract Type RuntimeType { get; }
 
-    internal FieldFlags Flags
+    internal CoreFieldFlags Flags
     {
-        get => _flags;
+        get => _coreFlags;
         set
         {
             AssertMutable();
-            _flags = value;
+            _coreFlags = value;
         }
     }
+
+    FieldFlags IFieldDefinition.Flags => FieldFlagsMapper.MapToPublic(_coreFlags);
 
     /// <inheritdoc />
     public IFeatureCollection Features { get; private set; }
@@ -197,7 +199,7 @@ public abstract class FieldBase
         OnFinalizeField(context, declaringMember, _config!);
         Features = Features.ToReadOnly();
         _config = null;
-        _flags |= FieldFlags.Sealed;
+        _coreFlags |= CoreFieldFlags.Sealed;
     }
 
     protected virtual void OnFinalizeField(
@@ -214,7 +216,7 @@ public abstract class FieldBase
 
     private void AssertMutable()
     {
-        if ((_flags & FieldFlags.Sealed) == FieldFlags.Sealed)
+        if ((_coreFlags & CoreFieldFlags.Sealed) == CoreFieldFlags.Sealed)
         {
             throw ThrowHelper.FieldBase_Sealed();
         }

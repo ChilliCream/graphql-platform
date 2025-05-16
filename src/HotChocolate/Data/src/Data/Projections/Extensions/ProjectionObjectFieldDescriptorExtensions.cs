@@ -136,7 +136,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var extension = descriptor.Extend();
 
         extension.Configuration.MiddlewareConfigurations.Add(placeholder);
-        extension.Configuration.Flags |= FieldFlags.UsesProjections;
+        extension.Configuration.Flags |= CoreFieldFlags.UsesProjections;
 
         extension
             .OnBeforeCreate(

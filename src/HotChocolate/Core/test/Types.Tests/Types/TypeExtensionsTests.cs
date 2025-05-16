@@ -137,7 +137,7 @@ public class TypeExtensionsTests
     public static void NamedType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.NamedType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.NamedType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -173,7 +173,7 @@ public class TypeExtensionsTests
     public static void IsNonNullType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsNonNullType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsNonNullType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -235,7 +235,7 @@ public class TypeExtensionsTests
     public static void IsCompositeType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsCompositeType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsCompositeType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -298,7 +298,7 @@ public class TypeExtensionsTests
     public static void IsComplexType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsComplexType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsComplexType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -348,7 +348,7 @@ public class TypeExtensionsTests
     public static void IsLeafType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsLeafType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsLeafType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -384,7 +384,7 @@ public class TypeExtensionsTests
     public static void IsListType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsListType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsListType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -420,7 +420,7 @@ public class TypeExtensionsTests
     public static void IsScalarType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsScalarType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsScalarType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -457,7 +457,7 @@ public class TypeExtensionsTests
     public static void IsObjectType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsObjectType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsObjectType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -494,7 +494,7 @@ public class TypeExtensionsTests
     public static void IsInterfaceType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsInterfaceType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsInterfaceType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -531,7 +531,7 @@ public class TypeExtensionsTests
     public static void IsEnumType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsEnumType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsEnumType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -568,7 +568,7 @@ public class TypeExtensionsTests
     public static void IsUnionType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsUnionType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsUnionType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -605,7 +605,7 @@ public class TypeExtensionsTests
     public static void IsInputObjectType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsInputObjectType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsInputObjectType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -641,7 +641,7 @@ public class TypeExtensionsTests
     public static void IsInputType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsInputType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsInputType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -677,7 +677,7 @@ public class TypeExtensionsTests
     public static void IsOutputType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsOutputType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsOutputType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -727,7 +727,7 @@ public class TypeExtensionsTests
     public static void IsAbstractType_Type_Is_Null()
     {
         // act
-        void Action() => HotChocolateTypeAbstractionsTypeExtensions.IsAbstractType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsAbstractType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -776,7 +776,7 @@ public class TypeExtensionsTests
     public static void IsType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsAbstractType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsType(null!, TypeKind.Scalar);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

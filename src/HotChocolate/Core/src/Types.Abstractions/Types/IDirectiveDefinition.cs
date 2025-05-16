@@ -17,6 +17,7 @@ public interface IDirectiveDefinition
     , IDescriptionProvider
     , ISyntaxNodeProvider<DirectiveDefinitionNode>
     , ISchemaCoordinateProvider
+    , IRuntimeTypeProvider
 {
     /// <summary>
     /// Defines if this directive is repeatable. Repeatable directives are often useful when

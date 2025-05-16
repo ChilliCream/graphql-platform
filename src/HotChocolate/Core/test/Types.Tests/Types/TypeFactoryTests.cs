@@ -187,8 +187,8 @@ public class TypeFactoryTests : TypeTestBase
 
         Assert.Equal("X", type.Name);
         Assert.Equal(2, type.Types.Count);
-        Assert.Equal("A", type.Types.First().Key);
-        Assert.Equal("B", type.Types.Last().Key);
+        Assert.Equal("A", type.Types.First().Name);
+        Assert.Equal("B", type.Types.Last().Name);
     }
 
     [Fact]
