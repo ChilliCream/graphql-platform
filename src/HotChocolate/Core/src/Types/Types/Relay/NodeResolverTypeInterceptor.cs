@@ -3,11 +3,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
-using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Utilities.ErrorHelper;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
-    private readonly List<IDictionary<string, object?>> _nodes = [];
+    private readonly OrderedDictionary<string, IFeatureCollection> _nodes = [];
 
     internal override uint Position => uint.MaxValue - 101;
 
@@ -140,16 +140,16 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                // Now that we know we can infer a node resolver form the annotated query field
+                // Now that we know we can infer a node resolver from the annotated query field,
                 // we will start mutating the type and field.
-                // First we are adding a marker to the node type`s context data.
+                // First, we are adding a marker to the node type's context data.
                 // We will replace this later with a NodeResolverInfo instance that
                 // allows the node field to resolve a node instance by its ID.
-                fieldTypeDef.ContextData[NodeResolver] = fieldDef.Name;
+                fieldTypeDef.Features.GetOrSet<NodeTypeFeature>();
 
                 // We also want to ensure that the node id argument is always a non-null
-                // ID type. So, if the user has not specified that we are making sure of this
-                // by overwriting the arguments type reference.
+                // ID type. So, if the user has not specified that, we are making sure of this
+                // by overwriting the argument type reference.
                 argument.Type = typeInspector.GetTypeRef(typeof(NonNullType<IdType>));
 
                 // We also need to add an input formatter to the argument the decodes passed
@@ -170,7 +170,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // Last we register the context data of our node with the type
                 // interceptors state.
                 // We do that to replace our marker with the actual NodeResolverInfo instance.
-                _nodes.Add(fieldTypeDef.ContextData);
+                _nodes.TryAdd(fieldDef.Name, fieldTypeDef.Features);
             }
         }
     }
@@ -179,15 +179,14 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
     {
         if (QueryType is not null && _nodes.Count > 0)
         {
-            // After all types are completed it is guaranteed that all
+            // After all types are completed, it is guaranteed that all
             // query field resolver pipelines are fully compiled.
             // So, we can start replacing our marker with the actual NodeResolverInfo.
-            foreach (var node in _nodes)
+            foreach (var (fieldName, features) in _nodes)
             {
-                var fieldName = (string)node[NodeResolver]!;
                 var field = QueryType.Fields[fieldName];
-
-                node[NodeResolver] = new NodeResolverInfo(field, field.Middleware);
+                var feature = features.GetOrSet<NodeTypeFeature>();
+                feature.NodeResolver = new NodeResolverInfo(field, field.Middleware);
             }
         }
     }

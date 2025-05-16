@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionContext>
 {
     protected override ISelectionVisitorAction VisitObjectType(
-        IOutputField field,
+        IOutputFieldDefinition field,
         ObjectType objectType,
         ISelection selection,
         QueryableProjectionContext context)

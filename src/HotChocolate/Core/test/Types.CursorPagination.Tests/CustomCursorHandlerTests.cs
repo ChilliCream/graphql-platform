@@ -11,7 +11,7 @@ public class CustomCursorHandlerTests
         SchemaBuilder.New()
             .AddQueryType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

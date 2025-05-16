@@ -11,37 +11,23 @@ internal sealed class VariableCoercionHelper
 
     public VariableCoercionHelper(InputFormatter inputFormatter, InputParser inputParser)
     {
-        _inputFormatter = inputFormatter ??
-            throw new ArgumentNullException(nameof(inputFormatter));
-        _inputParser = inputParser ??
-            throw new ArgumentNullException(nameof(inputParser));
+        ArgumentNullException.ThrowIfNull(inputFormatter);
+        ArgumentNullException.ThrowIfNull(inputParser);
+
+        _inputFormatter = inputFormatter;
+        _inputParser = inputParser;
     }
 
     public void CoerceVariableValues(
-        ISchema schema,
+        Schema schema,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         IReadOnlyDictionary<string, object?> values,
         IDictionary<string, VariableValueOrLiteral> coercedValues)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (variableDefinitions is null)
-        {
-            throw new ArgumentNullException(nameof(variableDefinitions));
-        }
-
-        if (values is null)
-        {
-            throw new ArgumentNullException(nameof(values));
-        }
-
-        if (coercedValues is null)
-        {
-            throw new ArgumentNullException(nameof(coercedValues));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(variableDefinitions);
+        ArgumentNullException.ThrowIfNull(values);
+        ArgumentNullException.ThrowIfNull(coercedValues);
 
         for (var i = 0; i < variableDefinitions.Count; i++)
         {
@@ -118,7 +104,7 @@ internal sealed class VariableCoercionHelper
     }
 
     private static IInputType AssertInputType(
-        ISchema schema,
+        Schema schema,
         VariableDefinitionNode variableDefinition)
     {
         if (schema.TryGetTypeFromAst(variableDefinition.Type, out IInputType type))
@@ -144,9 +130,6 @@ internal sealed class VariableCoercionHelper
             case StringValueNode sv when inputType.IsEnumType():
                 return new EnumValueNode(sv.Location, sv.Value);
 
-            case StringValueNode:
-                return node;
-
             default:
                 return node;
         }
@@ -169,7 +152,7 @@ internal sealed class VariableCoercionHelper
         {
             var current = node.Fields[i];
 
-            if (!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
+            if (!inputObjectType.Fields.TryGetField(current.Name.Value, out var field))
             {
                 // if we do not find a field on the type we also skip this error and let
                 // the deserialization produce a proper error on this.

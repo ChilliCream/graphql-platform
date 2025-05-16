@@ -32,7 +32,7 @@ public class NodeDescriptor<TNode>
     {
         _typeDescriptor = descriptor;
 
-        // we use the CompleteConfiguration  instead of the higher level api since
+        // we use the CompleteConfiguration instead of the higher level api since
         // we want to target a specific event.
         var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Configuration;
 

@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -8,12 +9,12 @@ namespace HotChocolate.Configuration;
 /// <summary>
 /// The type system context is available during the type system initialization process.
 /// </summary>
-public interface ITypeSystemObjectContext : IHasScope, IHasContextData
+public interface ITypeSystemObjectContext : IHasScope, IFeatureProvider
 {
     /// <summary>
     /// The type system object that is being initialized.
     /// </summary>
-    ITypeSystemObject Type { get; }
+    TypeSystemObject Type { get; }
 
     /// <summary>
     /// A type reference that points to <see cref="Type"/>.

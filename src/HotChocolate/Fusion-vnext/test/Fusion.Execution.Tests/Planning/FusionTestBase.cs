@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
@@ -39,7 +40,7 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-     protected static ExecutionPlan PlanOperation(
+     protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {
@@ -54,7 +55,7 @@ public abstract class FusionTestBase
     }
 
     protected static void MatchInline(
-        ExecutionPlan plan,
+        OperationPlan plan,
         [StringSyntax("yaml")] string expected)
     {
         var formatter = new YamlExecutionPlanFormatter();

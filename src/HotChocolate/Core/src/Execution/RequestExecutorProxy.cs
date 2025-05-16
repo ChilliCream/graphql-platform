@@ -121,7 +121,7 @@ public sealed class RequestExecutorProxy : IDisposable
     /// <returns>
     /// Returns the resolved schema.
     /// </returns>
-    public async ValueTask<ISchema> GetSchemaAsync(
+    public async ValueTask<Schema> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
         var executor =

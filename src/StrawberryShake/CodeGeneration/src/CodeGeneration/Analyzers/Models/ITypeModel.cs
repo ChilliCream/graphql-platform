@@ -10,5 +10,5 @@ public interface ITypeModel
     /// <summary>
     /// Gets the GraphQL schema type.
     /// </summary>
-    INamedType Type { get; }
+    ITypeDefinition Type { get; }
 }

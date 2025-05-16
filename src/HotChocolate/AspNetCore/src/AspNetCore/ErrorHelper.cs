@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore;
@@ -27,45 +28,51 @@ internal static class ErrorHelper
 
     public static IOperationResult TypeNameIsEmpty()
         => OperationResultBuilder.CreateError(
-            new Error(
-                ErrorHelper_TypeNameIsEmpty,
-                code: ErrorCodes.Server.TypeParameterIsEmpty));
+            new Error
+            {
+                Message = ErrorHelper_TypeNameIsEmpty,
+                Extensions = ImmutableDictionary<string, object?>.Empty
+                    .Add("code", ErrorCodes.Server.TypeParameterIsEmpty)
+            });
 
     public static IOperationResult InvalidTypeName(string typeName)
         => OperationResultBuilder.CreateError(
-            new Error(
-                ErrorHelper_InvalidTypeName,
-                code: ErrorCodes.Server.InvalidTypeName,
-                extensions: new Dictionary<string, object?>
-                {
-                    { nameof(typeName), typeName },
-                }));
+            new Error
+            {
+                Message = ErrorHelper_InvalidTypeName,
+                Extensions = ImmutableDictionary<string, object?>.Empty
+                    .Add("code", ErrorCodes.Server.InvalidTypeName)
+                    .Add(nameof(typeName), typeName)
+            });
 
     public static IOperationResult TypeNotFound(string typeName)
         => OperationResultBuilder.CreateError(
-            new Error(
-                string.Format(ErrorHelper_TypeNotFound, typeName),
-                code: ErrorCodes.Server.TypeDoesNotExist,
-                extensions: new Dictionary<string, object?>
-                {
-                    { nameof(typeName), typeName },
-                }));
+            new Error
+            {
+                Message = string.Format(ErrorHelper_TypeNotFound, typeName),
+                Extensions = ImmutableDictionary<string, object?>.Empty
+                    .Add("code", ErrorCodes.Server.TypeDoesNotExist)
+                    .Add(nameof(typeName), typeName)
+            });
 
     public static IOperationResult InvalidAcceptMediaType(string headerValue)
         => OperationResultBuilder.CreateError(
-            new Error(
-                string.Format(ErrorHelper_InvalidAcceptMediaType, headerValue),
-                code: ErrorCodes.Server.InvalidAcceptHeaderValue,
-                extensions: new Dictionary<string, object?>
-                {
-                    { nameof(headerValue), headerValue },
-                }));
+            new Error
+            {
+                Message = string.Format(ErrorHelper_InvalidAcceptMediaType, headerValue),
+                Extensions = ImmutableDictionary<string, object?>.Empty
+                    .Add("code", ErrorCodes.Server.InvalidAcceptHeaderValue)
+                    .Add(nameof(headerValue), headerValue)
+            });
 
     public static IOperationResult MultiPartRequestPreflightRequired()
         => OperationResultBuilder.CreateError(
-            new Error(
-                ErrorHelper_MultiPartRequestPreflightRequired,
-                code: ErrorCodes.Server.MultiPartPreflightRequired));
+            new Error
+            {
+                Message = ErrorHelper_MultiPartRequestPreflightRequired,
+                Extensions = ImmutableDictionary<string, object?>.Empty
+                    .Add("code", ErrorCodes.Server.MultiPartPreflightRequired)
+            });
 
     public static GraphQLRequestException InvalidQueryIdFormat()
         => new GraphQLRequestException(

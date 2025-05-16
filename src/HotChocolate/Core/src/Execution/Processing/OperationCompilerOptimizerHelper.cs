@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -8,38 +9,21 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal static class OperationCompilerOptimizerHelper
 {
-    private const string _key = "HotChocolate.Execution.Utilities.SelectionSetOptimizer";
-
     public static void RegisterOptimizer(
-        IDictionary<string, object?> contextData,
+        IFeatureProvider featureProvider,
         ISelectionSetOptimizer optimizer)
     {
-        if (contextData.TryGetValue(_key, out var value)
-            && value is ImmutableArray<ISelectionSetOptimizer> optimizers)
-        {
-            if (!optimizers.Contains(optimizer))
-            {
-                optimizers = optimizers.Add(optimizer);
-                contextData[_key] = optimizers;
-            }
-            return;
-        }
+        var optimizers = featureProvider.Features.GetOrSet(ImmutableArray<ISelectionSetOptimizer>.Empty);
 
-        contextData[_key] = ImmutableArray.Create(optimizer);
+        if (!optimizers.Contains(optimizer))
+        {
+            optimizers = optimizers.Add(optimizer);
+            featureProvider.Features.Set(optimizers);
+        }
     }
 
     public static bool TryGetOptimizers(
-        IReadOnlyDictionary<string, object?> contextData,
+        IFeatureProvider featureProvider,
         [NotNullWhen(true)] out ImmutableArray<ISelectionSetOptimizer>? optimizers)
-    {
-        if (contextData.TryGetValue(_key, out var value)
-            && value is ImmutableArray<ISelectionSetOptimizer> o)
-        {
-            optimizers = o;
-            return true;
-        }
-
-        optimizers = null;
-        return false;
-    }
+        => featureProvider.Features.TryGet(out optimizers);
 }

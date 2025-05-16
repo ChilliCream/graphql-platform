@@ -3,7 +3,7 @@ namespace HotChocolate.Types.Pagination;
 /// <summary>
 /// Represents an edge in a connection.
 /// </summary>
-public interface IEdgeType : IObjectType
+public interface IEdgeType : IObjectTypeDefinition, IOutputType
 {
     /// <summary>
     /// Gets the connection name of this connection type.

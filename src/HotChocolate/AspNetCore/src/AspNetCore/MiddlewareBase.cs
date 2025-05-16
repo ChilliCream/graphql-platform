@@ -89,8 +89,8 @@ public class MiddlewareBase : IDisposable
     /// <returns>
     /// Returns the schema for this middleware.
     /// </returns>
-    protected ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
-        => _executorProxy.GetSchemaAsync(cancellationToken);
+    protected async ValueTask<ISchemaDefinition> GetSchemaAsync(CancellationToken cancellationToken)
+        => await _executorProxy.GetSchemaAsync(cancellationToken);
 
     protected ValueTask WriteResultAsync(
         HttpContext context,

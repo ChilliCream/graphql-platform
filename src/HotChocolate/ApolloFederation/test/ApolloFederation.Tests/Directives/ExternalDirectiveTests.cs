@@ -53,8 +53,8 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
-        var address = schema.GetType<ObjectType>("Address");
+        var query = schema.Types.GetType<ObjectType>("User");
+        var address = schema.Types.GetType<ObjectType>("Address");
 
         // assert
         Assert.Collection(
@@ -80,8 +80,8 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
-        var address = schema.GetType<ObjectType>("Address");
+        var query = schema.Types.GetType<ObjectType>("User");
+        var address = schema.Types.GetType<ObjectType>("Address");
 
         // assert
         Assert.Collection(

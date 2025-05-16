@@ -1,13 +1,14 @@
 using System.Collections.Concurrent;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution;
 
 internal sealed class RequestContext(
-    ISchema schema,
+    Schema schema,
     ulong executorVersion,
     IErrorHandler errorHandler,
     IExecutionDiagnosticEvents diagnosticEvents)
@@ -16,7 +17,7 @@ internal sealed class RequestContext(
     private readonly ConcurrentDictionary<string, object?> _contextData = new();
     private DocumentValidatorResult? _validationResult;
 
-    public ISchema Schema { get; } = schema;
+    public Schema Schema { get; } = schema;
 
     public ulong ExecutorVersion { get; } = executorVersion;
 
@@ -31,6 +32,8 @@ internal sealed class RequestContext(
     public IOperationRequest Request { get; private set; } = default!;
 
     public IDictionary<string, object?> ContextData => _contextData;
+
+    public IFeatureCollection Features { get; } = new FeatureCollection();
 
     public CancellationToken RequestAborted { get; set; }
 

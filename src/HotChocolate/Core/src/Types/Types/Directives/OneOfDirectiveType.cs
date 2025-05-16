@@ -18,7 +18,7 @@ public sealed class OneOfDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
         => descriptor
-            .Name(WellKnownDirectives.OneOf)
+            .Name(DirectiveNames.OneOf.Name)
             .Description(OneOfDirectiveType_Description)
             .Location(DirectiveLocation.InputObject);
 }

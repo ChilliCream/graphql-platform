@@ -33,6 +33,7 @@ public struct FeatureReference<T>
         {
             return _feature;
         }
+
         _feature = (T?)features[typeof(T)];
         _revision = features.Revision;
         return _feature;

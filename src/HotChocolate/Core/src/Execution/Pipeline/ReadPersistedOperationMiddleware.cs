@@ -62,13 +62,13 @@ internal sealed class ReadPersistedOperationMiddleware
                 context.DocumentId = documentId;
                 context.Document = GetOrParseDocument(operationDocument);
                 context.DocumentHash = GetDocumentHash(operationDocument);
-                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.ValidationResult = DocumentValidatorResult.OK;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = true;
 
                 if (_options.SkipPersistedDocumentValidation)
                 {
-                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.ValidationResult = DocumentValidatorResult.OK;
                 }
 
                 _diagnosticEvents.RetrievedDocumentFromStorage(context);
@@ -98,18 +98,20 @@ internal sealed class ReadPersistedOperationMiddleware
         return null;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var documentHashAlgorithm = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var middleware = new ReadPersistedOperationMiddleware(
-                next,
-                diagnosticEvents,
-                persistedOperationStore,
-                documentHashAlgorithm,
-                core.Options.PersistedOperations);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
+                var documentHashAlgorithm = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var middleware = new ReadPersistedOperationMiddleware(
+                    next,
+                    diagnosticEvents,
+                    persistedOperationStore,
+                    documentHashAlgorithm,
+                    core.Options.PersistedOperations);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(ReadPersistedOperationMiddleware));
 }

@@ -26,13 +26,13 @@ public class GeoJsonPointInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONPointInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONPointInput");
     }
 
     private GeometryType CreateScalarType()
     {
         var schema = CreateSchema();
-        return schema.GetType<GeometryType>("Geometry");
+        return schema.Types.GetType<GeometryType>("Geometry");
     }
 
     [Fact]

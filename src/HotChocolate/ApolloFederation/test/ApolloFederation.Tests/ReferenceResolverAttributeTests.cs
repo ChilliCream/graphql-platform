@@ -23,7 +23,7 @@ public class ReferenceResolverAttributeTests
             .BuildSchemaAsync();
 
         // act
-        var type = schema.GetType<ObjectType>(nameof(InClassRefResolver));
+        var type = schema.Types.GetType<ObjectType>(nameof(InClassRefResolver));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -43,7 +43,7 @@ public class ReferenceResolverAttributeTests
             .BuildSchemaAsync();
 
         // act
-        var type = schema.GetType<ObjectType>(nameof(ExternalRefResolver));
+        var type = schema.Types.GetType<ObjectType>(nameof(ExternalRefResolver));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -64,7 +64,7 @@ public class ReferenceResolverAttributeTests
             .BuildSchemaAsync();
 
         // act
-        var type = schema.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
+        var type = schema.Types.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -83,7 +83,7 @@ public class ReferenceResolverAttributeTests
             .BuildSchemaAsync();
 
         // act
-        var type = schema.GetType<ObjectType>(nameof(ExternalFields));
+        var type = schema.Types.GetType<ObjectType>(nameof(ExternalFields));
         var representation = new ObjectValueNode(
             new ObjectFieldNode("id", "id_123"),
             new ObjectFieldNode("foo", "bar"));
@@ -105,7 +105,7 @@ public class ReferenceResolverAttributeTests
             .BuildSchemaAsync();
 
         // act
-        var type = schema.GetType<ObjectType>(nameof(ExternalFields));
+        var type = schema.Types.GetType<ObjectType>(nameof(ExternalFields));
         var representation = new ObjectValueNode(new ObjectFieldNode("id", "id_123"));
 
         // assert
@@ -124,7 +124,7 @@ public class ReferenceResolverAttributeTests
             .AddQueryType<QueryWithMultiKeyResolver>()
             .BuildSchemaAsync();
 
-        var type = schema.GetType<ObjectType>(nameof(ExternalMultiKeyResolver));
+        var type = schema.Types.GetType<ObjectType>(nameof(ExternalMultiKeyResolver));
 
         // act
         var resultId = await ResolveRef(schema, type, new(new ObjectFieldNode("id", "id_123")));
@@ -146,7 +146,7 @@ public class ReferenceResolverAttributeTests
             .BuildSchemaAsync();
 
         // act
-        var type = schema.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
+        var type = schema.Types.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -216,15 +216,15 @@ public class ReferenceResolverAttributeTests
         result.MatchSnapshot();
     }
 
-    private ValueTask<object?> ResolveRef(ISchema schema, ObjectType type)
+    private ValueTask<object?> ResolveRef(Schema schema, ObjectType type)
         => ResolveRef(schema, type, new ObjectValueNode(new ObjectFieldNode("id", "abc")));
 
     private async ValueTask<object?> ResolveRef(
-        ISchema schema,
+        Schema schema,
         ObjectType type,
         ObjectValueNode representation)
     {
-        var inClassResolverContextObject = type.ContextData[EntityResolver];
+        var inClassResolverContextObject = type.Features.Get<ReferenceResolver>()?.Resolver;
         Assert.NotNull(inClassResolverContextObject);
         var inClassResolverDelegate =
             Assert.IsType<FieldResolverDelegate>(inClassResolverContextObject);
@@ -236,10 +236,9 @@ public class ReferenceResolverAttributeTests
         var entity = await inClassResolverDelegate.Invoke(context);
 
         if (entity is not null &&
-            type!.ContextData.TryGetValue(ExternalSetter, out var value) &&
-            value is Action<ObjectType, IValueNode, object> setExternals)
+            type!.Features.TryGet(out ExternalSetter? externalSetter))
         {
-            setExternals(type, representation!, entity);
+            externalSetter.Invoke(type, representation!, entity);
         }
 
         return entity;

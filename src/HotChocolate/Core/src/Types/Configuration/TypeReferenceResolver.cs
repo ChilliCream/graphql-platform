@@ -75,28 +75,26 @@ internal sealed class TypeReferenceResolver
         }
 
         if (!_typeRegistry.TryGetType(namedTypeRef, out var registeredType) ||
-            registeredType.Type is not INamedType)
+            registeredType.Type is not ITypeDefinition typeDefinition)
         {
             type = null;
             return false;
         }
 
-        var namedType = (INamedType)registeredType.Type;
-
         switch (typeRef)
         {
             case ExtendedTypeReference r:
                 var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
-                type = typeFactory.CreateType(namedType);
+                type = typeFactory.CreateType(typeDefinition);
                 _typeCache[typeId] = type;
                 return true;
 
             case SyntaxTypeReference r:
-                type = CreateType(namedType, r.Type);
+                type = CreateType(typeDefinition, r.Type);
                 return true;
 
             case DependantFactoryTypeReference:
-                type = namedType;
+                type = typeDefinition;
                 return true;
 
             default:

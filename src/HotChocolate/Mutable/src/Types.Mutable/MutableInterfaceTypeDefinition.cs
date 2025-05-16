@@ -13,6 +13,9 @@ public class MutableInterfaceTypeDefinition(string name)
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;
 
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     /// <summary>
     /// Creates a <see cref="InterfaceTypeDefinitionNode"/> from a
     /// <see cref="MutableInterfaceTypeDefinition"/>.

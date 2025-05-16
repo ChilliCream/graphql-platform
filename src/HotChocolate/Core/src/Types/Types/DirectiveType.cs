@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using HotChocolate.Serialization;
 using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types;
@@ -17,7 +18,8 @@ namespace HotChocolate.Types;
 /// <para>https://spec.graphql.org/draft/#sec-Type-System.Directives</para>
 /// </summary>
 public partial class DirectiveType
-    : TypeSystemObjectBase<DirectiveTypeConfiguration>
+    : TypeSystemObject<DirectiveTypeConfiguration>
+    , IDirectiveDefinition
     , IHasRuntimeType
     , IHasTypeIdentity
 {
@@ -48,6 +50,11 @@ public partial class DirectiveType
         => new() { Configuration = definition };
 
     /// <summary>
+    /// Gets the schema coordinate of the directive type.
+    /// </summary>
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: true);
+
+    /// <summary>
     /// Gets the runtime type.
     /// The runtime type defines of which value the type is when it
     /// manifests in the execution engine.
@@ -71,7 +78,10 @@ public partial class DirectiveType
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public FieldCollection<DirectiveArgument> Arguments { get; private set; } = default!;
+    public DirectiveArgumentCollection Arguments { get; private set; } = default!;
+
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
+        => Arguments.AsReadOnlyFieldDefinitionCollection();
 
     /// <summary>
     /// Gets the directive field middleware.
@@ -120,6 +130,10 @@ public partial class DirectiveType
     /// </summary>
     internal bool IsPublic { get; private set; }
 
+    private Type? TypeIdentity { get; set; }
+
+    Type? IHasTypeIdentity.TypeIdentity => TypeIdentity;
+
     internal object CreateInstance(object?[] fieldValues)
         => _createInstance(fieldValues);
 
@@ -150,7 +164,21 @@ public partial class DirectiveType
         return (T)_inputParser.ParseLiteral(value, argument, typeof(T))!;
     }
 
-    private Type? TypeIdentity { get; set; }
+    /// <summary>
+    /// Returns the SDL representation of the current <see cref="DirectiveType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns the SDL representation of the current <see cref="DirectiveType"/>.
+    /// </returns>
+    public override string ToString() => SchemaDebugFormatter.Format(this).ToString(true);
 
-    Type? IHasTypeIdentity.TypeIdentity => TypeIdentity;
+    /// <summary>
+    /// Creates a <see cref="DirectiveDefinitionNode"/> from the current <see cref="DirectiveType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="DirectiveDefinitionNode"/>.
+    /// </returns>
+    public DirectiveDefinitionNode ToSyntaxNode() => SchemaDebugFormatter.Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => SchemaDebugFormatter.Format(this);
 }

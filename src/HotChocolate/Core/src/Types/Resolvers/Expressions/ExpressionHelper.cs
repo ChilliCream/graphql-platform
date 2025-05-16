@@ -34,7 +34,7 @@ internal static class ExpressionHelper
     {
         if (contextData.TryGetValue(key, out var value))
         {
-            if (ReferenceEquals(value, null))
+            if (value is null)
             {
                 return default;
             }

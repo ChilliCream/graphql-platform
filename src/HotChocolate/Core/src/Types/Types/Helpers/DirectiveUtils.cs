@@ -50,6 +50,6 @@ public static class DirectiveUtils
             new DirectiveConfiguration(
                 new DirectiveNode(
                     name.EnsureGraphQLName(),
-                    arguments.ToArray())));
+                    [.. arguments])));
     }
 }

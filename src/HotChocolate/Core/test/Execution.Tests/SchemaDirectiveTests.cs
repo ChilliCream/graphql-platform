@@ -62,7 +62,7 @@ public class SchemaDirectiveTests
         result.MatchSnapshot();
     }
 
-    public static ISchema CreateSchema()
+    public static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddDirectiveType<ResolveDirective>()
             .AddDirectiveType<BDirectiveType>()

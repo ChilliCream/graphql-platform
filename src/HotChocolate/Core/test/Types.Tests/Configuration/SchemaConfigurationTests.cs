@@ -22,7 +22,7 @@ public class SchemaConfigurationTests
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("TestObjectA");
+        var type = schema.Types.GetType<ObjectType>("TestObjectA");
         Assert.NotNull(type.Fields["a"].Resolver);
         Assert.NotNull(type.Fields["b"].Resolver);
     }
@@ -47,7 +47,7 @@ public class SchemaConfigurationTests
             .Create();
 
         // assert
-        var dummy = schema.GetType<ObjectType>("Dummy");
+        var dummy = schema.Types.GetType<ObjectType>("Dummy");
         var fieldResolver = dummy.Fields["bar2"].Resolver;
         var result = await fieldResolver!(resolverContext.Object);
         Assert.Equal(dummyObjectType.GetBar2(), result);

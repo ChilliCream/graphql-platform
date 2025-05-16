@@ -51,6 +51,9 @@
     <Project Path="src/Types/HotChocolate.Types.csproj" />
     <Project Path="src/Validation/HotChocolate.Validation.csproj" />
   </Folder>
+  <Folder Name="/src/Execution.Configuration.Abstractions/">
+    <Project Path="src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
+  </Folder>
   <Folder Name="/src/Types.CursorPagination.Extensions/">
     <Project Path="src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
   </Folder>
@@ -80,6 +83,9 @@
     <Project Path="test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
+  </Folder>
+  <Folder Name="/test/Execution.Abstractions.Tests/">
+    <Project Path="test/Execution.Abstractions.Tests/HotChocolate.Execution.Abstractions.Tests.csproj" />
   </Folder>
   <Folder Name="/test/Types.Analyzer.Integration.Tests/">
     <Project Path="test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />

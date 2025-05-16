@@ -5,7 +5,7 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
-using static HotChocolate.WellKnownDirectives;
+using static HotChocolate.DirectiveNames;
 
 #nullable enable
 
@@ -145,7 +145,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     }
 
     public void Deprecated()
-        => Configuration.DeprecationReason = DeprecationDefaultReason;
+        => Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
 
     protected void Ignore(bool ignore = true)
         => Configuration.Ignore = ignore;

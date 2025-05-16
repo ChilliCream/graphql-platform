@@ -34,15 +34,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<IResolverContext, object?> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -71,15 +64,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<IResolverContext, ValueTask<object?>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -108,15 +94,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<IResolverContext, TResult> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -145,15 +124,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<IResolverContext, ValueTask<TResult>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -184,15 +156,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<object?> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -221,15 +186,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<ValueTask<object?>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -258,15 +216,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<TResult> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -295,15 +246,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<ValueTask<TResult>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -334,15 +278,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, object?> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -371,15 +308,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, TResult> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -408,15 +338,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
     }
@@ -447,10 +370,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         object? constantResult)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantResult));
     }
@@ -479,10 +399,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string fieldName,
         TResult constantResult)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantResult));
     }
@@ -507,10 +424,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(b => b.AddResolver<TResolver>(typeName));
     }
@@ -536,15 +450,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Type resolverType,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolverType is null)
-        {
-            throw new ArgumentNullException(nameof(resolverType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolverType);
 
         return builder.ConfigureSchema(b => b.AddResolver(resolverType, typeName));
     }
@@ -574,15 +481,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Expression<Func<IResolverContext, T>> expression,
         Func<ParameterInfo, bool>? canHandle = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (expression is null)
-        {
-            throw new ArgumentNullException(nameof(expression));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(expression);
 
         if (canHandle is null)
         {

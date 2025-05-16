@@ -10,7 +10,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryWithDateTime>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -20,7 +20,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -30,7 +30,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithStruct>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -40,7 +40,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithInputStruct>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -50,7 +50,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithComputedProperty>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -142,8 +142,8 @@ public class TypeDiscoveryTests
 
     public struct InputStructWithCtor
     {
-        public InputStructWithCtor(IEnumerable<int> values) =>
-            Values = System.Collections.Immutable.ImmutableArray.CreateRange(values);
+        public InputStructWithCtor(IEnumerable<int> values)
+            => Values = [.. values];
 
         public System.Collections.Immutable.ImmutableArray<int> Values { get; set; }
     }

@@ -310,24 +310,26 @@ internal sealed class OperationExecutionMiddleware
         return true;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var contextFactory = core.Services.GetRequiredService<IFactory<OperationContextOwner>>();
-            var queryExecutor = core.SchemaServices.GetRequiredService<QueryExecutor>();
-            var subscriptionExecutor = core.SchemaServices.GetRequiredService<SubscriptionExecutor>();
-            var transactionScopeHandler = core.SchemaServices.GetRequiredService<ITransactionScopeHandler>();
-            var middleware = new OperationExecutionMiddleware(
-                next,
-                contextFactory,
-                queryExecutor,
-                subscriptionExecutor,
-                transactionScopeHandler);
-
-            return async context =>
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
             {
-                var batchDispatcher = context.Services.GetService<IBatchDispatcher>();
-                await middleware.InvokeAsync(context, batchDispatcher).ConfigureAwait(false);
-            };
-        };
+                var contextFactory = core.Services.GetRequiredService<IFactory<OperationContextOwner>>();
+                var queryExecutor = core.SchemaServices.GetRequiredService<QueryExecutor>();
+                var subscriptionExecutor = core.SchemaServices.GetRequiredService<SubscriptionExecutor>();
+                var transactionScopeHandler = core.SchemaServices.GetRequiredService<ITransactionScopeHandler>();
+                var middleware = new OperationExecutionMiddleware(
+                    next,
+                    contextFactory,
+                    queryExecutor,
+                    subscriptionExecutor,
+                    transactionScopeHandler);
+
+                return async context =>
+                {
+                    var batchDispatcher = context.Services.GetService<IBatchDispatcher>();
+                    await middleware.InvokeAsync(context, batchDispatcher).ConfigureAwait(false);
+                };
+            },
+            nameof(OperationExecutionMiddleware));
 }

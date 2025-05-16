@@ -5,13 +5,13 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Sorting;
 
 public interface ISortField
-    : IInputField
+    : IInputValueDefinition
     , IHasRuntimeType
 {
     /// <summary>
     /// The type which declares this field.
     /// </summary>
-    new SortInputType DeclaringType { get; }
+    ISortInputType DeclaringType { get; }
 
     MemberInfo? Member { get; }
 

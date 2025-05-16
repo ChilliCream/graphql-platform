@@ -91,7 +91,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<ObjectType>("ObjectType");
+        var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Fields["field"].Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -118,7 +118,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<ObjectType>("ObjectType");
+        var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Fields["field"].Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -136,7 +136,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<ObjectType>("ObjectType");
+        var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Fields["field"].Directives
             .Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
@@ -159,7 +159,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<ObjectType>("ObjectType");
+        var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -186,7 +186,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<ObjectType>("ObjectType");
+        var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -204,7 +204,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<ObjectType>("ObjectType");
+        var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -235,7 +235,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Fields["field"].Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -254,7 +254,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -280,7 +280,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -311,7 +311,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -330,7 +330,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -359,7 +359,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<UnionType>("UnionType");
+        var type = schema.Types.GetType<UnionType>("UnionType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -388,7 +388,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<UnionType>("UnionType");
+        var type = schema.Types.GetType<UnionType>("UnionType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 
@@ -407,7 +407,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        var type = schema.GetType<UnionType>("UnionType");
+        var type = schema.Types.GetType<UnionType>("UnionType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
         var obj = directive.AsValue<CacheControlDirective>();
 

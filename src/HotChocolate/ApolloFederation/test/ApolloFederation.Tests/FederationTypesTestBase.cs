@@ -5,7 +5,7 @@ namespace HotChocolate.ApolloFederation;
 
 public abstract class FederationTypesTestBase
 {
-    protected ISchema CreateSchema(Action<ISchemaBuilder> configure)
+    protected Schema CreateSchema(Action<ISchemaBuilder> configure)
     {
         var builder =
             SchemaBuilder.New()

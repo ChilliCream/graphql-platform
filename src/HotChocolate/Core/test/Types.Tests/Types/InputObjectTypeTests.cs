@@ -23,7 +23,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -41,7 +41,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -57,7 +57,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -73,7 +73,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -114,8 +114,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         // arrange
         var schema = Create();
-        var inputObjectType =
-            schema.GetType<InputObjectType>("Object1");
+        var inputObjectType = schema.Types.GetType<InputObjectType>("Object1");
 
         // act
         var kind = inputObjectType.Kind;
@@ -312,7 +311,7 @@ public class InputObjectTypeTests : TypeTestBase
         Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
     }
 
-    private ISchema Create()
+    private Schema Create()
     {
         return SchemaBuilder.New()
             .ModifyOptions(o => o.StrictValidation = false)
@@ -568,7 +567,7 @@ public class InputObjectTypeTests : TypeTestBase
             })
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -742,7 +741,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddInputObjectType<InputWithDeprecatedField>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -753,7 +752,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddInputObjectType<FooWithMethod>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

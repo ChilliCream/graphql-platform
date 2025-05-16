@@ -19,6 +19,8 @@ public sealed class DirectiveCollection
     {
         get
         {
+            ArgumentException.ThrowIfNullOrEmpty(directiveName);
+
             return _directives.Count != 0
                 ? FindDirectives(_directives, directiveName)
                 : [];
@@ -30,12 +32,23 @@ public sealed class DirectiveCollection
 
     public Directive this[int index]
     {
-        get => _directives[index];
-        set => _directives[index] = value;
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            return _directives[index];
+        }
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+            ArgumentNullException.ThrowIfNull(value);
+
+            _directives[index] = value;
+        }
     }
 
     IDirective IReadOnlyList<IDirective>.this[int index]
-        => _directives[index];
+        => this[index];
 
     private static IEnumerable<Directive> FindDirectives(List<Directive> directives, string name)
     {
@@ -52,6 +65,8 @@ public sealed class DirectiveCollection
 
     public Directive? FirstOrDefault(string directiveName)
     {
+        ArgumentException.ThrowIfNullOrEmpty(directiveName);
+
         var directives = _directives;
 
         for (var i = 0; i < directives.Count; i++)
@@ -74,22 +89,46 @@ public sealed class DirectiveCollection
         => FirstOrDefault(directiveName) is not null;
 
     public bool Contains(Directive item)
-        => _directives.Contains(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _directives.Contains(item);
+    }
 
     public int IndexOf(Directive item)
-        => _directives.IndexOf(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _directives.IndexOf(item);
+    }
 
     public void Add(Directive item)
-        => _directives.Add(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        _directives.Add(item);
+    }
 
     public void Insert(int index, Directive item)
-        => _directives.Insert(index, item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        _directives.Insert(index, item);
+    }
 
     public void RemoveAt(int index)
-        => _directives.RemoveAt(index);
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        _directives.RemoveAt(index);
+    }
 
     public bool Replace(Directive currentDirective, Directive newDirective)
     {
+        ArgumentNullException.ThrowIfNull(currentDirective);
+        ArgumentNullException.ThrowIfNull(newDirective);
+
         for (var i = 0; i < _directives.Count; i++)
         {
             if (ReferenceEquals(_directives[i], currentDirective))
@@ -103,13 +142,20 @@ public sealed class DirectiveCollection
     }
 
     public bool Remove(Directive item)
-        => _directives.Remove(item);
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        return _directives.Remove(item);
+    }
 
     public void Clear()
         => _directives.Clear();
 
     public void CopyTo(Directive[] array, int arrayIndex)
     {
+        ArgumentNullException.ThrowIfNull(array);
+        ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+
         foreach (var directive in _directives)
         {
             array[arrayIndex++] = directive;
@@ -122,9 +168,9 @@ public sealed class DirectiveCollection
     public IEnumerator<Directive> GetEnumerator()
         => _directives.GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator()
+    IEnumerator<IDirective> IEnumerable<IDirective>.GetEnumerator()
         => GetEnumerator();
 
-    IEnumerator<IDirective> IEnumerable<IDirective>.GetEnumerator()
+    IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 }

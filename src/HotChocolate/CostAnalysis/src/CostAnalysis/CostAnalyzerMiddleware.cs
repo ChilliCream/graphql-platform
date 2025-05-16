@@ -86,7 +86,12 @@ internal sealed class CostAnalyzerMiddleware(
                         ?? document.GetOperation(context.Request.OperationName);
 
                 validatorContext = contextPool.Get();
-                PrepareContext(context, document, validatorContext);
+                validatorContext.Initialize(
+                    context.Schema,
+                    context.DocumentId!.Value,
+                    document,
+                    maxAllowedErrors: 1,
+                    context.Features);
 
                 var analyzer = new CostAnalyzer(requestOptions);
                 costMetrics = analyzer.Analyze(operationDefinition, validatorContext);
@@ -133,24 +138,6 @@ internal sealed class CostAnalyzerMiddleware(
                 contextPool.Return(validatorContext);
             }
         }
-    }
-
-    private static void PrepareContext(
-        IRequestContext requestContext,
-        DocumentNode document,
-        DocumentValidatorContext validatorContext)
-    {
-        validatorContext.Schema = requestContext.Schema;
-
-        foreach (var definitionNode in document.Definitions)
-        {
-            if (definitionNode is FragmentDefinitionNode fragmentDefinition)
-            {
-                validatorContext.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
-            }
-        }
-
-        validatorContext.ContextData = requestContext.ContextData;
     }
 
     public static RequestCoreMiddleware Create()

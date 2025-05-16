@@ -145,13 +145,13 @@ public class InMemoryClientTests
                 .AddSingleton(ApplicationServiceProvider)
                 .BuildServiceProvider();
 
-        public static IApplicationServiceProvider ApplicationServiceProvider { get; } =
+        public static IRootServiceProvider ApplicationServiceProvider { get; } =
             new DefaultApplicationServiceProvider(
                 new ServiceCollection()
                     .BuildServiceProvider());
     }
 
-    private sealed class DefaultApplicationServiceProvider : IApplicationServiceProvider
+    private sealed class DefaultApplicationServiceProvider : IRootServiceProvider
     {
         private readonly IServiceProvider _applicationServices;
 

@@ -10,7 +10,7 @@ public class ExtendObjectTypeAttributeTests
             .AddType<NonGenericExtendFoo>()
             .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -22,7 +22,7 @@ public class ExtendObjectTypeAttributeTests
             .AddType<GenericExtendFoo>()
             .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

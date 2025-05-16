@@ -38,7 +38,7 @@ public partial class DocumentAnalyzer
         RenameDirective? rename;
         var fields = new List<InputFieldModel>();
 
-        foreach (IInputField inputField in inputObjectType.Fields)
+        foreach (InputField inputField in inputObjectType.Fields)
         {
             rename = inputField.Directives.SingleOrDefault<RenameDirective>();
 
@@ -79,7 +79,7 @@ public partial class DocumentAnalyzer
             detected = false;
             foreach (var namedInputType in analyzer.InputTypes)
             {
-                if (namedInputType is not INamedType { Name: { } typeName, } ||
+                if (namedInputType is not ITypeDefinition { Name: { } typeName, } ||
                     namesOfInputTypesWithUploadScalar.Contains(typeName))
                 {
                     continue;

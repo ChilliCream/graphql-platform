@@ -19,7 +19,7 @@ public class SortFieldDescriptor
     {
         Configuration.Name = fieldName;
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperation;
     }
 
     protected SortFieldDescriptor(
@@ -32,7 +32,7 @@ public class SortFieldDescriptor
 
         Configuration.Expression = expression;
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperation;
         if (Configuration.Expression is LambdaExpression lambda)
         {
             Configuration.Type = convention.GetFieldType(lambda.ReturnType);
@@ -55,7 +55,7 @@ public class SortFieldDescriptor
         Configuration.Description = convention.GetFieldDescription(member);
         Configuration.Type = convention.GetFieldType(member);
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperation;
     }
 
     protected internal SortFieldDescriptor(
@@ -64,7 +64,7 @@ public class SortFieldDescriptor
         : base(context)
     {
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperation;
     }
 
     protected internal new SortFieldConfiguration Configuration

@@ -8,7 +8,7 @@ public class SelectionVisitor<TContext>
     where TContext : ISelectionVisitorContext
 {
     protected virtual ISelectionVisitorAction Visit(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context)
     {
         var localContext = OnBeforeEnter(field, context);
@@ -35,24 +35,24 @@ public class SelectionVisitor<TContext>
     }
 
     protected virtual TContext OnBeforeLeave(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext localContext) =>
         localContext;
 
     protected virtual TContext OnAfterLeave(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext localContext,
         ISelectionVisitorAction result) =>
         localContext;
 
     protected virtual TContext OnAfterEnter(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext localContext,
         ISelectionVisitorAction result) =>
         localContext;
 
     protected virtual TContext OnBeforeEnter(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context) =>
         context;
 
@@ -103,7 +103,7 @@ public class SelectionVisitor<TContext>
         TContext context) =>
         context;
 
-    protected virtual ISelectionVisitorAction VisitChildren(IOutputField field, TContext context)
+    protected virtual ISelectionVisitorAction VisitChildren(IOutputFieldDefinition field, TContext context)
     {
         var type = field.Type;
         var selection = context.Selection.Peek();
@@ -131,7 +131,7 @@ public class SelectionVisitor<TContext>
     }
 
     protected virtual ISelectionVisitorAction VisitObjectType(
-        IOutputField field,
+        IOutputFieldDefinition field,
         ObjectType objectType,
         ISelection selection,
         TContext context)
@@ -168,12 +168,12 @@ public class SelectionVisitor<TContext>
     }
 
     protected virtual ISelectionVisitorAction Enter(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISelectionVisitorAction Leave(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context) =>
         DefaultAction;
 

@@ -10,8 +10,8 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableSchemaDefinition
     : INamedTypeSystemMemberDefinition<MutableSchemaDefinition>
-        , ISchemaDefinition
-        , IFeatureProvider
+    , ISchemaDefinition
+    , IFeatureProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
     private MutableObjectTypeDefinition? _queryType;
@@ -108,7 +108,7 @@ public class MutableSchemaDefinition
     public DirectiveCollection Directives
         => _directives ??= [];
 
-    IReadOnlyDirectiveCollection ISchemaDefinition.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <inheritdoc />
     public IFeatureCollection Features

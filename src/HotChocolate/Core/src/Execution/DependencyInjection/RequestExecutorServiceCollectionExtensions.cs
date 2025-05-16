@@ -110,7 +110,7 @@ public static class RequestExecutorServiceCollectionExtensions
     /// The <see cref="IServiceCollection"/>.
     /// </param>
     /// <param name="schemaName">
-    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// The logical name of the <see cref="ISchemaDefinition"/> to configure.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
@@ -137,7 +137,7 @@ public static class RequestExecutorServiceCollectionExtensions
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="schemaName">
-    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// The logical name of the <see cref="ISchemaDefinition"/> to configure.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
@@ -160,8 +160,6 @@ public static class RequestExecutorServiceCollectionExtensions
         string schemaName)
     {
         var builder = new DefaultRequestExecutorBuilder(services, schemaName);
-
-        builder.Services.AddValidation(schemaName);
 
         builder.TryAddNoOpTransactionScopeHandler();
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();

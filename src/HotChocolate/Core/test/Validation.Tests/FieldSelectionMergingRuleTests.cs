@@ -1196,7 +1196,7 @@ public class FieldSelectionMergingRuleTests()
             """);
     }
 
-    private static readonly ISchema TestSchema =
+    private static readonly ISchemaDefinition TestSchema =
         SchemaBuilder.New()
             .AddDocumentFromString(
                 """

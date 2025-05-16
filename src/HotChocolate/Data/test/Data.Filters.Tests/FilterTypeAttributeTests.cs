@@ -19,7 +19,7 @@ public class FilterInputAttributeTests
         // assert
         Assert.Equal(
             GenericTypeFilterAttribute.TypeName,
-            schema.GetType<FilterInputType<FooGeneric>>(
+            schema.Types.GetType<FilterInputType<FooGeneric>>(
                 GenericTypeFilterAttribute.TypeName).TypeName());
     }
 
@@ -35,7 +35,7 @@ public class FilterInputAttributeTests
 
         // assert
         Assert.NotNull(
-            schema.GetType<FilterInputType<FooFields>>("FooFieldsFilterInput")
+            schema.Types.GetType<FilterInputType<FooFields>>("FooFieldsFilterInput")
                 .Fields
                 .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.Field));
     }

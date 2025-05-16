@@ -1,10 +1,10 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Validation.Rules;
@@ -29,8 +29,21 @@ namespace HotChocolate.Validation.Rules;
 internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 {
     protected override ISyntaxVisitorAction Enter(
+        DocumentNode node,
+        DocumentValidatorContext context)
+    {
+        // The document node is the root node that is entered once per visitation.
+        // We use this hook to ensure that the field visitor feature is created
+        // and we can use it in consecutive visits of child nodes without extra
+        // checks at each point.
+        // We do use a GetOrSet here because the context is a pooled object.
+        context.Features.GetOrSet<FieldVisitorFeature>();
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         var operationType = context.Schema.GetOperationType(node.Operation);
 
@@ -40,7 +53,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        context.FieldSets.Clear();
+        var feature = context.Features.GetRequired<FieldVisitorFeature>();
+        feature.FieldSets.Clear();
         context.SelectionSets.Clear();
 
         return base.Enter(node, context);
@@ -48,16 +62,18 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.FieldSets.Count > 0)
+        var feature = context.Features.GetRequired<FieldVisitorFeature>();
+
+        if (feature.FieldSets.Count > 0)
         {
-            foreach (var item in context.FieldSets)
+            foreach (var item in feature.FieldSets)
             {
                 TryMergeFieldsInSet(context, item.Value);
             }
 
-            var next = context.NextFieldPairs;
+            var next = feature.NextFieldPairs;
 
             while (next.Count > 0)
             {
@@ -79,28 +95,29 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
+        var feature = context.Features.GetRequired<FieldVisitorFeature>();
         var selectionSet = context.SelectionSets.Peek();
 
-        if (!context.FieldSets.TryGetValue(selectionSet, out var fields))
+        if (!feature.FieldSets.TryGetValue(selectionSet, out var fields))
         {
-            fields = context.RentFieldInfoList();
-            context.FieldSets.Add(selectionSet, fields);
+            fields = feature.RentFieldInfoList();
+            feature.FieldSets.Add(selectionSet, fields);
         }
 
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             if (node.IsStreamable())
             {
                 context.ReportError(context.StreamOnNonListField(node));
             }
 
-            fields.Add(new FieldInfo(context.Types.Peek(), context.NonNullString, node));
+            fields.Add(new FieldInfo(context.Types.Peek(), feature.NonNullString, node));
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) && type.NamedType() is IComplexOutputType ct)
+        if (context.Types.TryPeek(out var type) && type.NamedType() is IComplexTypeDefinition ct)
         {
             if (ct.Fields.TryGetField(node.Name.Value, out var of))
             {
@@ -146,7 +163,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.OutputFields.Pop();
         context.Types.Pop();
@@ -155,13 +172,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         SelectionSetNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type)
             && type.NamedType() is { Kind: TypeKind.Union, } unionType
             && HasFields(node))
         {
-            context.ReportError(context.UnionFieldError(node, (UnionType)unionType));
+            context.ReportError(context.UnionFieldError(node, unionType.ExpectUnionType()));
             return Skip;
         }
 
@@ -175,7 +192,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         SelectionSetNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (!context.Path.TryPeek(out var parent))
         {
@@ -192,13 +209,12 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction VisitChildren(
         FragmentSpreadNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.Fragments.TryGetValue(node.Name.Value, out var fragment)
-            && context.VisitedFragments.Add(fragment.Name.Value))
+        if (context.Fragments.TryEnter(node, out var fragment))
         {
             var result = Visit(fragment, node, context);
-            context.VisitedFragments.Remove(fragment.Name.Value);
+            context.Fragments.Leave(node);
 
             if (result.IsBreak())
             {
@@ -229,18 +245,20 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsTypeNameField(string fieldName)
-        => fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
+        => fieldName.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal);
 
     private static void TryMergeFieldsInSet(
-        IDocumentValidatorContext context,
+        DocumentValidatorContext context,
         IList<FieldInfo> fields)
     {
+        var feature = context.Features.GetRequired<FieldVisitorFeature>();
+
         while (true)
         {
             if (fields.Count == 1)
             {
                 if (fields[0].SyntaxNode.SelectionSet is { } selectionSet
-                    && context.FieldSets.TryGetValue(selectionSet, out var fieldSet))
+                    && feature.FieldSets.TryGetValue(selectionSet, out var fieldSet))
                 {
                     fields = fieldSet;
                     continue;
@@ -261,7 +279,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 var fieldB = fields[j];
 
                 if (ReferenceEquals(fieldA.SyntaxNode, fieldB.SyntaxNode)
-                    || !fieldA.ResponseName.EqualsOrdinal(fieldB.ResponseName))
+                    || !fieldA.ResponseName.Equals(fieldB.ResponseName, StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -277,17 +295,17 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                         && AreArgumentsIdentical(fieldA.SyntaxNode, fieldB.SyntaxNode))
                     {
                         var pair = new FieldInfoPair(fieldA, fieldB);
-                        if (context.ProcessedFieldPairs.Add(pair))
+                        if (feature.ProcessedFieldPairs.Add(pair))
                         {
-                            context.NextFieldPairs.Add(pair);
+                            feature.NextFieldPairs.Add(pair);
                         }
                     }
-                    else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
+                    else if (feature.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                     {
                         context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                     }
                 }
-                else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
+                else if (feature.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                 {
                     context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                 }
@@ -296,16 +314,18 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     }
 
     private static void TryMergeFieldsInSet(
-        IDocumentValidatorContext context,
+        DocumentValidatorContext context,
         FieldInfo fieldA,
         FieldInfo fieldB)
     {
+        var feature = context.Features.GetRequired<FieldVisitorFeature>();
+
         if (fieldA.SyntaxNode.SelectionSet is { } a
             && fieldB.SyntaxNode.SelectionSet is { } b
-            && context.FieldSets.TryGetValue(a, out var al)
-            && context.FieldSets.TryGetValue(b, out var bl))
+            && feature.FieldSets.TryGetValue(a, out var al)
+            && feature.FieldSets.TryGetValue(b, out var bl))
         {
-            var mergedSet = Unsafe.As<List<FieldInfo>>(context.RentFieldInfoList());
+            var mergedSet = Unsafe.As<List<FieldInfo>>(feature.RentFieldInfoList());
             mergedSet.EnsureCapacity(al.Count + bl.Count);
             CopyFieldInfos(Unsafe.As<List<FieldInfo>>(al), mergedSet);
             CopyFieldInfos(Unsafe.As<List<FieldInfo>>(bl), mergedSet);
@@ -381,9 +401,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 typeB = typeB.InnerType();
             }
 
-            if (typeA.IsType(TypeKind.List) || typeB.IsType(TypeKind.List))
+            if (typeA.IsListType() || typeB.IsListType())
             {
-                if (!typeA.IsType(TypeKind.List) || !typeB.IsType(TypeKind.List))
+                if (!typeA.IsListType() || !typeB.IsListType())
                 {
                     return false;
                 }
@@ -393,24 +413,18 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        if (typeA.IsType(TypeKind.Scalar, TypeKind.Enum) || typeB.IsType(TypeKind.Scalar, TypeKind.Enum))
+        if (typeA.IsLeafType() || typeB.IsLeafType())
         {
             return ReferenceEquals(typeA, typeB);
         }
 
-        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union)
-            && typeB.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
-        {
-            return true;
-        }
-
-        return false;
+        return typeA.IsCompositeType() && typeB.IsCompositeType();
     }
 
     private static bool SameStreamDirective(FieldInfo fieldA, FieldInfo fieldB)
     {
-        var streamA = fieldA.SyntaxNode.GetStreamDirectiveNode();
-        var streamB = fieldB.SyntaxNode.GetStreamDirectiveNode();
+        var streamA = fieldA.SyntaxNode.GetStreamDirective();
+        var streamB = fieldB.SyntaxNode.GetStreamDirective();
 
         // if both fields do not have any stream directive they are mergeable.
         if (streamA is null)
@@ -428,10 +442,11 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         return streamA.StreamDirectiveEquals(streamB);
     }
 
-    private static void FillCurrentFieldPairs(IDocumentValidatorContext context)
+    private static void FillCurrentFieldPairs(DocumentValidatorContext context)
     {
-        var next = context.NextFieldPairs;
-        var current = context.CurrentFieldPairs;
+        var feature = context.Features.GetRequired<FieldVisitorFeature>();
+        var next = feature.NextFieldPairs;
+        var current = feature.CurrentFieldPairs;
 
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(next));
         ref var end = ref Unsafe.Add(ref pair, next.Count);
@@ -447,9 +462,10 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         next.Clear();
     }
 
-    private static void ProcessCurrentFieldPairs(IDocumentValidatorContext context)
+    private static void ProcessCurrentFieldPairs(DocumentValidatorContext context)
     {
-        var current = context.CurrentFieldPairs;
+        var feature = context.Features.GetRequired<FieldVisitorFeature>();
+        var current = feature.CurrentFieldPairs;
 
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(current));
         ref var end = ref Unsafe.Add(ref pair, current.Count);
@@ -461,5 +477,121 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         current.Clear();
+    }
+
+    private sealed class FieldVisitorFeature : ValidatorFeature
+    {
+        private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
+        private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
+
+        public IType NonNullString { get; private set; } = null!;
+
+        public List<FieldInfoPair> CurrentFieldPairs { get; } = [];
+
+        public List<FieldInfoPair> NextFieldPairs { get; } = [];
+
+        public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = [];
+
+        public FieldDepthCycleTracker FieldDepth { get; } = new();
+
+        public Dictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; } = [];
+
+        public HashSet<(FieldNode, FieldNode)> FieldTuples { get; } = [];
+
+        public IList<FieldInfo> RentFieldInfoList()
+        {
+            var buffer = _buffers.Peek();
+
+            if (!buffer.TryPop(out var list))
+            {
+                buffer = _fieldInfoPool.Get();
+                _buffers.Push(buffer);
+                list = buffer.Pop();
+            }
+
+            return list;
+        }
+
+        protected internal override void OnInitialize(DocumentValidatorContext context)
+            => NonNullString = new NonNullType(context.Schema.Types.GetType<IScalarTypeDefinition>("String"));
+
+        protected internal override void Reset()
+        {
+            NonNullString = null!;
+            CurrentFieldPairs.Clear();
+            NextFieldPairs.Clear();
+            ProcessedFieldPairs.Clear();
+            FieldDepth.Reset();
+            FieldSets.Clear();
+            FieldTuples.Clear();
+
+            if (_buffers.Count > 1)
+            {
+                var buffer = _buffers.Pop();
+                buffer.Clear();
+
+                for (var i = 0; i < _buffers.Count; i++)
+                {
+                    _fieldInfoPool.Return(_buffers[i]);
+                }
+
+                _buffers.Push(buffer);
+            }
+            else
+            {
+                _buffers[0].Clear();
+            }
+        }
+    }
+}
+
+file static class DirectiveExtensions
+{
+    public static bool StreamDirectiveEquals(
+        this DirectiveNode streamA,
+        DirectiveNode streamB)
+    {
+        var argsA = CreateStreamArgs(streamA);
+        var argsB = CreateStreamArgs(streamB);
+
+        return BySyntax.Equals(argsA.If, argsB.If)
+            && BySyntax.Equals(argsA.InitialCount, argsB.InitialCount)
+            && BySyntax.Equals(argsA.Label, argsB.Label);
+    }
+
+    private static StreamArgs CreateStreamArgs(DirectiveNode directiveNode)
+    {
+        var args = new StreamArgs();
+
+        for (var i = 0; i < directiveNode.Arguments.Count; i++)
+        {
+            var argument = directiveNode.Arguments[i];
+
+            switch (argument.Name.Value)
+            {
+                case DirectiveNames.Stream.Arguments.If:
+                    args.If = argument.Value;
+                    break;
+
+                case DirectiveNames.Stream.Arguments.Label:
+                    args.Label = argument.Value;
+                    break;
+
+                case DirectiveNames.Stream.Arguments.InitialCount:
+                    args.InitialCount = argument.Value;
+                    break;
+            }
+        }
+
+        return args;
+    }
+
+    private ref struct StreamArgs
+    {
+        public IValueNode? If { get; set; }
+
+        public IValueNode? Label { get; set; }
+
+        public IValueNode? InitialCount { get; set; }
     }
 }

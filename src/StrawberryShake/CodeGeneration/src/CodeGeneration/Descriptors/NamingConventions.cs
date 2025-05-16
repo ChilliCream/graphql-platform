@@ -45,7 +45,7 @@ public static class NamingConventions
     public static string CreateResultFactoryName(string typeName) =>
         typeName + "Factory";
 
-    public static string CreateResultRootTypeName(string typeName, INamedType? type = null) =>
+    public static string CreateResultRootTypeName(string typeName, ITypeDefinition? type = null) =>
         type is null ? typeName + "Result" : typeName + type.Name + "Result";
 
     public static string CreateResultBuilderName(string typeName) =>

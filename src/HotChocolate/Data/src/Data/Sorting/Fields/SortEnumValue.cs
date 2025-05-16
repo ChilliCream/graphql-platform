@@ -29,7 +29,7 @@ public sealed class SortEnumValue : EnumValue
         DeprecationReason = configuration.DeprecationReason;
         IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
         Value = configuration.RuntimeValue;
-        ContextData = configuration.GetContextData();
+        ContextData = configuration.GetFeatures();
         Handler = configuration.Handler;
         Operation = configuration.Operation;
     }

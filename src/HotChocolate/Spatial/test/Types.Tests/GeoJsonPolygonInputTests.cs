@@ -210,6 +210,6 @@ public class GeoJsonPolygonInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONPolygonInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONPolygonInput");
     }
 }

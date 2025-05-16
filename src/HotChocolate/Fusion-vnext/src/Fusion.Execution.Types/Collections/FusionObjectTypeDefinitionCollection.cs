@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Frozen;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
@@ -18,11 +19,19 @@ public sealed class FusionObjectTypeDefinitionCollection
         _typeNames = types.Select(t => t.Name).ToFrozenSet();
     }
 
+    public int Count => _types.Length;
+
+    public FusionObjectTypeDefinition this[int index]
+        => _types[index];
+
+    IObjectTypeDefinition IReadOnlyList<IObjectTypeDefinition>.this[int index]
+        => _types[index];
+
     public bool ContainsName(string name)
         => _typeNames.Contains(name);
 
     public IEnumerable<FusionObjectTypeDefinition> AsEnumerable()
-        => _types;
+        => Unsafe.As<IEnumerable<FusionObjectTypeDefinition>>(_types);
 
     public IEnumerator<FusionObjectTypeDefinition> GetEnumerator()
         => AsEnumerable().GetEnumerator();

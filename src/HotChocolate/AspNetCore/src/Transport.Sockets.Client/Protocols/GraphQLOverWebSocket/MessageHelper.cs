@@ -1,5 +1,6 @@
 using System.Net.WebSockets;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
 using static System.Net.WebSockets.WebSocketMessageType;
@@ -13,7 +14,7 @@ internal static class MessageHelper
         T payload,
         CancellationToken ct)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.ConnectionInitialize);
@@ -36,7 +37,7 @@ internal static class MessageHelper
         OperationRequest request,
         CancellationToken ct)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
 
         jsonWriter.WriteStartObject();
@@ -57,7 +58,7 @@ internal static class MessageHelper
         string operationSessionId,
         CancellationToken ct)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.IdProp, operationSessionId);
@@ -72,7 +73,7 @@ internal static class MessageHelper
         this WebSocket socket,
         CancellationToken ct)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Pong);

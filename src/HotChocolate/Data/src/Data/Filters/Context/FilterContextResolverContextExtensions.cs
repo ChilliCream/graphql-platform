@@ -16,8 +16,9 @@ public static class FilterContextResolverContextExtensions
     public static IFilterContext? GetFilterContext(this IResolverContext context)
     {
         var field = context.Selection.Field;
-        if (!field.ContextData.TryGetValue(ContextArgumentNameKey, out var argumentNameObj) ||
-            argumentNameObj is not string argumentName)
+        var argumentName = field.Features.Get<FilterFeature>()?.ArgumentName;
+
+        if (argumentName is null)
         {
             return null;
         }

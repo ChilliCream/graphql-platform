@@ -45,7 +45,7 @@ public class ProjectionVisitorTestBase
         Action<ModelBuilder>? onModelCreating = null,
         bool usePaging = false,
         bool useOffsetPaging = false,
-        INamedType? objectType = null,
+        ITypeDefinition? objectType = null,
         Action<ISchemaBuilder>? configure = null,
         Type? schemaType = null)
         where TEntity : class

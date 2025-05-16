@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
@@ -63,7 +64,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     /// </summary>
     public FusionDirectiveCollection Directives { get; }
 
-    IReadOnlyDirectiveCollection ISchemaDefinition.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <summary>
     /// Gets all the schema types.
@@ -79,6 +80,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
+
+    public IFeatureCollection Features => throw new NotImplementedException();
 
     public FusionObjectTypeDefinition GetOperationType(OperationType operationType)
     {

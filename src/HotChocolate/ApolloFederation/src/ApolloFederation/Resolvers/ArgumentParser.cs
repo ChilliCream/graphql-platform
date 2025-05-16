@@ -37,7 +37,7 @@ internal static class ArgumentParser
             {
                 var current = path[i];
 
-                if (type is not IComplexOutputType complexType ||
+                if (type is not IComplexTypeDefinition complexType ||
                     !complexType.Fields.TryGetField(current, out var field))
                 {
                     break;
