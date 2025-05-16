@@ -137,12 +137,28 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
             return [.. errors];
         }
 
+        var previousPathItem = context.Path.TryPeek(out var item) ? item : null;
+        var previousSchemaName = previousPathItem?.SchemaName;
+
+        if (context.FieldAccessCache.Contains((field, type, previousSchemaName)))
+        {
+            //Debug.WriteLine($"CACHE HIT: '{previousSchemaName ?? "ROOT"}:{type.Name}.{field.Name}'.");
+            return [];
+        }
+
         var schemaNames = field.GetSchemaNames().Remove(context.ExcludeSchemaName); // todo exclude at level 1 only?
-        var previousSchemaName = context.Path.Peek().SchemaName;
+        var fieldType = field.Type.AsTypeDefinition();
 
         foreach (var schemaName in schemaNames)
         {
-            // todo partial field?
+            // If the field is marked as partial, it must be provided by the current schema for it
+            // to be an option.
+            if (field.IsPartial(schemaName)
+                && previousPathItem?.Provides(field, type, schemaName, schema) != true)
+            {
+                //Debug.WriteLine($"Skipping partial field '{field.Name}' on path '{context.Path}'. Not provided.");
+                continue;
+            }
 
             var pathItem = new SatisfiabilityPathItem(field, type, schemaName);
 
@@ -161,38 +177,6 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                 //Debug.WriteLine(errors[^1]);
 
                 continue;
-            }
-
-            // Validate field requirements (@require).
-            var requirements = field.GetFusionRequiresRequirements(schemaName);
-
-            if (requirements is not null)
-            {
-                //Debug.Indent();
-                var requirementErrors =
-                    new RequirementsValidator(schema).Validate(
-                        requirements,
-                        RequirementKind.Field,
-                        type,
-                        context.Path,
-                        excludeSchemaName: schemaName,
-                        context.CycleDetectionPath);
-                //Debug.Unindent();
-
-                if (requirementErrors.Length != 0)
-                {
-                    errors.Add(
-                        new SatisfiabilityError(
-                            string.Format(
-                                SatisfiabilityValidator_UnableToSatisfyRequirement,
-                                requirements.ToString(indented: false),
-                                pathItem),
-                            requirementErrors));
-
-                    context.CycleDetectionPath.Pop();
-
-                    continue;
-                }
             }
 
             // Validate transition between source schemas.
@@ -229,6 +213,38 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                 //Debug.WriteLine("Transition validated.");
             }
 
+            // Validate field requirements (@require).
+            var requirements = field.GetFusionRequiresRequirements(schemaName);
+
+            if (requirements is not null)
+            {
+                //Debug.Indent();
+                var requirementErrors =
+                    new RequirementsValidator(schema).Validate(
+                        requirements,
+                        RequirementKind.Field,
+                        type,
+                        context.Path,
+                        excludeSchemaName: schemaName,
+                        context.CycleDetectionPath);
+                //Debug.Unindent();
+
+                if (requirementErrors.Length != 0)
+                {
+                    errors.Add(
+                        new SatisfiabilityError(
+                            string.Format(
+                                SatisfiabilityValidator_UnableToSatisfyRequirement,
+                                requirements.ToString(indented: false),
+                                pathItem),
+                            requirementErrors));
+
+                    context.CycleDetectionPath.Pop();
+
+                    continue;
+                }
+            }
+
             context.CycleDetectionPath.Pop();
 
             context.Path.Push(pathItem);
@@ -242,8 +258,7 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                 break;
             }
 
-            var fieldType = field.Type.AsTypeDefinition();
-            var possibleTypes = schema.GetPossibleTypes(fieldType);
+            var possibleTypes = fieldType.GetPossibleTypes(schemaName, schema);
             var childErrors = new List<SatisfiabilityError>();
 
             foreach (var possibleType in possibleTypes)
@@ -288,6 +303,8 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                 break;
             }
         }
+
+        context.FieldAccessCache.Add((field, type, previousSchemaName));
 
         if (schemaNames.Length == 0)
         {
@@ -414,4 +431,6 @@ internal sealed class RequirementsValidatorContext
     public string ExcludeSchemaName { get; }
 
     public SatisfiabilityPath CycleDetectionPath { get; }
+
+    public HashSet<(MutableOutputFieldDefinition, MutableObjectTypeDefinition, string?)> FieldAccessCache { get; } = [];
 }

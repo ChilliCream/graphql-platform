@@ -63,10 +63,17 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         SatisfiabilityValidatorContext context)
     {
         var type = context.TypeContext.Peek();
-        var cycle = false;
         var previousPathItem = context.Path.TryPeek(out var item) ? item : null;
         var previousSchemaName = previousPathItem?.SchemaName;
+
+        if (context.FieldAccessCache.Contains((field, type, previousSchemaName)))
+        {
+            //Debug.WriteLine($"CACHE HIT: '{previousSchemaName ?? "ROOT"}:{type.Name}.{field.Name}'.");
+            return;
+        }
+
         var schemaNames = field.GetSchemaNames(first: previousSchemaName);
+        var cycle = false;
         var errors = new List<SatisfiabilityError>();
         var optionCount = 0;
         var fieldType = field.Type.AsTypeDefinition();
@@ -95,6 +102,32 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 continue;
             }
 
+            // Validate transition between source schemas.
+            if (previousSchemaName is not null && previousSchemaName != schemaName)
+            {
+                //Debug.WriteLine($"Validating transition between schemas '{previousSchemaName}' and '{schemaName}'.");
+
+                //Debug.Indent();
+                var transitionErrors = ValidateSourceSchemaTransition(type, context, schemaName);
+                //Debug.Unindent();
+
+                if (transitionErrors.Any())
+                {
+                    errors.Add(
+                        new SatisfiabilityError(
+                            string.Format(
+                                SatisfiabilityValidator_UnableToTransitionBetweenSchemas,
+                                previousSchemaName,
+                                schemaName,
+                                pathItem),
+                            transitionErrors));
+
+                    context.CycleDetectionPath.Pop();
+
+                    continue;
+                }
+            }
+
             // Validate field requirements (@require).
             var requirements = field.GetFusionRequiresRequirements(schemaName);
 
@@ -119,32 +152,6 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                                 requirements.ToString(indented: false),
                                 pathItem),
                             requirementErrors));
-
-                    context.CycleDetectionPath.Pop();
-
-                    continue;
-                }
-            }
-
-            // Validate transition between source schemas.
-            if (previousSchemaName is not null && previousSchemaName != schemaName)
-            {
-                //Debug.WriteLine($"Validating transition between schemas '{previousSchemaName}' and '{schemaName}'.");
-
-                //Debug.Indent();
-                var transitionErrors = ValidateSourceSchemaTransition(type, context, schemaName);
-                //Debug.Unindent();
-
-                if (transitionErrors.Any())
-                {
-                    errors.Add(
-                        new SatisfiabilityError(
-                            string.Format(
-                                SatisfiabilityValidator_UnableToTransitionBetweenSchemas,
-                                previousSchemaName,
-                                schemaName,
-                                pathItem),
-                            transitionErrors));
 
                     context.CycleDetectionPath.Pop();
 
@@ -186,6 +193,8 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 break;
             }
         }
+
+        context.FieldAccessCache.Add((field, type, previousSchemaName));
 
         // Log an error if there are no options for accessing the field, and there is no cycle
         // (which would imply an option for accessing the same field repeatedly).
@@ -293,4 +302,6 @@ internal sealed class SatisfiabilityValidatorContext
     public SatisfiabilityPath Path { get; } = [];
 
     public SatisfiabilityPath CycleDetectionPath { get; } = [];
+
+    public HashSet<(MutableOutputFieldDefinition, MutableObjectTypeDefinition, string?)> FieldAccessCache { get; } = [];
 }
