@@ -26,12 +26,12 @@ public class TypeTestBase
     }
 
     protected static T CreateType<T>(T type)
-        where T : INamedType
+        where T : ITypeDefinition
         => CreateType(type, b => { });
 
     protected static T CreateType<T>(T type,
         Action<ISchemaBuilder> configure)
-        where T : INamedType
+        where T : ITypeDefinition
     {
         var builder = SchemaBuilder.New()
             .AddQueryType(c =>
@@ -48,11 +48,11 @@ public class TypeTestBase
         return type;
     }
 
-    public static ISchema CreateSchema<T>(T type)
-        where T : INamedType =>
+    public static Schema CreateSchema<T>(T type)
+        where T : ITypeDefinition =>
         CreateSchema(builder => builder.AddType(type));
 
-    public static ISchema CreateSchema(Action<ISchemaBuilder> configure)
+    public static Schema CreateSchema(Action<ISchemaBuilder> configure)
     {
         var builder = SchemaBuilder.New()
             .AddQueryType(c =>

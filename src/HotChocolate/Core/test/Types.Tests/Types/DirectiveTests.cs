@@ -11,7 +11,7 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
+        var directiveType = schema.DirectiveTypes["Foo"];
         var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
@@ -50,7 +50,7 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
+        var directiveType = schema.DirectiveTypes["Foo"];
         var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
@@ -69,7 +69,7 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
+        var directiveType = schema.DirectiveTypes["Foo"];
         var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
@@ -88,7 +88,7 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
+        var directiveType = schema.DirectiveTypes["Foo"];
         var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
@@ -107,7 +107,7 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
+        var directiveType = schema.DirectiveTypes["Foo"];
         var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
 
         // act
@@ -136,7 +136,7 @@ public class DirectiveTests : TypeTestBase
             .BuildSchemaAsync();
 
         // act
-        var printedSchema = schema.Print();
+        var printedSchema = schema.ToString();
 
         // assert
         printedSchema.MatchSnapshot();
@@ -154,11 +154,11 @@ public class DirectiveTests : TypeTestBase
                     .Resolve("def")
                     .Directive(new FooDirective()))
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
     {
         return CreateSchema(
             b =>

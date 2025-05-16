@@ -304,7 +304,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -322,7 +322,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -394,7 +394,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -435,7 +435,7 @@ public class SchemaFirstTests
         // assert
         Assert.Equal(
             "abc",
-            schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
+            schema.Types.GetType<ObjectType>("Person")?.Fields["name"].Description);
     }
 
     [Fact]
