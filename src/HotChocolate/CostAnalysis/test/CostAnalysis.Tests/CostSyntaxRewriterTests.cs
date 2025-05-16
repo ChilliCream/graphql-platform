@@ -91,7 +91,7 @@ public sealed class CostSyntaxRewriterTests
         result.MatchSnapshot();
     }
 
-    private static ISchema CreateSchema(string sourceText)
+    private static Schema CreateSchema(string sourceText)
     {
         return SchemaBuilder
             .New()

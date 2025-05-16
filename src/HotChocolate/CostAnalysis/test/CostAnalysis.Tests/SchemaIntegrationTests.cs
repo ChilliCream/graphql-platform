@@ -90,7 +90,7 @@ public sealed class SchemaIntegrationTests
         result.MatchSnapshot();
     }
 
-    private static async Task<ISchema> CreateSchemaAsync(string sourceText)
+    private static async Task<Schema> CreateSchemaAsync(string sourceText)
         => await new ServiceCollection()
             .AddGraphQLServer()
             .AddType<Scalar>()

@@ -30,18 +30,6 @@ public delegate QueryableFilterContext VisitFilterArgument(
 /// </summary>
 public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 {
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that defines the name of the argument for filtering
-    /// </summary>
-    public static readonly string ContextArgumentNameKey = "FilterArgumentName";
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that holds the delegate which does the visitation of the filtering argument.
-    /// <see cref="VisitFilterArgument"/>
-    /// </summary>
-    public static readonly string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);
 
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
@@ -100,11 +88,8 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         string argumentName,
         IObjectFieldDescriptor descriptor)
     {
-        var contextData = descriptor.Extend().Configuration.Features;
-        var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
-        contextData[ContextVisitFilterArgumentKey] = argumentKey;
-        contextData[ContextArgumentNameKey] = argumentName;
-        return;
+        var feature = new FilterFeature(argumentName, VisitFilterArgumentExecutor);
+        descriptor.Extend().Configuration.Features.Set(feature);
 
         QueryableFilterContext VisitFilterArgumentExecutor(
             IValueNode valueNode,
@@ -222,12 +207,10 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             return null;
         }
 
-        if (argument.Type is IFilterInputType filterInput &&
-            context.Selection.Field.ContextData.TryGetValue(ContextVisitFilterArgumentKey,
-                out var executorObj) &&
-            executorObj is VisitFilterArgument executor)
+        if (argument.Type is IFilterInputType filterInput
+            && context.Selection.Field.Features.TryGet(out FilterFeature? feature))
         {
-            var visitorContext = executor(filter, filterInput, isInMemory);
+            var visitorContext = feature.ArgumentVisitor.Invoke(filter, filterInput, isInMemory);
 
             // compile expression tree
             if (visitorContext.Errors.Count == 0)

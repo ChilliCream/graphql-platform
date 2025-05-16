@@ -20,7 +20,7 @@ public class FilterOperationFieldDescriptor
         Configuration.Name = convention.GetOperationName(operationId);
         Configuration.Description = convention.GetOperationDescription(operationId);
         Configuration.Scope = scope;
-        Configuration.Flags = CoreFieldFlags.FilterOperation;
+        Configuration.Flags = CoreFieldFlags.FilterOperationField;
     }
 
     protected internal new FilterOperationFieldConfiguration Configuration

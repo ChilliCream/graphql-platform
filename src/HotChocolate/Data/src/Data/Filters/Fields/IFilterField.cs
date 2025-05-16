@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterField : IInputValueDefinition
+public interface IFilterField : IInputValueDefinition, IInputValueInfo
 {
     /// <summary>
     /// The type which declares this field.
@@ -13,9 +13,11 @@ public interface IFilterField : IInputValueDefinition
 
     MemberInfo? Member { get; }
 
-    IExtendedType? RuntimeType { get; }
+    new IExtendedType? RuntimeType { get; }
 
     IFilterFieldHandler Handler { get; }
 
     IFilterMetadata? Metadata { get; }
+
+    new IInputType Type { get; }
 }
