@@ -5,7 +5,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class DeferredWorkState
 {
-    private const int DeliverableQueueSize = 100;
+    private readonly int _deliverableQueueSize;
 
     private readonly object _completeSync = new();
     private readonly object _deliverSync = new();
@@ -15,11 +15,17 @@ internal sealed class DeferredWorkState
     private readonly Queue<IOperationResult> _deliverable = new();
     private readonly HashSet<uint> _completed = [];
     private readonly HashSet<uint> _notPatchable = [];
-    private SemaphoreSlim _consumerSemaphore = new(0);
-    private SemaphoreSlim _producerSemaphore = new(DeliverableQueueSize);
+    private SemaphoreSlim _dequeueSemaphore = new(0);
+    private SemaphoreSlim _enqueueSemaphore;
     private uint _taskId;
     private uint _work;
     private uint _patchId;
+
+    public DeferredWorkState(int bufferSize)
+    {
+        _deliverableQueueSize = bufferSize;
+        _enqueueSemaphore = new(_deliverableQueueSize);
+    }
 
     public bool HasResults => _taskId > 0;
 
@@ -101,7 +107,7 @@ internal sealed class DeferredWorkState
         {
             if (update)
             {
-                _consumerSemaphore.Release();
+                _dequeueSemaphore.Release();
             }
         }
     }
@@ -109,7 +115,7 @@ internal sealed class DeferredWorkState
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnqueueResult(IOperationResult? queryResult, CancellationToken cancellationToken)
     {
-        _producerSemaphore.Wait(cancellationToken);
+        _enqueueSemaphore.Wait(cancellationToken);
 
         lock (_deliverSync)
         {
@@ -127,7 +133,7 @@ internal sealed class DeferredWorkState
     public async ValueTask<IOperationResult?> TryDequeueResultsAsync(
         CancellationToken cancellationToken)
     {
-        await _consumerSemaphore.WaitAsync(cancellationToken);
+        await _dequeueSemaphore.WaitAsync(cancellationToken);
 
         lock (_deliverSync)
         {
@@ -140,11 +146,11 @@ internal sealed class DeferredWorkState
                 for (var i = 0; i < result.Length; i++)
                 {
                     var deliverable = _deliverable.Dequeue();
-                    _producerSemaphore.Release();
+                    _enqueueSemaphore.Release();
 
                     if (--_work is 0)
                     {
-                        _consumerSemaphore.Release();
+                        _dequeueSemaphore.Release();
                         hasNext = false;
                     }
 
@@ -208,13 +214,13 @@ internal sealed class DeferredWorkState
 
     public void Reset()
     {
-        _consumerSemaphore.Dispose();
-        _consumerSemaphore = new SemaphoreSlim(0);
+        _dequeueSemaphore.Dispose();
+        _dequeueSemaphore = new SemaphoreSlim(0);
         _ready.Clear();
         _completed.Clear();
         _deliverable.Clear();
-        _producerSemaphore.Dispose();
-        _producerSemaphore = new SemaphoreSlim(DeliverableQueueSize);
+        _enqueueSemaphore.Dispose();
+        _enqueueSemaphore = new SemaphoreSlim(_deliverableQueueSize);
         _notPatchable.Clear();
         _taskId = 0;
         _work = 0;
