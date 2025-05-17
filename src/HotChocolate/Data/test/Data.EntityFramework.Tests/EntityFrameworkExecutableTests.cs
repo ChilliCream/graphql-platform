@@ -57,7 +57,10 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]

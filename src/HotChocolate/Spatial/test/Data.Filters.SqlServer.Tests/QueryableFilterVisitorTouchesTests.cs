@@ -103,7 +103,10 @@ public class QueryableFilterVisitorTouchesTests : SchemaCache
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();

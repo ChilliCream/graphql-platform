@@ -54,7 +54,10 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "ba")
             .AddResult(res3, "null")

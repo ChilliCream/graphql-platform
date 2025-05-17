@@ -139,7 +139,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -176,7 +179,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "nullAnd14")
@@ -213,7 +219,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -280,7 +289,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();
@@ -316,7 +328,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")
@@ -353,7 +368,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "BAR")
             .AddResult(res2, "FOO")
             .AddResult(res3, "null")
@@ -390,7 +408,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "BarAndFoo")
             .AddResult(res2, "FOO")
             .AddResult(res3, "nullAndFoo")
@@ -428,7 +449,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "BAR")
             .AddResult(res2, "FOO")
             .AddResult(res3, "null")
@@ -501,7 +525,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatest")
             .AddResult(res2, "testbtest")
             .AddResult(res3, "null")
@@ -539,7 +566,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatestAndtestb")
             .AddResult(res2, "testbtestAndNull")
             .AddResult(res3, "testatest")
@@ -579,7 +609,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "b")
             .AddResult(res3, "null")
@@ -655,7 +688,10 @@ public class QueryableFilterVisitorObjectTests
         Assert.Null(Assert.IsType<OperationResult>(res2).Errors);
         Assert.Null(Assert.IsType<OperationResult>(res3).Errors);
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatest")
             .AddResult(res2, "testbtest")
             .AddResult(res3, "null")
@@ -695,7 +731,10 @@ public class QueryableFilterVisitorObjectTests
         Assert.Null(Assert.IsType<OperationResult>(res2).Errors);
         Assert.Null(Assert.IsType<OperationResult>(res3).Errors);
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "testatest")
             .AddResult(res2, "testbtest")
             .AddResult(res3, "null")
