@@ -34,7 +34,8 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         _stringSerializerMap =
             boundSerializers.ToFrozenDictionary(
                 t => t.TypeName,
-                t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat, _urlSafeBase64));
+                t => new Serializer(t.TypeName, t.Serializer, outputNewIdFormat, urlSafeBase64));
+
         _serializers = allSerializers;
         _spanSerializerMap = new SpanSerializerMap();
         foreach (var serializer in _stringSerializerMap.Values)
@@ -105,7 +106,31 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             }
         }
 
-        Base64.DecodeFromUtf8InPlace(span, out var written);
+        // Ensure correct padding.
+        var firstPaddingIndex = span.IndexOf((byte)'=');
+        var nonPaddedLength = firstPaddingIndex == -1 ? span.Length : firstPaddingIndex;
+        var actualPadding = firstPaddingIndex == -1 ? 0 : span.Length - firstPaddingIndex;
+        var expectedPadding = (4 - nonPaddedLength % 4) % 4;
+
+        if (actualPadding != expectedPadding)
+        {
+            Span<byte> correctedSpan = stackalloc byte[nonPaddedLength + expectedPadding];
+            span[..nonPaddedLength].CopyTo(correctedSpan);
+
+            for (var i = nonPaddedLength; i < correctedSpan.Length; i++)
+            {
+                correctedSpan[i] = (byte)'=';
+            }
+
+            span = correctedSpan;
+        }
+
+        var operationStatus = Base64.DecodeFromUtf8InPlace(span, out var written);
+        if (operationStatus != OperationStatus.Done)
+        {
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+
         span = span.Slice(0, written);
 
         var delimiterIndex = FindDelimiterIndex(span);
@@ -175,7 +200,31 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             }
         }
 
-        Base64.DecodeFromUtf8InPlace(span, out var written);
+        // Ensure correct padding.
+        var firstPaddingIndex = span.IndexOf((byte)'=');
+        var nonPaddedLength = firstPaddingIndex == -1 ? span.Length : firstPaddingIndex;
+        var actualPadding = firstPaddingIndex == -1 ? 0 : span.Length - firstPaddingIndex;
+        var expectedPadding = (4 - nonPaddedLength % 4) % 4;
+
+        if (actualPadding != expectedPadding)
+        {
+            Span<byte> correctedSpan = stackalloc byte[nonPaddedLength + expectedPadding];
+            span[..nonPaddedLength].CopyTo(correctedSpan);
+
+            for (var i = nonPaddedLength; i < correctedSpan.Length; i++)
+            {
+                correctedSpan[i] = (byte)'=';
+            }
+
+            span = correctedSpan;
+        }
+
+        var operationStatus = Base64.DecodeFromUtf8InPlace(span, out var written);
+        if (operationStatus != OperationStatus.Done)
+        {
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+
         span = span.Slice(0, written);
 
         var delimiterIndex = FindDelimiterIndex(span);
@@ -473,7 +522,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                 bucket = newBucket;
             }
 
-            bucket[insertAt] = new Entry { HashCode = hashCode, Key = formattedTypeName, Value = serializer, };
+            bucket[insertAt] = new Entry { HashCode = hashCode, Key = formattedTypeName, Value = serializer };
         }
 
         public bool TryGetValue(

@@ -31,28 +31,30 @@ public class FilterInputTypeDescriptor<T>
 
     protected internal FilterInputTypeDescriptor(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope)
-        : base(context, definition, scope)
+        : base(context, configuration, scope)
     {
     }
 
     protected override void OnCompleteFields(
-        IDictionary<string, FilterFieldDefinition> fields,
+        IDictionary<string, FilterFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
-        if (Definition.Fields.IsImplicitBinding())
+        if (Configuration.Fields.IsImplicitBinding())
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
-                Definition.EntityType!,
+                Configuration.EntityType!,
                 p => FilterFieldDescriptor
-                    .New(Context, Definition.Scope, p)
-                    .CreateDefinition(),
+                    .New(Context, Configuration.Scope, p)
+                    .CreateConfiguration(),
                 fields,
                 handledProperties,
                 include: (_, member)
-                    => member is PropertyInfo && !handledProperties.Contains(member));
+                    => member is PropertyInfo p
+                        && !handledProperties.Contains(member)
+                        && !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
         }
 
         base.OnCompleteFields(fields, handledProperties);
@@ -100,11 +102,11 @@ public class FilterInputTypeDescriptor<T>
         {
             case PropertyInfo m:
                 var fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == m);
+                    Fields.FirstOrDefault(t => t.Configuration.Member == m);
 
                 if (fieldDescriptor is null)
                 {
-                    fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
+                    fieldDescriptor = FilterFieldDescriptor.New(Context, Configuration.Scope, m);
                     Fields.Add(fieldDescriptor);
                 }
 
@@ -117,7 +119,7 @@ public class FilterInputTypeDescriptor<T>
 
             default:
                 fieldDescriptor = FilterFieldDescriptor
-                    .New(Context, Definition.Scope, propertyOrMember);
+                    .New(Context, Configuration.Scope, propertyOrMember);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
         }
@@ -143,12 +145,12 @@ public class FilterInputTypeDescriptor<T>
         if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
             var fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == p);
+                Fields.FirstOrDefault(t => t.Configuration.Member == p);
 
             if (fieldDescriptor is null)
             {
                 fieldDescriptor =
-                    IgnoreFilterFieldDescriptor.New(Context, Definition.Scope, p);
+                    IgnoreFilterFieldDescriptor.New(Context, Configuration.Scope, p);
                 Fields.Add(fieldDescriptor);
             }
 

@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
@@ -95,7 +94,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             },
             t =>
             {
@@ -106,7 +105,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -147,7 +146,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -173,7 +172,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             },
             t =>
             {
@@ -184,7 +183,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -208,7 +207,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 

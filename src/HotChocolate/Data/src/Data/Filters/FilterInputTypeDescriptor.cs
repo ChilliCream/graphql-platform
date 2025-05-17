@@ -8,7 +8,7 @@ using HotChocolate.Types.Helpers;
 namespace HotChocolate.Data.Filters;
 
 public class FilterInputTypeDescriptor
-    : DescriptorBase<FilterInputTypeDefinition>
+    : DescriptorBase<FilterInputTypeConfiguration>
     , IFilterInputTypeDescriptor
 {
     protected FilterInputTypeDescriptor(
@@ -18,14 +18,14 @@ public class FilterInputTypeDescriptor
         : base(context)
     {
         Convention = context.GetFilterConvention(scope);
-        Definition.EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
-        Definition.RuntimeType = typeof(object);
-        Definition.Name = Convention.GetTypeName(entityType);
-        Definition.Description = Convention.GetTypeDescription(entityType);
-        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
-        Definition.Scope = scope;
-        Definition.UseAnd = Convention.IsAndAllowed();
-        Definition.UseOr = Convention.IsOrAllowed();
+        Configuration.EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
+        Configuration.RuntimeType = typeof(object);
+        Configuration.Name = Convention.GetTypeName(entityType);
+        Configuration.Description = Convention.GetTypeDescription(entityType);
+        Configuration.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.Scope = scope;
+        Configuration.UseAnd = Convention.IsAndAllowed();
+        Configuration.UseOr = Convention.IsOrAllowed();
     }
 
     protected FilterInputTypeDescriptor(
@@ -34,61 +34,61 @@ public class FilterInputTypeDescriptor
         : base(context)
     {
         Convention = context.GetFilterConvention(scope);
-        Definition.RuntimeType = typeof(object);
-        Definition.EntityType = typeof(object);
-        Definition.Scope = scope;
+        Configuration.RuntimeType = typeof(object);
+        Configuration.EntityType = typeof(object);
+        Configuration.Scope = scope;
     }
 
     protected FilterInputTypeDescriptor(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope)
         : base(context)
     {
         Convention = context.GetFilterConvention(scope);
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     protected IFilterConvention Convention { get; }
 
-    protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
+    protected internal override FilterInputTypeConfiguration Configuration { get; protected set; } =
         new();
 
     protected BindableList<FilterFieldDescriptor> Fields { get; } = [];
 
     protected BindableList<FilterOperationFieldDescriptor> Operations { get; } = [];
 
-    Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
+    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
-    protected override void OnCreateDefinition(FilterInputTypeDefinition definition)
+    protected override void OnCreateConfiguration(FilterInputTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, EntityType: not null, })
+        if (Configuration is { AttributesAreApplied: false, EntityType: not null, })
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.EntityType);
+            Configuration.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<string, FilterFieldDefinition>(StringComparer.Ordinal);
+        var fields = new Dictionary<string, FilterFieldConfiguration>(StringComparer.Ordinal);
         var handledProperties = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition())
-                .Concat(Operations.Select(t => t.CreateDefinition())),
+            Fields.Select(t => t.CreateConfiguration())
+                .Concat(Operations.Select(t => t.CreateConfiguration())),
             f => f.Member,
             fields,
             handledProperties);
 
         OnCompleteFields(fields, handledProperties);
 
-        Definition.Fields.AddRange(fields.Values);
+        Configuration.Fields.AddRange(fields.Values);
 
         Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, FilterFieldDefinition> fields,
+        IDictionary<string, FilterFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
     }
@@ -96,21 +96,21 @@ public class FilterInputTypeDescriptor
     /// <inheritdoc />
     public IFilterInputTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
-        Definition.IsNamed = true;
+        Configuration.Name = value;
+        Configuration.IsNamed = true;
         return this;
     }
 
     /// <inheritdoc />
     public IFilterInputTypeDescriptor Description(string? value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     protected IFilterInputTypeDescriptor BindFields(BindingBehavior bindingBehavior)
     {
-        Definition.Fields.BindingBehavior = bindingBehavior;
+        Configuration.Fields.BindingBehavior = bindingBehavior;
         return this;
     }
 
@@ -124,14 +124,14 @@ public class FilterInputTypeDescriptor
     public IFilterOperationFieldDescriptor Operation(int operationId)
     {
         var fieldDescriptor =
-            Operations.FirstOrDefault(t => t.Definition.Id == operationId);
+            Operations.FirstOrDefault(t => t.Configuration.Id == operationId);
 
         if (fieldDescriptor is null)
         {
             fieldDescriptor = FilterOperationFieldDescriptor.New(
                 Context,
                 operationId,
-                Definition.Scope);
+                Configuration.Scope);
             Operations.Add(fieldDescriptor);
         }
 
@@ -142,11 +142,11 @@ public class FilterInputTypeDescriptor
     public IFilterFieldDescriptor Field(string name)
     {
         var fieldDescriptor =
-            Fields.FirstOrDefault(t => t.Definition.Name == name);
+            Fields.FirstOrDefault(t => t.Configuration.Name == name);
 
         if (fieldDescriptor is null)
         {
-            fieldDescriptor = FilterFieldDescriptor.New(Context, name, Definition.Scope);
+            fieldDescriptor = FilterFieldDescriptor.New(Context, name, Configuration.Scope);
             Fields.Add(fieldDescriptor);
         }
 
@@ -157,14 +157,14 @@ public class FilterInputTypeDescriptor
     public IFilterInputTypeDescriptor Ignore(int operationId)
     {
         var fieldDescriptor =
-            Operations.FirstOrDefault(t => t.Definition.Id == operationId);
+            Operations.FirstOrDefault(t => t.Configuration.Id == operationId);
 
         if (fieldDescriptor is null)
         {
             fieldDescriptor = FilterOperationFieldDescriptor.New(
                 Context,
                 operationId,
-                Definition.Scope);
+                Configuration.Scope);
             Operations.Add(fieldDescriptor);
         }
 
@@ -176,14 +176,14 @@ public class FilterInputTypeDescriptor
     public IFilterInputTypeDescriptor Ignore(string name)
     {
         var fieldDescriptor =
-            Fields.FirstOrDefault(t => t.Definition.Name == name);
+            Fields.FirstOrDefault(t => t.Configuration.Name == name);
 
         if (fieldDescriptor is null)
         {
             fieldDescriptor = FilterFieldDescriptor.New(
                 Context,
                 name,
-                Definition.Scope);
+                Configuration.Scope);
             Fields.Add(fieldDescriptor);
         }
 
@@ -194,14 +194,14 @@ public class FilterInputTypeDescriptor
     /// <inheritdoc />
     public IFilterInputTypeDescriptor AllowOr(bool allow = true)
     {
-        Definition.UseOr = allow;
+        Configuration.UseOr = allow;
         return this;
     }
 
     /// <inheritdoc />
     public IFilterInputTypeDescriptor AllowAnd(bool allow = true)
     {
-        Definition.UseAnd = allow;
+        Configuration.UseAnd = allow;
         return this;
     }
 
@@ -209,7 +209,7 @@ public class FilterInputTypeDescriptor
     public IFilterInputTypeDescriptor Directive<TDirective>(TDirective directive)
         where TDirective : class
     {
-        Definition.AddDirective(directive, Context.TypeInspector);
+        Configuration.AddDirective(directive, Context.TypeInspector);
         return this;
     }
 
@@ -217,7 +217,7 @@ public class FilterInputTypeDescriptor
     public IFilterInputTypeDescriptor Directive<TDirective>()
         where TDirective : class, new()
     {
-        Definition.AddDirective(new TDirective(), Context.TypeInspector);
+        Configuration.AddDirective(new TDirective(), Context.TypeInspector);
         return this;
     }
 
@@ -226,7 +226,7 @@ public class FilterInputTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -248,24 +248,24 @@ public class FilterInputTypeDescriptor
         string? scope = null)
     {
         var descriptor = New(context, schemaType, scope);
-        descriptor.Definition.RuntimeType = typeof(object);
+        descriptor.Configuration.RuntimeType = typeof(object);
         return descriptor;
     }
 
     public static FilterInputTypeDescriptor From(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope = null)
-        => new(context, definition, scope);
+        => new(context, configuration, scope);
 
     public static FilterInputTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        FilterInputTypeDefinition definition,
+        FilterInputTypeConfiguration configuration,
         string? scope = null)
-        => new(context, definition, scope);
+        => new(context, configuration, scope);
 
     public static FilterInputTypeDescriptor<T> From<T>(
         FilterInputTypeDescriptor descriptor,
         string? scope = null)
-        => From<T>(descriptor.Context, descriptor.Definition, scope);
+        => From<T>(descriptor.Context, descriptor.Configuration, scope);
 }

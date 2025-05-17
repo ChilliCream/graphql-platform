@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration;
@@ -53,6 +52,19 @@ public class TypeDiscoveryTests
             .Create()
             .Print()
             .MatchSnapshot();
+    }
+
+    [Fact]
+    public void Custom_LocalDate_Should_Throw_SchemaException_When_Not_Bound()
+    {
+        static void Act() =>
+            SchemaBuilder.New()
+                .AddQueryType<QueryTypeWithCustomLocalDate>()
+                .Create();
+
+        Assert.Equal(
+            "The name `LocalDate` was already registered by another type.",
+            Assert.Throws<SchemaException>(Act).Errors[0].Message);
     }
 
     public class QueryWithDateTime
@@ -153,5 +165,15 @@ public class TypeDiscoveryTests
     public class QueryTypeWithComputedProperty
     {
         public int Foo(InputTypeWithReadOnlyProperties arg) => arg.Property1;
+    }
+
+    public class QueryTypeWithCustomLocalDate
+    {
+        public LocalDate Foo() => new();
+    }
+
+    public class LocalDate
+    {
+        public DateOnly Date { get; set; } = new();
     }
 }

@@ -95,7 +95,6 @@ public static class SchemaHelper
                     o.EnableTag = false;
                     o.EnableOneOf = false;
                     o.EnableFlagEnums = false;
-                    o.EnableTrueNullability = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))
@@ -246,7 +245,10 @@ public static class SchemaHelper
         TryAddLeafType(leafTypes, "Uuid", TypeNames.Guid, TypeNames.String);
         TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.String);
         TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
-        TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
+        TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateOnly);
+        TryAddLeafType(leafTypes, ScalarNames.LocalDate, TypeNames.DateOnly);
+        TryAddLeafType(leafTypes, ScalarNames.LocalDateTime, TypeNames.DateTime);
+        TryAddLeafType(leafTypes, ScalarNames.LocalTime, TypeNames.TimeOnly);
         TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
         TryAddLeafType(
             leafTypes,

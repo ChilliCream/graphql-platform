@@ -31,7 +31,7 @@ internal static class FederationVersionExtensions
 
     public static FederationVersion GetFederationVersion<T>(
         this IDescriptor<T> descriptor)
-        where T : DefinitionBase
+        where T : TypeSystemConfiguration
     {
         var contextData = descriptor.Extend().Context.ContextData;
         if (contextData.TryGetValue(FederationContextData.FederationVersion, out var value) &&

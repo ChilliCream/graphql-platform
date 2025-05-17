@@ -1,4 +1,4 @@
-using CookieCrumble;
+using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
@@ -983,6 +983,30 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Invalid_EmptyString_After_Index_Cursor()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .Services.BuildServiceProvider()
+            .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 after: "") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """
+        );
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Invalid_Before_Index_Cursor()
     {
         var executor =
@@ -1005,6 +1029,52 @@ public class IntegrationTests
             """);
 
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Invalid_EmptyString_Before_Index_Cursor()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 before: "") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Simple_EnumerableValueType_ReturnsError()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryEnumerableValueType>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = "{ test { nodes } }";
+
+        var result = await executor.ExecuteAsync(query);
+        var errors = result.ExpectOperationResult().Errors;
+
+        // assert
+        Assert.NotNull(errors);
+        var error = Assert.Single(errors);
+        Assert.Equal("Cannot handle the specified data source.", error.Message);
     }
 
     public class QueryType : ObjectType<Query>
@@ -1249,5 +1319,14 @@ public class IntegrationTests
             => new Connection<string>(
                 new[] {new Edge<string>("abc", "def"), new Edge<string>("abc", "def"), },
                 new ConnectionPageInfo(false, false, null, null), 2);
+    }
+
+    public class QueryEnumerableValueType
+    {
+        [UsePaging]
+        public ImmutableArray<int> Test()
+        {
+            return ImmutableArray<int>.Empty;
+        }
     }
 }

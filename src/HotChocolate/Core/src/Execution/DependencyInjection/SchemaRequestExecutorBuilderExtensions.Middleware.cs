@@ -136,7 +136,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
             if (!CanHandle(completionContext))
             {
@@ -149,7 +149,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 return;
             }
 
-            if (definition is not ObjectTypeDefinition def)
+            if (configuration is not ObjectTypeConfiguration def)
             {
                 return;
             }
@@ -162,9 +162,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                     {
                         if (middlewareRef.Reference.FieldName.Equals(field.Name))
                         {
-                            var middlewareDefinition = new FieldMiddlewareDefinition(
+                            var middlewareDefinition = new FieldMiddlewareConfiguration(
                                 middlewareRef.Middleware);
-                            field.MiddlewareDefinitions.Add(middlewareDefinition);
+                            field.MiddlewareConfigurations.Add(middlewareDefinition);
                         }
                     }
                 }

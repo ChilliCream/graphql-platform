@@ -34,7 +34,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.AddHostedService<ExecutorWarmupService>();
+        builder.Services.AddHostedService<RequestExecutorWarmupService>();
         builder.Services.AddSingleton(new WarmupSchemaTask(builder.Name, keepWarm, warmup));
         return builder;
     }

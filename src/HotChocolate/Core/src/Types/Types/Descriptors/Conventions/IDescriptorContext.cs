@@ -77,6 +77,11 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     IParameterBindingResolver ParameterBindingResolver { get; }
 
     /// <summary>
+    /// Gets the type configuration container.
+    /// </summary>
+    TypeConfigurationContainer TypeConfiguration { get; }
+
+    /// <summary>
     /// Gets the registered type discovery handlers.
     /// </summary>
     ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers();

@@ -131,6 +131,9 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
+    public TypeConfigurationContainer TypeConfiguration { get; } = new();
+
+    /// <inheritdoc />
     public ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers()
         => _typeDiscoveryHandlers ??= CreateTypeDiscoveryHandlers(this);
 
@@ -254,7 +257,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         TypeDiscoveryHandler[] array;
 
         if (self.ContextData.TryGetValue(TypeDiscoveryHandlers, out var value) &&
-            value is IReadOnlyList<Func<IDescriptorContext, TypeDiscoveryHandler>> { Count: > 0, } h)
+            value is IReadOnlyList<Func<IDescriptorContext, TypeDiscoveryHandler>> { Count: > 0 } h)
         {
             array = new TypeDiscoveryHandler[h.Count + 2];
 

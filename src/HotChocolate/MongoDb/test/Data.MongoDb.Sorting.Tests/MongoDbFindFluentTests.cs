@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -16,21 +15,21 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     private static readonly Bar[] _barEntities =
     [
-        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
-        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
     ];
 
     private static readonly Baz[] _bazEntities =
     [
-        new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), Qux = 1, },
-        new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = 0, },
-        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = -1, },
+        new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), Qux = 1 },
+        new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = 0 },
+        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = -1 }
     ];
 
     private readonly MongoResource _resource;
@@ -66,10 +65,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -104,10 +103,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -141,16 +140,17 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [BsonElement("renameTest")]
@@ -160,6 +160,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Baz { get; set; }
@@ -168,6 +169,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
     public class Baz
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Bar { get; set; }

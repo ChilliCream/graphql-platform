@@ -60,8 +60,48 @@ internal sealed class TypeDiscoverer
             _unregistered.AddRange(Directives.CreateReferences(context));
         }
 
-        _unregistered.AddRange(typeRegistry.GetTypeRefs());
-        _unregistered.AddRange(initialTypes.Distinct());
+        var first = new List<TypeReference>();
+        var second = new List<TypeReference>();
+        var third = new List<TypeReference>();
+        var fourth = new List<TypeReference>();
+
+        foreach (var typeRef in typeRegistry.GetTypeRefs().Concat(initialTypes.Distinct()))
+        {
+            switch (typeRef)
+            {
+                case ExtendedTypeReference { Type.IsSchemaType: true } extendedTypeRef:
+                    if (typeof(ScalarType).IsAssignableFrom(extendedTypeRef.Type.Type))
+                    {
+                        first.Add(typeRef);
+                    }
+                    else
+                    {
+                        second.Add(typeRef);
+                    }
+                    break;
+
+                case ExtendedTypeReference:
+                    third.Add(typeRef);
+                    break;
+
+                case SchemaTypeReference { Type: ScalarType }:
+                    first.Add(typeRef);
+                    break;
+
+                case SchemaTypeReference:
+                    second.Add(typeRef);
+                    break;
+
+                default:
+                    fourth.Add(typeRef);
+                    break;
+            }
+        }
+
+        _unregistered.AddRange(first);
+        _unregistered.AddRange(second);
+        _unregistered.AddRange(third);
+        _unregistered.AddRange(fourth);
 
         _typeRegistrar = new TypeRegistrar(context, typeRegistry, typeLookup, interceptor);
 
@@ -69,10 +109,10 @@ internal sealed class TypeDiscoverer
         [
             new ExtendedTypeReferenceHandler(context.TypeInspector),
             new SchemaTypeReferenceHandler(),
-            new SyntaxTypeReferenceHandler(context.TypeInspector),
+            new SyntaxTypeReferenceHandler(context),
             new FactoryTypeReferenceHandler(context),
             new DependantFactoryTypeReferenceHandler(context),
-            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector),
+            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector)
         ];
 
         _interceptor = interceptor;
@@ -144,7 +184,7 @@ internal sealed class TypeDiscoverer
         {
             foreach (var typeRef in _unregistered)
             {
-                var index = (int) typeRef.Kind;
+                var index = (int)typeRef.Kind;
 
                 if (_handlers.Length > index)
                 {
@@ -165,8 +205,8 @@ internal sealed class TypeDiscoverer
         {
             // first we will check if we have a type binding for the unresolved type.
             // type bindings are types that will be registered instead of the actual discovered type.
-            if (unresolvedTypeRef is ExtendedTypeReference extendedTypeRef &&
-                _typeRegistry.RuntimeTypeRefs.TryGetValue(extendedTypeRef, out var typeReference))
+            if (unresolvedTypeRef is ExtendedTypeReference extendedTypeRef
+                && _typeRegistry.RuntimeTypeRefs.TryGetValue(extendedTypeRef, out var typeReference))
             {
                 inferred = true;
                 _unregistered.Add(typeReference);
@@ -175,8 +215,8 @@ internal sealed class TypeDiscoverer
             }
 
             // if we do not have a type binding or if we have a directive we will try to infer the type.
-            if (unresolvedTypeRef is ExtendedTypeReference or ExtendedTypeDirectiveReference &&
-                _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
+            if (unresolvedTypeRef is ExtendedTypeReference or ExtendedTypeDirectiveReference
+                && _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
             {
                 inferred = true;
 

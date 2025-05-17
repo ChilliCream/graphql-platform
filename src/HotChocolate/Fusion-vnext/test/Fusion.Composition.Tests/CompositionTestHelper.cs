@@ -1,0 +1,25 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
+
+namespace HotChocolate.Fusion;
+
+internal static class CompositionTestHelper
+{
+    internal static ImmutableSortedSet<MutableSchemaDefinition> CreateSchemaDefinitions(
+        string[] sdl)
+    {
+        var schemaDefinitions =
+            sdl.Select((s, i) =>
+            {
+                var schemaDefinition = SchemaParser.Parse(s);
+                schemaDefinition.Name = ((char)('A' + i)).ToString();
+
+                return schemaDefinition;
+            });
+
+        return schemaDefinitions.ToImmutableSortedSet(
+            new SchemaByNameComparer<MutableSchemaDefinition>());
+    }
+}

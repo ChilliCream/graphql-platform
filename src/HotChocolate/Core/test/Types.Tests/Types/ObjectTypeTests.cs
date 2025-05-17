@@ -1,6 +1,6 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -1960,7 +1960,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -1975,7 +1975,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2012,7 +2012,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2033,7 +2033,7 @@ public class ObjectTypeTests : TypeTestBase
                 .ExecuteRequestAsync("{ hello staticHello }");
 
         // assert
-        SnapshotExtensions.MatchSnapshot(result);
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -2050,7 +2050,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -2067,14 +2067,14 @@ public class ObjectTypeTests : TypeTestBase
             .Execute("{ value }")
             .ToJson();
 
-        SnapshotExtensions.MatchInlineSnapshot(result,
-        """
-        {
-            "data": {
-                "value": 1024
+        result.MatchInlineSnapshot(
+            """
+            {
+                "data": {
+                    "value": 1024
+                }
             }
-        }
-        """);
+            """);
     }
 
     [Fact]
@@ -2110,7 +2110,19 @@ public class ObjectTypeTests : TypeTestBase
                 .AddQueryType<QueryWithGenerics>()
                 .BuildSchemaAsync();
 
-        SnapshotExtensions.MatchSnapshot(schema);
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ignore_Object_Lists()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<IgnoreObjectLists>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     public abstract class ResolverBase
@@ -2439,5 +2451,22 @@ public class ObjectTypeTests : TypeTestBase
         public string Bar() => "bar";
 
         public T Foo<T>() => default!;
+    }
+
+    public class IgnoreObjectLists
+    {
+        public string Hello() => throw new InvalidOperationException();
+
+        public IEnumerable<object> ObjList1 => throw new InvalidOperationException();
+
+        public IReadOnlyCollection<object> ObjList2 => throw new InvalidOperationException();
+
+        public IReadOnlyList<object> ObjList3 => throw new InvalidOperationException();
+
+        public List<object> ObjList4 => throw new InvalidOperationException();
+
+        public object[] ObjList5 => throw new InvalidOperationException();
+
+        public ImmutableArray<object> ObjList6 => throw new InvalidOperationException();
     }
 }

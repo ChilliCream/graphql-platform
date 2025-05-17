@@ -130,13 +130,13 @@ public static class ProjectionObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        FieldMiddlewareDefinition placeholder =
+        FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
 
         var extension = descriptor.Extend();
 
-        extension.Definition.MiddlewareDefinitions.Add(placeholder);
-        extension.Definition.Flags |= FieldFlags.UsesProjections;
+        extension.Configuration.MiddlewareConfigurations.Add(placeholder);
+        extension.Configuration.Flags |= FieldFlags.UsesProjections;
 
         extension
             .OnBeforeCreate(
@@ -157,8 +157,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
                         selectionType = typeInfo.NamedType;
                     }
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion));
@@ -169,8 +169,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         Type type,
-        ObjectFieldDefinition definition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        FieldMiddlewareConfiguration placeholder,
         ITypeCompletionContext context,
         string? scope)
     {
@@ -182,8 +182,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
 
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Projection);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Projection);
     }
 
     private static IQueryBuilder CreateMiddleware<TEntity>(IProjectionConvention convention)
@@ -323,7 +323,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public T Service<T>() where T : notnull => _context.Service<T>();
 
-        public T? Service<T>(object key) where T : notnull => _context.Service<T>(key);
+        public T Service<T>(object key) where T : notnull => _context.Service<T>(key);
 
         public T Resolver<T>() => _context.Resolver<T>();
 

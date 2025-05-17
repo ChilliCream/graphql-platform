@@ -5,10 +5,11 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
-using CookieCrumble;
 using GreenDonut;
-using HotChocolate.Pagination;
+using GreenDonut.Data;
+using HotChocolate.Data.Filters;
 using HotChocolate.Types.Analyzers;
+using HotChocolate.Types.Pagination;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -20,9 +21,11 @@ internal static partial class TestHelper
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
-        // Parse the provided string into a C# syntax tree.
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
+        return GetGeneratedSourceSnapshot([sourceText]);
+    }
 
+    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts, string? assemblyName = "Tests")
+    {
         IEnumerable<PortableExecutableReference> references =
         [
 #if NET8_0
@@ -30,24 +33,30 @@ internal static partial class TestHelper
 #elif NET9_0
             .. Net90.References.All,
 #endif
-
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
 
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
 
-            // HotChocolate.Pagination.Primitives
-            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
-
             // GreenDonut
-            MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
+
+            // GreenDonut.Data
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
+
+            // HotChocolate.Data
+            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location)
         ];
 
         // Create a Roslyn compilation for the syntax tree.
         var compilation = CSharpCompilation.Create(
-            assemblyName: "Tests",
-            syntaxTrees: [syntaxTree],
+            assemblyName: assemblyName,
+            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
             references);
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.

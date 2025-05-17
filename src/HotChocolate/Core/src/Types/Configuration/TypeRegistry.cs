@@ -156,21 +156,22 @@ internal sealed class TypeRegistry
         if (!registeredType.IsExtension)
         {
             if (registeredType.IsNamedType &&
-                registeredType.Type is IHasTypeDefinition { Definition: { } typeDef, } &&
+                registeredType.Type is IHasTypeConfiguration { Configuration: { } typeDef } &&
                 !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);
             }
             else if (registeredType.Kind == TypeKind.Scalar &&
-                registeredType.Type is ScalarType scalar)
+                registeredType.Type is ScalarType scalar &&
+                !_nameRefs.ContainsKey(scalar.Name))
             {
                 _nameRefs.Add(scalar.Name, registeredType.References[0]);
             }
             else if (registeredType.Kind == TypeKind.Directive &&
                 registeredType.Type is DirectiveType directive &&
-                !_nameRefs.ContainsKey(directive.Definition!.Name))
+                !_nameRefs.ContainsKey(directive.Configuration!.Name))
             {
-                _nameRefs.Add(directive.Definition.Name, registeredType.References[0]);
+                _nameRefs.Add(directive.Configuration.Name, registeredType.References[0]);
             }
         }
     }
@@ -204,7 +205,7 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (registeredType is { IsNamedType: false, IsDirectiveType: false, })
+        if (registeredType is { IsNamedType: false, IsDirectiveType: false })
         {
             return;
         }

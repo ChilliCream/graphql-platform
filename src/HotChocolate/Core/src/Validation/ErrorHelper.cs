@@ -143,7 +143,8 @@ internal static class ErrorHelper
         return ErrorBuilder.New()
             .SetMessage(
                 Resources.ErrorHelper_LeafFieldsCannotHaveSelections,
-                node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "an enum")
+                node.Name.Value,
+                fieldType.Print())
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
@@ -216,7 +217,8 @@ internal static class ErrorHelper
         return ErrorBuilder.New()
             .SetMessage(
                 Resources.ErrorHelper_NoSelectionOnCompositeField,
-                node.Name.Value)
+                node.Name.Value,
+                fieldType.Print())
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
@@ -275,6 +277,17 @@ internal static class ErrorHelper
             .SetExtension("responseNameA", fieldA.ResponseName)
             .SetExtension("responseNameB", fieldB.ResponseName)
             .SpecifiedBy("sec-Field-Selection-Merging")
+            .Build();
+    }
+
+    public static IError OperationNotSupported(
+        this IDocumentValidatorContext context,
+        OperationType operationType)
+    {
+        return ErrorBuilder.New()
+            .SetMessage(
+                Resources.ErrorHelper_OperationNotSupported,
+                operationType)
             .Build();
     }
 

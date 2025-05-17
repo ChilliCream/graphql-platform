@@ -6,7 +6,7 @@ using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Projections;
+using HotChocolate.Execution.Requirements;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -163,15 +163,6 @@ public static class RequestExecutorServiceCollectionExtensions
 
         builder.Services.AddValidation(schemaName);
 
-        builder.Configure(
-            (sp, e) =>
-            {
-                e.OnRequestExecutorEvictedHooks.Add(
-                    // when ever we evict this schema we will clear the caches.
-                    new OnRequestExecutorEvictedAction(
-                        _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));
-            });
-
         builder.TryAddNoOpTransactionScopeHandler();
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
@@ -181,7 +172,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
     public static IServiceCollection AddDocumentCache(
         this IServiceCollection services,
-        int capacity = 100)
+        int capacity = 256)
     {
         services.RemoveAll<IDocumentCache>();
         services.AddSingleton<IDocumentCache>(
@@ -191,13 +182,11 @@ public static class RequestExecutorServiceCollectionExtensions
 
     public static IServiceCollection AddOperationCache(
         this IServiceCollection services,
-        int capacity = 100)
+        int capacity = 256)
     {
-        services.RemoveAll<IPreparedOperationCache>();
-
-        services.AddSingleton<IPreparedOperationCache>(
-            _ => new DefaultPreparedOperationCache(capacity));
-
+        services.RemoveAll<PreparedOperationCacheOptions>();
+        services.AddSingleton<PreparedOperationCacheOptions>(
+            _ => new PreparedOperationCacheOptions{ Capacity = capacity });
         return services;
     }
 

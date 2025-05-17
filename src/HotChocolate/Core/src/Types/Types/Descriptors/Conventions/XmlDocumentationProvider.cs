@@ -156,10 +156,13 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
         foreach (var node in element.Nodes())
         {
-            var currentElement = node as XElement;
-            if (currentElement is null)
+            if (node is not XElement currentElement)
             {
-                description.Append(node);
+                if (node is XText text)
+                {
+                    description.Append(text.Value);
+                }
+
                 continue;
             }
 
@@ -380,7 +383,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         char prefixCode;
 
         var memberName =
-            member is Type { FullName: { Length: > 0, }, } memberType
+            member is Type { FullName: { Length: > 0 } } memberType
             ? memberType.FullName
             : member.DeclaringType is null
                 ? member.Name
@@ -402,7 +405,8 @@ public class XmlDocumentationProvider : IDocumentationProvider
                             "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
                             string.Empty)
                         .Replace("[[", "{")
-                        .Replace("]]", "}"))
+                        .Replace("]]", "}")
+                        .Replace("],[", ","))
                     .ToArray());
 
                 if (!string.IsNullOrEmpty(paramTypesList))

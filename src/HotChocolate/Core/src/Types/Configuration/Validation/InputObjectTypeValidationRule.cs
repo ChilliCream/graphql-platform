@@ -26,7 +26,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             Visited = [],
             CycleStartIndex = new Dictionary<InputObjectType, int>(),
             Errors = errors,
-            FieldPath = [],
+            FieldPath = []
         };
 
         foreach (var type in schema.Types)
@@ -97,7 +97,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         {
             if (type.Kind == TypeKind.NonNull)
             {
-                type = ((NonNullType)type).Type;
+                type = ((NonNullType)type).NullableType;
             }
             else
             {

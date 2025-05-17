@@ -9,13 +9,44 @@ namespace HotChocolate.Types;
 public class DateTypeTests
 {
     [Fact]
-    public void Serialize_Date()
+    public void Serialize_DateOnly()
     {
         // arrange
         var dateType = new DateType();
-        var dateTime = new DateTime(
-            2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+        var dateOnly = new DateOnly(2018, 6, 11);
         var expectedValue = "2018-06-11";
+
+        // act
+        var serializedValue = (string)dateType.Serialize(dateOnly);
+
+        // assert
+        Assert.Equal(expectedValue, serializedValue);
+    }
+
+    [Fact]
+    public void Serialize_DateTime()
+    {
+        // arrange
+        var dateType = new DateType();
+        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+        var expectedValue = "2018-06-11";
+
+        // act
+        var serializedValue = (string)dateType.Serialize(dateTime);
+
+        // assert
+        Assert.Equal(expectedValue, serializedValue);
+    }
+
+    [Fact]
+    public void Serialize_DateTimeOffset()
+    {
+        // arrange
+        var dateType = new DateType();
+        var dateTime = new DateTimeOffset(
+            new DateTime(2018, 6, 11, 2, 46, 14),
+            new TimeSpan(4, 0, 0));
+        var expectedValue = "2018-06-10";
 
         // act
         var serializedValue = (string)dateType.Serialize(dateTime);
@@ -51,21 +82,34 @@ public class DateTypeTests
     }
 
     [Fact]
-    public void Deserialize_IsoString_DateTime()
+    public void Deserialize_IsoString_DateOnly()
     {
         // arrange
         var dateType = new DateType();
-        var date = new DateTime(2018, 6, 11);
+        var date = new DateOnly(2018, 6, 11);
 
         // act
-        var result = (DateTime)dateType.Deserialize("2018-06-11")!;
+        var result = (DateOnly)dateType.Deserialize("2018-06-11")!;
 
         // assert
         Assert.Equal(date, result);
     }
 
     [Fact]
-    public void Deserialize_InvalidString_To_DateTimeOffset()
+    public void Deserialize_InvalidFormat_To_DateOnly()
+    {
+        // arrange
+        var type = new DateType();
+
+        // act
+        var success = type.TryDeserialize("2018/06/11", out _);
+
+        // assert
+        Assert.False(success);
+    }
+
+    [Fact]
+    public void Deserialize_InvalidString_To_DateOnly()
     {
         // arrange
         var type = new DateType();
@@ -78,62 +122,78 @@ public class DateTypeTests
     }
 
     [Fact]
-    public void Deserialize_DateTimeOffset_To_DateTime()
+    public void Deserialize_DateOnly_To_DateOnly()
     {
         // arrange
         var type = new DateType();
-        var time = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
+        var date = new DateOnly(2018, 6, 11);
 
         // act
-        var success = type.TryDeserialize(time, out var deserialized);
+        var success = type.TryDeserialize(date, out var deserialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal(time.UtcDateTime,
-            Assert.IsType<DateTime>(deserialized));
+        Assert.Equal(date, deserialized);
     }
 
     [Fact]
-    public void Deserialize_DateTime_To_DateTime()
+    public void Deserialize_DateTime_To_DateOnly()
     {
         // arrange
         var type = new DateType();
-        var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+        var date = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
         // act
-        var success = type.TryDeserialize(time, out var deserialized);
+        var success = type.TryDeserialize(date, out var deserialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal(time, deserialized);
+        Assert.Equal(DateOnly.FromDateTime(date),
+            Assert.IsType<DateOnly>(deserialized));
     }
 
     [Fact]
-    public void Deserialize_NullableDateTime_To_DateTime()
+    public void Deserialize_DateTimeOffset_To_DateOnly()
     {
         // arrange
         var type = new DateType();
-        DateTime? time =
-            new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+        var date = new DateTimeOffset(
+            new DateTime(2018, 6, 11, 2, 46, 14),
+            new TimeSpan(4, 0, 0));
 
         // act
-        var success = type.TryDeserialize(time, out var deserialized);
+        var success = type.TryDeserialize(date, out var deserialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal(time, Assert.IsType<DateTime>(deserialized));
+        Assert.Equal(DateOnly.FromDateTime(date.UtcDateTime),
+            Assert.IsType<DateOnly>(deserialized));
     }
 
     [Fact]
-    public void Deserialize_NullableDateTime_To_DateTime_2()
+    public void Deserialize_NullableDateOnly_To_DateOnly()
     {
         // arrange
         var type = new DateType();
-        DateTime? time = null;
+        DateOnly? date = new DateOnly(2018, 6, 11);
 
         // act
-        var success = type.TryDeserialize(time, out var deserialized);
+        var success = type.TryDeserialize(date, out var deserialized);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal(date, Assert.IsType<DateOnly>(deserialized));
+    }
+
+    [Fact]
+    public void Deserialize_NullableDateOnly_To_DateOnly_2()
+    {
+        // arrange
+        var type = new DateType();
+        DateOnly? date = null;
+
+        // act
+        var success = type.TryDeserialize(date, out var deserialized);
 
         // assert
         Assert.True(success);
@@ -160,10 +220,10 @@ public class DateTypeTests
         // arrange
         var dateType = new DateType();
         var literal = new StringValueNode("2018-06-29");
-        var expectedDateTime = new DateTime(2018, 6, 29);
+        var expectedDateTime = new DateOnly(2018, 6, 29);
 
         // act
-        var dateTime = (DateTime)dateType.ParseLiteral(literal)!;
+        var dateTime = (DateOnly)dateType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -184,10 +244,10 @@ public class DateTypeTests
 
         var dateType = new DateType();
         var literal = new StringValueNode("2018-06-29");
-        var expectedDateTime = new DateTime(2018, 6, 29);
+        var expectedDateTime = new DateOnly(2018, 6, 29);
 
         // act
-        var dateTime = (DateTime)dateType.ParseLiteral(literal)!;
+        var dateTime = (DateOnly)dateType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -208,16 +268,16 @@ public class DateTypeTests
     }
 
     [Fact]
-    public void ParseValue_DateTime()
+    public void ParseValue_DateOnly()
     {
         // arrange
         var dateType = new DateType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+        var dateOnly = new DateOnly(2018, 6, 11);
         var expectedLiteralValue = "2018-06-11";
 
         // act
         var stringLiteral =
-            (StringValueNode)dateType.ParseValue(dateTime);
+            (StringValueNode)dateType.ParseValue(dateOnly);
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
@@ -234,6 +294,22 @@ public class DateTypeTests
 
         // assert
         Assert.Equal(NullValueNode.Default, literal);
+    }
+
+    [Fact]
+    public void ParseResult_DateOnly()
+    {
+        // arrange
+        var dateType = new DateType();
+        var resultValue = new DateOnly(2023, 6, 19);
+        var expectedLiteralValue = "2023-06-19";
+
+        // act
+        var literal = dateType.ParseResult(resultValue);
+
+        // assert
+        Assert.Equal(typeof(StringValueNode), literal.GetType());
+        Assert.Equal(expectedLiteralValue, literal.Value);
     }
 
     [Fact]
@@ -343,89 +419,88 @@ public class DateTypeTests
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_Argument_Schema()
+    public async Task DateOnly_As_Argument_Schema()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime1>()
+            .AddQueryType<QueryDate1>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_Argument()
+    public async Task DateOnly_As_Argument()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime1>()
+            .AddQueryType<QueryDate1>()
             .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
             .ExecuteRequestAsync(
-                @"{
-                        foo {
-                            time(time: ""11:22"")
-                            date(date: ""2017-12-30"")
-                        }
-                    }")
+                """
+                {
+                    foo {
+                        date(date: "2017-12-30")
+                    }
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_ReturnValue_Schema()
+    public async Task DateOnly_As_ReturnValue_Schema()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime2>()
+            .AddQueryType<QueryDate2>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task DateOnly_And_TimeOnly_As_ReturnValue()
+    public async Task DateOnly_As_ReturnValue()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType<QueryDateTime2>()
+            .AddQueryType<QueryDate2>()
             .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
             .ExecuteRequestAsync(
-                @"{
-                        bar {
-                            time
-                            date
-                        }
-                    }")
+                """
+                {
+                    bar {
+                        date
+                    }
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
     public class Query
     {
         [GraphQLType(typeof(DateType))]
-        public DateTime? DateField => DateTime.UtcNow;
+        public DateOnly? DateField => new();
 
         public DateTime? DateTimeField => DateTime.UtcNow;
     }
 
-    public class QueryDateTime1
+    public class QueryDate1
     {
         public Foo Foo => new();
     }
 
     public class Foo
     {
-        public TimeSpan GetTime(TimeOnly time) => time.ToTimeSpan();
-
-        public DateTime GetDate(DateOnly date)
-            => date.ToDateTime(new TimeOnly(15, 0), DateTimeKind.Utc);
+        [GraphQLType(typeof(DateType))]
+        public DateOnly GetDate([GraphQLType(typeof(DateType))] DateOnly date) => date;
     }
 
-    public class QueryDateTime2
+    public class QueryDate2
     {
         public Bar Bar => new();
     }
 
     public class Bar
     {
-        public TimeOnly GetTime() => TimeOnly.MaxValue;
-
+        [GraphQLType(typeof(DateType))]
         public DateOnly GetDate() => DateOnly.MaxValue;
     }
 }

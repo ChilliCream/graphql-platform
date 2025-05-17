@@ -268,7 +268,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         }
 
         var skip = descriptor.Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>());
-        skip.Extend().Definition.Flags |= FieldFlags.SkipArgument;
+        skip.Extend().Configuration.Flags |= FieldFlags.SkipArgument;
 
         return descriptor
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());

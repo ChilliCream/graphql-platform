@@ -1,5 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
@@ -10,7 +11,7 @@ public class OutputFieldBase : FieldBase, IOutputField
 {
     private Type _runtimeType = default!;
 
-    internal OutputFieldBase(OutputFieldDefinitionBase definition, int index)
+    internal OutputFieldBase(OutputFieldConfiguration definition, int index)
         : base(definition, index)
     {
         DeprecationReason = definition.DeprecationReason;
@@ -31,7 +32,7 @@ public class OutputFieldBase : FieldBase, IOutputField
     IFieldCollection<IInputField> IOutputFieldInfo.Arguments => Arguments;
 
     /// <summary>
-    /// Defines if this field as a introspection field.
+    /// Defines if this field as an introspection field.
     /// </summary>
     public bool IsIntrospectionField
         => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
@@ -49,28 +50,93 @@ public class OutputFieldBase : FieldBase, IOutputField
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteField(context, declaringMember, (OutputFieldDefinitionBase)definition);
+        FieldConfiguration definition)
+        => OnCompleteField(context, declaringMember, (OutputFieldConfiguration)definition);
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 
         Type = context.GetType<IOutputType>(definition.Type!).EnsureOutputType();
         _runtimeType = CompleteRuntimeType(Type, null);
-        Arguments = OnCompleteFields(context, definition);
+
+        if (_runtimeType == typeof(object)
+            && definition is ObjectFieldConfiguration { ResultType: not null } objectFieldCfg
+            && objectFieldCfg.ResultType != typeof(object))
+        {
+            _runtimeType = CompleteRuntimeType(Type, objectFieldCfg.ResultType);
+        }
+
+        Arguments = OnCompleteArguments(context, definition);
     }
 
-    protected virtual FieldCollection<Argument> OnCompleteFields(
+    protected virtual FieldCollection<Argument> OnCompleteArguments(
         ITypeCompletionContext context,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
         return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
-        static Argument CreateArgument(ArgumentDefinition argDef, int index)
+        static Argument CreateArgument(ArgumentConfiguration argDef, int index)
             => new(argDef, index);
+    }
+
+    protected sealed override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnCompleteMetadata(context, declaringMember, (OutputFieldConfiguration)definition);
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldConfiguration definition)
+    {
+        base.OnCompleteMetadata(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.CompleteMetadata(context, this);
+        }
+    }
+
+    protected sealed override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnMakeExecutable(context, declaringMember, (OutputFieldConfiguration)definition);
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldConfiguration definition)
+    {
+        base.OnMakeExecutable(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.MakeExecutable(context, this);
+        }
+    }
+
+    protected sealed override void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnFinalizeField(context, declaringMember, (OutputFieldConfiguration)definition);
+
+    protected virtual void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        OutputFieldConfiguration definition)
+    {
+        base.OnFinalizeField(context, declaringMember, definition);
+
+        foreach (IFieldCompletion argument in Arguments)
+        {
+            argument.Finalize(context, this);
+        }
     }
 
     /// <summary>

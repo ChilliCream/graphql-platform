@@ -51,7 +51,7 @@ Adding pagination capabilities to our fields is a breeze. All we have to do is a
 public class Query
 {
     [UsePaging]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -88,24 +88,20 @@ To make our life easier, we do not have to write out the _Connection_ types in o
 public class Query
 {
     [UsePaging]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                    users : [User!]!
-                }
-            ")
-            .AddResolver<Query>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+            users : [User!]!
+        }
+    ")
+    .AddResolver<Query>();
 ```
 
 </Schema>
@@ -130,7 +126,7 @@ We can also specify a custom name for our _Connection_ like the following.
 public class Query
 {
     [UsePaging(ConnectionName = "CustomUsers")]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
     {
         // Omitted code for brevity
     }
@@ -466,7 +462,7 @@ To add _offset-based_ pagination capabilities to our fields we have to add the `
 public class Query
 {
     [UseOffsetPaging]
-    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
+    public IEnumerable<User> GetUsers(IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -761,7 +757,7 @@ The `UsePaging` and `UseOffsetPaging` middleware provide a unified way of applyi
 Paging providers can be registered using various methods on the `IRequestExecutorBuilder`. For example the MongoDB paging provider can be registered like the following.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders();
 ```
@@ -771,7 +767,7 @@ services
 When registering paging providers we can name them to be able to explicitly reference them.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders(providerName: "MongoDB");
 ```
@@ -809,7 +805,7 @@ Take a look at the implementation-first or code-first example.
 If no `ProviderName` is specified, the correct provider is selected based on the return type of the resolver. If the provider to use can't be inferred from the return type, the first (default) provider is used automatically. If needed we can mark a paging provider as the explicit default.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders(defaultProvider: true);
 ```
@@ -837,15 +833,9 @@ The following options can be configured.
 If we want to enforce consistent pagination defaults throughout our app, we can do so by modifying the global `PagingOptions`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
 ```
 
 [Learn more about possible PagingOptions](#pagingoptions)

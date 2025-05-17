@@ -5,7 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using CookieCrumble;
 
 namespace HotChocolate.Execution.Processing;
 

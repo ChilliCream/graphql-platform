@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

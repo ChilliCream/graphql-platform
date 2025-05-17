@@ -154,20 +154,19 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.TryAddSingleton<RequestExecutorResolver>();
-        services.TryAddSingleton<IRequestExecutorResolver>(
-            sp => sp.GetRequiredService<RequestExecutorResolver>());
-        services.TryAddSingleton<IInternalRequestExecutorResolver>(
-            sp => sp.GetRequiredService<RequestExecutorResolver>());
+        services.TryAddSingleton<IRequestExecutorResolver>(sp => sp.GetRequiredService<RequestExecutorResolver>());
+        services.TryAddSingleton<IRequestExecutorWarmup>(sp => sp.GetRequiredService<RequestExecutorResolver>());
         return services;
     }
 
     internal static IServiceCollection TryAddDefaultCaches(
         this IServiceCollection services)
     {
+        services.TryAddSingleton<PreparedOperationCacheOptions>(
+            _ => new PreparedOperationCacheOptions { Capacity = 256 });
         services.TryAddSingleton<IDocumentCache>(
-            _ => new DefaultDocumentCache());
-        services.TryAddSingleton<IPreparedOperationCache>(
-            _ => new DefaultPreparedOperationCache());
+            sp => new DefaultDocumentCache(
+                sp.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
         return services;
     }
 

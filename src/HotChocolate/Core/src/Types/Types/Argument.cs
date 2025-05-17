@@ -24,7 +24,7 @@ public class Argument : FieldBase, IInputField
     /// <param name="index">
     /// The position of this argument within its field collection.
     /// </param>
-    public Argument(ArgumentDefinition definition, int index)
+    public Argument(ArgumentConfiguration definition, int index)
         : base(definition, index)
     {
         DefaultValue = definition.DefaultValue;
@@ -79,13 +79,13 @@ public class Argument : FieldBase, IInputField
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteField(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteField(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition)
+        ArgumentConfiguration definition)
     {
         if (definition.Type is null)
         {
@@ -103,10 +103,48 @@ public class Argument : FieldBase, IInputField
         Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.GetRuntimeType()!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
-        DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         IsOptional = isOptional;
         DeclaringMember = declaringMember;
     }
+
+    protected sealed override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnCompleteMetadata(context, declaringMember, (ArgumentConfiguration)definition);
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        ArgumentConfiguration definition)
+    {
+        DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
+        base.OnCompleteMetadata(context, declaringMember, definition);
+    }
+
+    protected sealed override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnMakeExecutable(context, declaringMember, (ArgumentConfiguration)definition);
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        ArgumentConfiguration definition) =>
+        base.OnMakeExecutable(context, declaringMember, definition);
+
+    protected sealed override void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnFinalizeField(context, declaringMember, (ArgumentConfiguration)definition);
+
+    protected virtual void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        ArgumentConfiguration definition) =>
+        base.OnFinalizeField(context, declaringMember, definition);
 
     /// <summary>
     /// Returns a string that represents the current argument.

@@ -72,13 +72,16 @@ public interface IError
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
-    /// but with <see cref="Code"/> removed.
+    /// but with the specified <paramref name="path" />.
     /// </summary>
+    /// <param name="path">
+    /// A path representing a certain syntax node of a query or schema.
+    /// </param>
     /// <returns>
     /// Returns a new error that contains all properties of this error
-    /// but with <see cref="Code"/> removed.
+    /// but with the specified <paramref name="path" />.
     /// </returns>
-    IError RemoveCode();
+    IError WithPath(Path path);
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
@@ -91,30 +94,7 @@ public interface IError
     /// Returns a new error that contains all properties of this error
     /// but with the specified <paramref name="path" />.
     /// </returns>
-    IError WithPath(Path? path);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
-    /// but with the specified <paramref name="path" />.
-    /// </summary>
-    /// <param name="path">
-    /// A path representing a certain syntax node of a query or schema.
-    /// </param>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but with the specified <paramref name="path" />.
-    /// </returns>
-    IError WithPath(IReadOnlyList<object>? path);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
-    /// but with the <see cref="Path"/> removed.
-    /// </summary>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but with the <see cref="Path"/> removed.
-    /// </returns>
-    IError RemovePath();
+    IError WithPath(IReadOnlyList<object> path);
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
@@ -128,17 +108,7 @@ public interface IError
     /// Returns a new error that contains all properties of this error
     /// but with the specified <paramref name="locations" />.
     /// </returns>
-    IError WithLocations(IReadOnlyList<Location>? locations);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
-    /// but with the <see cref="Locations"/> removed.
-    /// </summary>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but with the <see cref="Locations"/> removed.
-    /// </returns>
-    IError RemoveLocations();
+    IError WithLocations(IReadOnlyList<Location> locations);
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
@@ -151,17 +121,7 @@ public interface IError
     /// Returns a new error that contains all properties of this error
     /// but with the specified <paramref name="extensions" />.
     /// </returns>
-    IError WithExtensions(IReadOnlyDictionary<string, object?> extensions);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
-    /// but with the <see cref="Extensions"/> removed.
-    /// </summary>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but with the <see cref="Extensions"/> removed.
-    /// </returns>
-    IError RemoveExtensions();
+    IError WithExtensions(IReadOnlyDictionary<string, object?>? extensions);
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
@@ -204,14 +164,4 @@ public interface IError
     /// but with the specified <paramref name="exception" />.
     /// </returns>
     IError WithException(Exception? exception);
-
-    /// <summary>
-    /// Creates a new error that contains all properties of this error
-    /// but removed the exception from it.
-    /// </summary>
-    /// <returns>
-    /// Returns a new error that contains all properties of this error
-    /// but without any exception details.
-    /// </returns>
-    IError RemoveException();
 }

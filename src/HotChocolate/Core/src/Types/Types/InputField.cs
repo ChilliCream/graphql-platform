@@ -12,22 +12,22 @@ public class InputField : FieldBase, IInputField, IHasProperty
 {
     private Type _runtimeType = default!;
 
-    public InputField(InputFieldDefinition definition, int index)
-        : base(definition, index)
+    public InputField(InputFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        DefaultValue = definition.DefaultValue;
-        Property = definition.Property;
+        DefaultValue = configuration.DefaultValue;
+        Property = configuration.Property;
 
-        var formatters = definition.GetFormatters();
+        var formatters = configuration.GetFormatters();
         Formatter = formatters.Count switch
         {
             0 => null,
             1 => formatters[0],
-            _ => new AggregateInputValueFormatter(formatters),
+            _ => new AggregateInputValueFormatter(formatters)
         };
 
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
-        DeprecationReason = definition.DeprecationReason;
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = configuration.DeprecationReason;
     }
 
     /// <inheritdoc />
@@ -67,22 +67,62 @@ public class InputField : FieldBase, IInputField, IHasProperty
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteField(context, declaringMember, (InputFieldDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteField(context, declaringMember, (InputFieldConfiguration)definition);
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
 
         Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.RuntimeType ?? definition.Property?.PropertyType!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
-        DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         IsOptional = isOptional;
     }
+
+    protected sealed override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnCompleteMetadata(context, declaringMember, (InputFieldConfiguration)definition);
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        InputFieldConfiguration definition)
+    {
+        base.OnCompleteMetadata(context, declaringMember, definition);
+        DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
+    }
+
+    protected sealed override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => OnMakeExecutable(context, declaringMember, (InputFieldConfiguration)definition);
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        InputFieldConfiguration definition)
+        => base.OnMakeExecutable(context, declaringMember, definition);
+
+    protected sealed override void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldConfiguration definition)
+        => base.OnFinalizeField(context, declaringMember, (InputFieldConfiguration)definition);
+
+    protected virtual void OnFinalizeField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        InputFieldConfiguration definition)
+        => base.OnFinalizeField(context, declaringMember, definition);
+
+
 
     /// <summary>
     /// Returns a string that represents the current field.

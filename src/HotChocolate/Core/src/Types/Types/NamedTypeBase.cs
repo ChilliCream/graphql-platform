@@ -8,22 +8,22 @@ namespace HotChocolate.Types;
 /// <summary>
 /// A base class for named GraphQL types.
 /// </summary>
-/// <typeparam name="TDefinition">
-/// The type definition of the named GraphQL type.
+/// <typeparam name="TConfiguration">
+/// The type configuration of the named GraphQL type.
 /// </typeparam>
-public abstract class NamedTypeBase<TDefinition>
-    : TypeSystemObjectBase<TDefinition>
+public abstract class NamedTypeBase<TConfiguration>
+    : TypeSystemObjectBase<TConfiguration>
     , INamedType
     , IHasDirectives
     , IHasRuntimeType
     , IHasTypeIdentity
-    , IHasTypeDefinition
-    where TDefinition : DefinitionBase, IHasDirectiveDefinition, ITypeDefinition
+    , IHasTypeConfiguration
+    where TConfiguration : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeConfiguration
 {
     private IDirectiveCollection? _directives;
     private Type? _runtimeType;
 
-    ITypeDefinition? IHasTypeDefinition.Definition => Definition;
+    ITypeConfiguration? IHasTypeConfiguration.Configuration => Configuration;
 
     /// <inheritdoc />
     public abstract TypeKind Kind { get; }
@@ -73,30 +73,37 @@ public abstract class NamedTypeBase<TDefinition>
     public Type? TypeIdentity { get; private set; }
 
     /// <inheritdoc />
-    public virtual bool IsAssignableFrom(INamedType type) =>
-        ReferenceEquals(type, this);
+    public virtual bool IsAssignableFrom(INamedType type)
+        => ReferenceEquals(type, this);
 
     /// <inheritdoc />
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        TDefinition definition)
+        TConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        UpdateRuntimeType(definition);
+        UpdateRuntimeType(configuration);
     }
 
     /// <inheritdoc />
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        TDefinition definition)
+        TConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        UpdateRuntimeType(definition);
+        UpdateRuntimeType(configuration);
+    }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        TConfiguration configuration)
+    {
+        base.OnCompleteMetadata(context, configuration);
 
         _directives ??= DirectiveCollection.CreateAndComplete(
-            context, this, definition.GetDirectives());
+            context, this, configuration.GetDirectives());
     }
 
     /// <summary>
@@ -125,6 +132,9 @@ public abstract class NamedTypeBase<TDefinition>
         }
     }
 
-    private void UpdateRuntimeType(ITypeDefinition definition)
+    private void UpdateRuntimeType(ITypeConfiguration definition)
         => _runtimeType = definition.RuntimeType ?? typeof(object);
+
+    public bool Equals(IType? other)
+        => ReferenceEquals(this, other);
 }

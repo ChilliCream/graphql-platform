@@ -342,7 +342,7 @@ public static class TypeExtensions
             return true;
         }
 
-        if (type.Kind == TypeKind.NonNull && ((NonNullType)type).Type.Kind == kind)
+        if (type.Kind == TypeKind.NonNull && ((NonNullType)type).NullableType.Kind == kind)
         {
             return true;
         }
@@ -360,7 +360,7 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            var innerKind = ((NonNullType)type).Type.Kind;
+            var innerKind = ((NonNullType)type).NullableType.Kind;
 
             if (innerKind == kind1 || innerKind == kind2)
             {
@@ -381,7 +381,7 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            var innerKind = ((NonNullType)type).Type.Kind;
+            var innerKind = ((NonNullType)type).NullableType.Kind;
 
             if (innerKind == kind1 || innerKind == kind2 || innerKind == kind3)
             {
@@ -401,7 +401,7 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            return ((NonNullType)type).Type;
+            return ((NonNullType)type).NullableType;
         }
 
         if (type.Kind == TypeKind.List)
@@ -421,7 +421,7 @@ public static class TypeExtensions
 
         return type.Kind != TypeKind.NonNull
             ? type
-            : ((NonNullType)type).Type;
+            : ((NonNullType)type).NullableType;
     }
 
     public static string TypeName(this IType type)
@@ -448,7 +448,7 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            var innerType = ((NonNullType)type).Type;
+            var innerType = ((NonNullType)type).NullableType;
 
             if (innerType.Kind == TypeKind.List)
             {
@@ -459,6 +459,54 @@ public static class TypeExtensions
         throw new ArgumentException(TypeResources.TypeExtensions_InvalidStructure);
     }
 
+    /// <summary>
+    /// Gets the named type (the most inner type) from a type structure.
+    /// </summary>
+    /// <param name="type">
+    /// The type from which the named type shall be extracted.
+    /// </param>
+    /// <typeparam name="T">
+    /// The expected type of the named type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the named type.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// The type structure is invalid or
+    /// the named type is not of the expected type.
+    /// </exception>
+    public static T NamedType<T>(this IType type) where T : INamedType
+    {
+        var namedType = type.NamedType();
+
+        if(namedType is T t)
+        {
+            return t;
+        }
+
+        throw new ArgumentException(
+            "The named type is not of the expected type.",
+            nameof(type));
+    }
+
+    /// <summary>
+    /// Gets the named type (the most inner type) from a type structure.
+    /// </summary>
+    /// <param name="type">
+    /// The type from which the named type shall be extracted.
+    /// </param>
+    /// <returns>
+    /// Returns the named type.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// The type structure is invalid.
+    /// </exception>
     public static INamedType NamedType(this IType type)
     {
         if (type is null)
@@ -516,10 +564,10 @@ public static class TypeExtensions
 
         return x switch
         {
-            NonNullType xnn when y is NonNullType ynn => xnn.Type.IsEqualTo(ynn.Type),
+            NonNullType xnn when y is NonNullType ynn => xnn.NullableType.IsEqualTo(ynn.NullableType),
             ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
             INamedType xnt when y is INamedType ynt => xnt.Name.EqualsOrdinal(ynt.Name),
-            _ => false,
+            _ => false
         };
     }
 
@@ -546,7 +594,7 @@ public static class TypeExtensions
             return ToRuntimeType(type.InnerType());
         }
 
-        if (type is IHasRuntimeType { RuntimeType: { }, } t)
+        if (type is IHasRuntimeType t)
         {
             return t.RuntimeType;
         }
@@ -581,7 +629,8 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        if (type is NonNullType nonNullType && ToTypeNode(nonNullType.Type) is INullableTypeNode nullableTypeNode)
+        if (type is NonNullType nonNullType
+            && ToTypeNode(nonNullType.NullableType) is INullableTypeNode nullableTypeNode)
         {
             return new NonNullTypeNode(null, nullableTypeNode);
         }
@@ -605,7 +654,7 @@ public static class TypeExtensions
         INamedType namedType)
     {
         if (original is NonNullType nonNullType
-            && ToTypeNode(nonNullType.Type, namedType) is INullableTypeNode nullableTypeNode)
+            && ToTypeNode(nonNullType.NullableType, namedType) is INullableTypeNode nullableTypeNode)
         {
             return new NonNullTypeNode(null, nullableTypeNode);
         }
@@ -655,7 +704,7 @@ public static class TypeExtensions
             NonNullTypeNode nonNull => new NonNullTypeNode((INullableTypeNode)RenameName(nonNull.Type, name)),
             ListTypeNode list => new ListTypeNode(RenameName(list.Type, name)),
             NamedTypeNode named => named.WithName(named.Name.WithValue(name)),
-            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported),
+            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported)
         };
 
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
@@ -680,7 +729,7 @@ public static class TypeExtensions
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    type = (IInputType)((NonNullType)type).Type;
+                    type = (IInputType)((NonNullType)type).NullableType;
                     continue;
 
                 case TypeKind.List:

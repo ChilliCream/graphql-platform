@@ -1,4 +1,3 @@
-using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Types;
 
@@ -257,7 +256,7 @@ public class UseDataLoaderTests
     {
         public TestGroupedLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions? options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
         }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -56,8 +57,13 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     private static IRequestExecutorBuilder AddSubscriptionServices(
         this IRequestExecutorBuilder builder)
         => builder
-            .ConfigureSchemaServices(s => s
-                .TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>())
+            .ConfigureSchemaServices(s =>
+            {
+                s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
+                s.TryAddSingleton<IWebSocketPayloadFormatter>(
+                    _ => new DefaultWebSocketPayloadFormatter(
+                            new WebSocketPayloadFormatterOptions()));
+            })
             .AddApolloProtocol()
             .AddGraphQLOverWebSocketProtocol();
 
@@ -66,12 +72,68 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         => builder.ConfigureSchemaServices(
             s => s.AddSingleton<IProtocolHandler>(
                 sp => new ApolloSubscriptionProtocolHandler(
-                    sp.GetRequiredService<ISocketSessionInterceptor>())));
+                    sp.GetRequiredService<ISocketSessionInterceptor>(),
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
 
     private static IRequestExecutorBuilder AddGraphQLOverWebSocketProtocol(
         this IRequestExecutorBuilder builder)
         => builder.ConfigureSchemaServices(
             s => s.AddSingleton<IProtocolHandler>(
                 sp => new GraphQLOverWebSocketProtocolHandler(
-                    sp.GetRequiredService<ISocketSessionInterceptor>())));
+                    sp.GetRequiredService<ISocketSessionInterceptor>(),
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+
+    /// <summary>
+    /// Adds a custom WebSocket payload formatter to the DI.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the custom <see cref="IWebSocketPayloadFormatter"/>.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<T>(
+        this IRequestExecutorBuilder builder)
+        where T : class, IWebSocketPayloadFormatter
+    {
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.RemoveAll<IWebSocketPayloadFormatter>();
+            services.AddSingleton<IWebSocketPayloadFormatter, T>();
+        });
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a custom WebSocket payload formatter to the DI.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="factory">
+    /// The service factory.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the custom <see cref="IWebSocketPayloadFormatter"/>.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<T>(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, IWebSocketPayloadFormatter
+    {
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.RemoveAll<IWebSocketPayloadFormatter>();
+            services.AddSingleton<IWebSocketPayloadFormatter>(factory);
+        });
+
+        return builder;
+    }
 }

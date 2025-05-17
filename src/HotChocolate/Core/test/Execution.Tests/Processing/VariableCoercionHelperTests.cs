@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
@@ -245,7 +244,7 @@ public class VariableCoercionHelperTests
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
                 Assert.Equal("xyz", t.Value.Value);
-                t.Value.ValueLiteral!.ToString().MatchSnapshot();
+                t.Value.ValueLiteral.ToString().MatchSnapshot();
             });
     }
 
@@ -397,7 +396,7 @@ public class VariableCoercionHelperTests
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
                 Assert.Equal(5, Assert.IsType<Review>(t.Value.Value).Stars);
-                t.Value.ValueLiteral!.ToString().MatchSnapshot();
+                t.Value.ValueLiteral.ToString().MatchSnapshot();
             });
     }
 
@@ -435,7 +434,7 @@ public class VariableCoercionHelperTests
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
                 Assert.Equal(5, Assert.IsType<Review>(t.Value.Value).Stars);
-                t.Value.ValueLiteral!.ToString().MatchSnapshot();
+                t.Value.ValueLiteral.ToString().MatchSnapshot();
             });
     }
 
@@ -533,7 +532,7 @@ public class VariableCoercionHelperTests
 
         // assert
         Assert.Throws<SerializationException>(Action)
-            .Errors.Select(t => t.RemoveException())
+            .Errors.Select(t => t.WithException(null))
             .ToList()
             .MatchSnapshot();
     }
@@ -629,7 +628,7 @@ public class VariableCoercionHelperTests
 
         // assert
         Assert.Throws<SerializationException>(Action)
-            .Errors.Select(t => t.RemoveException())
+            .Errors.Select(t => t.WithException(null))
             .ToList()
             .MatchSnapshot();
     }
@@ -691,7 +690,7 @@ public class VariableCoercionHelperTests
                 Assert.Equal("abc", t.Key);
                 Assert.Equal(
                     "[ { enum: Foo }, { enum: Bar } ]",
-                    t.Value.ValueLiteral!.ToString());
+                    t.Value.ValueLiteral.ToString());
             });
     }
 
@@ -752,7 +751,7 @@ public class VariableCoercionHelperTests
                 Assert.Equal("abc", t.Key);
                 Assert.Equal(
                     "[ { enum: Foo }, { enum: Bar } ]",
-                    t.Value.ValueLiteral!.ToString());
+                    t.Value.ValueLiteral.ToString());
             });
     }
 
@@ -810,7 +809,7 @@ public class VariableCoercionHelperTests
             t =>
             {
                 Assert.Equal("abc", t.Key);
-                Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral!.ToString());
+                Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral.ToString());
             });
     }
 
@@ -868,7 +867,7 @@ public class VariableCoercionHelperTests
             t =>
             {
                 Assert.Equal("abc", t.Key);
-                Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral!.ToString());
+                Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral.ToString());
             });
     }
 

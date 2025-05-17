@@ -51,7 +51,7 @@ const IndexPage: FC = () => {
           data accessibility and enhancing integration. Transform the way you
           manage and interact with your data.
         </HeroTeaser>
-        <HeroLink to="/docs/bananacakepop/v2/apis/fusion">Get Started</HeroLink>
+        <HeroLink to="/docs/nitro/apis/fusion">Get Started</HeroLink>
       </IndexPageHero>
       <CompaniesSection />
       <ContentSection
@@ -129,7 +129,7 @@ const IndexPage: FC = () => {
         "
         primaryLink="mailto:contact@chillicream.com?subject=Demo"
         primaryLinkText="Book a Demo"
-        secondaryLink="https://eat.bananacakepop.com"
+        secondaryLink="https://nitro.chillicream.com"
         secondaryLinkText="Launch"
       />
       <CommunitySection />

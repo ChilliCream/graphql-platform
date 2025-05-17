@@ -96,7 +96,7 @@ public sealed class InputParser
             case TypeKind.NonNull:
                 return ParseLiteralInternal(
                     value,
-                    ((NonNullType)type).Type,
+                    ((NonNullType)type).NullableType,
                     path,
                     stack,
                     defaults,
@@ -218,7 +218,7 @@ public sealed class InputParser
             try
             {
                 var fields = ((ObjectValueNode)resultValue).Fields;
-                var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+                var oneOf = type.IsOneOf;
 
                 if (oneOf && fields.Count is 0)
                 {
@@ -478,7 +478,7 @@ public sealed class InputParser
 
         if (type.Kind == TypeKind.NonNull)
         {
-            type = ((NonNullType)type).Type;
+            type = ((NonNullType)type).NullableType;
         }
 
         switch (type.Kind)
@@ -532,7 +532,7 @@ public sealed class InputParser
     {
         if (resultValue is IReadOnlyDictionary<string, object?> map)
         {
-            var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+            var oneOf = type.IsOneOf;
 
             if (oneOf && map.Count is 0)
             {

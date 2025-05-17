@@ -7,8 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using CookieCrumble.Formatters;
 using DiffPlex.DiffBuilder;
-using HotChocolate.Utilities;
-using Xunit;
 using static System.Collections.Immutable.ImmutableStack;
 using static System.IO.Path;
 using ChangeType = DiffPlex.DiffBuilder.Model.ChangeType;
@@ -23,18 +21,13 @@ public class Snapshot
         CreateRange(new ISnapshotValueFormatter[]
         {
             new PlainTextSnapshotValueFormatter(),
-            new GraphQLSnapshotValueFormatter(),
-            new ExecutionResultSnapshotValueFormatter(),
-            new SchemaSnapshotValueFormatter(),
             new ExceptionSnapshotValueFormatter(),
-            new SchemaErrorSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
-            new OperationResultSnapshotValueFormatter(),
-            new JsonElementSnapshotValueFormatter(),
-            new QueryPlanSnapshotValueFormatter(),
+            new JsonElementSnapshotValueFormatter()
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
+    private static ITestFramework _testFramework = null!;
     private readonly List<ISnapshotSegment> _segments = [];
     private readonly string _title;
     private readonly string _fileName;
@@ -43,6 +36,11 @@ public class Snapshot
 
     public Snapshot(string? postFix = null, string? extension = null)
     {
+        if (_testFramework is null)
+        {
+            throw new Exception("Please initialize a test framework before using Snapshot");
+        }
+
         var frames = new StackTrace(true).GetFrames();
         _title = CreateMarkdownTitle(frames);
         _fileName = CreateFileName(frames);
@@ -93,6 +91,20 @@ public class Snapshot
         snapshot.Add(value2, formatter: formatter);
         snapshot.Add(value3, formatter: formatter);
         snapshot.Match();
+    }
+
+    public static void RegisterTestFramework(
+        ITestFramework testFramework)
+    {
+        if (testFramework is null)
+        {
+            throw new ArgumentNullException(nameof(testFramework));
+        }
+
+        lock (_sync)
+        {
+            _testFramework = testFramework;
+        }
     }
 
     public static void RegisterFormatter(
@@ -208,7 +220,7 @@ public class Snapshot
         // we capture the current immutable serializer list
         var serializers = _formatters;
 
-        // the we iterate over the captured stack.
+        // we iterate over the captured stack.
         foreach (var serializer in serializers)
         {
             if (serializer.CanHandle(value))
@@ -230,6 +242,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             await using var stream = File.Create(snapshotFile);
             await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
@@ -247,7 +260,7 @@ public class Snapshot
                 EnsureDirectoryExists(mismatchFile);
                 await using var stream = File.Create(mismatchFile);
                 await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
-                throw new Xunit.Sdk.XunitException(diff);
+                _testFramework.ThrowTestException(diff);
             }
         }
     }
@@ -262,6 +275,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             using var stream = File.Create(snapshotFile);
             stream.Write(writer.WrittenSpan);
@@ -278,7 +292,7 @@ public class Snapshot
                 EnsureDirectoryExists(mismatchFile);
                 using var stream = File.Create(mismatchFile);
                 stream.Write(writer.WrittenSpan);
-                throw new Xunit.Sdk.XunitException(diff);
+                _testFramework.ThrowTestException(diff);
             }
         }
     }
@@ -297,6 +311,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             await using var stream = File.Create(snapshotFile);
             await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
@@ -316,7 +331,7 @@ public class Snapshot
             EnsureDirectoryExists(mismatchFile);
             await using var stream = File.Create(mismatchFile);
             await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
-            throw new Xunit.Sdk.XunitException(diff);
+            _testFramework.ThrowTestException(diff);
         }
     }
 
@@ -334,6 +349,7 @@ public class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             EnsureDirectoryExists(snapshotFile);
             using var stream = File.Create(snapshotFile);
             stream.Write(writer.WrittenSpan);
@@ -353,7 +369,7 @@ public class Snapshot
             EnsureDirectoryExists(mismatchFile);
             using var stream = File.Create(mismatchFile);
             stream.Write(writer.WrittenSpan);
-            throw new Xunit.Sdk.XunitException(diff);
+            _testFramework.ThrowTestException(diff);
         }
     }
 
@@ -366,7 +382,7 @@ public class Snapshot
 
         if (!MatchSnapshot(expected, after, true, out var diff))
         {
-            throw new Xunit.Sdk.XunitException(diff);
+            _testFramework.ThrowTestException(diff);
         }
     }
 
@@ -503,6 +519,12 @@ public class Snapshot
         bool inline,
         [NotNullWhen(false)] out string? snapshotDiff)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            // Normalize escaped line endings
+            after = after.Replace("\\r\\n", "\\n");
+        }
+
         var diff = InlineDiffBuilder.Diff(before, after);
 
         if (diff.HasDifferences)
@@ -604,7 +626,7 @@ public class Snapshot
 
     private string CreateMarkdownSnapshotFileName()
     {
-        var extension =  _extension.EqualsOrdinal(".snap") ? ".md" : _extension;
+        var extension = _extension.Equals(".snap", StringComparison.Ordinal) ? ".md" : _extension;
 
         var fileName = GetFileNameWithoutExtension(_fileName);
 
@@ -622,18 +644,18 @@ public class Snapshot
 
             if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(method))
+                _testFramework.IsValidTestMethod(method))
             {
                 return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
 
-            var asyncMethod = EvaluateAsynchronousMethodBase(method);
+            method = EvaluateAsynchronousMethodBase(method);
 
-            if (asyncMethod is not null &&
+            if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(asyncMethod))
+                _testFramework.IsValidTestMethod(method))
             {
-                return Combine(GetDirectoryName(fileName)!, asyncMethod.ToName());
+                return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
         }
 
@@ -655,18 +677,18 @@ public class Snapshot
 
             if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(method))
+                _testFramework.IsValidTestMethod(method))
             {
                 return method.Name;
             }
 
-            var asyncMethod = EvaluateAsynchronousMethodBase(method);
+            method = EvaluateAsynchronousMethodBase(method);
 
-            if (asyncMethod is not null &&
+            if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(asyncMethod))
+                _testFramework.IsValidTestMethod(method))
             {
-                return asyncMethod.Name;
+                return method.Name;
             }
         }
 
@@ -679,7 +701,7 @@ public class Snapshot
             "Snapshot.Match method.");
     }
 
-    private static MethodBase? EvaluateAsynchronousMethodBase(MemberInfo? method)
+    private static MethodInfo? EvaluateAsynchronousMethodBase(MemberInfo? method)
     {
         var methodDeclaringType = method?.DeclaringType;
         var classDeclaringType = methodDeclaringType?.DeclaringType;
@@ -702,19 +724,19 @@ public class Snapshot
         return actualMethodInfo;
     }
 
-    private static bool IsXunitTestMethod(MemberInfo? method)
+    private static void CheckStrictMode()
     {
-        var isFactTest = IsFactTestMethod(method);
-        var isTheoryTest = IsTheoryTestMethod(method);
+        var value = Environment.GetEnvironmentVariable("COOKIE_CRUMBLE_STRICT_MODE");
 
-        return isFactTest || isTheoryTest;
+        if (string.Equals(value, "on", StringComparison.Ordinal)
+            || (bool.TryParse(value, out var b) && b))
+        {
+            _testFramework.ThrowTestException(
+                "Strict mode is enabled and no snapshot has been found " +
+                "for the current test. Create a new snapshot locally and " +
+                "rerun your tests.");
+        }
     }
-
-    private static bool IsFactTestMethod(MemberInfo? method)
-        => method?.GetCustomAttributes(typeof(FactAttribute)).Any() ?? false;
-
-    private static bool IsTheoryTestMethod(MemberInfo? method)
-        => method?.GetCustomAttributes(typeof(TheoryAttribute)).Any() ?? false;
 
     private readonly struct SnapshotSegment(string? name, object? value, ISnapshotValueFormatter formatter)
         : ISnapshotSegment
@@ -724,32 +746,5 @@ public class Snapshot
         public object? Value { get; } = value;
 
         public ISnapshotValueFormatter Formatter { get; } = formatter;
-    }
-}
-
-public sealed class DisposableSnapshot(string? postFix = null, string? extension = null)
-    : Snapshot(postFix, extension)
-    , IDisposable
-{
-    public void Dispose() => Match();
-}
-
-public abstract class SnapshotValue : ISnapshotSegment
-{
-    public abstract string? Name { get; }
-
-    public abstract ReadOnlySpan<byte> Value { get; }
-
-    protected virtual string MarkdownType => "text";
-
-    public virtual void FormatMarkdown(IBufferWriter<byte> snapshot)
-    {
-        snapshot.Append("```");
-        snapshot.Append(MarkdownType);
-        snapshot.AppendLine();
-        snapshot.Write(Value);
-        snapshot.AppendLine();
-        snapshot.Append("```");
-        snapshot.AppendLine();
     }
 }

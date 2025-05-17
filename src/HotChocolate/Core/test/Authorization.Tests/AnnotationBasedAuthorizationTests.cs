@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -501,6 +500,30 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Node_Field_Schema()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+
+        // act
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
+            });
+
+        // assert
+        var executor = await services.GetRequestExecutorAsync();
+        executor.Schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Authorize_Node_Field()
     {
         // arrange
@@ -514,7 +537,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 

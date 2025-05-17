@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Schema : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var typeListType = Parse($"[{nameof(__Type)}!]!");
@@ -22,7 +22,7 @@ internal sealed class __Schema : ObjectType
         var directiveListType = Parse($"[{nameof(__Directive)}!]!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-        var def = new ObjectTypeDefinition(Names.__Schema, Schema_Description, typeof(ISchema))
+        var def = new ObjectTypeConfiguration(Names.__Schema, Schema_Description, typeof(ISchema))
         {
             Fields =
                 {
@@ -43,8 +43,8 @@ internal sealed class __Schema : ObjectType
                     new(Names.Directives,
                         Schema_Directives,
                         directiveListType,
-                        pureResolver: Resolvers.Directives),
-                },
+                        pureResolver: Resolvers.Directives)
+                }
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)

@@ -1665,4 +1665,59 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, typeName));
     }
+
+    /// <summary>
+    /// Binds a scalar type to a type name for schema first.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL builder.
+    /// </param>
+    /// <param name="typeName">
+    /// The type name.
+    /// </param>
+    /// <typeparam name="TScalarType">
+    /// The scalar type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the GraphQL builder for configuration chaining.
+    /// </returns>
+    public static IRequestExecutorBuilder BindScalarType<TScalarType>(
+        this IRequestExecutorBuilder builder,
+        string typeName)
+        where TScalarType : ScalarType
+        => BindScalarType(builder, typeof(TScalarType), typeName);
+
+    /// <summary>
+    /// Binds a scalar type to a type name for schema first.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL builder.
+    /// </param>
+    /// <param name="scalarType">
+    /// The scalar type.
+    /// </param>
+    /// <param name="typeName">
+    /// The type name.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL builder for configuration chaining.
+    /// </returns>
+    public static IRequestExecutorBuilder BindScalarType(
+        this IRequestExecutorBuilder builder,
+        Type scalarType,
+        string typeName)
+    {
+        builder.ConfigureSchema(b =>
+        {
+            if (!b.ContextData.TryGetValue(WellKnownContextData.ScalarNameOverrides, out var value)
+                || value is not List<(string, Type)> nameOverrides)
+            {
+                nameOverrides = new List<(string, Type)>();
+                b.ContextData[WellKnownContextData.ScalarNameOverrides] = nameOverrides;
+            }
+
+            nameOverrides.Add((typeName, scalarType));
+        });
+        return builder;
+    }
 }

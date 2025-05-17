@@ -129,7 +129,7 @@ public interface IResolverContext : IHasContextData
     /// <returns>
     /// Returns the specified service.
     /// </returns>
-    T? Service<T>(object key) where T : notnull;
+    T Service<T>(object key) where T : notnull;
 
     /// <summary>
     /// Gets a resolver object containing one or more resolvers.

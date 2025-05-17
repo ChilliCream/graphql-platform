@@ -8,13 +8,13 @@ namespace HotChocolate.Types;
 
 public interface IDescriptorExtension : IHasDescriptorContext
 {
-    void OnBeforeCreate(Action<DefinitionBase> configure);
+    void OnBeforeCreate(Action<TypeSystemConfiguration> configure);
 
-    void OnBeforeCreate(Action<IDescriptorContext, DefinitionBase> configure);
+    void OnBeforeCreate(Action<IDescriptorContext, TypeSystemConfiguration> configure);
 
     INamedDependencyDescriptor OnBeforeNaming(
-        Action<ITypeCompletionContext, DefinitionBase> configure);
+        Action<ITypeCompletionContext, TypeSystemConfiguration> configure);
 
     ICompletedDependencyDescriptor OnBeforeCompletion(
-        Action<ITypeCompletionContext, DefinitionBase> configure);
+        Action<ITypeCompletionContext, TypeSystemConfiguration> configure);
 }

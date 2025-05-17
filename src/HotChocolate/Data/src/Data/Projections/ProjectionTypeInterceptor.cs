@@ -11,9 +11,9 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 {
     private ITypeCompletionContext? _queryContext;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
@@ -22,9 +22,9 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnAfterCompleteType(
+    public override void OnAfterMakeExecutable(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (ReferenceEquals(completionContext, _queryContext) &&
             completionContext.Type is ObjectType { Fields: var fields, })
@@ -73,9 +73,9 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is ObjectTypeDefinition objectTypeDefinition)
+        if (configuration is ObjectTypeConfiguration objectTypeDefinition)
         {
             List<string>? alwaysProjected = null;
             foreach (var field in objectTypeDefinition.Fields)
@@ -90,7 +90,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
             if (alwaysProjected?.Count > 0)
             {
-                definition.ContextData[AlwaysProjectedFieldsKey] = alwaysProjected.ToArray();
+                configuration.ContextData[AlwaysProjectedFieldsKey] = alwaysProjected.ToArray();
             }
         }
     }

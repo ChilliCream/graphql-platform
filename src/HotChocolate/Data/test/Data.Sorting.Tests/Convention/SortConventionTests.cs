@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -366,6 +365,35 @@ public class SortConventionTests
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
+    }
+
+    [Fact]
+    public void GetTypeName_TypeNameEndingWithSortInputType_RemovesTypeSuffix()
+    {
+        // arrange
+        var provider = new QueryableSortProvider(
+            descriptor =>
+            {
+                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+            });
+        var convention = new SortConvention(descriptor =>
+        {
+            descriptor.Operation(DefaultSortOperations.Ascending).Name("asc");
+            descriptor.Provider(provider);
+        });
+        var sortInputType = new SortInputType(
+            d => d.Field("x").Type<TestEnumType>()
+                .ExtendWith(
+                    x => x.Configuration.Handler = new MatchAnyQueryableFieldHandler()));
+
+        // act
+        var schema = CreateSchemaWith(sortInputType, convention);
+
+        // assert
+        Assert.Equal(
+            "SortInput",
+            schema.Types.First(t => t.IsInputType() && !t.IsIntrospectionType()).Name);
     }
 
     protected ISchema CreateSchemaWithTypes(

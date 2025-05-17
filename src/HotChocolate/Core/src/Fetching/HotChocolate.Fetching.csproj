@@ -4,6 +4,7 @@
     <PackageId>HotChocolate.Fetching</PackageId>
     <AssemblyName>HotChocolate.Fetching</AssemblyName>
     <RootNamespace>HotChocolate.Fetching</RootNamespace>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\GreenDonut\src\Core\GreenDonut.csproj" />
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 

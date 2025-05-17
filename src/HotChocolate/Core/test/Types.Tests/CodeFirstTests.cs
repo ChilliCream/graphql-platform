@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.Collections;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -225,6 +224,13 @@ public class CodeFirstTests
               foo(foo: [String!]!): String!
             }
             """);
+    }
+
+    [Fact]
+    public void Disallow_Implicitly_Binding_Object()
+    {
+        Assert.Throws<ArgumentException>(
+            () => SchemaBuilder.New().BindRuntimeType<object, StringType>());
     }
 
     public class Query

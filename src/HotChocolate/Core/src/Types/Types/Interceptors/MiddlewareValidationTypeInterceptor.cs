@@ -17,21 +17,21 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
     private readonly HashSet<string> _names = [];
 
-    public override void OnValidateType(
-        ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+    public override void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
+        TypeSystemConfiguration configuration)
     {
-        if (validationContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            definition is ObjectTypeDefinition objectTypeDef)
+        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
+            configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {
-                if (field.MiddlewareDefinitions.Count > 1)
+                if (field.MiddlewareConfigurations.Count > 1)
                 {
                     ValidatePipeline(
-                        validationContext.Type,
-                        new SchemaCoordinate(validationContext.Type.Name, field.Name),
-                        field.MiddlewareDefinitions);
+                        completionContext.Type,
+                        new SchemaCoordinate(completionContext.Type.Name, field.Name),
+                        field.MiddlewareConfigurations);
                 }
             }
         }
@@ -40,7 +40,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     private void ValidatePipeline(
         ITypeSystemObject type,
         SchemaCoordinate fieldCoordinate,
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         _names.Clear();
 
@@ -138,7 +138,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     }
 
     private static string PrintPipeline(
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         var sb = new StringBuilder();
         var next = false;

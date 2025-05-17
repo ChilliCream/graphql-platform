@@ -76,18 +76,12 @@ public class Subscription
     [Subscribe]
     public Book BookAdded([EventMessage] Book book) => book;
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddSubscriptionType<Subscription>();
-    }
-
-    // Omitted code for brevity
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddSubscriptionType<Subscription>();
 ```
 
 </Implementation>
@@ -113,18 +107,12 @@ public class SubscriptionType : ObjectType
             });
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddSubscriptionType<SubscriptionType>();
-    }
-
-    // Omitted code for brevity
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddSubscriptionType<SubscriptionType>();
 ```
 
 </Code>
@@ -136,28 +124,22 @@ public class Subscription
     [Subscribe]
     public Book BookAdded([EventMessage] Book book) => book;
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Subscription {
-                  bookAdded: Book!
-                }
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Subscription {
+          bookAdded: Book!
+        }
 
-                type Book {
-                  title: String
-                  author: String
-                }
-            ")
-            .BindRuntimeType<Subscription>();
-    }
-
-    // Omitted code for brevity
-}
+        type Book {
+          title: String
+          author: String
+        }
+    ")
+    .BindRuntimeType<Subscription>();
 ```
 
 </Schema>
@@ -176,22 +158,14 @@ A subscription type is just a regular object type, so everything that applies to
 After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
 
 ```csharp
-public class Startup
+app.UseRouting();
+
+app.UseWebSockets();
+
+app.UseEndpoints(endpoints =>
 {
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
-
-        app.UseWebSockets();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL();
-        });
-    }
-
-    // Omitted code for brevity
-}
+    endpoints.MapGraphQL();
+});
 ```
 
 To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support two subscription providers.
@@ -201,7 +175,7 @@ To make pub/sub work, we also have to register a subscription provider. A subscr
 The In-Memory subscription provider does not need any configuration and is easily setup.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddInMemorySubscriptions();
 ```
@@ -217,7 +191,7 @@ In order to use the Redis provider we have to add the `HotChocolate.Subscription
 After we have added the package we can setup the Redis subscription provider.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddRedisSubscriptions((sp) => ConnectionMultiplexer.Connect("host:port"));
 ```
@@ -237,11 +211,11 @@ dotnet add package HotChocolate.Subscriptions.Postgres
 To enable Postgres subscriptions with your HotChocolate server, add `AddPostgresSubscriptions` to your GraphQL server configuration:
 
 ```csharp
-services
-  .AddGraphQLServer()
-  .AddQueryType<Query>() // every GraphQL server needs a query
-  .AddSubscriptionType<Subscriptions>()
-  .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>() // every GraphQL server needs a query
+    .AddSubscriptionType<Subscriptions>()
+    .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
 ```
 
 ### Options
@@ -284,7 +258,7 @@ Most of the time we will be publishing events for successful mutations. Therefor
 ```csharp
 public class Mutation
 {
-    public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+    public async Book AddBook(Book book, ITopicEventSender sender)
     {
         await sender.SendAsync("BookAdded", book);
 
@@ -311,7 +285,7 @@ public class Subscription
     public Book BookAdded([EventMessage] Book book) => book;
 }
 
-public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+public async Book AddBook(Book book, ITopicEventSender sender)
 {
     await sender.SendAsync("ExampleTopic", book);
 
@@ -334,7 +308,7 @@ public class Subscription
         => book;
 }
 
-public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
+public async Book PublishBook(Book book, ITopicEventSender sender)
 {
     await sender.SendAsync(book.Author, book);
 
@@ -349,8 +323,7 @@ If more complex topics are required, we can use the `ITopicEventReceiver`.
 ```csharp
 public class Subscription
 {
-    public ValueTask<ISourceStream<Book>> SubscribeToBooks(
-        [Service] ITopicEventReceiver receiver)
+    public ValueTask<ISourceStream<Book>> SubscribeToBooks(ITopicEventReceiver receiver)
         => receiver.SubscribeAsync<Book>("ExampleTopic");
 
     [Subscribe(With = nameof(SubscribeToBooks))]
@@ -358,3 +331,59 @@ public class Subscription
         => book;
 }
 ```
+
+# Websocket Authentication
+
+When working with GraphQL subscriptions over WebSockets, you may want to authenticate incoming WebSocket connections using JSON Web Tokens. Normally, HTTP headers are sent with each request for standard APIs, but WebSockets behave differently. After a successful HTTP handshake, the protocol is "upgraded" to WebSockets, and additional headers cannot be easily injected for subsequent messages.
+
+Instead, the recommended approach is to send your token via the `connection_init` message when the WebSocket connection is first established. Hot Chocolate allows you to intercept this initial message, extract the token, and then authenticate the user in a way similar to standard HTTP requests.
+
+An example implementation of this approach can be found in the [Hot Chocolate Examples repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication).
+
+## Why a Special Approach for WebSockets
+
+- **Single HTTP Handshake**: A WebSocket connection is established once. After that, you cannot update HTTP headers on the same connection.
+- **`connection_init` Payload**: GraphQL subscription clients send a `connection_init` message when establishing the subscription. This payload can include extra properties (e.g., `authorization`), which Hot Chocolate can use for authentication.
+- **Long-Lived Connections**: Because WebSockets are persistent, tokens might remain valid for the entire duration of the connection. It is advisable to ensure that you handle token expiration appropriately—often by closing the connection if security policies require it.
+
+## Core Concepts
+
+1. **Stub (or "Skip") Authentication Scheme**  
+   The initial WebSocket upgrade request is directed to a "stub" authentication scheme that simply indicates "no authentication result" for upgrade requests. This prevents the request from failing before you can intercept and handle the token manually.
+
+2. **Forwarding the Default Scheme**  
+   In standard HTTP scenarios, the default scheme (e.g., JWT bearer) is used to authenticate. However, if the request is recognized as a WebSocket upgrade, the framework forwards it to the "stub" scheme first. That way, you don’t attempt to validate a token at the moment of the upgrade handshake.
+
+3. **Intercepting `connection_init`**  
+   Once the WebSocket is established, the client sends `connection_init` containing authentication data. A custom `SocketSessionInterceptor` (or similar) reads the token from `connection_init` (e.g., under a key like `authorization`), stores it in the `HttpContext`, and triggers a fresh authentication attempt—this time using the real JWT bearer scheme.
+
+4. **Hot Chocolate Integration**  
+   Hot Chocolate's subscription middleware allows you to plug into the subscription lifecycle. By customizing the session interceptor (`OnConnectAsync`), you can decide whether to accept or reject the connection based on successful authentication.
+
+## Testing the Flow
+
+1. **Open Nitro**  
+   Use a local instance of Nitro (e.g., `https://localhost:5095/graphql`) to send GraphQL queries and subscriptions.
+
+2. **Retrieve an Access Token**  
+   Request a token from your `/token` endpoint. This endpoint should return a valid JWT that is trusted by your API.
+
+3. **Configure Nitro**
+
+   - In Nitro, open the **Settings** of your document / API.
+   - Under **Authentication**, choose **Bearer Token** and paste your JWT.
+   - Nitro will automatically include the token in the `connection_init` message under an `authorization` parameter when opening a WebSocket connection.
+
+4. **Run Your Subscription**  
+   Execute the subscription query of your choice. For example:
+
+   ```graphql
+   subscription {
+     onTimedEvent {
+       count
+       isAuthenticated
+     }
+   }
+   ```
+
+   The server-side resolver can check `isAuthenticated` to demonstrate whether the current user is authenticated (based on the token you provided).

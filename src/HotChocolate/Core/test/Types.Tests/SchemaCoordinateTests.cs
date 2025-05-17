@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Types;
 
 #nullable enable
@@ -250,7 +249,7 @@ public class SchemaCoordinateTests
         var member = schema.GetMember("Abc.DEF");
 
         // assert
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
+        Assert.Equal("DEF", Assert.IsType<DefaultEnumValue>(member).Name);
     }
 
     [Fact]
@@ -599,7 +598,7 @@ public class SchemaCoordinateTests
 
         // assert
         Assert.True(success);
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
+        Assert.Equal("DEF", Assert.IsType<DefaultEnumValue>(member).Name);
     }
 
     [Fact]

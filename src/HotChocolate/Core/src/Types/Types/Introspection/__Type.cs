@@ -14,10 +14,11 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Type : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var booleanType = Create(ScalarNames.Boolean);
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var kindType = Parse($"{nameof(__TypeKind)}!");
         var typeType = Create(nameof(__Type));
         var fieldListType = Parse($"[{nameof(__Field)}!]");
@@ -26,7 +27,7 @@ internal sealed class __Type : ObjectType
         var inputValueListType = Parse($"[{nameof(__InputValue)}!]");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-        var def = new ObjectTypeDefinition(
+        var def = new ObjectTypeConfiguration(
             Names.__Type,
             TypeResources.Type_Description,
             typeof(IType))
@@ -40,12 +41,12 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new(Names.IncludeDeprecated, type: booleanType)
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
                 new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
@@ -53,14 +54,12 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new()
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
-                            Name = Names.IncludeDeprecated,
-                            Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.InputFields,
                     type: inputValueListType,
@@ -68,21 +67,19 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new()
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
-                            Name = Names.IncludeDeprecated,
-                            Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.OfType, type: typeType, pureResolver: Resolvers.OfType),
                 new(Names.SpecifiedByUrl,
                     TypeResources.Type_SpecifiedByUrl_Description,
                     stringType,
-                    pureResolver: Resolvers.SpecifiedBy),
-            },
+                    pureResolver: Resolvers.SpecifiedBy)
+            }
         };
 
         if (context.DescriptorContext.Options.EnableOneOf)
@@ -158,8 +155,8 @@ internal sealed class __Type : ObjectType
             => context.Parent<IType>() switch
             {
                 ListType lt => lt.ElementType,
-                NonNullType nnt => nnt.Type,
-                _ => null,
+                NonNullType nnt => nnt.NullableType,
+                _ => null
             };
 
         public static object? OneOf(IResolverContext context)

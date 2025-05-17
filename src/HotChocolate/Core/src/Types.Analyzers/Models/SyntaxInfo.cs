@@ -5,6 +5,8 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public abstract class SyntaxInfo : IEquatable<SyntaxInfo>
 {
+    public abstract string OrderByKey { get; }
+
     public ImmutableArray<Diagnostic> Diagnostics { get; private set; } = ImmutableArray<Diagnostic>.Empty;
 
     public void AddDiagnostic(Diagnostic diagnostic)
@@ -15,5 +17,5 @@ public abstract class SyntaxInfo : IEquatable<SyntaxInfo>
             ? diagnostics
             : Diagnostics.AddRange(diagnostics);
 
-    public abstract bool Equals(SyntaxInfo other);
+    public abstract bool Equals(SyntaxInfo? other);
 }

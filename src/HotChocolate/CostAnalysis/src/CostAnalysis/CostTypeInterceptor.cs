@@ -14,23 +14,26 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostTypeInterceptor : TypeInterceptor
 {
     private readonly ImmutableArray<string> _forwardAndBackwardSlicingArgs
-        = ImmutableArray.Create<string>("first", "last");
+        = ["first", "last"];
 
     private readonly ImmutableArray<string> _forwardSlicingArgs
-        = ImmutableArray.Create<string>("first");
+        = ["first"];
 
     private readonly ImmutableArray<string> _sizedFields
-        = ImmutableArray.Create<string>("edges", "nodes");
+        = ["edges", "nodes"];
 
     private readonly ImmutableArray<string> _offSetSlicingArgs
-        = ImmutableArray.Create<string>("take");
+        = ["take"];
 
     private readonly ImmutableArray<string> _offsetSizedFields
-        = ImmutableArray.Create<string>("items");
+        = ["items"];
 
-    private CostOptions _options = default!;
+    private CostOptions _options = null!;
 
     internal override uint Position => int.MaxValue;
+
+    public override bool IsEnabled(IDescriptorContext context)
+        => context.Services.GetRequiredService<CostOptions>().ApplyCostDefaults;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -38,13 +41,11 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
-    {
-        _options = context.Services.GetRequiredService<CostOptions>();
-    }
+        => _options = context.Services.GetRequiredService<CostOptions>();
 
-    public override void OnAfterCompleteName(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnAfterCompleteName(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
-        if (definition is ObjectTypeDefinition objectTypeDef)
+        if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
@@ -72,15 +73,26 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                     // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
                     // Per default, requireOneSlicingArgument is enabled,
                     // and has to be explicitly disabled if not desired for a field.
+                    // However, we have found that users turn the whole cost feature of because of this setting
+                    // which leads to less overall security for the deployed GraphQL server.
+                    // For this reason we have decided to disable slicing arguments by default.
                     var requirePagingBoundaries =
-                        slicingArgs.Length > 0 && (options.RequirePagingBoundaries ?? true);
+                        slicingArgs.Length > 0
+                            && (options.RequirePagingBoundaries ?? false);
+
+                    int? slicingArgumentDefaultValue = null;
+                    if (_options.ApplySlicingArgumentDefaultValue)
+                    {
+                        slicingArgumentDefaultValue = options.DefaultPageSize ?? DefaultPageSize;
+                    }
 
                     fieldDef.AddDirective(
                         new ListSizeDirective(
                             assumedSize,
                             slicingArgs,
                             sizeFields,
-                            requirePagingBoundaries),
+                            requirePagingBoundaries,
+                            slicingArgumentDefaultValue),
                         completionContext.DescriptorContext.TypeInspector);
                 }
 
@@ -106,7 +118,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
             }
         }
 
-        if (definition is InputObjectTypeDefinition inputObjectTypeDef)
+        if (configuration is InputObjectTypeConfiguration inputObjectTypeDef)
         {
             foreach (var fieldDef in inputObjectTypeDef.Fields)
             {
@@ -139,9 +151,9 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
-        if (definition is ObjectTypeDefinition objectTypeDef)
+        if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
@@ -159,13 +171,20 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
     }
 }
 
+internal sealed class CostDirectiveTypeInterceptor : TypeInterceptor
+{
+    internal override bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+        => node.Name.Value.Equals("cost", StringComparison.Ordinal)
+            || node.Name.Value.Equals("listSize", StringComparison.Ordinal);
+}
+
 file static class Extensions
 {
-    public static bool HasCostDirective(this IHasDirectiveDefinition directiveProvider)
+    public static bool HasCostDirective(this IDirectiveConfigurationProvider directiveProvider)
         => directiveProvider.Directives.Any(
             t => t.Value is CostDirective or DirectiveNode { Name.Value: "cost" });
 
-    public static bool HasListSizeDirective(this IHasDirectiveDefinition directiveProvider)
+    public static bool HasListSizeDirective(this IDirectiveConfigurationProvider directiveProvider)
         => directiveProvider.Directives.Any(
             t => t.Value is ListSizeDirective or DirectiveNode { Name.Value: "listSize" });
 }

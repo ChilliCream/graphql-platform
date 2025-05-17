@@ -1,18 +1,18 @@
 using System.Net;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Authorization;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Opa.Native;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
 public class AuthorizationTests : ServerTestBase, IAsyncLifetime
 {
-    private OpaHandle? _opaHandle;
+    private OpaProcess? _opaHandle;
 
     public AuthorizationTests(TestServerFactory serverFactory)
         : base(serverFactory)
@@ -30,16 +30,17 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
 
     public async Task InitializeAsync() => _opaHandle = await OpaProcess.StartServerAsync();
 
-    [Theory(Skip = "The local server needs to be packaged with squadron")]
+    [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_NotFound(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext);
@@ -52,16 +53,17 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         result.MatchSnapshot();
     }
 
-    [Theory(Skip = "The local server needs to be packaged with squadron")]
+    [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
@@ -71,8 +73,8 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     "iwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -87,16 +89,17 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         result.MatchSnapshot();
     }
 
-    [Theory(Skip = "The local server needs to be packaged with squadron")]
+    [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_Authorized(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_Authorized(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
@@ -107,8 +110,52 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     "jXBglnxac";
             }));
 
-        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}"), };
+
+        var putPolicyResponse = await client.PutAsync(
+            "/v1/policies/has_age_defined",
+            new StringContent(hasAgeDefinedPolicy));
+        putPolicyResponse.EnsureSuccessStatusCode();
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Policy_Authorized_WithExtensions(Action<IRequestExecutorBuilder, int> configure)
+    {
+        // arrange
+        var port = _opaHandle!.GetPort();
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder, port);
+                builder.Services.AddAuthorization();
+                builder.AddOpaQueryRequestExtensionsHandler(Policies.HasDefinedAge,
+                    context => context.Resource is IMiddlewareContext or AuthorizationContext
+                        ? new Dictionary<string, string> { { "secret", "secret" } }
+                        : null);
+            },
+            SetUpHttpContext + (Action<HttpContext>)(c =>
+            {
+                // The token is the same but swapped alg and typ,
+                // as a result Base64 representation is not the one as expected by Rego rule
+                // See policies/has_age_defined.rego file for details
+                c.Request.Headers["Authorization"] =
+                    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9." +
+                    "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0x" +
+                    "MS0yMDAwIn0.01Hb6X-HXl9ASf3X82Mt63RMpZ4SVJZT9hTI2dYet-k";
+            }));
+
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",

@@ -40,6 +40,8 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
             : new CombinedServiceProvider(_schemaServices, _applicationServices);
     }
 
+    public ISet<string> Scalars { get; } = new HashSet<string>();
+
     public void Register(
         TypeSystemObjectBase obj,
         string? scope,
@@ -49,6 +51,11 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         if (obj is null)
         {
             throw new ArgumentNullException(nameof(obj));
+        }
+
+        if (obj is ScalarType scalar)
+        {
+            Scalars.Add(scalar.Name);
         }
 
         var registeredType = InitializeType(obj, scope, inferred);
@@ -74,7 +81,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                 SchemaTypeReference.InferTypeContext(obj),
                 scope);
 
-        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit, };
+        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
 
         if (explicitBind)
         {
@@ -198,7 +205,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity, })
+            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(
@@ -216,9 +223,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                 registeredType.References.TryAdd(runtimeTypeRef);
             }
 
-            if (_interceptor.TryCreateScope(
-                registeredType,
-                out var dependencies))
+            if (_interceptor.TryCreateScope(registeredType, out var dependencies))
             {
                 registeredType.Dependencies.Clear();
                 registeredType.Dependencies.AddRange(dependencies);

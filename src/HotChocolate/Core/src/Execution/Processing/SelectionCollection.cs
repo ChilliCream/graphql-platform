@@ -553,19 +553,4 @@ internal sealed class SelectionCollection(
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
-
-    private sealed class Any : INamedType
-    {
-        public TypeKind Kind => default!;
-
-        public string Name => default!;
-
-        public string Description => default!;
-
-        public IReadOnlyDictionary<string, object?> ContextData => default!;
-
-        public bool IsAssignableFrom(INamedType type) => true;
-
-        public static readonly Any Instance = new Any();
-    }
 }

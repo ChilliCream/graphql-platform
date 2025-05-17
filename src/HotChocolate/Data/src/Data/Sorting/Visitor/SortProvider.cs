@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class SortProvider<TContext>
-    : Convention<SortProviderDefinition>
+    : Convention<SortProviderConfiguration>
     , ISortProvider
     , ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -23,6 +23,7 @@ public abstract class SortProvider<TContext>
     private readonly List<ISortOperationHandler<TContext>> _operationHandlers = [];
 
     private Action<ISortProviderDescriptor<TContext>>? _configure;
+    private ISortConvention? _sortConvention;
 
     protected SortProvider()
     {
@@ -34,7 +35,7 @@ public abstract class SortProvider<TContext>
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortProviderDefinition? Definition => base.Definition;
+    internal new SortProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
@@ -48,7 +49,7 @@ public abstract class SortProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override SortProviderDefinition CreateDefinition(IConventionContext context)
+    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -60,11 +61,12 @@ public abstract class SortProvider<TContext>
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
-    void ISortProviderConvention.Initialize(IConventionContext context)
+    void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
     {
+        _sortConvention = convention;
         base.Initialize(context);
     }
 
@@ -76,14 +78,21 @@ public abstract class SortProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.Handlers.Count == 0)
         {
             throw SortProvider_NoFieldHandlersConfigured(this);
         }
 
-        if (Definition.OperationHandlers.Count == 0)
+        if (Configuration.OperationHandlers.Count == 0)
         {
             throw SortProvider_NoOperationHandlersConfigured(this);
+        }
+
+        if (_sortConvention is null)
+        {
+            throw SortConvention_ProviderHasToBeInitializedByConvention(
+                GetType(),
+                context.Scope);
         }
 
         var services = new CombinedServiceProvider(
@@ -91,10 +100,12 @@ public abstract class SortProvider<TContext>
                 (typeof(ISortProvider), this),
                 (typeof(IConventionContext), context),
                 (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ISortConvention), _sortConvention),
+                (typeof(InputParser), context.DescriptorContext.InputParser),
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
-        foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)
+        foreach ((Type Type, ISortFieldHandler? Instance) handler in Configuration.Handlers)
         {
             if (handler.Instance is ISortFieldHandler<TContext> field)
             {
@@ -113,8 +124,7 @@ public abstract class SortProvider<TContext>
             }
         }
 
-        foreach ((Type Type, ISortOperationHandler? Instance) handler
-            in Definition.OperationHandlers)
+        foreach ((Type Type, ISortOperationHandler? Instance) handler in Configuration.OperationHandlers)
         {
             if (handler.Instance is ISortOperationHandler<TContext> op)
             {
@@ -169,7 +179,7 @@ public abstract class SortProvider<TContext>
 
     public virtual ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration)
         => null;
 }

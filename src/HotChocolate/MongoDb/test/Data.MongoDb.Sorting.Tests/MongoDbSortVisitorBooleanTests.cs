@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -12,15 +12,15 @@ public class MongoDbSortVisitorBooleanTests
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = null, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     ];
 
     public MongoDbSortVisitorBooleanTests(MongoResource resource)
@@ -46,10 +46,10 @@ public class MongoDbSortVisitorBooleanTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -72,16 +72,17 @@ public class MongoDbSortVisitorBooleanTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public bool Bar { get; set; }
@@ -90,6 +91,7 @@ public class MongoDbSortVisitorBooleanTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public bool? Bar { get; set; }

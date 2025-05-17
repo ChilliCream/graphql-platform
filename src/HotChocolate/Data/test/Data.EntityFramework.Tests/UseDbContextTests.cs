@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +19,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -52,6 +52,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -86,6 +87,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -120,6 +122,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -137,18 +140,20 @@ public class UseDbContextTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query Test {
-                    authorOffsetPaging {
-                        items {
-                            name
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                        totalCount
+            """
+            query Test {
+                authorOffsetPaging {
+                    items {
+                        name
                     }
-                }");
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -167,6 +172,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -214,6 +220,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -261,6 +268,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -310,6 +318,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -356,6 +365,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -402,6 +412,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -450,6 +461,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -485,6 +497,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildSchemaAsync();
 
         // assert
@@ -505,6 +518,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildSchemaAsync();
 
         // assert
@@ -525,6 +539,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildSchemaAsync();
 
         // assert
@@ -541,15 +556,18 @@ public class UseDbContextTests
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query Test {
-                    books {
-                        id
-                    }
-                }");
+            """
+            query Test {
+                books {
+                    id
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -568,6 +586,8 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -615,6 +635,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -662,6 +683,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -711,6 +733,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -758,6 +781,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -804,6 +828,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
@@ -850,6 +875,7 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 

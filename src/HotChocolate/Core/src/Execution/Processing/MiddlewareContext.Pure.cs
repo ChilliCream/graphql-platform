@@ -212,7 +212,7 @@ internal partial class MiddlewareContext
 
         public T Service<T>() where T : notnull => parentContext.Service<T>();
 
-        public T? Service<T>(object key) where T : notnull => parentContext.Service<T>(key);
+        public T Service<T>(object key) where T : notnull => parentContext.Service<T>(key);
 
         public T Resolver<T>() => parentContext.Resolver<T>();
 
@@ -263,7 +263,7 @@ internal partial class MiddlewareContext
 
                 if (typeof(T).IsInterface)
                 {
-                    var o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
+                    var o = dictToObjConverter.Convert(value, argument.Type.ToRuntimeType());
                     if (o is T c)
                     {
                         return c;

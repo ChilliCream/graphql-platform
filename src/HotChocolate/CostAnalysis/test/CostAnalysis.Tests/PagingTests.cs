@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
@@ -21,6 +20,23 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Do_Not_Apply_Defaults()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
+                .ModifyCostOptions(o => o.ApplyCostDefaults = false)
                 .BuildSchemaAsync();
 
         schema.MatchSnapshot();
@@ -68,7 +84,60 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 6,
-                    "typeCost": 52
+                    "typeCost": 12
+                }
+                """);
+
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(expectation.RootElement, "Expected")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Execute_On_Missing_Root_Type()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                subscription {
+                    books {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        var expectation =
+            JsonDocument.Parse(
+                """
+                {
+                    "fieldCost": 6,
+                    "typeCost": 12
                 }
                 """);
 
@@ -109,6 +178,7 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .BuildRequestExecutorAsync();
 
         // act
@@ -277,6 +347,7 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .BuildRequestExecutorAsync();
 
         // act
@@ -324,6 +395,7 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .BuildRequestExecutorAsync();
 
         // act
@@ -378,7 +450,7 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 9,
-                    "typeCost": 52
+                    "typeCost": 12
                 }
                 """);
 
@@ -431,7 +503,7 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 10,
-                    "typeCost": 52
+                    "typeCost": 12
                 }
                 """);
 
@@ -484,7 +556,7 @@ public class PagingTests
                 """
                 {
                     "fieldCost": 10,
-                    "typeCost": 52
+                    "typeCost": 12
                 }
                 """);
 
@@ -492,6 +564,95 @@ public class PagingTests
             .Add(operation, "Operation")
             .Add(expectation.RootElement, "Expected")
             .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Use_Default_Page_Size_When_Default_Is_Specified()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    books {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .Add(executor.Schema, "Schema")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Do_Not_Use_Default_Page_Size_When_Default_Is_Specified()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    books {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .ModifyPagingOptions(o => o.DefaultPageSize = 2)
+                .ModifyCostOptions(o => o.ApplySlicingArgumentDefaultValue = false)
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .Add(executor.Schema, "Schema")
             .MatchMarkdownAsync();
     }
 

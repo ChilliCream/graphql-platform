@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -12,15 +12,15 @@ public class MongoDbSortVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
     ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
-        new() { Bar = null, },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
     ];
 
     public MongoDbSortVisitorStringTests(MongoResource resource)
@@ -46,10 +46,10 @@ public class MongoDbSortVisitorStringTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -72,16 +72,17 @@ public class MongoDbSortVisitorStringTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string Bar { get; set; } = null!;
@@ -90,6 +91,7 @@ public class MongoDbSortVisitorStringTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public string? Bar { get; set; }

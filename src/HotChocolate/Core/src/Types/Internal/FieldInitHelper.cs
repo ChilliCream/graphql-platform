@@ -14,7 +14,7 @@ public static class FieldInitHelper
 {
     internal static IValueNode? CompleteDefaultValue(
         ITypeCompletionContext context,
-        ArgumentDefinition argumentDefinition,
+        ArgumentConfiguration argumentDefinition,
         IInputType argumentType,
         SchemaCoordinate argumentCoordinate)
     {
@@ -52,7 +52,7 @@ public static class FieldInitHelper
         ITypeSystemMember declaringMember,
         IReadOnlyList<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory)
-        where TFieldDefinition : FieldDefinitionBase
+        where TFieldDefinition : FieldConfiguration
         where TField : class, IField
     {
         if (context is null)
@@ -89,7 +89,7 @@ public static class FieldInitHelper
         IEnumerable<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int maxFieldCount)
-        where TFieldDefinition : FieldDefinitionBase
+        where TFieldDefinition : FieldConfiguration
         where TField : class, IField
     {
         if (context is null)
@@ -158,7 +158,7 @@ public static class FieldInitHelper
         IEnumerable<TFieldDefinition> fieldDefinitions,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int fieldCount)
-        where TFieldDefinition : FieldDefinitionBase
+        where TFieldDefinition : FieldConfiguration
         where TField : class, IField
     {
         var fieldDefs = fieldDefinitions.Where(t => !t.Ignore);

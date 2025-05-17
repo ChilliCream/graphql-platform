@@ -24,4 +24,9 @@ public enum ExecutionResultKind
     /// A subscription response stream.
     /// </summary>
     SubscriptionResult,
+
+    /// <summary>
+    /// A no-op result for warmup requests.
+    /// </summary>
+    WarmupResult,
 }

@@ -4,7 +4,9 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
-using CookieCrumble;
+using GreenDonut.Data;
+using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -234,10 +236,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -272,10 +275,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -310,10 +314,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -350,10 +355,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -388,10 +394,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -429,10 +436,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -468,10 +476,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -509,10 +518,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))
             .AddTypeExtension<PagingAndProjectionExtension>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -554,10 +564,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))
             .AddTypeExtension<PagingAndProjectionExtension>()
-            .AddObjectType<Book>(o =>
-                o.ImplementsNode()
-                    .IdField(f => f.Id)
-                    .ResolveNode(_ => default!))
+            .AddObjectType<Book>(
+                o =>
+                    o.ImplementsNode()
+                        .IdField(f => f.Id)
+                        .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
@@ -664,7 +675,10 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 }
             }
             """,
-            new Dictionary<string, object?> { ["title"] = "BookTitle", });
+            new Dictionary<string, object?>
+            {
+                ["title"] = "BookTitle",
+            });
 
         // assert
         await Snapshot
@@ -700,7 +714,10 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 }
             }
             """,
-            new Dictionary<string, object?> { ["title"] = "BookTitle", });
+            new Dictionary<string, object?>
+            {
+                ["title"] = "BookTitle",
+            });
 
         // assert
         await Snapshot
@@ -812,12 +829,146 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             """);
     }
 
+    [Fact]
+    public async Task AsPredicate_No_Filter_Returns_All_Data()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authors {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsPredicate_With_Filter_Returns_Author_1()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authors(where: { name: { eq: "Author1" } }) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Descending()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsSorted(order: { name: DESC }) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Descending_QueryContext()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsData(order: { name: DESC }) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Descending_QueryContext_2()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsData2(order: { name: DESC }) {
+                    id
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
         [UseOffsetPaging]
         public static IEnumerable<Bar> GetBars()
-            => new[] { Bar.Create("tox"), };
+            => new[]
+            {
+                Bar.Create("tox"),
+            };
     }
 
     public class FooType : ObjectType
@@ -827,15 +978,16 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             descriptor
                 .Field("foos")
                 .Type<ListType<ObjectType<Bar>>>()
-                .Resolve(_ =>
-                {
-                    var data = new[]
+                .Resolve(
+                    _ =>
                     {
-                        Bar.Create("a"),
-                        Bar.Create("b"),
-                    }.AsQueryable();
-                    return Task.FromResult(data);
-                })
+                        var data = new[]
+                        {
+                            Bar.Create("a"),
+                            Bar.Create("b"),
+                        }.AsQueryable();
+                        return Task.FromResult(data);
+                    })
                 .UseFiltering();
         }
     }
@@ -844,7 +996,10 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         public string Qux { get; set; } = default!;
 
-        public static Bar Create(string qux) => new() { Qux = qux, };
+        public static Bar Create(string qux) => new()
+        {
+            Qux = qux,
+        };
     }
 
     public class PagingAndProjection
@@ -858,7 +1013,10 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 {
                     Id = 1,
                     Title = "BookTitle",
-                    Author = new Author { Name = "Author", },
+                    Author = new Author
+                    {
+                        Name = "Author",
+                    },
                 },
             }.AsQueryable();
     }
@@ -877,7 +1035,10 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 {
                     Id = 1,
                     Title = "BookTitle",
-                    Author = new Author { Name = "Author", },
+                    Author = new Author
+                    {
+                        Name = "Author",
+                    },
                 },
             }.AsQueryable();
     }
@@ -958,7 +1119,10 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book> { book, },
+                    Books = new List<Book>
+                    {
+                        book,
+                    },
                 },
             }.AsQueryable();
     }
@@ -973,8 +1137,90 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book> { book, },
+                    Books = new List<Book>
+                    {
+                        book,
+                    },
                 },
             }.AsQueryable();
+    }
+
+    public class AsPredicateQuery
+    {
+        [UseFiltering]
+        public IQueryable<Author> GetAuthors(IFilterContext filter)
+            => new[]
+                {
+                    new Author
+                    {
+                        Name = "Author1",
+                        Books = new List<Book>(),
+                    },
+                    new Author
+                    {
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    },
+                }.AsQueryable()
+                .Where(filter);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsSorted(ISortingContext sorting)
+            => new[]
+                {
+                    new Author
+                    {
+                        Name = "Author1",
+                        Books = new List<Book>(),
+                    },
+                    new Author
+                    {
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    },
+                }.AsQueryable()
+                .Order(sorting);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsData(QueryContext<Author> context)
+            => new[]
+                {
+                    new Author
+                    {
+                        Name = "Author1",
+                        Books = new List<Book>(),
+                    },
+                    new Author
+                    {
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    },
+                }.AsQueryable()
+                .With(context);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsData2(QueryContext<Author> context)
+            => new[]
+                {
+                    new Author
+                    {
+                        Id = 1,
+                        Name = "Author1",
+                        Books = new List<Book>(),
+                    },
+                    new Author
+                    {
+                        Id = 8,
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    },
+                    new Author
+                    {
+                        Id = 5,
+                        Name = "Author2",
+                        Books = new List<Book>()
+                    }
+                }.AsQueryable()
+                .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
     }
 }

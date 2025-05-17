@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FieldSelectionMapValidator_FieldDoesNotExistOnInputType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the input type '{1}'.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_FieldInvalidSubselections" xml:space="preserve">
+    <value>The field '{0}' does not return a composite type and cannot have subselections.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_FieldMissingSubselections" xml:space="preserve">
+    <value>The field '{0}' returns a composite type and must have subselections.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_FieldMissingTypeCondition" xml:space="preserve">
+    <value>The field '{0}' returns a union type and must have a type condition.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_FieldTypeMismatch" xml:space="preserve">
+    <value>The field '{0}' is of type '{1}' instead of the expected input type '{2}'.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_InvalidOneOfFieldSelection" xml:space="preserve">
+    <value>The selection on one-of input type '{0}' must include a single field.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_InvalidTypeCondition" xml:space="preserve">
+    <value>The type '{0}' is not a possible type of type '{1}'.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_InvalidTypeConditionInPath" xml:space="preserve">
+    <value>The type condition in path '{0}' is invalid. Type '{1}' does not exist.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_SelectionMissingRequiredFields" xml:space="preserve">
+    <value>The selection on input type '{0}' must include all required fields.</value>
+  </data>
+  <data name="SelectionSetValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="SelectionSetValidator_FieldInvalidSubselections" xml:space="preserve">
+    <value>The field '{0}' does not return a composite type and cannot have subselections.</value>
+  </data>
+  <data name="SelectionSetValidator_FieldMissingSubselections" xml:space="preserve">
+    <value>The field '{0}' returns a composite type and must have subselections.</value>
+  </data>
+  <data name="SelectionSetValidator_InvalidTypeCondition" xml:space="preserve">
+    <value>The type '{0}' is not a possible type of type '{1}'.</value>
+  </data>
+  <data name="SelectionSetValidator_InvalidTypeConditionInSelectionSet" xml:space="preserve">
+    <value>The type condition in the selection set is invalid. Type '{0}' does not exist.</value>
+  </data>
+  <data name="SelectionSetValidator_UnionFieldInvalidSelections" xml:space="preserve">
+    <value>The field '{0}' returns a union type and must only include inline fragment selections.</value>
+  </data>
+</root>

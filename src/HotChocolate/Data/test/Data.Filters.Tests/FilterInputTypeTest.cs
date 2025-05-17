@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
@@ -596,8 +595,8 @@ public class FilterInputTypeTest : FilterTestBase
     {
         public bool CanHandle(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
         {
             throw new NotImplementedException();
         }

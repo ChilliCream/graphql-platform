@@ -112,7 +112,7 @@ public static class SchemaPrinter
             typeDefinitions.Insert(0, PrintSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated, };
+        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes
@@ -164,7 +164,7 @@ public static class SchemaPrinter
 
         var locations = directiveType.Locations
             .AsEnumerable()
-            .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
+            .Select(l => new NameNode(l.Format().ToString()))
             .ToList();
 
         return new DirectiveDefinitionNode
@@ -236,7 +236,7 @@ public static class SchemaPrinter
             InputObjectType type => PrintInputObjectType(type),
             UnionType type => PrintUnionType(type),
             EnumType type => PrintEnumType(type),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     private static ObjectTypeDefinitionNode PrintObjectType(
@@ -354,7 +354,7 @@ public static class SchemaPrinter
         );
     }
 
-    private static EnumValueDefinitionNode PrintEnumValue(IEnumValue enumValue)
+    private static EnumValueDefinitionNode PrintEnumValue(EnumValue enumValue)
     {
         var directives = enumValue.Directives
             .Select(PrintDirective)
@@ -503,7 +503,7 @@ public static class SchemaPrinter
     {
         if (type is NonNullType nt)
         {
-            return new NonNullTypeNode(null, (INullableTypeNode)PrintType(nt.Type));
+            return new NonNullTypeNode(null, (INullableTypeNode)PrintType(nt.NullableType));
         }
 
         if (type is ListType lt)

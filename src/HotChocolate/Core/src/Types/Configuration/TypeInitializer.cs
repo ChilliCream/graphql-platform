@@ -101,9 +101,18 @@ internal sealed class TypeInitializer
         // before we start completing types we will compile the resolvers.
         CompileResolvers();
 
-        // last we complete the types. Completing types means that we will assign all
-        // the fields resolving all missing parts and then making the types immutable.
+        // now we complete the types. This means at this point we are completing
+        // the type structure. Fields and arguments will be accessible after
+        // types are completed.
         CompleteTypes();
+
+        // next we are completing type system directives and feature metadata.
+        CompleteMetadata();
+
+        // before we can finalize the types and make the immutable we are going to make the
+        // types executable. This means that at this point we are taking the compiled resolvers
+        // and are compiling from them field middleware that are assigned to the output fields.
+        MakeExecutable();
 
         // at this point everything is completely initialized, and we just trigger a type
         // finalize to allow the type to clean up any initialization data structures.
@@ -120,7 +129,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0, } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
         {
             throw new SchemaException(errors);
         }
@@ -148,7 +157,7 @@ internal sealed class TypeInitializer
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
+                        ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
                         objectType.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -162,7 +171,7 @@ internal sealed class TypeInitializer
                         && interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
+                        ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
                         implementing.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -180,7 +189,7 @@ internal sealed class TypeInitializer
                     if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = objectType.TypeReference;
-                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
+                        ((UnionType)unionType.Type).Configuration!.Types.Add(typeRef);
                     }
                 }
             }
@@ -287,7 +296,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnAfterResolveRootType(
                 type.Context,
-                ((ObjectType)type.Type.Type).Definition!,
+                ((ObjectType)type.Type.Type).Configuration!,
                 type.Kind);
         }
     }
@@ -333,7 +342,7 @@ internal sealed class TypeInitializer
             {
                 if (extension.Type is INamedTypeExtension
                     {
-                        ExtendsType: { } extendsType,
+                        ExtendsType: { } extendsType
                     } namedTypeExtension)
                 {
                     var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
@@ -376,7 +385,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnBeforeCompleteMutation(
                 mutationType.Type,
-                ((ObjectType)mutationType.Type.Type).Definition!);
+                ((ObjectType)mutationType.Type.Type).Configuration!);
         }
     }
 
@@ -428,7 +437,7 @@ internal sealed class TypeInitializer
     {
         if (registeredType.Type is ObjectType objectType)
         {
-            foreach (var field in objectType.Definition!.Fields)
+            foreach (var field in objectType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {
@@ -438,7 +447,7 @@ internal sealed class TypeInitializer
         }
         else if(registeredType.Type is InterfaceType interfaceType)
         {
-            foreach (var field in interfaceType.Definition!.Fields)
+            foreach (var field in interfaceType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {
@@ -449,7 +458,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -500,7 +509,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            ObjectFieldDefinition definition,
+            ObjectFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)
@@ -514,7 +523,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        InterfaceFieldDefinition definition,
+        InterfaceFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -557,7 +566,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            InterfaceFieldDefinition definition,
+            InterfaceFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)
@@ -574,16 +583,19 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypes();
 
-        ProcessTypes(Completed, type => CompleteType(type));
+        if(ProcessTypes(Completed, type => CompleteType(type)))
+        {
+            _interceptor.OnTypesCompleted();
+        }
+
         EnsureNoErrors();
 
-        _interceptor.OnTypesCompleted();
         _interceptor.OnAfterCompleteTypes();
     }
 
     internal bool CompleteType(RegisteredType registeredType)
     {
-        if (registeredType.Status is TypeStatus.Completed)
+        if (registeredType.Type.IsCompleted)
         {
             return true;
         }
@@ -597,6 +609,42 @@ internal sealed class TypeInitializer
         return true;
     }
 
+    private void CompleteMetadata()
+    {
+        _interceptor.OnBeforeCompleteMetadata();
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (registeredType is { IsExtension: false, Status: TypeStatus.Completed })
+            {
+                registeredType.Type.CompleteMetadata(registeredType);
+                registeredType.Status = TypeStatus.MetadataCompleted;
+            }
+        }
+
+        EnsureNoErrors();
+
+        _interceptor.OnAfterCompleteMetadata();
+    }
+
+    private void MakeExecutable()
+    {
+        _interceptor.OnBeforeMakeExecutable();
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (!registeredType.IsExtension)
+            {
+                registeredType.Type.MakeExecutable(registeredType);
+                registeredType.Status = TypeStatus.Executable;
+            }
+        }
+
+        EnsureNoErrors();
+
+        _interceptor.OnAfterMakeExecutable();
+    }
+
     private void FinalizeTypes()
     {
         foreach (var registeredType in _typeRegistry.Types)
@@ -604,8 +652,11 @@ internal sealed class TypeInitializer
             if (!registeredType.IsExtension)
             {
                 registeredType.Type.FinalizeType(registeredType);
+                registeredType.Status = TypeStatus.Finalized;
             }
         }
+
+        EnsureNoErrors();
     }
 
     private bool ProcessTypes(

@@ -41,7 +41,7 @@ public class ObjectType<T> : ObjectType
     public ObjectType()
         => _configure = Configure;
 
-    protected override ObjectTypeDefinition CreateDefinition(
+    protected override ObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = ObjectTypeDescriptor.New<T>(context.DescriptorContext);
@@ -49,7 +49,9 @@ public class ObjectType<T> : ObjectType
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        context.DescriptorContext.TypeConfiguration.Apply<IObjectTypeDescriptor<T>>(typeof(T), descriptor);
+
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>

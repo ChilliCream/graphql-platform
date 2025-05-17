@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -22,10 +22,6 @@
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +43,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>AbstractionResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
   </ItemGroup>
 
 </Project>

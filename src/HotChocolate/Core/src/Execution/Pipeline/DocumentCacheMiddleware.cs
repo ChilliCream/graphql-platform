@@ -38,9 +38,11 @@ internal sealed class DocumentCacheMiddleware
                 _documentCache.TryGetDocument(request.DocumentId.Value.Value, out var document))
             {
                 context.DocumentId = request.DocumentId;
-                context.Document = document;
+                context.DocumentHash = document.Hash;
+                context.Document = document.Body;
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 context.IsCachedDocument = true;
+                context.IsPersistedDocument = document.IsPersisted;
                 addToCache = false;
                 _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
@@ -48,9 +50,11 @@ internal sealed class DocumentCacheMiddleware
                 _documentCache.TryGetDocument(request.DocumentHash, out document))
             {
                 context.DocumentId = request.DocumentHash;
-                context.Document = document;
+                context.DocumentHash = document.Hash;
+                context.Document = document.Body;
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 context.IsCachedDocument = true;
+                context.IsPersistedDocument = document.IsPersisted;
                 addToCache = false;
                 _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
@@ -60,9 +64,10 @@ internal sealed class DocumentCacheMiddleware
                 if (_documentCache.TryGetDocument(context.DocumentHash, out document))
                 {
                     context.DocumentId = context.DocumentHash;
-                    context.Document = document;
+                    context.Document = document.Body;
                     context.ValidationResult = DocumentValidatorResult.Ok;
                     context.IsCachedDocument = true;
+                    context.IsPersistedDocument = document.IsPersisted;
                     addToCache = false;
                     _diagnosticEvents.RetrievedDocumentFromCache(context);
                 }
@@ -76,7 +81,20 @@ internal sealed class DocumentCacheMiddleware
             context.Document != null &&
             context.IsValidDocument)
         {
-            _documentCache.TryAddDocument(context.DocumentId.Value.Value, context.Document);
+            _documentCache.TryAddDocument(
+                context.DocumentId.Value.Value,
+                new CachedDocument(context.Document, context.DocumentHash, context.IsPersistedDocument));
+
+            // The hash and the documentId can differ if the id is not a hash or
+            // if the hash algorithm is different from the one that Hot Chocolate uses internally.
+            // In the case they differ we just add another lookup to the cache.
+            if(context.DocumentHash is not null)
+            {
+                _documentCache.TryAddDocument(
+                    context.DocumentHash,
+                    new CachedDocument(context.Document, context.DocumentHash, context.IsPersistedDocument));
+            }
+
             _diagnosticEvents.AddedDocumentToCache(context);
         }
     }

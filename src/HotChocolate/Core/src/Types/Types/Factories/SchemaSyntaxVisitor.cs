@@ -171,6 +171,11 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
             goto EXIT;
         }
 
+        if(context.DescriptorContext.TypeInterceptor.SkipDirectiveDefinition(node))
+        {
+            goto EXIT;
+        }
+
         context.Types.Add(
             TypeReference.Create(
                 _directiveTypeFactory.Create(

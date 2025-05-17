@@ -27,7 +27,7 @@ public static class IntrospectionFields
     private static readonly PureFieldDelegate _typeNameResolver =
         ctx => ctx.ObjectType.Name;
 
-    internal static ObjectFieldDefinition CreateSchemaField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateSchemaField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, Schema);
 
@@ -35,15 +35,15 @@ public static class IntrospectionFields
             .Description(TypeResources.SchemaField_Description)
             .Type<NonNullType<__Schema>>();
 
-        descriptor.Definition.PureResolver = Resolve;
+        descriptor.Configuration.PureResolver = Resolve;
 
         static ISchema Resolve(IResolverContext ctx)
             => ctx.Schema;
 
-        return CreateDefinition(descriptor);
+        return CreateConfiguration(descriptor);
     }
 
-    internal static ObjectFieldDefinition CreateTypeField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateTypeField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, Type);
 
@@ -53,7 +53,7 @@ public static class IntrospectionFields
             .Type<__Type>()
             .Resolve(Resolve);
 
-        descriptor.Definition.PureResolver = Resolve;
+        descriptor.Configuration.PureResolver = Resolve;
 
         static INamedType? Resolve(IResolverContext ctx)
         {
@@ -61,10 +61,10 @@ public static class IntrospectionFields
             return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
         }
 
-        return CreateDefinition(descriptor);
+        return CreateConfiguration(descriptor);
     }
 
-    internal static ObjectFieldDefinition CreateTypeNameField(IDescriptorContext context)
+    internal static ObjectFieldConfiguration CreateTypeNameField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, TypeName);
 
@@ -72,16 +72,16 @@ public static class IntrospectionFields
             .Description(TypeResources.TypeNameField_Description)
             .Type<NonNullType<StringType>>();
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.PureResolver = _typeNameResolver;
         definition.Flags |= FieldFlags.TypeNameField;
 
-        return CreateDefinition(descriptor);
+        return CreateConfiguration(descriptor);
     }
 
-    private static ObjectFieldDefinition CreateDefinition(ObjectFieldDescriptor descriptor)
+    private static ObjectFieldConfiguration CreateConfiguration(ObjectFieldDescriptor descriptor)
     {
-        var definition = descriptor.CreateDefinition();
+        var definition = descriptor.CreateConfiguration();
         definition.IsIntrospectionField = true;
         return definition;
     }

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -335,6 +334,43 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task OneOf_DefaultValue_On_Directive_Argument()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<DefaultValue>()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String @defaultValue(value: { string: "abc" })
+                }
+                """)
+            .AddResolver("Query", "foo", "abc")
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task OneOf_DefaultValue_On_Directive_Argument_Fluent()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<DefaultValueDirectiveType>()
+            .AddType<DefaultValueType>()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String @defaultValue(value: { string: "abc" })
+                }
+                """)
+            .AddResolver("Query", "foo", "abc")
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     public class Query
     {
         public string Example(ExampleInput input)
@@ -390,5 +426,41 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         public string? A { get; set; }
 
         public int? B { get; set; }
+    }
+
+
+    [DirectiveType(DirectiveLocation.FieldDefinition)]
+    public class DefaultValue
+    {
+        public DefaultValueInput? Value { get; set; }
+    }
+
+    [OneOf]
+    public class DefaultValueInput
+    {
+        public string? String { get; set; }
+
+        public int? Int { get; set; }
+    }
+
+    public class DefaultValueType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("DefaultValue");
+            descriptor.OneOf();
+            descriptor.Field("string").Type<StringType>();
+            descriptor.Field("int").Type<IntType>();
+        }
+    }
+
+    public class DefaultValueDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("defaultValue");
+            descriptor.Argument("value").Type<DefaultValueType>();
+            descriptor.Location(DirectiveLocation.FieldDefinition);
+        }
     }
 }

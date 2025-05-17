@@ -96,8 +96,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException FilterInterceptor_NoHandlerFoundForField(
-        FilterInputTypeDefinition type,
-        FilterFieldDefinition field) =>
+        FilterInputTypeConfiguration type,
+        FilterFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -107,8 +107,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException FilterInterceptor_OperationHasNoTypeSpecified(
-        FilterInputTypeDefinition type,
-        FilterFieldDefinition field) =>
+        FilterInputTypeConfiguration type,
+        FilterFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -201,6 +201,18 @@ internal static class ThrowHelper
                 .SetExtension(nameof(sortProvider), sortProvider)
                 .Build());
 
+    public static SchemaException SortConvention_ProviderHasToBeInitializedByConvention(
+        Type provider,
+        string? scope) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.SortConvention_ProviderHasToBeInitializedByConvention,
+                    provider.FullName ?? provider.Name,
+                    scope is null ? "" : "in scope " + scope)
+                .SetExtension(nameof(scope), scope)
+                .Build());
+
     public static SchemaException SortDescriptorContextExtensions_NoConvention(string? scope) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -213,8 +225,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException SortInterceptor_NoFieldHandlerFoundForField(
-        SortInputTypeDefinition type,
-        SortFieldDefinition field) =>
+        SortInputTypeConfiguration type,
+        SortFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -224,8 +236,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException SortInterceptor_NoOperationHandlerFoundForValue(
-        EnumTypeDefinition type,
-        SortEnumValueDefinition value) =>
+        EnumTypeConfiguration type,
+        SortEnumValueConfiguration value) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -421,13 +433,13 @@ internal static class ThrowHelper
 
     public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
         ITypeSystemObject type,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition field) =>
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration field) =>
         new(SchemaErrorBuilder
                 .New()
                 .SetMessage(
                     DataResources.QueryableFilterProvider_ExpressionParameterInvalid,
-                    typeDefinition.EntityType?.FullName,
+                    typeConfiguration.EntityType?.FullName,
                     field.Name)
                 .SetTypeSystemObject(type)
                 .Build());
@@ -516,13 +528,13 @@ internal static class ThrowHelper
 
     public static SchemaException QueryableSortProvider_ExpressionParameterInvalid(
         ITypeSystemObject type,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition field) =>
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration field) =>
         new(SchemaErrorBuilder
             .New()
             .SetMessage(
                 DataResources.QueryableSortProvider_ExpressionParameterInvalid,
-                typeDefinition.EntityType?.FullName,
+                typeConfiguration.EntityType?.FullName,
                 field.Name)
             .SetTypeSystemObject(type)
             .Build());

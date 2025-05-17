@@ -14,9 +14,9 @@ using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 public abstract class NodeDescriptorBase(IDescriptorContext context)
-    : DescriptorBase<NodeDefinition>(context)
+    : DescriptorBase<NodeConfiguration>(context)
 {
-    protected internal sealed override NodeDefinition Definition { get; protected set; } = new();
+    protected internal sealed override NodeConfiguration Configuration { get; protected set; } = new();
 
     protected abstract IObjectFieldDescriptor ConfigureNodeField();
 
@@ -29,8 +29,8 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     public virtual IObjectFieldDescriptor ResolveNode(
         FieldResolverDelegate fieldResolver)
     {
-        Definition.ResolverField ??= new ObjectFieldDefinition();
-        Definition.ResolverField.Resolver = fieldResolver ??
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        Configuration.ResolverField.Resolver = fieldResolver ??
             throw new ArgumentNullException(nameof(fieldResolver));
 
         return ConfigureNodeField();
@@ -84,9 +84,9 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
 
         if (member is MethodInfo m)
         {
-            Definition.ResolverField ??= new ObjectFieldDefinition();
-            Definition.ResolverField.Member = m;
-            Definition.ResolverField.ResolverType = typeof(TResolver);
+            Configuration.ResolverField ??= new ObjectFieldConfiguration();
+            Configuration.ResolverField.Member = m;
+            Configuration.ResolverField.ResolverType = typeof(TResolver);
             return ConfigureNodeField();
         }
 
@@ -108,46 +108,46 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             throw new ArgumentNullException(nameof(method));
         }
 
-        Definition.ResolverField ??= new ObjectFieldDefinition();
-        Definition.ResolverField.Member = method;
-        Definition.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        Configuration.ResolverField.Member = method;
+        Configuration.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
         return ConfigureNodeField();
     }
 
-    protected void CompleteResolver(ITypeCompletionContext context, ObjectTypeDefinition definition)
+    protected void CompleteResolver(ITypeCompletionContext context, ObjectTypeConfiguration definition)
     {
         var descriptorContext = context.DescriptorContext;
 
-        if (Definition.ResolverField is not null)
+        if (Configuration.ResolverField is not null)
         {
             // we let the descriptor complete on the definition object.
             ObjectFieldDescriptor
-                .From(descriptorContext, Definition.ResolverField)
-                .CreateDefinition();
+                .From(descriptorContext, Configuration.ResolverField)
+                .CreateConfiguration();
 
             // after that all middleware should be available on the field definition and we can
             // start compiling the resolver and the resolver pipeline.
-            if (Definition.ResolverField.Resolver is null &&
-                Definition.ResolverField.Member is not null)
+            if (Configuration.ResolverField.Resolver is null &&
+                Configuration.ResolverField.Member is not null)
             {
-                Definition.ResolverField.Resolvers =
+                Configuration.ResolverField.Resolvers =
                     Context.ResolverCompiler.CompileResolve(
-                        Definition.ResolverField.Member,
+                        Configuration.ResolverField.Member,
                         typeof(object),
-                        Definition.ResolverField.ResolverType,
+                        Configuration.ResolverField.ResolverType,
                         parameterExpressionBuilders: ParameterExpressionBuilders);
             }
 
-            if (Definition.ResolverField.Resolver is not null)
+            if (Configuration.ResolverField.Resolver is not null)
             {
                 var pipeline = FieldMiddlewareCompiler.Compile(
                     context.GlobalComponents,
-                    Definition.ResolverField.GetMiddlewareDefinitions(),
-                    Definition.ResolverField.GetResultConverters(),
-                    Definition.ResolverField.Resolver,
+                    Configuration.ResolverField.GetMiddlewareDefinitions(),
+                    Configuration.ResolverField.GetResultConverters(),
+                    Configuration.ResolverField.Resolver,
                     false);
 
-                var directiveDefs = Definition.ResolverField.GetDirectives();
+                var directiveDefs = Configuration.ResolverField.GetDirectives();
 
                 if (directiveDefs.Count > 0)
                 {
@@ -155,7 +155,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                         DirectiveCollection.CreateAndComplete(
                             context,
                             DirectiveLocation.FieldDefinition,
-                            Definition.ResolverField,
+                            Configuration.ResolverField,
                             directiveDefs);
 
                     foreach (var directive in directives)
@@ -187,8 +187,8 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                 context.ContextData[WellKnownContextData.NodeIdResultFormatter] = value;
             }
 
-            var formatter = (ResultFormatterDefinition)value;
-            var converters = extensions.Definition.FormatterDefinitions;
+            var formatter = (ResultFormatterConfiguration)value;
+            var converters = extensions.Configuration.FormatterConfigurations;
 
             if (!converters.Contains(formatter))
             {
@@ -198,7 +198,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             return descriptor;
         }
 
-        public static ResultFormatterDefinition Create(
+        public static ResultFormatterConfiguration Create(
             INodeIdSerializerAccessor serializerAccessor)
             => new((context, result)
                     => result is not null

@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 public partial class InputObjectType
-    : NamedTypeBase<InputObjectTypeDefinition>
+    : NamedTypeBase<InputObjectTypeConfiguration>
     , IInputObjectType
 {
     /// <summary>
@@ -54,11 +54,16 @@ public partial class InputObjectType
     /// <returns>
     /// Returns the newly created input object type.
     /// </returns>
-    public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static InputObjectType CreateUnsafe(InputObjectTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;
+
+    /// <summary>
+    /// Defines if this input object type is a oneOf input object.
+    /// </summary>
+    public bool IsOneOf { get; private set; }
 
     /// <summary>
     /// Gets the fields of this type.

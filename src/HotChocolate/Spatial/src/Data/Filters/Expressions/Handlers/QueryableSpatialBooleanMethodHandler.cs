@@ -40,9 +40,9 @@ public abstract class QueryableSpatialBooleanMethodHandler
 
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) =>
-        fieldDefinition is FilterOperationFieldDefinition op &&
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration is FilterOperationFieldConfiguration op &&
         op.Id == Operation;
 
     public override bool TryHandleEnter(

@@ -3,6 +3,7 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -223,7 +224,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         var extendedType = ExtendedType.FromType(type, _typeCache);
 
-        return nullable is { Length: > 0, }
+        return nullable is { Length: > 0 }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
             : extendedType;
     }
@@ -238,7 +239,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         var extendedType = ExtendedType.FromType(type, _typeCache);
 
-        return nullable is { Length: > 0, }
+        return nullable is { Length: > 0 }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
             : extendedType;
     }
@@ -714,14 +715,20 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
+        if(member.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+            member.IsDefined(typeof(DescriptorAttribute), true))
+        {
+            return true;
+        }
+
         if (member.DeclaringType == typeof(object))
         {
             return false;
         }
 
-        if (member is PropertyInfo { CanRead: false, } ||
-            member is PropertyInfo { IsSpecialName: true, } ||
-            member is MethodInfo { IsSpecialName: true, })
+        if (member is PropertyInfo { CanRead: false } ||
+            member is PropertyInfo { IsSpecialName: true } ||
+            member is MethodInfo { IsSpecialName: true })
         {
             return false;
         }
@@ -732,7 +739,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
                 property.GetIndexParameters().Length == 0;
         }
 
-        if (member is MethodInfo { IsGenericMethodDefinition: false, } method &&
+        if (member is MethodInfo { IsGenericMethodDefinition: false } method &&
             CanHandleReturnType(member, method.ReturnType, allowObjectType))
         {
             foreach (var parameter in method.GetParameters())
@@ -784,6 +791,33 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
+        if (typeof(IEnumerable<object>)== returnType ||
+            typeof(IAsyncEnumerable<object>) == returnType ||
+            typeof(IReadOnlyCollection<object>) == returnType ||
+            typeof(IReadOnlyList<object>) == returnType ||
+            typeof(ICollection<object>) == returnType ||
+            typeof(IList<object>) == returnType ||
+            typeof(IList) == returnType ||
+            typeof(ICollection) == returnType ||
+            typeof(List<object>) == returnType ||
+            typeof(Array) == returnType ||
+            typeof(object[]) == returnType ||
+            typeof(ImmutableArray<object>) == returnType ||
+            typeof(ImmutableList<object>) == returnType ||
+            typeof(ImmutableHashSet<object>) == returnType ||
+            typeof(ImmutableDictionary<object, object>) == returnType ||
+            typeof(HashSet<object>) == returnType ||
+            typeof(Dictionary<object, object>) == returnType ||
+            typeof(ConcurrentBag<object>) == returnType ||
+            typeof(ConcurrentDictionary<object, object>) == returnType ||
+            typeof(ConcurrentQueue<object>) == returnType ||
+            typeof(ConcurrentStack<object>) == returnType ||
+            typeof(Queue<object>) == returnType ||
+            typeof(Stack<object>) == returnType)
+        {
+            return false;
+        }
+
         // All other types may cause errors and need to have an explicit configuration.
         if (typeof(ITypeSystemMember).IsAssignableFrom(returnType))
         {
@@ -813,7 +847,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private static bool CanHandleParameter(ParameterInfo parameter, bool allowObjectType)
     {
         // schema, object type and object field can be injected into a resolver, so
-        // we allow these as parameter type.
+        // we allow these as a parameter type.
         var parameterType = parameter.ParameterType;
 
         if (typeof(ISchema).IsAssignableFrom(parameterType) ||

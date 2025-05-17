@@ -43,7 +43,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 public class UnionType
-    : NamedTypeBase<UnionTypeDefinition>
+    : NamedTypeBase<UnionTypeConfiguration>
     , IUnionType
 {
     private const string _typeReference = "typeReference";
@@ -85,8 +85,8 @@ public class UnionType
     /// <returns>
     /// Returns the newly created union type.
     /// </returns>
-    public static UnionType CreateUnsafe(UnionTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static UnionType CreateUnsafe(UnionTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;
@@ -176,20 +176,20 @@ public class UnionType
     IObjectType? IUnionType.ResolveConcreteType(IResolverContext context, object resolverResult)
         => ResolveConcreteType(context, resolverResult);
 
-    protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override UnionTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = UnionTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
                     GetType());
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -201,33 +201,33 @@ public class UnionType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        foreach (var typeRef in definition.Types)
+        foreach (var typeRef in configuration.Types)
         {
             context.Dependencies.Add(new(typeRef));
         }
 
-        TypeDependencyHelper.CollectDirectiveDependencies(definition, context.Dependencies);
+        TypeDependencyHelper.CollectDirectiveDependencies(configuration, context.Dependencies);
 
         SetTypeIdentity(typeof(UnionType<>));
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        CompleteTypeSet(context, definition);
-        CompleteResolveAbstractType(definition.ResolveAbstractType);
+        CompleteTypeSet(context, configuration);
+        CompleteResolveAbstractType(configuration.ResolveAbstractType);
     }
 
     private void CompleteTypeSet(
         ITypeCompletionContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration definition)
     {
         var typeSet = new HashSet<ObjectType>();
 
@@ -250,7 +250,7 @@ public class UnionType
 
     protected virtual void OnCompleteTypeSet(
         ITypeCompletionContext context,
-        UnionTypeDefinition definition,
+        UnionTypeConfiguration definition,
         ISet<ObjectType> typeSet)
     {
         foreach (var typeReference in definition.Types)
@@ -259,7 +259,7 @@ public class UnionType
             {
                 if (type is NonNullType nonNullType)
                 {
-                    type = nonNullType.Type;
+                    type = nonNullType.NullableType;
                 }
 
                 if (type is not ObjectType objectType)
