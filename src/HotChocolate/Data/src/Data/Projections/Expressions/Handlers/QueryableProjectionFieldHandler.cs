@@ -9,11 +9,11 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
+    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
+
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { } &&
         selection.SelectionSet is not null;
-
-    private readonly NullabilityInfoContext _nullabilityInfoContext = new();
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
