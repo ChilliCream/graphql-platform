@@ -435,14 +435,38 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 subgraph.Add(executionStep.SubgraphName);
             }
 
-            backlog.Enqueue(
-                new BacklogItem(
-                    parentSelection,
-                    selectionSetPath,
-                    declaringType,
-                    leftovers,
-                    preferBatching));
+            TryEnqueueBacklogItem(
+                backlog,
+                parentSelection,
+                selectionSetPath,
+                declaringType,
+                leftovers,
+                preferBatching
+            );
         }
+    }
+
+    private static void TryEnqueueBacklogItem(Queue<BacklogItem> backlog, ISelection parentSelection, SelectionPath? selectionSetPath, ObjectTypeMetadata declaringType, List<ISelection> leftovers, bool preferBatching)
+    {
+        foreach (var item in backlog)
+        {
+            if ((item.SelectionPath?.Equals(selectionSetPath) ?? selectionSetPath is null) &&
+                item.DeclaringTypeMetadata == declaringType &&
+                item.PreferBatching == preferBatching &&
+                item.Selections.Count == leftovers.Count &&
+                item.Selections.SequenceEqual(leftovers))
+            {
+                return;
+            }
+        }
+
+        backlog.Enqueue(
+            new BacklogItem(
+                parentSelection,
+                selectionSetPath,
+                declaringType,
+                leftovers,
+                preferBatching));
     }
 
     private static SelectionPath? CreateSelectionPath(SelectionPath? rootPath, List<ISelection> pathSegments)

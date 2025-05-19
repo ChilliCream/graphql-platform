@@ -2794,6 +2794,71 @@ public class RequestPlannerTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Subgraph_Requested_On_Interface_Called_Only_Once()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              books: [Book!]!
+            }
+
+            interface Book {
+                author: Author!
+            }
+
+            type FunnyBook implements Book {
+                author: Author!
+            }
+
+            type ScaryBook implements Book {
+                author: Author!
+            }
+
+            type Author {
+              id: Int!
+            }
+            """
+        );
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              authorById(id: [Int!]!): [Author!]!
+            }
+
+            type Author {
+              id: Int!
+              name: String!
+            }
+            """
+        );
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var fusionGraph = await subgraphs.GetFusionGraphAsync();
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            //"query { subgraph2Foo { name } }");
+            "query { books { author { name } } }");
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.SchemaDefinition fusionGraph,
         [StringSyntax("graphql")] string query)
