@@ -70,7 +70,7 @@ public class SortEnumType : EnumType
         }
 
         if (valueSyntax is StringValueNode svn &&
-            NameLookup.TryGetValue(svn.Value, out ev) &&
+            Values.TryGetValue(svn.Value, out ev) &&
             ev is SortEnumValue sortEnumValueOfString)
         {
             return sortEnumValueOfString;
