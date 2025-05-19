@@ -112,7 +112,7 @@ public static class GreenDonutPageExtensions
             return [];
         }
 
-        var totalPages = (page.TotalCount ?? 0) / (page.RequestedSize ?? 10);
+        var totalPages = Math.Ceiling((double)(page.TotalCount ?? 0) / (page.RequestedSize ?? 10));
 
         if (page.Index >= totalPages)
         {
