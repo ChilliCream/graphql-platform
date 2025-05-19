@@ -337,7 +337,6 @@ public class Subscription
 To use an interface type as result of a subscription, be sure to specify the type when calling `sender.SendAsync`.
 
 ```csharp
-
 public class Subscription
 {
     [Subscribe]
