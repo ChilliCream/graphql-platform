@@ -6,15 +6,18 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class DateOnlyCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo _compareTo =
+    private static readonly CursorKeyCompareMethod _compareTo =
         CompareToResolver.GetCompareToMethod<DateOnly>();
 
     private const string _dateFormat = "yyyyMMdd";
 
     public bool IsSupported(Type type)
-        => type == typeof(DateOnly);
+        => type == typeof(DateOnly) || type == typeof(DateOnly?);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => type == typeof(DateOnly?);
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => _compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
