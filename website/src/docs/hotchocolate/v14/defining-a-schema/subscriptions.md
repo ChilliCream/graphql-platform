@@ -332,6 +332,28 @@ public class Subscription
 }
 ```
 
+## Sending Interface Types
+
+To use an interface type as result of a subscription, be sure to specify the type when calling `sender.SendAsync`.
+
+```csharp
+
+public class Subscription
+{
+    [Subscribe]
+    [Topic("ExampleTopic")]
+    public IBook IBookPublished([EventMessage] IBook book)
+        => book;
+}
+
+public async Book PublishBook(Book book, ITopicEventSender sender)
+{
+    await sender.SendAsync<IBook>("ExampleTopic", book);
+
+    // Omitted code for brevity
+}
+```
+
 # Websocket Authentication
 
 When working with GraphQL subscriptions over WebSockets, you may want to authenticate incoming WebSocket connections using JSON Web Tokens. Normally, HTTP headers are sent with each request for standard APIs, but WebSockets behave differently. After a successful HTTP handshake, the protocol is "upgraded" to WebSockets, and additional headers cannot be easily injected for subsequent messages.
