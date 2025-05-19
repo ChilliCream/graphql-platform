@@ -3,7 +3,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;

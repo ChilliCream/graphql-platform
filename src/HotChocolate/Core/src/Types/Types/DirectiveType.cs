@@ -2,7 +2,7 @@
 
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using HotChocolate.Serialization;
 using static HotChocolate.Properties.TypeResources;

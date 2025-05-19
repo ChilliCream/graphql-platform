@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 

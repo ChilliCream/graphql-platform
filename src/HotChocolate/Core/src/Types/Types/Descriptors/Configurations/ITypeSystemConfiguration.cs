@@ -2,7 +2,7 @@
 
 using HotChocolate.Features;
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A type system configuration is used in the type initialization

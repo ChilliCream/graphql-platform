@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 

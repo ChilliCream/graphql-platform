@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using StrawberryShake.CodeGeneration.Analyzers;
 using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 

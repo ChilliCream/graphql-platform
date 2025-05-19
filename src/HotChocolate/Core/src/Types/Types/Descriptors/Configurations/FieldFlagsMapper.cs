@@ -1,7 +1,7 @@
 #nullable enable
 using System.Runtime.CompilerServices;
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 internal static class FieldFlagsMapper
 {

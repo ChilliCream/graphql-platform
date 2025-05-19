@@ -1,6 +1,6 @@
 #nullable enable
 using System.Reflection;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 

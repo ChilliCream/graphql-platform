@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 using IHasName = HotChocolate.Types.IHasName;
 

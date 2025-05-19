@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 

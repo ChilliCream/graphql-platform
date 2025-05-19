@@ -8,7 +8,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;

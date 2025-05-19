@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.PagingDefaults;

@@ -3,7 +3,7 @@ using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fetching.Utilities.ThrowHelper;
 using static HotChocolate.WellKnownMiddleware;

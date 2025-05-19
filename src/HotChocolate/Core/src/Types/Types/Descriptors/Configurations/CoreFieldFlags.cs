@@ -1,5 +1,5 @@
 #nullable enable
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 [Flags]
 internal enum CoreFieldFlags

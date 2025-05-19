@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 

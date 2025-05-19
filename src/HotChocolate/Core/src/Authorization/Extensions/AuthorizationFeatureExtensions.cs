@@ -5,7 +5,7 @@ using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 

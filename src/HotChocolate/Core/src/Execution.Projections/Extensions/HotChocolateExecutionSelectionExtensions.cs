@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using GreenDonut.Data;
 using HotChocolate.Execution.Projections;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 // ReSharper disable once CheckNamespace

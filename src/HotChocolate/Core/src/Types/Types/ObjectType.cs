@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable

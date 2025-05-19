@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Internal;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;

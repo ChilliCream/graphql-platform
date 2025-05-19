@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;

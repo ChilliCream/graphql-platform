@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A type system definition is used in the type initialization to store properties

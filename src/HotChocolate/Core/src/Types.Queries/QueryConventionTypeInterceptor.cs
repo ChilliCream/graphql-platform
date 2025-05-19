@@ -1,5 +1,5 @@
 using System.Text;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Types;
 

@@ -6,11 +6,11 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 #nullable enable
 

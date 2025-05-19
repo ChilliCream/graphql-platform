@@ -5,7 +5,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
 using static HotChocolate.Utilities.ErrorHelper;

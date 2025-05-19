@@ -1,7 +1,7 @@
 using HotChocolate.Features;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Types.ErrorContextDataKeys;
 using static HotChocolate.Types.ThrowHelper;

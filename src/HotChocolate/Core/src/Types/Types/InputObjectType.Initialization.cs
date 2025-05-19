@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
@@ -103,13 +103,13 @@ public partial class InputObjectType
 
     protected virtual InputFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
         return new InputFieldCollection(
             CompleteFields(
                 context,
                 this,
-                definition.Fields,
+                configuration.Fields,
                 CreateField));
         static InputField CreateField(InputFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
@@ -117,13 +117,13 @@ public partial class InputObjectType
 
     protected virtual Func<object?[], object> OnCompleteCreateInstance(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
         Func<object?[], object>? createInstance = null;
 
-        if (definition.CreateInstance is not null)
+        if (configuration.CreateInstance is not null)
         {
-            createInstance = definition.CreateInstance;
+            createInstance = configuration.CreateInstance;
         }
 
         if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
@@ -140,13 +140,13 @@ public partial class InputObjectType
 
     protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
         Action<object, object?[]>? getFieldValues = null;
 
-        if (definition.GetFieldData is not null)
+        if (configuration.GetFieldData is not null)
         {
-            getFieldValues = definition.GetFieldData;
+            getFieldValues = configuration.GetFieldData;
         }
 
         if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))

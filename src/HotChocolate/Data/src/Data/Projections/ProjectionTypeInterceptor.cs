@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.Projections.ProjectionConvention;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
