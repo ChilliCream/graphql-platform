@@ -421,40 +421,43 @@ namespace Foo.Bar
     public partial class GetHeroQuery : global::Foo.Bar.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
-        private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
-        private readonly global::System.Func<global::StrawberryShake.OperationRequest>? _configure;
-        public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _operationExecutor = operationExecutor;
         }
 
-        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::System.Func<global::StrawberryShake.OperationRequest>? configure)
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
-            _configure = configure ?? throw new global::System.ArgumentNullException(nameof(configure));
+            _configure = configure;
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
 
-        public async global::Foo.Bar.IGetHeroQuery With(global::System.Func<global::StrawberryShake.OperationRequest> configure)
+        public global::Foo.Bar.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
         {
-            return new global::global ::Foo.Bar.GetHeroQuery(_operationExecutor, configure);
+            return new global::Foo.Bar.GetHeroQuery(_operationExecutor, _configure.Add(configure));
         }
 
-        public async global::Foo.Bar.IGetHeroQuery WithRequestUri(global::System.Uri requestUri)
+        public global::Foo.Bar.IGetHeroQuery WithRequestUri(global::System.Uri requestUri)
         {
-            return new global::global ::Foo.Bar.GetHeroQuery(_operationExecutor, r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
         }
 
-        public async global::Foo.Bar.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        public global::Foo.Bar.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
         {
-            return new global::global ::Foo.Bar.GetHeroQuery(_operationExecutor, r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -496,6 +499,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetHeroQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
