@@ -35,7 +35,7 @@ query testQuery {
 ## QueryPlan Hash
 
 ```text
-2E441B48CD5764FF5C99D83377ED4452DA4968AF
+5722F5134A038091DDEBF004D5733DF1141AD163
 ```
 
 ## QueryPlan
@@ -65,35 +65,16 @@ query testQuery {
         ]
       },
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "Resolve",
+        "subgraph": "Subgraph_2",
+        "document": "query testQuery_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { displayName } }",
+        "selectionSetId": 3,
+        "path": [
+          "authorById"
+        ],
+        "requires": [
           {
-            "type": "Resolve",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { displayName } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
-          },
-          {
-            "type": "Resolve",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_3($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { displayName } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
+            "variable": "__fusion_exports__1"
           }
         ]
       },

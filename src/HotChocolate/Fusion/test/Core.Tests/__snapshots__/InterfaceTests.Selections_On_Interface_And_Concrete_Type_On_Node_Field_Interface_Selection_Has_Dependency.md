@@ -7,18 +7,18 @@
   "data": {
     "node": {
       "__typename": "Item2",
-      "id": "something",
+      "id": "SXRlbTI6MQ==",
       "products": [
-        {
-          "id": "1",
-          "name": "string"
-        },
         {
           "id": "2",
           "name": "string"
         },
         {
           "id": "3",
+          "name": "string"
+        },
+        {
+          "id": "4",
           "name": "string"
         }
       ],
@@ -55,7 +55,7 @@ query testQuery($id: ID!) {
 ## QueryPlan Hash
 
 ```text
-7F627F0C88E6A2C3CDB2AAE846ED84105A66D357
+D7ECED31E24122116A43B641BB4FE1FFDC849F00
 ```
 
 ## QueryPlan
@@ -150,20 +150,6 @@ query testQuery($id: ID!) {
             "requires": [
               {
                 "variable": "__fusion_exports__2"
-              }
-            ]
-          },
-          {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_6($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on Product { name __fusion_exports__1: id } } }",
-            "selectionSetId": 4,
-            "path": [
-              "nodes"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
               }
             ]
           }
