@@ -421,12 +421,36 @@ namespace Foo.Bar
     public partial class GetHeroQuery : global::Foo.Bar.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
-        public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
+        private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
+        private readonly global::System.Func<global::StrawberryShake.OperationRequest>? _configure;
+        public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _operationExecutor = operationExecutor;
+        }
+
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::System.Func<global::StrawberryShake.OperationRequest>? configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure ?? throw new global::System.ArgumentNullException(nameof(configure));
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
+
+        public async global::Foo.Bar.IGetHeroQuery With(global::System.Func<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::global ::Foo.Bar.GetHeroQuery(_operationExecutor, configure);
+        }
+
+        public async global::Foo.Bar.IGetHeroQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return new global::global ::Foo.Bar.GetHeroQuery(_operationExecutor, r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public async global::Foo.Bar.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return new global::global ::Foo.Bar.GetHeroQuery(_operationExecutor, r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {

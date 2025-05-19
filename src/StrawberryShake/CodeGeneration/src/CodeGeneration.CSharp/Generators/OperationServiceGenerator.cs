@@ -71,8 +71,37 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
         AddInjectedSerializers(descriptor, constructorBuilder, classBuilder);
 
+        var privateConstructorBuilder = classBuilder
+            .AddConstructor()
+            .SetAccessModifier(AccessModifier.Private)
+            .SetTypeName(fileName);
+
+        var assignment = AssignmentBuilder
+            .New()
+            .SetLeftHandSide(_operationExecutor)
+            .SetRightHandSide(operationExecutor);
+
+        privateConstructorBuilder
+            .AddCode(assignment)
+            .AddParameter(operationExecutor, b => b.SetType(TypeNames.IOperationExecutor.WithGeneric(resultTypeName)));
+
+        AddConstructorAssignedField(
+            "global::System.Func<global::StrawberryShake.OperationRequest>?",
+            "_configure",
+            "configure",
+            classBuilder,
+            privateConstructorBuilder);
+
+        AddInjectedSerializers(descriptor, privateConstructorBuilder, classBuilder);
+
+
         if (descriptor is not SubscriptionOperationDescriptor)
         {
+            foreach (var method in CreateWitherMethods(descriptor))
+            {
+                classBuilder.AddMethod(method);
+            }
+
             classBuilder.AddMethod(CreateExecuteMethod(descriptor, resultTypeName));
         }
 
@@ -293,7 +322,67 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                         .AddArgument("false")));
     }
 
-    private MethodBuilder CreateRequestVariablesMethod(
+     private IEnumerable<MethodBuilder> CreateWitherMethods(
+        OperationDescriptor operationDescriptor)
+    {
+        var withMethod = MethodBuilder
+            .New()
+            .SetPublic()
+            .SetAsync()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("With");
+
+        withMethod
+            .AddParameter("configure")
+            .SetType("global::System.Func<global::StrawberryShake.OperationRequest>");
+
+        yield return withMethod
+            .AddCode(CodeInlineBuilder.From(
+                string.Format(
+                    "return new global::{0}(_operationExecutor, configure);" + Environment.NewLine,
+                    operationDescriptor.RuntimeType.FullName)));
+
+        var withRequestUriMethod = MethodBuilder
+            .New()
+            .SetPublic()
+            .SetAsync()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithRequestUri");
+
+        withRequestUriMethod
+            .AddParameter("requestUri")
+            .SetType(TypeNames.Uri);
+
+        yield return withRequestUriMethod
+            .AddCode(CodeInlineBuilder.From(
+                string.Format(
+                    "return new global::{0}(_operationExecutor, r => r.ContextData[\"{1}\"] = requestUri);"
+                        + Environment.NewLine,
+                    operationDescriptor.RuntimeType.FullName,
+                    "StrawberryShake.Transport.Http.HttpConnection.RequestUri")));
+
+        var withHttpClientMethod = MethodBuilder
+            .New()
+            .SetPublic()
+            .SetAsync()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithHttpClient");
+
+        withHttpClientMethod
+            .AddParameter("httpClient")
+            .SetType("global::System.Net.Http.HttpClient");
+
+        yield return withHttpClientMethod
+            .AddCode(CodeInlineBuilder.From(
+                string.Format(
+                    "return new global::{0}(_operationExecutor, r => r.ContextData[\"{1}\"] = httpClient);"
+                        + Environment.NewLine,
+                    operationDescriptor.RuntimeType.FullName,
+                    "StrawberryShake.Transport.Http.HttpConnection.HttpClient")));
+
+    }
+
+    private static MethodBuilder CreateRequestVariablesMethod(
         OperationDescriptor descriptor,
         bool hasFiles)
     {
