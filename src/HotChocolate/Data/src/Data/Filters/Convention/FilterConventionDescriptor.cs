@@ -11,22 +11,22 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     protected FilterConventionDescriptor(IDescriptorContext context, string? scope)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
-        Definition.Scope = scope;
+        Configuration.Scope = scope;
     }
 
     protected IDescriptorContext Context { get; }
 
-    protected FilterConventionDefinition Definition { get; } = new();
+    protected FilterConventionConfiguration Configuration { get; } = new();
 
-    public FilterConventionDefinition CreateDefinition()
+    public FilterConventionConfiguration CreateConfiguration()
     {
-        // collect all operation configurations and add them to the convention definition.
+        // collect all operation configurations and add them to the convention configuration.
         foreach (var operation in _operations.Values)
         {
-            Definition.Operations.Add(operation.CreateDefinition());
+            Configuration.Operations.Add(operation.CreateConfiguration());
         }
 
-        return Definition;
+        return Configuration;
     }
 
     /// <inheritdoc />
@@ -70,7 +70,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
                 nameof(filterType));
         }
 
-        Definition.Bindings[runtimeType] = filterType;
+        Configuration.Bindings[runtimeType] = filterType;
 
         return this;
     }
@@ -82,7 +82,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
             Context.TypeInspector.GetTypeRef(
                 typeof(TFilterType),
                 TypeContext.Input,
-                Definition.Scope),
+                Configuration.Scope),
             configure);
 
     /// <inheritdoc />
@@ -93,25 +93,25 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
             Context.TypeInspector.GetTypeRef(
                 typeof(TFilterType),
                 TypeContext.Input,
-                Definition.Scope),
+                Configuration.Scope),
             d =>
             {
                 configure.Invoke(
                     FilterInputTypeDescriptor.From<TRuntimeType>(
                         (FilterInputTypeDescriptor)d,
-                        Definition.Scope));
+                        Configuration.Scope));
             });
 
     protected IFilterConventionDescriptor Configure(
         TypeReference typeReference,
         ConfigureFilterInputType configure)
     {
-        if (!Definition.Configurations.TryGetValue(
+        if (!Configuration.Configurations.TryGetValue(
                 typeReference,
                 out var configurations))
         {
             configurations = [];
-            Definition.Configurations.Add(typeReference, configurations);
+            Configuration.Configurations.Add(typeReference, configurations);
         }
 
         configurations.Add(configure);
@@ -128,8 +128,8 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     public IFilterConventionDescriptor Provider<TProvider>(TProvider provider)
         where TProvider : class, IFilterProvider
     {
-        Definition.Provider = typeof(TProvider);
-        Definition.ProviderInstance = provider;
+        Configuration.Provider = typeof(TProvider);
+        Configuration.ProviderInstance = provider;
 
         return this;
     }
@@ -149,7 +149,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
                 nameof(provider));
         }
 
-        Definition.Provider = provider;
+        Configuration.Provider = provider;
 
         return this;
     }
@@ -157,7 +157,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     /// <inheritdoc />
     public IFilterConventionDescriptor ArgumentName(string argumentName)
     {
-        Definition.ArgumentName = argumentName;
+        Configuration.ArgumentName = argumentName;
 
         return this;
     }
@@ -165,7 +165,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     public IFilterConventionDescriptor AddProviderExtension<TExtension>()
         where TExtension : class, IFilterProviderExtension
     {
-        Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+        Configuration.ProviderExtensionsTypes.Add(typeof(TExtension));
 
         return this;
     }
@@ -173,21 +173,21 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     public IFilterConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
         where TExtension : class, IFilterProviderExtension
     {
-        Definition.ProviderExtensions.Add(provider);
+        Configuration.ProviderExtensions.Add(provider);
 
         return this;
     }
 
     public IFilterConventionDescriptor AllowOr(bool allow = true)
     {
-        Definition.UseOr = allow;
+        Configuration.UseOr = allow;
 
         return this;
     }
 
     public IFilterConventionDescriptor AllowAnd(bool allow = true)
     {
-        Definition.UseAnd = allow;
+        Configuration.UseAnd = allow;
 
         return this;
     }

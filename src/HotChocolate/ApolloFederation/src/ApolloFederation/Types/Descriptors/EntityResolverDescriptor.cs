@@ -12,10 +12,10 @@ using static HotChocolate.ApolloFederation.FederationContextData;
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
-/// The entity descriptor allows to specify a reference resolver.
+/// The entity descriptor allows specifying a reference resolver.
 /// </summary>
 public sealed class EntityResolverDescriptor<TEntity>
-    : DescriptorBase<EntityResolverDefinition>
+    : DescriptorBase<EntityResolverConfiguration>
     , IEntityResolverDescriptor
     , IEntityResolverDescriptor<TEntity>
 {
@@ -36,27 +36,27 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         _typeDescriptor
             .Extend()
-            .OnBeforeCreate(OnCompleteDefinition);
+            .OnBeforeCreate(OnCompleteConfiguration);
 
-        Definition.EntityType = entityType;
+        Configuration.EntityType = entityType;
     }
 
-    private void OnCompleteDefinition(ObjectTypeDefinition definition)
+    private void OnCompleteConfiguration(ObjectTypeConfiguration configuration)
     {
-        if (Definition.ResolverDefinition is not null)
+        if (Configuration.Resolver is not null)
         {
-            if (definition.ContextData.TryGetValue(EntityResolver, out var value) &&
-                value is List<ReferenceResolverDefinition> resolvers)
+            if (configuration.ContextData.TryGetValue(EntityResolver, out var value) &&
+                value is List<ReferenceResolverConfiguration> resolvers)
             {
-                resolvers.Add(Definition.ResolverDefinition.Value);
+                resolvers.Add(Configuration.Resolver);
             }
             else
             {
-                definition.ContextData.Add(
+                configuration.ContextData.Add(
                     EntityResolver,
-                    new List<ReferenceResolverDefinition>
+                    new List<ReferenceResolverConfiguration>
                     {
-                        Definition.ResolverDefinition.Value,
+                        Configuration.Resolver,
                     });
             }
         }
@@ -65,7 +65,7 @@ public sealed class EntityResolverDescriptor<TEntity>
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver)
-        => ResolveReference(fieldResolver, Array.Empty<string[]>());
+        => ResolveReference(fieldResolver, []);
 
     /// <inheritdoc cref="IEntityResolverDescriptor{T}"/>
     public IObjectTypeDescriptor ResolveReferenceWith(
@@ -115,7 +115,7 @@ public sealed class EntityResolverDescriptor<TEntity>
     public IObjectTypeDescriptor ResolveReferenceWith(Type type)
         => ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.EntityType ?? type,
+                Configuration.EntityType ?? type,
                 type)!);
 
     private IObjectTypeDescriptor ResolveReference(
@@ -126,9 +126,9 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         ArgumentNullException.ThrowIfNull(required);
 
-        Definition.ResolverDefinition = new(fieldResolver, required);
+        Configuration.Resolver = new(fieldResolver, required);
         return _typeDescriptor;
     }
 
-    protected internal override EntityResolverDefinition Definition { get; protected set; } = new();
+    protected internal override EntityResolverConfiguration Configuration { get; protected set; } = new();
 }

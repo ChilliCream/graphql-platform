@@ -96,7 +96,7 @@ public sealed class InputParser
             case TypeKind.NonNull:
                 return ParseLiteralInternal(
                     value,
-                    ((NonNullType)type).Type,
+                    ((NonNullType)type).NullableType,
                     path,
                     stack,
                     defaults,
@@ -478,7 +478,7 @@ public sealed class InputParser
 
         if (type.Kind == TypeKind.NonNull)
         {
-            type = ((NonNullType)type).Type;
+            type = ((NonNullType)type).NullableType;
         }
 
         switch (type.Kind)

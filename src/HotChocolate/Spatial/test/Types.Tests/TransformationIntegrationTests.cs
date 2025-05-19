@@ -646,15 +646,15 @@ public class TransformationIntegrationTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is ObjectTypeDefinition o)
+            if (configuration is ObjectTypeConfiguration o)
             {
                 foreach (var field in o.Fields)
                 {
                     if (field.Name.EqualsOrdinal("test"))
                     {
-                        field.MiddlewareDefinitions.Insert(0,
+                        field.MiddlewareConfigurations.Insert(0,
                             new(next => async context =>
                             {
                                 await next(context);

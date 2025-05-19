@@ -79,7 +79,7 @@ public abstract class TypeInterceptor
 
     /// <summary>
     /// This event is triggered after the type instance was created but before
-    /// any type definition was initialized.
+    /// any type system configuration is initialized.
     /// </summary>
     /// <param name="discoveryContext">
     /// The type discovery context.
@@ -90,19 +90,19 @@ public abstract class TypeInterceptor
     }
 
     /// <summary>
-    /// This event is triggered after the type type definition was initialized and
+    /// This event is triggered after the type system configuration was initialized and
     /// after the dependencies of this type have been registered
     /// with the type discovery context.
     /// </summary>
     /// <param name="discoveryContext">
     /// The type discovery context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -133,34 +133,35 @@ public abstract class TypeInterceptor
     public virtual void OnTypesInitialized() { }
 
     /// <summary>
-    /// This event is called after the type definition is initialized
+    /// This event is called after the type system configuration is initialized
     /// but before the type dependencies are reported to the discovery context.
     /// </summary>
     /// <param name="discoveryContext">
     /// The type discovery context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
     /// <summary>
     /// This event is called after the type dependencies are reported to the
-    /// type discovery context but before the type definition is fully initialized.
+    /// type discovery context but before the type system configuration
+    /// is fully initialized.
     /// </summary>
     /// <param name="discoveryContext">
     /// The type discovery context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -180,12 +181,12 @@ public abstract class TypeInterceptor
     /// <param name="completionContext">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -195,12 +196,12 @@ public abstract class TypeInterceptor
     /// <param name="completionContext">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -210,8 +211,8 @@ public abstract class TypeInterceptor
     /// <param name="completionContext">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     /// <param name="operationType">
     /// Specifies what kind of operation type is resolved.
@@ -221,7 +222,7 @@ public abstract class TypeInterceptor
     #endif
     public virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
     }
@@ -243,9 +244,9 @@ public abstract class TypeInterceptor
 
     internal virtual void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration configuration)
     {
-        foreach (var field in definition.Fields)
+        foreach (var field in configuration.Fields)
         {
             OnBeforeCompleteMutationField(completionContext, field);
         }
@@ -253,7 +254,7 @@ public abstract class TypeInterceptor
 
     public virtual void OnBeforeCompleteMutationField(
         ITypeCompletionContext completionContext,
-        ObjectFieldDefinition mutationField)
+        ObjectFieldConfiguration mutationField)
     {
     }
 
@@ -278,12 +279,12 @@ public abstract class TypeInterceptor
     /// <param name="completionContext">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -293,12 +294,12 @@ public abstract class TypeInterceptor
     /// <param name="completionContext">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -318,12 +319,12 @@ public abstract class TypeInterceptor
     /// <param name="context">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnBeforeCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -333,12 +334,12 @@ public abstract class TypeInterceptor
     /// <param name="context">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnAfterCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -358,12 +359,12 @@ public abstract class TypeInterceptor
     /// <param name="context">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnBeforeMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -373,12 +374,12 @@ public abstract class TypeInterceptor
     /// <param name="context">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnAfterMakeExecutable(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -387,15 +388,15 @@ public abstract class TypeInterceptor
     /// intended to add validation logic. If the type is not valid throw a
     /// <see cref="SchemaException"/>.
     /// </summary>
-    /// <param name="validationContext">
+    /// <param name="context">
     /// The type completion context.
     /// </param>
-    /// <param name="definition">
-    /// The type definition of the type system member.
+    /// <param name="configuration">
+    /// The type system configuration of the type system member.
     /// </param>
     public virtual void OnValidateType(
-        ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+        ITypeSystemObjectContext context,
+        TypeSystemConfiguration configuration)
     {
     }
 
@@ -407,12 +408,12 @@ public abstract class TypeInterceptor
     /// <param name="context">
     /// The descriptor context.
     /// </param>
-    /// <param name="schemaTypesDefinition">
-    /// The schema types definition.
+    /// <param name="configuration">
+    /// The schema types configuration.
     /// </param>
     internal virtual void OnBeforeRegisterSchemaTypes(
         IDescriptorContext context,
-        SchemaTypesDefinition schemaTypesDefinition)
+        SchemaTypesConfiguration configuration)
     {
     }
 
@@ -451,17 +452,17 @@ public abstract class TypeInterceptor
     /// <summary>
     /// This event is called after the type was registered with the type registry.
     /// </summary>
-    /// <param name="discoveryContext">
+    /// <param name="context">
     /// The type discovery context.
     /// </param>
-    /// <param name="typeDependencies">
+    /// <param name="dependencies">
     ///
     /// </param>
     public virtual bool TryCreateScope(
-        ITypeDiscoveryContext discoveryContext,
-        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
+        ITypeDiscoveryContext context,
+        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? dependencies)
     {
-        typeDependencies = null;
+        dependencies = null;
         return false;
     }
 }

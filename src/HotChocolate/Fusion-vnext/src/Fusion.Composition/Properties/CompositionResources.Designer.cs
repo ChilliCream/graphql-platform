@@ -303,6 +303,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A selection set on the annotated field that describes its requirements..
+        /// </summary>
+        internal static string FusionRequiresMutableDirectiveDefinition_Requirements_Description {
+            get {
+                return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Requirements_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the source schema where this field has requirements to data on other source schemas..
         /// </summary>
         internal static string FusionRequiresMutableDirectiveDefinition_Schema_Description {
@@ -573,6 +582,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; implementing interface field &apos;{1}&apos; is inaccessible in the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_ImplementedByInaccessible {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ImplementedByInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value &apos;{0}&apos; of input field &apos;{1}&apos; in schema &apos;{2}&apos; differs from the default value of &apos;{3}&apos; in schema &apos;{4}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputFieldDefaultMismatch {
@@ -623,6 +641,42 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_InvalidShareableUsage {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InvalidShareableUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; must specify a string value for the &apos;field&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidFieldType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidFieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains invalid syntax in the &apos;field&apos; argument..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidSyntax {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; is invalid because the declaring field is not a lookup field..
+        /// </summary>
+        internal static string LogEntryHelper_IsInvalidUsage {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidUsage", resourceCulture);
             }
         }
         

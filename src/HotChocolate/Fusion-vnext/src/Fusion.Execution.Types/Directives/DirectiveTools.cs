@@ -25,6 +25,12 @@ internal static class DirectiveTools
                 continue;
             }
 
+            // TODO : Remove once we have a better way to handle built-in directives.
+            if (FusionBuiltIns.IsBuiltInDirective(directiveNode.Name.Value))
+            {
+                continue;
+            }
+
             builder.Add(directiveNode);
         }
 

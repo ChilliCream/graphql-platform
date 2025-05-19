@@ -61,7 +61,7 @@ The operations file typically adopts the JSON format as used by Relay. It compri
 Several GraphQL clients have built-in support for this Relay-style operations file format. This compatibility allows for a standardized way of handling persisted operations across different clients. For more details on how various clients implement and work with persisted operations, consider referring to their respective documentation:
 
 - [StrawberryShake](https://chillicream.com/docs/strawberryshake/v14/performance/persisted-operations)
-- [URQL](https://formidable.com/open-source/urql/docs/advanced/persisted-queries/)
+- [URQL](https://nearform.com/open-source/urql/docs/advanced/persistence-and-uploads/)
 - [Relay](https://relay.dev/docs/guides/persisted-queries/)
 
 # Setting Up a Client Registry

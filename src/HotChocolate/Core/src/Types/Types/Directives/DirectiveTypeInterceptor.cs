@@ -13,9 +13,9 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteMetadata(
         ITypeCompletionContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        base.OnAfterCompleteMetadata(context, definition);
+        base.OnAfterCompleteMetadata(context, configuration);
 
         if (!((RegisteredType)context).HasErrors)
         {
@@ -25,11 +25,11 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 
     internal override void OnBeforeRegisterSchemaTypes(
         IDescriptorContext context,
-        SchemaTypesDefinition schemaTypesDefinition)
+        SchemaTypesConfiguration configuration)
     {
         List<DirectiveType>? discarded = null;
 
-        foreach (var directiveType in schemaTypesDefinition.DirectiveTypes!)
+        foreach (var directiveType in configuration.DirectiveTypes!)
         {
             if (directiveType is { IsTypeSystemDirective: true, IsExecutableDirective: false } &&
                 !directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated) &&
@@ -42,8 +42,8 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 
         if (discarded is not null)
         {
-            schemaTypesDefinition.DirectiveTypes =
-                schemaTypesDefinition.DirectiveTypes!.Except(discarded).ToArray();
+            configuration.DirectiveTypes =
+                configuration.DirectiveTypes!.Except(discarded).ToArray();
         }
     }
 

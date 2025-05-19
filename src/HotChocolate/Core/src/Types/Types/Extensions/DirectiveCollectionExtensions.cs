@@ -53,7 +53,7 @@ public static class DirectiveCollectionExtensions
 
         // a fragment is not deferrable if we do not find a defer directive or
         // if the `if` of the defer directive is a bool literal with a false value.
-        return directive is not null && ifValue is not BooleanValueNode { Value: false, };
+        return directive is not null && ifValue is not BooleanValueNode { Value: false };
     }
 
     internal static bool IsStreamable(this FieldNode field)
@@ -63,7 +63,7 @@ public static class DirectiveCollectionExtensions
 
         // a field is not streamable if we do not find a streamable directive or
         // if the `if` of the streamable directive is a bool literal with a false value.
-        return directive is not null && ifValue is not BooleanValueNode { Value: false, };
+        return directive is not null && ifValue is not BooleanValueNode { Value: false };
     }
 
     internal static bool HasStreamOrDeferDirective(this IReadOnlyList<DirectiveNode> directives)
@@ -134,7 +134,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<bool>(variable.Name.Value),
                             BooleanValueNode b => b.Value,
-                            _ => @if,
+                            _ => @if
                         };
                         break;
 
@@ -144,7 +144,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<string?>(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label,
+                            _ => label
                         };
                         break;
                 }
@@ -183,7 +183,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<bool>(variable.Name.Value),
                             BooleanValueNode b => b.Value,
-                            _ => @if,
+                            _ => @if
                         };
                         break;
 
@@ -193,7 +193,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<string?>(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label,
+                            _ => label
                         };
                         break;
 
@@ -203,7 +203,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<int>(variable.Name.Value),
                             IntValueNode b => b.ToInt32(),
-                            _ => initialCount,
+                            _ => initialCount
                         };
                         break;
                 }

@@ -7,6 +7,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// The base class for all GraphQL type system objects.
+/// </summary>
 public abstract class TypeSystemObjectBase : ITypeSystemObject
 {
     private TypeStatus _status;
@@ -15,7 +18,7 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     private string? _description;
 
     /// <summary>
-    /// Gets a scope name that was provided by an extension.
+    /// Gets a scope name provided by an extension.
     /// </summary>
     public string? Scope
     {

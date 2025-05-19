@@ -49,7 +49,11 @@ internal sealed class ExportCommand : Command
 
         if (output is not null)
         {
-            await File.WriteAllTextAsync(output.FullName, sdl, Encoding.UTF8, cancellationToken);
+            await File.WriteAllTextAsync(
+                output.FullName,
+                sdl,
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+                cancellationToken);
         }
         else
         {

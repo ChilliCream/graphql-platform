@@ -208,7 +208,15 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
         finally
         {
-            session.Dispose();
+            if (session is IAsyncDisposable asyncDisposableSession)
+            {
+                await asyncDisposableSession.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                session.Dispose();
+            }
+
             DiagnosticEvents.Disconnected(Name);
         }
     }

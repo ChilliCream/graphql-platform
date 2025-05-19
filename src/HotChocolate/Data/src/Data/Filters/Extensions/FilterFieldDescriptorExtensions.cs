@@ -17,10 +17,10 @@ public static class FilterFieldDescriptorExtensions
                 (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
 
     private static TypeReference RewriteTypeToNullableType(
-        FilterFieldDefinition definition,
+        FilterFieldConfiguration configuration,
         ITypeInspector typeInspector)
     {
-        var reference = definition.Type;
+        var reference = configuration.Type;
 
         if (reference is ExtendedTypeReference extendedTypeRef)
         {
@@ -33,7 +33,7 @@ public static class FilterFieldDescriptorExtensions
         if (reference is SchemaTypeReference schemaRef)
         {
             return schemaRef.Type is NonNullType nnt
-                ? schemaRef.WithType(nnt.Type)
+                ? schemaRef.WithType(nnt.NullableType)
                 : schemaRef;
         }
 

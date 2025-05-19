@@ -11,9 +11,9 @@ internal sealed class TagDirectiveConfigAttribute : DirectiveTypeDescriptorAttri
         Type type)
     {
         if (context.ContextData.TryGetValue(WellKnownContextData.TagOptions, out var value) &&
-            value is TagOptions { Mode: TagMode.ApolloFederation, })
+            value is TagOptions { Mode: TagMode.ApolloFederation })
         {
-            descriptor.Extend().Definition.Locations =
+            descriptor.Extend().Configuration.Locations =
                 DirectiveLocation.Object |
                 DirectiveLocation.Interface |
                 DirectiveLocation.Union |

@@ -46,7 +46,7 @@ public class FilterInfo : FilterValueNode, IFilterInfo
         var type = Type;
         if (Type is NonNullType nonNullType)
         {
-            type = nonNullType.Type;
+            type = nonNullType.NullableType;
         }
 
         if (ValueNode is ObjectValueNode valueNode &&
@@ -87,7 +87,7 @@ public class FilterInfo : FilterValueNode, IFilterInfo
         var normalizedType = type;
         if (type is NonNullType nonNullType)
         {
-            normalizedType = nonNullType.Type;
+            normalizedType = nonNullType.NullableType;
         }
 
         if (valueNode is ListValueNode listValueNode &&

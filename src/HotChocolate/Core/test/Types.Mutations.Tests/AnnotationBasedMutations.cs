@@ -1410,9 +1410,9 @@ public class AnnotationBasedMutations
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is not ObjectTypeDefinition objTypeDef)
+            if (configuration is not ObjectTypeConfiguration objTypeDef)
             {
                 return;
             }
@@ -1420,9 +1420,9 @@ public class AnnotationBasedMutations
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is ObjectTypeDefinition objTypeDef)
+            if (configuration is ObjectTypeConfiguration objTypeDef)
             {
                 foreach (var fieldDef in objTypeDef.Fields)
                 {
@@ -1756,10 +1756,10 @@ public class AnnotationBasedMutations
     {
         public override void OnConfigure(
             IDescriptorContext context,
-            ObjectFieldDefinition mutationField)
+            ObjectFieldConfiguration mutationField)
         {
             mutationField.AddErrorType(context, typeof(SomeNewError));
-            mutationField.MiddlewareDefinitions.Add(
+            mutationField.MiddlewareConfigurations.Add(
                 new(next => async ctx =>
                 {
                     await next(ctx);

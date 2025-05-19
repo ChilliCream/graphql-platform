@@ -20,15 +20,15 @@ public class QueryableDefaultFieldHandler
     /// field
     /// </summary>
     /// <param name="context">The current context</param>
-    /// <param name="typeDefinition">The definition of the type that declares the field</param>
-    /// <param name="fieldDefinition">The definition of the field</param>
+    /// <param name="typeConfiguration">The configuration of the type that declares the field</param>
+    /// <param name="fieldConfiguration">The configuration of the field</param>
     /// <returns>True in case the field can be handled</returns>
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) =>
-        fieldDefinition is not FilterOperationFieldDefinition &&
-        (fieldDefinition.Member is not null || fieldDefinition.Expression is not null);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration is not FilterOperationFieldConfiguration &&
+        (fieldConfiguration.Member is not null || fieldConfiguration.Expression is not null);
 
     public override bool TryHandleEnter(
         QueryableFilterContext context,

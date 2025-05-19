@@ -79,9 +79,9 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (discoveryContext is { Scope: { }, } && definition is ObjectTypeDefinition def)
+            if (discoveryContext is { Scope: { }, } && configuration is ObjectTypeConfiguration def)
             {
                 _contexts.Add(discoveryContext);
 
@@ -97,11 +97,11 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
             if (completionContext is { Scope: { }, })
             {
-                definition.Name = completionContext.Scope + "_" + definition.Name;
+                configuration.Name = completionContext.Scope + "_" + configuration.Name;
             }
         }
 

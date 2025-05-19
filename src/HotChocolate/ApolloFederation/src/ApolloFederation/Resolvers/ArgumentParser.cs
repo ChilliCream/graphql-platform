@@ -30,7 +30,7 @@ internal static class ArgumentParser
         int i,
         out T? value)
     {
-        type = type is NonNullType nonNullType ? nonNullType.Type : type;
+        type = type is NonNullType nonNullType ? nonNullType.NullableType : type;
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:

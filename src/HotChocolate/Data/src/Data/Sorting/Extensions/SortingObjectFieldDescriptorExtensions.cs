@@ -130,12 +130,12 @@ public static class SortingObjectFieldDescriptorExtensions
         ITypeSystemMember? sortTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+        FieldMiddlewareConfiguration sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
         var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
-        var fieldDefinition = descriptor.Extend().Definition;
+        var fieldDefinition = descriptor.Extend().Configuration;
 
-        fieldDefinition.MiddlewareDefinitions.Add(sortQuery);
+        fieldDefinition.MiddlewareConfigurations.Add(sortQuery);
 
         descriptor
             .Extend()
@@ -171,15 +171,15 @@ public static class SortingObjectFieldDescriptorExtensions
                             scope);
                     }
 
-                    var argumentDefinition = new ArgumentDefinition
+                    var argumentDefinition = new ArgumentConfiguration
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
                         Flags = FieldFlags.SortArgument
                     };
 
-                    argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>((context, def) =>
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>((context, def) =>
                         {
                             var namedType = context.GetType<INamedType>(argumentTypeReference);
                             def.Type = TypeReference.Parse($"[{namedType.Name}!]");
@@ -191,8 +191,8 @@ public static class SortingObjectFieldDescriptorExtensions
 
                     definition.Arguments.Add(argumentDefinition);
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (context, def) =>
                                 CompileMiddleware(
                                     context,
@@ -205,8 +205,8 @@ public static class SortingObjectFieldDescriptorExtensions
                             argumentTypeReference,
                             TypeDependencyFulfilled.Completed));
 
-                    argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>(
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) => argDef.Name = context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,
                             ApplyConfigurationOn.BeforeNaming));
@@ -217,9 +217,9 @@ public static class SortingObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition,
-        ArgumentDefinition argumentDefinition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        ArgumentConfiguration argumentDefinition,
+        FieldMiddlewareConfiguration placeholder,
         string? scope)
     {
         var resolvedType = context.GetType<IType>(argumentDefinition.Type!);
@@ -236,8 +236,8 @@ public static class SortingObjectFieldDescriptorExtensions
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
 
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Sorting);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Sorting);
     }
 
     private static IQueryBuilder CreateBuilder<TEntity>(

@@ -24,8 +24,8 @@ internal static class RelayIdFieldHelpers
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
     public static void ApplyIdToField(
-        IDescriptor<ArgumentDefinition> descriptor,
-        string? typeName = default)
+        IDescriptor<ArgumentConfiguration> descriptor,
+        string? typeName = null)
     {
         if (descriptor is null)
         {
@@ -35,7 +35,7 @@ internal static class RelayIdFieldHelpers
         var extend = descriptor.Extend();
 
         // rewrite type
-        extend.OnBeforeCreate(RewriteDefinition);
+        extend.OnBeforeCreate(RewriteConfiguration);
 
         // add serializer if globalID support is enabled.
         if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
@@ -52,25 +52,22 @@ internal static class RelayIdFieldHelpers
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
     public static void ApplyIdToField(
-        IDescriptor<OutputFieldDefinitionBase> descriptor,
-        string? typeName = default)
+        IDescriptor<OutputFieldConfiguration> descriptor,
+        string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         // rewrite type
-        descriptor.Extend().OnBeforeCreate(RewriteDefinition);
+        descriptor.Extend().OnBeforeCreate(RewriteConfiguration);
 
-        if (descriptor is IDescriptor<ObjectFieldDefinition> objectFieldDescriptor)
+        if (descriptor is IDescriptor<ObjectFieldConfiguration> objectFieldDescriptor)
         {
             var extend = objectFieldDescriptor.Extend();
 
             // add serializer if globalID support is enabled.
             if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
             {
-                ApplyIdToField(extend.Definition, typeName);
+                ApplyIdToField(extend.Configuration, typeName);
             }
         }
     }
@@ -83,40 +80,40 @@ internal static class RelayIdFieldHelpers
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
     internal static void ApplyIdToField(
-        ObjectFieldDefinition definition,
-        string? typeName = default)
+        ObjectFieldConfiguration configuration,
+        string? typeName = null)
     {
-        var placeholder = new ResultFormatterDefinition(
+        var placeholder = new ResultFormatterConfiguration(
             (_, r) => r,
             isRepeatable: false,
             key: WellKnownMiddleware.GlobalId);
-        definition.FormatterDefinitions.Add(placeholder);
+        configuration.FormatterConfigurations.Add(placeholder);
 
-        var configuration = new CompleteConfiguration(
+        var configurationTask = new OnCompleteTypeSystemConfigurationTask(
             (ctx, def) => AddSerializerToObjectField(
                 ctx,
-                (ObjectFieldDefinition)def,
+                (ObjectFieldConfiguration)def,
                 placeholder,
                 typeName),
-            definition,
+            configuration,
             ApplyConfigurationOn.BeforeCompletion);
 
-        definition.Configurations.Add(configuration);
+        configuration.Tasks.Add(configurationTask);
     }
 
-    private static void RewriteDefinition(
+    private static void RewriteConfiguration(
         IDescriptorContext context,
-        FieldDefinitionBase definition)
+        FieldConfiguration configuration)
     {
-        if (definition.Type is ExtendedTypeReference typeReference)
+        if (configuration.Type is ExtendedTypeReference typeReference)
         {
             var typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
             var type = RewriteType(context.TypeInspector, typeInfo);
-            definition.Type = typeReference.WithType(type);
+            configuration.Type = typeReference.WithType(type);
         }
         else
         {
-            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(definition.Name);
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(configuration.Name);
         }
     }
 
@@ -144,32 +141,32 @@ internal static class RelayIdFieldHelpers
 
     internal static void AddSerializerToInputField(
         ITypeCompletionContext completionContext,
-        ArgumentDefinition definition,
+        ArgumentConfiguration configuration,
         string? typeName)
     {
         var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
-        if (definition is InputFieldDefinition { RuntimeType: { } runtimeType, })
+        if (configuration is InputFieldConfiguration { RuntimeType: { } runtimeType })
         {
             resultType = typeInspector.GetType(runtimeType);
         }
-        else if (definition is InputFieldDefinition { Property: not null, } inputField)
+        else if (configuration is InputFieldConfiguration { Property: not null } inputField)
         {
             resultType = typeInspector.GetReturnType(inputField.Property, true);
         }
-        else if (definition.Parameter is not null)
+        else if (configuration.Parameter is not null)
         {
-            resultType = typeInspector.GetArgumentType(definition.Parameter, true);
+            resultType = typeInspector.GetArgumentType(configuration.Parameter, true);
         }
-        else if (definition.Type is ExtendedTypeReference typeReference)
+        else if (configuration.Type is ExtendedTypeReference typeReference)
         {
             resultType = typeReference.Type;
         }
         else
         {
             throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(
-                definition.Name,
+                configuration.Name,
                 completionContext.Type);
         }
 
@@ -177,44 +174,44 @@ internal static class RelayIdFieldHelpers
         typeName ??= completionContext.Type.Name;
         SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
         var serializer = CreateSerializer(completionContext, resultType, typeName, validateType);
-        definition.Formatters.Add(serializer);
+        configuration.Formatters.Add(serializer);
     }
 
     private static void AddSerializerToObjectField(
         ITypeCompletionContext completionContext,
-        ObjectFieldDefinition definition,
-        ResultFormatterDefinition placeholder,
+        ObjectFieldConfiguration configuration,
+        ResultFormatterConfiguration placeholder,
         string? typeName)
     {
         var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
-        if (definition.ResultType is not null)
+        if (configuration.ResultType is not null)
         {
-            resultType = typeInspector.GetType(definition.ResultType);
+            resultType = typeInspector.GetType(configuration.ResultType);
         }
-        else if (definition.Type is ExtendedTypeReference typeReference)
+        else if (configuration.Type is ExtendedTypeReference typeReference)
         {
             resultType = typeReference.Type;
         }
         else
         {
             throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(
-                definition.Name,
+                configuration.Name,
                 completionContext.Type);
         }
 
         var serializerAccessor = completionContext.DescriptorContext.NodeIdSerializerAccessor;
-        var index = definition.FormatterDefinitions.IndexOf(placeholder);
+        var index = configuration.FormatterConfigurations.IndexOf(placeholder);
 
         typeName ??= completionContext.Type.Name;
         SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
 
-        definition.FormatterDefinitions[index] =
+        configuration.FormatterConfigurations[index] =
             CreateResultFormatter(typeName, resultType, serializerAccessor);
     }
 
-    private static ResultFormatterDefinition CreateResultFormatter(
+    private static ResultFormatterConfiguration CreateResultFormatter(
         string typeName,
         IExtendedType resultType,
         INodeIdSerializerAccessor serializerAccessor)

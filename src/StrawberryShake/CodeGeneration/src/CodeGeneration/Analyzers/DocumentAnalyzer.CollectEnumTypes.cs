@@ -21,8 +21,7 @@ public partial class DocumentAnalyzer
             {
                 rename = enumValue.Directives.SingleOrDefault<RenameDirective>();
 
-                var value =
-                    enumValue.Directives.SingleOrDefault<EnumValueDirective>();
+                var value = enumValue.Directives.SingleOrDefault<EnumValueDirective>();
 
                 values.Add(new EnumValueModel(
                     rename?.Name ?? GetEnumValue(enumValue.Name),

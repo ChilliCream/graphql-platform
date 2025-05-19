@@ -31,30 +31,31 @@ public class SortInputTypeDescriptor<T>
 
     protected internal SortInputTypeDescriptor(
         IDescriptorContext context,
-        SortInputTypeDefinition definition,
+        SortInputTypeConfiguration configuration,
         string? scope)
-        : base(context, definition, scope)
+        : base(context, configuration, scope)
     {
     }
 
     protected override void OnCompleteFields(
-        IDictionary<string, SortFieldDefinition> fields,
+        IDictionary<string, SortFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
-        if (Definition.Fields.IsImplicitBinding() &&
-            Definition.EntityType is { })
+        if (Configuration.Fields.IsImplicitBinding() &&
+            Configuration.EntityType is { })
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
-                Definition.EntityType,
+                Configuration.EntityType,
                 p => SortFieldDescriptor
-                    .New(Context, Definition.Scope, p)
-                    .CreateDefinition(),
+                    .New(Context, Configuration.Scope, p)
+                    .CreateConfiguration(),
                 fields,
                 handledProperties,
-                include: (_, member) => member is PropertyInfo &&
+                include: (_, member) => member is PropertyInfo p &&
                     !handledProperties.Contains(member) &&
-                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
+                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList &&
+                    !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
         }
 
         base.OnCompleteFields(fields, handledProperties);
@@ -102,11 +103,11 @@ public class SortInputTypeDescriptor<T>
         {
             case PropertyInfo m:
                 var fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == m);
+                    Fields.FirstOrDefault(t => t.Configuration.Member == m);
 
                 if (fieldDescriptor is null)
                 {
-                    fieldDescriptor = SortFieldDescriptor.New(Context, Definition.Scope, m);
+                    fieldDescriptor = SortFieldDescriptor.New(Context, Configuration.Scope, m);
                     Fields.Add(fieldDescriptor);
                 }
 
@@ -119,7 +120,7 @@ public class SortInputTypeDescriptor<T>
 
             default:
                 fieldDescriptor = SortFieldDescriptor
-                    .New(Context, Definition.Scope, propertyOrMember);
+                    .New(Context, Configuration.Scope, propertyOrMember);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
         }
@@ -138,11 +139,11 @@ public class SortInputTypeDescriptor<T>
         if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
             var fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == p);
+                Fields.FirstOrDefault(t => t.Configuration.Member == p);
 
             if (fieldDescriptor is null)
             {
-                fieldDescriptor = IgnoreSortFieldDescriptor.New(Context, Definition.Scope, p);
+                fieldDescriptor = IgnoreSortFieldDescriptor.New(Context, Configuration.Scope, p);
                 Fields.Add(fieldDescriptor);
             }
 

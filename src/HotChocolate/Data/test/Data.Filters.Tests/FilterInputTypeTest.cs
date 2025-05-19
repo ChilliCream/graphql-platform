@@ -595,8 +595,8 @@ public class FilterInputTypeTest : FilterTestBase
     {
         public bool CanHandle(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
         {
             throw new NotImplementedException();
         }

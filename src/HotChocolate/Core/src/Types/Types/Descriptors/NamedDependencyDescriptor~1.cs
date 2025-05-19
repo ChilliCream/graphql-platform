@@ -8,7 +8,7 @@ internal class NamedDependencyDescriptor
 {
     public NamedDependencyDescriptor(
         ITypeInspector typeInspector,
-        CompleteConfiguration configuration)
+        OnCompleteTypeSystemConfigurationTask configuration)
         : base(typeInspector, configuration)
     {
     }

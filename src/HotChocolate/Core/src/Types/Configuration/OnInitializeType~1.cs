@@ -12,4 +12,4 @@ public delegate void OnInitializeType<T>(
     ITypeDiscoveryContext context,
     T? definition,
     IDictionary<string, object?> contextData)
-    where T : DefinitionBase;
+    where T : TypeSystemConfiguration;

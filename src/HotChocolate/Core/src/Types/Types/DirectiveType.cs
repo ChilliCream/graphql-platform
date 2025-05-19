@@ -17,7 +17,7 @@ namespace HotChocolate.Types;
 /// <para>https://spec.graphql.org/draft/#sec-Type-System.Directives</para>
 /// </summary>
 public partial class DirectiveType
-    : TypeSystemObjectBase<DirectiveTypeDefinition>
+    : TypeSystemObjectBase<DirectiveTypeConfiguration>
     , IHasRuntimeType
     , IHasTypeIdentity
 {
@@ -44,8 +44,8 @@ public partial class DirectiveType
     /// <returns>
     /// Returns the newly created directive type.
     /// </returns>
-    public static DirectiveType CreateUnsafe(DirectiveTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static DirectiveType CreateUnsafe(DirectiveTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <summary>
     /// Gets the runtime type.

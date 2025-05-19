@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;

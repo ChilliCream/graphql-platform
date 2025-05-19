@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a GraphQL list type.
 /// </summary>
-public sealed class ListType : IType
+public sealed class ListType : IWrapperType
 {
     /// <summary>
     /// Represents a GraphQL list type definition.
@@ -24,6 +24,8 @@ public sealed class ListType : IType
     /// Gets the element type of the list.
     /// </summary>
     public IType ElementType { get; }
+
+    IType IWrapperType.InnerType => ElementType;
 
     /// <summary>
     /// Gets the string representation of this instance.

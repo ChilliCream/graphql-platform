@@ -13,11 +13,11 @@ internal static class DirectiveHelper
             UnionType => DirectiveLocation.Union,
             InputObjectType => DirectiveLocation.InputObject,
             EnumType => DirectiveLocation.Enum,
-            IEnumValue => DirectiveLocation.EnumValue,
+            EnumValue => DirectiveLocation.EnumValue,
             IOutputField => DirectiveLocation.FieldDefinition,
             InputField => DirectiveLocation.InputFieldDefinition,
             Argument => DirectiveLocation.ArgumentDefinition,
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 }

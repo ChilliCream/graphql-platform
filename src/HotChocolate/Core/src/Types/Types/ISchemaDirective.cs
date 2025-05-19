@@ -34,6 +34,6 @@ public interface ISchemaDirective
     void ApplyConfiguration(
         IDescriptorContext context,
         DirectiveNode directiveNode,
-        IDefinition definition,
-        Stack<IDefinition> path);
+        ITypeSystemConfiguration definition,
+        Stack<ITypeSystemConfiguration> path);
 }

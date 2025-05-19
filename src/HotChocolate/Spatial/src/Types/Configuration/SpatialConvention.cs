@@ -5,10 +5,10 @@ using NetTopologySuite;
 namespace HotChocolate.Types.Spatial.Configuration;
 
 /// <summary>
-/// The convention of the
+/// A convention that configures the behavior of spatial types
 /// </summary>
 public class SpatialConvention
-    : Convention<SpatialConventionDefinition>
+    : Convention<SpatialConventionConfiguration>
     , ISpatialConvention
 {
     private Action<ISpatialConventionDescriptor>? _configure;
@@ -33,7 +33,7 @@ public class SpatialConvention
     }
 
     /// <inheritdoc />
-    protected override SpatialConventionDefinition CreateDefinition(IConventionContext context)
+    protected override SpatialConventionConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -45,7 +45,7 @@ public class SpatialConvention
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>
@@ -64,12 +64,12 @@ public class SpatialConvention
     /// <inheritdoc />
     protected override void Complete(IConventionContext context)
     {
-        if (Definition is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException();
         }
 
-        DefaultSrid = Definition.DefaultSrid;
-        TransformerFactory = new GeometryTransformerFactory(Definition.CoordinateSystems);
+        DefaultSrid = Configuration.DefaultSrid;
+        TransformerFactory = new GeometryTransformerFactory(Configuration.CoordinateSystems);
     }
 }

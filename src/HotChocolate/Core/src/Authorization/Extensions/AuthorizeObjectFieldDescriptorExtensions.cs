@@ -109,7 +109,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         }
 
         descriptor.Directive(AllowAnonymousDirectiveType.Names.AllowAnonymous);
-        descriptor.Extend().Definition.ContextData[WellKnownContextData.AllowAnonymous] = true;
+        descriptor.Extend().Configuration.ContextData[WellKnownContextData.AllowAnonymous] = true;
         return descriptor;
     }
 }
