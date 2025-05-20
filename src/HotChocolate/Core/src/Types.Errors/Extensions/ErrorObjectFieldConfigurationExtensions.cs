@@ -1,5 +1,5 @@
 using HotChocolate.Features;
-using static HotChocolate.Types.ErrorContextDataKeys;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Properties.ErrorResources;
 
 namespace HotChocolate.Types;

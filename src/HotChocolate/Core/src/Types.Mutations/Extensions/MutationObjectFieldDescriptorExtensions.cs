@@ -28,11 +28,11 @@ public static class MutationObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        descriptor.Extend().OnBeforeNaming((c, d) =>
+        descriptor.Extend().OnBeforeNaming((ctx, cfg) =>
         {
-            c.GetMutationFields().Add(
+            ctx.GetMutationFields().Add(
                 new MutationContextData(
-                    d,
+                    cfg,
                     options.InputTypeName,
                     options.InputArgumentName,
                     options.PayloadTypeName,
