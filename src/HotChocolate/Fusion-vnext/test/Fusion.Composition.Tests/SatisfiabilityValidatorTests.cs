@@ -883,7 +883,7 @@ public sealed class SatisfiabilityValidatorTests
                 }
 
                 type Product @key(fields: "id") {
-                    id: String! @external
+                    id: String! # Removed the @external directive, which works differently.
                     category: Category @shareable
                 }
 
@@ -1936,14 +1936,6 @@ public sealed class SatisfiabilityValidatorTests
                     Unable to access the required field 'Section.name' on path 'B:Query.productById<Product> -> B:Product.section<Section>'.
                       Unable to transition between schemas 'B' and 'C' for access to required field 'C:Section.name<String>'.
                         No lookups found for type 'Section' in schema 'C'.
-
-            Unable to access the field 'Category.name' on path 'B:Query.productById<Product> -> B:Product.category<Category>'.
-              Unable to transition between schemas 'B' and 'C' for access to field 'C:Category.name<String>'.
-                No lookups found for type 'Category' in schema 'C'.
-
-            Unable to access the field 'Section.name' on path 'B:Query.productById<Product> -> B:Product.section<Section>'.
-              Unable to transition between schemas 'B' and 'C' for access to field 'C:Section.name<String>'.
-                No lookups found for type 'Section' in schema 'C'.
             """);
     }
 }
