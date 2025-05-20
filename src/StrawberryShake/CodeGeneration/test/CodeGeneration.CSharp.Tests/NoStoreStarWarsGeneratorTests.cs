@@ -5,6 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 public class NoStoreStarWarsGeneratorTests
 {
+
     [Fact]
     public void Interface_With_Default_Names()
     {
