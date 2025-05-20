@@ -531,8 +531,12 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<OutputFieldInfo> fieldGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        // Filter out all fields marked with @internal.
-        fieldGroup = [.. fieldGroup.Where(i => !i.Field.HasInternalDirective())];
+        // Filter out internal or overridden fields.
+        var group = fieldGroup;
+        fieldGroup =
+        [
+            .. fieldGroup.Where(i => !i.Field.HasInternalDirective() && !i.IsOverridden(group))
+        ];
 
         if (fieldGroup.Length == 0)
         {
