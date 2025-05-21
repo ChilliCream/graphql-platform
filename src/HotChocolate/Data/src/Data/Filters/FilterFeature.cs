@@ -3,40 +3,15 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Filters;
 
+/// <summary>
+/// The configuration for the filter feature.
+/// </summary>
+/// <param name="ArgumentName">
+/// The argument that represents a filter input type.
+/// </param>
+/// <param name="ArgumentVisitor">
+/// The visitor that shall be used to visit the filter argument.
+/// </param>
 public sealed record FilterFeature(
     string ArgumentName,
-    VisitFilterArgument ArgumentVisitor
-    );
-
-public static class FilterFeatureExtensions
-{
-    /// <summary>
-    /// Checks if the selection has a filtering enabled.
-    /// </summary>
-    /// <param name="selection">The selection that shall be checked.</param>
-    /// <returns>
-    /// <c>true</c> if the selection has a filtering enabled;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public static bool HasFilterFeature(this ISelection selection)
-    {
-        ArgumentNullException.ThrowIfNull(selection);
-
-        return selection.Field.Features.Get<FilterFeature>() is not null;
-    }
-
-    /// <summary>
-    /// Gets the filter feature from the selection.
-    /// </summary>
-    /// <param name="selection">The selection that shall be checked.</param>
-    /// <returns>
-    /// The filter feature from the selection;
-    /// otherwise, <c>null</c>.
-    /// </returns>
-    public static FilterFeature? GetFilterFeature(this ISelection selection)
-    {
-        ArgumentNullException.ThrowIfNull(selection);
-
-        return selection.Field.Features.Get<FilterFeature>();
-    }
-}
+    VisitFilterArgument ArgumentVisitor);

@@ -6,9 +6,7 @@ using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortField
-    : InputField
-    , ISortField
+public class SortField : InputField, ISortField
 {
     internal SortField(SortFieldConfiguration configuration, int index)
         : base(configuration, index)
@@ -21,7 +19,7 @@ public class SortField
 
     public new SortInputType DeclaringType => (SortInputType)base.DeclaringType;
 
-    SortInputType ISortField.DeclaringType => DeclaringType;
+    ISortInputType ISortField.DeclaringType => DeclaringType;
 
     public MemberInfo? Member { get; }
 

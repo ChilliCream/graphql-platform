@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 
@@ -7,7 +8,7 @@ namespace HotChocolate.Data.Sorting;
 public sealed class SortEnumValue : EnumValue
 {
     private SortEnumValueConfiguration? _configuration;
-    private IDirectiveCollection _directives = null!;
+    private DirectiveCollection _directives = null!;
 
     public SortEnumValue(SortEnumValueConfiguration configuration)
     {
@@ -29,7 +30,7 @@ public sealed class SortEnumValue : EnumValue
         DeprecationReason = configuration.DeprecationReason;
         IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
         Value = configuration.RuntimeValue;
-        ContextData = configuration.GetFeatures();
+        Features = configuration.GetFeatures();
         Handler = configuration.Handler;
         Operation = configuration.Operation;
     }
@@ -44,13 +45,13 @@ public sealed class SortEnumValue : EnumValue
 
     public override object Value { get; }
 
-    public override IDirectiveCollection Directives => _directives;
-
-    public override IReadOnlyDictionary<string, object?> ContextData { get; }
-
     public ISortOperationHandler Handler { get; }
 
     public int Operation { get; }
+
+    public override DirectiveCollection Directives => _directives;
+
+    public override IFeatureCollection Features { get; }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
