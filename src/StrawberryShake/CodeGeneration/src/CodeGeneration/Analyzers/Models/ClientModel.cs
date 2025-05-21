@@ -25,7 +25,7 @@ public class ClientModel
     /// The input types that could be passed in.
     /// </param>
     public ClientModel(
-        ISchema schema,
+        Schema schema,
         IReadOnlyList<OperationModel> operations,
         IReadOnlyList<LeafTypeModel> leafTypes,
         IReadOnlyList<InputObjectTypeModel> inputObjectTypes)

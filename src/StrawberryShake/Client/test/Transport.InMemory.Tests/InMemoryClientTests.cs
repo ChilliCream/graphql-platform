@@ -138,7 +138,7 @@ public class InMemoryClientTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public ISchema Schema => null!;
+        public Schema Schema => null!;
 
         public IServiceProvider Services { get; } =
             new ServiceCollection()

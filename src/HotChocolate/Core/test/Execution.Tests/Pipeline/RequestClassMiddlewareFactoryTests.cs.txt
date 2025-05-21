@@ -26,7 +26,7 @@ public class RequestClassMiddlewareFactoryTests
             schemaServices,
             optionsAccessor);
         var context = new RequestContext(
-            new Mock<ISchema>().Object,
+            new Mock<Schema>().Object,
             1,
             new Mock<IErrorHandler>().Object,
             new Mock<IExecutionDiagnosticEvents>().Object);

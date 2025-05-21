@@ -19,7 +19,7 @@ public class GeoJsonLineStringInputTests
             new IntValueNode(40),
             new IntValueNode(40)));
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(d => d
             .Name("Query")

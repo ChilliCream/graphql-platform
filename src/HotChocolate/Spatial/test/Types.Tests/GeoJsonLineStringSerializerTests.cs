@@ -516,7 +516,7 @@ public class GeoJsonLineStringSerializerTests
             () => inputParser.ParseLiteral(valueNode, type));
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddSpatialTypes()
         .AddQueryType(d => d
             .Name("Query")

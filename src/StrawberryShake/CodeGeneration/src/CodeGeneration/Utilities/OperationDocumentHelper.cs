@@ -26,7 +26,7 @@ internal static class OperationDocumentHelper
     /// <exception cref="ArgumentNullException"></exception>
     public static async ValueTask<OperationDocuments> CreateOperationDocumentsAsync(
         IEnumerable<DocumentNode> documents,
-        ISchema? schema = null)
+        Schema? schema = null)
     {
         if (documents is null)
         {

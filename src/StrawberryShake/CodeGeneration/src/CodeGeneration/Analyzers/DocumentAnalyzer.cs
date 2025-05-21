@@ -8,11 +8,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 public partial class DocumentAnalyzer
 {
     private readonly List<DocumentNode> _documents = [];
-    private ISchema? _schema;
+    private Schema? _schema;
 
     public static DocumentAnalyzer New() => new();
 
-    public DocumentAnalyzer SetSchema(ISchema schema)
+    public DocumentAnalyzer SetSchema(Schema schema)
     {
         _schema = schema;
         return this;

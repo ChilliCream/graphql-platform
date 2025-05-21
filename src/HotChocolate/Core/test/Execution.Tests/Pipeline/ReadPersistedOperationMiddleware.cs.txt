@@ -139,7 +139,7 @@ public class ReadPersistedOperationMiddlewareTests
         Assert.Null(requestContext.DocumentHash);
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddDocumentFromString("type Query { a: String }")
             .Use(_ => _)

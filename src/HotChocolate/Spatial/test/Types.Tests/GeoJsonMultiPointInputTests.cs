@@ -193,7 +193,7 @@ public class GeoJsonMultiPointInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() =>
+    private Schema CreateSchema() =>
         SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddType<MockObjectType>()

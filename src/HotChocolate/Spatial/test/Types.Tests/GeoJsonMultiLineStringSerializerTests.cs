@@ -584,7 +584,7 @@ public class GeoJsonMultiLineStringSerializerTests
         Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
-    private ISchema CreateSchema() =>
+    private Schema CreateSchema() =>
         SchemaBuilder.New()
             .AddSpatialTypes()
             .AddQueryType(

@@ -55,7 +55,7 @@ public class DocumentValidationMiddlewareTests
         var validator = new Mock<IDocumentValidator>();
         validator.SetupGet(t => t.HasDynamicRules).Returns(true);
         validator.Setup(t => t.ValidateAsync(
-                It.IsAny<ISchema>(),
+                It.IsAny<Schema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object?>>(),
@@ -97,7 +97,7 @@ public class DocumentValidationMiddlewareTests
         // arrange
         var validator = new Mock<IDocumentValidator>();
         validator.Setup(t => t.ValidateAsync(
-                It.IsAny<ISchema>(),
+                It.IsAny<Schema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object?>>(),
@@ -140,7 +140,7 @@ public class DocumentValidationMiddlewareTests
 
         var validator = new Mock<IDocumentValidator>();
         validator.Setup(t => t.ValidateAsync(
-                It.IsAny<ISchema>(),
+                It.IsAny<Schema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object?>>(),
@@ -182,7 +182,7 @@ public class DocumentValidationMiddlewareTests
         // arrange
         var validator = new Mock<IDocumentValidator>();
         validator.Setup(t => t.ValidateAsync(
-                It.IsAny<ISchema>(),
+                It.IsAny<Schema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object?>>(),

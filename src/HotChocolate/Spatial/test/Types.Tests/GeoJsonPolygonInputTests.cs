@@ -197,7 +197,7 @@ public class GeoJsonPolygonInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(
             d => d

@@ -415,7 +415,7 @@ public static class CSharpGenerator
         ICollection<IError> errors,
         bool strictValidation,
         bool noStore,
-        [NotNullWhen(true)] out ISchema? schema)
+        [NotNullWhen(true)] out Schema? schema)
     {
         try
         {
@@ -435,7 +435,7 @@ public static class CSharpGenerator
     }
 
     private static async ValueTask<bool> TryValidateRequestAsync(
-        ISchema schema,
+        Schema schema,
         IReadOnlyList<GraphQLFile> executableFiles,
         Dictionary<ISyntaxNode, string> fileLookup,
         List<IError> errors)
