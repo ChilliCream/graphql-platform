@@ -34,6 +34,14 @@ public static class TypeExtensions
             _ => throw new NotSupportedException(),
         };
 
+    public static bool IsLeafType(this IType type)
+        => type.Kind switch
+        {
+            TypeKind.Scalar or TypeKind.Enum => true,
+            TypeKind.NonNull => IsLeafType(((NonNullType)type).NullableType),
+            _ => false,
+        };
+
     public static bool IsTypeExtension(this IType type)
         => type is IFeatureProvider featureProvider
             && featureProvider.Features.Get<TypeMetadata>() is { IsExtension: true };

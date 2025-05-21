@@ -56,4 +56,5 @@ public static class LogEntryCodes
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string TypeDefinitionInvalid = "TYPE_DEFINITION_INVALID";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
+    public const string Unsatisfiable = "UNSATISFIABLE";
 }
