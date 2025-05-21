@@ -24,11 +24,11 @@ public partial class DirectiveType
     , ITypeIdentityProvider
 {
     private Action<IDirectiveTypeDescriptor>? _configure;
-    private Func<object?[], object> _createInstance = default!;
-    private Action<object, object?[]> _getFieldValues = default!;
-    private Func<DirectiveNode, object> _parse = default!;
-    private Func<object, DirectiveNode> _format = default!;
-    private InputParser _inputParser = default!;
+    private Func<object?[], object> _createInstance = null!;
+    private Action<object, object?[]> _getFieldValues = null!;
+    private Func<DirectiveNode, object> _parse = null!;
+    private Func<object, DirectiveNode> _format = null!;
+    private InputParser _inputParser = null!;
 
     protected DirectiveType()
         => _configure = Configure;
@@ -59,7 +59,7 @@ public partial class DirectiveType
     /// The runtime type defines of which value the type is when it
     /// manifests in the execution engine.
     /// </summary>
-    public Type RuntimeType { get; private set; } = default!;
+    public Type RuntimeType { get; private set; } = null!;
 
     /// <summary>
     /// Defines if this directive is repeatable. Repeatable directives are often useful when
@@ -78,7 +78,7 @@ public partial class DirectiveType
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public DirectiveArgumentCollection Arguments { get; private set; } = default!;
+    public DirectiveArgumentCollection Arguments { get; private set; } = null!;
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
         => Arguments.AsReadOnlyFieldDefinitionCollection();

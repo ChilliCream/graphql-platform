@@ -694,6 +694,13 @@ public static partial class SchemaBuilderExtensions
         if (builder.Features.Get<ResolverFeature>() is null)
         {
             builder.Features.Set(new ResolverFeature());
+
+            // the type system feature will most likely be already there.
+            // still we make sure here that it is.
+            builder.Features.GetOrSet<TypeSystemFeature>();
+
+            // when all the features are in place, we also initialize the
+            // type interceptor to bin resolvers.
             builder.TryAddTypeInterceptor(new ResolverTypeInterceptor());
         }
     }

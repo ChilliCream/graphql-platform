@@ -21,4 +21,6 @@ internal sealed class TypeSystemFeature
         ImmutableDictionary<Type, RuntimeTypeBinding>.Empty;
     public ImmutableDictionary<Type, RuntimeTypeNameBinding> RuntimeTypeNameBindings { get; set; } =
         ImmutableDictionary<Type, RuntimeTypeNameBinding>.Empty;
+    public ImmutableDictionary<string, RuntimeTypeNameBinding> NameRuntimeTypeBinding { get; set; } =
+        ImmutableDictionary<string, RuntimeTypeNameBinding>.Empty;
 }

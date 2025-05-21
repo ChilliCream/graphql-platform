@@ -37,7 +37,7 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
         }
 
-        // if we at this point already know the name we will just commit it.
+        // if we at this point already know the name, we will just commit it.
         if (!string.IsNullOrEmpty(Configuration.Name))
         {
             Name = Configuration.Name;

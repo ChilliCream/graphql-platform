@@ -572,7 +572,15 @@ public static partial class SchemaBuilderExtensions
 
         var binding = new RuntimeTypeNameBinding(runtimeType, typeName);
         var feature = context.Features.GetOrSet<TypeSystemFeature>();
+
+        if (feature.RuntimeTypeNameBindings.ContainsKey(runtimeType)
+            || feature.NameRuntimeTypeBinding.ContainsKey(typeName))
+        {
+            return;
+        }
+
         feature.RuntimeTypeNameBindings = feature.RuntimeTypeNameBindings.Add(runtimeType, binding);
+        feature.NameRuntimeTypeBinding = feature.NameRuntimeTypeBinding.Add(typeName, binding);
     }
 
     private static ISchemaBuilder BindRuntimeTypeInternal(
@@ -584,7 +592,9 @@ public static partial class SchemaBuilderExtensions
 
         var binding = new RuntimeTypeNameBinding(runtimeType, typeName);
         var feature = builder.Features.GetOrSet<TypeSystemFeature>();
+
         feature.RuntimeTypeNameBindings = feature.RuntimeTypeNameBindings.Add(runtimeType, binding);
+        feature.NameRuntimeTypeBinding = feature.NameRuntimeTypeBinding.Add(typeName, binding);
 
         return builder;
     }

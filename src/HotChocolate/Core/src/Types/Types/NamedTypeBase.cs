@@ -31,7 +31,7 @@ public abstract class NamedTypeBase<TConfiguration>
     /// <summary>
     /// Gets the schema coordinate of the named type.
     /// </summary>
-    public SchemaCoordinate Coordinate { get; private set;}
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     /// <inheritdoc />
     public DirectiveCollection Directives
@@ -91,15 +91,6 @@ public abstract class NamedTypeBase<TConfiguration>
         base.OnRegisterDependencies(context, configuration);
 
         UpdateRuntimeType(configuration);
-    }
-
-    /// <inheritdoc />
-    protected override void OnCompleteName(
-        ITypeCompletionContext context,
-        TConfiguration configuration)
-    {
-        base.OnCompleteName(context, configuration);
-        Coordinate = new SchemaCoordinate(Name, ofDirective: false);
     }
 
     /// <inheritdoc />

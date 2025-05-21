@@ -15,15 +15,17 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 {
     private readonly List<ITypeConfiguration> _typeDefs = [];
     private readonly Dictionary<string, ParameterInfo> _parameters = [];
-    private IDescriptorContext _context = default!;
-    private INamingConventions _naming = default!;
-    private ITypeInspector _typeInspector = default!;
-    private IResolverCompiler _resolverCompiler = default!;
-    private TypeReferenceResolver _typeReferenceResolver = default!;
-    private ILookup<string, Type> _resolverTypes = default!;
-    private ILookup<string, FieldResolverConfiguration> _configs = default!;
+    private IDescriptorContext _context = null!;
+    private INamingConventions _naming = null!;
+    private ITypeInspector _typeInspector = null!;
+    private IResolverCompiler _resolverCompiler = null!;
+    private TypeReferenceResolver _typeReferenceResolver = null!;
+    private ILookup<string, Type> _resolverTypes = null!;
+    private ILookup<string, FieldResolverConfiguration> _configs = null!;
     private RequiredFeatureReference<ResolverFeature> _resolverFeature =
         RequiredFeatureReference<ResolverFeature>.Default;
+    private RequiredFeatureReference<TypeSystemFeature> _typeSystemFeature =
+        RequiredFeatureReference<TypeSystemFeature>.Default;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -52,10 +54,10 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         {
             if (typeDef.RuntimeType == typeof(object))
             {
-                var feature = _resolverFeature.Fetch(_context.Features);
-                if (feature.RuntimeTypes.TryGetValue(typeDef.Name, out var type))
+                var feature = _typeSystemFeature.Fetch(_context.Features);
+                if (feature.NameRuntimeTypeBinding.TryGetValue(typeDef.Name, out var binding))
                 {
-                    typeDef.RuntimeType = type;
+                    typeDef.RuntimeType = binding.RuntimeType;
                 }
             }
 
@@ -99,10 +101,10 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         {
             if (typeDef.RuntimeType == typeof(object))
             {
-                var feature = _resolverFeature.Fetch(_context.Features);
-                if (feature.RuntimeTypes.TryGetValue(typeDef.Name, out var type))
+                var feature = _typeSystemFeature.Fetch(_context.Features);
+                if (feature.NameRuntimeTypeBinding.TryGetValue(typeDef.Name, out var binding))
                 {
-                    typeDef.RuntimeType = type;
+                    typeDef.RuntimeType = binding.RuntimeType;
                 }
             }
 
@@ -415,8 +417,15 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                         var unwrapped = Unwrap(parameter.ParameterType, type);
                         if (unwrapped is not null)
                         {
-                            var feature = _resolverFeature.Fetch(_context.Features);
-                            feature.RuntimeTypes.TryAdd(type.NamedType().Name, unwrapped);
+                            var typeName = type.NamedType().Name;
+                            var feature = _typeSystemFeature.Fetch(_context.Features);
+                            if (!feature.NameRuntimeTypeBinding.ContainsKey(typeName)
+                                && feature.RuntimeTypeNameBindings.ContainsKey(unwrapped))
+                            {
+                                var binding = new RuntimeTypeNameBinding(unwrapped, typeName);
+                                feature.NameRuntimeTypeBinding = feature.NameRuntimeTypeBinding.Add(typeName, binding);
+                                feature.RuntimeTypeNameBindings = feature.RuntimeTypeNameBindings.Add(unwrapped, binding);
+                            }
                         }
                     }
                 }
