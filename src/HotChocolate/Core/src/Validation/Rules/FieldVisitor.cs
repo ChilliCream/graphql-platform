@@ -32,8 +32,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         DocumentNode node,
         DocumentValidatorContext context)
     {
-        // The document node is the root node that is entered once per visitation.
-        // We use this hook to ensure that the field visitor feature is created
+        // The document node is the root node entered once per visitation.
+        // We use this hook to ensure that the field visitor feature is created,
         // and we can use it in consecutive visits of child nodes without extra
         // checks at each point.
         // We do use a GetOrSet here because the context is a pooled object.
@@ -482,7 +482,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     private sealed class FieldVisitorFeature : ValidatorFeature
     {
         private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
-        private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
+        private readonly List<FieldInfoListBuffer> _buffers = [new()];
 
         public IType NonNullString { get; private set; } = null!;
 

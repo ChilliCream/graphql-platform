@@ -35,8 +35,7 @@ internal sealed class ValidationFeatureCollection : IFeatureCollection
         {
             if (_features is not null)
             {
-                return _features.Count == 0
-                    || _features.Values.All(f => f is null);
+                return _features.Count == 0;
             }
 
             if (Parent is not null)
@@ -76,6 +75,12 @@ internal sealed class ValidationFeatureCollection : IFeatureCollection
             _features ??= [];
             _features[key] = value;
             _containerRevision++;
+
+            if(value is ValidatorFeature validatorFeature
+                && _features.TryGetValue(typeof(DocumentValidatorContext), out var context))
+            {
+                validatorFeature.OnInitialize((DocumentValidatorContext)context);
+            }
         }
     }
 

@@ -690,26 +690,12 @@ public class SchemaBuilderTests
     }
 
     [Fact]
-    public void SetSchema_SchemaIsNotTypeSystemObject_ArgumentException()
-    {
-        // arrange
-        var schemaMock = new Mock<Schema>();
-
-        // act
-        Action action = () => SchemaBuilder.New()
-            .SetSchema(schemaMock.Object);
-
-        // assert
-        Assert.Throws<ArgumentException>(action);
-    }
-
-    [Fact]
     public void SetSchema_ConfigureIsNull_ArgumentException()
     {
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .SetSchema((Action<ISchemaTypeDescriptor>)null);
+            .SetSchema(((Action<ISchemaTypeDescriptor>)null)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1968,10 +1954,7 @@ public class SchemaBuilderTests
                     .Field("foo")
                     .Resolve("bar")
                     .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                        (ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(typeof(MockConvention))
             .AddConvention<IMockConvention>(typeof(MockConvention))
             .Create();

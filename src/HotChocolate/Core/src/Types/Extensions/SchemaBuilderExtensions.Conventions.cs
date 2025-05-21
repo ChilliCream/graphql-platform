@@ -269,7 +269,7 @@ public static partial class SchemaBuilderExtensions
 
         if (feature.Conventions.TryGetValue(new ConventionKey(convention, scope), out var registrations))
         {
-            feature.Conventions = feature.Conventions.Add(key, registrations.Add(registration));
+            feature.Conventions = feature.Conventions.SetItem(key, registrations.Add(registration));
         }
         else
         {

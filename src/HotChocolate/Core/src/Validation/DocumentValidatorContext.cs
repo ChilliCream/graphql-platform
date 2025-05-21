@@ -18,6 +18,15 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     private readonly ValidationFeatureCollection _features = new();
     private ISchemaDefinition? _schema;
     private int _maxAllowedErrors;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DocumentValidatorContext"/>.
+    /// </summary>
+    public DocumentValidatorContext()
+    {
+        _features.Set(this);
+    }
+
     /// <summary>
     /// Gets the schema on which the validation is executed.
     /// </summary>
@@ -55,7 +64,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     public List<SelectionSetNode> SelectionSets { get; } = [];
 
     /// <summary>
-    /// Gets the fragment context that is used to track the fragments that are visited
+    /// Gets the fragment context used to track the fragments that are visited
     /// during the visitation of a document.
     /// </summary>
     public FragmentContext Fragments { get; } = new();
@@ -108,7 +117,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     /// <summary>
     /// Defines that a visitation has found an unexpected error
     /// that is no concern of the current validation rule.
-    /// If no other error is found by any validation this will
+    /// If no other error is found by any validation, this will
     /// lead to an unexpected validation error.
     /// </summary>
     public bool UnexpectedErrorsDetected { get; set; }
@@ -202,13 +211,13 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     }
 
     /// <summary>
-    /// Clears the context fully after a full validation run is completed
+    /// Clears the context fully after a full validation run is completed,
     /// and this context is returned to the pool.
     /// </summary>
     internal void Clear()
     {
         _schema = null;
-        Document = default!;
+        Document = null!;
         UnexpectedErrorsDetected = false;
         FatalErrorDetected = false;
         _features.Parent = null;
