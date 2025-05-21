@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -54,14 +56,12 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
                     .GetProjectionConvention()
                     .CreateOptimizer();
 
-                if (field.ContextData is not ExtensionData extensionData)
+                if (field.Features is not FeatureCollection extensionData)
                 {
                     throw ThrowHelper.ProjectionConvention_NodeFieldWasInInvalidState();
                 }
 
-                RegisterOptimizer(
-                    extensionData,
-                    new NodeSelectionSetOptimizer(selectionOptimizer));
+                RegisterOptimizer(field, new NodeSelectionSetOptimizer(selectionOptimizer));
 
                 if (foundNode && foundNodes)
                 {
@@ -81,8 +81,8 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             foreach (var field in objectTypeDefinition.Fields)
             {
                 alwaysProjected ??= [];
-                if (field.GetFeatures().TryGetValue(IsProjectedKey, out var value) &&
-                    value is true)
+                if (field.GetFeatures().TryGet(out ProjectionFeature? feature) &&
+                    feature.AlwaysProjected is true)
                 {
                     alwaysProjected.Add(field.Name);
                 }
@@ -90,7 +90,8 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
             if (alwaysProjected?.Count > 0)
             {
-                configuration.Features[AlwaysProjectedFieldsKey] = alwaysProjected.ToArray();
+                configuration.Features.Set(
+                    new ProjectionTypeFeature([.. alwaysProjected]));
             }
         }
     }

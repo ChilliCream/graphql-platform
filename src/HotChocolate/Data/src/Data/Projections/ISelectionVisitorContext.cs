@@ -1,7 +1,6 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Abstractions;
 
 namespace HotChocolate.Data.Projections;
 

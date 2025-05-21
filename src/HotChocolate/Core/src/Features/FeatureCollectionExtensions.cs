@@ -51,6 +51,18 @@ public static class FeatureCollectionExtensions
         return feature;
     }
 
+    public static void Update<TFeature>(
+        this IFeatureCollection featureCollection,
+        Func<TFeature?, TFeature> update)
+    {
+        ArgumentNullException.ThrowIfNull(featureCollection);
+        ArgumentNullException.ThrowIfNull(update);
+
+        var feature = featureCollection.Get<TFeature>();
+        feature = update(feature);
+        featureCollection.Set(feature);
+    }
+
     /// <summary>
     /// Retrieves the requested feature from the collection.
     /// Throws an <see cref="InvalidOperationException"/> if the feature is not present.

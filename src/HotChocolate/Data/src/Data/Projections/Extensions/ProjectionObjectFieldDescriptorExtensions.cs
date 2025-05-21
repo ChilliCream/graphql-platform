@@ -6,11 +6,11 @@ using HotChocolate.Data;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
-using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 using static HotChocolate.WellKnownContextData;
@@ -44,10 +44,15 @@ public static class ProjectionObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         bool isProjected = true)
     {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
         descriptor
             .Extend()
-            .OnBeforeCreate(x => x.Features[ProjectionConvention.IsProjectedKey] = isProjected);
-
+            .OnBeforeCreate(
+                c => c.Features.Update<ProjectionFeature>(
+                    f => f is null
+                        ? new ProjectionFeature(AlwaysProjected: isProjected)
+                        : f with { AlwaysProjected = isProjected }));
         return descriptor;
     }
 
@@ -68,10 +73,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return UseProjection(descriptor, null, scope);
     }
@@ -96,10 +98,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return UseProjection(descriptor, typeof(T), scope);
     }
@@ -125,10 +124,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         Type? type,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
@@ -175,9 +171,18 @@ public static class ProjectionObjectFieldDescriptorExtensions
         string? scope)
     {
         var convention = context.DescriptorContext.GetProjectionConvention(scope);
-        RegisterOptimizer(definition.Features, convention.CreateOptimizer());
+        RegisterOptimizer(definition, convention.CreateOptimizer());
 
-        definition.Features[ProjectionContextIdentifier] = true;
+        var feature = definition.Features.Get<ProjectionFeature>();
+
+        if (feature is null)
+        {
+            definition.Features.Set(new ProjectionFeature(HasProjectionMiddleware: true));
+        }
+        else if (!feature.HasProjectionMiddleware)
+        {
+            definition.Features.Set(feature with { HasProjectionMiddleware = true });
+        }
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
@@ -303,6 +308,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public CancellationToken RequestAborted => _context.RequestAborted;
 
+        public IFeatureCollection Features => throw new NotImplementedException();
+
         public T Parent<T>() => _context.Parent<T>();
 
         public T ArgumentValue<T>(string name) => _context.ArgumentValue<T>(name);
@@ -330,7 +337,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             => _context.ReportError(exception, configure);
 
         public IReadOnlyList<ISelection> GetSelections(
-            IObjectTypeDefinition typeContext,
+            ObjectType typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
             => _context.GetSelections(typeContext, selection, allowInternals);
@@ -364,6 +371,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             => _context.ReplaceArgument(argumentName, newArgumentValue);
 
         IResolverContext IResolverContext.Clone() => _context.Clone();
+
     }
 
     private static Selection CreateProxySelection(ISelection selection, ObjectField field)

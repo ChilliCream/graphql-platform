@@ -15,14 +15,3 @@ namespace HotChocolate.Data.Sorting;
 public sealed record SortingFeature(
     string ArgumentName,
     VisitSortArgument ArgumentVisitor);
-
-public static class SortingFeatureExtensions
-{
-    public static string? GetSortingArgumentName(this ISelection selection)
-        => selection.Field.Features.Get<SortingFeature>()?.ArgumentName;
-
-    public static bool HasSortingFeature(this ISelection selection)
-    {
-        return selection.Field.Features.Get<SortingFeature>() is not null;
-    }
-}

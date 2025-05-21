@@ -1,6 +1,5 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using HotChocolate.Types.Abstractions;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
