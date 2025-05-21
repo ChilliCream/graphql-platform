@@ -11,10 +11,11 @@ internal sealed class TypeTrimmer
     private readonly List<IObjectTypeDefinition> _rootTypes = [];
     private readonly List<ITypeSystemMember> _discoveredTypes;
 
-    public TypeTrimmer(IEnumerable<ITypeSystemMember> discoveredTypes)
+    public TypeTrimmer(List<ITypeSystemMember> discoveredTypes)
     {
         ArgumentNullException.ThrowIfNull(discoveredTypes);
-        _discoveredTypes = [.. discoveredTypes];
+
+        _discoveredTypes = discoveredTypes;
     }
 
     public void AddOperationType(IObjectTypeDefinition? operationType)
@@ -25,7 +26,7 @@ internal sealed class TypeTrimmer
         }
     }
 
-    public IReadOnlyCollection<ITypeSystemMember> Trim()
+    public void Trim()
     {
         foreach (var type in _discoveredTypes)
         {
@@ -48,7 +49,35 @@ internal sealed class TypeTrimmer
             VisitRoot(rootType);
         }
 
-        return _touched;
+        if (_touched.Count == _discoveredTypes.Count)
+        {
+            return;
+        }
+
+        var capacity = _discoveredTypes.Count - _touched.Count;
+
+        if (capacity < 0)
+        {
+            capacity = 0;
+        }
+
+        var removedTypes = new List<ITypeSystemMember>(capacity);
+
+        foreach (var type in _discoveredTypes)
+        {
+            if (!_touched.Contains(type))
+            {
+                removedTypes.Add(type);
+            }
+        }
+
+        foreach (var type in removedTypes)
+        {
+            _discoveredTypes.Remove(type);
+        }
+
+        _touched.Clear();
+        removedTypes.Clear();
     }
 
     private void VisitRoot(IObjectTypeDefinition rootType)
@@ -156,8 +185,13 @@ internal sealed class TypeTrimmer
             }
         }
 
-        foreach (var complexType in _discoveredTypes.OfType<IComplexTypeDefinition>())
+        foreach (var discoveredType in _discoveredTypes)
         {
+            if(discoveredType is not IComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
             if (complexType.IsImplementing(type))
             {
                 Visit(complexType);

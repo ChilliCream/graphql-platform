@@ -424,10 +424,30 @@ public partial class SchemaBuilder
 
             ResolveOperations(definition, operations, typeRegistry);
 
-            var types = RemoveUnreachableTypes(builder, typeRegistry, definition);
+            var included = new HashSet<ITypeSystemMember>(typeRegistry.Types.Count);
+            var types = new List<ITypeSystemMember>(typeRegistry.Types.Count);
 
-            definition.Types = [.. types.OfType<ITypeDefinition>().Distinct()];
-            definition.DirectiveTypes = [.. types.OfType<DirectiveType>().Distinct()];
+            foreach (var registration in typeRegistry.Types)
+            {
+                switch (registration.Type)
+                {
+                    case ITypeDefinition typeDef when typeDef is not ITypeDefinitionExtension && included.Add(typeDef):
+                        types.Add(typeDef);
+                        break;
+
+                    case DirectiveType directiveType when included.Add(directiveType):
+                        types.Add(directiveType);
+                        break;
+
+                    default:
+                        continue;
+                }
+            }
+
+            RemoveUnreachableTypes(builder, definition, types);
+
+            definition.Types = [.. types.OfType<ITypeDefinition>()];
+            definition.DirectiveTypes = [.. types.OfType<DirectiveType>()];
 
             return definition;
         }
@@ -537,21 +557,19 @@ public partial class SchemaBuilder
             }
         }
 
-        private static IReadOnlyCollection<ITypeSystemMember> RemoveUnreachableTypes(
+        private static void RemoveUnreachableTypes(
             SchemaBuilder builder,
-            TypeRegistry typeRegistry,
-            SchemaTypesConfiguration configuration)
+            SchemaTypesConfiguration configuration,
+            List<ITypeSystemMember> types)
         {
             if (builder._options.RemoveUnreachableTypes)
             {
-                var trimmer = new TypeTrimmer(typeRegistry.Types.Select(t => t.Type));
+                var trimmer = new TypeTrimmer(types);
                 trimmer.AddOperationType(configuration.QueryType);
                 trimmer.AddOperationType(configuration.MutationType);
                 trimmer.AddOperationType(configuration.SubscriptionType);
-                return trimmer.Trim();
+                trimmer.Trim();
             }
-
-            return [.. typeRegistry.Types.Select(t => t.Type)];
         }
     }
 
