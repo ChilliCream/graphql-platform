@@ -126,8 +126,10 @@ public sealed class InputFormatter(ITypeConverter converter)
     {
         try
         {
-            if (runtimeValue.GetType() != type.ToRuntimeType() &&
-                _converter.TryConvert(type.ToRuntimeType(), runtimeValue, out var converted))
+            var runtimeType = type.ToRuntimeType();
+
+            if (runtimeValue.GetType() != runtimeType
+                && _converter.TryConvert(runtimeType, runtimeValue, out var converted))
             {
                 runtimeValue = converted;
             }

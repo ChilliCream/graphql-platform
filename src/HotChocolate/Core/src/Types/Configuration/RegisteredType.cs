@@ -94,7 +94,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             return "Schema";
         }
 
-        if (Type is IHasName { Name: { Length: > 0 } name })
+        if (Type is INameProvider { Name: { Length: > 0 } name })
         {
             return IsDirective ? $"@{name}" : name;
         }

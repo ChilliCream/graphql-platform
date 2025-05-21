@@ -205,7 +205,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
+            if (typeSystemObject is ITypeIdentityProvider { TypeIdentity: { } typeIdentity })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(

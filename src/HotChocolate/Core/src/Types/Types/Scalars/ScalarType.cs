@@ -17,6 +17,7 @@ public abstract partial class ScalarType
     : TypeSystemObject<ScalarTypeConfiguration>
     , IScalarTypeDefinition
     , ILeafType
+    , IHasRuntimeType
 {
     private Uri? _specifiedBy;
 

@@ -16,14 +16,14 @@ public abstract class NamedTypeBase<TConfiguration>
     : TypeSystemObject<TConfiguration>
     , ITypeDefinition
     , IHasRuntimeType
-    , IHasTypeIdentity
-    , IHasTypeConfiguration
+    , ITypeIdentityProvider
+    , ITypeConfigurationProvider
     where TConfiguration : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeConfiguration
 {
     private DirectiveCollection? _directives;
     private Type? _runtimeType;
 
-    ITypeConfiguration? IHasTypeConfiguration.Configuration => Configuration;
+    ITypeConfiguration? ITypeConfigurationProvider.Configuration => Configuration;
 
     /// <inheritdoc />
     public abstract TypeKind Kind { get; }

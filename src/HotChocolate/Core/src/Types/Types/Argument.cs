@@ -15,7 +15,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class Argument : FieldBase, IInputValueDefinition, IInputValueInfo
 {
-    private Type _runtimeType = default!;
+    private Type _runtimeType = null!;
 
     /// <summary>
     /// Initializes a new <see cref="Argument"/>.
@@ -47,13 +47,20 @@ public class Argument : FieldBase, IInputValueDefinition, IInputValueInfo
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the type that declares the field to which this argument belongs to.
+    /// </summary>
+    public new IOutputTypeDefinition DeclaringType => Unsafe.As<IOutputTypeDefinition>(base.DeclaringType);
+
+    /// <summary>
+    /// Gets the type of this field.
+    /// </summary>
     public new IInputType Type => Unsafe.As<IInputType>(base.Type);
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IInputValueDefinition.DefaultValue" />
     public IValueNode? DefaultValue { get; private set; }
 
     /// <inheritdoc />
@@ -63,10 +70,6 @@ public class Argument : FieldBase, IInputValueDefinition, IInputValueInfo
     /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
     /// </summary>
     internal bool IsOptional { get; private set; }
-
-    IType IFieldDefinition.Type => Type;
-
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => throw new NotImplementedException();
 
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,

@@ -1,11 +1,9 @@
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
-using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
 
@@ -516,7 +514,7 @@ internal static class ErrorHelper
 
         var coordinate = declaringMember is IType
             ? new SchemaCoordinate(type.Name)
-            : new SchemaCoordinate(type.Name, ((IHasName)declaringMember).Name);
+            : new SchemaCoordinate(type.Name, ((INameProvider)declaringMember).Name);
 
         var s = string.Empty;
         var @is = "is";

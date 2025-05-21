@@ -54,10 +54,7 @@ public static class TypeExtensions
 
     public static Type ToRuntimeType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.IsListType())
         {
@@ -85,11 +82,6 @@ public static class TypeExtensions
 
     private static Type LeafTypeToRuntimeType(IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
         if (type.IsLeafType() && type.NamedType() is IHasRuntimeType t)
         {
             if (!type.IsNonNullType() && t.RuntimeType.IsValueType)

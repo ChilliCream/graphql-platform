@@ -5,7 +5,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Properties.TypeResources;
-using IHasName = HotChocolate.Types.IHasName;
 
 namespace HotChocolate.Utilities;
 

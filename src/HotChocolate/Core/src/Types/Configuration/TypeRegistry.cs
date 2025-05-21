@@ -146,7 +146,7 @@ internal sealed class TypeRegistry
         if (!registeredType.IsExtension)
         {
             if (registeredType.IsNamedType &&
-                registeredType.Type is IHasTypeConfiguration { Configuration: { } typeDef } &&
+                registeredType.Type is ITypeConfigurationProvider { Configuration: { } typeDef } &&
                 !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);

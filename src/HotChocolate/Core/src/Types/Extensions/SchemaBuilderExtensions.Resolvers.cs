@@ -565,15 +565,8 @@ public static partial class SchemaBuilderExtensions
         Type resolverType,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolverType is null)
-        {
-            throw new ArgumentNullException(nameof(resolverType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolverType);
 
         if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
             { IsClass: true, IsAbstract: false, IsNestedPublic: true })

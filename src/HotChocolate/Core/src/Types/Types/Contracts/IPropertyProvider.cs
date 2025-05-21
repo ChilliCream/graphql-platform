@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace HotChocolate.Types;
 
-internal interface IHasProperty
+internal interface IPropertyProvider
 {
     PropertyInfo? Property { get; }
 }

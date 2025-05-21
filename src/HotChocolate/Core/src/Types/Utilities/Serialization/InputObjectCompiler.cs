@@ -167,7 +167,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IHasProperty, IHasRuntimeType, IHasFieldIndex
+        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
         => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
@@ -176,7 +176,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IHasProperty, IHasRuntimeType, IHasFieldIndex
+        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
     {
         var parameters = constructor.GetParameters();
 
@@ -228,7 +228,7 @@ internal static class InputObjectCompiler
         IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
-        where T : IInputValueDefinition, IHasProperty, IHasFieldIndex, IHasRuntimeType
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IHasRuntimeType
     {
         foreach (var field in fields)
         {
@@ -247,14 +247,14 @@ internal static class InputObjectCompiler
     }
 
     private static Expression GetFieldValue<T>(T field, Expression fieldValues)
-        where T : IInputValueDefinition, IHasProperty, IHasFieldIndex
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider
         => Expression.ArrayIndex(fieldValues, Expression.Constant(field.Index));
 
     private static Expression SetFieldValue<T>(
         T field,
         Expression fieldValues,
         Expression fieldValue)
-        where T : IInputValueDefinition, IHasFieldIndex
+        where T : IInputValueDefinition, IFieldIndexProvider
     {
         Expression index = Expression.Constant(field.Index);
         Expression element = Expression.ArrayAccess(fieldValues, index);

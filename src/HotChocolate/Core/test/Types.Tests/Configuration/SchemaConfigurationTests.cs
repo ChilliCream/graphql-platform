@@ -32,12 +32,10 @@ public class SchemaConfigurationTests
     {
         // arrange
         var dummyObjectType = new TestObjectB();
-
         var resolverContext = new Mock<IResolverContext>();
-        resolverContext.Setup(t => t.Parent<TestObjectB>())
-            .Returns(dummyObjectType);
+        resolverContext.Setup(t => t.Parent<TestObjectB>()).Returns(dummyObjectType);
 
-        var source = @"type Dummy { bar2: String }";
+        const string source = "type Dummy { bar2: String }";
 
         // act
         var schema = SchemaBuilder.New()

@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 public abstract class FieldBase
     : IFieldDefinition
     , IFieldCompletion
-    , IHasFieldIndex
+    , IFieldIndexProvider
     , IHasRuntimeType
 {
     private FieldConfiguration? _config;
@@ -29,11 +29,11 @@ public abstract class FieldBase
         IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
         DeprecationReason = configuration.DeprecationReason;
         Flags = configuration.Flags;
-        DeclaringType = default!;
-        DeclaringMember = default!;
-        Features = default!;
-        Directives = default!;
-        Type = default!;
+        DeclaringType = null!;
+        DeclaringMember = null!;
+        Features = null!;
+        Directives = null!;
+        Type = null!;
     }
 
     protected FieldBase(FieldBase original, IType type)
@@ -64,7 +64,7 @@ public abstract class FieldBase
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>
-    public ITypeDefinition DeclaringType { get; private set; }
+    public ITypeSystemMember DeclaringType { get; private set; }
 
     /// <inheritdoc />
     public ITypeSystemMember DeclaringMember { get; private set; }
@@ -77,7 +77,9 @@ public abstract class FieldBase
     /// </summary>
     public int Index { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the directives that are applied to this field.
+    /// </summary>
     public DirectiveCollection Directives { get; private set; }
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
@@ -124,7 +126,7 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember,
         FieldConfiguration definition)
     {
-        DeclaringType = (ITypeDefinition)context.Type;
+        DeclaringType = context.Type;
         DeclaringMember = context.Type;
         Flags = definition.Flags;
 
@@ -138,7 +140,7 @@ public abstract class FieldBase
             Coordinate = new SchemaCoordinate(context.Type.Name, definition.Name);
         }
 
-        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
+        Type = context.GetType<IType>(definition.Type!);
     }
 
     void IFieldCompletion.CompleteField(

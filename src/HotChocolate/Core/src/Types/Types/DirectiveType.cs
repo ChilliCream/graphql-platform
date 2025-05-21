@@ -21,7 +21,7 @@ public partial class DirectiveType
     : TypeSystemObject<DirectiveTypeConfiguration>
     , IDirectiveDefinition
     , IHasRuntimeType
-    , IHasTypeIdentity
+    , ITypeIdentityProvider
 {
     private Action<IDirectiveTypeDescriptor>? _configure;
     private Func<object?[], object> _createInstance = default!;
@@ -132,7 +132,7 @@ public partial class DirectiveType
 
     private Type? TypeIdentity { get; set; }
 
-    Type? IHasTypeIdentity.TypeIdentity => TypeIdentity;
+    Type? ITypeIdentityProvider.TypeIdentity => TypeIdentity;
 
     internal object CreateInstance(object?[] fieldValues)
         => _createInstance(fieldValues);
