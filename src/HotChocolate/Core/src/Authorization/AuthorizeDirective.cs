@@ -44,14 +44,19 @@ public sealed class AuthorizeDirective
     /// <param name="apply">
     /// Specifies when the authorization directive shall be applied.
     /// </param>
+    /// <param name="metadata">
+    /// Metadata that can be used for authorization.
+    /// </param>
     public AuthorizeDirective(
         string? policy = null,
         IReadOnlyList<string>? roles = null,
-        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver,
+        IReadOnlyList<object>? metadata = null)
     {
         Policy = policy;
         Roles = roles?.OrderBy(r => r).ToList();
         Apply = apply;
+        Metadata = metadata;
 
         _cacheKey = BuildCacheKey(Policy, Roles);
     }
@@ -78,6 +83,11 @@ public sealed class AuthorizeDirective
     /// <para>The default is BeforeResolver.</para>
     /// </summary>
     public ApplyPolicy Apply { get; }
+
+    /// <summary>
+    /// Gets the metadata that can be used for authorization.
+    /// </summary>
+    public IReadOnlyList<object>? Metadata { get; }
 
     /// <summary>
     /// Gets a cache key that uniquely identifies the combined authorization policy,
