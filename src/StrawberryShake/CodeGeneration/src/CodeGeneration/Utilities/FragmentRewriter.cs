@@ -21,8 +21,8 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
                     null,
                     new("__typename"),
                     new NameNode($"_is{node.Name.Value}Fulfilled"),
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
+                    [],
+                    [],
                     null));
 
             node = node.WithSelectionSet(node.SelectionSet.WithSelections(selections));
@@ -39,7 +39,7 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
             .Create(node =>
             {
                 if (node is FragmentSpreadNode spread &&
-                    spread.Directives.Any(t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer)))
+                    spread.Directives.Any(t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer.Name)))
                 {
                     context.Deferred.Add(spread.Name.Value);
                 }

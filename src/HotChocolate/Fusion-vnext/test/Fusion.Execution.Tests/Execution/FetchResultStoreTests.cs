@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using System.Linq;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -83,17 +82,17 @@ public sealed class FetchResultStoreTests
             Map: FieldPath.Parse("sku")));
 
         // act
-        var tuples = store.GetValues(root, requirements).OrderBy(t => t.Item1).ToList();
+        var tuples = store.GetValues(root, requirements).OrderBy(t => t.Path).ToList();
 
         // assert
         Assert.Equal(2, tuples.Count);
 
-        Assert.Equal("/products[0]", tuples[0].Item1.ToString());
-        new ObjectValueNode(tuples[0].Item2).MatchInlineSnapshot(
+        Assert.Equal("/products[0]", tuples[0].Path.ToString());
+        new ObjectValueNode(tuples[0].Fields).MatchInlineSnapshot(
             """{ sku: "hc-42" }""");
 
-        Assert.Equal("/products[1]", tuples[1].Item1.ToString());
-        new ObjectValueNode(tuples[1].Item2).MatchInlineSnapshot(
+        Assert.Equal("/products[1]", tuples[1].Path.ToString());
+        new ObjectValueNode(tuples[1].Fields).MatchInlineSnapshot(
             """{ sku: "bs-13" }""");
     }
 
@@ -129,17 +128,17 @@ public sealed class FetchResultStoreTests
             Map: FieldPath.Parse("sku")));
 
         // act
-        var tuples = store.GetValues(root, requirements).OrderBy(t => t.Item1).ToList();
+        var tuples = store.GetValues(root, requirements).OrderBy(t => t.Path).ToList();
 
         // assert
         Assert.Equal(2, tuples.Count);
 
-        Assert.Equal("/products[0]", tuples[0].Item1.ToString());
-        new ObjectValueNode(tuples[0].Item2).MatchInlineSnapshot(
+        Assert.Equal("/products[0]", tuples[0].Path.ToString());
+        new ObjectValueNode(tuples[0].Fields).MatchInlineSnapshot(
             """{ sku: "hc-42" }""");
 
-        Assert.Equal("/products[1]", tuples[1].Item1.ToString());
-        new ObjectValueNode(tuples[1].Item2).MatchInlineSnapshot(
+        Assert.Equal("/products[1]", tuples[1].Path.ToString());
+        new ObjectValueNode(tuples[1].Fields).MatchInlineSnapshot(
             """{ sku: "bs-13" }""");
     }
 
@@ -177,17 +176,17 @@ public sealed class FetchResultStoreTests
             Map: FieldPath.Parse("sku")));
 
         // act
-        var tuples = store.GetValues(root, requirements).OrderBy(t => t.Item1).ToList();
+        var tuples = store.GetValues(root, requirements).OrderBy(t => t.Path).ToList();
 
         // assert
         Assert.Equal(2, tuples.Count);
 
-        Assert.Equal("/products[0]", tuples[0].Item1.ToString());
-        new ObjectValueNode(tuples[0].Item2).MatchInlineSnapshot(
+        Assert.Equal("/products[0]", tuples[0].Path.ToString());
+        new ObjectValueNode(tuples[0].Fields).MatchInlineSnapshot(
             """{ sku: "hc-42" }""");
 
-        Assert.Equal("/products[1]", tuples[1].Item1.ToString());
-        new ObjectValueNode(tuples[1].Item2).MatchInlineSnapshot(
+        Assert.Equal("/products[1]", tuples[1].Path.ToString());
+        new ObjectValueNode(tuples[1].Fields).MatchInlineSnapshot(
             """{ sku: "bs-13" }""");
     }
 
@@ -272,8 +271,8 @@ public sealed class FetchResultStoreTests
         // assert
         Assert.Single(tuples);
 
-        Assert.Equal("/products[1]", tuples[0].Item1.ToString());
-        new ObjectValueNode(tuples[0].Item2).MatchInlineSnapshot(
+        Assert.Equal("/products[1]", tuples[0].Path.ToString());
+        new ObjectValueNode(tuples[0].Fields).MatchInlineSnapshot(
             """{ sku: "hc-42" }""");
     }
 
@@ -307,7 +306,7 @@ public sealed class FetchResultStoreTests
         var tuples = store.GetValues(root, requirements).ToList();
 
         // assert
-        var valueNode = tuples[0].Item2[0].Value;
+        var valueNode = tuples[0].Fields[0].Value;
         Assert.IsType<NullValueNode>(valueNode);
         Assert.Equal("null", valueNode.ToString());
     }
@@ -347,8 +346,8 @@ public sealed class FetchResultStoreTests
         // assert
         Assert.Single(tuples);
 
-        Assert.Equal("/nodes[0]", tuples[0].Item1.ToString());
-        new ObjectValueNode(tuples[0].Item2).MatchInlineSnapshot(
+        Assert.Equal("/nodes[0]", tuples[0].Path.ToString());
+        new ObjectValueNode(tuples[0].Fields).MatchInlineSnapshot(
             """{ sku: "u-01" }""");
     }
 }

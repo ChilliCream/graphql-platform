@@ -19,14 +19,13 @@ public static class GeneratorTestHelper
 {
     public static IReadOnlyList<IError> AssertError(params string[] fileNames)
     {
-        var result = GenerateAsync(
+        var result = Generate(
             fileNames,
             new CSharpGeneratorSettings
             {
                 Namespace = "Foo.Bar",
                 ClientName = "FooClient",
-            })
-            .Result;
+            });
 
         Assert.True(
             result.Errors.Count > 0,
@@ -252,7 +251,7 @@ public static class GeneratorTestHelper
             analyzer.AddDocument(executable);
         }
 
-        return analyzer.AnalyzeAsync().Result;
+        return analyzer.Analyze();
     }
 
     public class AssertSettings

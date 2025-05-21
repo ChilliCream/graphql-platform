@@ -610,7 +610,7 @@ public static class FragmentHelper
     private static string GetDeferLabel(DirectiveNode directive)
     {
         var argument = directive.Arguments.FirstOrDefault(
-            t => t.Name.Value.EqualsOrdinal(DirectiveNames.LabelArgument));
+            t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer.Arguments.Label));
 
         if (argument?.Value is not StringValueNode { Value.Length: > 0, } sv)
         {

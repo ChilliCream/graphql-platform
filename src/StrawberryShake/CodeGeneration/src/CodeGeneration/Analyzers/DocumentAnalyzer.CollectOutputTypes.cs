@@ -74,7 +74,7 @@ public partial class DocumentAnalyzer
         FieldSelection fieldSelection,
         Queue<FieldSelection> backlog)
     {
-        var namedType = (INamedOutputType)fieldSelection.Field.Type.NamedType();
+        var namedType = (IOutputTypeDefinition)fieldSelection.Field.Type.NamedType();
 
         var selectionSetVariants =
             context.CollectFields(
@@ -108,12 +108,12 @@ public partial class DocumentAnalyzer
         foreach (var variableDefinition in
                  context.OperationDefinition.VariableDefinitions)
         {
-            var namedInputType = context.schema.Types.GetType<INamedInputType>(
+            var namedInputType = context.Schema.Types.GetType<IInputTypeDefinition>(
                 variableDefinition.Type.NamedType().Name.Value);
 
             arguments.Add(new ArgumentModel(
                 variableDefinition.Variable.Name.Value,
-                (IInputType)variableDefinition.Type.ToType(namedInputType),
+                (IInputType)variableDefinition.Type.RenameName(namedInputType.Name),
                 variableDefinition,
                 variableDefinition.DefaultValue));
         }

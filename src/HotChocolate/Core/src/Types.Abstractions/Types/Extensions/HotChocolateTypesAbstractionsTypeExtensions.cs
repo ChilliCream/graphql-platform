@@ -371,6 +371,19 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
     public static IType ElementType(this IType type)
         => ListType(type).ElementType;
 
+    public static ITypeNode ToType(this ITypeNode type, ITypeDefinition typeDefinition)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        return type switch
+        {
+            NamedTypeNode t => new NamedTypeNode(typeDefinition.Name),
+            ListTypeNode t => new ListTypeNode(ToType(t.Type, typeDefinition)),
+            NonNullTypeNode t => new NonNullTypeNode((INullableTypeNode)ToType(t.Type, typeDefinition)),
+            _ => throw new NotSupportedException(),
+        };
+    }
+
     public static ITypeNode ToTypeNode(this IType type)
     {
         ArgumentNullException.ThrowIfNull(type);

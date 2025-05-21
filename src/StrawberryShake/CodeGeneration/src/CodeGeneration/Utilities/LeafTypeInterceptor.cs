@@ -1,8 +1,8 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using StrawberryShake.CodeGeneration.Analyzers;
-using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -13,14 +13,16 @@ public class LeafTypeInterceptor : TypeInterceptor
 
     public LeafTypeInterceptor(Dictionary<string, LeafTypeInfo> scalarInfos)
     {
-        _scalarInfos = scalarInfos ?? throw new ArgumentNullException(nameof(scalarInfos));
+        ArgumentNullException.ThrowIfNull(scalarInfos);
+
+        _scalarInfos = scalarInfos;
     }
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is ILeafType leafType && configuration is not null)
+        if (completionContext.Type is ILeafType leafType)
         {
             _leafTypes.Add(new LeafType(leafType, configuration.Features));
         }
@@ -32,33 +34,18 @@ public class LeafTypeInterceptor : TypeInterceptor
         {
             if (_scalarInfos.TryGetValue(leafType.Type.Name, out var scalarInfo))
             {
-                if (leafType.Type is ScalarType)
-                {
-                    leafType.ContextData[RuntimeType] = scalarInfo.RuntimeType;
-                }
-                leafType.ContextData[SerializationType] = scalarInfo.SerializationType;
+                leafType.Features.Set(leafType.Type is ScalarType
+                    ? new LeafTypeFeature(scalarInfo.RuntimeType, scalarInfo.SerializationType)
+                    : new LeafTypeFeature(null, scalarInfo.SerializationType));
             }
             else
             {
-                if (leafType.Type is ScalarType)
-                {
-                    leafType.ContextData[RuntimeType] = TypeNames.String;
-                }
-                leafType.ContextData[SerializationType] = TypeNames.String;
+                leafType.Features.Set(leafType.Type is ScalarType
+                    ? new LeafTypeFeature(TypeNames.String, TypeNames.String)
+                    : new LeafTypeFeature(null, TypeNames.String));
             }
         }
     }
 
-    private readonly struct LeafType
-    {
-        public LeafType(ILeafType type, IDictionary<string, object?> contextData)
-        {
-            Type = type;
-            ContextData = contextData;
-        }
-
-        public ILeafType Type { get; }
-
-        public IDictionary<string, object?> ContextData { get; }
-    }
+    private record LeafType(ILeafType Type, IFeatureCollection Features) : IFeatureProvider;
 }

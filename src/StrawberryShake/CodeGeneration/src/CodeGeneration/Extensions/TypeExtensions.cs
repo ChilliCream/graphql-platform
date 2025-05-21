@@ -14,8 +14,8 @@ public static class TypeExtensions
         => typeDefinition.Features.GetRequired<EntityFeature>().Pattern;
 
     public static string GetRuntimeType(this ILeafType leafType)
-        => leafType.Features.GetRequired<LeafTypeInfo>().RuntimeType;
+        => leafType.Features.GetRequired<LeafTypeFeature>().RuntimeType ?? "String";
 
     public static string GetSerializationType(this ILeafType leafType)
-        => leafType.Features.GetRequired<LeafTypeInfo>().SerializationType;
+        => leafType.Features.GetRequired<LeafTypeFeature>().SerializationType;
 }

@@ -24,7 +24,7 @@ public partial class DocumentAnalyzer
         return this;
     }
 
-    public async ValueTask<ClientModel> AnalyzeAsync()
+    public ClientModel Analyze()
     {
         if (_schema is null)
         {
@@ -38,7 +38,7 @@ public partial class DocumentAnalyzer
                 "You must at least provide one document.");
         }
 
-        var operationDocuments = await CreateOperationDocumentsAsync(_documents, _schema);
+        var operationDocuments = CreateOperationDocuments(_documents, _schema);
         List<OperationModel> operations = [];
         Dictionary<string, LeafTypeModel> leafTypes = new(StringComparer.Ordinal);
         Dictionary<string, InputObjectTypeModel> inputObjectType = new(StringComparer.Ordinal);
@@ -52,19 +52,17 @@ public partial class DocumentAnalyzer
 
             foreach (var typeModel in context.TypeModels)
             {
-                if (typeModel is LeafTypeModel leafTypeModel &&
-                    !leafTypes.ContainsKey(leafTypeModel.Name))
+                if (typeModel is LeafTypeModel leafTypeModel)
                 {
-                    leafTypes.Add(leafTypeModel.Name, leafTypeModel);
+                    leafTypes.TryAdd(leafTypeModel.Name, leafTypeModel);
                 }
-                else if (typeModel is InputObjectTypeModel inputObjectTypeModel &&
-                    !inputObjectType.ContainsKey(inputObjectTypeModel.Name))
+                else if (typeModel is InputObjectTypeModel inputObjectTypeModel)
                 {
-                    inputObjectType.Add(inputObjectTypeModel.Name, inputObjectTypeModel);
+                    inputObjectType.TryAdd(inputObjectTypeModel.Name, inputObjectTypeModel);
                 }
             }
 
-            foreach ((var key, var value) in context.SelectionSets)
+            foreach (var (key, value) in context.SelectionSets)
             {
                 if (selectionSets.TryGetValue(key, out var to) && to != value)
                 {

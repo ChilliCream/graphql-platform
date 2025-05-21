@@ -4,4 +4,4 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public record EntityFeature(SelectionSetNode Pattern);
 
-public record LeafTypeInfo(string RuntimeType, string SerializationType);
+public record LeafTypeFeature(string? RuntimeType, string SerializationType);

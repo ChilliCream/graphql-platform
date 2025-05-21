@@ -100,7 +100,7 @@ public class InMemoryClientTests
         interceptorMock
             .Setup(x => x
                 .OnCreateAsync(
-                    StubExecutor.ApplicationServiceProvider,
+                    StubExecutor.RootServiceProvider,
                     operationRequest,
                     It.IsAny<OperationRequestBuilder>(),
                     It.IsAny<CancellationToken>()));
@@ -112,7 +112,7 @@ public class InMemoryClientTests
         interceptorMock
             .Verify(x => x
                     .OnCreateAsync(
-                        StubExecutor.ApplicationServiceProvider,
+                        StubExecutor.RootServiceProvider,
                         operationRequest,
                         It.IsAny<OperationRequestBuilder>(),
                         It.IsAny<CancellationToken>()),
@@ -142,29 +142,13 @@ public class InMemoryClientTests
 
         public IServiceProvider Services { get; } =
             new ServiceCollection()
-                .AddSingleton(ApplicationServiceProvider)
+                .AddSingleton(RootServiceProvider)
                 .BuildServiceProvider();
 
-        public static IRootServiceProvider ApplicationServiceProvider { get; } =
-            new DefaultApplicationServiceProvider(
-                new ServiceCollection()
-                    .BuildServiceProvider());
+        public static IServiceProvider RootServiceProvider { get; } =
+                new ServiceCollection().BuildServiceProvider();
     }
-
-    private sealed class DefaultApplicationServiceProvider : IRootServiceProvider
-    {
-        private readonly IServiceProvider _applicationServices;
-
-        public DefaultApplicationServiceProvider(IServiceProvider applicationServices)
-        {
-            _applicationServices = applicationServices ??
-                throw new ArgumentNullException(nameof(applicationServices));
-        }
-
-        public object? GetService(Type serviceType) =>
-            _applicationServices.GetService(serviceType);
-    }
-
+    
     public class StubDocument : IDocument
     {
         public OperationKind Kind => OperationKind.Query;

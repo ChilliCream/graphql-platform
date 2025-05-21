@@ -613,13 +613,13 @@ public class GeoJsonMultiLineStringSerializerTests
         }
     }
 
-    private INamedInputType CreateInputType(string typeName)
+    private InputObjectType CreateInputType(string typeName)
     {
-        return CreateSchema().GetType<INamedInputType>(typeName);
+        return CreateSchema().Types.GetType<InputObjectType>(typeName);
     }
 
     private ILeafType CreateLeafType(string typeName)
     {
-        return CreateSchema().GetType<ILeafType>(typeName);
+        return CreateSchema().Types.GetType<ILeafType>(typeName);
     }
 }

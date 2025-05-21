@@ -1,5 +1,4 @@
 using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +23,7 @@ internal static class OperationDocumentHelper
     /// </param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static async ValueTask<OperationDocuments> CreateOperationDocumentsAsync(
+    public static OperationDocuments CreateOperationDocuments(
         IEnumerable<DocumentNode> documents,
         Schema? schema = null)
     {
@@ -39,19 +38,11 @@ internal static class OperationDocumentHelper
         if (schema is not null)
         {
             var validator =
-                new ServiceCollection()
-                    .AddValidation()
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequiredService<IDocumentValidatorFactory>()
-                    .CreateValidator();
+                DocumentValidatorBuilder.New()
+                    .AddDefaultRules()
+                    .Build();
 
-            var result = await validator.ValidateAsync(
-                schema,
-                mergedDocument,
-                new OperationDocumentId("dummy"),
-                new Dictionary<string, object?>(),
-                false);
+            var result = validator.Validate(schema, mergedDocument);
 
             if (result.HasErrors)
             {

@@ -13,7 +13,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         Context context)
     {
         context.Nodes.Push(node);
-        context.Types.Push(context.Schema.GetOperationType(node.Operation)!);
+        context.Types.Push(context.Schema.GetOperationType(node.Operation));
         node = base.RewriteOperationDefinition(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
@@ -107,15 +107,15 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         return current;
     }
 
-    public static DocumentNode Rewrite(DocumentNode document, Schema schema)
+    public static DocumentNode Rewrite(DocumentNode document, ISchemaDefinition schema)
     {
         var rewriter = new EntityIdRewriter();
         return rewriter.RewriteDocument(document, new Context(schema))!;
     }
 
-    public class Context(Schema schema)
+    public class Context(ISchemaDefinition schema)
     {
-        public Schema Schema { get; } = schema;
+        public ISchemaDefinition Schema { get; } = schema;
 
         public Stack<ITypeDefinition> Types { get; } = new();
 
