@@ -1,8 +1,8 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
-using WellKnownContextData = StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -24,12 +24,11 @@ internal sealed class EntityTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is IComplexOutputType outputType &&
-            configuration is not null)
+        if (completionContext.Type is IComplexTypeDefinition outputType)
         {
             if (_typeEntityPatterns.TryGetValue(outputType.Name, out var pattern))
             {
-                configuration.Features[WellKnownContextData.Entity] = pattern;
+                configuration.Features.Set(new EntityFeature(pattern));
             }
             else
             {
@@ -47,13 +46,13 @@ internal sealed class EntityTypeInterceptor : TypeInterceptor
                 if (_globalEntityPatterns.FirstOrDefault(
                     pattern => DoesPatternMatch(typeInfo.Type, pattern)) is { } matchedPattern)
                 {
-                    typeInfo.ContextData[WellKnownContextData.Entity] = matchedPattern;
+                    typeInfo.Features.Set(new EntityFeature(matchedPattern));
                 }
             }
         }
     }
 
-    private bool DoesPatternMatch(IComplexOutputType outputType, SelectionSetNode pattern)
+    private bool DoesPatternMatch(IComplexTypeDefinition outputType, SelectionSetNode pattern)
     {
         // TODO : At the moment we just allow the first level.
 
@@ -72,16 +71,13 @@ internal sealed class EntityTypeInterceptor : TypeInterceptor
         return true;
     }
 
-    private readonly struct TypeInfo
+    private readonly struct TypeInfo(
+        IComplexTypeDefinition type,
+        IFeatureCollection features)
+        : IFeatureProvider
     {
-        public TypeInfo(IComplexOutputType type, IDictionary<string, object?> contextData)
-        {
-            Type = type;
-            ContextData = contextData;
-        }
+        public IComplexTypeDefinition Type { get; } = type;
 
-        public IComplexOutputType Type { get; }
-
-        public IDictionary<string, object?> ContextData { get; }
+        public IFeatureCollection Features { get; } = features;
     }
 }

@@ -99,6 +99,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
         }
     }
 
+    public FieldFlags Flags => FieldFlags.None;
+
     IType IFieldDefinition.Type => Type;
 
     public IFeatureCollection Features

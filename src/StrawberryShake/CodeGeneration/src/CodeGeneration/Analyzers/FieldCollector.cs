@@ -130,8 +130,7 @@ internal sealed class FieldCollector
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
     {
-        if (selectionSyntax is FieldNode fieldSyntax &&
-            type is IComplexTypeDefinition complexOutputType)
+        if (selectionSyntax is FieldNode fieldSyntax && type is IComplexTypeDefinition complexOutputType)
         {
             ResolveFieldSelection(
                 fieldSyntax,
@@ -169,8 +168,8 @@ internal sealed class FieldCollector
         var responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
         IOutputFieldDefinition? field = null;
 
-        if ((type is IComplexTypeDefinition ct && ct.Fields.TryGetField(fieldName, out field)) ||
-            fieldSyntax.Name.Value is WellKnownNames.TypeName)
+        if ((type is IComplexTypeDefinition ct && ct.Fields.TryGetField(fieldName, out field))
+            || fieldSyntax.Name.Value is WellKnownNames.TypeName)
         {
             field ??= TypeNameField.Default;
 
@@ -271,8 +270,8 @@ internal sealed class FieldCollector
         if (fragmentDefinitionSyntax is not null)
         {
             if (_schema.Types.TryGetType<ITypeDefinition>(
-                    fragmentDefinitionSyntax.TypeCondition.Name.Value,
-                    out var type))
+                fragmentDefinitionSyntax.TypeCondition.Name.Value,
+                out var type))
             {
                 return new Fragment(
                     fragmentName,
@@ -350,6 +349,8 @@ internal sealed class FieldCollector
         public IReadOnlyDictionary<string, object?> ContextData { get; } = new ExtensionData();
 
         public bool IsIntrospectionField => true;
+
+        public FieldFlags Flags => FieldFlags.Introspection | FieldFlags.TypeNameIntrospectionField;
 
         public bool IsDeprecated => false;
 

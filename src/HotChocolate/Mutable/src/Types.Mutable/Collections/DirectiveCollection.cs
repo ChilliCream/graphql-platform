@@ -85,6 +85,19 @@ public sealed class DirectiveCollection
     IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
         => FirstOrDefault(directiveName);
 
+    IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(Type runtimeType)
+    {
+        foreach (var directive in _directives)
+        {
+            if (directive.Definition.RuntimeType == runtimeType)
+            {
+                return directive;
+            }
+        }
+
+        return null;
+    }
+
     public bool ContainsName(string directiveName)
         => FirstOrDefault(directiveName) is not null;
 

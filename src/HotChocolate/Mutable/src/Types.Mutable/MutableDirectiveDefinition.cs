@@ -79,6 +79,8 @@ public class MutableDirectiveDefinition
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: true);
 
+    public Type RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets a string that represents the current object.
     /// </summary>

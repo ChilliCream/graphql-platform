@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
@@ -9,7 +10,7 @@ public partial class DocumentAnalyzer
 {
     private static void CollectEnumTypes(IDocumentAnalyzerContext context)
     {
-        var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
+        var analyzer = new EnumTypeUsageAnalyzer((Schema)context.Schema);
         analyzer.Analyze(context.Document);
 
         foreach (var enumType in analyzer.EnumTypes)

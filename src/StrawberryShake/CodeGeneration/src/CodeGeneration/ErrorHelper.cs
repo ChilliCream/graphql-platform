@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Language;
 using static StrawberryShake.CodeGeneration.CodeGenerationErrorCodes;
+using Location = HotChocolate.Location;
 
 namespace StrawberryShake.CodeGeneration;
 
@@ -67,7 +68,7 @@ public static class ErrorHelper
             .SetMessage(exception.Message)
             .SetExtension(FileExtensionKey, file)
             .SetException(exception)
-            .AddLocation(exception.Line, exception.Column)
+            .AddLocation(new Location(exception.Line, exception.Column))
             .SetCode(CodeGenerationErrorCodes.SyntaxError)
             .Build();
 }

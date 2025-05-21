@@ -14,7 +14,6 @@ public class MutableInputFieldDefinition
     : INamedTypeSystemMemberDefinition<MutableInputFieldDefinition>
     , IInputValueDefinition
     , IMutableFieldDefinition
-    , IFeatureProvider
 {
     private IInputType _type;
     private bool _isDeprecated;
@@ -143,6 +142,8 @@ public class MutableInputFieldDefinition
         get => _type;
         set => _type = value.ExpectInputType();
     }
+
+    public FieldFlags Flags { get; set; }
 
     IType IMutableFieldDefinition.Type
     {

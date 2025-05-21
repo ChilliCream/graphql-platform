@@ -283,7 +283,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).GetType<BsonType>("Bson");
+            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
 
         // act
         var serialize = type.TrySerialize(null, out var value);
@@ -301,7 +301,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).GetType<BsonType>("Bson");
+            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.TrySerialize("Failes", out _);

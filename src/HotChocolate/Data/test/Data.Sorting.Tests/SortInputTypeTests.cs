@@ -193,7 +193,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        builder.Create().Print().MatchSnapshot();
+        builder.Create().ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public class SortInputTypeTest : SortTestBase
 
         // assert
         schema.MatchSnapshot();
-        Schema.ToString().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     public class IgnoreTest

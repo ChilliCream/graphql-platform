@@ -123,6 +123,8 @@ public class MutableOutputFieldDefinition
         set => _type = value.ExpectOutputType();
     }
 
+    public FieldFlags Flags { get; set; }
+
     IType IMutableFieldDefinition.Type
     {
         get => Type;

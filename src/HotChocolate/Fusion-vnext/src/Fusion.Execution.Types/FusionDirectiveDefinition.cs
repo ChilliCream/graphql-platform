@@ -68,6 +68,11 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     public DirectiveLocation Locations { get; }
 
     /// <summary>
+    /// Gets the runtime type of the directive.
+    /// </summary>
+    public Type RuntimeType { get; } = typeof(object);
+
+    /// <summary>
     /// Gets a string that represents the current object.
     /// </summary>
     /// <returns>

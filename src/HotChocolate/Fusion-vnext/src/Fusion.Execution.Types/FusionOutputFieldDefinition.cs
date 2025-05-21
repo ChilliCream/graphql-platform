@@ -86,6 +86,8 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
         }
     }
 
+    public FieldFlags Flags => FieldFlags.None;
+
     IType IFieldDefinition.Type => Type;
 
     public SourceObjectFieldCollection Sources

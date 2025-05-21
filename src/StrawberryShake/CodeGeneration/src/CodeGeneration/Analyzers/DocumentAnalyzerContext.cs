@@ -30,7 +30,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         _fieldCollector = new FieldCollector(schema, document);
     }
 
-    public Schema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
     public DocumentNode Document { get; }
 
@@ -58,12 +58,12 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
     public SelectionSetVariants CollectFields(FieldSelection fieldSelection) =>
         CollectFields(
             fieldSelection.SyntaxNode.SelectionSet!,
-            (INamedOutputType)fieldSelection.Field.Type.NamedType(),
+            (IOutputTypeDefinition)fieldSelection.Field.Type.NamedType(),
             fieldSelection.Path);
 
     public SelectionSetVariants CollectFields(
         SelectionSetNode selectionSet,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path) =>
         _fieldCollector.CollectFields(
             selectionSet,
