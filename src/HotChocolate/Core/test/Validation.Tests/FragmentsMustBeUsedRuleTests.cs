@@ -18,13 +18,13 @@ public class FragmentsMustBeUsedRuleTests
         var document = Utf8GraphQLParser.Parse(
             """
             fragment nameFragment on Dog { # unused
-                name
+              name
             }
 
             {
-                dog {
-                    name
-                }
+              dog {
+                name
+              }
             }
             """);
 
@@ -48,14 +48,14 @@ public class FragmentsMustBeUsedRuleTests
         var document = Utf8GraphQLParser.Parse(
             """
             fragment nameFragment on Dog {
-                name
+              name
             }
 
             {
-                dog {
-                    name
-                    ... nameFragment
-                }
+              dog {
+                name
+                ... nameFragment
+              }
             }
             """);
 
@@ -75,19 +75,19 @@ public class FragmentsMustBeUsedRuleTests
         var document = Utf8GraphQLParser.Parse(
             """
             fragment nameFragment on Dog {
-                name
-                ... nestedNameFragment
+              name
+              ... nestedNameFragment
             }
 
             fragment nestedNameFragment on Dog {
-                name
+              name
             }
 
             {
-                dog {
-                    name
-                    ... nameFragment
-                }
+              dog {
+                name
+                ... nameFragment
+              }
             }
             """);
 

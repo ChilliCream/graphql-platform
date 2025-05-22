@@ -1,3 +1,4 @@
+using System.Reflection.Emit;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -40,21 +41,14 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// The @defer and @stream directives each accept an argument “label”.
 /// This label may be used by GraphQL clients to uniquely identify response payloads.
-/// If a label is passed, it must not be a variable and it must be unique within
+/// If a label is passed, it must not be a variable, and it must be unique within
 /// all other @defer and @stream directives in the document.
 ///
 /// https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique
 /// </summary>
-internal sealed class DirectiveVisitor : DocumentValidatorVisitor
+internal sealed class DirectiveVisitor()
+    : DocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true, })
 {
-    public DirectiveVisitor()
-        : base(new SyntaxVisitorOptions
-        {
-            VisitDirectives = true,
-        })
-    {
-    }
-
     protected override ISyntaxVisitorAction Enter(
         ISyntaxNode node,
         DocumentValidatorContext context)
@@ -81,8 +75,8 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         DocumentNode node,
         DocumentValidatorContext context)
     {
-        // The document node is the root node that is entered once per visitation.
-        // We use this hook to ensure that the directive visitor feature is created
+        // The document node is the root node entered once per visitation.
+        // We use this hook to ensure that the directive visitor feature is created,
         // and we can use it in consecutive visits of child nodes without extra
         // checks at each point.
         // We do use a GetOrSet here because the context is a pooled object.
@@ -163,7 +157,9 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         DocumentValidatorContext context)
         where T : ISyntaxNode, IHasDirectives
     {
-        var directiveNames = context.Features.GetRequired<DirectiveVisitorFeature>().DirectiveNames;
+        var feature = context.Features.GetRequired<DirectiveVisitorFeature>();
+        var directiveNames = feature.DirectiveNames;
+        var labels = feature.Labels;
         directiveNames.Clear();
 
         foreach (var directive in node.Directives)
@@ -184,7 +180,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
                 switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {
                     case StringValueNode sn:
-                        if (!directiveNames.Add(sn.Value))
+                        if (!labels.Add(sn.Value))
                         {
                             context.ReportError(context.DeferAndStreamDuplicateLabel(node, sn.Value));
                         }
@@ -252,6 +248,12 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     {
         public HashSet<string> DirectiveNames { get; } = [];
 
-        protected internal override void Reset() => DirectiveNames.Clear();
+        public HashSet<string> Labels { get; } = [];
+
+        protected internal override void Reset()
+        {
+            DirectiveNames.Clear();
+            Labels.Clear();
+        }
     }
 }

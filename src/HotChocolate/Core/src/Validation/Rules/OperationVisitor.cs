@@ -27,7 +27,7 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// AND
 ///
-/// Defer And Stream Directives Are Used On Valid Root Field
+/// Defer and Stream Directives Are Used On Valid Root Field
 ///
 /// https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field
 /// </summary>
@@ -82,8 +82,9 @@ public class OperationVisitor : DocumentValidatorVisitor
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        var feature = context.Features.GetOrSet<OperationVisitorFeature>();
+        var feature = context.Features.GetRequired<OperationVisitorFeature>();
         feature.OperationType = node.Operation;
+        feature.ResponseNames.Clear();
 
         if (node.Operation == OperationType.Mutation)
         {

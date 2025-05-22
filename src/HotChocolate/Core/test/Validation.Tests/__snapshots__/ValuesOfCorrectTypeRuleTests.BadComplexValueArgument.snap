@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified value type of field `name` does not match the field type.",
     "Code": null,
@@ -14,13 +14,13 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 46
+        "Line": 2,
+        "Column": 30
       }
     ],
     "Extensions": {
       "fieldName": "name",
-      "fieldType": "String",
+      "fieldType": "\"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.\"\nscalar String",
       "locationType": "String",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },

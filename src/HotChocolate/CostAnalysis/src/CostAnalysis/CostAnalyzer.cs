@@ -18,7 +18,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
         Visit(operation, context);
 
-        var summary = feature._selectionSetCost[operation.SelectionSet];
+        var summary = feature.SelectionSetCost[operation.SelectionSet];
 
         return new CostMetrics { TypeCost = summary.TypeCost, FieldCost = summary.FieldCost };
     }
@@ -41,7 +41,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         var costContext = context.GetCostContext();
         var type = context.Types.Peek();
         var cost = type.GetTypeWeight();
-        var summary = costContext._selectionSetCost[node.SelectionSet];
+        var summary = costContext.SelectionSetCost[node.SelectionSet];
         summary.TypeCost += cost;
 
         return base.Leave(node, context);
@@ -146,10 +146,10 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
             }
 
             var costContext = context.GetCostContext();
-            if (!costContext._selectionSetCost.TryGetValue(node, out var costSummary))
+            if (!costContext.SelectionSetCost.TryGetValue(node, out var costSummary))
             {
                 costSummary = new CostSummary();
-                costContext._selectionSetCost.Add(node, costSummary);
+                costContext.SelectionSetCost.Add(node, costSummary);
             }
 
             var type = context.Types.Peek().NamedType();
@@ -227,8 +227,8 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         DocumentValidatorContext context)
     {
         var costContext = context.GetCostContext();
-        var processed = costContext._processed;
-        var inputCostVisitor = costContext._inputCostVisitor;
+        var processed = costContext.Processed;
+        var inputCostVisitor = costContext.InputCostVisitor;
 
         var typeCostSum = 0.0;
         var fieldCostSum = 0.0;
@@ -299,7 +299,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
                         }
                     }
 
-                    // if the field is a list type we are multiplying the cost
+                    // if the field is a list type, we are multiplying the cost
                     // by the estimated list size.
                     var listSize = field.GetListSize(arguments, listSizeDirective);
                     typeCost *= listSize;
@@ -333,29 +333,29 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 file sealed class CostContext : ValidatorFeature
 {
     private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
-    private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
+    private readonly List<FieldInfoListBuffer> _buffers = [new(),];
 
     public IType NonNullString { get; private set; } = null!;
 
     public Dictionary<SelectionSetNode, List<FieldInfo>> FieldSets { get; } = [];
 
-    public readonly Dictionary<SelectionSetNode, CostSummary> _selectionSetCost = [];
+    public readonly Dictionary<SelectionSetNode, CostSummary> SelectionSetCost = [];
 
-    public readonly HashSet<string> _processed = [];
+    public readonly HashSet<string> Processed = [];
 
-    public readonly InputCostVisitor _inputCostVisitor = new();
+    public readonly InputCostVisitor InputCostVisitor = new();
 
     public InputCostVisitorContext InputCostVisitorContext { get; } = new();
 
     public List<FieldInfo> RentFieldInfoList()
     {
         var buffer = _buffers.Peek();
+        List<FieldInfo>? list;
 
-        if (!buffer.TryPop(out var list))
+        while (!buffer.TryPop(out list))
         {
             buffer = _fieldInfoPool.Get();
             _buffers.Push(buffer);
-            list = buffer.Pop();
         }
 
         return list;
@@ -407,7 +407,7 @@ file static class DocumentValidatorContextExtensions
     public static CostSummary GetSelectionSetCost(
         this DocumentValidatorContext context,
         SelectionSetNode selectionSetNode)
-        => context.GetCostContext()._selectionSetCost[selectionSetNode];
+        => context.GetCostContext().SelectionSetCost[selectionSetNode];
 }
 
 file sealed class CostSummary

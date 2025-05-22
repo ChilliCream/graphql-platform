@@ -145,7 +145,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_LeafFieldsCannotHaveSelections,
                 node.Name.Value,
-                fieldType.ToString()!)
+                fieldType.FullTypeName())
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)

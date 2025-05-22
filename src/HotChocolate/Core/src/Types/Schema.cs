@@ -80,34 +80,79 @@ public partial class Schema
     public static string DefaultName => "_Default";
 
     /// <summary>
-    /// Returns the GraphQL object type for the given <paramref name="operationType"/>.
+    /// Returns the GraphQL object type for the given <paramref name="operation"/>.
     /// </summary>
-    /// <param name="operationType">
+    /// <param name="operation">
     /// The operation type.
     /// </param>
     /// <returns>
-    /// Returns the GraphQL object type for the given <paramref name="operationType"/>
+    /// Returns the GraphQL object type for the given <paramref name="operation"/>
     /// </returns>
-    public ObjectType GetOperationType(OperationType operationType)
+    public ObjectType GetOperationType(OperationType operation)
     {
-        var type = operationType switch
+        var type = operation switch
         {
             OperationType.Query => QueryType,
             OperationType.Mutation => MutationType,
             OperationType.Subscription => SubscriptionType,
-            _ => throw new ArgumentException(nameof(operationType)),
+            _ => throw new ArgumentException(nameof(operation)),
         };
 
         if (type is null)
         {
             throw new InvalidOperationException(
-                $"The specified operation type `{operationType}` is not supported.");
+                $"The specified operation type `{operation}` is not supported.");
         }
 
         return type;
     }
-    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operationType)
-        => GetOperationType(operationType);
+
+    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operation)
+        => GetOperationType(operation);
+
+    /// <summary>
+    /// Tries to get the GraphQL object type for the given <paramref name="operation"/>.
+    /// </summary>
+    /// <param name="operation">
+    /// The operation type.
+    /// </param>
+    /// <param name="type">
+    /// The GraphQL object type for the given <paramref name="operation"/>.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c>, if the GraphQL object type for the given
+    /// <paramref name="operation"/> was found, <c>false</c> otherwise.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// The specified operation type is not supported.
+    /// </exception>
+    public bool TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out ObjectType? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
+
+    bool ISchemaDefinition.TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out IObjectTypeDefinition? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
 
     /// <summary>
     /// Gets the possible object types to
@@ -127,6 +172,7 @@ public partial class Schema
     IEnumerable<IObjectTypeDefinition> ISchemaDefinition.GetPossibleTypes(ITypeDefinition abstractType)
         => GetPossibleTypes(abstractType);
 
+    /// <inheritdoc />
     public IEnumerable<INameProvider> GetAllDefinitions()
     {
         foreach (var type in Types)

@@ -178,9 +178,15 @@ public sealed class DocumentValidatorBuilder
     /// </returns>
     public DocumentValidator Build()
     {
-        _options ??= new ValidationOptions { MaxAllowedErrors = 1 };
-        var completed = new HashSet<Type>();
         var rules = new List<IDocumentValidatorRule>();
+
+        if (_optionModifiers is not null)
+        {
+            foreach (var modifier in _optionModifiers)
+            {
+                modifier(_services, _options);
+            }
+        }
 
         foreach (var configuration in _rules.OrderBy(r => r.Priority))
         {

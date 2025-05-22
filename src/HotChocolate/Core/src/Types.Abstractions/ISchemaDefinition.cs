@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -42,18 +43,34 @@ public interface ISchemaDefinition
     IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions { get; }
 
     /// <summary>
-    /// Gets the operation type for the given operation type.
+    /// Gets the object type that represents the given <paramref name="operation"/>.
     /// </summary>
-    /// <param name="operationType">
-    /// The operation type.
+    /// <param name="operation">
+    /// The operation for which the object type shall be returned.
     /// </param>
     /// <returns>
-    /// Returns the operation type for the given operation type.
+    /// Returns the object type that represents the given <paramref name="operation"/>.
     /// </returns>
     /// <exception cref="ArgumentException">
-    /// The operation type is not supported.
+    /// The specified operation is not supported.
     /// </exception>
-    IObjectTypeDefinition GetOperationType(OperationType operationType);
+    IObjectTypeDefinition GetOperationType(OperationType operation);
+
+    /// <summary>
+    /// Tries to get the object type that represents the given <paramref name="operation"/>.
+    /// </summary>
+    /// <param name="operation">
+    /// The operation for which the object type shall be returned.
+    /// </param>
+    /// <param name="type">
+    /// The object type that represents the given <paramref name="operation"/>.
+    /// </param>
+    /// <returns>
+    /// Returns true if the operation type was found; otherwise, false.
+    /// </returns>
+    bool TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out IObjectTypeDefinition? type);
 
     /// <summary>
     /// Gets the possible object types to

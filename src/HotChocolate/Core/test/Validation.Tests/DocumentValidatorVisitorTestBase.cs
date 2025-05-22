@@ -1,7 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Validation;
 
@@ -23,9 +22,13 @@ public abstract class DocumentValidatorVisitorTestBase
 
     protected ISchemaDefinition StarWars { get; }
 
-    protected void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
+    protected void ExpectValid(
+        [StringSyntax("graphql")] string sourceText)
+        => ExpectValid(null, sourceText);
 
-    protected void ExpectValid(ISchemaDefinition? schema, string sourceText)
+    protected void ExpectValid(
+        ISchemaDefinition? schema,
+        [StringSyntax("graphql")] string sourceText)
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(sourceText);
@@ -39,12 +42,14 @@ public abstract class DocumentValidatorVisitorTestBase
         Assert.Empty(context.Errors);
     }
 
-    protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors)
+    protected void ExpectErrors(
+        [StringSyntax("graphql")] string sourceText,
+        params Action<IError>[] elementInspectors)
         => ExpectErrors(null, sourceText, elementInspectors);
 
     protected void ExpectErrors(
         ISchemaDefinition? schema,
-        string sourceText,
+        [StringSyntax("graphql")] string sourceText,
         params Action<IError>[] elementInspectors)
     {
         // arrange

@@ -45,9 +45,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        var operationType = context.Schema.GetOperationType(node.Operation);
-
-        if (operationType == null)
+        if (!context.Schema.TryGetOperationType(node.Operation, out _))
         {
             context.ReportError(context.OperationNotSupported(node.Operation));
             return Skip;
@@ -87,7 +85,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             context.ReportError(
                 context.NoSelectionOnRootType(
                     node,
-                    context.Schema.GetOperationType(node.Operation)!));
+                    context.Schema.GetOperationType(node.Operation)));
         }
 
         return base.Leave(node, context);
@@ -501,15 +499,15 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         public IList<FieldInfo> RentFieldInfoList()
         {
             var buffer = _buffers.Peek();
+            List<FieldInfo>? list;
 
-            if (!buffer.TryPop(out var list))
+            while (!buffer.TryPop(out list))
             {
                 buffer = _fieldInfoPool.Get();
                 _buffers.Push(buffer);
-                list = buffer.Pop();
             }
 
-            return list;
+            return list!;
         }
 
         protected internal override void OnInitialize(DocumentValidatorContext context)
