@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Mutable;
 /// These can be later replaced by the actual type definitions.
 /// </para>
 /// </summary>
-public sealed class MissingType : ITypeDefinition, IFeatureProvider
+public sealed class MissingType : IInputTypeDefinition, IOutputTypeDefinition
 {
     private DirectiveCollection? _directives;
     private FeatureCollection? _features;
