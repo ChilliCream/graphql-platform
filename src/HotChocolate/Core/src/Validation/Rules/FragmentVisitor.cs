@@ -52,7 +52,7 @@ namespace HotChocolate.Validation.Rules;
 /// AND
 ///
 /// The graph of fragment spreads must not form any cycles including
-/// spreading itself. Otherwise an operation could infinitely spread or
+/// spreading itself. Otherwise, an operation could infinitely spread or
 /// infinitely execute on cycles in the underlying data.
 ///
 /// https://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles
@@ -87,8 +87,6 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        fragmentNames.Clear();
-
         return Continue;
     }
 
@@ -96,11 +94,11 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         DocumentNode node,
         DocumentValidatorContext context)
     {
-        var fragmentNames = context.Features.GetOrSet<FragmentVisitorFeature>().FragmentNames;
+        var fragmentNames = context.Features.GetRequired<FragmentVisitorFeature>().FragmentNames;
 
         foreach (var fragmentName in context.Fragments.Names)
         {
-            if (fragmentNames.Add(fragmentName))
+            if (!fragmentNames.Add(fragmentName))
             {
                 context.ReportError(context.FragmentNotUsed(context.Fragments[fragmentName]));
             }
@@ -145,7 +143,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         DocumentValidatorContext context)
     {
         var fragmentNames = context.Features.GetRequired<FragmentVisitorFeature>().FragmentNames;
-        fragmentNames.Add(node.Name.Value);
+        fragmentNames.Remove(node.Name.Value);
 
         if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
             node.TypeCondition.Name.Value,
@@ -153,7 +151,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         {
             if (type.IsCompositeType())
             {
-                FragmentVisitor.ValidateFragmentSpreadIsPossible(
+                ValidateFragmentSpreadIsPossible(
                     node, context,
                     context.Types.Peek().NamedType(),
                     type);
@@ -210,7 +208,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         FragmentSpreadNode node,
         DocumentValidatorContext context)
     {
-        if (context.Fragments.TryEnter(node, out var fragment))
+        if (context.Fragments.TryGet(node, out var fragment))
         {
             if (context.Path.Contains(fragment))
             {
@@ -233,8 +231,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     {
         if (!IsCompatibleType(context, parentType, typeCondition))
         {
-            context.ReportError(context.FragmentNotPossible(
-                node, typeCondition, parentType));
+            context.ReportError(context.FragmentNotPossible(node, typeCondition, parentType));
         }
     }
 

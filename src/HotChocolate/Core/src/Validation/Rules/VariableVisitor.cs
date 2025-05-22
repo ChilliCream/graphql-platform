@@ -192,8 +192,6 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
                 context.Types.Push(argument.Type);
                 return Continue;
             }
-            context.UnexpectedErrorsDetected = true;
-            return Skip;
         }
 
         context.UnexpectedErrorsDetected = true;
@@ -254,7 +252,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
                 out var variableDefinition)
             && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
         {
-            context.ReportError(ErrorHelper.VariableIsNotCompatible(context, node, variableDefinition));
+            context.ReportError(context.VariableIsNotCompatible(node, variableDefinition));
         }
 
         return Skip;

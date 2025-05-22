@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -377,7 +378,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
         return type switch
         {
-            NamedTypeNode t => new NamedTypeNode(typeDefinition.Name),
+            NamedTypeNode => new NamedTypeNode(typeDefinition.Name),
             ListTypeNode t => new ListTypeNode(ToType(t.Type, typeDefinition)),
             NonNullTypeNode t => new NonNullTypeNode((INullableTypeNode)ToType(t.Type, typeDefinition)),
             _ => throw new NotSupportedException(),
@@ -435,6 +436,107 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             NonNullType nonNullType => new NonNullType(ReplaceNamedType(nonNullType.NullableType, newNamedType)),
             _ => throw new NotSupportedException(),
         };
+    }
+
+    public static string FullTypeName(this IType type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        // if the type is a ITypeDefinition, we shortcut the type traversal
+        // and simply return the name of the type.
+        if (type is ITypeDefinition namedType)
+        {
+            return namedType.Name;
+        }
+
+        char[]? rented = null;
+        Span<char> buffer = stackalloc char[128];
+        int written;
+
+        while (!FullTypeName(type, 0, buffer, out written))
+        {
+            var capacity = buffer.Length;
+
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+
+            rented = ArrayPool<char>.Shared.Rent(capacity * 2);
+            buffer = rented;
+        }
+
+        var fullTypeName = new string(buffer[..written]);
+
+        if (rented is not null)
+        {
+            rented.AsSpan()[..written].Clear();
+            ArrayPool<char>.Shared.Return(rented);
+        }
+
+        return fullTypeName;
+    }
+
+    private static bool FullTypeName(IType type, int currentDepth, Span<char> buffer, out int written)
+    {
+        if (currentDepth > _maxDepth)
+        {
+            throw new InvalidOperationException(
+                "The type resolution depth limit was exceeded.");
+        }
+
+        if (type is ITypeDefinition namedType)
+        {
+            if(buffer.Length < namedType.Name.Length)
+            {
+                written = 0;
+                return false;
+            }
+
+            namedType.Name.AsSpan().CopyTo(buffer);
+            written = namedType.Name.Length;
+            return true;
+        }
+
+        if (type is ListType listType)
+        {
+            if(!FullTypeName(listType.ElementType, currentDepth + 1, buffer, out written))
+            {
+                return false;
+            }
+
+            if (buffer.Length < written + 2)
+            {
+                return false;
+            }
+
+            buffer[..written].CopyTo(buffer[1..]);
+
+            buffer[0] = '[';
+            buffer[written + 1] = ']';
+            written += 2;
+            return true;
+        }
+
+        if (type is NonNullType nonNullType)
+        {
+            if(!FullTypeName(nonNullType.NullableType, currentDepth + 1, buffer, out written))
+            {
+                return false;
+            }
+
+            if (buffer.Length < written + 1)
+            {
+                return false;
+            }
+
+            buffer[written] = '!';
+            written += 1;
+            return true;
+        }
+
+        throw new InvalidOperationException(
+            "The specified type kind is not supported.");
     }
 
     /// <summary>

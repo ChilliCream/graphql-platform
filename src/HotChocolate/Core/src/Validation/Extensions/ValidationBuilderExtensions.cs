@@ -323,6 +323,8 @@ public static partial class HotChocolateValidationBuilderExtensions
         bool allowRequestOverrides = false,
         Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         return builder
             .AddVisitor(
                 factory: static (_, o) => new MaxExecutionDepthVisitor(o),

@@ -51,7 +51,7 @@ internal static class ErrorHelper
             .SetPath(context.CreateErrorPath())
             .SetExtension("variable", variableName)
             .SetExtension("variableType", variableDefinition.Type.ToString())
-            .SetExtension("locationType", context.Types.Peek().ToString())
+            .SetExtension("locationType", context.Types.Peek().FullTypeName())
             .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
             .Build();
     }
@@ -150,7 +150,7 @@ internal static class ErrorHelper
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
             .SetExtension("field", node.Name.Value)
-            .SetExtension("type", fieldType.ToString())
+            .SetExtension("type", fieldType.FullTypeName())
             .SetExtension("responseName", (node.Alias ?? node.Name).Value)
             .SpecifiedBy("sec-Leaf-Field-Selections")
             .Build();
@@ -168,7 +168,7 @@ internal static class ErrorHelper
             .SetPath(context.CreateErrorPath())
             .SetExtension("argument", node.Name.Value)
             .SetExtension("argumentValue", value.ToString())
-            .SetExtension("locationType", locationType.NamedType().Coordinate.ToString())
+            .SetExtension("locationType", locationType.FullTypeName())
             .SpecifiedBy("sec-Values-of-Correct-Type")
             .Build();
     }
@@ -184,7 +184,7 @@ internal static class ErrorHelper
             .AddLocation(valueNode)
             .SetExtension("fieldName", field.Name)
             .SetExtension("fieldType", field.Type.ToString())
-            .SetExtension("locationType", locationType.ToString())
+            .SetExtension("locationType", locationType.FullTypeName())
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-Values-of-Correct-Type")
             .Build();
@@ -204,7 +204,7 @@ internal static class ErrorHelper
             .SetPath(context.CreateErrorPath())
             .SetExtension("variable", node.Variable.Name.Value)
             .SetExtension("variableType", node.Type.ToString())
-            .SetExtension("locationType", locationType.ToString())
+            .SetExtension("locationType", locationType.FullTypeName())
             .SpecifiedBy("sec-Values-of-Correct-Type")
             .Build();
     }
@@ -224,7 +224,7 @@ internal static class ErrorHelper
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
             .SetExtension("field", node.Name.Value)
-            .SetExtension("type", fieldType.ToString())
+            .SetExtension("type", fieldType.FullTypeName())
             .SetExtension("responseName", (node.Alias ?? node.Name).Value)
             .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
             .Build();
@@ -242,7 +242,7 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension("operation", node.Name?.Value ?? "Unnamed")
-            .SetExtension("type", fieldType.ToString())
+            .SetExtension("type", fieldType.FullTypeName())
             .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
             .Build();
     }
@@ -274,8 +274,8 @@ internal static class ErrorHelper
             .SetExtension("declaringTypeB", fieldB.DeclaringType.NamedType().Name)
             .SetExtension("fieldA", fieldA.SyntaxNode.Name.Value)
             .SetExtension("fieldB", fieldB.SyntaxNode.Name.Value)
-            .SetExtension("typeA", fieldA.Type.ToString())
-            .SetExtension("typeB", fieldB.Type.ToString())
+            .SetExtension("typeA", fieldA.Type.FullTypeName())
+            .SetExtension("typeB", fieldB.Type.FullTypeName())
             .SetExtension("responseNameA", fieldA.ResponseName)
             .SetExtension("responseNameB", fieldB.ResponseName)
             .SpecifiedBy("sec-Field-Selection-Merging")
@@ -360,8 +360,8 @@ internal static class ErrorHelper
             .SetMessage(Resources.ErrorHelper_FragmentNotPossible)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
-            .SetExtension("typeCondition", typeCondition.ToString())
-            .SetExtension("selectionSetType", parentType.ToString())
+            .SetExtension("typeCondition", typeCondition.Name)
+            .SetExtension("selectionSetType", parentType.Name)
             .SetFragmentName(node)
             .SpecifiedBy("sec-Fragment-spread-is-possible")
             .Build();
@@ -393,7 +393,7 @@ internal static class ErrorHelper
             .SetMessage(Resources.ErrorHelper_FragmentOnlyCompositeType)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
-            .SetExtension("typeCondition", type.ToString())
+            .SetExtension("typeCondition", type.FullTypeName())
             .SetFragmentName(node)
             .SpecifiedBy("sec-Fragments-On-Composite-Types")
             .Build();

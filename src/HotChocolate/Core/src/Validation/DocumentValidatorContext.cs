@@ -266,6 +266,9 @@ public sealed class DocumentValidatorContext : IFeatureProvider
             }
         }
 
+        public bool TryGet(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
+            => _fragments.TryGetValue(spread.Name.Value, out fragment);
+
         public bool TryEnter(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
         {
             if (_visited.Add(spread.Name.Value)
@@ -282,8 +285,10 @@ public sealed class DocumentValidatorContext : IFeatureProvider
             => _visited.Remove(spread.Name.Value);
 
         public void Leave(FragmentDefinitionNode fragment)
-            => _fragments.Remove(fragment.Name.Value);
+            => _visited.Remove(fragment.Name.Value);
 
+        public bool Exists(FragmentSpreadNode spread)
+            => _fragments.ContainsKey(spread.Name.Value);
 
         internal void Reset()
             => _visited.Clear();

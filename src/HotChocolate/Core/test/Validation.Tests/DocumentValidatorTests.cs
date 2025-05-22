@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
@@ -124,12 +125,12 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                query houseTrainedQuery(
-                    $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
-                    dog {
-                        isHouseTrained(atOtherHomes: $atOtherHomes)
-                    }
+            query houseTrainedQuery(
+                $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
+                dog {
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
+            }
             """,
             t => Assert.Equal(
                 "A document containing operations that " +
@@ -337,10 +338,10 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                fragment conflictingBecauseAlias on Dog {
-                    name: nickname
-                    name
-                }
+            fragment conflictingBecauseAlias on Dog {
+                name: nickname
+                name
+            }
             """,
             t => Assert.Equal(
                 "The specified fragment `conflictingBecauseAlias` " +
@@ -376,15 +377,15 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                fragment nameFragment on Dog { # unused
+            fragment nameFragment on Dog { # unused
+                name
+            }
+
+            {
+                dog {
                     name
                 }
-
-                {
-                    dog {
-                        name
-                    }
-                }
+            }
             """,
             t => Assert.Equal(
                 "The specified fragment `nameFragment` " +
@@ -423,13 +424,13 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                {
-                    dog {
-                        barkVolume {
-                            sinceWhen
-                        }
+            {
+                dog {
+                    barkVolume {
+                        sinceWhen
                     }
                 }
+            }
             """,
             t => Assert.Equal(
                 "Field \"barkVolume\" must not have a selection since type \"Int\" has no " +
@@ -493,11 +494,11 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                {
-                    dog {
-                        ...undefinedFragment
-                    }
+            {
+                dog {
+                    ...undefinedFragment
                 }
+            }
             """,
             t => Assert.Equal(
                 "The specified fragment `undefinedFragment` " +
@@ -531,17 +532,17 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                {
-                    dog {
-                        ...inlineNotExistingType
-                    }
+            {
+                dog {
+                    ...inlineNotExistingType
                 }
+            }
 
-                fragment inlineNotExistingType on Dog {
-                    ... on NotInSchema {
-                        name
-                    }
+            fragment inlineNotExistingType on Dog {
+                ... on NotInSchema {
+                    name
                 }
+            }
             """,
             t =>
             {
@@ -557,7 +558,7 @@ public class DocumentValidatorTests
         ExpectErrors(
             """
                 {
-                    findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
+                    findDog(complex: { favoriteCookieFlavor: "Bacon" })
                     {
                         name
                     }
@@ -574,12 +575,12 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
+            {
+                findDog2(complex: { name: null })
                 {
-                    findDog2(complex: { name: null })
-                    {
-                        name
-                    }
+                    name
                 }
+            }
             """,
             t => Assert.Equal(
                 "`name` is a required field and cannot be null.",
@@ -591,12 +592,12 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
+            {
+                findDog(complex: { name: "A", name: "B" })
                 {
-                    findDog(complex: { name: ""A"", name: ""B"" })
-                    {
-                        name
-                    }
+                    name
                 }
+            }
             """,
             t =>
                 Assert.Equal("There can be only one input field named `name`.", t.Message));
@@ -607,11 +608,11 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                {
-                    dog {
-                        name @foo(bar: true)
-                    }
+            {
+                dog {
+                    name @foo(bar: true)
                 }
+            }
             """,
             t => Assert.Equal(
                 "The specified directive `foo` " +
@@ -624,15 +625,15 @@ public class DocumentValidatorTests
     {
         ExpectErrors(
             """
-                {
-                    arguments {
-                        ...stringIntoInt
-                    }
+            {
+                arguments {
+                    ...stringIntoInt
                 }
+            }
 
-                fragment stringIntoInt on Arguments {
-                    intArgField(intArg: ""123"")
-                }
+            fragment stringIntoInt on Arguments {
+                intArgField(intArg: "123")
+            }
             """,
             t => Assert.Equal(
                 "The specified argument value does not match the " +
@@ -650,14 +651,14 @@ public class DocumentValidatorTests
                 .AddMaxExecutionDepthRule(1)
                 .Build(),
             """
-                query {
-                    catOrDog
-                    {
-                        ... on Cat {
-                            name
-                        }
+            query {
+                catOrDog
+                {
+                    ... on Cat {
+                        name
                     }
                 }
+            }
             """,
             t =>
             {
@@ -804,7 +805,7 @@ public class DocumentValidatorTests
     [Fact]
     public void Typename_query()
     {
-        DocumentValidatorTests.ExpectValid(FileResource.Open("__typename_query.graphql"));
+        ExpectValid(FileResource.Open("__typename_query.graphql"));
     }
 
     [Fact]
@@ -847,13 +848,13 @@ public class DocumentValidatorTests
     public void Introspection_Cycle_Detected()
         => ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
 
-    private static void ExpectValid(string sourceText)
+    private static void ExpectValid([StringSyntax("graphql")] string sourceText)
         => ExpectValid(null, null, sourceText);
 
     private static void ExpectValid(
         ISchemaDefinition? schema,
         DocumentValidator? validator,
-        string sourceText)
+        [StringSyntax("graphql")] string sourceText)
     {
         // arrange
         schema ??= ValidationUtils.CreateSchema();
@@ -868,7 +869,7 @@ public class DocumentValidatorTests
     }
 
     private static void ExpectErrors(
-        string sourceText,
+        [StringSyntax("graphql")] string sourceText,
         params Action<IError>[] elementInspectors)
         => ExpectErrors(null, null, sourceText, elementInspectors);
 

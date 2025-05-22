@@ -2,14 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
-public class FragmentNameUniquenessRuleTests
-    : DocumentValidatorVisitorTestBase
+public class FragmentNameUniquenessRuleTests()
+    : DocumentValidatorVisitorTestBase(builder => builder.AddFragmentRules())
 {
-    public FragmentNameUniquenessRuleTests()
-        : base(builder => builder.AddFragmentRules())
-    {
-    }
-
     [Fact]
     public void UniqueFragments()
     {
@@ -36,23 +31,24 @@ public class FragmentNameUniquenessRuleTests
     [Fact]
     public void DuplicateFragments()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                        ...fragmentOne
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              dog {
+                ...fragmentOne
+              }
+            }
 
-                fragment fragmentOne on Dog {
-                    name
-                }
+            fragment fragmentOne on Dog {
+              name
+            }
 
-                fragment fragmentOne on Dog {
-                    owner {
-                        name
-                    }
-                }
-            ",
+            fragment fragmentOne on Dog {
+              owner {
+                name
+              }
+            }
+            """,
             t => Assert.Equal(
                 "There are multiple fragments with the name `fragmentOne`.",
                 t.Message));
