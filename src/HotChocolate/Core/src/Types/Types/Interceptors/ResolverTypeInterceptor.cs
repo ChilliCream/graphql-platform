@@ -124,8 +124,13 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         var completed = 0;
 
-        foreach (var objectTypeDef in _typeDefs.OfType<ObjectTypeConfiguration>())
+        foreach (var typeDef in _typeDefs)
         {
+            if (typeDef is not ObjectTypeConfiguration objectTypeDef)
+            {
+                continue;
+            }
+
             if (_configs.Contains(objectTypeDef.Name))
             {
                 foreach (var config in _configs[objectTypeDef.Name])
@@ -170,8 +175,6 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 if (!field.Resolvers.HasResolvers &&
                     context.Members.TryGetValue(field.Name, out var member))
                 {
-                    field.ResolverMember = member;
-
                     ObjectFieldDescriptor.From(_context, field).CreateConfiguration();
 
                     map.Clear();
@@ -399,8 +402,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         if (member is MethodInfo method)
         {
-            foreach (var parameter in
-                _resolverCompiler.GetArgumentParameters(method.GetParameters()))
+            foreach (var parameter in _resolverCompiler.GetArgumentParameters(method.GetParameters()))
             {
                 _parameters[parameter.Name!] = parameter;
             }
@@ -420,7 +422,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                             var typeName = type.NamedType().Name;
                             var feature = _typeSystemFeature.Fetch(_context.Features);
                             if (!feature.NameRuntimeTypeBinding.ContainsKey(typeName)
-                                && feature.RuntimeTypeNameBindings.ContainsKey(unwrapped))
+                                && !feature.RuntimeTypeNameBindings.ContainsKey(unwrapped))
                             {
                                 var binding = new RuntimeTypeNameBinding(unwrapped, typeName);
                                 feature.NameRuntimeTypeBinding = feature.NameRuntimeTypeBinding.Add(typeName, binding);
@@ -440,26 +442,27 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         TypeReference? typeRef,
         MemberInfo member)
     {
-        if (typeRef is not null && _typeReferenceResolver.TryGetType(typeRef, out var type))
+        if (typeRef is null || !_typeReferenceResolver.TryGetType(typeRef, out var type))
         {
-            List<ITypeConfiguration>? updated = null;
-            Type? runtimeType = null;
-
-            foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
-            {
-                if (typeDef.RuntimeType == typeof(object))
-                {
-                    updated ??= [];
-                    runtimeType ??= Unwrap(_typeInspector.GetReturnType(member), type);
-                    typeDef.RuntimeType = runtimeType;
-                    updated.Add(typeDef);
-                }
-            }
-
-            return updated;
+            return null;
         }
 
-        return null;
+        List<ITypeConfiguration>? updated = null;
+        Type? runtimeType = null;
+
+        foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
+        {
+            if (typeDef.RuntimeType == typeof(object))
+            {
+                updated ??= [];
+                runtimeType ??= Unwrap(_typeInspector.GetReturnType(member), type);
+                typeDef.RuntimeType = runtimeType;
+                updated.Add(typeDef);
+            }
+        }
+
+        return updated;
+
     }
 
     private Type? Unwrap(Type resultType, IType type)

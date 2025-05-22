@@ -46,5 +46,4 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface IInterfaceTypeDefinition
     : IComplexTypeDefinition
-    , ISyntaxNodeProvider<InterfaceTypeDefinitionNode>
-    , ISchemaCoordinateProvider;
+    , ISyntaxNodeProvider<InterfaceTypeDefinitionNode>;

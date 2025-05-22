@@ -19,7 +19,6 @@ namespace HotChocolate.Types;
 public interface IInputObjectTypeDefinition
     : IInputTypeDefinition
     , ISyntaxNodeProvider<InputObjectTypeDefinitionNode>
-    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Gets the fields of this input object type.

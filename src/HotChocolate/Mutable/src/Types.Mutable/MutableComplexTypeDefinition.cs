@@ -39,6 +39,9 @@ public abstract class MutableComplexTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    /// <inheritdoc cref="ISchemaCoordinateProvider.Coordinate" />
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>

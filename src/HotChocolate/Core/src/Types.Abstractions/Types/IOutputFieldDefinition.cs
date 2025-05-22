@@ -9,6 +9,9 @@ public interface IOutputFieldDefinition : IFieldDefinition
     /// </summary>
     IComplexTypeDefinition DeclaringType { get; }
 
+    /// <summary>
+    /// Gets the field arguments of this output field definition.
+    /// </summary>
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }
 
     /// <summary>

@@ -51,6 +51,12 @@ public sealed class MissingType : ITypeDefinition, IFeatureProvider
     /// <inheritdoc />
     public string? Description { get; set; }
 
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
+    /// <summary>
+    /// Gets the directives annotated to this type.
+    /// </summary>
     public DirectiveCollection Directives
         => _directives ??= [];
 

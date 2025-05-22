@@ -18,9 +18,6 @@ public sealed class FusionInterfaceTypeDefinition(
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
 
-    /// <inheritdoc />
-    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
-
     /// <summary>
     /// Defines is this interface is an entity.
     /// </summary>

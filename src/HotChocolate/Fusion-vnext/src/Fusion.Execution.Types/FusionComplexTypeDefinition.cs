@@ -35,6 +35,8 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 
     public string? Description { get; }
 
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     public FusionDirectiveCollection Directives
     {
         get => _directives;

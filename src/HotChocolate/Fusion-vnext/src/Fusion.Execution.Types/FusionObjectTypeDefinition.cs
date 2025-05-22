@@ -17,8 +17,6 @@ public sealed class FusionObjectTypeDefinition(
 
     public override TypeKind Kind => TypeKind.Object;
 
-    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
-
     public override bool IsEntity => _isEntity;
 
     public new ISourceComplexTypeCollection<SourceObjectType> Sources

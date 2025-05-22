@@ -79,10 +79,7 @@ public static class SchemaPrinter
         bool includeSpecScalars = false,
         bool printResolverKind = false)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var typeDefinitions = GetNonScalarTypes(schema)
             .Select(t => PrintNonScalarTypeDefinition(t, printResolverKind))

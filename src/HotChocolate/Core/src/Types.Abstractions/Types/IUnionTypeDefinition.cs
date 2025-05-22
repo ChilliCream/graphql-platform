@@ -42,7 +42,6 @@ namespace HotChocolate.Types;
 public interface IUnionTypeDefinition
     : IOutputTypeDefinition
     , ISyntaxNodeProvider<UnionTypeDefinitionNode>
-    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Gets the <see cref="IObjectTypeDefinition" /> set of this union type.

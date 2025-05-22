@@ -12,6 +12,7 @@ public interface ITypeDefinition
     , IDirectivesProvider
     , IFeatureProvider
     , ISyntaxNodeProvider
+    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Specifies if this type is an introspection type.

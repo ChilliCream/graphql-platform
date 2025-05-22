@@ -25,7 +25,6 @@ public interface IEnumTypeDefinition
     : IOutputTypeDefinition
     , IInputTypeDefinition
     , ISyntaxNodeProvider<EnumTypeDefinitionNode>
-    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Gets all possible values if this type.

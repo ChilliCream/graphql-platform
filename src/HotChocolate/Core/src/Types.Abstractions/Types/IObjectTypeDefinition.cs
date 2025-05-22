@@ -22,5 +22,4 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface IObjectTypeDefinition
     : IComplexTypeDefinition
-    , ISyntaxNodeProvider<ObjectTypeDefinitionNode>
-    , ISchemaCoordinateProvider;
+    , ISyntaxNodeProvider<ObjectTypeDefinitionNode>;

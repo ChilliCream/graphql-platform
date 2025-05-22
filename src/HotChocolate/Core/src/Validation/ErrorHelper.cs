@@ -168,7 +168,7 @@ internal static class ErrorHelper
             .SetPath(context.CreateErrorPath())
             .SetExtension("argument", node.Name.Value)
             .SetExtension("argumentValue", value.ToString())
-            .SetExtension("locationType", locationType.ToString())
+            .SetExtension("locationType", locationType.NamedType().Coordinate.ToString())
             .SpecifiedBy("sec-Values-of-Correct-Type")
             .Build();
     }

@@ -769,8 +769,8 @@ public sealed class InputParser
             return converted;
         }
 
-        // create from this the required argument value.
-        // This however comes with a performance impact of traversing the dictionary structure
+        // Create from this the required argument value.
+        // This, however, comes with a performance impact of traversing the dictionary structure
         // and creating from this the object.
         if (value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
         {

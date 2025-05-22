@@ -14,9 +14,6 @@ public class MutableObjectTypeDefinition(string name)
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
 
-    /// <inheritdoc />
-    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
-
     /// <summary>
     /// Creates a <see cref="ObjectTypeDefinitionNode"/> from a
     /// <see cref="MutableObjectTypeDefinition"/>.

@@ -49,7 +49,7 @@ public class DescriptorContextTests
 
         var features = new FeatureCollection();
         var feature = features.GetOrSet<TypeSystemConventionFeature>();
-        feature.Conventions.Add(namingConventionKey, [conventionRegistration]);
+        feature.Conventions = feature.Conventions.Add(namingConventionKey, [conventionRegistration]);
 
         // act
         var context = DescriptorContext.Create(

@@ -6,7 +6,6 @@ public interface IScalarTypeDefinition
     : IOutputTypeDefinition
     , IInputTypeDefinition
     , ISyntaxNodeProvider<ScalarTypeDefinitionNode>
-    , ISchemaCoordinateProvider
 {
     /// <summary>
     /// Checks if the value is an instance of this type.

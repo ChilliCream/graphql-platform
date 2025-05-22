@@ -86,14 +86,14 @@ public sealed class Directive : IDirective
     /// <summary>
     /// Returns a string representation of the directive.
     /// </summary>
-    public override string ToString() => ToSyntaxNode(false).ToString();
+    public override string ToString() => ToSyntaxNode(removeDefaults: true).ToString();
 
     /// <summary>
     /// Creates a <see cref="DirectiveNode"/> from a type system member.
     /// </summary>
-    public DirectiveNode ToSyntaxNode() => ToSyntaxNode(false);
+    public DirectiveNode ToSyntaxNode() => ToSyntaxNode(removeDefaults: true);
 
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode(false);
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode(removeDefaults: true);
 
      /// <summary>
     /// Gets the syntax node representation of the directive.
@@ -154,7 +154,7 @@ public sealed class Directive : IDirective
     /// Implicitly casts <see cref="Directive"/> to <see cref="DirectiveNode"/>.
     /// </summary>
     /// <param name="directive">
-    /// The directive that shall be casted.
+    /// The directive that shall be cast.
     /// </param>
     /// <returns>
     /// Returns the directive syntax node.

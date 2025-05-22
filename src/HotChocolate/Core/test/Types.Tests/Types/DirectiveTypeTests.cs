@@ -578,7 +578,7 @@ public class DirectiveTypeTests : TypeTestBase
     {
         // arrange
         // act
-        static async Task call() =>
+        static async Task Call() =>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(
@@ -593,7 +593,7 @@ public class DirectiveTypeTests : TypeTestBase
                 .BuildRequestExecutorAsync();
 
         // assert
-        var exception = await Assert.ThrowsAsync<SchemaException>(call);
+        var exception = await Assert.ThrowsAsync<SchemaException>(Call);
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 

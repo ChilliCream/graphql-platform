@@ -25,7 +25,11 @@ public abstract class NamedTypeExtensionBase<TConfiguration>
     /// </summary>
     public Type? ExtendsType { get; private set; }
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => throw new NotSupportedException();
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => throw new NotSupportedException();
+
+    SchemaCoordinate ISchemaCoordinateProvider.Coordinate
+        => throw new NotSupportedException();
 
     protected abstract void Merge(
         ITypeCompletionContext context,
@@ -51,27 +55,3 @@ public abstract class NamedTypeExtensionBase<TConfiguration>
 
     public ISyntaxNode ToSyntaxNode() => throw new NotSupportedException();
 }
-
-/// <summary>
-/// This internal interface is used by the type initialization to
-/// merge the type extension into the actual type.
-/// </summary>
-internal interface ITypeDefinitionExtensionMerger : ITypeDefinitionExtension
-{
-    /// <summary>
-    /// Gets the type extended by this type extension.
-    /// </summary>
-    Type? ExtendsType { get; }
-
-    /// <summary>
-    /// The merge method that allows to merge the type extension into the named type.
-    /// </summary>
-    /// <param name="context">The type extension completion context.</param>
-    /// <param name="type">The target type into which we merge the type extension.</param>
-    void Merge(ITypeCompletionContext context, ITypeDefinition type);
-}
-
-/// <summary>
-/// Represents a type definition extension.
-/// </summary>
-public interface ITypeDefinitionExtension : ITypeDefinition;
