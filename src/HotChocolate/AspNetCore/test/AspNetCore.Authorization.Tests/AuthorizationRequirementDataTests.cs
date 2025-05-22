@@ -73,10 +73,78 @@ public class AuthorizationRequirementDataTests(TestServerFactory serverFactory) 
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Multiple_Authorized()
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
+                builder
+                    .AddQueryType<Query>()
+                    .AddAuthorization();
+            },
+            context =>
+            {
+                var identity = new ClaimsIdentity("testauth");
+                identity.AddClaim(new Claim(
+                    "foo",
+                    "bar"));
+                identity.AddClaim(new Claim(
+                    "bar",
+                    "baz"));
+                context.User = new ClaimsPrincipal(identity);
+            });
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ fooMultiple }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        Assert.Null(result.Errors);
+    }
+
+    [Fact]
+    public async Task Multiple_NotAuthorized()
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
+                builder
+                    .AddQueryType<Query>()
+                    .AddAuthorization();
+            },
+            context =>
+            {
+                var identity = new ClaimsIdentity("testauth");
+                identity.AddClaim(new Claim(
+                    "foo",
+                    "bar"));
+                identity.AddClaim(new Claim(
+                    "bar",
+                    "bar"));
+                context.User = new ClaimsPrincipal(identity);
+            });
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ fooMultiple }", });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
     public class Query
     {
         [CustomAuthorize("foo", "bar", Apply = HotChocolate.Authorization.ApplyPolicy.BeforeResolver)]
         public string? GetFoo() => "foo";
+
+        [CustomAuthorize("foo", "bar", Apply = HotChocolate.Authorization.ApplyPolicy.BeforeResolver)]
+        [CustomAuthorize("bar", "baz", Apply = HotChocolate.Authorization.ApplyPolicy.BeforeResolver)]
+        public string? GetFooMultiple() => "foo";
     }
 
     private class CustomAuthorizeAttribute(string type, string value)
