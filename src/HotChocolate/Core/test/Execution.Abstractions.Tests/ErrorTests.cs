@@ -178,7 +178,7 @@ public class ErrorTests
         Action action = () => error.WithMessage(null!);
 
         // assert
-        Assert.Throws<ArgumentException>(action);
+        Assert.Throws<ArgumentNullException>(action);
     }
 
     [Fact]

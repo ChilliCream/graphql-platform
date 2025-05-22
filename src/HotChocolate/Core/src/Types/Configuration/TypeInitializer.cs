@@ -324,7 +324,7 @@ internal sealed class TypeInitializer
                 .Select(t => t.Name)
                 .Distinct())
             {
-                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName));
+                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName) && !t.IsExtension);
 
                 if (type?.Type is ITypeDefinition namedType)
                 {
@@ -346,7 +346,7 @@ internal sealed class TypeInitializer
                     extensionArray[0] = extension;
 
                     foreach (var possibleMatchingType in types.Where(
-                        t => t.Type is ITypeDefinition n && n.Kind == namedTypeExtension.Kind))
+                        t => t.Type is ITypeDefinition n && n.Kind == namedTypeExtension.Kind && !t.IsExtension))
 
                     {
                         if (isSchemaType && extendsType.IsInstanceOfType(possibleMatchingType.Type))

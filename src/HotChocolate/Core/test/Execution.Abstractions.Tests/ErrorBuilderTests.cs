@@ -152,7 +152,7 @@ public class ErrorBuilderTests
         Action action = () => ErrorBuilder.New().SetMessage(null!);
 
         // assert
-        Assert.Throws<ArgumentException>(action);
+        Assert.Throws<ArgumentNullException>(action);
     }
 
     [Fact]

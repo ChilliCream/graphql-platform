@@ -27,7 +27,7 @@ internal static class EntitiesResolver
                 objectType.Features.TryGet(out ReferenceResolver? entity))
             {
                 // We clone the resolver context here so that we can split the work
-                // into sub tasks that can be awaited in parallel and produce separate results.
+                // into subtasks that can be awaited in parallel and produce separate results.
                 var entityContext = context.Clone();
 
                 entityContext.SetLocalState(TypeField, objectType);

@@ -200,7 +200,7 @@ public record Error : IError
     /// Returns a new error that contains all properties of this error
     /// but with the specified <paramref name="message" />.
     /// </returns>
-    public IError   WithMessage(string message)
+    public IError WithMessage(string message)
         => this with { Message = message };
 
     /// <summary>

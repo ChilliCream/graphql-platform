@@ -158,6 +158,8 @@ public sealed class ErrorBuilder
     /// <returns>The error builder.</returns>
     public static ErrorBuilder FromError(IError error)
     {
+        ArgumentNullException.ThrowIfNull(error);
+
         OrderedDictionary<string, object?>? extensions = null;
         List<Location>? locations = null;
 
