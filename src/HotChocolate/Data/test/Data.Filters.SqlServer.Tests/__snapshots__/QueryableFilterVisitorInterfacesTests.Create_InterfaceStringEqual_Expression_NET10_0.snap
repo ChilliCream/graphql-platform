@@ -1,0 +1,77 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "test": {
+          "prop": "a"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+a SQL:
+---------------
+.param set @p 'a'
+
+SELECT "d"."Id", "d"."TestId"
+FROM "Data" AS "d"
+INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
+WHERE "t"."Prop" = @p
+---------------
+
+ba Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "test": {
+          "prop": "b"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+ba SQL:
+---------------
+.param set @p 'b'
+
+SELECT "d"."Id", "d"."TestId"
+FROM "Data" AS "d"
+INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
+WHERE "t"."Prop" = @p
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 37
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

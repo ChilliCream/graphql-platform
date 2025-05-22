@@ -45,7 +45,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -76,7 +79,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -112,7 +118,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -149,7 +158,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -186,7 +198,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -223,7 +238,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -260,7 +278,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -297,7 +318,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -334,7 +358,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -371,7 +398,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -403,7 +433,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "nullAnd14")
@@ -434,7 +467,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "nullAnd14")
@@ -465,7 +501,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -496,7 +535,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -532,7 +574,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -606,7 +651,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -680,7 +728,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -754,7 +805,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")

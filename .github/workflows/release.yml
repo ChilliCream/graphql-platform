@@ -23,6 +23,7 @@ jobs:
           dotnet-version: |
             8.x
             9.x
+            10.x
 
       - name: 🏷 Get the version from tag
         id: get_version
@@ -102,7 +103,7 @@ jobs:
       - name: 🛠 Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.x
+          dotnet-version: 10.x
 
       - name: 🧩 Publish AOT Binary for ${{ matrix.rid }}
         shell: bash
@@ -110,10 +111,10 @@ jobs:
           dotnet publish ./src/HotChocolate/Fusion-vnext/src/Fusion.CommandLine \
             -c Release \
             -r ${{ matrix.rid }} \
-            -f net9.0 \
+            -f net10.0 \
             --self-contained true \
             -p:PublishAot=true \
-            -p:TargetFrameworks=NET9.0 \
+            -p:TargetFrameworks=NET10.0 \
             -o ./publish
 
       - name: 📦 Zip Binary (Windows)
