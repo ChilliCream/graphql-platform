@@ -41,7 +41,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         _typeReferenceResolver = typeReferenceResolver;
 
         var feature = _resolverFeature.Fetch(context.Features);
-        _resolverTypes = feature.ResolverTypes.ToLookup(t => t.Item1, t => t.Item2);
+        _resolverTypes = feature.ResolverTypes.ToLookup(t => t.TypeName, t => t.ResolverType);
         _configs = feature.FieldResolvers.ToLookup(t => t.FieldCoordinate.Name);
     }
 
@@ -175,6 +175,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 if (!field.Resolvers.HasResolvers &&
                     context.Members.TryGetValue(field.Name, out var member))
                 {
+                    field.ResolverMember = member;
+
                     ObjectFieldDescriptor.From(_context, field).CreateConfiguration();
 
                     map.Clear();
@@ -205,8 +207,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void ApplySourceMembers(CompletionContext context)
     {
-        foreach (var definition in
-            _typeDefs.Where(t => t.RuntimeType != typeof(object)))
+        foreach (var definition in _typeDefs.Where(t => t.RuntimeType != typeof(object)))
         {
             context.TypesToAnalyze.Enqueue(definition);
         }

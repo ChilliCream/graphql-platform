@@ -157,7 +157,7 @@ public static class TypeExtensionHelper
         {
             foreach (var feature in extension.GetFeatures())
             {
-                type.Features.Set(feature);
+                type.Features[feature.Key] = feature.Value;
             }
         }
     }

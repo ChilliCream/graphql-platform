@@ -97,7 +97,6 @@ public partial class EnumType
         base.OnCompleteType(context, configuration);
 
         var builder = new List<EnumValue>(configuration.Values.Count);
-        var nameLookupBuilder = new Dictionary<string, EnumValue>(configuration.NameComparer);
         var valueLookupBuilder = new Dictionary<object, EnumValue>(configuration.ValueComparer);
         _naming = context.DescriptorContext.Naming;
 
@@ -110,7 +109,6 @@ public partial class EnumType
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
-                nameLookupBuilder[enumValue.Name] = enumValue;
                 valueLookupBuilder[enumValue.Value] = enumValue;
                 builder.Add(enumValue);
             }
@@ -126,7 +124,7 @@ public partial class EnumType
                     .Build());
         }
 
-        _values = new EnumValueCollection([.. builder]);
+        _values = new EnumValueCollection([.. builder], configuration.NameComparer);
         _valueLookup = valueLookupBuilder.ToFrozenDictionary(configuration.ValueComparer);
     }
 

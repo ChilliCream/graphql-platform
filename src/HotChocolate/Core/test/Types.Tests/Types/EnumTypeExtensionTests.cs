@@ -138,8 +138,7 @@ public class EnumTypeExtensionTests
         public string Foo { get; set; }
     }
 
-    public class FooType
-        : EnumType<Foo>
+    public class FooType : EnumType<Foo>
     {
         protected override void Configure(
             IEnumTypeDescriptor<Foo> descriptor)

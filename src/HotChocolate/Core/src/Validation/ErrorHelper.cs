@@ -183,7 +183,7 @@ internal static class ErrorHelper
             .SetMessage(Resources.ErrorHelper_FieldValueIsNotCompatible, field.Name)
             .AddLocation(valueNode)
             .SetExtension("fieldName", field.Name)
-            .SetExtension("fieldType", field.Type.ToString())
+            .SetExtension("fieldType", field.Type.FullTypeName())
             .SetExtension("locationType", locationType.FullTypeName())
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-Values-of-Correct-Type")

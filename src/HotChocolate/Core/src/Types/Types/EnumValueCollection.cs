@@ -22,10 +22,13 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
     /// <param name="values">
     /// The enum values that are part of this collection.
     /// </param>
-    public EnumValueCollection(EnumValue[] values)
+    /// <param name="nameComparer">
+    /// The name comparer that is used to compare enum names.
+    /// </param>
+    public EnumValueCollection(EnumValue[] values, IEqualityComparer<string> nameComparer)
     {
         _values = values;
-        _nameLookup = _values.ToFrozenDictionary(v => v.Name, StringComparer.Ordinal);
+        _nameLookup = _values.ToFrozenDictionary(v => v.Name, nameComparer);
     }
 
     public EnumValue this[string name] => _nameLookup[name];
