@@ -12,6 +12,7 @@ internal static class RequiredDirectiveParser
     public static RequireDirective Parse(DirectiveNode directiveNode)
     {
         string? schemaName = null;
+        SelectionSetNode? requirements = null;
         FieldDefinitionNode? field = null;
         ImmutableArray<string?>? map = null;
 
@@ -21,6 +22,17 @@ internal static class RequiredDirectiveParser
             {
                 case "schema":
                     schemaName = ((EnumValueNode)argument.Value).Value;
+                    break;
+
+                case "requirements":
+                    var requirementsSourceText = ((StringValueNode)argument.Value).Value.Trim();
+
+                    if (!requirementsSourceText.StartsWith('{'))
+                    {
+                        requirementsSourceText = $"{{ {requirementsSourceText} }}";
+                    }
+
+                    requirements = Utf8GraphQLParser.Syntax.ParseSelectionSet(requirementsSourceText);
                     break;
 
                 case "field":
@@ -43,6 +55,12 @@ internal static class RequiredDirectiveParser
                 "The `schema` argument is required on the @require directive.");
         }
 
+        if (requirements is null)
+        {
+            throw new DirectiveParserException(
+                "The `requirements` argument is required on the @require directive.");
+        }
+
         if (field is null)
         {
             throw new DirectiveParserException(
@@ -55,7 +73,7 @@ internal static class RequiredDirectiveParser
                 "The `map` argument is required on the @require directive.");
         }
 
-        return new RequireDirective(schemaName, field, map.Value);
+        return new RequireDirective(schemaName, requirements, field, map.Value);
     }
 
     private static ImmutableArray<string?> ParseMap(IValueNode value)

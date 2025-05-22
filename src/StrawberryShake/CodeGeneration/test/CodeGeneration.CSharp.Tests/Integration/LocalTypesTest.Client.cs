@@ -356,16 +356,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
     public partial class LocalTypesQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ILocalTypesResult> _operationExecutor;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public LocalTypesQuery(global::StrawberryShake.IOperationExecutor<ILocalTypesResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private LocalTypesQuery(global::StrawberryShake.IOperationExecutor<ILocalTypesResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ILocalTypesResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.LocalTypesQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ILocalTypesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -405,6 +432,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ILocalTypesQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ILocalTypesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ILocalTypesResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

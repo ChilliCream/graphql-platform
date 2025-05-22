@@ -147,8 +147,7 @@ public static class GeneratorTestHelper
             documents.ToString().MatchSnapshot();
         }
 
-        IReadOnlyList<Diagnostic> diagnostics =
-            CSharpCompiler.GetDiagnosticErrors(documents.ToString());
+        var diagnostics = CSharpCompiler.GetDiagnosticErrors(documents.ToString());
 
         if (skipWarnings)
         {

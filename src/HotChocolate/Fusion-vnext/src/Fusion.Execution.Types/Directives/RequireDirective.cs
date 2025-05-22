@@ -6,12 +6,14 @@ namespace HotChocolate.Fusion.Types.Directives;
 /*
 directive @fusion__requires(
     schema: fusion__Schema!
+    requirements: fusion__FieldSelectionSet!
     field: fusion__FieldDefinition!
     map: [fusion__FieldSelectionMap]!
 ) repeatable on FIELD_DEFINITION
 */
 internal class RequireDirective(
     string schemaName,
+    SelectionSetNode requirements,
     FieldDefinitionNode field,
     ImmutableArray<string?> map)
 {
@@ -19,6 +21,9 @@ internal class RequireDirective(
     /// Gets the name of the source schema that has requirements. for a field.
     /// </summary>
     public string SchemaName { get; } = schemaName;
+
+    /// <summary>Gets the requirements for a field.</summary>
+    public SelectionSetNode Requirements { get; } = requirements;
 
     /// <summary>
     /// Gets the arguments that represent field requirements.

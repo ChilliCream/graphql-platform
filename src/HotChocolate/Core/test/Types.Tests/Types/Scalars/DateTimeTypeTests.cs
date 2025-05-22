@@ -85,8 +85,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType
-            .ParseLiteral(literal);
+        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -147,8 +146,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType
-            .ParseLiteral(literal);
+        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -164,8 +162,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14+04:00");
+        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!;
 
         // assert
         Assert.Equal(dateTime, deserializedValue);
@@ -181,8 +178,7 @@ public class DateTimeTypeTests
             new TimeSpan(0, 0, 0));
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14.000Z");
+        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
 
         // assert
         Assert.Equal(dateTime, deserializedValue);
@@ -203,8 +199,7 @@ public class DateTimeTypeTests
             DateTimeKind.Unspecified);
 
         // act
-        var deserializedValue = ((DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14+04:00")).DateTime;
+        var deserializedValue = ((DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!).DateTime;
 
         // assert
         Assert.Equal(dateTime, deserializedValue);
@@ -226,8 +221,7 @@ public class DateTimeTypeTests
             DateTimeKind.Utc);
 
         // act
-        var deserializedValue = ((DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14.000Z"));
+        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
 
         // assert
         Assert.Equal(dateTime, deserializedValue.UtcDateTime);
@@ -240,7 +234,7 @@ public class DateTimeTypeTests
         var type = new DateTimeType();
 
         // act
-        var success = type.TryDeserialize("abc", out var deserialized);
+        var success = type.TryDeserialize("abc", out _);
 
         // assert
         Assert.False(success);
@@ -413,6 +407,20 @@ public class DateTimeTypeTests
 
         // assert
         res.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public void DateTime_Relaxed_Format_Check()
+    {
+        // arrange
+        const string s = "2011-08-30";
+
+        // act
+        var dateTimeType = new DateTimeType(disableFormatCheck: true);
+        var result = dateTimeType.Deserialize(s);
+
+        // assert
+        Assert.IsType<DateTimeOffset>(result);
     }
 
     public class DefaultDateTime

@@ -727,17 +727,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestOperationResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public TestOperationQuery(global::StrawberryShake.IOperationExecutor<ITestOperationResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
+        private TestOperationQuery(global::StrawberryShake.IOperationExecutor<ITestOperationResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter barFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _barFormatter = barFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestOperationResult);
+
+        public global::Foo.Bar.ITestOperationQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.TestOperationQuery(_operationExecutor, _configure.Add(configure), _barFormatter);
+        }
+
+        public global::Foo.Bar.ITestOperationQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ITestOperationQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperationResult>> ExecuteAsync(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(single, list, nestedList);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -846,6 +874,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestOperationQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ITestOperationQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ITestOperationQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ITestOperationQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperationResult>> ExecuteAsync(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestOperationResult>> Watch(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -1034,17 +1065,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestOperation2Result> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public TestOperation2Query(global::StrawberryShake.IOperationExecutor<ITestOperation2Result> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
+        private TestOperation2Query(global::StrawberryShake.IOperationExecutor<ITestOperation2Result> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter barFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _barFormatter = barFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestOperation2Result);
+
+        public global::Foo.Bar.ITestOperation2Query With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.TestOperation2Query(_operationExecutor, _configure.Add(configure), _barFormatter);
+        }
+
+        public global::Foo.Bar.ITestOperation2Query WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ITestOperation2Query WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperation2Result>> ExecuteAsync(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(single, list, nestedList);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1153,6 +1212,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestOperation2Query : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ITestOperation2Query With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ITestOperation2Query WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ITestOperation2Query WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperation2Result>> ExecuteAsync(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestOperation2Result>> Watch(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -1341,17 +1403,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestOperation3Result> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public TestOperation3Query(global::StrawberryShake.IOperationExecutor<ITestOperation3Result> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
+        private TestOperation3Query(global::StrawberryShake.IOperationExecutor<ITestOperation3Result> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter barFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _barFormatter = barFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestOperation3Result);
+
+        public global::Foo.Bar.ITestOperation3Query With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.TestOperation3Query(_operationExecutor, _configure.Add(configure), _barFormatter);
+        }
+
+        public global::Foo.Bar.ITestOperation3Query WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ITestOperation3Query WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperation3Result>> ExecuteAsync(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(single, list, nestedList);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1460,6 +1550,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestOperation3Query : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ITestOperation3Query With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ITestOperation3Query WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ITestOperation3Query WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperation3Result>> ExecuteAsync(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestOperation3Result>> Watch(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

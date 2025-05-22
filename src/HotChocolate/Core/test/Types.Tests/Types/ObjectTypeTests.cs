@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -2112,6 +2113,18 @@ public class ObjectTypeTests : TypeTestBase
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Ignore_Object_Lists()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<IgnoreObjectLists>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public abstract class ResolverBase
     {
         public int GetValue() => 1024;
@@ -2438,5 +2451,22 @@ public class ObjectTypeTests : TypeTestBase
         public string Bar() => "bar";
 
         public T Foo<T>() => default!;
+    }
+
+    public class IgnoreObjectLists
+    {
+        public string Hello() => throw new InvalidOperationException();
+
+        public IEnumerable<object> ObjList1 => throw new InvalidOperationException();
+
+        public IReadOnlyCollection<object> ObjList2 => throw new InvalidOperationException();
+
+        public IReadOnlyList<object> ObjList3 => throw new InvalidOperationException();
+
+        public List<object> ObjList4 => throw new InvalidOperationException();
+
+        public object[] ObjList5 => throw new InvalidOperationException();
+
+        public ImmutableArray<object> ObjList6 => throw new InvalidOperationException();
     }
 }

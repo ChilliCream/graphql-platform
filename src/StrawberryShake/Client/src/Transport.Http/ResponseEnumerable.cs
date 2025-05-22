@@ -10,24 +10,25 @@ namespace StrawberryShake.Transport.Http;
 
 internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocument>>
 {
-    private readonly Func<HttpClient> _createClient;
-    private readonly Func<GraphQLHttpRequest> _createRequest;
+    private readonly HttpClient _httpClient;
+    private readonly GraphQLHttpRequest _httpRequest;
+    private readonly Func<HttpResponseContext, Response<JsonDocument>> _createResponse;
 
     private ResponseEnumerable(
-        Func<HttpClient> createClient,
-        Func<GraphQLHttpRequest> createRequest)
+        HttpClient httpClient,
+        GraphQLHttpRequest httpRequest,
+        Func<HttpResponseContext, Response<JsonDocument>> createResponse)
     {
-        _createClient = createClient;
-        _createRequest = createRequest;
+        _httpClient = httpClient;
+        _httpRequest = httpRequest;
+        _createResponse = createResponse;
     }
 
     public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
     {
-        using var client = new DefaultGraphQLHttpClient(_createClient());
-        var request = _createRequest();
-
-        var result = await client.SendAsync(request, cancellationToken);
+        using var client = new DefaultGraphQLHttpClient(_httpClient);
+        var result = await client.SendAsync(_httpRequest, cancellationToken);
 
         Exception? transportError = null;
         if (!result.IsSuccessStatusCode)
@@ -68,15 +69,15 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             if (hasNext)
             {
                 var parsedResult = ParseResult(enumerator.Current);
-
-                yield return new Response<JsonDocument>(parsedResult, transportError);
-
+                var responseContext = new HttpResponseContext(result, parsedResult, transportError);
+                yield return _createResponse(responseContext);
                 transportError = null;
             }
             else if (transportError is not null)
             {
                 var errorBody = CreateBodyFromException(transportError);
-                yield return new Response<JsonDocument>(errorBody, transportError);
+                var responseContext = new HttpResponseContext(result, errorBody, transportError);
+                yield return _createResponse(responseContext);
             }
         }
     }
@@ -88,7 +89,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             return null;
         }
 
-        var buffer = new PooledArrayWriter();
+        using var buffer = new PooledArrayWriter();
         using var writer = new Utf8JsonWriter(buffer);
 
         writer.WriteStartObject();
@@ -125,21 +126,19 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
     }
 
     private static Exception CreateError(GraphQLHttpResponse response)
-    {
-        return new HttpRequestException(
+        => new HttpRequestException(
             string.Format(
                 ResponseEnumerator_HttpNoSuccessStatusCode,
                 (int)response.StatusCode,
                 response.ReasonPhrase),
             null,
             response.StatusCode);
-    }
 
     internal static JsonDocument CreateBodyFromException(Exception exception)
     {
         using var bufferWriter = new ArrayWriter();
-
         using var jsonWriter = new Utf8JsonWriter(bufferWriter);
+
         jsonWriter.WriteStartObject();
         jsonWriter.WritePropertyName("errors");
         jsonWriter.WriteStartArray();
@@ -154,19 +153,8 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
     }
 
     public static ResponseEnumerable Create(
-        Func<HttpClient> createClient,
-        Func<GraphQLHttpRequest> createRequest)
-    {
-        if (createClient is null)
-        {
-            throw new ArgumentNullException(nameof(createClient));
-        }
-
-        if (createRequest is null)
-        {
-            throw new ArgumentNullException(nameof(createRequest));
-        }
-
-        return new ResponseEnumerable(createClient, createRequest);
-    }
+        HttpClient httpClient,
+        GraphQLHttpRequest httpRequest,
+        Func<HttpResponseContext, Response<JsonDocument>> createResponse)
+        => new(httpClient, httpRequest, createResponse);
 }

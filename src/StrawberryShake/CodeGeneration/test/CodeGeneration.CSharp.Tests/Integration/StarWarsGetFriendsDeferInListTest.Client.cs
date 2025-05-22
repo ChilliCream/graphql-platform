@@ -1081,16 +1081,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.GetHeroQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1154,6 +1181,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

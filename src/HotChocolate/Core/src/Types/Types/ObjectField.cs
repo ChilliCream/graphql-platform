@@ -92,7 +92,7 @@ public sealed class ObjectField : OutputField
     /// <summary>
     /// Gets the pure field resolver. The pure field resolver is only available if this field
     /// can be resolved without side effects. The execution engine will prefer this resolver
-    /// variant if it is available and there are no executable directives that add a middleware
+    /// variant if it is available, and there are no executable directives that add middleware
     /// to this field.
     /// </summary>
     public PureFieldDelegate? PureResolver { get; private set; }
@@ -100,16 +100,16 @@ public sealed class ObjectField : OutputField
     /// <summary>
     /// Gets the subscription resolver.
     /// </summary>
-    public SubscribeResolverDelegate? SubscribeResolver { get; }
+    public SubscribeResolverDelegate? SubscribeResolver { get; private set; }
 
     /// <summary>
-    /// Gets the result post processor.
+    /// Gets the result post-processor.
     /// </summary>
     public IResolverResultPostProcessor? ResultPostProcessor { get; private set; }
 
     /// <summary>
     /// Gets the associated member of the runtime type for this field.
-    /// This property can be <c>null</c> if this field is not associated to
+    /// This property can be <c>null</c> if this field is not associated with
     /// a concrete member on the runtime type.
     /// </summary>
     public MemberInfo? Member { get; }
@@ -125,15 +125,18 @@ public sealed class ObjectField : OutputField
     /// Gets the associated resolver expression.
     /// This expression can be <c>null</c>.
     /// </summary>
-    public Expression? ResolverExpression { get; }
+    public Expression? ResolverExpression { get; private set; }
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         OutputFieldConfiguration definition)
     {
+        var objectFieldDef = (ObjectFieldConfiguration)definition;
         base.OnMakeExecutable(context, declaringMember, definition);
-        CompleteResolver(context, (ObjectFieldConfiguration)definition);
+        CompleteResolver(context, objectFieldDef);
+        ResolverExpression = objectFieldDef.Expression;
+        SubscribeResolver = objectFieldDef.SubscribeResolver;
     }
 
     private void CompleteResolver(
@@ -193,7 +196,7 @@ public sealed class ObjectField : OutputField
                 skipMiddleware);
         }
 
-        // by definition fields with pure resolvers are parallel executable.
+        // by definition, fields with pure resolvers are parallel executable.
         if (!IsParallelExecutable && PureResolver is not null)
         {
             IsParallelExecutable = true;
@@ -221,7 +224,7 @@ public sealed class ObjectField : OutputField
 
         ResultPostProcessor = definition.ResultPostProcessor;
 
-        // if the source generator has configured this field, we will not try to infer a post processor with
+        // if the source generator has configured this field, we will not try to infer a post-processor with
         // reflection.
         if ((Flags & CoreFieldFlags.SourceGenerator) != CoreFieldFlags.SourceGenerator
             && ResultPostProcessor is null
