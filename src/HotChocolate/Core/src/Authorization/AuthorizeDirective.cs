@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace HotChocolate.Authorization;
 
 /// <summary>
@@ -7,8 +5,6 @@ namespace HotChocolate.Authorization;
 /// </summary>
 public sealed class AuthorizeDirective
 {
-    private readonly string _cacheKey;
-
     /// <summary>
     /// Initializes a new instance of <see cref="AuthorizeDirective"/>.
     /// </summary>
@@ -57,8 +53,6 @@ public sealed class AuthorizeDirective
         Roles = roles?.OrderBy(r => r).ToList();
         Apply = apply;
         Metadata = metadata;
-
-        _cacheKey = BuildCacheKey(Policy, Roles);
     }
 
     /// <summary>
@@ -88,42 +82,4 @@ public sealed class AuthorizeDirective
     /// Gets the metadata that can be used for authorization.
     /// </summary>
     public IReadOnlyList<object>? Metadata { get; }
-
-    /// <summary>
-    /// Gets a cache key that uniquely identifies the combined authorization policy,
-    /// of the specified <see cref="Roles"/> and <see cref="Policy"/>.
-    /// </summary>
-    internal string GetPolicyCacheKey() => _cacheKey;
-
-    private static string BuildCacheKey(string? policy, IReadOnlyList<string>? roles)
-    {
-        if (string.IsNullOrEmpty(policy) && roles is null)
-        {
-            return string.Empty;
-        }
-
-        var sb = new StringBuilder();
-
-        if (!string.IsNullOrEmpty(policy))
-        {
-            sb.Append(policy);
-        }
-
-        sb.Append(";");
-
-        if (roles is not null)
-        {
-            for (var i = 0; i < roles.Count; i++)
-            {
-                sb.Append(roles[i]);
-
-                if (i < roles.Count - 1)
-                {
-                    sb.Append(",");
-                }
-            }
-        }
-
-        return sb.ToString();
-    }
 }
