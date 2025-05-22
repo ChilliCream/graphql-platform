@@ -178,7 +178,7 @@ public class AuthorizationRequirementDataTests(TestServerFactory serverFactory) 
 
         private HotChocolate.Authorization.AuthorizeDirective CreateDirective()
         {
-            return new HotChocolate.Authorization.AuthorizeDirective(metadata: [.. GetRequirements()]);
+            return new HotChocolate.Authorization.AuthorizeDirective(metadata: [this]);
         }
     }
 
