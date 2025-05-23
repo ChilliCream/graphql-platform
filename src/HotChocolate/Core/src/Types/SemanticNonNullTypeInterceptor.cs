@@ -105,6 +105,11 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
+                if (field.Name == "id")
+                {
+                    continue;
+                }
+
                 var levels = GetSemanticNonNullLevels(field.Type);
 
                 if (levels.Count < 1)
