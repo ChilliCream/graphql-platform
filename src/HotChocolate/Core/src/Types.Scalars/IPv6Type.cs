@@ -33,7 +33,7 @@ public partial class IPv6Type : RegexType
         "]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)(?:\\/(?:0?0?[0-9]|0?[" +
         "1-9][0-9]|1[01][0-9]|12[0-8]))?)$)";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(_validationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>

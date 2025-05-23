@@ -12,9 +12,9 @@ public partial class PhoneNumberType : RegexType
     /// <summary>
     /// Regex that validates the standard E.164 format
     /// </summary>
-    private const string _validationPattern = "^\\+[1-9]\\d{1,14}$";
+    private const string _validationPattern = "^\\+[1-9][0-9]{2,14}$";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(_validationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>
