@@ -1,10 +1,11 @@
 using System.Text;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Planning;
 
 public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
 {
-    public override string Format(ExecutionPlan plan)
+    public override string Format(OperationPlan plan)
     {
         var sb = new StringBuilder();
         var writer = new CodeWriter(sb);
@@ -30,7 +31,7 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         writer.WriteLine("schema: " + node.SchemaName);
         writer.WriteLine("operation: >-");
         writer.Indent();
-        var reader = new StringReader(node.Definition.ToString());
+        var reader = new StringReader(node.Operation.ToString());
         var line = reader.ReadLine();
         while (line != null)
         {

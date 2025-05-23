@@ -697,7 +697,7 @@ public class SchemaCoordinateTests
         Assert.False(success);
     }
 
-    private ISchema CreateSchema()
+    private Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .AddDocumentFromString(FileResource.Open("schema_coordinates.graphql"))

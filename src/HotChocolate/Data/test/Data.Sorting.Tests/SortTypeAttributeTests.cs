@@ -20,7 +20,7 @@ public class SortTypeAttributeTests
         // assert
         Assert.Equal(
             TypeName,
-            schema.GetType<SortInputType<FooGeneric>>(TypeName).TypeName());
+            schema.Types.GetType<SortInputType<FooGeneric>>(TypeName).TypeName());
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class SortTypeAttributeTests
 
         // assert
         Assert.NotNull(
-            schema.GetType<SortInputType<FooFields>>("FooFieldsSortInput")
+            schema.Types.GetType<SortInputType<FooFields>>("FooFieldsSortInput")
                 .Fields
                 .FirstOrDefault(x => x.Name == SortFieldAttributeTest.Field));
     }

@@ -39,13 +39,15 @@ internal sealed class ExceptionMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
-            var middleware = Create(next, errorHandler);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
+                var middleware = Create(next, errorHandler);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(ExceptionMiddleware));
 
     internal static ExceptionMiddleware Create(
         RequestDelegate next,

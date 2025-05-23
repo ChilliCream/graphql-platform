@@ -4,7 +4,7 @@ namespace HotChocolate.Execution.Requirements;
 
 internal sealed class TypeNode(Type type, List<PropertyNode>? nodes = null)
 {
-    private static readonly IReadOnlyList<PropertyNode> _emptyNodes = Array.Empty<PropertyNode>();
+    private static readonly IReadOnlyList<PropertyNode> _emptyNodes = [];
     private List<PropertyNode>? _nodes = nodes ?? [];
     private bool _sealed;
 

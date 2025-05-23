@@ -54,6 +54,19 @@ public sealed class FusionDirectiveCollection
     IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
         => FirstOrDefault(directiveName);
 
+    IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(Type runtimeType)
+    {
+        foreach (var directive in _directives)
+        {
+            if (directive.Definition.RuntimeType == runtimeType)
+            {
+                return directive;
+            }
+        }
+
+        return null;
+    }
+
     private static IEnumerable<FusionDirective> FindDirectives(
         FusionDirective[] directives,
         string name)

@@ -277,7 +277,7 @@ public static class FragmentHelper
         Path path)
     {
         // the fragment type is a complex type we will generate a interface with fields.
-        if (fragmentNode.Fragment.TypeCondition is INamedOutputType type &&
+        if (fragmentNode.Fragment.TypeCondition is IOutputTypeDefinition type &&
             type.IsCompositeType())
         {
             var fieldMap = new OrderedDictionary<string, FieldSelection>();
@@ -314,7 +314,7 @@ public static class FragmentHelper
 
     private static void CollectFields(
         FragmentNode fragmentNode,
-        INamedOutputType outputType,
+        IOutputTypeDefinition outputType,
         IDictionary<string, FieldSelection> fields,
         Path path)
     {
@@ -559,7 +559,7 @@ public static class FragmentHelper
     }
 
     public static FragmentNode CreateFragmentNode(
-        INamedType namedType,
+        ITypeDefinition namedType,
         Path selectionPath,
         SelectionSet selectionSet,
         bool appendTypeName = false)
@@ -610,7 +610,7 @@ public static class FragmentHelper
     private static string GetDeferLabel(DirectiveNode directive)
     {
         var argument = directive.Arguments.FirstOrDefault(
-            t => t.Name.Value.EqualsOrdinal(WellKnownDirectives.LabelArgument));
+            t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer.Arguments.Label));
 
         if (argument?.Value is not StringValueNode { Value.Length: > 0, } sv)
         {

@@ -1,7 +1,8 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterOperationField
-    : IFilterField
+public interface IFilterOperationField : IFilterField
 {
     /// <summary>
     /// Gets the internal operation ID.

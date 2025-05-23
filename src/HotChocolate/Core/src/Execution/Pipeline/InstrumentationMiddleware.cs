@@ -30,11 +30,13 @@ internal sealed class InstrumentationMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var middleware = new InstrumentationMiddleware(next, diagnosticEvents);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var middleware = new InstrumentationMiddleware(next, diagnosticEvents);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(InstrumentationMiddleware));
 }

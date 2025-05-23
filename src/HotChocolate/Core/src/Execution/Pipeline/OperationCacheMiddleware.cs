@@ -61,12 +61,14 @@ internal sealed class OperationCacheMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var cache = core.SchemaServices.GetRequiredService<IPreparedOperationCache>();
-            var middleware = new OperationCacheMiddleware(next, diagnosticEvents, cache);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var cache = core.SchemaServices.GetRequiredService<IPreparedOperationCache>();
+                var middleware = new OperationCacheMiddleware(next, diagnosticEvents, cache);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(OperationCacheMiddleware));
 }

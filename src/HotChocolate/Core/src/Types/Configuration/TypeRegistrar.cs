@@ -33,7 +33,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         _interceptor = typeInterceptor ??
             throw new ArgumentNullException(nameof(typeInterceptor));
         _schemaServices = context.Services;
-        _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
+        _applicationServices = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
 
         _combinedServices = _applicationServices is null
             ? _schemaServices
@@ -43,7 +43,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     public ISet<string> Scalars { get; } = new HashSet<string>();
 
     public void Register(
-        TypeSystemObjectBase obj,
+        TypeSystemObject obj,
         string? scope,
         bool inferred = false,
         Action<RegisteredType>? configure = null)
@@ -158,7 +158,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     }
 
     private RegisteredType InitializeType(
-        TypeSystemObjectBase typeSystemObject,
+        TypeSystemObject typeSystemObject,
         string? scope,
         bool isInferred)
     {
@@ -205,7 +205,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
+            if (typeSystemObject is ITypeIdentityProvider { TypeIdentity: { } typeIdentity })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(

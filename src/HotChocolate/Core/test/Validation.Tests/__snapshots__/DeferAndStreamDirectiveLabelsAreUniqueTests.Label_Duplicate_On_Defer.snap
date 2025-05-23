@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "If a label is passed, it must be unique within all other @defer and @stream directives in the document.",
     "Code": null,
@@ -6,7 +6,7 @@
     "Locations": [
       {
         "Line": 5,
-        "Column": 17
+        "Column": 3
       }
     ],
     "Extensions": {

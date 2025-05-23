@@ -1,7 +1,6 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Execution.Options.PersistedOperationOptions;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -19,15 +18,12 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IPersistedOperationOptionsAccessor options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+        ArgumentNullException.ThrowIfNull(options);
 
-        _next = next
-            ?? throw new ArgumentNullException(nameof(next));
-        _diagnosticEvents = diagnosticEvents
-            ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+        _next = next;
+        _diagnosticEvents = diagnosticEvents;
 
         // prepare options.
         _options = options.PersistedOperations;
@@ -65,9 +61,9 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
             }
         }
 
-        // lastly it might be that the request is allowed for the current session even
+        // Lastly, it might be that the request is allowed for the current session even
         // if it's not a persisted operation request.
-        if (context.ContextData.ContainsKey(WellKnownContextData.NonPersistedOperationAllowed))
+        if (context.ContextData.ContainsKey(ExecutionContextData.NonPersistedOperationAllowed))
         {
             return _next(context);
         }
@@ -78,12 +74,14 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
         return default;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
-            var middleware = new OnlyPersistedOperationsAllowedMiddleware(next, diagnosticEvents, options);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
+                var middleware = new OnlyPersistedOperationsAllowedMiddleware(next, diagnosticEvents, options);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(OnlyPersistedOperationsAllowedMiddleware));
 }

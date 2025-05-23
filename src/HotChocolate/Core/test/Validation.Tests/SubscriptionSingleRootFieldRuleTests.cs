@@ -13,59 +13,66 @@ public class SubscriptionSingleRootFieldRuleTests
     [Fact]
     public void SubscriptionWithOneRootField()
     {
-        ExpectValid(@"
-                subscription sub {
-                    newMessage {
-                        body
-                        sender
-                    }
-                }
-            ");
+        ExpectValid(
+            """
+            subscription sub {
+              newMessage {
+                body
+                sender
+              }
+            }
+            """
+        );
     }
 
     [Fact]
     public void SubscriptionWithOneRootFieldAnonymous()
     {
-        ExpectValid(@"
-                subscription {
-                    newMessage {
-                        body
-                        sender
-                    }
-                }
-            ");
+        ExpectValid(
+            """
+            subscription {
+              newMessage {
+                body
+                sender
+              }
+            }
+            """
+        );
     }
 
     [Fact]
     public void SubscriptionWithDirectiveThatContainsOneRootField()
     {
         // arrange
-        ExpectValid(@"
-                subscription sub {
-                    ...newMessageFields
-                }
+        ExpectValid(
+            """
+            subscription sub {
+              ...newMessageFields
+            }
 
-                fragment newMessageFields on Subscription {
-                    newMessage {
-                        body
-                        sender
-                    }
-                }
-            ");
+            fragment newMessageFields on Subscription {
+              newMessage {
+                body
+                sender
+              }
+            }
+            """
+        );
     }
 
     [Fact]
     public void DisallowedSecondRootField()
     {
-        ExpectErrors(@"
-                subscription sub {
-                    newMessage {
-                        body
-                        sender
-                    }
-                    disallowedSecondRootField
-                }
-            ",
+        ExpectErrors(
+            """
+            subscription sub {
+              newMessage {
+                body
+                sender
+              }
+              disallowedSecondRootField
+            }
+            """,
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
@@ -74,15 +81,16 @@ public class SubscriptionSingleRootFieldRuleTests
     [Fact]
     public void DisallowedSecondRootFieldAnonymous()
     {
-        ExpectErrors(@"
-                subscription sub {
-                    newMessage {
-                        body
-                        sender
-                    }
-                    disallowedSecondRootField
-                }
-            ",
+        ExpectErrors(
+            """
+            subscription sub {
+              newMessage {
+                body
+                sender
+              }
+              disallowedSecondRootField
+            }
+            """,
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
@@ -91,16 +99,17 @@ public class SubscriptionSingleRootFieldRuleTests
     [Fact]
     public void FailsWithManyMoreThanOneRootField()
     {
-        ExpectErrors(@"
-                subscription sub {
-                    newMessage {
-                        body
-                        sender
-                    }
-                    disallowedSecondRootField
-                    disallowedThirdRootField
-                }
-            ",
+        ExpectErrors(
+            """
+            subscription sub {
+              newMessage {
+                body
+                sender
+              }
+              disallowedSecondRootField
+              disallowedThirdRootField
+            }
+            """,
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
@@ -109,19 +118,20 @@ public class SubscriptionSingleRootFieldRuleTests
     [Fact]
     public void DisallowedSecondRootFieldWithinDirective()
     {
-        ExpectErrors(@"
-                subscription sub {
-                    ...multipleSubscriptions
-                }
+        ExpectErrors(
+            """
+            subscription sub {
+              ...multipleSubscriptions
+            }
 
-                fragment multipleSubscriptions on Subscription {
-                    newMessage {
-                        body
-                        sender
-                    }
-                    disallowedSecondRootField
-                }
-            ",
+            fragment multipleSubscriptions on Subscription {
+              newMessage {
+                body
+                sender
+              }
+              disallowedSecondRootField
+            }
+            """,
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
@@ -130,15 +140,16 @@ public class SubscriptionSingleRootFieldRuleTests
     [Fact]
     public void DisallowedIntrospectionField()
     {
-        ExpectErrors(@"
-                subscription sub {
-                    newMessage {
-                        body
-                        sender
-                    }
-                    __typename
-                }
-            ",
+        ExpectErrors(
+            """
+            subscription sub {
+              newMessage {
+                body
+                sender
+              }
+              __typename
+            }
+            """,
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
@@ -147,11 +158,12 @@ public class SubscriptionSingleRootFieldRuleTests
     [Fact]
     public void DisallowedOnlyIntrospectionField()
     {
-        ExpectErrors(@"
-                subscription sub {
-                    __typename
-                }
-            ",
+        ExpectErrors(
+            """
+            subscription sub {
+              __typename
+            }
+            """,
             t => Assert.Equal(
                 "Subscription must not select an introspection top level field.", t.Message));
     }

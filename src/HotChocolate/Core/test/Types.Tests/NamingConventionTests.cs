@@ -17,7 +17,7 @@ public class NamingConventionTests
             .AddMutationType<MutationNamingConvention>()
             .AddConvention<INamingConventions, CustomNamingConvention>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

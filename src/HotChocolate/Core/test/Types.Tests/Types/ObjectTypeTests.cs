@@ -33,7 +33,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -53,7 +53,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -70,7 +70,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -87,7 +87,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -213,7 +213,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
             fooType.Fields["bar"].DeprecationReason);
         Assert.True(fooType.Fields["bar"].IsDeprecated);
     }
@@ -626,7 +626,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("C");
+        var type = schema.Types.GetType<ObjectType>("C");
         Assert.Equal(2, type.Implements.Count);
     }
 
@@ -659,7 +659,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("C");
+        var type = schema.Types.GetType<ObjectType>("C");
         Assert.Equal(2, type.Implements.Count);
     }
 
@@ -1751,7 +1751,7 @@ public class ObjectTypeTests : TypeTestBase
         SchemaBuilder.New()
             .AddQueryType<QueryWithIndexer>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1784,7 +1784,7 @@ public class ObjectTypeTests : TypeTestBase
                     d.Field("Foo").Type("String").Resolve(_ => null!);
                 })
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1802,7 +1802,7 @@ public class ObjectTypeTests : TypeTestBase
                         .Resolve(_ => null!);
                 })
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1812,7 +1812,7 @@ public class ObjectTypeTests : TypeTestBase
         SchemaBuilder.New()
             .AddQueryType<InferNonNullTypesWithResolveWith>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1850,7 +1850,7 @@ public class ObjectTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1883,7 +1883,7 @@ public class ObjectTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1924,7 +1924,7 @@ public class ObjectTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]

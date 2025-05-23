@@ -102,20 +102,10 @@ internal sealed class TypeRegistry
 
     public void TryRegister(ExtendedTypeReference runtimeTypeRef, TypeReference typeRef)
     {
-        if (runtimeTypeRef is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeTypeRef));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeTypeRef);
+        ArgumentNullException.ThrowIfNull(typeRef);
 
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
-
-        if (!_runtimeTypeRefs.ContainsKey(runtimeTypeRef))
-        {
-            _runtimeTypeRefs.Add(runtimeTypeRef, typeRef);
-        }
+        _runtimeTypeRefs.TryAdd(runtimeTypeRef, typeRef);
     }
 
     public void Register(RegisteredType registeredType)
@@ -156,7 +146,7 @@ internal sealed class TypeRegistry
         if (!registeredType.IsExtension)
         {
             if (registeredType.IsNamedType &&
-                registeredType.Type is IHasTypeConfiguration { Configuration: { } typeDef } &&
+                registeredType.Type is ITypeConfigurationProvider { Configuration: { } typeDef } &&
                 !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);

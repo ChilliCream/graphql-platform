@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "There are multiple fragments with the name `fragmentOne`.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 12,
-        "Column": 17
+        "Line": 11,
+        "Column": 1
       }
     ],
     "Extensions": {

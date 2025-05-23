@@ -13,33 +13,35 @@ public class ArgumentUniquenessRuleTests
     [Fact]
     public void NoDuplicateArgument()
     {
-        ExpectValid(@"
-                query {
-                    arguments {
-                        ... goodNonNullArg
-                    }
-                }
+        ExpectValid(
+            """
+            query {
+              arguments {
+                ... goodNonNullArg
+              }
+            }
 
-                fragment goodNonNullArg on Arguments {
-                    nonNullBooleanArgField(nonNullBooleanArg: true)
-                }
-            ");
+            fragment goodNonNullArg on Arguments {
+              nonNullBooleanArgField(nonNullBooleanArg: true)
+            }
+            """);
     }
 
     [Fact]
     public void DuplicateArgument()
     {
-        ExpectErrors(@"
-                query {
-                    arguments {
-                        ... goodNonNullArg
-                    }
-                }
+        ExpectErrors(
+            """
+            query {
+              arguments {
+                ... goodNonNullArg
+              }
+            }
 
-                fragment goodNonNullArg on Arguments {
-                    nonNullBooleanArgField(nonNullBooleanArg: true, nonNullBooleanArg: true)
-                }
-            ",
+            fragment goodNonNullArg on Arguments {
+              nonNullBooleanArgField(nonNullBooleanArg: true, nonNullBooleanArg: true)
+            }
+            """,
             t => Assert.Equal(
                 "More than one argument with the same name in an argument " +
                 "set is ambiguous and invalid.",

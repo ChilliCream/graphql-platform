@@ -5,7 +5,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Requirements;
 using HotChocolate.Features;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Projections;
 
@@ -209,8 +209,8 @@ internal sealed class SelectionExpressionBuilder
         }
 
         var flags = ((ObjectField)selection.Field).Flags;
-        if ((flags & FieldFlags.Connection) == FieldFlags.Connection
-            || (flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment)
+        if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
+            || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {
             return;
         }
@@ -227,7 +227,7 @@ internal sealed class SelectionExpressionBuilder
 
     private static void TryAddAnyLeafField(
         TypeNode parent,
-        IObjectType selectionType)
+        ObjectType selectionType)
     {
         // if we could not collect anything it means that either all fields
         // are skipped or that __typename is the only field that is selected.
@@ -345,8 +345,8 @@ internal sealed class SelectionExpressionBuilder
     {
         public TypeNode? GetRequirements(ISelection selection)
         {
-            var flags = ((ObjectField)selection.Field).Flags;
-            return (flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements
+            var flags = selection.Field.Flags;
+            return (flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }

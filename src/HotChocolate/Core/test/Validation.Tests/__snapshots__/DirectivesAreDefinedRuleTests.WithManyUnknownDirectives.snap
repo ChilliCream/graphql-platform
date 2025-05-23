@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 25
+        "Line": 2,
+        "Column": 7
       }
     ],
     "Extensions": {
@@ -38,8 +38,8 @@
     },
     "Locations": [
       {
-        "Line": 6,
-        "Column": 27
+        "Line": 5,
+        "Column": 9
       }
     ],
     "Extensions": {
@@ -67,8 +67,8 @@
     },
     "Locations": [
       {
-        "Line": 8,
-        "Column": 30
+        "Line": 7,
+        "Column": 10
       }
     ],
     "Extensions": {

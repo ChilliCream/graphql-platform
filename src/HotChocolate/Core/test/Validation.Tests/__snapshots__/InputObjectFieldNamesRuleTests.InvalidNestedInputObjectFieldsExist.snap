@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified input object field `favoriteCookieFlavor` does not exist.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 49
+        "Line": 2,
+        "Column": 31
       }
     ],
     "Extensions": {

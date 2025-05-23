@@ -57,7 +57,7 @@ internal sealed class DefaultErrorHandler : IErrorHandler
         return current;
     }
 
-    public IErrorBuilder CreateUnexpectedError(Exception exception)
+    public ErrorBuilder CreateUnexpectedError(Exception exception)
     {
         if (exception is null)
         {
@@ -67,7 +67,7 @@ internal sealed class DefaultErrorHandler : IErrorHandler
         return CreateErrorFromException(exception);
     }
 
-    private IErrorBuilder CreateErrorFromException(Exception exception)
+    private ErrorBuilder CreateErrorFromException(Exception exception)
     {
         var builder = ErrorBuilder.New()
             .SetMessage("Unexpected Execution Error")

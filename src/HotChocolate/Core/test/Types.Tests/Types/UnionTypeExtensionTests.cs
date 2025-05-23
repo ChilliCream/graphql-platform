@@ -16,8 +16,8 @@ public class UnionTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<FooType>("Foo");
-        Assert.Collection(type.Types.Values,
+        var type = schema.Types.GetType<FooType>("Foo");
+        Assert.Collection(type.Types,
             t => Assert.IsType<AType>(t),
             t => Assert.IsType<BType>(t));
     }
@@ -33,12 +33,12 @@ public class UnionTypeExtensionTests
             .AddType(new UnionTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features.Set(new CustomFeature()))))
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("Foo");
-        Assert.True(type.ContextData.ContainsKey("foo"));
+        var type = schema.Types.GetType<UnionType>("Foo");
+        Assert.NotNull(type.Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class UnionTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("Foo");
+        var type = schema.Types.GetType<UnionType>("Foo");
         Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
@@ -78,7 +78,7 @@ public class UnionTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("Foo");
+        var type = schema.Types.GetType<UnionType>("Foo");
         var value = type.Directives["dummy_arg"]
             .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
@@ -98,8 +98,8 @@ public class UnionTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<FooType>("Foo");
-        Assert.Collection(type.Types.Values,
+        var type = schema.Types.GetType<FooType>("Foo");
+        Assert.Collection(type.Types,
             t => Assert.IsType<AType>(t),
             t => Assert.IsType<BType>(t));
     }
@@ -122,7 +122,7 @@ public class UnionTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("Foo");
+        var type = schema.Types.GetType<UnionType>("Foo");
         var count = type.Directives["dummy_rep"].Count();
         Assert.Equal(2, count);
     }
@@ -226,4 +226,6 @@ public class UnionTypeExtensionTests
             descriptor.Location(DirectiveLocation.Union);
         }
     }
+
+    public sealed class CustomFeature;
 }

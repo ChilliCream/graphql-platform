@@ -18,7 +18,7 @@
     <Using Include="HotChocolate.Internal" />
     <Using Include="HotChocolate.Types" />
     <Using Include="HotChocolate.Types.Descriptors" />
-    <Using Include="HotChocolate.Types.Descriptors.Definitions" />
+    <Using Include="HotChocolate.Types.Descriptors.Configurations" />
     <Using Include="HotChocolate.Resolvers" />
     <Using Include="HotChocolate.Utilities" />
   </ItemGroup>

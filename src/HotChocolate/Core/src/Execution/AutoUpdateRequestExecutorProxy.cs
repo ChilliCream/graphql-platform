@@ -45,10 +45,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         RequestExecutorProxy requestExecutorProxy,
         CancellationToken cancellationToken = default)
     {
-        if (requestExecutorProxy == null)
-        {
-            throw new ArgumentNullException(nameof(requestExecutorProxy));
-        }
+        ArgumentNullException.ThrowIfNull(requestExecutorProxy);
 
         var executor = await requestExecutorProxy
             .GetRequestExecutorAsync(cancellationToken)
@@ -73,10 +70,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         RequestExecutorProxy requestExecutorProxy,
         IRequestExecutor initialExecutor)
     {
-        if (requestExecutorProxy == null)
-        {
-            throw new ArgumentNullException(nameof(requestExecutorProxy));
-        }
+        ArgumentNullException.ThrowIfNull(requestExecutorProxy);
 
         return new AutoUpdateRequestExecutorProxy(requestExecutorProxy, initialExecutor);
     }
@@ -84,7 +78,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     /// <summary>
     /// Gets the schema to which this executor is bound to.
     /// </summary>
-    public ISchema Schema => _executor.Schema;
+    public Schema Schema => _executor.Schema;
 
     /// <summary>
     /// Gets the services that are bound to this executor.

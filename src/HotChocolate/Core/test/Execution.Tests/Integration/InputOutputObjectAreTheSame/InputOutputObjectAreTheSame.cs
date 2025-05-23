@@ -11,8 +11,8 @@ public class InputOutputObjectAreTheSame
         var schema = CreateSchema();
 
         // act
-        var containsPersonInputType = schema.TryGetType<INamedInputType>("PersonInput", out _);
-        var containsPersonOutputType = schema.TryGetType<INamedOutputType>("Person", out _);
+        var containsPersonInputType = schema.Types.TryGetType<IInputTypeDefinition>("PersonInput", out _);
+        var containsPersonOutputType = schema.Types.TryGetType<IOutputTypeDefinition>("Person", out _);
 
         // assert
         Assert.True(containsPersonInputType);
@@ -38,7 +38,7 @@ public class InputOutputObjectAreTheSame
         result.ToJson().MatchSnapshot();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddType<ObjectType<Person>>()

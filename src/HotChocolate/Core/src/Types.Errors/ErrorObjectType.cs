@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors.Configurations;
+
 namespace HotChocolate.Types;
 
 internal sealed class ErrorObjectType<T> : ObjectType<T>
@@ -5,7 +7,7 @@ internal sealed class ErrorObjectType<T> : ObjectType<T>
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
         descriptor.Extend().OnBeforeCreate(RewriteMessageFieldToNonNullableStringType);
-        descriptor.Extend().Configuration.ContextData.MarkAsError();
+        descriptor.Extend().Configuration.MarkAsError();
         descriptor.BindFieldsImplicitly();
     }
 
@@ -15,7 +17,7 @@ internal sealed class ErrorObjectType<T> : ObjectType<T>
     {
         // if a user provides his/her own error interface we will not rewrite the message type
         // and the user is responsible for ensuring that type and interface align.
-        if (context.ContextData.ContainsKey(ErrorContextDataKeys.ErrorType))
+        if (context.Features.TryGet<ErrorSchemaFeature>(out var _))
         {
             return;
         }

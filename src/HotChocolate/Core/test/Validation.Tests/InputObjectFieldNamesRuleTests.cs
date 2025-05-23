@@ -13,21 +13,24 @@ public class InputObjectFieldNamesRuleTests
     [Fact]
     public void AllInputObjectFieldsExist()
     {
-        ExpectValid(@"
-                {
-                    findDog(complex: { name: ""Fido"" })
-                }
-            ");
+        ExpectValid(
+            """
+            {
+              findDog(complex: { name: "Fido" })
+            }
+            """
+        );
     }
 
     [Fact]
     public void InvalidInputObjectFieldsExist()
     {
-        ExpectErrors(@"
-                {
-                    findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
-                }
-            ",
+        ExpectErrors(
+            """
+            {
+              findDog(complex: { favoriteCookieFlavor: "Bacon" })
+            }
+            """,
             t => Assert.Equal(
                 "The specified input object field " +
                 "`favoriteCookieFlavor` does not exist.",
@@ -38,11 +41,12 @@ public class InputObjectFieldNamesRuleTests
     public void InvalidNestedInputObjectFieldsExist()
     {
         // arrange
-        ExpectErrors(@"
-                {
-                    findDog(complex: { child: { favoriteCookieFlavor: ""Bacon"" } })
-                }
-            ",
+        ExpectErrors(
+            """
+            {
+              findDog(complex: { child: { favoriteCookieFlavor: "Bacon" } })
+            }
+            """,
             t => Assert.Equal(
                 "The specified input object field " +
                 "`favoriteCookieFlavor` does not exist.",

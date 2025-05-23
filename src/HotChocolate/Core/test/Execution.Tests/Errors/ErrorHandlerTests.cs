@@ -232,7 +232,10 @@ public class ErrorHandlerTests
                 "foo",
                 ctx =>
                 {
-                    ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
+                    ctx.ReportError(
+                        new AggregateError(
+                            new Error { Message = "abc" },
+                            new Error { Message = "def" }));
                     return "Hello";
                 })
 

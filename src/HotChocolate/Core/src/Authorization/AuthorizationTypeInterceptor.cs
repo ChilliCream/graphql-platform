@@ -4,12 +4,10 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Authorization.AuthorizeDirectiveType.Names;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
@@ -17,17 +15,18 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 {
     private readonly List<ObjectTypeInfo> _objectTypes = [];
     private readonly List<UnionTypeInfo> _unionTypes = [];
-    private readonly Dictionary<ObjectType, IDirectiveCollection> _directives = new();
+    private readonly Dictionary<ObjectType, DirectiveCollection> _directives = [];
     private readonly HashSet<TypeReference> _completedTypeRefs = [];
     private readonly HashSet<RegisteredType> _completedTypes = [];
     private State? _state;
-
     private IDescriptorContext _context = default!;
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
-    private ExtensionData _schemaContextData = default!;
+    private SchemaTypeConfiguration _schemaConfig = default!;
     private ITypeCompletionContext _queryContext = default!;
+    private ITypeCompletionContext _authDirectiveContext = default!;
+    private AuthorizeDirectiveType _authDirective = default!;
 
     internal override uint Position => uint.MaxValue - 50;
 
@@ -50,11 +49,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // we capture the schema context data before everything else so that we can
         // set a marker if the authorization validation rules need to be executed.
-        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Configuration.ContextData);
+        schemaBuilder.SetSchema(d => _schemaConfig = d.Extend().Configuration);
     }
-
-    private ITypeCompletionContext _tc = default!;
-    private AuthorizeDirectiveType _t = default!;
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
@@ -74,8 +70,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 break;
 
             case AuthorizeDirectiveType type:
-                _t = type;
-                _tc = completionContext;
+                _authDirective = type;
+                _authDirectiveContext = completionContext;
                 break;
         }
 
@@ -96,17 +92,17 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteMetadata()
     {
-        _t.CompleteMetadata(_tc);
-        ((RegisteredType)_tc).Status = TypeStatus.MetadataCompleted;
+        _authDirective.CompleteMetadata(_authDirectiveContext);
+        ((RegisteredType)_authDirectiveContext).Status = TypeStatus.MetadataCompleted;
 
         // at this stage in the type initialization we will create some state that we
         // will use to transform the schema authorization.
         var state = _state = CreateState();
 
         // copy temporary state to schema state.
-        if (_context.ContextData.TryGetValue(AuthorizationRequestPolicy, out var value))
+        if (_context.IsAuthorizedAtRequestLevel())
         {
-            _schemaContextData[AuthorizationRequestPolicy] = value;
+            _schemaConfig.MarkForRequestLevelAuthorization();
         }
 
         // before we can apply schema transformations we will inspect the object types
@@ -140,15 +136,15 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         foreach (var type in _objectTypes)
         {
             var objectType = (ObjectType)type.TypeReg.Type;
+            var nodeResolverInfo = objectType.Features.Get<NodeResolverInfo>();
 
-            if (!objectType.ContextData.TryGetValue(NodeResolver, out var o)
-                || o is not NodeResolverInfo nodeResolverInfo)
+            if (nodeResolverInfo is null)
             {
                 continue;
             }
 
             var pipeline = nodeResolverInfo.Pipeline;
-            var directives = (DirectiveCollection)objectType.Directives;
+            var directives = objectType.Directives;
             var length = directives.Count;
             ref var start = ref directives.GetReference();
 
@@ -158,13 +154,12 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 if (directive.Type.Name.EqualsOrdinal(Authorize))
                 {
-                    var authDir = directive.AsValue<AuthorizeDirective>();
+                    var authDir = directive.ToValue<AuthorizeDirective>();
                     pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
                 }
             }
 
-            type.TypeDef.ContextData[NodeResolver] =
-                new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline);
+            type.TypeDef.Features.Set(new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline));
         }
     }
 
@@ -195,7 +190,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                     // if the field contains the AnonymousAllowed flag we will not
                     // apply authorization on it.
-                    if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+                    if(fieldDef.IsAnonymousAllowed())
                     {
                         continue;
                     }
@@ -299,7 +294,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
         foreach (var fieldDef in type.TypeDef.Fields)
         {
-            if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Type))
+            if (fieldDef.Name.EqualsOrdinal(IntrospectionFieldNames.Type))
             {
                 if (options.ConfigureTypeField is null)
                 {
@@ -310,7 +305,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 options.ConfigureTypeField?.Invoke(descriptor);
                 descriptor.CreateConfiguration();
             }
-            else if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Schema))
+            else if (fieldDef.Name.EqualsOrdinal(IntrospectionFieldNames.Schema))
             {
                 if (options.ConfigureSchemaField is null)
                 {
@@ -337,7 +332,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     private void CheckForValidationAuth(ObjectTypeInfo type)
     {
-        if (_schemaContextData.ContainsKey(AuthorizationRequestPolicy))
+        if (_schemaConfig.IsAuthorizedAtRequestLevel())
         {
             return;
         }
@@ -352,11 +347,11 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
             if (directive.Type.Name.EqualsOrdinal(Authorize))
             {
-                var authDir = directive.AsValue<AuthorizeDirective>();
+                var authDir = directive.ToValue<AuthorizeDirective>();
 
                 if (authDir.Apply is ApplyPolicy.Validation)
                 {
-                    _schemaContextData[AuthorizationRequestPolicy] = true;
+                    _schemaConfig.MarkForRequestLevelAuthorization();
                     return;
                 }
             }
@@ -370,7 +365,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // if the field contains the AnonymousAllowed flag we will not apply authorization
         // on it.
-        if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+        if(fieldDef.IsAnonymousAllowed())
         {
             return;
         }
@@ -445,14 +440,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
             if (directive.Type.Name.EqualsOrdinal(Authorize))
             {
-                var authDir = directive.AsValue<AuthorizeDirective>();
+                var authDir = directive.ToValue<AuthorizeDirective>();
 
                 // if the directive represents a validation policy that must be invoked during
                 // validation we do not need a middleware and will skip applying one.
                 if (authDir.Apply is ApplyPolicy.Validation)
                 {
                     // but we must mark the schema to have auth validation policies.
-                    _schemaContextData[AuthorizationRequestPolicy] = true;
+                    _schemaConfig.MarkForRequestLevelAuthorization();
                     continue;
                 }
 
@@ -494,7 +489,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
         if (_directives.TryGetValue(type, out var directives))
         {
-            return (DirectiveCollection)directives;
+            return directives;
         }
 
         var typeDef = type.Configuration!;
@@ -510,7 +505,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         type.Directives = directives;
         _directives.Add(type, directives);
 
-        return (DirectiveCollection)directives;
+        return directives;
     }
 
     private void CompleteDirectiveTypes(IReadOnlyList<DirectiveConfiguration> directives)
@@ -613,9 +608,9 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             var directiveDef = Unsafe.Add(ref start, i);
 
-            if (directiveDef.Type is NameDirectiveReference { Name: Authorize, } ||
-                (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
-                    type == typeof(AuthorizeDirective)))
+            if (directiveDef.Type is NameDirectiveReference { Name: Authorize, }
+                || (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, }
+                    && type == typeof(AuthorizeDirective)))
             {
                 return true;
             }
@@ -625,28 +620,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 
     private State CreateState()
-    {
-        AuthorizationOptions? options = null;
-
-        if (_context.ContextData.TryGetValue(
-                WellKnownContextData.AuthorizationOptions,
-                out var value) &&
-            value is AuthorizationOptions opt)
-        {
-            options = opt;
-        }
-
-        return new State(options ?? new());
-    }
+        => new(_context.GetAuthorizationOptions());
 }
 
 file static class AuthorizationTypeInterceptorExtensions
 {
     public static bool IsNodeField(this ObjectFieldConfiguration fieldDef)
     {
-        var contextData = fieldDef.GetContextData();
-
-        return contextData.ContainsKey(WellKnownContextData.IsNodeField) ||
-            contextData.ContainsKey(WellKnownContextData.IsNodesField);
+        return (fieldDef.Flags & CoreFieldFlags.GlobalIdNodeField) == CoreFieldFlags.GlobalIdNodeField
+            || (fieldDef.Flags & CoreFieldFlags.GlobalIdNodesField) == CoreFieldFlags.GlobalIdNodesField;
     }
 }

@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "Only one of each directive is allowed per location.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 5,
-        "Column": 52
+        "Line": 4,
+        "Column": 36
       }
     ],
     "Extensions": {
@@ -20,8 +20,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 6,
-        "Column": 39
+        "Line": 5,
+        "Column": 21
       }
     ],
     "Extensions": {

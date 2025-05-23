@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Describes what a field filter binds to.

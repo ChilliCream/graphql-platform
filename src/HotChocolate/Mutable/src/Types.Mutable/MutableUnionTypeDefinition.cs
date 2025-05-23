@@ -56,6 +56,10 @@ public class MutableUnionTypeDefinition
     public IFeatureCollection Features
         => field ??= new FeatureCollection();
 
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate
+        => new(Name, ofDirective: false);
+
     /// <summary>
     /// Get the string representation of the union type definition.
     /// </summary>
@@ -93,10 +97,7 @@ public class MutableUnionTypeDefinition
     /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         switch (type.Kind)
         {

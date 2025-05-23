@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
@@ -15,7 +15,7 @@ namespace HotChocolate.Types;
 
 public partial class ObjectType
 {
-    private InterfaceType[] _implements = [];
+    private InterfaceTypeCollection _implements = InterfaceTypeCollection.Empty;
     private Action<IObjectTypeDescriptor>? _configure;
     private IsOfType? _isOfType;
 
@@ -107,7 +107,7 @@ public partial class ObjectType
         }
     }
 
-    protected virtual FieldCollection<ObjectField> OnCompleteFields(
+    protected virtual ObjectFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
         ObjectTypeConfiguration definition)
     {
@@ -161,10 +161,12 @@ public partial class ObjectType
             }
         }
 
-        var collection = CompleteFields(context, this, definition.Fields, CreateField);
+        var fields = CompleteFields(context, this, definition.Fields, CreateField);
+
         TypeMemHelper.Return(interfaceFields);
         TypeMemHelper.Return(processed);
-        return collection;
+
+        return new ObjectFieldCollection(fields);
 
         static ObjectField CreateField(ObjectFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);

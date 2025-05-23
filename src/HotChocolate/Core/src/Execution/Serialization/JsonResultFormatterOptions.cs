@@ -26,7 +26,7 @@ public struct JsonResultFormatterOptions
     public JsonNullIgnoreCondition NullIgnoreCondition { get; set; }
 
     /// <summary>
-    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// Gets or sets the encoder to use when escaping strings or null to use the default encoder.
     /// </summary>
     public JavaScriptEncoder? Encoder { get; set; }
 

@@ -11,14 +11,14 @@ public class OperationDocumentHelperTests
     // This test ensures that each operation becomes one document that
     // only has the fragments needed by the extracted operation.
     [Fact]
-    public async Task Extract_Operation_Documents()
+    public void Extract_Operation_Documents()
     {
         // arrange
         var query = Parse(Open("simple.query1.graphql"));
         List<DocumentNode> queries = [query,];
 
         // act
-        var operations = await CreateOperationDocumentsAsync(queries);
+        var operations = CreateOperationDocuments(queries);
 
         // assert
         Assert.Collection(
@@ -30,7 +30,7 @@ public class OperationDocumentHelperTests
     }
 
     [Fact]
-    public async Task Merge_Multiple_Documents()
+    public void Merge_Multiple_Documents()
     {
         // arrange
         var query1 = Parse(Open("simple.query1.graphql"));
@@ -38,7 +38,7 @@ public class OperationDocumentHelperTests
         List<DocumentNode> queries = [query1, query2,];
 
         // act
-        var operations = await CreateOperationDocumentsAsync(queries);
+        var operations = CreateOperationDocuments(queries);
 
         // assert
         Assert.Collection(
@@ -51,22 +51,22 @@ public class OperationDocumentHelperTests
     }
 
     [Fact]
-    public async Task No_Operation()
+    public void No_Operation()
     {
         // arrange
         DocumentNode query = new(new List<IDefinitionNode>());
         List<DocumentNode> queries = [query,];
 
         // act
-        async Task Error() => await CreateOperationDocumentsAsync(queries);
+        void Error() => CreateOperationDocuments(queries);
 
         // assert
-        var error = await Assert.ThrowsAsync<ArgumentException>(Error);
+        var error = Assert.Throws<ArgumentException>(Error);
         error.Message.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Duplicate_Operation()
+    public void Duplicate_Operation()
     {
         // arrange
         var query1 = Parse(Open("simple.query2.graphql"));
@@ -74,15 +74,15 @@ public class OperationDocumentHelperTests
         List<DocumentNode> queries = [query1, query2,];
 
         // act
-        async Task Error() => await CreateOperationDocumentsAsync(queries);
+        void Error() => CreateOperationDocuments(queries);
 
         // assert
-        var error = await Assert.ThrowsAsync<CodeGeneratorException>(Error);
+        var error = Assert.Throws<CodeGeneratorException>(Error);
         error.Message.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Duplicate_Fragment()
+    public void Duplicate_Fragment()
     {
         // arrange
         var query1 = Parse(Open("simple.query1.graphql"));
@@ -90,10 +90,10 @@ public class OperationDocumentHelperTests
         List<DocumentNode> queries = [query1, query2,];
 
         // act
-        async Task Error() => await CreateOperationDocumentsAsync(queries);
+        void Error() => CreateOperationDocuments(queries);
 
         // assert
-        var error = await Assert.ThrowsAsync<CodeGeneratorException>(Error);
+        var error = Assert.Throws<CodeGeneratorException>(Error);
         error.Message.MatchSnapshot();
     }
 }

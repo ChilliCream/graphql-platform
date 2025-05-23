@@ -7,7 +7,7 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
@@ -175,13 +175,13 @@ public static class SortingObjectFieldDescriptorExtensions
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
-                        Flags = FieldFlags.SortArgument
+                        Flags = CoreFieldFlags.SortArgument
                     };
 
                     argumentDefinition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>((context, def) =>
                         {
-                            var namedType = context.GetType<INamedType>(argumentTypeReference);
+                            var namedType = context.GetType<ITypeDefinition>(argumentTypeReference);
                             def.Type = TypeReference.Parse($"[{namedType.Name}!]");
                         },
                         argumentDefinition,

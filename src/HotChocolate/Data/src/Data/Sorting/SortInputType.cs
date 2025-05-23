@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Data.Sorting;
@@ -70,14 +70,14 @@ public class SortInputType
         }
     }
 
-    protected override FieldCollection<InputField> OnCompleteFields(
+    protected override InputFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        var fields = new InputField[definition.Fields.Count];
+        var fields = new InputField[configuration.Fields.Count];
         var index = 0;
 
-        foreach (var fieldDefinition in definition.Fields)
+        foreach (var fieldDefinition in configuration.Fields)
         {
             if (fieldDefinition is SortFieldConfiguration {Ignore: false, } field)
             {
@@ -91,7 +91,7 @@ public class SortInputType
             Array.Resize(ref fields, index);
         }
 
-        return CompleteFields(context, this, fields);
+        return new InputFieldCollection(CompleteFields(context, this, fields));
     }
 
     // we are disabling the default configure method so

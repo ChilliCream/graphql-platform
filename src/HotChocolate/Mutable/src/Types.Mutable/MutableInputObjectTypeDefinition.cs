@@ -15,7 +15,6 @@ public class MutableInputObjectTypeDefinition
     , IMutableTypeDefinition
     , IFeatureProvider
 {
-    private readonly InputFieldDefinitionCollection _fields = [];
     private DirectiveCollection? _directives;
 
     /// <summary>
@@ -24,6 +23,7 @@ public class MutableInputObjectTypeDefinition
     public MutableInputObjectTypeDefinition(string name)
     {
         Name = name.EnsureGraphQLName();
+        Fields = new InputFieldDefinitionCollection(this);
     }
 
     /// <inheritdoc />
@@ -39,6 +39,11 @@ public class MutableInputObjectTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate
+        => new(Name, ofDirective: false);
+
+    /// <inheritdoc />
     public DirectiveCollection Directives
         => _directives ??= [];
 
@@ -51,11 +56,10 @@ public class MutableInputObjectTypeDefinition
     /// <value>
     /// The fields of this input object type definition.
     /// </value>
-    public InputFieldDefinitionCollection Fields
-        => _fields;
+    public InputFieldDefinitionCollection Fields { get; }
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields
-        => _fields;
+        => Fields;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]
@@ -78,12 +82,10 @@ public class MutableInputObjectTypeDefinition
             && otherInput.Name.Equals(Name, StringComparison.Ordinal);
     }
 
+    /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.InputObject)
         {

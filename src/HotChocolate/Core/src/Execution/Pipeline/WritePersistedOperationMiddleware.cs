@@ -95,12 +95,14 @@ internal sealed class WritePersistedOperationMiddleware
         return false;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var middleware = new WritePersistedOperationMiddleware(next, documentHashProvider, persistedOperationStore);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
+                var middleware = new WritePersistedOperationMiddleware(next, documentHashProvider, persistedOperationStore);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(WritePersistedOperationMiddleware));
 }

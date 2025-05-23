@@ -43,7 +43,7 @@ public sealed class ConfigurationContext : IHasContextData
     public string SchemaName { get; }
 
     /// <summary>
-    /// Gets the schema builder that is used to create the schema.
+    /// Gets the schema builder used to create the schema.
     /// </summary>
     public ISchemaBuilder SchemaBuilder { get; }
 

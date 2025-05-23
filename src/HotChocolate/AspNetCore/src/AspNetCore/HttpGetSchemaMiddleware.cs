@@ -117,11 +117,11 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     private async Task WriteTypesAsync(
         HttpContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         string typeNames,
         bool indent)
     {
-        var types = new List<INamedType>();
+        var types = new List<ITypeDefinition>();
 
         foreach (var typeName in typeNames.Split(','))
         {
@@ -137,7 +137,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 return;
             }
 
-            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out var type))
+            if (!schema.Types.TryGetType<ITypeDefinition>(coordinate.Value.Name, out var type))
             {
                 await WriteResultAsync(
                     context,
@@ -164,7 +164,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
             executor.Version,
             context.RequestAborted);
 
-    private string GetTypesFileName(List<INamedType> types)
+    private string GetTypesFileName(List<ITypeDefinition> types)
         => types.Count == 1
             ? $"{types[0].Name}.graphql"
             : "types.graphql";

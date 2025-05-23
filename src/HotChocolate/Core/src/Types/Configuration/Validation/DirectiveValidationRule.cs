@@ -15,22 +15,22 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
 
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         if (context.Options.StrictValidation)
         {
-            foreach (var directiveType in schema.DirectiveTypes)
+            foreach (var directiveDefinition in schema.DirectiveDefinitions)
             {
-                EnsureDirectiveNameIsValid(directiveType, errors);
-                EnsureArgumentNamesAreValid(directiveType, errors);
-                EnsureArgumentDeprecationIsValid(directiveType, errors);
+                EnsureDirectiveNameIsValid(directiveDefinition, errors);
+                EnsureArgumentNamesAreValid(directiveDefinition, errors);
+                EnsureArgumentDeprecationIsValid(directiveDefinition, errors);
             }
         }
     }
 
     private static void EnsureDirectiveNameIsValid(
-        DirectiveType type,
+        IDirectiveDefinition type,
         ICollection<ISchemaError> errors)
     {
         if (type.Name.Length > 2)

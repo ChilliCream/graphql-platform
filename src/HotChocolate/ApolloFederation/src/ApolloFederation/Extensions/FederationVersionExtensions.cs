@@ -1,5 +1,6 @@
+using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -32,30 +33,11 @@ internal static class FederationVersionExtensions
     public static FederationVersion GetFederationVersion<T>(
         this IDescriptor<T> descriptor)
         where T : TypeSystemConfiguration
-    {
-        var contextData = descriptor.Extend().Context.ContextData;
-        if (contextData.TryGetValue(FederationContextData.FederationVersion, out var value) &&
-            value is FederationVersion version and > FederationVersion.Unknown)
-        {
-            return version;
-        }
-
-        // TODO : resources
-        throw new InvalidOperationException("The configuration state is invalid.");
-    }
+        => descriptor.Extend().Context.GetFederationVersion();
 
     public static FederationVersion GetFederationVersion(
         this IDescriptorContext context)
-    {
-        if (context.ContextData.TryGetValue(FederationContextData.FederationVersion, out var value) &&
-            value is FederationVersion version and > FederationVersion.Unknown)
-        {
-            return version;
-        }
-
-        // TODO : resources
-        throw new InvalidOperationException("The configuration state is invalid.");
-    }
+        => context.Features.GetRequired<ApolloFederationFeature>().Version;
 
     public static Uri ToUrl(this FederationVersion version)
     {

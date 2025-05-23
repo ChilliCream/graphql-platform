@@ -43,11 +43,13 @@ internal sealed class PersistedOperationNotFoundMiddleware
         return default;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var middleware = new PersistedOperationNotFoundMiddleware(next, diagnosticEvents);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var middleware = new PersistedOperationNotFoundMiddleware(next, diagnosticEvents);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(PersistedOperationNotFoundMiddleware));
 }

@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 
@@ -8,12 +9,12 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Encapsulates all GraphQL-specific information about an individual GraphQL request.
 /// </summary>
-public interface IRequestContext : IHasContextData
+public interface IRequestContext : IFeatureProvider, IHasContextData
 {
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.
     /// </summary>
-    ISchema Schema { get; }
+    Schema Schema { get; }
 
     /// <summary>
     /// Gets the request executor version.
@@ -48,7 +49,7 @@ public interface IRequestContext : IHasContextData
 
     /// <summary>
     /// Notifies when the connection underlying this request is aborted
-    /// and thus request operations should be cancelled.
+    /// and thus request operations should be canceled.
     /// </summary>
     CancellationToken RequestAborted { get; set; }
 
@@ -68,7 +69,7 @@ public interface IRequestContext : IHasContextData
     DocumentNode? Document { get; set; }
 
     /// <summary>
-    /// Defines that the document was retrieved from cache.
+    /// Defines that the document was retrieved from the cache.
     /// </summary>
     bool IsCachedDocument { get; set; }
 

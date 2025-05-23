@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "`nonNullField` is a required field and cannot be null.",
     "Code": null,
@@ -19,8 +19,8 @@
     },
     "Locations": [
       {
-        "Line": 6,
-        "Column": 29
+        "Line": 5,
+        "Column": 7
       }
     ],
     "Extensions": {

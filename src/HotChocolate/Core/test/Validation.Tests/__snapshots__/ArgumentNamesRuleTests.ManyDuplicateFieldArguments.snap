@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 49
+        "Line": 2,
+        "Column": 31
       }
     ],
     "Extensions": {
@@ -23,8 +23,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 64
+        "Line": 2,
+        "Column": 46
       }
     ],
     "Extensions": {

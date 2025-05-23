@@ -2,7 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
@@ -63,7 +63,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
 
         if (IsValidationAuthRule(directiveNode))
         {
-            context.ContextData[WellKnownContextData.AuthorizationRequestPolicy] = true;
+            context.MarkForRequestLevelAuthorization();
         }
 
         static bool IsValidationAuthRule(DirectiveNode directiveNode)
@@ -89,7 +89,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
     private static DirectiveMiddleware CreateMiddleware()
         => (next, directive) =>
         {
-            var value = directive.AsValue<AuthorizeDirective>();
+            var value = directive.ToValue<AuthorizeDirective>();
             var auth = new AuthorizeMiddleware(next, value);
             return async context => await auth.InvokeAsync(context).ConfigureAwait(false);
         };

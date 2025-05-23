@@ -22,7 +22,7 @@ internal sealed class SchemaParameterExpressionBuilder
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => typeof(ISchema) == parameter.ParameterType ||
+        => typeof(ISchemaDefinition) == parameter.ParameterType ||
            typeof(Schema) == parameter.ParameterType;
 
     public Expression Build(ParameterExpressionBuilderContext context)
@@ -34,5 +34,5 @@ internal sealed class SchemaParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.Schema;
+        => (T)(object)context.Schema;
 }

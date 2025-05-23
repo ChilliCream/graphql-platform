@@ -71,8 +71,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
         error.Errors.MatchSnapshot();
@@ -396,7 +395,7 @@ public class SortConventionTests
             schema.Types.First(t => t.IsInputType() && !t.IsIntrospectionType()).Name);
     }
 
-    protected ISchema CreateSchemaWithTypes(
+    protected Schema CreateSchemaWithTypes(
         ISortInputType type,
         SortConvention convention,
         params Type[] extensions)
@@ -420,7 +419,7 @@ public class SortConventionTests
         return builder.Create();
     }
 
-    protected ISchema CreateSchemaWith(
+    protected Schema CreateSchemaWith(
         ISortInputType type,
         SortConvention convention,
         params SortConventionExtension[] extensions)

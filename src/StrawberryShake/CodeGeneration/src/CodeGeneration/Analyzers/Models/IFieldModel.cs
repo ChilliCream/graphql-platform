@@ -20,7 +20,7 @@ public interface IFieldModel
     /// <summary>
     /// Gets the field.
     /// </summary>
-    IField Field { get; }
+    IFieldDefinition Field { get; }
 
     /// <summary>
     /// Gets the field schema type.

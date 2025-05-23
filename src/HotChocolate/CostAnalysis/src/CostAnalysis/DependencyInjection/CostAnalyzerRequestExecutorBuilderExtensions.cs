@@ -2,7 +2,6 @@ using HotChocolate;
 using HotChocolate.CostAnalysis;
 using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Types;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -32,7 +31,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
 
         return builder
             .ConfigureSchemaServices(
-                services =>
+                static services =>
                 {
                     services.TryAddEnumerable(
                         Singleton<ISchemaDocumentFormatter, CostSchemaDocumentFormatter>());
@@ -64,9 +63,10 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .AddDirectiveType<ListSizeDirectiveType>()
             .TryAddTypeInterceptor<CostTypeInterceptor>()
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
-
-            // we are replacing the default pipeline if the cost analyzer is added.
-            .Configure(c => c.DefaultPipelineFactory = AddDefaultPipeline);
+            .AppendUseRequest(
+                after: nameof(DocumentValidationMiddleware),
+                middleware: CostAnalyzerMiddleware.Create(),
+                key: nameof(CostAnalyzerMiddleware));
     }
 
     /// <summary>
@@ -117,21 +117,8 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
     {
         return builder
             .AddCostAnalyzer()
-            .UseRequest(CostAnalyzerMiddleware.Create());
-    }
-
-    internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
-    {
-        pipeline.Add(InstrumentationMiddleware.Create());
-        pipeline.Add(ExceptionMiddleware.Create());
-        pipeline.Add(TimeoutMiddleware.Create());
-        pipeline.Add(DocumentCacheMiddleware.Create());
-        pipeline.Add(DocumentParserMiddleware.Create());
-        pipeline.Add(DocumentValidationMiddleware.Create());
-        pipeline.Add(CostAnalyzerMiddleware.Create());
-        pipeline.Add(OperationCacheMiddleware.Create());
-        pipeline.Add(OperationResolverMiddleware.Create());
-        pipeline.Add(OperationVariableCoercionMiddleware.Create());
-        pipeline.Add(OperationExecutionMiddleware.Create());
+            .UseRequest(
+                CostAnalyzerMiddleware.Create(),
+                key: nameof(CostAnalyzerMiddleware));
     }
 }

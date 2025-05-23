@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The argument `unknown` does not exist.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 41
+        "Line": 3,
+        "Column": 21
       }
     ],
     "Extensions": {
@@ -41,8 +41,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 25
+        "Line": 3,
+        "Column": 5
       }
     ],
     "Extensions": {

@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -8,7 +10,7 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
-    private static ExecutionPlan BuildExecutionPlan(
+    private static OperationPlan BuildExecutionPlan(
         ImmutableList<OperationPlanStep> planSteps,
         OperationDefinitionNode originalOperation)
     {
@@ -30,7 +32,7 @@ public sealed partial class OperationPlanner
             .Select(t => t.Value)
             .ToImmutableArray();
 
-        return new ExecutionPlan
+        return new OperationPlan
         {
             RootNodes = rootNodes,
             AllNodes = allNodes
@@ -150,13 +152,14 @@ public sealed partial class OperationPlanner
                     requirements = builder.ToImmutable();
                 }
 
-                var operationNode = new OperationExecutionNode
-                {
-                    Id = step.Id,
-                    Definition = step.Definition,
-                    SchemaName = step.SchemaName,
-                    Requirements = requirements
-                };
+                var operationNode = new OperationExecutionNode(
+                    step.Id,
+                    step.Definition,
+                    step.SchemaName,
+                    // TODO : fix path
+                    SelectionPath.Root,
+                    SelectionPath.Root,
+                    [.. step.Requirements.Values]);
 
                 completedNodes.Add(step.Id, operationNode);
             }

@@ -17,7 +17,9 @@ public sealed class SchemaTypeReference
         string? scope = null)
         : base(TypeReferenceKind.SchemaType, context ?? InferTypeContext(type), scope)
     {
-        Type = type ?? throw new ArgumentNullException(nameof(type));
+        ArgumentNullException.ThrowIfNull(type);
+
+        Type = type;
     }
 
     /// <summary>
@@ -99,7 +101,10 @@ public sealed class SchemaTypeReference
 
     /// <inheritdoc />
     public override string ToString()
-        => ToString(Type);
+    {
+        var name = Type.GetType().FullName!;
+        return Context is TypeContext.None ? name : $"{name} ({Context})";
+    }
 
     public SchemaTypeReference WithType(ITypeSystemMember type)
     {

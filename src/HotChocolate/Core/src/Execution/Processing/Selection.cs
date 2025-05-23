@@ -20,8 +20,8 @@ public class Selection : ISelection
 
     public Selection(
         int id,
-        IObjectType declaringType,
-        IObjectField field,
+        ObjectType declaringType,
+        ObjectField field,
         IType type,
         FieldNode syntaxNode,
         string responseName,
@@ -50,7 +50,7 @@ public class Selection : ISelection
             ? Flags.Internal
             : Flags.None;
 
-        if (Type.IsType(TypeKind.List))
+        if (Type.IsListType())
         {
             _flags |= Flags.List;
         }
@@ -91,7 +91,7 @@ public class Selection : ISelection
     public SelectionExecutionStrategy Strategy { get; private set; }
 
     /// <inheritdoc />
-    public IObjectType DeclaringType { get; }
+    public ObjectType DeclaringType { get; }
 
     /// <inheritdoc />
     public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
@@ -99,7 +99,7 @@ public class Selection : ISelection
     public IOperation DeclaringOperation { get; private set; } = default!;
 
     /// <inheritdoc />
-    public IObjectField Field { get; }
+    public ObjectField Field { get; }
 
     /// <inheritdoc />
     public IType Type { get; }
@@ -409,8 +409,8 @@ public class Selection : ISelection
     {
         public Sealed(
             int id,
-            IObjectType declaringType,
-            IObjectField field,
+            ObjectType declaringType,
+            ObjectField field,
             IType type,
             FieldNode syntaxNode,
             string responseName,

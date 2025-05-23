@@ -30,6 +30,6 @@ public static class HotChocolateInMemoryPersistedOperationsServiceCollectionExte
             .AddSingleton<IOperationDocumentStorage>(
                 c => new InMemoryOperationDocumentStorage(
                     c.GetService<IMemoryCache>() ??
-                    c.GetApplicationService<IMemoryCache>()));
+                    c.GetRootServiceProvider().GetRequiredService<IMemoryCache>()));
     }
 }

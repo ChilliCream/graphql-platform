@@ -66,7 +66,7 @@ public static class InputObjectTypeDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        return descriptor.Directive(WellKnownDirectives.OneOf);
+        return descriptor.Directive(DirectiveNames.OneOf.Name);
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public static class InputObjectTypeDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        return descriptor.Directive(WellKnownDirectives.OneOf);
+        return descriptor.Directive(DirectiveNames.OneOf.Name);
     }
 
     /// <summary>

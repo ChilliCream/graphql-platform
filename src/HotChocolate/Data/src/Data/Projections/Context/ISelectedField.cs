@@ -40,7 +40,7 @@ public interface ISelectedField
     /// <summary>
     /// Gets the field on which the field resolver is being executed.
     /// </summary>
-    IObjectField Field { get; }
+    IOutputFieldDefinition Field { get; }
 
     /// <summary>
     /// Gets the  type of the field.

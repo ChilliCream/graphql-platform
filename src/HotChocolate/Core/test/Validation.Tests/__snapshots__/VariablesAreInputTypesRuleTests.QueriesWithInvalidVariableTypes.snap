@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The type of variable `cat` is not an input type.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 32
+        "Line": 1,
+        "Column": 16
       }
     ],
     "Extensions": {
@@ -22,8 +22,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 17
+        "Line": 1,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -37,8 +37,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 6,
-        "Column": 36
+        "Line": 5,
+        "Column": 20
       }
     ],
     "Extensions": {
@@ -54,8 +54,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 6,
-        "Column": 17
+        "Line": 5,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -69,8 +69,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 10,
-        "Column": 38
+        "Line": 9,
+        "Column": 22
       }
     ],
     "Extensions": {
@@ -86,8 +86,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 10,
-        "Column": 17
+        "Line": 9,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -101,8 +101,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 14,
-        "Column": 37
+        "Line": 13,
+        "Column": 21
       }
     ],
     "Extensions": {
@@ -118,8 +118,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 14,
-        "Column": 17
+        "Line": 13,
+        "Column": 1
       }
     ],
     "Extensions": {

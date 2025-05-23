@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -104,7 +104,7 @@ public static class JsonObjectTypeExtensions
     }
 
     internal static void InferResolver(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         ObjectFieldConfiguration def,
         ScalarType scalarType,
         string propertyName)

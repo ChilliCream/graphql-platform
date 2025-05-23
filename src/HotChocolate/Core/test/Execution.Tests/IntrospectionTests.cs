@@ -350,7 +350,7 @@ public class IntrospectionTests
             result.MatchSnapshot();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .AddType<BarDirectiveType>()

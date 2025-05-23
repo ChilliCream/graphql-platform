@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -530,7 +531,6 @@ public class QueryableCursorPagingProviderTests
             return new MockContext(arguments, operation, operation.RootSelectionSet.Selections[0]);
         }
 
-
         public IServiceProvider Services
         {
             get => throw new NotImplementedException();
@@ -569,13 +569,13 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
         {
             throw new NotImplementedException();
         }
 
         public IReadOnlyList<ISelection> GetSelections(
-            IObjectType typeContext,
+            ObjectType typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
         {
@@ -603,9 +603,9 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public ISchema Schema => throw new NotImplementedException();
+        public Schema Schema => throw new NotImplementedException();
 
-        public IObjectType ObjectType => throw new NotImplementedException();
+        public ObjectType ObjectType => throw new NotImplementedException();
 
         public IOperation Operation { get; }
 
@@ -708,5 +708,7 @@ public class QueryableCursorPagingProviderTests
         }
 
         public IDictionary<string, object?> ContextData => throw new NotImplementedException();
+
+        public IFeatureCollection Features => throw new NotImplementedException();
     }
 }

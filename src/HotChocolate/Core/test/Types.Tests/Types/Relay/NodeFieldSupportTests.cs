@@ -154,6 +154,7 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo1>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .BuildRequestExecutorAsync();
 
         // act

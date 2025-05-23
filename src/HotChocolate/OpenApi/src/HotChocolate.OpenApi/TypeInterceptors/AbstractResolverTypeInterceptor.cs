@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.OpenApi.Exceptions;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.OpenApi.OpenApiResources;
 
 namespace HotChocolate.OpenApi.TypeInterceptors;

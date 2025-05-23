@@ -6,6 +6,14 @@ public sealed class OutputFieldDefinitionCollection
     : FieldDefinitionCollection<MutableOutputFieldDefinition>
     , IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>
 {
+    public OutputFieldDefinitionCollection(ITypeSystemMember declaringMember)
+        : base(declaringMember)
+    {
+    }
+
+    IOutputFieldDefinition IReadOnlyList<IOutputFieldDefinition>.this[int index]
+        => this[index];
+
     IOutputFieldDefinition IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>.this[string name]
         => this[name];
 

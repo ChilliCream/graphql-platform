@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Internal;
 

@@ -1,8 +1,10 @@
 #nullable enable
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -14,7 +16,6 @@ using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;
 
@@ -56,13 +57,13 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
                 }
 
-                if (builder._schemaFirstTypeInterceptor is not null)
+                if (builder.Features.Get<TypeSystemFeature>()?.SchemaDocuments.Count > 0)
                 {
-                    typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
+                    typeInterceptors.Add(new SchemaFirstTypeInterceptor());
                 }
 
-                PagingDefaults.Apply(builder._pagingOptions);
-                context.ContextData[typeof(PagingOptions).FullName!] = builder._pagingOptions;
+                var pagingOptions = builder.Features.GetOrSet<PagingOptions>();
+                PagingDefaults.Apply(pagingOptions);
 
                 InitializeInterceptors(
                     context.Services,
@@ -90,19 +91,15 @@ public partial class SchemaBuilder
             }
         }
 
-        public static DescriptorContext CreateContext(
-            SchemaBuilder builder,
-            LazySchema lazySchema)
+        public static DescriptorContext CreateContext(SchemaBuilder builder, LazySchema lazySchema)
         {
             var services = builder._services ?? CreateDefaultServiceProvider(lazySchema);
-
             var typeInterceptor = new AggregateTypeInterceptor();
 
             var context = DescriptorContext.Create(
                 () => builder._options,
                 services,
-                builder._conventions,
-                builder._contextData,
+                builder.Features,
                 lazySchema,
                 typeInterceptor);
 
@@ -127,10 +124,7 @@ public partial class SchemaBuilder
                 types.Add(typeRef(context.TypeInspector));
             }
 
-            if (builder._documents.Count > 0)
-            {
-                types.AddRange(ParseDocuments(builder, context));
-            }
+            types.AddRange(ParseDocuments(builder, context));
 
             types.Add(builder._schema is null
                 ? new SchemaTypeReference(new Schema())
@@ -143,23 +137,28 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<TypeReference>();
-            var documents = new List<DocumentNode>();
-            context.ContextData[WellKnownContextData.SchemaDocuments] = documents;
-
-            foreach (var fetchSchema in builder._documents)
+            if (!builder.Features.TryGet(out TypeSystemFeature? feature)
+                || feature.SchemaDocuments.Count == 0)
             {
-                var schemaDocument = fetchSchema(context.Services);
-                schemaDocument = schemaDocument.RemoveBuiltInTypes();
-                documents.Add(schemaDocument);
+                return [];
+            }
 
-                var visitorContext = new SchemaSyntaxVisitorContext(
-                    context,
-                    builder._schemaFirstTypeInterceptor!.Directives);
-                var visitor = new SchemaSyntaxVisitor();
+            var types = new List<TypeReference>();
+            var visitor = new SchemaSyntaxVisitor();
+
+            foreach (var documentInfo in feature.SchemaDocuments)
+            {
+                var schemaDocument = documentInfo.Load(context.Services);
+                schemaDocument = schemaDocument.RemoveBuiltInTypes();
+
+                var visitorContext = new SchemaSyntaxVisitorContext(context)
+                {
+                    ScalarDirectives = feature.ScalarDirectives
+                };
 
                 visitor.Visit(schemaDocument, visitorContext);
                 types.AddRange(visitorContext.Types);
+                feature.ScalarDirectives = visitorContext.ScalarDirectives;
 
                 RegisterOperationName(
                     builder,
@@ -176,8 +175,7 @@ public partial class SchemaBuilder
                     OperationType.Subscription,
                     visitorContext.SubscriptionTypeName);
 
-                var directives =
-                    visitorContext.Directives ?? Array.Empty<DirectiveNode>();
+                var directives = visitorContext.Directives ?? [];
 
                 if (builder._schema is null && (directives.Count > 0 || visitorContext.Description != null))
                 {
@@ -244,11 +242,14 @@ public partial class SchemaBuilder
                 initializer.GlobalComponents.Add(component);
             }
 
-            foreach (var binding in builder._clrTypes)
+            if(builder.Features.Get<TypeSystemFeature>()?.RuntimeTypeBindings is { Count: > 0 } bindings)
             {
-                typeRegistry.TryRegister(
-                    (ExtendedTypeReference)binding.Value.Item1(context.TypeInspector),
-                    binding.Value.Item2.Invoke(context.TypeInspector));
+                foreach (var binding in bindings.Values)
+                {
+                    typeRegistry.TryRegister(
+                        binding.GetRuntimeTypeReference(context.TypeInspector),
+                        binding.GetSchemaTypeReference(context.TypeInspector));
+                }
             }
 
             return initializer;
@@ -260,7 +261,8 @@ public partial class SchemaBuilder
             List<T> interceptors)
             where T : class
         {
-            if (services is not EmptyServiceProvider && services.GetService<IEnumerable<T>>() is { } fromService)
+            if (services is not EmptyServiceProvider
+                && services.GetService<IEnumerable<T>>() is { } fromService)
             {
                 interceptors.AddRange(fromService);
             }
@@ -286,7 +288,7 @@ public partial class SchemaBuilder
         }
 
         private static RootTypeKind GetOperationKind(
-            TypeSystemObjectBase type,
+            TypeSystemObject type,
             ITypeInspector typeInspector,
             Dictionary<OperationType, TypeReference> operations)
         {
@@ -422,10 +424,30 @@ public partial class SchemaBuilder
 
             ResolveOperations(definition, operations, typeRegistry);
 
-            var types = RemoveUnreachableTypes(builder, typeRegistry, definition);
+            var included = new HashSet<ITypeSystemMember>(typeRegistry.Types.Count);
+            var types = new List<ITypeSystemMember>(typeRegistry.Types.Count);
 
-            definition.Types = types.OfType<INamedType>().Distinct().ToArray();
-            definition.DirectiveTypes = types.OfType<DirectiveType>().Distinct().ToArray();
+            foreach (var registration in typeRegistry.Types)
+            {
+                switch (registration.Type)
+                {
+                    case ITypeDefinition typeDef when typeDef is not ITypeDefinitionExtension && included.Add(typeDef):
+                        types.Add(typeDef);
+                        break;
+
+                    case DirectiveType directiveType when included.Add(directiveType):
+                        types.Add(directiveType);
+                        break;
+
+                    default:
+                        continue;
+                }
+            }
+
+            RemoveUnreachableTypes(builder, definition, types);
+
+            definition.Types = [.. types.OfType<ITypeDefinition>()];
+            definition.DirectiveTypes = [.. types.OfType<DirectiveType>()];
 
             return definition;
         }
@@ -457,7 +479,7 @@ public partial class SchemaBuilder
                     {
                         if (registeredType.Type is not ObjectType objectType)
                         {
-                            Throw((INamedType)registeredType.Type, expectedOperation);
+                            Throw((ITypeDefinition)registeredType.Type, expectedOperation);
                         }
 
                         return objectType;
@@ -477,44 +499,44 @@ public partial class SchemaBuilder
                 switch (reference)
                 {
                     case SchemaTypeReference str:
-                    {
-                        if (str.Type is not ObjectType ot)
                         {
-                            Throw((INamedType)str.Type, operation);
-                        }
+                            if (str.Type is not ObjectType ot)
+                            {
+                                Throw((ITypeDefinition)str.Type, operation);
+                            }
 
-                        return ot;
-                    }
+                            return ot;
+                        }
 
                     case ExtendedTypeReference cr when typeRegistry.TryGetType(cr, out var registeredType):
-                    {
-                        if (registeredType.Type is not ObjectType ot)
                         {
-                            Throw((INamedType)registeredType.Type, operation);
-                        }
+                            if (registeredType.Type is not ObjectType ot)
+                            {
+                                Throw((ITypeDefinition)registeredType.Type, operation);
+                            }
 
-                        return ot;
-                    }
+                            return ot;
+                        }
 
                     case SyntaxTypeReference str:
-                    {
-                        var namedType = str.Type.NamedType();
-                        var type = typeRegistry.Types
-                            .Select(t => t.Type)
-                            .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
-
-                        if (type is null)
                         {
-                            return null;
-                        }
+                            var namedType = str.Type.NamedType();
+                            var type = typeRegistry.Types
+                                .Select(t => t.Type)
+                                .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
 
-                        if (type is not ObjectType ot)
-                        {
-                            Throw((INamedType)type, operation);
-                        }
+                            if (type is null)
+                            {
+                                return null;
+                            }
 
-                        return ot;
-                    }
+                            if (type is not ObjectType ot)
+                            {
+                                Throw((ITypeDefinition)type, operation);
+                            }
+
+                            return ot;
+                        }
 
                     default:
                         return null;
@@ -522,7 +544,7 @@ public partial class SchemaBuilder
             }
 
             [DoesNotReturn]
-            static void Throw(INamedType namedType, OperationType operation)
+            static void Throw(ITypeDefinition namedType, OperationType operation)
             {
                 throw SchemaErrorBuilder.New()
                     .SetMessage(
@@ -530,26 +552,24 @@ public partial class SchemaBuilder
                         namedType.Name,
                         operation,
                         namedType.GetType().FullName)
-                    .SetTypeSystemObject((TypeSystemObjectBase)namedType)
+                    .SetTypeSystemObject((TypeSystemObject)namedType)
                     .BuildException();
             }
         }
 
-        private static IReadOnlyCollection<TypeSystemObjectBase> RemoveUnreachableTypes(
+        private static void RemoveUnreachableTypes(
             SchemaBuilder builder,
-            TypeRegistry typeRegistry,
-            SchemaTypesConfiguration configuration)
+            SchemaTypesConfiguration configuration,
+            List<ITypeSystemMember> types)
         {
             if (builder._options.RemoveUnreachableTypes)
             {
-                var trimmer = new TypeTrimmer(typeRegistry.Types.Select(t => t.Type));
+                var trimmer = new TypeTrimmer(types);
                 trimmer.AddOperationType(configuration.QueryType);
                 trimmer.AddOperationType(configuration.MutationType);
                 trimmer.AddOperationType(configuration.SubscriptionType);
-                return trimmer.Trim();
+                trimmer.Trim();
             }
-
-            return typeRegistry.Types.Select(t => t.Type).ToArray();
         }
     }
 
@@ -557,18 +577,17 @@ public partial class SchemaBuilder
     {
         services.TryAddSingleton(lazySchema);
         services.TryAddSingleton(static sp => sp.GetRequiredService<LazySchema>().Schema);
+        services.TryAddSingleton<ISchemaDefinition>(sp => sp.GetRequiredService<LazySchema>().Schema);
 
         // If there was now node id serializer registered we will register the default one as a fallback.
         services.TryAddSingleton<INodeIdSerializer>(static sp =>
         {
-            var appServices = sp.GetService<IApplicationServiceProvider>();
+            var appServices = sp.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
             INodeIdValueSerializer[]? allSerializers = null;
 
             if (appServices is not null)
             {
-                allSerializers = sp.GetRequiredService<IApplicationServiceProvider>()
-                    .GetServices<INodeIdValueSerializer>()
-                    .ToArray();
+                allSerializers = [.. appServices.GetServices<INodeIdValueSerializer>()];
             }
 
             if (allSerializers is null || allSerializers.Length == 0)
@@ -583,7 +602,7 @@ public partial class SchemaBuilder
                 ];
             }
 
-            return new DefaultNodeIdSerializer(allSerializers, 1024);
+            return new DefaultNodeIdSerializer(allSerializers);
         });
 
         services.TryAddSingleton<INodeIdSerializerAccessor>(

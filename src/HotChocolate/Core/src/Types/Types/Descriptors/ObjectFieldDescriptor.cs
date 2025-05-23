@@ -3,14 +3,12 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Properties.TypeResources;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -170,34 +168,31 @@ public class ObjectFieldDescriptor
             {
                 var ownerType = definition.ResolverType ?? definition.SourceType;
 
-                if (ownerType is not null)
+                var subscribeMember = ownerType?.GetMember(
+                    definition.SubscribeWith,
+                    Public | NonPublic | Instance | Static)[0];
+
+                if (subscribeMember is MethodInfo subscribeMethod)
                 {
-                    var subscribeMember = ownerType.GetMember(
-                        definition.SubscribeWith,
-                        Public | NonPublic | Instance | Static)[0];
+                    var subscribeParameters = subscribeMethod.GetParameters();
+                    var parameterLength = _parameterInfos.Length + subscribeParameters.Length;
+                    var parameters = new ParameterInfo[parameterLength];
 
-                    if (subscribeMember is MethodInfo subscribeMethod)
+                    _parameterInfos.CopyTo(parameters, 0);
+                    subscribeParameters.CopyTo(parameters, _parameterInfos.Length);
+                    _parameterInfos = parameters;
+
+                    var parameterLookup = Parameters.ToDictionary(
+                        t => t.Key,
+                        t => t.Value,
+                        StringComparer.Ordinal);
+                    Parameters = parameterLookup;
+
+                    foreach (var parameter in subscribeParameters)
                     {
-                        var subscribeParameters = subscribeMethod.GetParameters();
-                        var parameterLength = _parameterInfos.Length + subscribeParameters.Length;
-                        var parameters = new ParameterInfo[parameterLength];
-
-                        _parameterInfos.CopyTo(parameters, 0);
-                        subscribeParameters.CopyTo(parameters, _parameterInfos.Length);
-                        _parameterInfos = parameters;
-
-                        var parameterLookup = Parameters.ToDictionary(
-                            t => t.Key,
-                            t => t.Value,
-                            StringComparer.Ordinal);
-                        Parameters = parameterLookup;
-
-                        foreach (var parameter in subscribeParameters)
+                        if (!parameterLookup.ContainsKey(parameter.Name!))
                         {
-                            if (!parameterLookup.ContainsKey(parameter.Name!))
-                            {
-                                parameterLookup.Add(parameter.Name!, parameter);
-                            }
+                            parameterLookup.Add(parameter.Name!, parameter);
                         }
                     }
                 }
@@ -229,9 +224,8 @@ public class ObjectFieldDescriptor
                         continue;
                     }
 
-                    Configuration.Flags |= FieldFlags.WithRequirements;
-                    Configuration.ContextData[FieldRequirementsSyntax] = requirements;
-                    Configuration.ContextData[FieldRequirementsEntity] = parameter.ParameterType;
+                    Configuration.Flags |= CoreFieldFlags.WithRequirements;
+                    Configuration.Features.Set(new FieldRequirementFeature(requirements, parameter.ParameterType));
                 }
             }
 
@@ -482,15 +476,13 @@ public class ObjectFieldDescriptor
     {
         if (!(requires?.Length > 0))
         {
-            Configuration.Flags &= ~FieldFlags.WithRequirements;
-            Configuration.ContextData.Remove(FieldRequirementsSyntax);
-            Configuration.ContextData.Remove(FieldRequirementsEntity);
+            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
+            Configuration.Features.Set<FieldRequirementFeature>(null);
             return this;
         }
 
-        Configuration.Flags |= FieldFlags.WithRequirements;
-        Configuration.ContextData[FieldRequirementsSyntax] = requires;
-        Configuration.ContextData[FieldRequirementsEntity] = typeof(TParent);
+        Configuration.Flags |= CoreFieldFlags.WithRequirements;
+        Configuration.Features.Set(new FieldRequirementFeature(requires, typeof(TParent)));
         return this;
     }
 
@@ -498,15 +490,13 @@ public class ObjectFieldDescriptor
     {
         if (!(requires?.Length > 0))
         {
-            Configuration.Flags &= ~FieldFlags.WithRequirements;
-            Configuration.ContextData.Remove(FieldRequirementsSyntax);
-            Configuration.ContextData.Remove(FieldRequirementsEntity);
+            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
+            Configuration.Features.Set<FieldRequirementFeature>(null);
             return this;
         }
 
-        Configuration.Flags |= FieldFlags.WithRequirements;
-        Configuration.ContextData[FieldRequirementsSyntax] = requires;
-        Configuration.ContextData[FieldRequirementsEntity] = Configuration.SourceType;
+        Configuration.Flags |= CoreFieldFlags.WithRequirements;
+        Configuration.Features.Set(new FieldRequirementFeature(requires, Configuration.SourceType));
         return this;
     }
 

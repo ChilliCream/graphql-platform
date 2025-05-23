@@ -17,6 +17,6 @@ namespace HotChocolate.ApolloFederation.Types;
 public sealed class _Service
 {
     [GraphQLName(WellKnownFieldNames.Sdl)]
-    public string GetSdl(ISchema schema)
+    public string GetSdl(Schema schema)
         => SchemaPrinter.Print(schema);
 }

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified value type of field `stringListField` does not match the field type.",
     "Code": null,
@@ -19,8 +19,8 @@
     },
     "Locations": [
       {
-        "Line": 5,
-        "Column": 46
+        "Line": 4,
+        "Column": 30
       }
     ],
     "Extensions": {

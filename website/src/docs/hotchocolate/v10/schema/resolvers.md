@@ -213,7 +213,7 @@ The following resolver context properties can be injected without any attributes
 
 | Member                     | Type                      | Description                                                       |
 | -------------------------- | ------------------------- | ----------------------------------------------------------------- |
-| `Schema`                   | `ISchema`                 | The GraphQL schema.                                               |
+| `Schema`                   | `Schema`                 | The GraphQL schema.                                               |
 | `ObjectType`               | `ObjectType`              | The object type on which the field resolver is being executed.    |
 | `Field`                    | `ObjectField`             | The field on which the field resolver is being executed.          |
 | `QueryDocument`            | `DocumentNode`            | The query that is being executed.                                 |
@@ -273,7 +273,7 @@ public Person GetFriend([State("foo")]Bar bar)
 
 | Member                      | Type                      | Description                                                                           |
 | --------------------------- | ------------------------- | ------------------------------------------------------------------------------------- |
-| `Schema`                    | `ISchema`                 | The GraphQL schema.                                                                   |
+| `Schema`                    | `Schema`                 | The GraphQL schema.                                                                   |
 | `ObjectType`                | `ObjectType`              | The object type on which the field resolver is being executed.                        |
 | `Field`                     | `ObjectField`             | The field on which the field resolver is being executed.                              |
 | `QueryDocument`             | `DocumentNode`            | The query that is being executed.                                                     |

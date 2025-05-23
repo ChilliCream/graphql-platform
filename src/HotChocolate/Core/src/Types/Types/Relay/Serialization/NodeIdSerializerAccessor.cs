@@ -12,7 +12,7 @@ internal sealed class NodeIdSerializerAccessor : INodeIdSerializerAccessor
                 "The node id serializer has not been initialized yet.");
     }
 
-    public void OnSchemaCreated(ISchema schema)
+    public void OnSchemaCreated(Schema schema)
     {
         _serializer ??= schema.Services.GetRequiredService<INodeIdSerializer>();
     }

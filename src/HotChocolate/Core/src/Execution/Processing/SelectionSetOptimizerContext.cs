@@ -39,13 +39,13 @@ public readonly ref struct SelectionSetOptimizerContext
     /// <summary>
     /// Gets the schema for which the query is compiled.
     /// </summary>
-    public ISchema Schema
+    public Schema Schema
         => _compilerContext.Schema;
 
     /// <summary>
     /// Gets the type context of the current selection-set.
     /// </summary>
-    public IObjectType Type
+    public ObjectType Type
         => _compilerContext.Type;
 
     /// <summary>
@@ -97,7 +97,7 @@ public readonly ref struct SelectionSetOptimizerContext
     /// <returns>
     /// Returns a <see cref="FieldDelegate" /> representing the field resolver pipeline.
     /// </returns>
-    public FieldDelegate CompileResolverPipeline(IObjectField field, FieldNode selection)
+    public FieldDelegate CompileResolverPipeline(ObjectField field, FieldNode selection)
         => _createFieldPipeline(Schema, field, selection);
 
     /// <summary>

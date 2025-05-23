@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.WellKnownContextData;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Requirements;
 
@@ -32,7 +32,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
         foreach (var fieldDef in typeDef.Fields)
         {
-            if((fieldDef.Flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements)
+            if((fieldDef.Flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements)
             {
                 var fieldCoordinate = new SchemaCoordinate(
                     typeDef.Name,
@@ -40,14 +40,15 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
                 // if the source generator already compiled the
                 // requirements we will take it and skip compilation.
-                if (fieldDef.ContextData.TryGetValue(FieldRequirements, out var value))
+                if (fieldDef.Features.TryGet<TypeNode>(out var value))
                 {
-                    _metadata.TryAddRequirements(fieldCoordinate, (TypeNode)value!);
+                    _metadata.TryAddRequirements(fieldCoordinate, value);
                     continue;
                 }
 
-                var requirements = (string)fieldDef.ContextData[FieldRequirementsSyntax]!;
-                var entityType = runtimeType ?? (Type)fieldDef.ContextData[FieldRequirementsEntity]!;
+                var feature = fieldDef.Features.GetRequired<FieldRequirementFeature>();
+                var requirements = feature.Requirements;
+                var entityType = runtimeType ?? feature.EntityType;
 
                 var propertyNodes = PropertyTreeBuilder.Build(
                     fieldCoordinate,
@@ -61,6 +62,6 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterCreateSchemaInternal(
         IDescriptorContext context,
-        ISchema schema)
+        Schema schema)
         => _metadata.Seal();
 }

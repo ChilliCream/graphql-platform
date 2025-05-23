@@ -1,9 +1,10 @@
+#nullable enable
+
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
@@ -13,7 +14,7 @@ namespace HotChocolate.Types;
 /// However, Enum types describe the set of possible values.
 /// </para>
 /// <para>
-/// Enums are not references for a numeric value, but are unique values in their own right.
+/// Enums are not references for a numeric value but are unique values in their own right.
 /// They may serialize as a string: the name of the represented value.
 /// </para>
 /// <para>In this example, an Enum type called Direction is defined:</para>
@@ -29,7 +30,8 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class EnumType
     : NamedTypeBase<EnumTypeConfiguration>
-    , IEnumType
+    , IEnumTypeDefinition
+    , ILeafType
 {
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Enum;
@@ -37,12 +39,9 @@ public partial class EnumType
     /// <summary>
     /// Gets the enum values of this type.
     /// </summary>
-    public IReadOnlyList<EnumValue> Values => _values;
+    public EnumValueCollection Values => _values;
 
-    /// <summary>
-    /// Gets a dictionary that allows to look up the enum value by its name.
-    /// </summary>
-    protected IReadOnlyDictionary<string, EnumValue> NameLookup => _nameLookup;
+    IReadOnlyEnumValueCollection IEnumTypeDefinition.Values => Values.AsReadOnlyEnumValueCollection();
 
     /// <summary>
     /// Gets a dictionary that allows to look up the enum value by its runtime value.
@@ -56,7 +55,7 @@ public partial class EnumType
             throw new ArgumentNullException(nameof(name));
         }
 
-        return _nameLookup.TryGetValue(name, out value);
+        return Values.TryGetValue(name, out value);
     }
 
     /// <inheritdoc />
@@ -67,7 +66,7 @@ public partial class EnumType
             throw new ArgumentNullException(nameof(name));
         }
 
-        if (_nameLookup.TryGetValue(name, out var value))
+        if (Values.TryGetValue(name, out var value))
         {
             runtimeValue = value.Value;
             return true;
@@ -80,10 +79,7 @@ public partial class EnumType
     /// <inheritdoc />
     public bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -92,12 +88,12 @@ public partial class EnumType
 
         if (valueSyntax is EnumValueNode ev)
         {
-            return _nameLookup.ContainsKey(ev.Value);
+            return Values.ContainsName(ev.Value);
         }
 
         if (valueSyntax is StringValueNode sv)
         {
-            return _nameLookup.ContainsKey(sv.Value);
+            return Values.ContainsName(sv.Value);
         }
 
         return false;
@@ -105,27 +101,21 @@ public partial class EnumType
 
     /// <inheritdoc />
     public bool IsInstanceOfType(object? runtimeValue)
-    {
-        return runtimeValue is null ||
-            RuntimeType.IsInstanceOfType(runtimeValue);
-    }
+        => runtimeValue is null || RuntimeType.IsInstanceOfType(runtimeValue);
 
     /// <inheritdoc />
     public object? ParseLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
-        if (valueSyntax is EnumValueNode evn &&
-            _nameLookup.TryGetValue(evn.Value, out var ev))
+        if (valueSyntax is EnumValueNode evn
+            && Values.TryGetValue(evn.Value, out var ev))
         {
             return ev.Value;
         }
 
-        if (valueSyntax is StringValueNode svn &&
-            _nameLookup.TryGetValue(svn.Value, out ev))
+        if (valueSyntax is StringValueNode svn
+            && Values.TryGetValue(svn.Value, out ev))
         {
             return ev.Value;
         }
@@ -166,8 +156,8 @@ public partial class EnumType
             return NullValueNode.Default;
         }
 
-        if (resultValue is string s &&
-            _nameLookup.TryGetValue(s, out var enumValue))
+        if (resultValue is string s
+            && Values.TryGetValue(s, out var enumValue))
         {
             return new EnumValueNode(enumValue.Name);
         }
@@ -190,8 +180,8 @@ public partial class EnumType
             return null;
         }
 
-        if (RuntimeType.IsInstanceOfType(runtimeValue) &&
-            _valueLookup.TryGetValue(runtimeValue, out var enumValue))
+        if (RuntimeType.IsInstanceOfType(runtimeValue)
+            && _valueLookup.TryGetValue(runtimeValue, out var enumValue))
         {
             return enumValue.Name;
         }
@@ -200,7 +190,7 @@ public partial class EnumType
         if (RuntimeType == typeof(object))
         {
             var name = _naming.GetEnumValueName(runtimeValue);
-            if (_nameLookup.TryGetValue(name, out enumValue))
+            if (Values.TryGetValue(name, out enumValue))
             {
                 return enumValue.Name;
             }
@@ -233,8 +223,8 @@ public partial class EnumType
             return true;
         }
 
-        if (resultValue is string s &&
-            _nameLookup.TryGetValue(s, out var enumValue))
+        if (resultValue is string s
+            && Values.TryGetValue(s, out var enumValue))
         {
             runtimeValue = enumValue.Value;
             return true;
@@ -249,4 +239,17 @@ public partial class EnumType
         runtimeValue = null;
         return false;
     }
+
+    /// <summary>
+    /// Creates a <see cref="EnumTypeDefinitionNode"/> that represents the enum type.
+    /// </summary>
+    /// <returns>
+    /// The GraphQL syntax node that represents the enum type.
+    /// </returns>
+    public new EnumTypeDefinitionNode ToSyntaxNode()
+        => Format(this);
+
+    /// <inheritdoc />
+    protected override ITypeDefinitionNode FormatType()
+        => Format(this);
 }

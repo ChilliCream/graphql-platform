@@ -69,7 +69,7 @@ public static class TestServerHelper
                                                 context.Result =
                                                     OperationResultBuilder
                                                         .FromResult(result)
-                                                        .AddError(new Error("Some error!"))
+                                                        .AddError(new Error { Message = "Some error!" })
                                                         .Build();
                                             }
                                         }

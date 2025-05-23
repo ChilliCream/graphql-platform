@@ -2,26 +2,19 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Execution.Configuration;
 
-internal sealed class DefaultRequestExecutorOptionsMonitor
+internal sealed class DefaultRequestExecutorOptionsMonitor(
+    IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
+    IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)
     : IRequestExecutorOptionsMonitor
     , IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
-    private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
+    private readonly IRequestExecutorOptionsProvider[] _optionsProviders = optionsProviders.ToArray();
     private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs = new();
     private readonly List<IDisposable> _disposables = [];
     private readonly List<Action<string>> _listeners = [];
     private bool _initialized;
     private bool _disposed;
-
-    public DefaultRequestExecutorOptionsMonitor(
-        IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
-        IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)
-    {
-        _optionsMonitor = optionsMonitor;
-        _optionsProviders = optionsProviders.ToArray();
-    }
 
     public async ValueTask<RequestExecutorSetup> GetAsync(
         string schemaName,
@@ -30,7 +23,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
         await TryInitializeAsync(cancellationToken).ConfigureAwait(false);
 
         var options = new RequestExecutorSetup();
-        _optionsMonitor.Get(schemaName).CopyTo(options);
+        optionsMonitor.Get(schemaName).CopyTo(options);
 
         if (_configs.TryGetValue(schemaName, out var configurations))
         {

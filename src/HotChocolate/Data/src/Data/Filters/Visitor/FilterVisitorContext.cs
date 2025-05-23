@@ -27,7 +27,7 @@ public abstract class FilterVisitorContext<T>
     public Stack<IType> Types { get; } = new Stack<IType>();
 
     /// <inheritdoc />
-    public Stack<IInputField> Operations { get; } = new Stack<IInputField>();
+    public Stack<IInputValueDefinition> Operations { get; } = new Stack<IInputValueDefinition>();
 
     /// <inheritdoc />
     public IList<IError> Errors { get; } = new List<IError>();

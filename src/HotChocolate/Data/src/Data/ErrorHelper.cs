@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;

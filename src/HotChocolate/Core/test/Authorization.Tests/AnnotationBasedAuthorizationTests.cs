@@ -865,7 +865,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor => { descriptor.Authorize("READ_NODE"); };
+                    descriptor => descriptor.Authorize("READ_NODE");
             });
 
         var executor = await services.GetRequestExecutorAsync();

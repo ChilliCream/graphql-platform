@@ -12,9 +12,6 @@ public class ProjectionConvention
     private Action<IProjectionConventionDescriptor>? _configure;
     private IProjectionProvider _provider = default!;
 
-    public const string IsProjectedKey = nameof(IsProjectedKey);
-    public const string AlwaysProjectedFieldsKey = nameof(AlwaysProjectedFieldsKey);
-
     protected ProjectionConvention()
     {
         _configure = Configure;

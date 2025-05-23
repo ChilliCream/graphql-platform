@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -11,60 +11,48 @@ public class SortFieldDescriptor
     : ArgumentDescriptorBase<SortFieldConfiguration>
     , ISortFieldDescriptor
 {
-    protected SortFieldDescriptor(
-        IDescriptorContext context,
-        string? scope,
-        string fieldName)
+    protected SortFieldDescriptor(IDescriptorContext context, string? scope, string fieldName)
         : base(context)
     {
         Configuration.Name = fieldName;
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
     }
 
-    protected SortFieldDescriptor(
-         IDescriptorContext context,
-         string? scope,
-         Expression expression)
-         : base(context)
+    protected SortFieldDescriptor(IDescriptorContext context, string? scope, Expression expression)
+        : base(context)
     {
-        var convention = context.GetSortConvention(scope);
-
         Configuration.Expression = expression;
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
+
         if (Configuration.Expression is LambdaExpression lambda)
         {
+            var convention = context.GetSortConvention(scope);
             Configuration.Type = convention.GetFieldType(lambda.ReturnType);
             Configuration.RuntimeType = lambda.ReturnType;
         }
     }
 
-    protected SortFieldDescriptor(
-        IDescriptorContext context,
-        string? scope,
-        MemberInfo member)
+    protected SortFieldDescriptor(IDescriptorContext context, string? scope, MemberInfo member)
         : base(context)
     {
-        var convention = context.GetSortConvention(scope);
-
         Configuration.Member = member ??
             throw new ArgumentNullException(nameof(member));
 
+        var convention = context.GetSortConvention(scope);
         Configuration.Name = convention.GetFieldName(member);
         Configuration.Description = convention.GetFieldDescription(member);
         Configuration.Type = convention.GetFieldType(member);
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
     }
 
-    protected internal SortFieldDescriptor(
-        IDescriptorContext context,
-        string? scope)
+    protected internal SortFieldDescriptor(IDescriptorContext context, string? scope)
         : base(context)
     {
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.SortOperationField;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
     }
 
     protected internal new SortFieldConfiguration Configuration

@@ -7,9 +7,9 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    internal sealed class CompilerContext(ISchema schema, DocumentNode document)
+    internal sealed class CompilerContext(Schema schema, DocumentNode document)
     {
-        public ISchema Schema { get; } = schema;
+        public Schema Schema { get; } = schema;
 
         public DocumentNode Document { get; } = document;
 

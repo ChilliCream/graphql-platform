@@ -13,7 +13,7 @@ There are basically two ways to define a schema, with code or with the GraphQL S
 In schema-first we could create a simple hello world schema like the following:
 
 ```csharp
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     .AddDocumentFromString("type Query { hello: String }")
     .AddResolver("Query", "hello", "World")
     .Create();
@@ -29,7 +29,7 @@ public class Query
     public string Hello() => "World";
 }
 
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     .AddQueryType<Query>()
     .Create();
 ```
@@ -50,7 +50,7 @@ public class QueryType
     }
 }
 
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     .AddQueryType<QueryType>()
     .Create();
 ```
@@ -72,7 +72,7 @@ public class Query
     public string Hello() => "World";
 }
 
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     .AddQueryType<QueryType>()
     .Create();
 ```
@@ -102,7 +102,7 @@ public class QueryTypeExtension
     }
 }
 
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     .AddDocumentFromString("type Query { hello: String }")
     .AddResolver("Query", "hello", "World")
     .AddType<QueryTypeExtension>()
@@ -127,7 +127,7 @@ Types in a schema can be bound to a specific .NET type. When the schema builder 
 We can also bind additional types to a single schema type. For instance we can bind the `System.Guid` to our `StringType`.
 
 ```csharp
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     ...
     .BindClrType<Guid, StringType>()
     .Create();
@@ -136,7 +136,7 @@ ISchema schema = SchemaBuilder.New()
 You can also rebind scalars with this, so instead of the default `int` to `IntType` binding we could bind that as well to our `StringType`.
 
 ```csharp
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     ...
     .BindClrType<int, StringType>()
     .Create();
@@ -156,7 +156,7 @@ public class MySchema
     }
 }
 
-ISchema schema = SchemaBuilder.New()
+Schema schema = SchemaBuilder.New()
     .AddDocumentFromString("type Query { hello: String }")
     .AddResolver("Query", "hello", "World")
     .SetSchema<MySchema>()

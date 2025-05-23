@@ -118,15 +118,15 @@ public class ProjectionVisitor<TContext>
         return base.Visit(selection, context);
     }
 
-    protected override ISelectionVisitorAction Visit(IOutputField field, TContext context)
+    protected override ISelectionVisitorAction Visit(IOutputFieldDefinition field, TContext context)
     {
         if (context.Selection.Count > 1 && field.IsNotProjected())
         {
             return Skip;
         }
 
-        if (field.Type is IPageType and ObjectType pageType &&
-            context.Selection.Peek() is { } pagingFieldSelection)
+        if (field.Type.NamedType() is IPageType and ObjectType pageType
+            && context.Selection.Peek() is { } pagingFieldSelection)
         {
             var selections = context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
 

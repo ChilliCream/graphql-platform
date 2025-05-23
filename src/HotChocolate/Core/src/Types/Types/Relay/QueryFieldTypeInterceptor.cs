@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.WellKnownContextData;
 
@@ -50,7 +50,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 options.QueryFieldName ?? _defaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
-            _queryField.Flags |= FieldFlags.MutationQueryField;
+            _queryField.Flags |= CoreFieldFlags.MutationQueryField;
 
             foreach (var field in _mutationConfig.Fields)
             {

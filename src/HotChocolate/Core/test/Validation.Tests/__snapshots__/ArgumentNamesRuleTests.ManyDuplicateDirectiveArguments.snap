@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 60
+        "Line": 2,
+        "Column": 42
       }
     ],
     "Extensions": {
@@ -40,8 +40,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 75
+        "Line": 2,
+        "Column": 57
       }
     ],
     "Extensions": {

@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
@@ -63,7 +65,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     /// </summary>
     public FusionDirectiveCollection Directives { get; }
 
-    IReadOnlyDirectiveCollection ISchemaDefinition.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <summary>
     /// Gets all the schema types.
@@ -80,9 +82,11 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
-    public FusionObjectTypeDefinition GetOperationType(OperationType operationType)
+    public IFeatureCollection Features => throw new NotImplementedException();
+
+    public FusionObjectTypeDefinition GetOperationType(OperationType operation)
     {
-        var type = operationType switch
+        var type = operation switch
         {
             OperationType.Query => QueryType,
             OperationType.Mutation => MutationType,
@@ -93,14 +97,42 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         if (type is null)
         {
             throw new InvalidOperationException(
-                $"The specified operation type `{operationType}` is not supported.");
+                $"The specified operation type `{operation}` is not supported.");
         }
 
         return type;
     }
 
-    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operationType)
-        => GetOperationType(operationType);
+    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operation)
+        => GetOperationType(operation);
+
+    public bool TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out FusionObjectTypeDefinition? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
+
+    bool ISchemaDefinition.TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out IObjectTypeDefinition? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
 
     /// <summary>
     /// Gets the possible object types to

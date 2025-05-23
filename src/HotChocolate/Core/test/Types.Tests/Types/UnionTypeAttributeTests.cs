@@ -17,7 +17,7 @@ public class UnionTypeAttributeTests
             .Create();
 
         // assert
-        Assert.NotNull(schema.GetType<UnionType>("Abc"));
+        Assert.NotNull(schema.Types.GetType<UnionType>("Abc"));
     }
 
     [Fact]

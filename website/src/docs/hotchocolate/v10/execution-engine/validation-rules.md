@@ -12,7 +12,7 @@ The rule interface itself is simple, basically the validation middleware will ca
 ```csharp
 public interface IQueryValidationRule
 {
-    QueryValidationResult Validate(ISchema schema, DocumentNode query);
+    QueryValidationResult Validate(Schema schema, DocumentNode query);
 }
 ```
 

@@ -1,5 +1,8 @@
 namespace HotChocolate;
 
+/// <summary>
+/// Represents a query that can be executed against a data source.
+/// </summary>
 public interface IExecutable<T> : IExecutable
 {
     /// <summary>

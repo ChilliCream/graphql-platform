@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Represents definitions that carry a ignore flag.

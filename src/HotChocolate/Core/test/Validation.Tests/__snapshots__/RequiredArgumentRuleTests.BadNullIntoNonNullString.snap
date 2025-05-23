@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The argument `stringArg` is required.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 47
+        "Line": 3,
+        "Column": 27
       }
     ],
     "Extensions": {

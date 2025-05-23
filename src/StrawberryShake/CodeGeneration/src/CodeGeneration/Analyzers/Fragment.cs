@@ -8,7 +8,7 @@ public class Fragment
     public Fragment(
         string name,
         FragmentKind kind,
-        INamedType typeCondition,
+        ITypeDefinition typeCondition,
         SelectionSetNode selectionSet)
     {
         Name = name;
@@ -21,7 +21,7 @@ public class Fragment
 
     public FragmentKind Kind { get; }
 
-    public INamedType TypeCondition { get; }
+    public ITypeDefinition TypeCondition { get; }
 
     public SelectionSetNode SelectionSet { get; }
 

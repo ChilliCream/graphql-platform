@@ -35,11 +35,13 @@ internal sealed class OperationVariableCoercionMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
-            var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
+                var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(OperationVariableCoercionMiddleware));
 }

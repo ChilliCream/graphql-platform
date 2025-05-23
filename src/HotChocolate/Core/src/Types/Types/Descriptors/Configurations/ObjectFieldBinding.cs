@@ -1,6 +1,6 @@
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Describes a binding to an object field.

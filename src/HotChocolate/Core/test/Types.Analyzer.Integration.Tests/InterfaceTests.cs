@@ -26,7 +26,7 @@ public class InterfaceTests
                 .BuildSchemaAsync();
 
         Assert.True(
-            schema.GetType<ObjectType>("Book")
+            schema.Types.GetType<ObjectType>("Book")
                 .Fields["kind"]
                 .IsParallelExecutable,
             "Interface resolvers should be parallel executable");

@@ -24,18 +24,9 @@ internal sealed class FieldInfoListBuffer
         [],
     ];
     private readonly int _max = 16;
-    private int _index = 0;
+    private int _index;
 
-    public IList<FieldInfo> Pop()
-    {
-        if (TryPop(out var list))
-        {
-            return list;
-        }
-        throw new InvalidOperationException("Buffer is used up.");
-    }
-
-    public bool TryPop([NotNullWhen(true)] out IList<FieldInfo>? list)
+    public bool TryPop([NotNullWhen(true)] out List<FieldInfo>? list)
     {
         if (_index < _max)
         {

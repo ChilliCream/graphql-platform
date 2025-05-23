@@ -13,297 +13,331 @@ public class NoUndefinedVariablesRuleTests
     [Fact]
     public void AllVariablesDefined()
     {
-        ExpectValid(@"
-                query Foo($a: String, $b: String, $c: String) {
-                    field(a: $a, b: $b, c: $c)
-                }
-            ");
+        ExpectValid(
+            """
+            query Foo($a: String, $b: String, $c: String) {
+              field(a: $a, b: $b, c: $c)
+            }
+            """
+        );
     }
 
     [Fact]
     public void AllVariablesDeeplyDefined()
     {
-        ExpectValid(@"
-                query Foo($a: String, $b: String, $c: String) {
-                    field(a: $a) {
-                        field(b: $b) {
-                            field(c: $c)
-                        }
-                    }
+        ExpectValid(
+            """
+            query Foo($a: String, $b: String, $c: String) {
+              field(a: $a) {
+                field(b: $b) {
+                  field(c: $c)
                 }
-            ");
+              }
+            }
+            """
+        );
     }
 
     [Fact]
     public void AllVariablesDeeplyInInlineFragmentsDefined()
     {
-        ExpectValid(@"
-                query Foo($a: String, $b: String, $c: String) {
+        ExpectValid(
+            """
+            query Foo($a: String, $b: String, $c: String) {
+              ... on Query {
+                field(a: $a) {
+                  field(b: $b) {
                     ... on Query {
-                        field(a: $a) {
-                            field(b: $b) {
-                                ... on Query {
-                                        field(c: $c)
-                                    }
-                                }
-                            }
-                        }
+                      field(c: $c)
                     }
-            ");
+                  }
+                }
+              }
+            }
+            """
+        );
     }
 
     [Fact]
     public void AllVariablesInFragmentsDeeplyDefined()
     {
-        ExpectValid(@"
-                query Foo($a: String, $b: String, $c: String) {
-                    ...FragA
-                }
-                fragment FragA on Query {
-                    field(a: $a) {
-                    ...FragB
-                    }
-                }
-                fragment FragB on Query {
-                    field(b: $b) {
-                    ...FragC
-                    }
-                }
-                fragment FragC on Query {
-                    field(c: $c)
-                }
-            ");
+        ExpectValid(
+            """
+            query Foo($a: String, $b: String, $c: String) {
+              ...FragA
+            }
+            fragment FragA on Query {
+              field(a: $a) {
+                ...FragB
+              }
+            }
+            fragment FragB on Query {
+              field(b: $b) {
+                ...FragC
+              }
+            }
+            fragment FragC on Query {
+              field(c: $c)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableWithinSingleFragmentDefinedInMultipleOperations()
     {
-        ExpectValid(@"
-                query Foo($a: String) {
-                    ...FragA
-                }
+        ExpectValid(
+            """
+            query Foo($a: String) {
+              ...FragA
+            }
 
-                query Bar($a: String) {
-                    ...FragA
-                }
+            query Bar($a: String) {
+              ...FragA
+            }
 
-                fragment FragA on Query {
-                    field(a: $a)
-                }
-            ");
+            fragment FragA on Query {
+              field(a: $a)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableWithinFragmentsDefinedInOperations()
     {
-        ExpectValid(@"
-                query Foo($a: String) {
-                    ...FragA
-                }
+        ExpectValid(
+            """
+            query Foo($a: String) {
+              ...FragA
+            }
 
-                query Bar($b: String) {
-                    ...FragB
-                }
+            query Bar($b: String) {
+              ...FragB
+            }
 
-                fragment FragA on Query {
-                    field(a: $a)
-                }
+            fragment FragA on Query {
+              field(a: $a)
+            }
 
-                fragment FragB on Query {
-                    field(b: $b)
-                }
-            ");
+            fragment FragB on Query {
+              field(b: $b)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableWithinRecursiveFragmentDefined()
     {
-        ExpectValid(@"
-                query Foo($a: String) {
-                    ...FragA
-                }
+        ExpectValid(
+            """
+            query Foo($a: String) {
+              ...FragA
+            }
 
-                fragment FragA on Query {
-                    field(a: $a) {
-                    ...FragA
-                    }
-                }
-            ");
+            fragment FragA on Query {
+              field(a: $a) {
+                ...FragA
+              }
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableNotDefined()
     {
-        ExpectErrors(@"
-                query Foo($a: String, $b: String, $c: String) {
-                    field(a: $a, b: $b, c: $c, d: $d)
-                }
-            ");
+        ExpectErrors(
+            """
+            query Foo($a: String, $b: String, $c: String) {
+              field(a: $a, b: $b, c: $c, d: $d)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableNotDefinedByUnNamedQuery()
     {
-        ExpectErrors(@"
-                query Foo($a: String, $b: String, $c: String) {
-                    field(a: $a, b: $b, c: $c, d: $d)
-                }
-            ");
+        ExpectErrors(
+            """
+            query Foo($a: String, $b: String, $c: String) {
+              field(a: $a, b: $b, c: $c, d: $d)
+            }
+            """
+        );
     }
 
     [Fact]
     public void MultipleVariablesNotDefined()
     {
-        ExpectErrors(@"
-                query Foo($b: String) {
-                    field(a: $a, b: $b, c: $c)
-                }
-            ");
+        ExpectErrors(
+            """
+            query Foo($b: String) {
+              field(a: $a, b: $b, c: $c)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableInFragmentNotDefinedByUnNamedQuery()
     {
-        ExpectErrors(@"
-                {
-                    ...FragA
-                }
+        ExpectErrors(
+            """
+            {
+              ...FragA
+            }
 
-                fragment FragA on Query {
-                    field(a: $a)
-                }
-            ");
+            fragment FragA on Query {
+              field(a: $a)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableInFragmentNotDefinedByOperation()
     {
-        ExpectErrors(@"
-                query Foo($a: String, $b: String) {
-                    ...FragA
-                }
+        ExpectErrors(
+            """
+            query Foo($a: String, $b: String) {
+              ...FragA
+            }
 
-                fragment FragA on Query {
-                    field(a: $a) {
-                    ...FragB
-                    }
-                }
+            fragment FragA on Query {
+              field(a: $a) {
+                ...FragB
+              }
+            }
 
-                fragment FragB on Query {
-                    field(b: $b) {
-                    ...FragC
-                    }
-                }
+            fragment FragB on Query {
+              field(b: $b) {
+                ...FragC
+              }
+            }
 
-                fragment FragC on Query {
-                    field(c: $c)
-                }
-            ");
+            fragment FragC on Query {
+              field(c: $c)
+            }
+            """
+        );
     }
 
     [Fact]
     public void MultipleVariablesInFragmentsNotDefined()
     {
-        ExpectErrors(@"
-                query Foo($b: String) {
-                    ...FragA
-                }
+        ExpectErrors(
+            """
+            query Foo($b: String) {
+              ...FragA
+            }
 
-                fragment FragA on Query {
-                    field(a: $a) {
-                    ...FragB
-                    }
-                }
+            fragment FragA on Query {
+              field(a: $a) {
+                ...FragB
+              }
+            }
 
-                fragment FragB on Query {
-                    field(b: $b) {
-                    ...FragC
-                    }
-                }
+            fragment FragB on Query {
+              field(b: $b) {
+                ...FragC
+              }
+            }
 
-                fragment FragC on Query {
-                    field(c: $c)
-                }
-            ");
+            fragment FragC on Query {
+              field(c: $c)
+            }
+            """
+        );
     }
 
     [Fact]
     public void SingleVariableInFragmentNotDefinedByMultipleOperations()
     {
-        ExpectErrors(@"
-                query Foo($a: String) {
-                    ...FragAB
-                }
+        ExpectErrors(
+            """
+            query Foo($a: String) {
+              ...FragAB
+            }
 
-                query Bar($a: String) {
-                    ...FragAB
-                }
+            query Bar($a: String) {
+              ...FragAB
+            }
 
-                fragment FragAB on Query {
-                    field(a: $a, b: $b)
-                }
-            ");
+            fragment FragAB on Query {
+              field(a: $a, b: $b)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariablesInFragmentNotDefinedByMultipleOperations()
     {
-        ExpectErrors(@"
-                query Foo($b: String) {
-                    ...FragAB
-                }
+        ExpectErrors(
+            """
+            query Foo($b: String) {
+              ...FragAB
+            }
 
-                query Bar($a: String) {
-                    ...FragAB
-                }
+            query Bar($a: String) {
+              ...FragAB
+            }
 
-                fragment FragAB on Query {
-                    field(a: $a, b: $b)
-                }
-            ");
+            fragment FragAB on Query {
+              field(a: $a, b: $b)
+            }
+            """
+        );
     }
 
     [Fact]
     public void VariableInFragmentUsedByOtherOperation()
     {
-        ExpectErrors(@"
-                query Foo($b: String) {
-                    ...FragA
-                }
+        ExpectErrors(
+            """
+            query Foo($b: String) {
+              ...FragA
+            }
 
-                query Bar($a: String) {
-                    ...FragB
-                }
+            query Bar($a: String) {
+              ...FragB
+            }
 
-                fragment FragA on Query {
-                    field(a: $a)
-                }
+            fragment FragA on Query {
+              field(a: $a)
+            }
 
-                fragment FragB on Query {
-                    field(b: $b)
-                }
-            ");
+            fragment FragB on Query {
+              field(b: $b)
+            }
+            """
+        );
     }
 
     [Fact]
     public void MultipleUndefinedVariablesProduceMultipleErrors()
     {
-        ExpectErrors(@"
-                query Foo($b: String) {
-                    ...FragA
-                }
+        ExpectErrors(
+            """
+            query Foo($b: String) {
+              ...FragA
+            }
 
-                query Bar($a: String) {
-                    ...FragB
-                }
+            query Bar($a: String) {
+              ...FragB
+            }
 
-                fragment FragA on Query {
-                    field(a: $a)
-                }
+            fragment FragA on Query {
+              field(a: $a)
+            }
 
-                fragment FragB on Query {
-                    field(b: $b)
-                }
-            ");
+            fragment FragB on Query {
+              field(b: $b)
+            }
+            """
+        );
     }
 }

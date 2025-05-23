@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The specified value type of variable `a` does not match the variable type.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 31
+        "Line": 2,
+        "Column": 15
       }
     ],
     "Extensions": {
@@ -23,8 +23,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 4,
-        "Column": 34
+        "Line": 3,
+        "Column": 18
       }
     ],
     "Extensions": {
@@ -41,8 +41,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 5,
-        "Column": 40
+        "Line": 4,
+        "Column": 24
       }
     ],
     "Extensions": {

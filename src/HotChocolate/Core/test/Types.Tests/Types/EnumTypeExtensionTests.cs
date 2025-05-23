@@ -16,7 +16,7 @@ public class EnumTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<FooType>("Foo");
+        var type = schema.Types.GetType<FooType>("Foo");
         Assert.True(type.TryGetRuntimeValue("_QUOX", out _));
     }
 
@@ -52,7 +52,7 @@ public class EnumTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<FooType>("Foo");
+        var type = schema.Types.GetType<FooType>("Foo");
         Assert.Collection(type.Directives["dummy"],
             t => { });
     }
@@ -73,7 +73,7 @@ public class EnumTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         var value = type.Directives["dummy_arg"]
             .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
@@ -95,7 +95,7 @@ public class EnumTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         var count = type.Directives["dummy_rep"].Count();
         Assert.Equal(2, count);
     }
@@ -111,12 +111,12 @@ public class EnumTypeExtensionTests
             .AddType(new EnumTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features.Set(new CustomFeature()))))
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
-        Assert.True(type.ContextData.ContainsKey("foo"));
+        var type = schema.Types.GetType<EnumType>("Foo");
+        Assert.NotNull(type.Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -138,8 +138,7 @@ public class EnumTypeExtensionTests
         public string Foo { get; set; }
     }
 
-    public class FooType
-        : EnumType<Foo>
+    public class FooType : EnumType<Foo>
     {
         protected override void Configure(
             IEnumTypeDescriptor<Foo> descriptor)
@@ -204,8 +203,7 @@ public class EnumTypeExtensionTests
         }
     }
 
-    public class RepeatableDummyDirective
-        : DirectiveType
+    public class RepeatableDummyDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -217,4 +215,6 @@ public class EnumTypeExtensionTests
             descriptor.Location(DirectiveLocation.ArgumentDefinition);
         }
     }
+
+    public sealed class CustomFeature;
 }

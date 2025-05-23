@@ -40,7 +40,7 @@ internal sealed class DocumentCacheMiddleware
                 context.DocumentId = request.DocumentId;
                 context.DocumentHash = document.Hash;
                 context.Document = document.Body;
-                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.ValidationResult = DocumentValidatorResult.OK;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = document.IsPersisted;
                 addToCache = false;
@@ -52,7 +52,7 @@ internal sealed class DocumentCacheMiddleware
                 context.DocumentId = request.DocumentHash;
                 context.DocumentHash = document.Hash;
                 context.Document = document.Body;
-                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.ValidationResult = DocumentValidatorResult.OK;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = document.IsPersisted;
                 addToCache = false;
@@ -65,7 +65,7 @@ internal sealed class DocumentCacheMiddleware
                 {
                     context.DocumentId = context.DocumentHash;
                     context.Document = document.Body;
-                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.ValidationResult = DocumentValidatorResult.OK;
                     context.IsCachedDocument = true;
                     context.IsPersistedDocument = document.IsPersisted;
                     addToCache = false;
@@ -99,15 +99,17 @@ internal sealed class DocumentCacheMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var documentCache = core.Services.GetRequiredService<IDocumentCache>();
-            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var documentCache = core.Services.GetRequiredService<IDocumentCache>();
+                var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(DocumentCacheMiddleware));
 
     internal static DocumentCacheMiddleware Create(
         RequestDelegate next,

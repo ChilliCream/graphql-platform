@@ -653,7 +653,7 @@ Query delegation rewriters are registered with the dependency injection and not 
 services.AddQueryDelegationRewriter<AddCreatedByIdQueryRewriter>();
 ```
 
-> Query delegation rewriters are hosted as scoped services and can be injected with `IStitchingContext` and `ISchema` in order to access the remote schemas or the stitched schema for advanced type information.
+> Query delegation rewriters are hosted as scoped services and can be injected with `IStitchingContext` and `Schema` in order to access the remote schemas or the stitched schema for advanced type information.
 
 With that in place, the stitching engine will always fetch the requested field for us whenever a `Message` object is requested.
 

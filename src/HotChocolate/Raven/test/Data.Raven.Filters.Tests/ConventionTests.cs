@@ -18,7 +18,7 @@ public class ConventionTests
 
         await Snapshot
             .Create()
-            .Add(tester.Schema.Print(), "schema")
+            .Add(tester.Schema.ToString(), "schema")
             .MatchAsync();
     }
 

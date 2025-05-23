@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
@@ -1215,7 +1215,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1232,7 +1232,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1286,7 +1286,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1300,7 +1300,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]

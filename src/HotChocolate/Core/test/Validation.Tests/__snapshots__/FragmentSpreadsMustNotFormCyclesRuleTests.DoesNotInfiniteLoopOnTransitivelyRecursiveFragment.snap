@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 12,
-        "Column": 49
+        "Line": 11,
+        "Column": 33
       }
     ],
     "Extensions": {
@@ -39,8 +39,8 @@
     },
     "Locations": [
       {
-        "Line": 10,
-        "Column": 49
+        "Line": 9,
+        "Column": 33
       }
     ],
     "Extensions": {
@@ -64,8 +64,8 @@
     },
     "Locations": [
       {
-        "Line": 11,
-        "Column": 49
+        "Line": 10,
+        "Column": 33
       }
     ],
     "Extensions": {

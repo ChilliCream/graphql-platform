@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Spatial.Configuration;
 using static HotChocolate.Types.Spatial.Properties.Resources;
 using static HotChocolate.Types.Spatial.WellKnownFields;

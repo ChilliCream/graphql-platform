@@ -1,6 +1,7 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -9,7 +10,7 @@ namespace HotChocolate.Types;
 public sealed class DefaultEnumValue : EnumValue
 {
     private EnumValueConfiguration? _configuration;
-    private IDirectiveCollection _directives = null!;
+    private DirectiveCollection _directives = null!;
 
     public DefaultEnumValue(EnumValueConfiguration configuration)
     {
@@ -31,7 +32,7 @@ public sealed class DefaultEnumValue : EnumValue
         DeprecationReason = configuration.DeprecationReason;
         IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
         Value = configuration.RuntimeValue;
-        ContextData = configuration.GetContextData();
+        Features = configuration.GetFeatures();
     }
 
     public override string Name { get; }
@@ -44,9 +45,9 @@ public sealed class DefaultEnumValue : EnumValue
 
     public override object Value { get; }
 
-    public override IDirectiveCollection Directives => _directives;
+    public override DirectiveCollection Directives => _directives;
 
-    public override IReadOnlyDictionary<string, object?> ContextData { get; }
+    public override IFeatureCollection Features { get; }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,

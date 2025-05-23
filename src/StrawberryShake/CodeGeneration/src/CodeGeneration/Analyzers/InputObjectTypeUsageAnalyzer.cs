@@ -5,12 +5,12 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-internal sealed class InputObjectTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<object?>
+internal sealed class InputObjectTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object?>
 {
-    private readonly HashSet<INamedInputType> _inputTypes = [];
-    private readonly HashSet<IInputType> _visitedTypes = [];
+    private readonly HashSet<IInputTypeDefinition> _inputTypes = [];
+    private readonly HashSet<IType> _visitedTypes = [];
 
-    public ISet<INamedInputType> InputTypes => _inputTypes;
+    public ISet<IInputTypeDefinition> InputTypes => _inputTypes;
 
     public void Analyze(DocumentNode document)
     {
@@ -19,8 +19,8 @@ internal sealed class InputObjectTypeUsageAnalyzer(ISchema schema) : SyntaxWalke
 
     protected override ISyntaxVisitorAction Enter(VariableDefinitionNode node, object? context)
     {
-        if (schema.TryGetType<INamedType>(node.Type.NamedType().Name.Value, out var type) &&
-            type is IInputType inputType)
+        if (schema.Types.TryGetType(node.Type.NamedType().Name.Value, out var type)
+            && type is IInputType inputType)
         {
             VisitInputType(inputType);
         }
@@ -44,7 +44,7 @@ internal sealed class InputObjectTypeUsageAnalyzer(ISchema schema) : SyntaxWalke
                         type = innerType;
                         continue;
 
-                    case INamedInputType namedInputType:
+                    case IInputTypeDefinition namedInputType:
                         VisitNamedInputType(namedInputType);
                         break;
                 }
@@ -54,16 +54,13 @@ internal sealed class InputObjectTypeUsageAnalyzer(ISchema schema) : SyntaxWalke
         }
     }
 
-    private void VisitNamedInputType(INamedInputType type)
+    private void VisitNamedInputType(IInputTypeDefinition type)
     {
-        if (_inputTypes.Add(type))
+        if (_inputTypes.Add(type) && type is InputObjectType inputObjectType)
         {
-            if (type is InputObjectType inputObjectType)
+            foreach (IInputValueDefinition field in inputObjectType.Fields)
             {
-                foreach (IInputField field in inputObjectType.Fields)
-                {
-                    VisitInputType(field.Type);
-                }
+                VisitInputType(field.Type);
             }
         }
     }

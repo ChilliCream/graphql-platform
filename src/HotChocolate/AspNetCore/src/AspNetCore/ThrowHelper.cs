@@ -18,7 +18,7 @@ internal static class ThrowHelper
         SyntaxException ex) =>
         new(ErrorBuilder.New()
             .SetMessage(ex.Message)
-            .AddLocation(ex.Line, ex.Column)
+            .AddLocation(new Location(ex.Line, ex.Column))
             .SetCode(ErrorCodes.Server.SyntaxError)
             .Build());
 

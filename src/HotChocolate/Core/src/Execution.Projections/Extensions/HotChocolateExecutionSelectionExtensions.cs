@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using GreenDonut.Data;
 using HotChocolate.Execution.Projections;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -47,7 +47,7 @@ public static class HotChocolateExecutionSelectionExtensions
         // connection, collection or single field.
         var flags = ((ObjectField)selection.Field).Flags;
 
-        if ((flags & FieldFlags.Connection) == FieldFlags.Connection)
+        if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection)
         {
             var builder = new DefaultSelectorBuilder();
             var buffer = ArrayPool<ISelection>.Shared.Rent(16);
@@ -60,7 +60,7 @@ public static class HotChocolateExecutionSelectionExtensions
             return GetOrCreateExpression<TValue>(selection, builder);
         }
 
-        if ((flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment)
+        if ((flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {
             var builder = new DefaultSelectorBuilder();
             var buffer = ArrayPool<ISelection>.Shared.Rent(16);
@@ -73,8 +73,8 @@ public static class HotChocolateExecutionSelectionExtensions
             return GetOrCreateExpression<TValue>(selection, builder);
         }
 
-        if ((flags & FieldFlags.GlobalIdNodeField) == FieldFlags.GlobalIdNodeField
-            || (flags & FieldFlags.GlobalIdNodesField) == FieldFlags.GlobalIdNodesField)
+        if ((flags & CoreFieldFlags.GlobalIdNodeField) == CoreFieldFlags.GlobalIdNodeField
+            || (flags & CoreFieldFlags.GlobalIdNodesField) == CoreFieldFlags.GlobalIdNodesField)
         {
             return GetOrCreateNodeExpression<TValue>(selection);
         }

@@ -138,7 +138,7 @@ public class DefaultInMemoryClientBuilderTests
         // arrange
         var nameString = "FooBar";
         Mock<IRequestExecutor> executorMock = new();
-        Mock<ISchema> schemaMock = new();
+        Mock<Schema> schemaMock = new();
         Mock<IRequestExecutorResolver> executorResolverMock = new();
         var executorResolver = executorResolverMock.Object;
         var optionsMonitor =

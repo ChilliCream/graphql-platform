@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class OnCompleteTypeSystemConfigurationTask<TDefinition>
     : OnCompleteTypeSystemConfigurationTask

@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -23,11 +24,15 @@ public sealed class FusionUnionTypeDefinition(
 
     public TypeKind Kind => TypeKind.Union;
 
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     public FusionObjectTypeDefinitionCollection Types => _types;
 
     IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types => _types;
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+
+    public IFeatureCollection Features => throw new NotImplementedException();
 
     internal void Complete(CompositeUnionTypeCompletionContext context)
     {
