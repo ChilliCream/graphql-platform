@@ -407,7 +407,7 @@ public class UnionTests(ITestOutputHelper output)
         Assert.False(subgraphB.HasReceivedRequest);
     }
 
-    [Fact(Skip = "Fix with new planner")]
+    [Fact]
     public async Task Union_List_With_Differing_Union_Item_Dependencies_SameSelections()
     {
         // arrange
