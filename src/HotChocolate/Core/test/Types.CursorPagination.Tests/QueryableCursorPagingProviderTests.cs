@@ -6,6 +6,9 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Utilities;
+
+#nullable  enable
 
 namespace HotChocolate.Types.Pagination;
 
@@ -553,6 +556,10 @@ public class QueryableCursorPagingProviderTests
             ImmutableDictionary<string, object?>.Empty;
 
         public CancellationToken RequestAborted => default;
+
+        public InputParser Parser => throw new NotImplementedException();
+
+        public ITypeConverter Converter => throw new NotImplementedException();
 
         public object Service(Type service)
         {
