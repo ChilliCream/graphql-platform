@@ -58,7 +58,7 @@ public class InterfaceTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
-    [Fact(Skip = "Fix with new planner")]
+    [Fact]
     public async Task Selections_On_Interface_List_Field_Interface_Selection_Has_Dependency()
     {
         // arrange
@@ -175,7 +175,7 @@ public class InterfaceTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
-    [Fact(Skip = "Fix with new planner")]
+    [Fact]
     public async Task Selections_On_Interface_List_Field_And_Concrete_Type_Interface_Selection_Has_Dependency()
     {
         // arrange
@@ -293,7 +293,7 @@ public class InterfaceTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
-    [Fact(Skip = "Fix with new planner")]
+    [Fact]
     public async Task Selections_On_Interface_Field_Interface_Selection_Has_Dependency()
     {
         // arrange
@@ -410,7 +410,7 @@ public class InterfaceTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
-    [Fact(Skip = "Fix with new planner")]
+    [Fact]
     public async Task Selections_On_Interface_Field_And_Concrete_Type_Interface_Selection_Has_Dependency()
     {
         // arrange
@@ -600,7 +600,7 @@ public class InterfaceTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
-    [Fact(Skip = "Fix with new planner")]
+    [Fact]
     public async Task Selections_On_Interface_On_Node_Field_Interface_Selection_Has_Dependency()
     {
         // arrange
@@ -684,7 +684,7 @@ public class InterfaceTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
-    [Fact(Skip = "Fix with new planner")]
+    [Fact]
     public async Task Selections_On_Interface_And_Concrete_Type_On_Node_Field_Interface_Selection_Has_Dependency()
     {
         // arrange
