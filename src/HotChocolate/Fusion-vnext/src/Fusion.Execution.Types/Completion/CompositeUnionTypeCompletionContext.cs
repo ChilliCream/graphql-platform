@@ -1,10 +1,12 @@
+using HotChocolate.Fusion.Types.Collections;
+
 namespace HotChocolate.Fusion.Types.Completion;
 
 internal ref struct CompositeUnionTypeCompletionContext(
-    FusionDirective[] directives,
-    FusionObjectTypeDefinition[] types)
+    FusionDirectiveCollection directives,
+    FusionObjectTypeDefinitionCollection types)
 {
-    public FusionDirective[] Directives { get; } = directives;
+    public FusionDirectiveCollection Directives { get; } = directives;
 
-    public FusionObjectTypeDefinition[] Types { get; } = types;
+    public FusionObjectTypeDefinitionCollection Types { get; } = types;
 }
