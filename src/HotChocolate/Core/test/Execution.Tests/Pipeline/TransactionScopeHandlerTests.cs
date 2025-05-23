@@ -48,6 +48,47 @@ public class TransactionScopeHandlerTests
     }
 
     [Fact]
+    public async Task Custom_Async_Transaction_Is_Correctly_Completed_and_Disposed()
+    {
+        var completed = false;
+        var disposed = false;
+
+        void Complete() => completed = true;
+        void Dispose() => disposed = true;
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddMutationType<Mutation>()
+            .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
+            .AddAsyncTransactionScopeHandler(_ => new MockAsyncTransactionScopeHandler(Complete, Dispose))
+            .ExecuteRequestAsync("mutation { doNothing }");
+
+        Assert.True(completed, "transaction must be completed");
+        Assert.True(disposed, "transaction must be disposed");
+    }
+
+    [Fact]
+    public async Task Custom_Async_Transaction_Is_Detects_Error_and_Disposes()
+    {
+        var completed = false;
+        var disposed = false;
+
+        void Complete() => completed = true;
+        void Dispose() => disposed = true;
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddMutationType<Mutation>()
+            .AddAsyncTransactionScopeHandler(_ => new MockAsyncTransactionScopeHandler(Complete, Dispose))
+            .ExecuteRequestAsync("mutation { doError }");
+
+        Assert.False(completed, "transaction was not completed due to error");
+        Assert.True(disposed, "transaction must be disposed");
+    }
+
+    [Fact]
     public async Task DefaultTransactionScopeHandler_Creates_SystemTransactionScope()
     {
         await new ServiceCollection()
@@ -102,5 +143,32 @@ public class TransactionScopeHandlerTests
         }
 
         public void Dispose() => dispose();
+    }
+
+    public class MockAsyncTransactionScopeHandler(Action complete, Action dispose) : IAsyncTransactionScopeHandler
+    {
+        public ITransactionScope Create(IRequestContext context)
+            => new MockTransactionScope(complete, dispose, context);
+
+        public Task<IAsyncTransactionScope> CreateAsync(IRequestContext context)
+             => Task.FromResult<IAsyncTransactionScope>(new MockAsyncTransactionScope(complete, dispose, context));
+    }
+
+    public class MockAsyncTransactionScope(Action complete, Action dispose, IRequestContext context) : IAsyncTransactionScope
+    {
+        public ValueTask CompleteAsync()
+        {
+            if(context.Result is IOperationResult { Data: not null, Errors: null or { Count: 0, }, })
+            {
+                complete();
+            }
+            return ValueTask.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            dispose();
+            return ValueTask.CompletedTask;
+        }
     }
 }

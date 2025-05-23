@@ -1,15 +1,18 @@
+
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
 /// This transaction scope represents a non transactional mutation transaction scope.
 /// </summary>
-internal sealed class NoOpTransactionScope : ITransactionScope
+internal sealed class NoOpTransactionScope : IAsyncTransactionScope
 {
-    public void Complete()
+    public ValueTask CompleteAsync()
     {
+        return ValueTask.CompletedTask;
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
+        return ValueTask.CompletedTask;
     }
 }
