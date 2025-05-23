@@ -1222,6 +1222,23 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         await Assert.ThrowsAsync<ArgumentException>(Error);
     }
 
+    [Fact]
+    public async Task RequestedSize_Not_Evenly_Divisible_By_TotalCount()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(12) { EnableRelativeCursors = true };
+
+        // Act
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Assert
+        Assert.Equal(20, first.TotalCount);
+        Assert.Single(first.CreateRelativeForwardCursors());
+    }
+
     private static async Task SeedAsync(string connectionString)
     {
         await using var context = new TestContext(connectionString);
