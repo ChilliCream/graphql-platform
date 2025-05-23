@@ -25,7 +25,7 @@ public sealed class DescriptorExtensionTests
             .Arguments["a"]
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(5.0, costDirective.Weight);
@@ -48,11 +48,11 @@ public sealed class DescriptorExtensionTests
 
         var enumType1 = schema.Types.GetType<EnumType>("Example");
         var directive1 = enumType1.Directives.Single(d => d.Type.Name == "cost");
-        var costDirective1 = directive1.AsValue<CostDirective>();
+        var costDirective1 = directive1.ToValue<CostDirective>();
 
         var enumType2 = schema.Types.GetType<EnumType>(nameof(ExampleEnum));
         var directive2 = enumType2.Directives.Single(d => d.Type.Name == "cost");
-        var costDirective2 = directive2.AsValue<CostDirective>();
+        var costDirective2 = directive2.ToValue<CostDirective>();
 
         // assert
         Assert.Equal(5.0, costDirective1.Weight);
@@ -80,7 +80,7 @@ public sealed class DescriptorExtensionTests
 
         var input = schema.Types.GetType<InputObjectType>("input");
         var directive = input.Fields["field"].Directives.Single(d => d.Type.Name == "cost");
-        var costDirective = directive.AsValue<CostDirective>();
+        var costDirective = directive.ToValue<CostDirective>();
 
         // assert
         Assert.Equal(5.0, costDirective.Weight);
@@ -102,7 +102,7 @@ public sealed class DescriptorExtensionTests
 
         var query = schema.Types.GetType<ObjectType>(OperationTypeNames.Query);
         var directive = query.Fields["field"].Directives.Single(d => d.Type.Name == "cost");
-        var costDirective = directive.AsValue<CostDirective>();
+        var costDirective = directive.ToValue<CostDirective>();
 
         // assert
         Assert.Equal(5.0, costDirective.Weight);
@@ -124,7 +124,7 @@ public sealed class DescriptorExtensionTests
 
         var query = schema.Types.GetType<ObjectType>(OperationTypeNames.Query);
         var directive = query.Directives.Single(d => d.Type.Name == "cost");
-        var costDirective = directive.AsValue<CostDirective>();
+        var costDirective = directive.ToValue<CostDirective>();
 
         // assert
         Assert.Equal(5.0, costDirective.Weight);
@@ -150,7 +150,7 @@ public sealed class DescriptorExtensionTests
 
         var query = schema.Types.GetType<ObjectType>(OperationTypeNames.Query);
         var directive = query.Fields["field"].Directives.Single(d => d.Type.Name == "listSize");
-        var listSizeDirective = directive.AsValue<ListSizeDirective>();
+        var listSizeDirective = directive.ToValue<ListSizeDirective>();
 
         // assert
         Assert.Equal(10, listSizeDirective.AssumedSize);

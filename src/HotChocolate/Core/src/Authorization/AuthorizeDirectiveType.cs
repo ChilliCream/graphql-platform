@@ -89,7 +89,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
     private static DirectiveMiddleware CreateMiddleware()
         => (next, directive) =>
         {
-            var value = directive.AsValue<AuthorizeDirective>();
+            var value = directive.ToValue<AuthorizeDirective>();
             var auth = new AuthorizeMiddleware(next, value);
             return async context => await auth.InvokeAsync(context).ConfigureAwait(false);
         };

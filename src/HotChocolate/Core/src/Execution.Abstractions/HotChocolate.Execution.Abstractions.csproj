@@ -14,6 +14,8 @@
     <InternalsVisibleTo Include="HotChocolate.Abstractions" />
     <InternalsVisibleTo Include="HotChocolate.Abstractions.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Validation" />
   </ItemGroup>
 
   <ItemGroup>

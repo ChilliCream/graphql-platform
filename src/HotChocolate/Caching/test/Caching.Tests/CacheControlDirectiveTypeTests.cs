@@ -93,7 +93,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Fields["field"].Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -120,7 +120,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Fields["field"].Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -139,7 +139,7 @@ public class CacheControlDirectiveTypeTests
         var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Fields["field"].Directives
             .Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -161,7 +161,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -188,7 +188,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -206,7 +206,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<ObjectType>("ObjectType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -237,7 +237,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Fields["field"].Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -256,7 +256,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -282,7 +282,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -313,7 +313,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -332,7 +332,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<InterfaceType>("InterfaceType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -361,7 +361,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<UnionType>("UnionType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -390,7 +390,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<UnionType>("UnionType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -409,7 +409,7 @@ public class CacheControlDirectiveTypeTests
 
         var type = schema.Types.GetType<UnionType>("UnionType");
         var directive = type.Directives.Single(d => d.Type.Name == "cacheControl");
-        var obj = directive.AsValue<CacheControlDirective>();
+        var obj = directive.ToValue<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);

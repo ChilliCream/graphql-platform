@@ -99,7 +99,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
             var directive = directives[i];
             if (directive.Definition is AuthorizeDirectiveType)
             {
-                var authDirective = Unsafe.As<Directive>(directive).AsValue<AuthorizeDirective>();
+                var authDirective = Unsafe.As<Directive>(directive).ToValue<AuthorizeDirective>();
                 if (authDirective.Apply is ApplyPolicy.Validation)
                 {
                     authDirectives.Add(authDirective);

@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
@@ -31,6 +32,9 @@ public sealed class OperationRequest : IOperationRequest
     /// <param name="contextData">
     /// The initial global request state.
     /// </param>
+    /// <param name="features">
+    /// The request features.
+    /// </param>
     /// <param name="services">
     /// The services that shall be used while executing the GraphQL request.
     /// </param>
@@ -48,6 +52,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? variableValues,
         IReadOnlyDictionary<string, object?>? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
+        IFeatureCollection? features,
         IServiceProvider? services,
         GraphQLRequestFlags flags)
     {
@@ -63,6 +68,7 @@ public sealed class OperationRequest : IOperationRequest
         VariableValues = variableValues;
         Extensions = extensions;
         ContextData = contextData;
+        Features = features?.ToReadOnly() ?? FeatureCollection.Empty;
         Services = services;
         Flags = flags;
     }
@@ -104,12 +110,17 @@ public sealed class OperationRequest : IOperationRequest
     public IReadOnlyDictionary<string, object?>? ContextData { get; }
 
     /// <summary>
+    /// Gets the features that shall be used while executing the GraphQL request.
+    /// </summary>
+    public IFeatureCollection Features { get; }
+
+    /// <summary>
     /// Gets the services that shall be used while executing the GraphQL request.
     /// </summary>
     public IServiceProvider? Services { get; }
 
     /// <summary>
-    /// GraphQL request flags allow to limit the GraphQL executor capabilities.
+    /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
     public GraphQLRequestFlags Flags { get; }
 
@@ -131,6 +142,7 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             Extensions,
             ContextData,
+            Features,
             Services,
             Flags);
 
@@ -152,6 +164,7 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             Extensions,
             ContextData,
+            Features,
             Services,
             Flags);
 
@@ -173,6 +186,7 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             Extensions,
             ContextData,
+            Features,
             Services,
             Flags);
 
@@ -194,6 +208,7 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             Extensions,
             ContextData,
+            Features,
             Services,
             Flags);
 
@@ -215,6 +230,7 @@ public sealed class OperationRequest : IOperationRequest
             variableValues,
             Extensions,
             ContextData,
+            Features,
             Services,
             Flags);
 
@@ -236,6 +252,7 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             extensions,
             ContextData,
+            Features,
             Services,
             Flags);
 
@@ -257,6 +274,29 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             Extensions,
             contextData,
+            Features,
+            Services,
+            Flags);
+
+    /// <summary>
+    /// Creates a new request with the specified features.
+    /// </summary>
+    /// <param name="features">
+    /// The request features that shall be used while executing the operation.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified features.
+    /// </returns>
+    public OperationRequest WithFeatures(IFeatureCollection features)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            features,
             Services,
             Flags);
 
@@ -278,6 +318,7 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             Extensions,
             ContextData,
+            Features,
             services,
             Flags);
 
@@ -299,6 +340,7 @@ public sealed class OperationRequest : IOperationRequest
             VariableValues,
             Extensions,
             ContextData,
+            Features,
             Services,
             flags);
 
@@ -323,6 +365,9 @@ public sealed class OperationRequest : IOperationRequest
     /// <param name="contextData">
     /// The context data for the operation.
     /// </param>
+    /// <param name="features">
+    /// The request features.
+    /// </param>
     /// <param name="services">
     /// The services that shall be used while executing the operation.
     /// </param>
@@ -342,6 +387,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
+        IFeatureCollection? features = null,
         IServiceProvider? services = null,
         GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
     {
@@ -358,6 +404,7 @@ public sealed class OperationRequest : IOperationRequest
             variableValues,
             extensions,
             contextData,
+            features,
             services,
             flags);
     }
@@ -383,6 +430,9 @@ public sealed class OperationRequest : IOperationRequest
     /// <param name="contextData">
     /// The context data for the operation.
     /// </param>
+    /// <param name="features">
+    /// The request features.
+    /// </param>
     /// <param name="services">
     /// The services that shall be used while executing the operation.
     /// </param>
@@ -402,6 +452,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
+        IFeatureCollection? features = null,
         IServiceProvider? services = null,
         GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
         => FromId(
@@ -411,6 +462,7 @@ public sealed class OperationRequest : IOperationRequest
             variableValues,
             extensions,
             contextData,
+            features,
             services,
             flags);
 
@@ -435,6 +487,9 @@ public sealed class OperationRequest : IOperationRequest
     /// <param name="contextData">
     /// The context data for the operation.
     /// </param>
+    /// <param name="features">
+    /// The request features.
+    /// </param>
     /// <param name="services">
     /// The services that shall be used while executing the operation.
     /// </param>
@@ -451,6 +506,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
+        IFeatureCollection? features = null,
         IServiceProvider? services = null,
         GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
         => new OperationRequest(
@@ -461,6 +517,7 @@ public sealed class OperationRequest : IOperationRequest
             variableValues,
             extensions,
             contextData,
+            features,
             services,
             flags);
 }

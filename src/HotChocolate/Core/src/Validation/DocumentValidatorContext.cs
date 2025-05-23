@@ -15,7 +15,7 @@ namespace HotChocolate.Validation;
 public sealed class DocumentValidatorContext : IFeatureProvider
 {
     private readonly List<IError> _errors = [];
-    private readonly ValidationFeatureCollection _features = new();
+    private readonly RequestFeatureCollection _features;
     private ISchemaDefinition? _schema;
     private int _maxAllowedErrors;
 
@@ -24,6 +24,16 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     /// </summary>
     public DocumentValidatorContext()
     {
+        _features = new RequestFeatureCollection(
+            static (features, _, feature) =>
+            {
+                if (feature is ValidatorFeature validatorFeature
+                    && features.TryGetValue(typeof(DocumentValidatorContext), out var value)
+                    && value is DocumentValidatorContext context)
+                {
+                    validatorFeature.OnInitialize(context);
+                }
+            });
         _features.Set(this);
     }
 

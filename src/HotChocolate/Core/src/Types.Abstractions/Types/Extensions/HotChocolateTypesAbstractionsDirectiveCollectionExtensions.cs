@@ -28,6 +28,31 @@ public static class HotChocolateTypesAbstractionsDirectiveCollectionExtensions
     /// </summary>
     /// <typeparam name="T">The runtime type of the directive.</typeparam>
     /// <param name="directives">The collection of directives.</param>
+    /// <param name="name">The name of the directive.</param>
+    /// <returns>
+    /// The value of the first directive that matches the specified runtime type,
+    /// or <see langword="null"/> if no such directive is found.
+    /// </returns>
+    public static T? FirstOrDefaultValue<T>(this IReadOnlyDirectiveCollection directives, string name)
+        where T : notnull
+    {
+        ArgumentNullException.ThrowIfNull(directives);
+
+        var directive = directives.FirstOrDefault(name);
+
+        if (directive is null)
+        {
+            return default;
+        }
+
+        return directive.ToValue<T>();
+    }
+
+    /// <summary>
+    /// Returns the value of the first directive that matches the specified runtime type.
+    /// </summary>
+    /// <typeparam name="T">The runtime type of the directive.</typeparam>
+    /// <param name="directives">The collection of directives.</param>
     /// <returns>
     /// The value of the first directive that matches the specified runtime type,
     /// or <see langword="null"/> if no such directive is found.

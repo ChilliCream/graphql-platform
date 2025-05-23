@@ -15,7 +15,7 @@ public sealed class AttributeTests
             .Arguments["_"]
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(8.0, costDirective.Weight);
@@ -30,7 +30,7 @@ public sealed class AttributeTests
         var costDirective = exampleEnum
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(0.0, costDirective.Weight);
@@ -45,7 +45,7 @@ public sealed class AttributeTests
         var costDirective = exampleInput.Fields["field"]
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(-3.0, costDirective.Weight);
@@ -60,7 +60,7 @@ public sealed class AttributeTests
         var costDirective = query.Fields["examples"]
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(5.0, costDirective.Weight);
@@ -74,7 +74,7 @@ public sealed class AttributeTests
 
         var costDirective = example.Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(10.0, costDirective.Weight);
@@ -88,7 +88,7 @@ public sealed class AttributeTests
 
         var costDirective = exampleScalar.Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(1.0, costDirective.Weight);
@@ -103,7 +103,7 @@ public sealed class AttributeTests
         var costDirective = query.Fields["examples"]
             .Directives
             .Single(d => d.Type.Name == "listSize")
-            .AsValue<ListSizeDirective>();
+            .ToValue<ListSizeDirective>();
 
         // assert
         Assert.Equal(10, costDirective.AssumedSize);

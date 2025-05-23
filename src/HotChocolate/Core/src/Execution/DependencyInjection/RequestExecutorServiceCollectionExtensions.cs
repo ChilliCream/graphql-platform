@@ -11,6 +11,7 @@ using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
@@ -67,7 +68,8 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddDeferredWorkStatePool()
-            .TryAddOperationCompilerPool();
+            .TryAddOperationCompilerPool()
+            .TryAddSingleton<ObjectPool<DocumentValidatorContext>>(new DocumentValidatorContextPool());
 
         // global executor services
         services
@@ -155,7 +157,7 @@ public static class RequestExecutorServiceCollectionExtensions
         return CreateBuilder(builder.Services, schemaName);
     }
 
-    private static IRequestExecutorBuilder CreateBuilder(
+    private static DefaultRequestExecutorBuilder CreateBuilder(
         IServiceCollection services,
         string schemaName)
     {

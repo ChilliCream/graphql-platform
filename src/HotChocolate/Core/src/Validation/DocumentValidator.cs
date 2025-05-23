@@ -43,7 +43,7 @@ public sealed class DocumentValidator
 
         _contextPool = contextPool;
         _allRules = rules;
-        _nonCacheableRules = [.. rules.Where(rule => rule.IsCacheable)];
+        _nonCacheableRules = [.. rules.Where(rule => !rule.IsCacheable)];
         _maxAllowedErrors = maxAllowedErrors > 0 ? maxAllowedErrors : 1;
     }
 

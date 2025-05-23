@@ -24,18 +24,19 @@ internal sealed class RequestExecutor : IRequestExecutor
         DefaultRequestContextAccessor contextAccessor,
         ulong version)
     {
-        Schema = schema ??
-            throw new ArgumentNullException(nameof(schema));
-        _applicationServices = applicationServices ??
-            throw new ArgumentNullException(nameof(applicationServices));
-        Services = executorServices ??
-            throw new ArgumentNullException(nameof(executorServices));
-        _requestDelegate = requestDelegate ??
-            throw new ArgumentNullException(nameof(requestDelegate));
-        _contextPool = contextPool ??
-            throw new ArgumentNullException(nameof(contextPool));
-        _contextAccessor = contextAccessor ??
-            throw new ArgumentNullException(nameof(contextAccessor));
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(applicationServices);
+        ArgumentNullException.ThrowIfNull(executorServices);
+        ArgumentNullException.ThrowIfNull(requestDelegate);
+        ArgumentNullException.ThrowIfNull(contextPool);
+        ArgumentNullException.ThrowIfNull(contextAccessor);
+
+        Schema = schema;
+        _applicationServices = applicationServices;
+        Services = executorServices;
+        _requestDelegate = requestDelegate;
+        _contextPool = contextPool;
+        _contextAccessor = contextAccessor;
         Version = version;
 
         var list = new List<IRequestContextEnricher>();
@@ -65,15 +66,12 @@ internal sealed class RequestExecutor : IRequestExecutor
         IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return ExecuteAsync(request, true, null, cancellationToken);
     }
 
-    internal async Task<IExecutionResult> ExecuteAsync(
+    private async Task<IExecutionResult> ExecuteAsync(
         IOperationRequest request,
         bool scopeDataLoader,
         int? requestIndex,
@@ -168,10 +166,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
     {
-        if (requestBatch is null)
-        {
-            throw new ArgumentNullException(nameof(requestBatch));
-        }
+        ArgumentNullException.ThrowIfNull(requestBatch);
 
         return Task.FromResult<IResponseStream>(
             new ResponseStream(

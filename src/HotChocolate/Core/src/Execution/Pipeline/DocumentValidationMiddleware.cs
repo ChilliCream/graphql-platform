@@ -42,24 +42,25 @@ internal sealed class DocumentValidationMiddleware
                             context.Schema,
                             context.DocumentId.Value,
                             context.Document,
-                            context.Features);
+                            context.Features,
+                            context.ValidationResult?.HasErrors == false);
 
                     if (!context.IsValidDocument)
                     {
                         // if the validation failed we will report errors within the validation
-                        // span and we will complete the pipeline since we do not have a valid
+                        // span, and we will complete the pipeline since we do not have a valid
                         // GraphQL request.
                         var validationResult = context.ValidationResult;
 
                         // create result context data that indicate that validation has failed.
                         var resultContextData = new Dictionary<string, object?>
                         {
-                            { ValidationErrors, true },
+                            { ValidationErrors, true }
                         };
 
-                        // if one of the validation rules proposed a status code we will add
+                        // if one of the validation rules proposed a status code, we will add
                         // it as a proposed status code to the result context data.
-                        // depending on the transport this code might not be relevant or
+                        // depending on the transport, this code might not be relevant or
                         // is even overruled.
                         if (context.ContextData.TryGetValue(HttpStatusCode, out var value))
                         {

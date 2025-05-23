@@ -63,7 +63,7 @@ internal sealed partial class RequestExecutorResolver
     public IObservable<RequestExecutorEvent> Events => _events;
 
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         schemaName ??= Schema.DefaultName;
@@ -79,8 +79,8 @@ internal sealed partial class RequestExecutorResolver
         try
         {
             // We check the cache again for the case that GetRequestExecutorAsync has been
-            // called multiple times. This should only happen, if someone calls GetRequestExecutorAsync
-            // themselves. Normally the RequestExecutorProxy takes care of only calling this method once.
+            // called multiple times. This should only happen if someone calls GetRequestExecutorAsync
+            // themselves. Normally, the RequestExecutorProxy takes care of only calling this method once.
             if (_executors.TryGetValue(schemaName, out re))
             {
                 return re.Executor;
@@ -97,7 +97,7 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    public void EvictRequestExecutor(string? schemaName = default)
+    public void EvictRequestExecutor(string? schemaName = null)
     {
         schemaName ??= Schema.DefaultName;
 
@@ -160,7 +160,7 @@ internal sealed partial class RequestExecutorResolver
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
 
-        // if there are any type modules we will register them with the
+        // If there are any type modules, we will register them with the
         // type module change monitor.
         // The module will track if type modules signal changes to the schema and
         // start a schema eviction.
@@ -215,7 +215,7 @@ internal sealed partial class RequestExecutorResolver
 
     private async Task UpdateRequestExecutorAsync(string schemaName, RegisteredExecutor previousExecutor)
     {
-        // We dispose the subscription to type updates so there will be no updates
+        // We dispose of the subscription to type updates, so there will be no updates
         // during the phase-out of the previous executor.
         previousExecutor.TypeModuleChangeMonitor.Dispose();
 
@@ -251,7 +251,7 @@ internal sealed partial class RequestExecutorResolver
         }
         finally
         {
-            // we will give the request executor some grace period to finish all request
+            // we will give the request executor some grace period to finish all requests
             // in the pipeline.
             await Task.Delay(TimeSpan.FromMinutes(5));
             registeredExecutor.Dispose();
@@ -410,7 +410,10 @@ internal sealed partial class RequestExecutorResolver
     {
         serviceCollection.AddSingleton(sp =>
         {
-            var builder = DocumentValidatorBuilder.New().AddDefaultRules();
+            var builder =
+                DocumentValidatorBuilder.New()
+                    .SetServices(sp.GetRootServiceProvider())
+                    .AddDefaultRules();
 
             foreach (var hook in hooks)
             {

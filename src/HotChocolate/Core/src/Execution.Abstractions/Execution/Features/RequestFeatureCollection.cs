@@ -1,26 +1,38 @@
-// This code was originally forked of https://github.com/dotnet/aspnetcore/tree/c7aae8ff34dce81132d0fb3a976349dcc01ff903/src/Extensions/Features/src
-
 // ReSharper disable NonAtomicCompoundOperator
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 
-namespace HotChocolate.Validation;
+namespace HotChocolate.Execution;
 
 /// <summary>
-/// Validation feature collection implementation for <see cref="IFeatureCollection"/>.
+/// A feature collection that is used within the request context.
 /// </summary>
-internal sealed class ValidationFeatureCollection : IFeatureCollection
+internal sealed class RequestFeatureCollection : IFeatureCollection
 {
     private static readonly KeyComparer _featureKeyComparer = new();
+    private readonly Action<Dictionary<Type, object>, Type, object>? _onSetFeature;
     private Dictionary<Type, object>? _features;
     private volatile int _containerRevision;
 
     /// <summary>
-    /// Initializes a new instance of <see cref=" ValidationFeatureCollection"/>.
+    /// Initializes a new instance of <see cref=" RequestFeatureCollection"/>.
     /// </summary>
-    public ValidationFeatureCollection()
+    public RequestFeatureCollection()
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="RequestFeatureCollection"/>.
+    /// </summary>
+    /// <param name="onSetFeature">
+    /// The action that is called when a feature is set.
+    /// </param>
+    public RequestFeatureCollection(Action<Dictionary<Type, object>, Type, object> onSetFeature)
+    {
+        ArgumentNullException.ThrowIfNull(onSetFeature);
+
+        _onSetFeature = onSetFeature;
     }
 
     internal IFeatureCollection? Parent { get; set; }
@@ -76,11 +88,7 @@ internal sealed class ValidationFeatureCollection : IFeatureCollection
             _features[key] = value;
             _containerRevision++;
 
-            if(value is ValidatorFeature validatorFeature
-                && _features.TryGetValue(typeof(DocumentValidatorContext), out var context))
-            {
-                validatorFeature.OnInitialize((DocumentValidatorContext)context);
-            }
+            _onSetFeature?.Invoke(_features, key, value);
         }
     }
 

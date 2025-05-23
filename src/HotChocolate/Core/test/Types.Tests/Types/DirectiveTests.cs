@@ -57,7 +57,7 @@ public class DirectiveTests : TypeTestBase
         var syntaxNode = directiveType.Format(fooDirective);
         var value = directiveType.Parse(syntaxNode);
         var directive = new Directive(directiveType, syntaxNode, value);
-        var runtimeValue = directive.AsValue<FooDirective>();
+        var runtimeValue = directive.ToValue<FooDirective>();
 
         // assert
         Assert.Equal("123", runtimeValue.Bar);
@@ -78,7 +78,7 @@ public class DirectiveTests : TypeTestBase
         var directive = new Directive(directiveType, syntaxNode, value);
 
         // assert
-        var runtimeValue = Assert.IsType<FooDirective>(directive.AsValue<object>());
+        var runtimeValue = Assert.IsType<FooDirective>(directive.ToValue<object>());
         Assert.Equal("123", runtimeValue.Bar);
         Assert.Equal("456", runtimeValue.Child.Bar);
     }
@@ -96,7 +96,7 @@ public class DirectiveTests : TypeTestBase
             directiveType,
             directiveType.Format(fooDirective),
             fooDirective);
-        var runtimeValue = directive.AsValue<FooDirective>();
+        var runtimeValue = directive.ToValue<FooDirective>();
 
         // assert
         Assert.Same(fooDirective, runtimeValue);

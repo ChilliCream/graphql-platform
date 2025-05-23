@@ -8,43 +8,6 @@ namespace HotChocolate.Execution;
 public static class OperationRequestBuilderExtensions
 {
     /// <summary>
-    /// Allows introspection usage in the current request.
-    /// </summary>
-    public static OperationRequestBuilder AllowIntrospection(
-        this OperationRequestBuilder builder)
-        => builder.SetGlobalState(ExecutionContextData.IntrospectionAllowed, null);
-
-    /// <summary>
-    /// Sets the error message for when the introspection is not allowed.
-    /// </summary>
-    public static OperationRequestBuilder SetIntrospectionNotAllowedMessage(
-        this OperationRequestBuilder builder,
-        string message)
-    {
-        if (message is null)
-        {
-            throw new ArgumentNullException(nameof(message));
-        }
-
-        return builder.SetGlobalState(ExecutionContextData.IntrospectionMessage, message);
-    }
-
-    /// <summary>
-    /// Sets the error message for when the introspection is not allowed.
-    /// </summary>
-    public static OperationRequestBuilder SetIntrospectionNotAllowedMessage(
-        this OperationRequestBuilder builder,
-        Func<string> messageFactory)
-    {
-        if (messageFactory is null)
-        {
-            throw new ArgumentNullException(nameof(messageFactory));
-        }
-
-        return builder.SetGlobalState(ExecutionContextData.IntrospectionMessage, messageFactory);
-    }
-
-    /// <summary>
     /// Marks the current request to allow non-persisted operations.
     /// </summary>
     public static OperationRequestBuilder AllowNonPersistedOperation(

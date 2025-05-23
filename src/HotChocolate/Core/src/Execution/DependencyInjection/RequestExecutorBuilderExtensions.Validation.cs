@@ -164,7 +164,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// </param>
     /// <param name="disable">
     /// If `true` introspection is disabled, except for requests
-    /// that carry an introspection allowed flag.
+    /// that carry an introspection-allowed flag.
     /// If `false` introspection is enabled.
     /// </param>
     public static IRequestExecutorBuilder DisableIntrospection(
@@ -186,7 +186,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// </param>
     /// <param name="disable">
     /// If `true` introspection is disabled, except for requests
-    /// that carry an introspection allowed flag.
+    /// that carry an introspection-allowed flag.
     /// If `false` introspection is enabled.
     /// </param>
     public static IRequestExecutorBuilder DisableIntrospection(
@@ -312,5 +312,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder ConfigureValidation(
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, DocumentValidatorBuilder> configure)
-        => Configure(builder, b => b.OnBuildDocumentValidatorHooks.Add(configure));
+    {
+        return Configure(builder, options => options.OnBuildDocumentValidatorHooks.Add(configure));
+    }
 }

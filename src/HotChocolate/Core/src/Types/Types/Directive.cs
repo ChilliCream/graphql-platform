@@ -74,7 +74,8 @@ public sealed class Directive : IDirective
     /// <returns>
     /// Returns the runtime representation of the directive.
     /// </returns>
-    public T AsValue<T>() => (T)_runtimeValue;
+    public T ToValue<T>() where T : notnull
+        => (T)_runtimeValue;
 
     /// <summary>
     /// Gets the runtime representation of the directive.
@@ -143,11 +144,6 @@ public sealed class Directive : IDirective
         }
 
         return _syntaxNode;
-    }
-
-    public T ToValue<T>() where T : notnull
-    {
-        throw new NotImplementedException();
     }
 
     /// <summary>

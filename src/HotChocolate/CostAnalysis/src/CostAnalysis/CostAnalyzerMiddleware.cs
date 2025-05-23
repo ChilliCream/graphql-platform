@@ -8,6 +8,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using ErrorHelper = HotChocolate.CostAnalysis.Utilities.ErrorHelper;
 
 namespace HotChocolate.CostAnalysis;
@@ -15,7 +16,7 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
-    DocumentValidatorContextPool contextPool,
+    ObjectPool<DocumentValidatorContext> contextPool,
     ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
@@ -146,7 +147,7 @@ internal sealed class CostAnalyzerMiddleware(
         {
             // this needs to be a schema service
             var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
-            var contextPool = core.Services.GetRequiredService<DocumentValidatorContextPool>();
+            var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
             var cache = core.Services.GetRequiredService<ICostMetricsCache>();
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 

@@ -251,7 +251,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
             for (var i = 0; i < inputObjectType.Fields.Count; i++)
             {
-                IInputValueDefinition field = inputObjectType.Fields[i];
+                var field = inputObjectType.Fields[i];
                 if (field.Type.IsNonNullType() &&
                     field.DefaultValue.IsNull() &&
                     inputFieldNames.Add(field.Name))
@@ -288,11 +288,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             context.Types.Push(field.Type);
             return Continue;
         }
-        else
-        {
-            context.ReportError(context.InputFieldDoesNotExist(node));
-            return Skip;
-        }
+
+        context.ReportError(context.InputFieldDoesNotExist(node));
+        return Skip;
     }
 
     protected override ISyntaxVisitorAction Leave(

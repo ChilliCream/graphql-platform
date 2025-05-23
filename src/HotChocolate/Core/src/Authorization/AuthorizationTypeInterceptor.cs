@@ -154,7 +154,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 if (directive.Type.Name.EqualsOrdinal(Authorize))
                 {
-                    var authDir = directive.AsValue<AuthorizeDirective>();
+                    var authDir = directive.ToValue<AuthorizeDirective>();
                     pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
                 }
             }
@@ -347,7 +347,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
             if (directive.Type.Name.EqualsOrdinal(Authorize))
             {
-                var authDir = directive.AsValue<AuthorizeDirective>();
+                var authDir = directive.ToValue<AuthorizeDirective>();
 
                 if (authDir.Apply is ApplyPolicy.Validation)
                 {
@@ -440,7 +440,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
             if (directive.Type.Name.EqualsOrdinal(Authorize))
             {
-                var authDir = directive.AsValue<AuthorizeDirective>();
+                var authDir = directive.ToValue<AuthorizeDirective>();
 
                 // if the directive represents a validation policy that must be invoked during
                 // validation we do not need a middleware and will skip applying one.

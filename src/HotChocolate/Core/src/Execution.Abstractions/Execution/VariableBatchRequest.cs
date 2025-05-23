@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
@@ -31,6 +32,9 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <param name="contextData">
     /// The initial global request state.
     /// </param>
+    /// <param name="features">
+    /// The features that shall be used while executing the GraphQL request.
+    /// </param>
     /// <param name="services">
     /// The services that shall be used while executing the GraphQL request.
     /// </param>
@@ -48,6 +52,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues,
         IReadOnlyDictionary<string, object?>? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
+        IFeatureCollection? features,
         IServiceProvider? services,
         GraphQLRequestFlags flags)
     {
@@ -63,6 +68,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         VariableValues = variableValues;
         Extensions = extensions;
         ContextData = contextData;
+        Features = features?.ToReadOnly() ?? FeatureCollection.Empty;
         Services = services;
         Flags = flags;
     }
@@ -104,6 +110,11 @@ public sealed class VariableBatchRequest : IOperationRequest
     public IReadOnlyDictionary<string, object?>? ContextData { get; }
 
     /// <summary>
+    /// Gets the features that shall be used while executing the GraphQL request.
+    /// </summary>
+    public IFeatureCollection Features { get; }
+
+    /// <summary>
     /// Gets the services that shall be used while executing the GraphQL request.
     /// </summary>
     public IServiceProvider? Services { get; }
@@ -122,8 +133,8 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified services.
     /// </returns>
-    public VariableBatchRequest WithServices(IServiceProvider services) =>
-        new(
+    public VariableBatchRequest WithServices(IServiceProvider services)
+        => new(
             Document,
             DocumentId,
             DocumentHash,
@@ -131,6 +142,29 @@ public sealed class VariableBatchRequest : IOperationRequest
             VariableValues,
             Extensions,
             ContextData,
+            Features,
             services,
+            Flags);
+
+    /// <summary>
+    /// Creates a new request with the specified features.
+    /// </summary>
+    /// <param name="features">
+    /// The features that shall be used while executing the GraphQL request.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified features.
+    /// </returns>
+    public VariableBatchRequest WithFeatures(IFeatureCollection features)
+        => new(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            features,
+            Services,
             Flags);
 }

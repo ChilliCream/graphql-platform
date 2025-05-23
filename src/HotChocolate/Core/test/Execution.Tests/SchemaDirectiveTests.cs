@@ -106,7 +106,7 @@ public class SchemaDirectiveTests
             {
                 await next.Invoke(context);
 
-                var s = directive.AsValue<BDirective>().Append;
+                var s = directive.ToValue<BDirective>().Append;
                 context.Result += s;
             });
         }
@@ -123,7 +123,7 @@ public class SchemaDirectiveTests
             {
                 await next.Invoke(context);
 
-                var s = directive.AsValue<CDirective>().Append;
+                var s = directive.ToValue<CDirective>().Append;
                 context.Result += s;
             });
         }

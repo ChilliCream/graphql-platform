@@ -114,6 +114,8 @@ public sealed class RequestExecutorSetup
         options._onConfigureSchemaServicesHooks.AddRange(_onConfigureSchemaServicesHooks);
         options._onRequestExecutorCreatedHooks.AddRange(_onRequestExecutorCreatedHooks);
         options._onRequestExecutorEvictedHooks.AddRange(_onRequestExecutorEvictedHooks);
+        options._onBuildDocumentValidatorHooks.AddRange(_onBuildDocumentValidatorHooks);
+        options._pipelineModifiers.AddRange(_pipelineModifiers);
         options._typeModules.AddRange(_typeModules);
 
         if (DefaultPipelineFactory is not null)

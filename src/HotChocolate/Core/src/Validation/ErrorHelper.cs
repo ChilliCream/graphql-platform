@@ -627,22 +627,10 @@ internal static class ErrorHelper
 
     public static IError IntrospectionNotAllowed(
         this DocumentValidatorContext context,
-        FieldNode field)
+        FieldNode field,
+        string? customErrorMessage)
     {
-        var message = Resources.ErrorHelper_IntrospectionNotAllowed;
-
-        if (context.ContextData.TryGetValue(ExecutionContextData.IntrospectionMessage, out var value))
-        {
-            if (value is Func<string> messageFactory)
-            {
-                message = messageFactory();
-            }
-
-            if (value is string messageString)
-            {
-                message = messageString;
-            }
-        }
+        var message = customErrorMessage ?? Resources.ErrorHelper_IntrospectionNotAllowed;
 
         return ErrorBuilder.New()
             .SetMessage(message)

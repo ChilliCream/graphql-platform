@@ -11,13 +11,13 @@ namespace HotChocolate.Types;
 
 public static class DirectiveCollectionExtensions
 {
-    public static T SingleOrDefault<T>(this DirectiveCollection directives)
+    public static T SingleOrDefault<T>(this DirectiveCollection directives) where T : notnull
     {
         foreach (var directive in directives)
         {
             if (typeof(T).IsAssignableFrom(directive.Type.RuntimeType))
             {
-                return directive.AsValue<T>();
+                return directive.ToValue<T>();
             }
         }
 
@@ -62,8 +62,8 @@ public static class DirectiveCollectionExtensions
         var ifValue = directive?.GetArgumentValue(DirectiveNames.Defer.Arguments.If, BooleanValueNode.True);
 
         // a fragment is not deferrable if we do not find a defer directive or
-        // if the `if` of the defer directive is a bool literal with a false value.
-        return directive is not null && ifValue is not BooleanValueNode { Value: false };
+        // if the `if`-argument of the defer directive is a bool literal with a false value.
+        return directive is not null && ifValue is not { Value: false };
     }
 
     internal static DirectiveNode? GetSkipDirectiveNode(

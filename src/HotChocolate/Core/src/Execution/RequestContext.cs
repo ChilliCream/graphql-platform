@@ -15,6 +15,7 @@ internal sealed class RequestContext(
     : IRequestContext
 {
     private readonly ConcurrentDictionary<string, object?> _contextData = new();
+    private readonly RequestFeatureCollection _features = new();
     private DocumentValidatorResult? _validationResult;
 
     public Schema Schema { get; } = schema;
@@ -23,17 +24,17 @@ internal sealed class RequestContext(
 
     public int? RequestIndex { get; set; }
 
-    public IServiceProvider Services { get; private set; } = default!;
+    public IServiceProvider Services { get; private set; } = null!;
 
     public IErrorHandler ErrorHandler { get; } = errorHandler;
 
     public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
-    public IOperationRequest Request { get; private set; } = default!;
+    public IOperationRequest Request { get; private set; } = null!;
 
     public IDictionary<string, object?> ContextData => _contextData;
 
-    public IFeatureCollection Features { get; } = new FeatureCollection();
+    public IFeatureCollection Features => _features;
 
     public CancellationToken RequestAborted { get; set; }
 
@@ -74,15 +75,15 @@ internal sealed class RequestContext(
         Request = request;
         Services = services;
 
-        if (request.ContextData is null)
+        if (request.ContextData is not null)
         {
-            return;
+            foreach (var item in request.ContextData)
+            {
+                _contextData.TryAdd(item.Key, item.Value);
+            }
         }
 
-        foreach (var item in request.ContextData)
-        {
-            _contextData.TryAdd(item.Key, item.Value);
-        }
+        _features.Parent = request.Features;
     }
 
     public void Reset()
@@ -92,21 +93,22 @@ internal sealed class RequestContext(
             _contextData.Clear();
         }
 
-        Request = default!;
-        Services = default!;
-        RequestAborted = default;
-        DocumentId = default;
-        DocumentHash = default;
+        Request = null!;
+        Services = null!;
+        RequestAborted = CancellationToken.None;
+        DocumentId = null;
+        DocumentHash = null;
         IsCachedDocument = false;
         IsPersistedDocument = false;
-        Document = default;
-        ValidationResult = default;
+        Document = null;
+        ValidationResult = null;
         IsValidDocument = false;
-        OperationId = default;
-        Operation = default;
-        Variables = default;
-        Result = default;
-        Exception = default;
-        RequestIndex = default;
+        OperationId = null;
+        Operation = null;
+        Variables = null;
+        Result = null;
+        Exception = null;
+        RequestIndex = null;
+        _features.Parent = null;
     }
 }

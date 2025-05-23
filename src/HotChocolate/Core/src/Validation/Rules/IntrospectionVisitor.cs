@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -13,8 +14,8 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        if (node.Operation is OperationType.Query &&
-            !context.ContextData.ContainsKey(ExecutionContextData.IntrospectionAllowed))
+        if (node.Operation is OperationType.Query
+            && context.IsIntrospectionDisabled())
         {
             return base.Enter(node, context);
         }
@@ -38,7 +39,10 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
                 (IntrospectionFieldNames.Schema.Equals(node.Name.Value, StringComparison.Ordinal)
                 || IntrospectionFieldNames.Type.Equals(node.Name.Value, StringComparison.Ordinal)))
             {
-                context.ReportError(context.IntrospectionNotAllowed(node));
+                context.ReportError(
+                    context.IntrospectionNotAllowed(
+                        node,
+                        context.GetCustomIntrospectionErrorMessage()));
                 return Break;
             }
 

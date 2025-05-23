@@ -1,10 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
-public sealed class OperationRequestBuilder
+/// <summary>
+/// Represents a builder for creating GraphQL operation requests.
+/// </summary>
+public sealed class OperationRequestBuilder : IFeatureProvider
 {
     private IOperationDocument? _document;
     private OperationDocumentId? _documentId;
@@ -17,6 +21,12 @@ public sealed class OperationRequestBuilder
     private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
     private IServiceProvider? _services;
     private GraphQLRequestFlags _flags = GraphQLRequestFlags.AllowAll;
+    private IFeatureCollection? _features;
+
+    /// <summary>
+    /// Gets the operation request features.
+    /// </summary>
+    public IFeatureCollection Features { get => _features ??= new FeatureCollection(); }
 
     /// <summary>
     /// Sets the GraphQL operation document that shall be executed.
@@ -228,7 +238,7 @@ public sealed class OperationRequestBuilder
             _readOnlyContextData = null;
         }
 
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData[name] = value;
         return this;
     }
@@ -372,6 +382,7 @@ public sealed class OperationRequestBuilder
         _contextData = null;
         _readOnlyContextData = null;
         _services = null;
+        _features = null;
         _flags = GraphQLRequestFlags.AllowAll;
         return this;
     }
@@ -387,6 +398,12 @@ public sealed class OperationRequestBuilder
         IOperationRequest? request;
 
         var variableSet = GetVariableValues();
+        var features = _features;
+
+        if (features is null || features.IsEmpty)
+        {
+            features = FeatureCollection.Empty;
+        }
 
         if (variableSet is { Count: > 1, })
         {
@@ -396,8 +413,9 @@ public sealed class OperationRequestBuilder
                 documentHash: _documentHash,
                 operationName: _operationName,
                 variableValues: variableSet,
-                contextData: _readOnlyContextData ?? _contextData,
                 extensions: _readOnlyExtensions,
+                contextData: _readOnlyContextData ?? _contextData,
+                features: features,
                 services: _services,
                 flags: _flags);
             Reset();
@@ -412,8 +430,9 @@ public sealed class OperationRequestBuilder
             variableValues: variableSet is { Count: 1, }
                 ? variableSet[0]
                 : null,
-            contextData: _readOnlyContextData ?? _contextData,
             extensions: _readOnlyExtensions,
+            contextData: _readOnlyContextData ?? _contextData,
+            features: features,
             services: _services,
             flags: _flags
         );

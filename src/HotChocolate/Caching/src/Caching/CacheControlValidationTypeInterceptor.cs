@@ -73,7 +73,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
     {
         var directive = (type.Directives
             .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
-            ?.AsValue<CacheControlDirective>();
+            ?.ToValue<CacheControlDirective>();
 
         if (directive is null)
         {
@@ -97,7 +97,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
     {
         var directive = (field.Directives
             .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
-            ?.AsValue<CacheControlDirective>();
+            ?.ToValue<CacheControlDirective>();
 
         if (directive is null)
         {

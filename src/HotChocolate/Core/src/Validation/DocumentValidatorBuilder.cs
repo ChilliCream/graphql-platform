@@ -10,8 +10,8 @@ namespace HotChocolate.Validation;
 public sealed class DocumentValidatorBuilder
 {
     private readonly List<RuleConfiguration> _rules = [];
+    private readonly ValidationOptions _options = new();
     private IServiceProvider _services = EmptyServiceProvider.Instance;
-    private ValidationOptions _options = new();
     private List<Action<IServiceProvider, ValidationOptions>>? _optionModifiers;
 
     private DocumentValidatorBuilder() { }

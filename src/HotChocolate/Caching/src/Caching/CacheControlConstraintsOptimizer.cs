@@ -137,9 +137,8 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         void ExtractCacheControlDetailsFromDirectives(
             IDirectivesProvider typeSystemMember)
         {
-            var directive = (typeSystemMember.Directives
-                .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
-                ?.AsValue<CacheControlDirective>();
+            var directive = typeSystemMember.Directives.FirstOrDefaultValue<CacheControlDirective>(
+                CacheControlDirectiveType.Names.DirectiveName);
 
             if (directive is not null)
             {

@@ -1,9 +1,11 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
 /// Represents a request to execute a GraphQL operation.
 /// </summary>
-public interface IExecutionRequest
+public interface IExecutionRequest : IFeatureProvider
 {
     /// <summary>
     /// Gets the initial request state.

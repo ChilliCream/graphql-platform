@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Validation.TestHelper;
 
@@ -20,23 +21,6 @@ public class IntrospectionRuleTests
     }
 
     [Fact]
-    public void IntrospectionNotAllowed_Schema_Field_Custom_MessageFactory()
-    {
-        ExpectErrors(
-            CreateSchema(),
-            b => b.AddIntrospectionAllowedRule()
-                .ModifyOptions(o => o.DisableIntrospection = true),
-            """
-            {
-                __schema
-            }
-            """,
-            [
-                new(ExecutionContextData.IntrospectionMessage, new Func<string>(() => "Bar"))
-            ]);
-    }
-
-    [Fact]
     public void IntrospectionNotAllowed_Schema_Field_Custom_Message()
     {
         ExpectErrors(
@@ -48,9 +32,10 @@ public class IntrospectionRuleTests
                 __schema
             }
             """,
-            [
-                new(ExecutionContextData.IntrospectionMessage, "Baz")
-            ]);
+            context => context.Features.Set(
+                new IntrospectionRequestOptions(
+                    IsAllowed: false,
+                    NotAllowedErrorMessage: "Baz")));
     }
 
     [Fact]
@@ -95,9 +80,7 @@ public class IntrospectionRuleTests
                 }
             }
             """,
-            [
-                new(ExecutionContextData.IntrospectionAllowed, null)
-            ]);
+            context => context.Features.Set(new IntrospectionRequestOptions(IsAllowed: true)));
     }
 
     [Fact]
@@ -112,9 +95,7 @@ public class IntrospectionRuleTests
                 __type(name: "foo")
             }
             """,
-            [
-                new(ExecutionContextData.IntrospectionAllowed, null)
-            ]);
+            context => context.Features.Set(new IntrospectionRequestOptions(IsAllowed: true)));
     }
 
     private static Schema CreateSchema()
