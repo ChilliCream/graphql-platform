@@ -479,7 +479,7 @@ public class UnionTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
         // Ideally it would just be one request, but that's for another day...
-        Assert.Equal(3, subgraphB.NumberOfReceivedRequests);
+        Assert.Equal(2 , subgraphB.NumberOfReceivedRequests);
     }
 
     [Fact]

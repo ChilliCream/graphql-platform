@@ -93,7 +93,7 @@
 ## QueryPlan Hash
 
 ```text
-51CA519135EDC9C49C71D22D7EF0562D417753EA
+D2C414A9B5D05A2A36B1E73912FAAB5A845D2507
 ```
 
 ## QueryPlan
@@ -145,20 +145,6 @@
             "type": "ResolveByKeyBatch",
             "subgraph": "Subgraph_2",
             "document": "query fetch_listOfUnion_3($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on Product { name __fusion_exports__2: id } } }",
-            "selectionSetId": 5,
-            "path": [
-              "nodes"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__2"
-              }
-            ]
-          },
-          {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query fetch_listOfUnion_4($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on Product { name __fusion_exports__2: id } } }",
             "selectionSetId": 5,
             "path": [
               "nodes"

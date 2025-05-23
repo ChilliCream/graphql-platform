@@ -31,7 +31,7 @@ query testQuery {
 ## QueryPlan Hash
 
 ```text
-D772126D1EEF02DAC266CB5A057F564060D55FD9
+E1E94C2534B99BC1CF6E9A80F111DBAE1A83C80C
 ```
 
 ## QueryPlan
@@ -61,35 +61,16 @@ D772126D1EEF02DAC266CB5A057F564060D55FD9
         ]
       },
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "Resolve",
+        "subgraph": "Subgraph_2",
+        "document": "query testQuery_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { displayName } }",
+        "selectionSetId": 3,
+        "path": [
+          "authorById"
+        ],
+        "requires": [
           {
-            "type": "Resolve",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { displayName } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
-          },
-          {
-            "type": "Resolve",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_3($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { displayName } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
+            "variable": "__fusion_exports__1"
           }
         ]
       },

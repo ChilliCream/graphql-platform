@@ -447,11 +447,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
     }
 
     private static void TryEnqueueBacklogItem(
-        Queue<BacklogItem> backlog, 
-        ISelection parentSelection, 
-        SelectionPath? selectionSetPath, 
-        ObjectTypeMetadata declaringType, 
-        List<ISelection> leftovers, 
+        Queue<BacklogItem> backlog,
+        ISelection parentSelection,
+        SelectionPath? selectionSetPath,
+        ObjectTypeMetadata declaringType,
+        List<ISelection> leftovers,
         bool preferBatching)
     {
         foreach (var item in backlog)

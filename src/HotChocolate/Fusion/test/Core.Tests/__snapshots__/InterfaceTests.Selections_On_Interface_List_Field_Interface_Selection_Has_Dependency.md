@@ -8,21 +8,21 @@
     "authorables": [
       {
         "author": {
-          "id": "1",
+          "id": "3",
           "displayName": "string"
-        },
+        }
+      },
+      {
+        "author": {
+          "id": "2",
+          "displayName": "string"
+        }
       },
       {
         "author": {
           "id": "1",
           "displayName": "string"
-        },
-      },
-      {
-        "author": {
-          "id": "1",
-          "displayName": "string"
-        },
+        }
       }
     ]
   }
@@ -45,7 +45,7 @@ query testQuery {
 ## QueryPlan Hash
 
 ```text
-F4039AE7E0301C2C3A6B64A727FD0898C6ED5C3E
+0308D4AF6E31B24ABE6DE11C06361B922371BB60
 ```
 
 ## QueryPlan
@@ -75,35 +75,16 @@ F4039AE7E0301C2C3A6B64A727FD0898C6ED5C3E
         ]
       },
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "ResolveByKeyBatch",
+        "subgraph": "Subgraph_2",
+        "document": "query testQuery_2($__fusion_exports__1: [ID!]!) { authorsById(ids: $__fusion_exports__1) { displayName __fusion_exports__1: id } }",
+        "selectionSetId": 3,
+        "path": [
+          "authorsById"
+        ],
+        "requires": [
           {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_2($__fusion_exports__1: [ID!]!) { authorsById(ids: $__fusion_exports__1) { displayName __fusion_exports__1: id } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorsById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
-          },
-          {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_3($__fusion_exports__1: [ID!]!) { authorsById(ids: $__fusion_exports__1) { displayName __fusion_exports__1: id } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorsById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
+            "variable": "__fusion_exports__1"
           }
         ]
       },

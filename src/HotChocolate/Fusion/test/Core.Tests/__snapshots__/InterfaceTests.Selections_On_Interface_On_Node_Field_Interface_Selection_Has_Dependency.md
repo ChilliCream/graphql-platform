@@ -6,8 +6,8 @@
 {
   "data": {
     "node": {
-      "__typename": "Item1",
-      "id": "something",
+      "__typename": "Item2",
+      "id": "SXRlbTI6MQ==",
       "products": [
         {
           "id": "1",
@@ -47,7 +47,7 @@ query testQuery($id: ID!) {
 ## QueryPlan Hash
 
 ```text
-A788D81ECC2EBC96904E4256A08E77FA5AE217BC
+5F59AAE6C7105C25183E380C0764595A18843D7E
 ```
 
 ## QueryPlan
@@ -115,35 +115,16 @@ A788D81ECC2EBC96904E4256A08E77FA5AE217BC
         ]
       },
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "ResolveByKeyBatch",
+        "subgraph": "Subgraph_2",
+        "document": "query testQuery_4($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on Product { name __fusion_exports__1: id } } }",
+        "selectionSetId": 4,
+        "path": [
+          "nodes"
+        ],
+        "requires": [
           {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_4($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on Product { name __fusion_exports__1: id } } }",
-            "selectionSetId": 4,
-            "path": [
-              "nodes"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
-          },
-          {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_5($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on Product { name __fusion_exports__1: id } } }",
-            "selectionSetId": 4,
-            "path": [
-              "nodes"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
+            "variable": "__fusion_exports__1"
           }
         ]
       },

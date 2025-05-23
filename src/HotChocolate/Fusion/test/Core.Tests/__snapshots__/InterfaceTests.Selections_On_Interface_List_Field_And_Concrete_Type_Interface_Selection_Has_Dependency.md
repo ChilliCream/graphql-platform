@@ -8,7 +8,7 @@
     "authorables": [
       {
         "author": {
-          "id": "1",
+          "id": "3",
           "displayName": "string"
         },
         "title": "string"
@@ -22,7 +22,7 @@
       },
       {
         "author": {
-          "id": "3",
+          "id": "1",
           "displayName": "string"
         },
         "title": "string"
@@ -51,7 +51,7 @@ query testQuery {
 ## QueryPlan Hash
 
 ```text
-FE8F78F204FBA396327AB3E2F3F44563E61F9216
+5B15C51B0C560FDA557AEC4D18F7435E73169D29
 ```
 
 ## QueryPlan
@@ -81,35 +81,16 @@ FE8F78F204FBA396327AB3E2F3F44563E61F9216
         ]
       },
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "ResolveByKeyBatch",
+        "subgraph": "Subgraph_2",
+        "document": "query testQuery_2($__fusion_exports__1: [ID!]!) { authorsById(ids: $__fusion_exports__1) { displayName __fusion_exports__1: id } }",
+        "selectionSetId": 3,
+        "path": [
+          "authorsById"
+        ],
+        "requires": [
           {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_2($__fusion_exports__1: [ID!]!) { authorsById(ids: $__fusion_exports__1) { displayName __fusion_exports__1: id } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorsById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
-          },
-          {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Subgraph_2",
-            "document": "query testQuery_3($__fusion_exports__1: [ID!]!) { authorsById(ids: $__fusion_exports__1) { displayName __fusion_exports__1: id } }",
-            "selectionSetId": 3,
-            "path": [
-              "authorsById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
+            "variable": "__fusion_exports__1"
           }
         ]
       },
