@@ -15,9 +15,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(
-            _ => { },
-            out var port);
+        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -28,11 +26,67 @@ public class StarWarsGetFriendsTest : ServerTestBase
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
-        var client =
-            services.GetRequiredService<IStarWarsGetFriendsClient>();
+        var client = services.GetRequiredService<IStarWarsGetFriendsClient>();
 
         // act
         var result = await client.GetHero.ExecuteAsync(ct);
+
+        // assert
+        Assert.Equal("R2-D2", result.Data?.Hero?.Name);
+        Assert.Collection(
+            result.Data!.Hero!.Friends!.Nodes!,
+            item => Assert.Equal("Luke Skywalker", item?.Name),
+            item => Assert.Equal("Han Solo", item?.Name),
+            item => Assert.Equal("Leia Organa", item?.Name));
+    }
+
+    [Fact]
+    public async Task Execute_StarWarsGetFriends_WithRequestUri_Test()
+    {
+        // arrange
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        var serviceCollection = new ServiceCollection();
+
+        serviceCollection
+            .AddStarWarsGetFriendsClient()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost:5000/graphql"));
+
+        IServiceProvider services = serviceCollection.BuildServiceProvider();
+        var client = services.GetRequiredService<IStarWarsGetFriendsClient>();
+
+        // act
+        var result = await client.GetHero.WithRequestUri(new Uri($"http://localhost:{port}/graphql")).ExecuteAsync(ct);
+
+        // assert
+        Assert.Equal("R2-D2", result.Data?.Hero?.Name);
+        Assert.Collection(
+            result.Data!.Hero!.Friends!.Nodes!,
+            item => Assert.Equal("Luke Skywalker", item?.Name),
+            item => Assert.Equal("Han Solo", item?.Name),
+            item => Assert.Equal("Leia Organa", item?.Name));
+    }
+
+        [Fact]
+    public async Task Execute_StarWarsGetFriends_WithHttpClient_Test()
+    {
+        // arrange
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        var serviceCollection = new ServiceCollection();
+
+        serviceCollection
+            .AddHttpClient("abc", c => c.BaseAddress = new Uri($"http://localhost:{port}/graphql"))
+            .Services
+            .AddStarWarsGetFriendsClient()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost:5000/graphql"));
+
+        IServiceProvider services = serviceCollection.BuildServiceProvider();
+        var client = services.GetRequiredService<IStarWarsGetFriendsClient>();
+        var httpClient = services.GetRequiredService<IHttpClientFactory>().CreateClient("abc");
+
+        // act
+        var result = await client.GetHero.WithHttpClient(httpClient).ExecuteAsync(ct);
 
         // assert
         Assert.Equal("R2-D2", result.Data?.Hero?.Name);
@@ -48,9 +102,7 @@ public class StarWarsGetFriendsTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(
-            _ => { },
-            out var port);
+        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var serviceCollection = new ServiceCollection();
 
         serviceCollection

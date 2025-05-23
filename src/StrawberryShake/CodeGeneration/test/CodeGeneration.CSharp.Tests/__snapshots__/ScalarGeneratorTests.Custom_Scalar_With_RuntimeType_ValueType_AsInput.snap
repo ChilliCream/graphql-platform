@@ -299,17 +299,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISetPersonResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _emailFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SetPersonQuery(global::StrawberryShake.IOperationExecutor<ISetPersonResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _emailFormatter = serializerResolver.GetInputValueFormatter("Email");
         }
 
+        private SetPersonQuery(global::StrawberryShake.IOperationExecutor<ISetPersonResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter emailFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _emailFormatter = emailFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISetPersonResult);
+
+        public global::Foo.Bar.ISetPersonQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SetPersonQuery(_operationExecutor, _configure.Add(configure), _emailFormatter);
+        }
+
+        public global::Foo.Bar.ISetPersonQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISetPersonQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISetPersonResult>> ExecuteAsync(global::System.Index email, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -357,6 +385,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISetPersonQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISetPersonQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISetPersonQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISetPersonQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISetPersonResult>> ExecuteAsync(global::System.Index email, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISetPersonResult>> Watch(global::System.Index email, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
