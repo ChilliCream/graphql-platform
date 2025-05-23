@@ -5,7 +5,7 @@ namespace HotChocolate.Authorization;
 
 internal sealed partial class AuthorizationTypeInterceptor
 {
-    private abstract class TypeInfo<TDef> : IEquatable<TypeInfo<TDef>> where TDef : DefinitionBase
+    private abstract class TypeInfo<TDef> : IEquatable<TypeInfo<TDef>> where TDef : TypeSystemConfiguration
     {
         protected TypeInfo(ITypeCompletionContext context, TDef typeDef)
         {

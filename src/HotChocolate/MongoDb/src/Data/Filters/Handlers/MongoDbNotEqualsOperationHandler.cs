@@ -20,10 +20,10 @@ public class MongoDbNotEqualsOperationHandler
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
-        return fieldDefinition is FilterOperationFieldDefinition operationField &&
+        return fieldConfiguration is FilterOperationFieldConfiguration operationField &&
             operationField.Id is DefaultFilterOperations.NotEquals;
     }
 

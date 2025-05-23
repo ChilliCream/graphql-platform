@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 public interface IInterfaceTypeDescriptor<T>
-    : IDescriptor<InterfaceTypeDefinition>
+    : IDescriptor<InterfaceTypeConfiguration>
     , IFluent
 {
     /// <summary>

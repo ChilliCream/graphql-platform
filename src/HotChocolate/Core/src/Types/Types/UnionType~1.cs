@@ -22,7 +22,7 @@ public class UnionType<T> : UnionType
         _configure = Configure;
     }
 
-    protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override UnionTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var descriptor =
             UnionTypeDescriptor.New(context.DescriptorContext, typeof(T));
@@ -30,6 +30,6 @@ public class UnionType<T> : UnionType
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 }

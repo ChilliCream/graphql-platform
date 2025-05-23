@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 public interface IInputObjectTypeDescriptor<T>
-    : IDescriptor<InputObjectTypeDefinition>
+    : IDescriptor<InputObjectTypeConfiguration>
     , IFluent
 {
     IInputObjectTypeDescriptor<T> Name(string value);

@@ -20,7 +20,7 @@ internal static class TypeFactoryHelper
     {
         if (type is NonNullType nnt)
         {
-            return IsTypeStructureValid(nnt.Type, listCount);
+            return IsTypeStructureValid(nnt.NullableType, listCount);
         }
 
         if (type is ListType lt)

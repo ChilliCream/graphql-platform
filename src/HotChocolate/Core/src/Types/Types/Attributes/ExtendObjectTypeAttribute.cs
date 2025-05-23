@@ -101,7 +101,7 @@ public sealed class ExtendObjectTypeAttribute
             descriptor.Name(Name);
         }
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)
@@ -203,12 +203,12 @@ public sealed class ExtendObjectTypeAttribute<T>
             descriptor.ExtendsType(ExtendsType);
         }
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)
         {
-            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
+            descriptor.Extend().Configuration.FieldBindingFlags = Instance | Static;
         }
 
         if (IgnoreFields is not null)

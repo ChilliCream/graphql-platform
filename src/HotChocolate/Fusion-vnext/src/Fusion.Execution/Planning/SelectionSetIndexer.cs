@@ -7,8 +7,8 @@ namespace HotChocolate.Fusion.Planning;
 public sealed class SelectionSetIndexer : SyntaxWalker
 {
     private static readonly SelectionSetVisitor _selectionSetVisitor = new();
+    private readonly Dictionary<SelectionSetNode, uint> _selectionSetIds = [];
     private uint _nextId = 1;
-    private readonly Dictionary<SelectionSetNode, uint> _selectionSetIds = new();
 
     public static ISelectionSetIndex Create(OperationDefinitionNode operation)
     {

@@ -67,6 +67,11 @@ internal sealed class SourceSchemaMerger
 
         SetOperationTypes(mergedSchema);
 
+        if (_options.RemoveUnreferencedTypes)
+        {
+            mergedSchema.RemoveUnreferencedTypes();
+        }
+
         // Add lookup directives.
         foreach (var schema in _schemas)
         {
@@ -400,7 +405,8 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => ((MutableInterfaceTypeDefinition)i.Type).Fields.AsEnumerable(),
                 (i, f) => new OutputFieldInfo(f, (MutableComplexTypeDefinition)i.Type, i.Schema))
-            .GroupBy(i => i.Field.Name);
+            .GroupBy(i => i.Field.Name)
+            .ToImmutableArray();
 
         foreach (var fieldGroup in fieldGroupByName)
         {
@@ -409,6 +415,14 @@ internal sealed class SourceSchemaMerger
             if (mergedField is not null)
             {
                 interfaceType.Fields.Add(mergedField);
+            }
+        }
+
+        foreach (var (fieldName, fieldGroup) in fieldGroupByName)
+        {
+            if (interfaceType.Fields.TryGetField(fieldName, out var outputField))
+            {
+                AddFusionRequiresDirectives(outputField, interfaceType, [.. fieldGroup]);
             }
         }
 
@@ -480,7 +494,8 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => ((MutableObjectTypeDefinition)i.Type).Fields.AsEnumerable(),
                 (i, f) => new OutputFieldInfo(f, (MutableComplexTypeDefinition)i.Type, i.Schema))
-            .GroupBy(i => i.Field.Name);
+            .GroupBy(i => i.Field.Name)
+            .ToImmutableArray();
 
         foreach (var fieldGroup in fieldGroupByName)
         {
@@ -489,6 +504,14 @@ internal sealed class SourceSchemaMerger
             if (mergedField is not null)
             {
                 objectType.Fields.Add(mergedField);
+            }
+        }
+
+        foreach (var (fieldName, fieldGroup) in fieldGroupByName)
+        {
+            if (objectType.Fields.TryGetField(fieldName, out var outputField))
+            {
+                AddFusionRequiresDirectives(outputField, objectType, [.. fieldGroup]);
             }
         }
 
@@ -508,8 +531,12 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<OutputFieldInfo> fieldGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        // Filter out all fields marked with @internal.
-        fieldGroup = [.. fieldGroup.Where(i => !i.Field.HasInternalDirective())];
+        // Filter out internal or overridden fields.
+        var group = fieldGroup;
+        fieldGroup =
+        [
+            .. fieldGroup.Where(i => !i.Field.HasInternalDirective() && !i.IsOverridden(group))
+        ];
 
         if (fieldGroup.Length == 0)
         {
@@ -555,7 +582,6 @@ internal sealed class SourceSchemaMerger
         }
 
         AddFusionFieldDirectives(outputField, fieldGroup);
-        AddFusionRequiresDirectives(outputField, fieldGroup);
 
         if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
         {
@@ -574,12 +600,19 @@ internal sealed class SourceSchemaMerger
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Merge-Scalar-Types">
     /// Specification
     /// </seealso>
-    private MutableScalarTypeDefinition MergeScalarTypes(
+    private MutableScalarTypeDefinition? MergeScalarTypes(
         ImmutableArray<TypeInfo> typeGroup,
         MutableSchemaDefinition mergedSchema)
     {
         var firstScalar = typeGroup[0].Type;
         var typeName = firstScalar.Name;
+
+        // Built-in Fusion scalar types should not be merged.
+        if (FusionBuiltIns.IsBuiltInSourceSchemaScalar(typeName))
+        {
+            return null;
+        }
+
         var description = firstScalar.Description;
         var scalarType = GetOrCreateType<MutableScalarTypeDefinition>(mergedSchema, typeName);
 
@@ -700,7 +733,7 @@ internal sealed class SourceSchemaMerger
     /// either source requires a non-null value, the merged type also becomes non-null so that no
     /// invalid (e.g., <c>null</c>) data can be introduced at runtime. Conversely, if both sources
     /// allow <c>null</c>, the merged type remains nullable. The same principle applies to list
-    /// types, where the more restrictive settings (non-null list or non-null elements) is used.
+    /// types, where the more restrictive settings (non-null list or non-null elements) are used.
     /// </summary>
     /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Most-Restrictive-Type">
     /// Specification
@@ -990,6 +1023,7 @@ internal sealed class SourceSchemaMerger
 
     private void AddFusionRequiresDirectives(
         MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition complexType,
         ImmutableArray<OutputFieldInfo> fieldGroup)
     {
         foreach (var (sourceField, _, sourceSchema) in fieldGroup)
@@ -1013,6 +1047,22 @@ internal sealed class SourceSchemaMerger
             if (map.Any(v => v is not null))
             {
                 var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+                var requiresMap = map.Where(f => f is not null);
+                var selectedValues =
+                    requiresMap.Select(a => new FieldSelectionMapParser(a).Parse());
+                var selectedValueToSelectionSetRewriter =
+                    GetSelectedValueToSelectionSetRewriter(sourceSchema);
+                var selectionSets = selectedValues
+                    .Select(
+                        s =>
+                            selectedValueToSelectionSetRewriter
+                                .SelectedValueToSelectionSet(s, complexType))
+                    .ToImmutableArray();
+                var mergedSelectionSet = selectionSets.Length == 1
+                    ? selectionSets[0]
+                    : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, complexType);
+                var requirementsArgument =
+                    mergedSelectionSet.ToString(indented: false).AsSpan()[2 .. ^2].ToString();
 
                 var fieldArgument =
                     _removeDirectivesRewriter
@@ -1027,6 +1077,7 @@ internal sealed class SourceSchemaMerger
                     new Directive(
                         _fusionDirectiveDefinitions[DirectiveNames.FusionRequires],
                         new ArgumentAssignment(ArgumentNames.Schema, schemaArgument),
+                        new ArgumentAssignment(ArgumentNames.Requirements, requirementsArgument),
                         new ArgumentAssignment(ArgumentNames.Field, fieldArgument),
                         new ArgumentAssignment(ArgumentNames.Map, mapArgument)));
             }
@@ -1143,6 +1194,7 @@ internal sealed class SourceSchemaMerger
                 DirectiveNames.FusionRequires,
                 new FusionRequiresMutableDirectiveDefinition(
                     schemaEnumType,
+                    fieldSelectionSetType,
                     fieldDefinitionType,
                     fieldSelectionMapType)
             },

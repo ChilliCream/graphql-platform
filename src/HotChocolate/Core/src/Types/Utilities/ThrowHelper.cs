@@ -351,16 +351,19 @@ internal static class ThrowHelper
         ListType type,
         Type listType,
         Path path)
-        => new SerializationException(
+    {
+        var runtimeType = type.ToRuntimeType();
+        return new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ParseList_InvalidObjectKind,
                     listType.FullName ?? listType.Name,
                     type.Print(),
-                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                    runtimeType.FullName ?? runtimeType.Name)
                 .Build(),
             type,
             path);
+    }
 
     public static SerializationException FormatValueList_InvalidObjectKind(
         ListType type,
@@ -513,7 +516,7 @@ internal static class ThrowHelper
     public static InvalidOperationException NodeResolver_ArgumentTypeMissing()
         => new(ThrowHelper_NodeResolver_ArgumentTypeMissing);
 
-    public static InvalidOperationException NodeResolver_ObjNoDefinition()
+    public static InvalidOperationException NodeResolver_ObjNoConfig()
         => new(ThrowHelper_NodeResolver_ObjNoDefinition);
 
     public static SchemaException RelayIdFieldHelpers_NoFieldType(

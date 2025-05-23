@@ -56,7 +56,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
                 (_, fieldDef) =>
                 {
                     var factory = _subscribeFactory.MakeGenericMethod(MessageType);
-                    factory.Invoke(null, [fieldDef, topicString,]);
+                    factory.Invoke(null, [fieldDef, topicString]);
                 });
         }
         else
@@ -106,7 +106,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     }
 
     private static void SubscribeFactory<TMessage>(
-        ObjectFieldDefinition fieldDef,
+        ObjectFieldConfiguration fieldDef,
         string topicString)
     {
         var arg = false;

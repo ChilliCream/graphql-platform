@@ -15,6 +15,6 @@ public class UseResolverResultPostProcessorAttribute<T>
     {
         var services = context.Services.GetRequiredService<IApplicationServiceProvider>();
         var postProcessor = ActivatorUtilities.GetServiceOrCreateInstance<T>(services);
-        descriptor.ExtendWith(c => c.Definition.ResultPostProcessor = postProcessor);
+        descriptor.ExtendWith(c => c.Configuration.ResultPostProcessor = postProcessor);
     }
 }

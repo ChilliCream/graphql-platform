@@ -12,14 +12,14 @@ internal sealed class ObjectTypeFactory
 {
     public ObjectType Create(IDescriptorContext context, ObjectTypeDefinitionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new ObjectTypeDefinition(
+        var typeDefinition = new ObjectTypeConfiguration(
             node.Name.Value,
             node.Description?.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var typeNode in node.Interfaces)
@@ -36,12 +36,12 @@ internal sealed class ObjectTypeFactory
 
     public ObjectTypeExtension Create(IDescriptorContext context, ObjectTypeExtensionNode node)
     {
-        var path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateConfigurationStack();
         path.Clear();
 
-        var typeDefinition = new ObjectTypeDefinition(node.Name.Value)
+        var typeDefinition = new ObjectTypeConfiguration(node.Name.Value)
         {
-            BindTo = node.GetBindingValue(),
+            BindTo = node.GetBindingValue()
         };
 
         foreach (var typeNode in node.Interfaces)
@@ -58,25 +58,25 @@ internal sealed class ObjectTypeFactory
 
     private static void DeclareFields(
         IDescriptorContext context,
-        ObjectTypeDefinition parent,
+        ObjectTypeConfiguration parent,
         IReadOnlyCollection<FieldDefinitionNode> fields,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var field in fields)
         {
-            var fieldDefinition = new ObjectFieldDefinition(
+            var fieldDefinition = new ObjectFieldConfiguration(
                 field.Name.Value,
                 field.Description?.Value,
                 TypeReference.Create(field.Type))
             {
-                BindTo = field.GetBindingValue(),
+                BindTo = field.GetBindingValue()
             };
 
             SdlToTypeSystemHelper.AddDirectives(context, fieldDefinition, field, path);
 
-            if (field.DeprecationReason() is { Length: > 0, } reason)
+            if (field.DeprecationReason() is { Length: > 0 } reason)
             {
                 fieldDefinition.DeprecationReason = reason;
             }
@@ -91,24 +91,24 @@ internal sealed class ObjectTypeFactory
 
     private static void DeclareFieldArguments(
         IDescriptorContext context,
-        ObjectFieldDefinition parent,
+        ObjectFieldConfiguration parent,
         FieldDefinitionNode field,
-        Stack<IDefinition> path)
+        Stack<ITypeSystemConfiguration> path)
     {
         path.Push(parent);
 
         foreach (var argument in field.Arguments)
         {
-            var argumentDefinition = new ArgumentDefinition(
+            var argumentDefinition = new ArgumentConfiguration(
                 argument.Name.Value,
                 argument.Description?.Value,
                 TypeReference.Create(argument.Type),
                 argument.DefaultValue)
             {
-                BindTo = argument.GetBindingValue(),
+                BindTo = argument.GetBindingValue()
             };
 
-            if (argument.DeprecationReason() is { Length: > 0, } reason)
+            if (argument.DeprecationReason() is { Length: > 0 } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

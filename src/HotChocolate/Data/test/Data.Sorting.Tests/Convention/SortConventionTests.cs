@@ -385,7 +385,7 @@ public class SortConventionTests
         var sortInputType = new SortInputType(
             d => d.Field("x").Type<TestEnumType>()
                 .ExtendWith(
-                    x => x.Definition.Handler = new MatchAnyQueryableFieldHandler()));
+                    x => x.Configuration.Handler = new MatchAnyQueryableFieldHandler()));
 
         // act
         var schema = CreateSchemaWith(sortInputType, convention);

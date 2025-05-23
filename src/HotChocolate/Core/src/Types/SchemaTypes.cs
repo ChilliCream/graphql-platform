@@ -12,25 +12,25 @@ internal sealed class SchemaTypes
     private readonly FrozenDictionary<string, INamedType> _types;
     private readonly FrozenDictionary<string, List<ObjectType>> _possibleTypes;
 
-    public SchemaTypes(SchemaTypesDefinition definition)
+    public SchemaTypes(SchemaTypesConfiguration configuration)
     {
-        if (definition is null)
+        if (configuration is null)
         {
-            throw new ArgumentNullException(nameof(definition));
+            throw new ArgumentNullException(nameof(configuration));
         }
 
-        if (definition.Types is null || definition.DirectiveTypes is null)
+        if (configuration.Types is null || configuration.DirectiveTypes is null)
         {
             throw new ArgumentException(
                 SchemaTypes_DefinitionInvalid,
-                nameof(definition));
+                nameof(configuration));
         }
 
-        _types = definition.Types.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
-        _possibleTypes = CreatePossibleTypeLookup(definition.Types).ToFrozenDictionary(StringComparer.Ordinal);
-        QueryType = definition.QueryType!;
-        MutationType = definition.MutationType;
-        SubscriptionType = definition.SubscriptionType;
+        _types = configuration.Types.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+        _possibleTypes = CreatePossibleTypeLookup(configuration.Types).ToFrozenDictionary(StringComparer.Ordinal);
+        QueryType = configuration.QueryType!;
+        MutationType = configuration.MutationType;
+        SubscriptionType = configuration.SubscriptionType;
     }
 
     public ObjectType QueryType { get; }
@@ -106,7 +106,7 @@ internal sealed class SchemaTypes
 
         foreach (var objectType in types.OfType<ObjectType>())
         {
-            possibleTypes[objectType.Name] = [objectType,];
+            possibleTypes[objectType.Name] = [objectType];
 
             foreach (var interfaceType in objectType.Implements)
             {

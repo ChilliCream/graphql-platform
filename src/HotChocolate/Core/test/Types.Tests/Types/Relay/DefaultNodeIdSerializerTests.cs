@@ -507,6 +507,24 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_CompositeId_With_Escaping()
+    {
+        var compositeId =
+            new CompositeId(
+                ":foo:bar:",
+                42,
+                // The bytes of this GUID contain a part separator (colon).
+                new Guid("3bc83a67-b494-4c0c-a31a-d1921b077a32"),
+                true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
     public void Parse_Legacy_StronglyTypedId()
     {
         var stronglyTypedId = new StronglyTypedId(123, 456);

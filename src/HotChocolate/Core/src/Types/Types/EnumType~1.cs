@@ -76,7 +76,7 @@ public class EnumType<T> : EnumType, IEnumType<T>
         => throw new NotSupportedException();
 
     /// <inheritdoc />
-    protected override EnumTypeDefinition CreateDefinition(
+    protected override EnumTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor =
@@ -85,6 +85,6 @@ public class EnumType<T> : EnumType, IEnumType<T>
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 }

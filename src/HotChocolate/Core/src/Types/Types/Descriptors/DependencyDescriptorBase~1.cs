@@ -10,11 +10,11 @@ namespace HotChocolate.Types.Descriptors;
 
 internal abstract class DependencyDescriptorBase
 {
-    private readonly ITypeSystemMemberConfiguration _configuration;
+    private readonly ITypeSystemConfigurationTask _configuration;
 
     protected DependencyDescriptorBase(
         ITypeInspector typeInspector,
-        ITypeSystemMemberConfiguration configuration)
+        ITypeSystemConfigurationTask configuration)
     {
         TypeInspector = typeInspector ??
             throw new ArgumentNullException(nameof(typeInspector));

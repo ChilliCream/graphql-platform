@@ -38,6 +38,6 @@ public abstract class FilterFieldHandler<TContext, T>
     /// <inheritdoc />
     public abstract bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration);
 }

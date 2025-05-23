@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Filters;
 /// The filter convention extension can be used to extend a convention.
 /// </summary>
 public class FilterConventionExtension
-    : ConventionExtension<FilterConventionDefinition>
+    : ConventionExtension<FilterConventionConfiguration>
 {
     private Action<IFilterConventionDescriptor>? _configure;
 
@@ -23,7 +23,7 @@ public class FilterConventionExtension
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override FilterConventionDefinition CreateDefinition(
+    protected override FilterConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -38,7 +38,7 @@ public class FilterConventionExtension
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected internal new void Initialize(IConventionContext context)
@@ -53,38 +53,38 @@ public class FilterConventionExtension
     public override void Merge(IConventionContext context, Convention convention)
     {
         if (convention is FilterConvention filterConvention &&
-            Definition is not null &&
-            filterConvention.Definition is not null)
+            Configuration is not null &&
+            filterConvention.Configuration is not null)
         {
             ExtensionHelpers.MergeDictionary(
-                Definition.Bindings,
-                filterConvention.Definition.Bindings);
+                Configuration.Bindings,
+                filterConvention.Configuration.Bindings);
 
             ExtensionHelpers.MergeListDictionary(
-                Definition.Configurations,
-                filterConvention.Definition.Configurations);
+                Configuration.Configurations,
+                filterConvention.Configuration.Configurations);
 
-            filterConvention.Definition.Operations.AddRange(Definition.Operations);
+            filterConvention.Configuration.Operations.AddRange(Configuration.Operations);
 
-            filterConvention.Definition.ProviderExtensions.AddRange(
-                Definition.ProviderExtensions);
+            filterConvention.Configuration.ProviderExtensions.AddRange(
+                Configuration.ProviderExtensions);
 
-            filterConvention.Definition.ProviderExtensionsTypes.AddRange(
-                Definition.ProviderExtensionsTypes);
+            filterConvention.Configuration.ProviderExtensionsTypes.AddRange(
+                Configuration.ProviderExtensionsTypes);
 
-            if (Definition.ArgumentName != FilterConventionDefinition.DefaultArgumentName)
+            if (Configuration.ArgumentName != FilterConventionConfiguration.DefaultArgumentName)
             {
-                filterConvention.Definition.ArgumentName = Definition.ArgumentName;
+                filterConvention.Configuration.ArgumentName = Configuration.ArgumentName;
             }
 
-            if (Definition.Provider is not null)
+            if (Configuration.Provider is not null)
             {
-                filterConvention.Definition.Provider = Definition.Provider;
+                filterConvention.Configuration.Provider = Configuration.Provider;
             }
 
-            if (Definition.ProviderInstance is not null)
+            if (Configuration.ProviderInstance is not null)
             {
-                filterConvention.Definition.ProviderInstance = Definition.ProviderInstance;
+                filterConvention.Configuration.ProviderInstance = Configuration.ProviderInstance;
             }
         }
     }

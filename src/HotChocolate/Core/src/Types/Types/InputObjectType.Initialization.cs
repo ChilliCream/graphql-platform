@@ -22,20 +22,20 @@ public partial class InputObjectType
     private Func<object?[], object> _createInstance = default!;
     private Action<object, object?[]> _getFieldValues = default!;
 
-    protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = InputObjectTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
                     GetType());
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -45,31 +45,31 @@ public partial class InputObjectType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
         SetTypeIdentity(typeof(InputObjectType<>));
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        Fields = OnCompleteFields(context, definition);
-        IsOneOf = definition.GetDirectives().Any(static t => t.IsOneOf());
+        Fields = OnCompleteFields(context, configuration);
+        IsOneOf = configuration.GetDirectives().Any(static t => t.IsOneOf());
 
-        _createInstance = OnCompleteCreateInstance(context, definition);
-        _getFieldValues = OnCompleteGetFieldValues(context, definition);
+        _createInstance = OnCompleteCreateInstance(context, configuration);
+        _getFieldValues = OnCompleteGetFieldValues(context, configuration);
     }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -79,9 +79,9 @@ public partial class InputObjectType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnMakeExecutable(context, definition);
+        base.OnMakeExecutable(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -91,9 +91,9 @@ public partial class InputObjectType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnFinalizeType(context, definition);
+        base.OnFinalizeType(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -103,16 +103,16 @@ public partial class InputObjectType
 
     protected virtual FieldCollection<InputField> OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         return CompleteFields(context, this, definition.Fields, CreateField);
-        static InputField CreateField(InputFieldDefinition fieldDef, int index)
+        static InputField CreateField(InputFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }
 
     protected virtual Func<object?[], object> OnCompleteCreateInstance(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         Func<object?[], object>? createInstance = null;
 
@@ -135,7 +135,7 @@ public partial class InputObjectType
 
     protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
         Action<object, object?[]>? getFieldValues = null;
 
@@ -186,7 +186,7 @@ file static class Extensions
 {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsOneOf(this DirectiveDefinition directiveDef)
+    public static bool IsOneOf(this DirectiveConfiguration directiveDef)
         => directiveDef.Value is DirectiveNode node
             && node.Name.Value.EqualsOrdinal(WellKnownDirectives.OneOf);
 }
