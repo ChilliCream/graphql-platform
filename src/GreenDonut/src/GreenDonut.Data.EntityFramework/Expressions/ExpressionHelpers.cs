@@ -77,9 +77,21 @@ internal static class ExpressionHelpers
             {
                 var handledKey = handled[j];
 
-                keyExpr = Expression.Equal(
-                    Expression.Call(ReplaceParameter(handledKey.Expression, parameter), handledKey.CompareMethod,
-                        cursorExpr[j]), zero);
+                if (handledKey.Expression.ReturnType.IsEnum)
+                {
+                    keyExpr = Expression.Equal(
+                        ReplaceParameter(handledKey.Expression, parameter),
+                        cursorExpr[j]);
+                }
+                else
+                {
+                    keyExpr = Expression.Equal(
+                        Expression.Call(
+                            ReplaceParameter(handledKey.Expression, parameter),
+                            handledKey.CompareMethod,
+                            cursorExpr[j]),
+                        zero);
+                }
 
                 current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
             }
@@ -88,13 +100,36 @@ internal static class ExpressionHelpers
                 ? key.Direction == CursorKeyDirection.Ascending
                 : key.Direction == CursorKeyDirection.Descending;
 
-            keyExpr = greaterThan
-                ? Expression.GreaterThan(
-                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
-                    zero)
-                : Expression.LessThan(
-                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
-                    zero);
+            if (key.Expression.ReturnType.IsEnum)
+            {
+                var underlyingType = Enum.GetUnderlyingType(key.Expression.ReturnType);
+
+                keyExpr = greaterThan
+                    ? Expression.GreaterThan(
+                        Expression.Convert(
+                            ReplaceParameter(key.Expression, parameter), underlyingType),
+                        Expression.Convert(cursorExpr[i], underlyingType))
+                    : Expression.LessThan(
+                        Expression.Convert(
+                            ReplaceParameter(key.Expression, parameter), underlyingType),
+                        Expression.Convert(cursorExpr[i], underlyingType));
+            }
+            else
+            {
+                keyExpr = greaterThan
+                    ? Expression.GreaterThan(
+                        Expression.Call(
+                            ReplaceParameter(key.Expression, parameter),
+                            key.CompareMethod,
+                            cursorExpr[i]),
+                        zero)
+                    : Expression.LessThan(
+                        Expression.Call(
+                            ReplaceParameter(key.Expression, parameter),
+                            key.CompareMethod,
+                            cursorExpr[i]),
+                        zero);
+            }
 
             current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
             expression = expression is null ? current : Expression.OrElse(expression, current);
