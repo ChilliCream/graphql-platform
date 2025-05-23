@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Text.RegularExpressions;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
@@ -47,7 +48,7 @@ namespace HotChocolate.Types;
       author: String!
     }
     """)]
-public sealed class Tag
+public sealed partial class Tag
 {
     /// <summary>
     /// Creates a new instance of <see cref="Tag"/>.
@@ -60,7 +61,9 @@ public sealed class Tag
     /// </exception>
     public Tag(string name)
     {
-        if (!name.IsValidGraphQLName())
+        ArgumentNullException.ThrowIfNull(name);
+
+        if (!ValidNameRegex().IsMatch(name))
         {
             throw new ArgumentException(
                 TypeResources.TagDirective_Name_NotValid,
@@ -75,4 +78,7 @@ public sealed class Tag
     /// </summary>
     [GraphQLDescription("The name of the tag.")]
     public string Name { get; }
+
+    [GeneratedRegex("^[a-zA-Z0-9_-]+$")]
+    private static partial Regex ValidNameRegex();
 }
