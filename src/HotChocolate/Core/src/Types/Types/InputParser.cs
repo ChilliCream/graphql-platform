@@ -45,7 +45,8 @@ public sealed class InputParser
 
         var path = Path.Root.Append(field.Name);
         var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
-        runtimeValue = FormatValue(field, runtimeValue);
+
+        runtimeValue = FormatValue(field, targetType, runtimeValue);
 
         // Caller doesn't care, but to ensure specificity, we set the field's runtime type
         // to make sure it's at least converted to the right type.
@@ -258,7 +259,7 @@ public sealed class InputParser
                             stack,
                             defaults,
                             field);
-                        value = FormatValue(field, value);
+                        value = FormatValue(field, null, value);
                         value = ConvertValue(field.RuntimeType, value);
 
                         if (field.IsOptional)
@@ -406,7 +407,7 @@ public sealed class InputParser
                         stack,
                         defaults,
                         field);
-                    value = FormatValue(field, value);
+                    value = FormatValue(field, null, value);
                     value = ConvertValue(field.RuntimeType, value);
 
                     if (field.IsOptional)
@@ -569,7 +570,7 @@ public sealed class InputParser
                     }
 
                     var value = Deserialize(fieldValue, field.Type, fieldPath, field);
-                    value = FormatValue(field, value);
+                    value = FormatValue(field, null, value);
                     value = ConvertValue(field.RuntimeType, value);
 
                     if (field.IsOptional)
@@ -691,7 +692,7 @@ public sealed class InputParser
             throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
         }
 
-        value = FormatValue(field, value);
+        value = FormatValue(field, null, value);
         value = ConvertValue(field.RuntimeType, value);
 
         return field.IsOptional
@@ -739,7 +740,7 @@ public sealed class InputParser
             throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
         }
 
-        value = FormatValue(field, value);
+        value = FormatValue(field, null, value);
         value = ConvertValue(field.RuntimeType, value);
 
         return field.IsOptional
@@ -747,10 +748,48 @@ public sealed class InputParser
             : value;
     }
 
-    private static object? FormatValue(IInputFieldInfo field, object? value)
+    private static object? FormatValue(IInputFieldInfo field, Type? targetType, object? value)
         => value is null || field.Formatter is null
             ? value
-            : field.Formatter.Format(value);
+            : FormatValue(field.Formatter, targetType, value);
+
+    private static object? FormatValue(IInputValueFormatter valueFormatter, Type? targetType, object? value)
+    {
+        if (valueFormatter is IIdInputValueFormatter idFormatter)
+        {
+            return idFormatter.FormatId(GetElementType(targetType), value);
+        }
+        return valueFormatter.Format(value);
+    }
+
+    private static Type? GetElementType(Type? targetType)
+    {
+        if (targetType is null)
+        {
+            return null;
+        }
+
+        if (targetType.IsArray)
+        {
+            return targetType.GetElementType();
+        }
+
+        if (targetType.IsGenericType && typeof(IEnumerable).IsAssignableFrom(targetType))
+        {
+            return targetType.GetGenericArguments()[0];
+        }
+
+        foreach (Type interfaceType in targetType.GetInterfaces())
+        {
+            if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                return interfaceType.GetGenericArguments()[0];
+            }
+        }
+
+        return targetType;
+    }
+
 
     private object? ConvertValue(Type requestedType, object? value)
     {

@@ -4,15 +4,20 @@ using HotChocolate.Types.Relay;
 namespace HotChocolate.Data.Filters;
 
 internal class FilterGlobalIdInputValueFormatter(
-    INodeIdSerializerAccessor serializerAccessor,
-    Type namedType)
-    : IInputValueFormatter
+    INodeIdSerializerAccessor serializerAccessor)
+    : IIdInputValueFormatter
 {
     private INodeIdSerializer? _serializer;
 
-    public object? Format(object? originalValue)
+
+    public object? FormatId(Type? namedType, object? originalValue)
     {
-        if (originalValue is null)
+         if (originalValue is null)
+        {
+            return null;
+        }
+
+        if (namedType is null)
         {
             return null;
         }
@@ -96,5 +101,10 @@ internal class FilterGlobalIdInputValueFormatter(
         }
 
         throw ThrowHelper.GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId();
+    }
+
+    public object? Format(object? originalValue)
+    {
+        throw new NotSupportedException();
     }
 }
