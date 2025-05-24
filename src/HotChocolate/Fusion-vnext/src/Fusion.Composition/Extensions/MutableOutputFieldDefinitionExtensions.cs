@@ -7,11 +7,6 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class MutableOutputFieldDefinitionExtensions
 {
-    public static void ApplyLookupDirective(this MutableOutputFieldDefinition field)
-    {
-        field.Directives.Add(new Directive(new MutableDirectiveDefinition(Lookup)));
-    }
-
     public static ImmutableArray<string> GetSchemaNames(this MutableOutputFieldDefinition field)
     {
         var fusionFieldDirectives =

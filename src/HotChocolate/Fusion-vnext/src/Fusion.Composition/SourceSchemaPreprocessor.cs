@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
@@ -35,10 +36,10 @@ internal sealed class SourceSchemaPreprocessor(
 
         foreach (var queryField in queryType.Fields)
         {
-            if (queryField.HasLookupDirective()
-                || queryField.Type.IsListType()
-                || queryField.Type.Kind == TypeKind.NonNull
-                || queryField.Arguments.Count != 1)
+            if (queryField.HasLookupDirective() ||
+                queryField.Type.IsListType() ||
+                queryField.Type.Kind == TypeKind.NonNull ||
+                queryField.Arguments.Count != 1)
             {
                 continue;
             }
@@ -58,24 +59,22 @@ internal sealed class SourceSchemaPreprocessor(
             {
                 if (resultObjectType.Fields.TryGetField(keyOutputFieldName, out var keyField))
                 {
-                    queryField.ApplyLookupDirective();
-
-                    resultObjectType.ApplyKeyDirective([keyField.Name]);
+                    ApplyLookupDirective(queryField, context);
+                    ApplyKeyDirective(resultObjectType, [keyField.Name], context);
                 }
             }
             else if (resultType is MutableInterfaceTypeDefinition resultInterfaceType)
             {
                 if (resultInterfaceType.Fields.TryGetField(keyOutputFieldName, out var keyField))
                 {
-                    queryField.ApplyLookupDirective();
-
-                    resultInterfaceType.ApplyKeyDirective([keyField.Name]);
+                    ApplyLookupDirective(queryField, context);
+                    ApplyKeyDirective(resultInterfaceType, [keyField.Name], context);
 
                     foreach (var objectType in context.Schema.Types.OfType<MutableObjectTypeDefinition>())
                     {
                         if (objectType.Implements.ContainsName(resultInterfaceType.Name))
                         {
-                            objectType.ApplyKeyDirective([keyField.Name]);
+                            ApplyKeyDirective(objectType, [keyField.Name], context);
                         }
                     }
                 }
@@ -83,11 +82,63 @@ internal sealed class SourceSchemaPreprocessor(
         }
     }
 
+    private static void ApplyLookupDirective(
+        MutableOutputFieldDefinition field,
+        SourceSchemaPreprocessorContext context)
+    {
+        if (!context.Schema.DirectiveDefinitions.TryGetDirective(WellKnownDirectiveNames.Lookup,
+            out var lookupDirectiveDefinition))
+        {
+            lookupDirectiveDefinition = new LookupMutableDirectiveDefinition();
+
+            context.Schema.DirectiveDefinitions.Add(lookupDirectiveDefinition);
+        }
+
+        field.Directives.Add(new Directive(lookupDirectiveDefinition));
+    }
+
+    private static void ApplyKeyDirective(
+        MutableComplexTypeDefinition declaringType,
+        string[] fields,
+        SourceSchemaPreprocessorContext context)
+    {
+        if (!context.Schema.DirectiveDefinitions.TryGetDirective(WellKnownDirectiveNames.Key,
+            out var keyDirectiveDefinition))
+        {
+            if (!context.Schema.Types.TryGetType(WellKnownTypeNames.FieldSelectionSet, out var untypedType) ||
+                untypedType is not MutableScalarTypeDefinition fieldSelectionSetType)
+            {
+                fieldSelectionSetType = MutableScalarTypeDefinition.Create(WellKnownTypeNames.FieldSelectionSet);
+
+                context.Schema.Types.Add(fieldSelectionSetType);
+            }
+
+            keyDirectiveDefinition = new KeyMutableDirectiveDefinition(fieldSelectionSetType);
+
+            context.Schema.DirectiveDefinitions.Add(keyDirectiveDefinition);
+        }
+
+        var fieldsArgument = new ArgumentAssignment(WellKnownArgumentNames.Fields, string.Join(" ", fields));
+        var keyDirective = new Directive(keyDirectiveDefinition, fieldsArgument);
+
+        declaringType.Directives.Add(keyDirective);
+    }
+
     private static void ApplyShareableToAllTypes(SourceSchemaPreprocessorContext context)
     {
+        context.Schema.DirectiveDefinitions
+            .TryGetDirective(WellKnownDirectiveNames.Shareable, out var shareableDirectiveDefinition);
+
         foreach (var objectType in context.Schema.Types.OfType<MutableObjectTypeDefinition>())
         {
-            objectType.ApplyShareableDirective();
+            if (shareableDirectiveDefinition is null)
+            {
+                shareableDirectiveDefinition = new ShareableMutableDirectiveDefinition();
+
+                context.Schema.DirectiveDefinitions.Add(shareableDirectiveDefinition);
+            }
+
+            objectType.Directives.Add(new Directive(shareableDirectiveDefinition));
         }
     }
 }
