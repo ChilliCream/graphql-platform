@@ -15,9 +15,9 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        if (context.Schema.GetOperationType(node.Operation) is { } type)
+        if (context.Schema.TryGetOperationType(node.Operation, out var operationType))
         {
-            context.Types.Push(type);
+            context.Types.Push(operationType);
             context.Variables.Clear();
             return Continue;
         }

@@ -59,12 +59,7 @@ public sealed partial class OperationCompiler
 
     public IOperation Compile(OperationCompilerRequest request)
     {
-        if (string.IsNullOrEmpty(request.Id))
-        {
-            throw new ArgumentException(
-                OperationCompiler_OperationIdNullOrEmpty,
-                nameof(request.Id));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(request.Id, nameof(request));
 
         try
         {

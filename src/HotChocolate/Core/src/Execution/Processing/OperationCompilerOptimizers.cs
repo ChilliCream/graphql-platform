@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -62,12 +61,7 @@ public readonly struct OperationCompilerRequest
         ImmutableArray<IOperationOptimizer>? operationOptimizers = null,
         ImmutableArray<ISelectionSetOptimizer>? selectionSetOptimizers = null)
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            throw new ArgumentException(
-                Resources.OperationCompiler_OperationIdNullOrEmpty,
-                nameof(id));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(id);
 
         Id = id;
         Document = document ?? throw new ArgumentNullException(nameof(document));

@@ -33,7 +33,7 @@ public class IntrospectionRuleTests
             }
             """,
             context => context.Features.Set(
-                new IntrospectionRequestOptions(
+                new IntrospectionRequestOverrides(
                     IsAllowed: false,
                     NotAllowedErrorMessage: "Baz")));
     }
@@ -80,7 +80,7 @@ public class IntrospectionRuleTests
                 }
             }
             """,
-            context => context.Features.Set(new IntrospectionRequestOptions(IsAllowed: true)));
+            context => context.Features.Set(new IntrospectionRequestOverrides(IsAllowed: true)));
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class IntrospectionRuleTests
                 __type(name: "foo")
             }
             """,
-            context => context.Features.Set(new IntrospectionRequestOptions(IsAllowed: true)));
+            context => context.Features.Set(new IntrospectionRequestOverrides(IsAllowed: true)));
     }
 
     private static Schema CreateSchema()

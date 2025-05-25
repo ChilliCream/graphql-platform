@@ -2,7 +2,7 @@ using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
 
-public static class IntrospectionFeatureExtensions
+public static class IntrospectionRequestOverridesExtensions
 {
     /// <summary>
     /// Allows introspection usage for the current request.
@@ -18,11 +18,11 @@ public static class IntrospectionFeatureExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        var options = builder.Features.Get<IntrospectionRequestOptions>();
+        var options = builder.Features.Get<IntrospectionRequestOverrides>();
 
         if (options is null)
         {
-            options = new IntrospectionRequestOptions(IsAllowed: true);
+            options = new IntrospectionRequestOverrides(IsAllowed: true);
         }
         else
         {
@@ -51,11 +51,11 @@ public static class IntrospectionFeatureExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        var options = builder.Features.Get<IntrospectionRequestOptions>();
+        var options = builder.Features.Get<IntrospectionRequestOverrides>();
 
         if (options is null)
         {
-            options = new IntrospectionRequestOptions(
+            options = new IntrospectionRequestOverrides(
                 IsAllowed: false,
                 NotAllowedErrorMessage: message);
         }
@@ -78,7 +78,7 @@ public static class IntrospectionFeatureExtensions
     /// Returns true if introspection is disabled, otherwise false.
     /// </returns>
     public static bool IsIntrospectionDisabled(this IFeatureProvider featureProvider)
-        => featureProvider.Features.Get<IntrospectionRequestOptions>()?.IsAllowed != true;
+        => featureProvider.Features.Get<IntrospectionRequestOverrides>()?.IsAllowed != true;
 
     /// <summary>
     /// Gets the custom error message for when introspection is not allowed.
@@ -90,5 +90,5 @@ public static class IntrospectionFeatureExtensions
     /// Returns the custom error message for when introspection is not allowed.
     /// </returns>
     public static string? GetCustomIntrospectionErrorMessage(this IFeatureProvider featureProvider)
-        => featureProvider.Features.Get<IntrospectionRequestOptions>()?.NotAllowedErrorMessage;
+        => featureProvider.Features.Get<IntrospectionRequestOverrides>()?.NotAllowedErrorMessage;
 }

@@ -9,6 +9,6 @@ namespace HotChocolate.Execution;
 /// <param name="NotAllowedErrorMessage">
 /// A custom error message that is being used when introspection is not allowed.
 /// </param>
-public sealed record IntrospectionRequestOptions(
+public sealed record IntrospectionRequestOverrides(
     bool IsAllowed = true,
     string? NotAllowedErrorMessage = null);

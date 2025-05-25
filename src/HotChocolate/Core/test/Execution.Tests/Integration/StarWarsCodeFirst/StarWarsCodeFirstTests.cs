@@ -1013,7 +1013,7 @@ public class StarWarsCodeFirstTests
 
         var configurationA = new TestConfiguration
         {
-            ConfigureRequest = r => { r.SkipExecutionDepthAnalysis(); },
+            ConfigureRequest = r => r.SkipExecutionDepthAnalysis(),
         };
         var configurationB = new TestConfiguration
         {
