@@ -65,47 +65,46 @@ public record Error : IError
             code = null;
         }
 
-        if (code is null && Extensions is null)
+        switch (Extensions)
         {
-            return this;
-        }
+            case null when code is null:
+                return this;
 
-        if (Extensions is ImmutableOrderedDictionary<string, object?> d)
-        {
-            if (code is null)
-            {
+            case null:
+                return this with
+                {
+                    Extensions = ImmutableOrderedDictionary<string, object?>.Empty.Add(nameof(code), code)
+                };
+
+            case ImmutableOrderedDictionary<string, object?> d when code is null:
                 return this with { Extensions = d.Remove(nameof(code)) };
-            }
 
-            if (d.ContainsKey(nameof(code)))
-            {
+            case ImmutableOrderedDictionary<string, object?> d when d.ContainsKey(nameof(code)):
                 return this with { Extensions = d.SetItem(nameof(code), code) };
-            }
 
-            return this with { Extensions = d.Insert(0, nameof(code), code) };
-        }
+            case ImmutableOrderedDictionary<string, object?> d:
+                return this with { Extensions = d.Insert(0, nameof(code), code) };
 
-        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
+            default:
+                var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
 
-        if (Extensions is not null)
-        {
-            builder.AddRange(Extensions);
-        }
+                builder.AddRange(Extensions);
 
-        if (code is null)
-        {
-            builder.Remove(nameof(code));
-        }
-        else if (builder.ContainsKey(nameof(code)))
-        {
-            builder[nameof(code)] = code;
-        }
-        else
-        {
-            builder.Insert(0, nameof(code), code);
-        }
+                if (code is null)
+                {
+                    builder.Remove(nameof(code));
+                }
+                else if (builder.ContainsKey(nameof(code)))
+                {
+                    builder[nameof(code)] = code;
+                }
+                else
+                {
+                    builder.Insert(0, nameof(code), code);
+                }
 
-        return this;
+                return this with { Extensions = builder.ToImmutable() };
+        }
     }
 
     /// <summary>

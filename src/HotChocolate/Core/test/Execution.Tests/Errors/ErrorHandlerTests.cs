@@ -81,6 +81,7 @@ public class ErrorHandlerTests
             .AddGraphQL()
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = false)
 
             // build graphql executor
             .BuildRequestExecutorAsync();

@@ -96,7 +96,7 @@ public class OrderedDictionary<TKey, TValue>
     /// <summary>
     /// Gets a collection containing the keys in the dictionary.
     /// </summary>
-    public ICollection<TKey> Keys => _map.Keys;
+    public ICollection<TKey> Keys => _keys;
 
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys =>
         Keys;
