@@ -1,4 +1,4 @@
-﻿{
+{
   "Document": {
     "SourceText": "{ foo }"
   },
@@ -12,6 +12,7 @@
   "ContextData": {
     "one": "foo"
   },
+  "Features": [],
   "Services": {},
   "Flags": "AllowAll"
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "Document": {
     "SourceText": "{ foo }"
   },
@@ -8,6 +8,7 @@
   "VariableValues": null,
   "Extensions": null,
   "ContextData": null,
+  "Features": [],
   "Services": {},
   "Flags": "AllowAll"
 }

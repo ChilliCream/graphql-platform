@@ -20,36 +20,14 @@ internal static class AuthorizationFeatureExtensions
     public static ISchemaBuilder MarkAuthorizeDirectivesRegistered(
         this ISchemaBuilder builder)
     {
-        var feature = builder.Features.Get<AuthorizationFeature>() ?? new AuthorizationFeature(false);
-        builder.Features.Set(feature with { AreDirectivesRegistered = true });
+        var feature = builder.Features.Get<AuthorizationFeature>();
+
+        if (feature is null)
+        {
+            builder.Features.Set(new AuthorizationFeature(AreDirectivesRegistered: true));
+        }
+
         return builder;
-    }
-
-     public static SchemaTypeConfiguration MarkForRequestLevelAuthorization(
-        this SchemaTypeConfiguration configuration)
-    {
-        var features = configuration.Features;
-        var options = features.Get<AuthorizationFieldOptions>() ?? new AuthorizationFieldOptions();
-        features.Set(options with { AuthorizeAtRequestLevel = true });
-        return configuration;
-    }
-
-    public static IDescriptorContext MarkForRequestLevelAuthorization(
-        this IDescriptorContext context)
-    {
-        var features = context.Features;
-        var options = features.Get<AuthorizationFieldOptions>() ?? new AuthorizationFieldOptions();
-        features.Set(options with { AuthorizeAtRequestLevel = true });
-        return context;
-    }
-
-    public static IObjectFieldDescriptor MarkForRequestLevelAuthorization(
-        this IObjectFieldDescriptor descriptor)
-    {
-        var features = descriptor.Extend().Configuration.Features;
-        var options = features.Get<AuthorizationFieldOptions>() ?? new AuthorizationFieldOptions();
-        features.Set(options with { AuthorizeAtRequestLevel = true });
-        return descriptor;
     }
 
     public static bool IsAuthorizedAtRequestLevel(
@@ -80,20 +58,40 @@ internal static class AuthorizationFeatureExtensions
         return options?.AuthorizeAtRequestLevel ?? false;
     }
 
-    public static IObjectFieldDescriptor AllowAnonymous(
-        this IObjectFieldDescriptor descriptor)
+    public static SchemaTypeConfiguration ModifyAuthorizationFieldOptions(
+        this SchemaTypeConfiguration context,
+        Func<AuthorizationFieldOptions, AuthorizationFieldOptions> configure)
     {
-        var features = descriptor.Extend().Configuration.Features;
+        var features = context.Features;
         var options = features.Get<AuthorizationFieldOptions>() ?? new AuthorizationFieldOptions();
-        features.Set(options with { AllowAnonymous = true });
+        features.Set(configure(options));
+        return context;
+    }
+
+    public static IDescriptorContext ModifyAuthorizationFieldOptions(
+        this IDescriptorContext context,
+        Func<AuthorizationFieldOptions, AuthorizationFieldOptions> configure)
+    {
+        var features = context.Features;
+        var options = features.Get<AuthorizationFieldOptions>() ?? new AuthorizationFieldOptions();
+        features.Set(configure(options));
+        return context;
+    }
+
+    public static IObjectFieldDescriptor ModifyAuthorizationFieldOptions(
+        this IObjectFieldDescriptor descriptor,
+        Func<AuthorizationFieldOptions, AuthorizationFieldOptions> configure)
+    {
+        ModifyAuthorizationFieldOptions(descriptor.Extend().Configuration, configure);
         return descriptor;
     }
 
-    public static ObjectFieldConfiguration AllowAnonymous(
-        this ObjectFieldConfiguration configuration)
-    {;
+    public static ObjectFieldConfiguration ModifyAuthorizationFieldOptions(
+        this ObjectFieldConfiguration configuration,
+        Func<AuthorizationFieldOptions, AuthorizationFieldOptions> configure)
+    {
         var options = configuration.Features.Get<AuthorizationFieldOptions>() ?? new AuthorizationFieldOptions();
-        configuration.Features.Set(options with { AllowAnonymous = true });
+        configuration.Features.Set(configure(options));
         return configuration;
     }
 
@@ -107,7 +105,7 @@ internal static class AuthorizationFeatureExtensions
     public static IRequestContext EnsureAuthorizationRequestDataExists(
         this IRequestContext context)
     {
-        var data = context.Features.GetOrSet<AuthorizationRequestData>();
+        var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         data.Handler = context.Services.GetRequiredService<IAuthorizationHandler>();
         return context;
     }
@@ -115,28 +113,28 @@ internal static class AuthorizationFeatureExtensions
     public static IAuthorizationHandler GetAuthorizationHandler(
         this IRequestContext context)
     {
-        var data = context.Features.GetOrSet<AuthorizationRequestData>();
+        var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         return data.Handler ?? throw new InvalidOperationException("Authorization handler not found.");
     }
 
     public static IAuthorizationHandler GetAuthorizationHandler(
         this IMiddlewareContext context)
     {
-        var data = context.Features.GetOrSet<AuthorizationRequestData>();
+        var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         return data.Handler ?? throw new InvalidOperationException("Authorization handler not found.");
     }
 
     public static ImmutableArray<AuthorizeDirective> GetAuthorizeDirectives(
         this IRequestContext context)
     {
-        var data = context.Features.GetOrSet<AuthorizationRequestData>();
+        var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         return data.Directives;
     }
 
     public static ImmutableArray<AuthorizeDirective> GetAuthorizeDirectives(
         this DocumentValidatorContext context)
     {
-        var data = context.Features.GetOrSet<AuthorizationRequestData>();
+        var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         return data.Directives;
     }
 
@@ -144,7 +142,7 @@ internal static class AuthorizationFeatureExtensions
         this DocumentValidatorContext context,
         ImmutableArray<AuthorizeDirective> directives)
     {
-        var data = context.Features.GetOrSet<AuthorizationRequestData>();
+        var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         data.Directives = directives;
         return context;
     }
@@ -162,7 +160,7 @@ internal static class AuthorizationFeatureExtensions
     {
         var userState = context.Features.Get<UserState>();
 
-        if(userState is null
+        if (userState is null
             && context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value)
             && value is ClaimsPrincipal principal)
         {

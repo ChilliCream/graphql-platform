@@ -59,11 +59,11 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
         ITypeSystemConfiguration definition,
         Stack<ITypeSystemConfiguration> path)
     {
-        ((IDirectiveConfigurationProvider)definition).Directives.Add(new(directiveNode));
+        ((IDirectiveConfigurationProvider)definition).Directives.Add(new DirectiveConfiguration(directiveNode));
 
         if (IsValidationAuthRule(directiveNode))
         {
-            context.MarkForRequestLevelAuthorization();
+            context.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
 
         static bool IsValidationAuthRule(DirectiveNode directiveNode)

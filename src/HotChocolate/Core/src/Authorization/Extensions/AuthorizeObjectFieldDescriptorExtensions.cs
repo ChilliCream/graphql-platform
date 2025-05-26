@@ -26,7 +26,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
 
         if (apply is ApplyPolicy.Validation)
         {
-            descriptor.MarkForRequestLevelAuthorization();
+            descriptor.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
 
         return descriptor.Directive(new AuthorizeDirective(apply: apply));
@@ -53,7 +53,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
 
         if (apply is ApplyPolicy.Validation)
         {
-            descriptor.MarkForRequestLevelAuthorization();
+            descriptor.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
 
         return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
@@ -97,7 +97,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Directive(AllowAnonymousDirectiveType.Names.AllowAnonymous);
-        descriptor.AllowAnonymous();
+        descriptor.ModifyAuthorizationFieldOptions(o => o with { AllowAnonymous = true });
         return descriptor;
     }
 }

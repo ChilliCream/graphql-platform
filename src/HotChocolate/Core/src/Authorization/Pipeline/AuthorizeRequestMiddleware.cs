@@ -25,6 +25,7 @@ internal sealed class AuthorizeRequestMiddleware(
                 context.Schema,
                 applicationServices,
                 context.ContextData,
+                context.Features,
                 context.Document,
                 context.DocumentId.Value);
 

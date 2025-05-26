@@ -1,4 +1,4 @@
-﻿{
+{
   "Document": {
     "Document": {
       "Kind": "Document",
@@ -67,6 +67,7 @@
   "VariableValues": null,
   "Extensions": null,
   "ContextData": null,
+  "Features": [],
   "Services": null,
   "Flags": "AllowAll"
 }

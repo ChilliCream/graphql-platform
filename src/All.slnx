@@ -110,6 +110,7 @@
   <Folder Name="/HotChocolate/Core/test/">
     <Project Path="HotChocolate/Core/test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Execution.Abstractions.Tests/HotChocolate.Execution.Abstractions.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Execution.Tests/HotChocolate.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Features.Tests/HotChocolate.Features.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Fetching.Tests/HotChocolate.Fetching.Tests.csproj" />
@@ -134,9 +135,6 @@
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
-  </Folder>
-  <Folder Name="/HotChocolate/Core/test/Execution.Abstractions.Tests/">
-    <Project Path="HotChocolate/Core/test/Execution.Abstractions.Tests/HotChocolate.Execution.Abstractions.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/" />
   <Folder Name="/HotChocolate/CostAnalysis/src/">

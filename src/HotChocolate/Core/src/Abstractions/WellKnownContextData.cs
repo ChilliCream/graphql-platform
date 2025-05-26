@@ -144,11 +144,6 @@ public static class WellKnownContextData
     public const string CacheControlConstraints = "HotChocolate.Caching.CacheControlConstraints";
 
     /// <summary>
-    /// The key to access the user state on the global context.
-    /// </summary>
-    public const string UserState = "HotChocolate.Authorization.UserState";
-
-    /// <summary>
     /// Type key to access the paging arguments in the local resolver state.
     /// </summary>
     public const string PagingArguments = "HotChocolate.Types.PagingArguments";

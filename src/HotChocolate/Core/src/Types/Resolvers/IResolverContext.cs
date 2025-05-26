@@ -10,7 +10,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers;
 
 /// <summary>
-/// The resolver context represent the execution context for a specific
+/// The resolver context represents the execution context for a specific
 /// field that is being resolved.
 /// </summary>
 public interface IResolverContext : IHasContextData, IFeatureProvider

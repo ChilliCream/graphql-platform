@@ -19,14 +19,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     private readonly HashSet<TypeReference> _completedTypeRefs = [];
     private readonly HashSet<RegisteredType> _completedTypes = [];
     private State? _state;
-    private IDescriptorContext _context = default!;
-    private TypeInitializer _typeInitializer = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private TypeLookup _typeLookup = default!;
-    private SchemaTypeConfiguration _schemaConfig = default!;
-    private ITypeCompletionContext _queryContext = default!;
-    private ITypeCompletionContext _authDirectiveContext = default!;
-    private AuthorizeDirectiveType _authDirective = default!;
+    private IDescriptorContext _context = null!;
+    private TypeInitializer _typeInitializer = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private TypeLookup _typeLookup = null!;
+    private SchemaTypeConfiguration _schemaConfig = null!;
+    private ITypeCompletionContext _queryContext = null!;
+    private ITypeCompletionContext _authDirectiveContext = null!;
+    private AuthorizeDirectiveType _authDirective = null!;
 
     internal override uint Position => uint.MaxValue - 50;
 
@@ -76,7 +76,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         }
 
         // note, we do not need to collect interfaces as the object type has a
-        // list implements that links to the interfaces that expose an object type.
+        // list implement that links to the interfaces that expose an object type.
     }
 
     public override void OnAfterResolveRootType(
@@ -102,17 +102,17 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         // copy temporary state to schema state.
         if (_context.IsAuthorizedAtRequestLevel())
         {
-            _schemaConfig.MarkForRequestLevelAuthorization();
+            _schemaConfig.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
 
-        // before we can apply schema transformations we will inspect the object types
+        // before we can apply schema transformations, we will inspect the object types
         // to identify the ones that are protected with authorization directives.
         InspectObjectTypesForAuthDirective(state);
 
         // next we will inspect the union types that expose one or more protected object types.
         FindUnionTypesThatContainAuthTypes(state);
 
-        // last we will find fields that expose protected types and apply authorization
+        // at last, we will find fields that expose protected types and apply authorization
         // middleware.
         FindFieldsAndApplyAuthMiddleware(state);
     }
@@ -175,7 +175,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             var registration = type.TypeReg;
             var mainTypeRef = registration.TypeReference;
 
-            // if this type is a root type we will copy type level auth down to the field.
+            // if this type is a root type, we will copy type level auth down to the field.
             if (registration.IsQueryType == true ||
                 registration.IsMutationType == true ||
                 registration.IsSubscriptionType == true)
@@ -188,7 +188,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                         continue;
                     }
 
-                    // if the field contains the AnonymousAllowed flag we will not
+                    // if the field contains the AnonymousAllowed flag, we will not
                     // apply authorization on it.
                     if(fieldDef.IsAnonymousAllowed())
                     {
@@ -351,7 +351,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 if (authDir.Apply is ApplyPolicy.Validation)
                 {
-                    _schemaConfig.MarkForRequestLevelAuthorization();
+                    _schemaConfig.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
                     return;
                 }
             }
@@ -363,7 +363,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         ObjectFieldConfiguration fieldDef,
         State state)
     {
-        // if the field contains the AnonymousAllowed flag we will not apply authorization
+        // if the field contains the AnonymousAllowed flag, we will not apply authorization
         // on it.
         if(fieldDef.IsAnonymousAllowed())
         {
@@ -443,11 +443,11 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 var authDir = directive.ToValue<AuthorizeDirective>();
 
                 // if the directive represents a validation policy that must be invoked during
-                // validation we do not need a middleware and will skip applying one.
+                // validation, we do not need middleware and will skip applying one.
                 if (authDir.Apply is ApplyPolicy.Validation)
                 {
                     // but we must mark the schema to have auth validation policies.
-                    _schemaConfig.MarkForRequestLevelAuthorization();
+                    _schemaConfig.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
                     continue;
                 }
 

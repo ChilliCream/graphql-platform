@@ -243,8 +243,7 @@ namespace TestNamespace.Types.Root
                     c.Configuration.SetSourceGeneratorFlags();
                     c.Configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
-                    c.Configuration.State = c.Configuration.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
-                    c.Configuration.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
+                    c.Configuration.Features.Set(pagingOptions);
                     c.Configuration.Resolvers = r.GetAuthorsAsync();
                 },
                 resolvers);

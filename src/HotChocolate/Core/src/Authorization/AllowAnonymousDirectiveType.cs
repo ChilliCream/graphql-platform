@@ -30,11 +30,11 @@ internal sealed class AllowAnonymousDirectiveType
         ITypeSystemConfiguration definition,
         Stack<ITypeSystemConfiguration> path)
     {
-        ((IDirectiveConfigurationProvider)definition).Directives.Add(new(directiveNode));
+        ((IDirectiveConfigurationProvider)definition).Directives.Add(new DirectiveConfiguration(directiveNode));
 
         if (definition is ObjectFieldConfiguration fieldDef)
         {
-            fieldDef.AllowAnonymous();
+            fieldDef.ModifyAuthorizationFieldOptions(o => o with { AllowAnonymous = true });
         }
     }
 

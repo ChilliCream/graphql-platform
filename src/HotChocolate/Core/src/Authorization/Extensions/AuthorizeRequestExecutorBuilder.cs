@@ -27,10 +27,7 @@ public static class AuthorizeRequestExecutorBuilder
     public static IRequestExecutorBuilder AddAuthorizationCore(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<IRequestContextEnricher, AuthorizationContextEnricher>();
         builder.Services.TryAddSingleton(new AuthorizationCache());
