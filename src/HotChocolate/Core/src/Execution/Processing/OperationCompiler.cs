@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using System.Security.Authentication.ExtendedProtection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -267,7 +266,7 @@ public sealed partial class OperationCompiler
 
         foreach (var selection in context.Fields.Values)
         {
-            // if the field of the selection returns a composite type we will traverse
+            // if the field of the selection returns a composite type, we will traverse
             // the child selection-sets as well.
             var fieldType = selection.Type.NamedType();
             var selectionSetId = -1;
@@ -350,10 +349,8 @@ public sealed partial class OperationCompiler
 
     private void CollectFields(CompilerContext context)
     {
-        for (var i = 0; i < context.SelectionInfos.Length; i++)
+        foreach (var selectionSetInfo in context.SelectionInfos)
         {
-            var selectionSetInfo = context.SelectionInfos[i];
-
             CollectFields(
                 context,
                 selectionSetInfo.SelectionSet,
@@ -436,7 +433,7 @@ public sealed partial class OperationCompiler
             {
                 var id = GetNextSelectionId();
 
-                // if this is the first time we find a selection to this field we have to
+                // if this is the first time we've found a selection to this field, we have to
                 // create a new prepared selection.
                 preparedSelection = new Selection.Sealed(
                     id,
@@ -555,7 +552,7 @@ public sealed partial class OperationCompiler
                 context.Fragments.Add(fragment);
                 _hasIncrementalParts = true;
 
-                // if we have if-condition flags there will be a runtime validation if something
+                // if we have if-condition flags, there will be a runtime validation if something
                 // shall be deferred, so we need to prepare for both cases.
                 //
                 // this means that we will collect the fields with our if condition flags as
@@ -758,11 +755,11 @@ public sealed partial class OperationCompiler
         SelectionPath path)
         : IEquatable<SelectionSetRef>
     {
-        public SelectionSetNode SelectionSet { get; } = selectionSet;
+        public readonly SelectionSetNode SelectionSet = selectionSet;
 
-        public SelectionPath Path { get; } = path;
+        public readonly SelectionPath Path = path;
 
-        public string SelectionSetTypeName { get; } = selectionSetTypeName;
+        public readonly string SelectionSetTypeName = selectionSetTypeName;
 
         public bool Equals(SelectionSetRef other)
             => SyntaxComparer.BySyntax.Equals(SelectionSet, other.SelectionSet)

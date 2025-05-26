@@ -12,7 +12,7 @@ public static class ExecutionObjectFieldDescriptorExtensions
 {
     /// <summary>
     /// Adds a selection set optimizer to the field.
-    /// The optimizer will be used for this field`s selection
+    /// The optimizer will be used for this field's selection
     /// set and also for all child field selection sets.
     /// </summary>
     /// <param name="descriptor">

@@ -56,7 +56,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
                     .GetProjectionConvention()
                     .CreateOptimizer();
 
-                if (field.Features is not FeatureCollection extensionData)
+                if (field.Features is not FeatureCollection)
                 {
                     throw ThrowHelper.ProjectionConvention_NodeFieldWasInInvalidState();
                 }
