@@ -121,14 +121,14 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
 
                 case RequestMiddlewareParameterKind.SchemaService when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.SchemaServices.GetRequiredService<global::{1}>();",
+                        "var cp{0} = core.SchemaServices.GetRequiredService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
 
                 case RequestMiddlewareParameterKind.SchemaService when parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.SchemaServices.GetService<global::{1}>();",
+                        "var cp{0} = core.SchemaServices.GetService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
