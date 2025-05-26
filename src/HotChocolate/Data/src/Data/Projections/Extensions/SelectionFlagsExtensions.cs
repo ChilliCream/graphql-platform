@@ -19,7 +19,7 @@ public static class SelectionFlagsExtensions
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        var flags = selection.Field.Features.Get<SelectionFlags>();
+        var flags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (flags & SelectionFlags.FirstOrDefault) == SelectionFlags.FirstOrDefault;
     }
 
@@ -33,7 +33,7 @@ public static class SelectionFlagsExtensions
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        var flags = selection.Field.Features.Get<SelectionFlags>();
+        var flags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (flags & SelectionFlags.SingleOrDefault) == SelectionFlags.SingleOrDefault;
     }
 
@@ -47,7 +47,7 @@ public static class SelectionFlagsExtensions
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        var flags = selection.Field.Features.Get<SelectionFlags>();
+        var flags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (flags & SelectionFlags.MemberIsList) == SelectionFlags.MemberIsList;
     }
 
@@ -62,7 +62,7 @@ public static class SelectionFlagsExtensions
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        var actualFlags = selection.Field.Features.Get<SelectionFlags>();
+        var actualFlags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (actualFlags & flags) == flags;
     }
 
@@ -77,7 +77,7 @@ public static class SelectionFlagsExtensions
     {
         ArgumentNullException.ThrowIfNull(field);
 
-        var actualFlags = field.Features.Get<SelectionFlags>();
+        var actualFlags = field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (actualFlags & flags) == flags;
     }
 
@@ -92,7 +92,7 @@ public static class SelectionFlagsExtensions
     {
         ArgumentNullException.ThrowIfNull(field);
 
-        var actualFlags = field.Features.Get<SelectionFlags>();
+        var actualFlags = field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         actualFlags |= flags;
         field.Features.Set(actualFlags);
         return true;
