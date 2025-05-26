@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Collections.Immutable;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore;
@@ -31,7 +32,7 @@ internal static class ErrorHelper
             new Error
             {
                 Message = ErrorHelper_TypeNameIsEmpty,
-                Extensions = ImmutableDictionary<string, object?>.Empty
+                Extensions = ImmutableOrderedDictionary<string, object?>.Empty
                     .Add("code", ErrorCodes.Server.TypeParameterIsEmpty)
             });
 
@@ -40,7 +41,7 @@ internal static class ErrorHelper
             new Error
             {
                 Message = ErrorHelper_InvalidTypeName,
-                Extensions = ImmutableDictionary<string, object?>.Empty
+                Extensions = ImmutableOrderedDictionary<string, object?>.Empty
                     .Add("code", ErrorCodes.Server.InvalidTypeName)
                     .Add(nameof(typeName), typeName)
             });
@@ -50,7 +51,7 @@ internal static class ErrorHelper
             new Error
             {
                 Message = string.Format(ErrorHelper_TypeNotFound, typeName),
-                Extensions = ImmutableDictionary<string, object?>.Empty
+                Extensions = ImmutableOrderedDictionary<string, object?>.Empty
                     .Add("code", ErrorCodes.Server.TypeDoesNotExist)
                     .Add(nameof(typeName), typeName)
             });
@@ -60,7 +61,7 @@ internal static class ErrorHelper
             new Error
             {
                 Message = string.Format(ErrorHelper_InvalidAcceptMediaType, headerValue),
-                Extensions = ImmutableDictionary<string, object?>.Empty
+                Extensions = ImmutableOrderedDictionary<string, object?>.Empty
                     .Add("code", ErrorCodes.Server.InvalidAcceptHeaderValue)
                     .Add(nameof(headerValue), headerValue)
             });
@@ -70,7 +71,7 @@ internal static class ErrorHelper
             new Error
             {
                 Message = ErrorHelper_MultiPartRequestPreflightRequired,
-                Extensions = ImmutableDictionary<string, object?>.Empty
+                Extensions = ImmutableOrderedDictionary<string, object?>.Empty
                     .Add("code", ErrorCodes.Server.MultiPartPreflightRequired)
             });
 

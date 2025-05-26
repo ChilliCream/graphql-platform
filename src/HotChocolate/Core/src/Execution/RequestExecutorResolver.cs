@@ -37,9 +37,6 @@ internal sealed partial class RequestExecutorResolver
     private ulong _version;
     private bool _disposed;
 
-    [Obsolete("Use the events property instead.")]
-    public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
-
     public RequestExecutorResolver(
         IRequestExecutorOptionsMonitor optionsMonitor,
         IEnumerable<WarmupSchemaTask> warmupSchemaTasks,
@@ -227,10 +224,6 @@ internal sealed partial class RequestExecutorResolver
 
         try
         {
-            RequestExecutorEvicted?.Invoke(
-                this,
-                new RequestExecutorEvictedEventArgs(schemaName, previousExecutor.Executor));
-
             _events.RaiseEvent(
                 new RequestExecutorEvent(
                     RequestExecutorEventType.Evicted,
@@ -285,7 +278,7 @@ internal sealed partial class RequestExecutorResolver
         serviceCollection.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
 
-        serviceCollection.AddSingleton(new SchemaSetupInfo(context.SchemaName, version));
+        serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
@@ -325,7 +318,7 @@ internal sealed partial class RequestExecutorResolver
         serviceCollection.TryAddSingleton(
             static sp =>
             {
-                var version = sp.GetRequiredService<SchemaSetupInfo>().Version;
+                var version = sp.GetRequiredService<SchemaVersionInfo>().Version;
                 var provider = sp.GetRequiredService<ObjectPoolProvider>();
 
                 var policy = new RequestContextPooledObjectPolicy(
@@ -344,7 +337,7 @@ internal sealed partial class RequestExecutorResolver
                 sp.GetRequiredService<RequestDelegate>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
                 sp.GetRootServiceProvider().GetRequiredService<DefaultRequestContextAccessor>(),
-                sp.GetRequiredService<SchemaSetupInfo>().Version));
+                sp.GetRequiredService<SchemaVersionInfo>().Version));
 
         serviceCollection.AddSingleton(
             static sp =>
@@ -410,14 +403,16 @@ internal sealed partial class RequestExecutorResolver
     {
         serviceCollection.AddSingleton(sp =>
         {
+            var rootServices = sp.GetRootServiceProvider();
+
             var builder =
                 DocumentValidatorBuilder.New()
-                    .SetServices(sp.GetRootServiceProvider())
+                    .SetServices(rootServices)
                     .AddDefaultRules();
 
             foreach (var hook in hooks)
             {
-                hook(sp, builder);
+                hook(rootServices, builder);
             }
 
             return builder.Build();
@@ -768,7 +763,7 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private sealed record SchemaSetupInfo(string SchemaName, ulong Version);
+    private sealed record SchemaVersionInfo(ulong Version);
 
     private sealed class RequestPipelineHolder
     {
