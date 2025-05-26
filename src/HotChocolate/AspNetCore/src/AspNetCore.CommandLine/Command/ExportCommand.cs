@@ -39,7 +39,7 @@ internal sealed class ExportCommand : Command
         string? schemaName,
         CancellationToken cancellationToken)
     {
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
 
         var schema = await host.Services
             .GetRequiredService<IRequestExecutorResolver>()

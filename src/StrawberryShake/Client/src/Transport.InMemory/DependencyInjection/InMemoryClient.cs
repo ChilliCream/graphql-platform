@@ -29,7 +29,7 @@ public class InMemoryClient : IInMemoryClient
     }
 
     /// <inheritdoc />
-    public string SchemaName { get; set; } = Schema.DefaultName;
+    public string SchemaName { get; set; } = ISchemaDefinition.DefaultName;
 
     /// <inheritdoc />
     public IRequestExecutor? Executor { get; set; }

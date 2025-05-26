@@ -36,7 +36,7 @@ public class MiddlewareBase : IDisposable
         _responseFormatter = responseFormatter ??
             throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
-        IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
+        IsDefaultSchema = SchemaName.EqualsOrdinal(ISchemaDefinition.DefaultName);
         _executorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 

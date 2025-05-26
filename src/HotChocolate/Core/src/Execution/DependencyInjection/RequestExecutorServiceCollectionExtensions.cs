@@ -127,7 +127,7 @@ public static class RequestExecutorServiceCollectionExtensions
         }
 
         services.AddGraphQLCore();
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(services, schemaName);
     }
 
@@ -153,7 +153,7 @@ public static class RequestExecutorServiceCollectionExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(builder.Services, schemaName);
     }
 

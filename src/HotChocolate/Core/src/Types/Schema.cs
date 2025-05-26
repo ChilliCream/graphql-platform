@@ -75,11 +75,6 @@ public partial class Schema
     public DateTimeOffset CreatedAt { get; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// Gets the default schema name.
-    /// </summary>
-    public static string DefaultName => "_Default";
-
-    /// <summary>
     /// Returns the GraphQL object type for the given <paramref name="operation"/>.
     /// </summary>
     /// <param name="operation">

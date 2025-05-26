@@ -66,7 +66,7 @@ internal sealed partial class RequestExecutorResolver
         string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
 
         if (_executors.TryGetValue(schemaName, out var re))
         {
@@ -99,7 +99,7 @@ internal sealed partial class RequestExecutorResolver
 
     public void EvictRequestExecutor(string? schemaName = null)
     {
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
 
         _executorEvictionChannelWriter.TryWrite(schemaName);
     }

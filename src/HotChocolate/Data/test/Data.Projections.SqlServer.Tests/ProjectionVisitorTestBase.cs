@@ -92,7 +92,7 @@ public class ProjectionVisitorTestBase
         var schema = builder.Create();
 
         return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(Schema.DefaultName, o => o.Schema = schema)
+            .Configure<RequestExecutorSetup>(ISchemaDefinition.DefaultName, o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
                 next => async context =>

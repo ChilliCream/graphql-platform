@@ -99,5 +99,5 @@ public interface ISchemaDefinition
     /// <summary>
     /// The default name of a schema.
     /// </summary>
-    public static string DefaultName => "default";
+    public static string DefaultName => "_Default";
 }
