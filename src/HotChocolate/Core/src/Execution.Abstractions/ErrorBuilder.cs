@@ -1,3 +1,5 @@
+using HotChocolate.Collections.Immutable;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -8,7 +10,7 @@ public sealed class ErrorBuilder
     private string? _message;
     private Path? _path;
     private Exception? _exception;
-    private OrderedDictionary<string, object?>? _extensions;
+    private ImmutableOrderedDictionary<string, object?>.Builder? _extensions;
     private List<Location>? _locations;
 
     private ErrorBuilder() { }
@@ -40,8 +42,23 @@ public sealed class ErrorBuilder
             code = null;
         }
 
-        _extensions ??= [];
-        _extensions[nameof(code)] = code;
+        _extensions ??= ImmutableOrderedDictionary.CreateBuilder<string, object?>();
+
+        if(code is null)
+        {
+            _extensions.Remove(nameof(code));
+            return this;
+        }
+
+        if (_extensions.ContainsKey(nameof(code)))
+        {
+            _extensions[nameof(code)] = code;
+        }
+        else
+        {
+            _extensions.Insert(0, nameof(code), code);
+        }
+
         return this;
     }
 
@@ -97,7 +114,7 @@ public sealed class ErrorBuilder
     /// <returns>The error builder.</returns>
     public ErrorBuilder SetExtension(string key, object? value)
     {
-        _extensions ??= [];
+        _extensions ??= ImmutableOrderedDictionary.CreateBuilder<string, object?>();
         _extensions[key] = value;
         return this;
     }
@@ -109,7 +126,7 @@ public sealed class ErrorBuilder
     /// <returns>The error builder.</returns>
     public ErrorBuilder RemoveExtension(string key)
     {
-        _extensions ??= [];
+        _extensions ??= ImmutableOrderedDictionary.CreateBuilder<string, object?>();
         _extensions.Remove(key);
         return this;
     }
@@ -140,7 +157,7 @@ public sealed class ErrorBuilder
             Message = _message,
             Path = _path,
             Exception = _exception,
-            Extensions = _extensions,
+            Extensions = _extensions?.ToImmutable(),
             Locations = _locations
         };
     }
@@ -160,16 +177,13 @@ public sealed class ErrorBuilder
     {
         ArgumentNullException.ThrowIfNull(error);
 
-        OrderedDictionary<string, object?>? extensions = null;
+        ImmutableOrderedDictionary<string, object?>.Builder? extensions = null;
         List<Location>? locations = null;
 
         if (error.Extensions is not null)
         {
-            extensions = [];
-            foreach (var (key, value) in error.Extensions)
-            {
-                extensions.Add(key, value);
-            }
+            extensions = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
+            extensions.AddRange(error.Extensions);
         }
 
         if (error.Locations is not null)

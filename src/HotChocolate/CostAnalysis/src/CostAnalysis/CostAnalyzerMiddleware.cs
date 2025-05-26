@@ -99,7 +99,7 @@ internal sealed class CostAnalyzerMiddleware(
                 cache.TryAddCostMetrics(operationId, costMetrics);
             }
 
-            context.ContextData.Add(WellKnownContextData.CostMetrics, costMetrics);
+            context.SetCostMetrics(costMetrics);
             diagnosticEvents.OperationCost(context, costMetrics.FieldCost, costMetrics.TypeCost);
 
             if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)

@@ -1,5 +1,4 @@
-
-using System.Collections.Immutable;
+using HotChocolate.Collections.Immutable;
 
 namespace HotChocolate;
 
@@ -8,7 +7,7 @@ namespace HotChocolate;
 /// </summary>
 public record Error : IError
 {
-    private string? _message;
+    private readonly string? _message;
 
     /// <summary>
     /// Gets the error message.
@@ -53,7 +52,7 @@ public record Error : IError
     /// but with the specified <paramref name="code" />.
     /// </summary>
     /// <param name="code">
-    /// An error code that is specified as custom error property.
+    /// An error code that is specified as a custom error property.
     /// </param>
     /// <returns>
     /// Returns a new error that contains all properties of this error
@@ -66,31 +65,44 @@ public record Error : IError
             code = null;
         }
 
-        if (Extensions is ImmutableDictionary<string, object?> d)
+        if (code is null && Extensions is null)
         {
-            return code is null
-                ? (this with { Extensions = d.Remove("code") })
-                : (this with { Extensions = d.SetItem("code", code) });
+            return this;
         }
+
+        if (Extensions is ImmutableOrderedDictionary<string, object?> d)
+        {
+            if (code is null)
+            {
+                return this with { Extensions = d.Remove(nameof(code)) };
+            }
+
+            if (d.ContainsKey(nameof(code)))
+            {
+                return this with { Extensions = d.SetItem(nameof(code), code) };
+            }
+
+            return this with { Extensions = d.Insert(0, nameof(code), code) };
+        }
+
+        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
 
         if (Extensions is not null)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, object?>();
             builder.AddRange(Extensions);
-            if (code is null)
-            {
-                builder.Remove("code");
-            }
-            else
-            {
-                builder.Add("code", code);
-            }
-            return this with { Extensions = builder.ToImmutable() };
         }
 
-        if (code is not null)
+        if (code is null)
         {
-            return this with { Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", code) };
+            builder.Remove(nameof(code));
+        }
+        else if (builder.ContainsKey(nameof(code)))
+        {
+            builder[nameof(code)] = code;
+        }
+        else
+        {
+            builder.Insert(0, nameof(code), code);
         }
 
         return this;
@@ -110,20 +122,20 @@ public record Error : IError
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
 
-        if (Extensions is ImmutableDictionary<string, object?> d)
+        if (Extensions is ImmutableOrderedDictionary<string, object?> d)
         {
             return this with { Extensions = d.SetItem(key, value) };
         }
 
         if (Extensions is not null)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, object?>();
+            var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
             builder.AddRange(Extensions!);
             builder.Add(key, value);
             return this with { Extensions = builder.ToImmutable() };
         }
 
-        return this with { Extensions = ImmutableDictionary<string, object?>.Empty.Add(key, value) };
+        return this with { Extensions = ImmutableOrderedDictionary<string, object?>.Empty.Add(key, value) };
     }
 
     /// <summary>
@@ -139,14 +151,14 @@ public record Error : IError
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
 
-        if (Extensions is ImmutableDictionary<string, object?> d)
+        if (Extensions is ImmutableOrderedDictionary<string, object?> d)
         {
             return this with { Extensions = d.Remove(key) };
         }
 
         if (Extensions is not null)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, object?>();
+            var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
             builder.AddRange(Extensions!);
             builder.Remove(key);
             return this with { Extensions = builder.ToImmutable() };

@@ -26,6 +26,8 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddCostAnalyzer(this IRequestExecutorBuilder builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         builder.Services
             .AddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
 
@@ -36,7 +38,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                     services.TryAddEnumerable(
                         Singleton<ISchemaDocumentFormatter, CostSchemaDocumentFormatter>());
 
-                    services.TryAddSingleton<CostOptions>(sp =>
+                    services.TryAddSingleton(sp =>
                     {
                         var options = new CostOptions();
 
@@ -48,7 +50,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                         return options;
                     });
 
-                    services.TryAddSingleton<RequestCostOptions>(sp =>
+                    services.TryAddSingleton(sp =>
                     {
                         var requestOptions = sp.GetRequiredService<CostOptions>();
                         return new RequestCostOptions(
@@ -66,7 +68,8 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .AppendUseRequest(
                 after: nameof(DocumentValidationMiddleware),
                 middleware: CostAnalyzerMiddleware.Create(),
-                key: nameof(CostAnalyzerMiddleware));
+                key: nameof(CostAnalyzerMiddleware),
+                allowMultiple: false);
     }
 
     /// <summary>
@@ -88,37 +91,12 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<CostOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         builder.ConfigureSchemaServices(
             services => services.AddSingleton(configure));
 
         return builder;
-    }
-
-    /// <summary>
-    /// Uses the cost analyzer middleware.
-    /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its
-    /// execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseCostAnalyzer(
-        this IRequestExecutorBuilder builder)
-    {
-        return builder
-            .AddCostAnalyzer()
-            .UseRequest(
-                CostAnalyzerMiddleware.Create(),
-                key: nameof(CostAnalyzerMiddleware));
     }
 }

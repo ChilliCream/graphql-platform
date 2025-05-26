@@ -87,6 +87,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="allowMultiple">
+    /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
@@ -94,10 +97,19 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string after,
         RequestCoreMiddleware middleware,
-        string? key = null)
+        string? key = null,
+        bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(after);
         ArgumentNullException.ThrowIfNull(middleware);
+
+        if (!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
 
         return Configure(
             builder,
@@ -108,6 +120,11 @@ public static partial class RequestExecutorBuilderExtensions
                 options.PipelineModifiers.Add(
                     pipeline =>
                     {
+                        if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                        {
+                            return;
+                        }
+
                         var index = GetIndex(pipeline, after);
 
                         if (index == -1)
@@ -136,6 +153,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="allowMultiple">
+    /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
@@ -143,10 +163,19 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string after,
         RequestMiddleware middleware,
-        string? key = null)
+        string? key = null,
+        bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(after);
         ArgumentNullException.ThrowIfNull(middleware);
+
+        if (!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
 
         return Configure(
             builder,
@@ -156,6 +185,11 @@ public static partial class RequestExecutorBuilderExtensions
 
                 options.PipelineModifiers.Add(pipeline =>
                 {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    {
+                        return;
+                    }
+
                     var index = GetIndex(pipeline, after);
 
                     if (index == -1)
@@ -183,16 +217,28 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="allowMultiple">
+    /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
     public static IRequestExecutorBuilder AppendUseRequest<TMiddleware>(
         this IRequestExecutorBuilder builder,
         string after,
-        string? key = null)
+        string? key = null,
+        bool allowMultiple = true)
         where TMiddleware : class
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(after);
+
+        if (!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
 
         return Configure(
             builder,
@@ -204,6 +250,11 @@ public static partial class RequestExecutorBuilderExtensions
 
                 options.PipelineModifiers.Add(pipeline =>
                 {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    {
+                        return;
+                    }
+
                     var index = GetIndex(pipeline, after);
 
                     if (index == -1)
@@ -231,6 +282,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="allowMultiple">
+    /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
@@ -238,10 +292,19 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string before,
         RequestCoreMiddleware middleware,
-        string? key = null)
+        string? key = null,
+        bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(before);
         ArgumentNullException.ThrowIfNull(middleware);
+
+        if (!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
 
         return Configure(
             builder,
@@ -252,6 +315,11 @@ public static partial class RequestExecutorBuilderExtensions
                 options.PipelineModifiers.Add(
                     pipeline =>
                     {
+                        if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                        {
+                            return;
+                        }
+
                         var index = GetIndex(pipeline, before);
 
                         if (index == -1)
@@ -280,6 +348,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="allowMultiple">
+    /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
@@ -287,10 +358,19 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         string before,
         RequestMiddleware middleware,
-        string? key = null)
+        string? key = null,
+        bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(before);
         ArgumentNullException.ThrowIfNull(middleware);
+
+        if(!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
 
         return Configure(
             builder,
@@ -300,6 +380,11 @@ public static partial class RequestExecutorBuilderExtensions
 
                 options.PipelineModifiers.Add(pipeline =>
                 {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    {
+                        return;
+                    }
+
                     var index = GetIndex(pipeline, before);
 
                     if (index == -1)
@@ -327,16 +412,28 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="key">
     /// A unique identifier for the middleware.
     /// </param>
+    /// <param name="allowMultiple">
+    /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
     public static IRequestExecutorBuilder InsertUseRequest<TMiddleware>(
         this IRequestExecutorBuilder builder,
         string before,
-        string? key = null)
+        string? key = null,
+        bool allowMultiple = true)
         where TMiddleware : class
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(before);
+
+        if (!allowMultiple && key is null)
+        {
+            throw new ArgumentException(
+                "The key must be set if allowMultiple is false.",
+                nameof(key));
+        }
 
         return Configure(
             builder,
@@ -348,6 +445,11 @@ public static partial class RequestExecutorBuilderExtensions
 
                 options.PipelineModifiers.Add(pipeline =>
                 {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    {
+                        return;
+                    }
+
                     var index = GetIndex(pipeline, before);
 
                     if (index == -1)

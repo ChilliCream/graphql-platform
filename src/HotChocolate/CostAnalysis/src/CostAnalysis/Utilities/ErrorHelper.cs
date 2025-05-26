@@ -11,33 +11,39 @@ internal static class ErrorHelper
         CostMetrics costMetrics,
         double maxFieldCost,
         bool reportMetrics)
-        => ResultHelper.CreateError(
+    {
+        var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
+        extensions.Add("code", ErrorCodes.Execution.CostExceeded);
+        extensions.Add("fieldCost", costMetrics.FieldCost);
+        extensions.Add("maxFieldCost", maxFieldCost);
+
+        return ResultHelper.CreateError(
             new Error
             {
                 Message = CostAnalysisResources.ErrorHelper_MaxFieldCostReached,
-                Extensions =
-                    ImmutableDictionary<string, object?>.Empty
-                        .Add("code", ErrorCodes.Execution.CostExceeded)
-                        .Add("fieldCost", costMetrics.FieldCost)
-                        .Add("maxFieldCost", maxFieldCost)
+                Extensions = extensions.ToImmutable()
             },
             reportMetrics ? costMetrics : null);
+    }
 
     public static IExecutionResult MaxTypeCostReached(
         CostMetrics costMetrics,
         double maxTypeCost,
         bool reportMetrics)
-        => ResultHelper.CreateError(
+    {
+        var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
+        extensions.Add("code", ErrorCodes.Execution.CostExceeded);
+        extensions.Add("typeCost", costMetrics.TypeCost);
+        extensions.Add("maxTypeCost", maxTypeCost);
+
+        return ResultHelper.CreateError(
             new Error
             {
                 Message = CostAnalysisResources.ErrorHelper_MaxTypeCostReached,
-                Extensions =
-                    ImmutableDictionary<string, object?>.Empty
-                        .Add("code", ErrorCodes.Execution.CostExceeded)
-                        .Add("typeCost", costMetrics.TypeCost)
-                        .Add("maxTypeCost", maxTypeCost)
+                Extensions = extensions.ToImmutable()
             },
             reportMetrics ? costMetrics : null);
+    }
 
     public static IError ExactlyOneSlicingArgMustBeDefined(
         FieldNode fieldNode,

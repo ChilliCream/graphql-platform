@@ -159,11 +159,6 @@ public static class WellKnownContextData
     public const string NodeIdResultFormatter = "HotChocolate.Relay.NodeIdResultFormatter";
 
     /// <summary>
-    /// The key to retrieve the cost metrics from the global state.
-    /// </summary>
-    public const string CostMetrics = "HotChocolate.CostAnalysis.CostMetricsKey";
-
-    /// <summary>
     /// The key to set the flag that the cost should be reported in the response.
     /// </summary>
     public const string ReportCost = "HotChocolate.CostAnalysis.ReportCost";
@@ -172,11 +167,6 @@ public static class WellKnownContextData
     /// The key to set the flag that only the cost should be validated and the request should not be executed.
     /// </summary>
     public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
-
-    /// <summary>
-    /// The key to access the cost options on the context data..
-    /// </summary>
-    public const string RequestCostOptions = "HotChocolate.CostAnalysis.CostRequestOptions";
 
     /// <summary>
     /// The key to access the paging observers stored on the local resolver state.

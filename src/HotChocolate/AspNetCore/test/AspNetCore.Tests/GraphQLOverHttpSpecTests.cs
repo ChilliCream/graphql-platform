@@ -369,12 +369,13 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }", }),
-            Headers = { { "Accept", acceptHeader }, },
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = "{ ... @defer { __typename } }",
+            });
+        request.Headers.Add("Accept", acceptHeader);
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
 
