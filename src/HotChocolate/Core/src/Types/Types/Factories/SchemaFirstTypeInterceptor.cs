@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -11,16 +12,28 @@ namespace HotChocolate.Types.Factories;
 
 internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, IReadOnlyList<DirectiveNode>> _directives = new();
+    private ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> _directives =
+        ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
 
-    public Dictionary<string, IReadOnlyList<DirectiveNode>> Directives => _directives;
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        if (context.Features.Get<TypeSystemFeature>() is { ScalarDirectives: { Count: > 0 } scalarDirectives })
+        {
+            _directives = scalarDirectives;
+        }
+    }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
         if (_directives.TryGetValue(completionContext.Type.Name, out var directives)
-            && configuration is ScalarTypeConfiguration scalarTypeDef)
+            && configuration is ScalarTypeConfiguration scalarTypeConfig)
         {
             foreach (var directive in directives)
             {
@@ -30,7 +43,7 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
                         && directive.Arguments[0].Name.Value.EqualsOrdinal(DirectiveNames.SpecifiedBy.Arguments.Url)
                         && directive.Arguments[0].Value is StringValueNode url)
                     {
-                        scalarTypeDef.SpecifiedBy = new Uri(url.Value);
+                        scalarTypeConfig.SpecifiedBy = new Uri(url.Value);
                         continue;
                     }
 
@@ -42,7 +55,7 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
                             .Build());
                 }
 
-                scalarTypeDef.AddDirective(directive.Name.Value, directive.Arguments);
+                scalarTypeConfig.AddDirective(directive.Name.Value, directive.Arguments);
                 ((RegisteredType)completionContext).Dependencies.Add(
                     new TypeDependency(
                         TypeReference.CreateDirective(directive.Name.Value),

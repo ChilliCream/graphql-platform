@@ -7,7 +7,5 @@ internal interface ITypeFactory<in TNode, out TType>
     where TNode : ISyntaxNode
     where TType : INameProvider
 {
-    TType Create(
-        IDescriptorContext context,
-        TNode node);
+    TType Create(IDescriptorContext context, TNode node);
 }

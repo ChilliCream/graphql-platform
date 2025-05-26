@@ -11,7 +11,7 @@ internal static class SdlToTypeSystemHelper
     public static void AddDirectives<TOwner>(
         IDescriptorContext context,
         TOwner owner,
-        HotChocolate.Language.IHasDirectives ownerSyntax,
+        IHasDirectives ownerSyntax,
         Stack<ITypeSystemConfiguration> path)
         where TOwner : IDirectiveConfigurationProvider, ITypeSystemConfiguration
     {
@@ -28,7 +28,7 @@ internal static class SdlToTypeSystemHelper
                 continue;
             }
 
-            owner.Directives.Add(new(directive));
+            owner.Directives.Add(new DirectiveConfiguration(directive));
         }
     }
 
