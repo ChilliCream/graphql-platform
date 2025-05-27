@@ -5,5 +5,5 @@ public enum NodeIdFormatterResult
 {
     Success,
     BufferTooSmall,
-    InvalidValue,
+    InvalidValue
 }

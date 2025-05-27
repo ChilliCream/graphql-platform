@@ -249,7 +249,7 @@ public class SchemaCoordinateTests
         var member = schema.GetMember("Abc.DEF");
 
         // assert
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
+        Assert.Equal("DEF", Assert.IsType<DefaultEnumValue>(member).Name);
     }
 
     [Fact]
@@ -598,7 +598,7 @@ public class SchemaCoordinateTests
 
         // assert
         Assert.True(success);
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
+        Assert.Equal("DEF", Assert.IsType<DefaultEnumValue>(member).Name);
     }
 
     [Fact]
@@ -697,7 +697,7 @@ public class SchemaCoordinateTests
         Assert.False(success);
     }
 
-    private ISchema CreateSchema()
+    private Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .AddDocumentFromString(FileResource.Open("schema_coordinates.graphql"))

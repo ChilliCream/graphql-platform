@@ -1,5 +1,5 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL scalar types.
 /// </summary>
 public interface IScalarTypeDescriptor
-    : IDescriptor<ScalarTypeDefinition>
+    : IDescriptor<ScalarTypeConfiguration>
     , IFluent
 {
     /// <summary>

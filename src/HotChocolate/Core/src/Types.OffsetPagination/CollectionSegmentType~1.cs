@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination;
@@ -18,44 +18,44 @@ internal class CollectionSegmentType : ObjectType, IPageType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        Definition = CreateTypeDefinition(withTotalCount);
+        Configuration = CreateConfiguration(withTotalCount);
 
         if (collectionSegmentName is not null)
         {
-            Definition.Name = collectionSegmentName + "CollectionSegment";
+            Configuration.Name = collectionSegmentName + "CollectionSegment";
         }
         else
         {
-            Definition.Configurations.Add(
-                new CompleteConfiguration(
+            Configuration.Tasks.Add(
+                new OnCompleteTypeSystemConfigurationTask(
                     (c, d) =>
                     {
                         var type = c.GetType<IType>(nodeType);
-                        var definition = (ObjectTypeDefinition)d;
+                        var definition = (ObjectTypeConfiguration)d;
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
-                    Definition,
+                    Configuration,
                     ApplyConfigurationOn.BeforeNaming,
                     nodeType,
                     TypeDependencyFulfilled.Named));
         }
 
-        Definition.Configurations.Add(
-            new CompleteConfiguration(
+        Configuration.Tasks.Add(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {
                     ItemType = c.GetType<IOutputType>(nodeType);
 
-                    var definition = (ObjectTypeDefinition)d;
+                    var definition = (ObjectTypeConfiguration)d;
                     var nodes = definition.Fields.First(IsItemsField);
                     nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyFulfilled.Named));
 
-        Definition.Dependencies.Add(new(nodeType));
+        Configuration.Dependencies.Add(new(nodeType));
     }
 
     /// <summary>
@@ -65,16 +65,16 @@ internal class CollectionSegmentType : ObjectType, IPageType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
         context.Dependencies.Add(new(typeRef));
-        base.OnBeforeRegisterDependencies(context, definition);
+        base.OnBeforeRegisterDependencies(context, configuration);
     }
 
-    private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
+    private static ObjectTypeConfiguration CreateConfiguration(bool withTotalCount)
     {
-        var definition = new ObjectTypeDefinition
+        var definition = new ObjectTypeConfiguration
         {
             Description = CollectionSegmentType_Description,
             RuntimeType = typeof(CollectionSegment),
@@ -90,7 +90,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
             Names.Items,
             CollectionSegmentType_Items_Description,
             pureResolver: GetItems)
-            { Flags = FieldFlags.ItemsField });
+            { Flags = CoreFieldFlags.CollectionSegmentItemsField });
 
 
         if (withTotalCount)
@@ -100,7 +100,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
                 pureResolver: GetTotalCount)
             {
-                Flags = FieldFlags.TotalCount
+                Flags = CoreFieldFlags.TotalCount
             });
         }
 
@@ -116,8 +116,8 @@ internal class CollectionSegmentType : ObjectType, IPageType
     private static object GetTotalCount(IResolverContext context)
         => context.Parent<CollectionSegment>().TotalCount;
 
-    private static bool IsItemsField(ObjectFieldDefinition field)
-        => (field.Flags & FieldFlags.ItemsField) == FieldFlags.ItemsField;
+    private static bool IsItemsField(ObjectFieldConfiguration field)
+        => (field.Flags & CoreFieldFlags.CollectionSegmentItemsField) == CoreFieldFlags.CollectionSegmentItemsField;
 
     internal static class Names
     {

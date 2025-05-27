@@ -19,7 +19,7 @@ public static class SerializerNameUtils
         var sb = new StringBuilder();
         sb.Append(prefix);
 
-        while (!(current is INamedType))
+        while (current is not ITypeDefinition)
         {
             if (current is HotChocolate.Types.ListType)
             {

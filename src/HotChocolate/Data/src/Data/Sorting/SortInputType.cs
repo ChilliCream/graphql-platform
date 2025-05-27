@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Data.Sorting;
@@ -24,9 +24,9 @@ public class SortInputType
 
     public IExtendedType EntityType { get; private set; } = default!;
 
-    protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
-        if (Definition is null)
+        if (Configuration is null)
         {
             var descriptor = SortInputTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -36,10 +36,10 @@ public class SortInputType
             _configure!(descriptor);
             _configure = null;
 
-            Definition = descriptor.CreateDefinition();
+            Configuration = descriptor.CreateConfiguration();
         }
 
-        return Definition;
+        return Configuration;
     }
 
     protected virtual void Configure(ISortInputTypeDescriptor descriptor)
@@ -48,10 +48,10 @@ public class SortInputType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        if (definition is SortInputTypeDefinition {EntityType: { }, } sortDefinition)
+        base.OnRegisterDependencies(context, configuration);
+        if (configuration is SortInputTypeConfiguration {EntityType: { }, } sortDefinition)
         {
             SetTypeIdentity(
                 typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
@@ -60,26 +60,26 @@ public class SortInputType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        if (definition is SortInputTypeDefinition { EntityType: not null, } ft)
+        if (configuration is SortInputTypeConfiguration { EntityType: not null, } ft)
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
     }
 
-    protected override FieldCollection<InputField> OnCompleteFields(
+    protected override InputFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration configuration)
     {
-        var fields = new InputField[definition.Fields.Count];
+        var fields = new InputField[configuration.Fields.Count];
         var index = 0;
 
-        foreach (var fieldDefinition in definition.Fields)
+        foreach (var fieldDefinition in configuration.Fields)
         {
-            if (fieldDefinition is SortFieldDefinition {Ignore: false, } field)
+            if (fieldDefinition is SortFieldConfiguration {Ignore: false, } field)
             {
                 fields[index] = new SortField(field, index);
                 index++;
@@ -91,7 +91,7 @@ public class SortInputType
             Array.Resize(ref fields, index);
         }
 
-        return CompleteFields(context, this, fields);
+        return new InputFieldCollection(CompleteFields(context, this, fields));
     }
 
     // we are disabling the default configure method so

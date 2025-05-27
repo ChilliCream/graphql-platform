@@ -24,7 +24,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -42,7 +42,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -58,7 +58,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -74,7 +74,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -94,7 +94,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             },
             t =>
             {
@@ -105,7 +105,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -121,7 +121,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("FooImpl");
+        var type = schema.Types.GetType<ObjectType>("FooImpl");
         Assert.Collection(type.Implements, t => Assert.Equal("IFoo", t.Name));
     }
 
@@ -146,7 +146,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -172,7 +172,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             },
             t =>
             {
@@ -183,7 +183,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -207,7 +207,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 
@@ -517,7 +517,7 @@ public class InterfaceTypeTests : TypeTestBase
             .AddType<Orange>()
             .AddType<Pineapple>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -529,7 +529,7 @@ public class InterfaceTypeTests : TypeTestBase
             .AddType<Canine>()
             .AddType<Dog>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -562,7 +562,7 @@ public class InterfaceTypeTests : TypeTestBase
             })
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -579,7 +579,7 @@ public class InterfaceTypeTests : TypeTestBase
             })
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -596,7 +596,7 @@ public class InterfaceTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -641,7 +641,7 @@ public class InterfaceTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -694,7 +694,7 @@ public class InterfaceTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]

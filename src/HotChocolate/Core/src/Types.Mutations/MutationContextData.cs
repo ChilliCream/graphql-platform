@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors.Configurations;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace HotChocolate.Types;
 /// on the context so that the type interceptor can access them.
 /// </summary>
 internal sealed class MutationContextData(
-    ObjectFieldDefinition definition,
+    ObjectFieldConfiguration definition,
     string? inputTypeName,
     string? inputArgumentName,
     string? payloadTypeName,
@@ -16,7 +18,7 @@ internal sealed class MutationContextData(
 {
     public string Name => Definition.Name;
 
-    public ObjectFieldDefinition Definition { get; } = definition;
+    public ObjectFieldConfiguration Definition { get; } = definition;
 
     public string? InputTypeName { get; } = inputTypeName;
 

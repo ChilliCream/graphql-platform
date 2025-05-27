@@ -92,7 +92,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             // object.
             options.Tool.ServeMode = GraphQLToolServeMode.Embedded;
 
-            var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+            var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
             var pipeline = new PipelineBuilder()
                     .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)

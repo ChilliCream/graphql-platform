@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -98,14 +98,14 @@ public static class JsonObjectTypeExtensions
         return descriptor;
     }
 
-    internal static void InferListResolver(ObjectFieldDefinition def)
+    internal static void InferListResolver(ObjectFieldConfiguration def)
     {
         def.PureResolver = ctx => new ValueTask<object?>(ctx.ToEnumerable());
     }
 
     internal static void InferResolver(
-        ITypeSystemObject type,
-        ObjectFieldDefinition def,
+        TypeSystemObject type,
+        ObjectFieldConfiguration def,
         ScalarType scalarType,
         string propertyName)
     {

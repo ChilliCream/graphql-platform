@@ -149,15 +149,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
                 WellKnownTypes.PagingHelper);
             Writer.WriteIndentedLine(
-                "c.Definition.State = c.Definition.State.SetItem("
-                + "HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);");
-            Writer.WriteIndentedLine(
-                "c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = "
-                + "pagingOptions;");
+                "c.Configuration.Features.Set(pagingOptions);");
         }
 
         Writer.WriteIndentedLine(
-            "c.Definition.Resolvers = r.{0}();",
+            "c.Configuration.Resolvers = r.{0}();",
             resolver.Member.Name);
 
         if (resolver.ResultKind is not ResolverResultKind.Pure
@@ -165,7 +161,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             && resolver.Member.IsListType(out var elementType))
         {
             Writer.WriteIndentedLine(
-                "c.Definition.ResultPostProcessor = global::{0}<{1}>.Default;",
+                "c.Configuration.ResultPostProcessor = global::{0}<{1}>.Default;",
                 WellKnownTypes.ListPostProcessor,
                 elementType);
         }
@@ -173,26 +169,26 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     protected void WriteFieldFlags(Resolver resolver)
     {
-        Writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+        Writer.WriteIndentedLine("c.Configuration.SetSourceGeneratorFlags();");
 
         if (resolver.Kind is ResolverKind.ConnectionResolver)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionEdgesFieldFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionEdgesFieldFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionNodesFieldFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionNodesFieldFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.TotalCount) == FieldFlags.TotalCount)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionTotalCountFieldFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionTotalCountFieldFlags();");
         }
     }
 

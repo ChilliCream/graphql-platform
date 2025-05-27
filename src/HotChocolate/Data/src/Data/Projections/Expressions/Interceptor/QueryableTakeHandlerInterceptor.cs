@@ -11,34 +11,31 @@ namespace HotChocolate.Data.Projections.Handlers;
 public abstract class QueryableTakeHandlerInterceptor
     : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
-    private readonly string _contextDataKey;
+    private readonly SelectionFlags _selectionFlags;
     private readonly int _take;
 
-    public QueryableTakeHandlerInterceptor(string contextDataKey, int take)
+    protected QueryableTakeHandlerInterceptor(SelectionFlags selectionFlags, int take)
     {
-        _contextDataKey = contextDataKey;
+        _selectionFlags = selectionFlags;
         _take = take;
     }
 
     public bool CanHandle(ISelection selection) =>
-        selection.Field.Member is PropertyInfo { CanWrite: true, } &&
-        selection.Field.ContextData.ContainsKey(_contextDataKey);
+        selection.Field.Member is PropertyInfo { CanWrite: true } &&
+        selection.IsSelectionFlags(_selectionFlags);
 
     public void BeforeProjection(
         QueryableProjectionContext context,
         ISelection selection)
     {
-        var field = selection.Field;
-        if (field.ContextData.ContainsKey(_contextDataKey))
+        if (selection.IsSelectionFlags(_selectionFlags))
         {
-            var instance = context.PopInstance();
-
             context.PushInstance(
                 Expression.Call(
                     typeof(Enumerable),
                     nameof(Enumerable.Take),
-                    [selection.Type.ToRuntimeType(),],
-                    instance,
+                    [selection.Type.ToRuntimeType()],
+                    context.PopInstance(),
                     Expression.Constant(_take)));
         }
     }

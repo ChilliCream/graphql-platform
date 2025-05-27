@@ -14,7 +14,7 @@ internal sealed class ExceptionObjectType<T> : ObjectType<T> where T : Exception
         descriptor.Ignore(x => x.TargetSite);
         descriptor.Ignore(x => x.GetBaseException());
         descriptor.Field(x => x.Message).Type<NonNullType<StringType>>();
-        descriptor.Extend().Definition.ContextData.MarkAsError();
+        descriptor.Extend().Configuration.MarkAsError();
         descriptor.BindFieldsImplicitly();
     }
 

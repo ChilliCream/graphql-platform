@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -13,16 +14,15 @@ public class MutableInputFieldDefinition
     : INamedTypeSystemMemberDefinition<MutableInputFieldDefinition>
     , IInputValueDefinition
     , IMutableFieldDefinition
-    , IFeatureProvider
 {
-    private IType _type;
+    private IInputType _type;
     private bool _isDeprecated;
     private DirectiveCollection? _directives;
 
     /// <summary>
     /// Represents a GraphQL input field definition.
     /// </summary>
-    public MutableInputFieldDefinition(string name, IType? type = null)
+    public MutableInputFieldDefinition(string name, IInputType? type = null)
     {
         Name = name;
         _type = type ?? NotSetType.Default;
@@ -38,7 +38,61 @@ public class MutableInputFieldDefinition
     /// <inheritdoc cref="IMutableFieldDefinition.Description" />
     public string? Description { get; set; }
 
-    IType IFieldDefinition.Type => _type;
+    /// <summary>
+    /// Gets or sets the declaring member of the input field.
+    /// </summary>
+    public ITypeSystemMember? DeclaringMember
+    {
+        get => field;
+        set
+        {
+            if (value is not MutableInputObjectTypeDefinition
+                and not MutableDirectiveDefinition
+                and not MutableOutputFieldDefinition
+                and not null)
+            {
+                throw new ArgumentException(
+                    "The declaring member must be an input object type, a directive or an output field.",
+                    nameof(value));
+            }
+
+            field = value;
+        }
+    }
+
+    ITypeSystemMember IFieldDefinition.DeclaringMember
+        => DeclaringMember ?? throw new InvalidOperationException("The declaring member is not set.");
+
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate
+    {
+        get
+        {
+            switch (DeclaringMember)
+            {
+                case IInputObjectTypeDefinition typeDef:
+                    return new SchemaCoordinate(typeDef.Name, Name, ofDirective: false);
+
+                case IDirectiveDefinition directiveDef:
+                    return new SchemaCoordinate(directiveDef.Name, Name, ofDirective: true);
+
+                case IOutputFieldDefinition fieldDef:
+                    if (fieldDef.DeclaringType is null)
+                    {
+                        throw new InvalidOperationException("The declaring member is not set.");
+                    }
+
+                    return new SchemaCoordinate(
+                        fieldDef.DeclaringType.Name,
+                        fieldDef.Name,
+                        Name,
+                        ofDirective: false);
+
+                default:
+                    throw new InvalidOperationException("The declaring type is not set.");
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or sets the default value for this input field.
@@ -83,11 +137,21 @@ public class MutableInputFieldDefinition
         => _directives ?? EmptyCollections.Directives;
 
     /// <inheritdoc cref="IMutableFieldDefinition.Type" />
-    public IType Type
+    public IInputType Type
     {
         get => _type;
         set => _type = value.ExpectInputType();
     }
+
+    public FieldFlags Flags { get; set; }
+
+    IType IMutableFieldDefinition.Type
+    {
+        get => Type;
+        set => Type = value.ExpectInputType();
+    }
+
+    IType IFieldDefinition.Type => _type;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]

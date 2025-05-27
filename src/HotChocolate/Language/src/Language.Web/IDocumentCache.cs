@@ -43,9 +43,4 @@ public interface IDocumentCache
     /// The GraphQL syntax tree.
     /// </param>
     void TryAddDocument(string documentId, CachedDocument document);
-
-    /// <summary>
-    /// Clears the cache.
-    /// </summary>
-    void Clear();
 }

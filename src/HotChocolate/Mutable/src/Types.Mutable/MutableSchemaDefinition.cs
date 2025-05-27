@@ -10,8 +10,8 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableSchemaDefinition
     : INamedTypeSystemMemberDefinition<MutableSchemaDefinition>
-        , ISchemaDefinition
-        , IFeatureProvider
+    , ISchemaDefinition
+    , IFeatureProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
     private MutableObjectTypeDefinition? _queryType;
@@ -108,7 +108,7 @@ public class MutableSchemaDefinition
     public DirectiveCollection Directives
         => _directives ??= [];
 
-    IReadOnlyDirectiveCollection ISchemaDefinition.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <inheritdoc />
     public IFeatureCollection Features
@@ -238,9 +238,9 @@ public class MutableSchemaDefinition
         return false;
     }
 
-    public MutableObjectTypeDefinition GetOperationType(OperationType operationType)
+    public MutableObjectTypeDefinition GetOperationType(OperationType operation)
     {
-        return operationType switch
+        return operation switch
         {
             OperationType.Query => QueryType ?? throw new InvalidOperationException(),
             OperationType.Mutation => MutationType ?? throw new InvalidOperationException(),
@@ -249,8 +249,36 @@ public class MutableSchemaDefinition
         };
     }
 
-    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operationType)
-        => GetOperationType(operationType);
+    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operation)
+        => GetOperationType(operation);
+
+    public bool TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out MutableObjectTypeDefinition? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
+
+    bool ISchemaDefinition.TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out IObjectTypeDefinition? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
 
     public IEnumerable<MutableObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType)
     {

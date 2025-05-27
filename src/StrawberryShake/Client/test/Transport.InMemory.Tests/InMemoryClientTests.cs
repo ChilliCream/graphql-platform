@@ -91,8 +91,7 @@ public class InMemoryClientTests
         // arrange
         var interceptorMock = new Mock<IInMemoryRequestInterceptor>();
         var client = new InMemoryClient("Foo");
-        var variables = new Dictionary<string, object?>();
-        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var operationRequest = new OperationRequest("foo", new StubDocument(), new Dictionary<string, object?>());
         var executor = new StubExecutor();
         client.Executor = executor;
         client.RequestInterceptors.Add(interceptorMock.Object);
@@ -100,7 +99,7 @@ public class InMemoryClientTests
         interceptorMock
             .Setup(x => x
                 .OnCreateAsync(
-                    StubExecutor.ApplicationServiceProvider,
+                    StubExecutor.RootServiceProvider,
                     operationRequest,
                     It.IsAny<OperationRequestBuilder>(),
                     It.IsAny<CancellationToken>()));
@@ -112,7 +111,7 @@ public class InMemoryClientTests
         interceptorMock
             .Verify(x => x
                     .OnCreateAsync(
-                        StubExecutor.ApplicationServiceProvider,
+                        StubExecutor.RootServiceProvider,
                         operationRequest,
                         It.IsAny<OperationRequestBuilder>(),
                         It.IsAny<CancellationToken>()),
@@ -138,31 +137,21 @@ public class InMemoryClientTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public ISchema Schema => null!;
+        public Schema Schema => null!;
 
         public IServiceProvider Services { get; } =
             new ServiceCollection()
-                .AddSingleton(ApplicationServiceProvider)
+                .AddSingleton<IRootServiceProviderAccessor>(
+                    new StubRootServiceProviderAccessor { ServiceProvider = RootServiceProvider })
                 .BuildServiceProvider();
 
-        public static IApplicationServiceProvider ApplicationServiceProvider { get; } =
-            new DefaultApplicationServiceProvider(
-                new ServiceCollection()
-                    .BuildServiceProvider());
-    }
+        public static IServiceProvider RootServiceProvider { get; } =
+            new ServiceCollection().BuildServiceProvider();
 
-    private sealed class DefaultApplicationServiceProvider : IApplicationServiceProvider
-    {
-        private readonly IServiceProvider _applicationServices;
-
-        public DefaultApplicationServiceProvider(IServiceProvider applicationServices)
+        private class StubRootServiceProviderAccessor : IRootServiceProviderAccessor
         {
-            _applicationServices = applicationServices ??
-                throw new ArgumentNullException(nameof(applicationServices));
+            public required IServiceProvider ServiceProvider { get; set; }
         }
-
-        public object? GetService(Type serviceType) =>
-            _applicationServices.GetService(serviceType);
     }
 
     public class StubDocument : IDocument

@@ -3,7 +3,7 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -39,9 +39,9 @@ public class AnyType : ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ScalarTypeDefinition definition)
+        ScalarTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
         _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
     }
 

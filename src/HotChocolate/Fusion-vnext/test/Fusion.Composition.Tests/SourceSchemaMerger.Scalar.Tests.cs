@@ -13,7 +13,11 @@ public sealed class SourceSchemaMergerScalarTests
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -107,6 +111,17 @@ public sealed class SourceSchemaMergerScalarTests
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
                 """
+            },
+            // Built-in Fusion scalar types should not be merged (FieldSelectionSet/Map).
+            {
+                [
+                    """
+                    # Schema A
+                    directive @provides(fields: FieldSelectionSet!) on FIELD_DEFINITION
+                    directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+                    """
+                ],
+                ""
             }
         };
     }

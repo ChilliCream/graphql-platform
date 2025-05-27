@@ -282,7 +282,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             int => 11,
             long => 20,
             string s => _utf8.GetByteCount(s),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 

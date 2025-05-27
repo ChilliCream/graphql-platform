@@ -31,7 +31,7 @@ public class DirectiveArgumentDescriptorTests : DescriptorTestBase
         descriptor.DefaultValueSyntax("[]");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<ListValueNode>(description.DefaultValue);
     }
 }

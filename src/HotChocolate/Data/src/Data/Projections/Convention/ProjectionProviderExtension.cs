@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Data.Projections;
 
 public class ProjectionProviderExtension
-    : ConventionExtension<ProjectionProviderDefinition>
+    : ConventionExtension<ProjectionProviderConfiguration>
     , IProjectionProviderExtension
     , IProjectionProviderConvention
 {
@@ -30,7 +30,7 @@ public class ProjectionProviderExtension
         Complete(context);
     }
 
-    protected override ProjectionProviderDefinition CreateDefinition(IConventionContext context)
+    protected override ProjectionProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -45,23 +45,23 @@ public class ProjectionProviderExtension
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IProjectionProviderDescriptor descriptor) { }
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (Definition is not null &&
+        if (Configuration is not null &&
             convention is ProjectionProvider projectionProvider &&
-            projectionProvider.Definition is { } target)
+            projectionProvider.Configuration is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more
             // specific handlers than the default providers
-            for (var i = Definition.Handlers.Count - 1; i >= 0; i--)
+            for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
             {
-                target.Handlers.Insert(0, Definition.Handlers[i]);
+                target.Handlers.Insert(0, Configuration.Handlers[i]);
             }
         }
     }

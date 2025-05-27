@@ -1,5 +1,5 @@
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.ApolloFederation.Types;
@@ -208,7 +208,7 @@ public static class PolicyDescriptorExtensions
 
     private static void AddPolicies(
         IReadOnlyList<Policy> policies,
-        IHasDirectiveDefinition definition,
+        IDirectiveConfigurationProvider definition,
         ITypeInspector typeInspector)
     {
         var directive = definition

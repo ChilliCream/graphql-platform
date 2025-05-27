@@ -3,12 +3,12 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
 public class FilterFieldDescriptor
-    : ArgumentDescriptorBase<FilterFieldDefinition>
+    : ArgumentDescriptorBase<FilterFieldConfiguration>
     , IFilterFieldDescriptor
 {
     protected FilterFieldDescriptor(
@@ -17,8 +17,8 @@ public class FilterFieldDescriptor
         string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName;
-        Definition.Scope = scope;
+        Configuration.Name = fieldName;
+        Configuration.Scope = scope;
     }
 
     protected FilterFieldDescriptor(
@@ -29,12 +29,12 @@ public class FilterFieldDescriptor
     {
         var convention = context.GetFilterConvention(scope);
 
-        Definition.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Configuration.Member = member ?? throw new ArgumentNullException(nameof(member));
 
-        Definition.Name = convention.GetFieldName(member);
-        Definition.Description = convention.GetFieldDescription(member);
-        Definition.Type = convention.GetFieldType(member);
-        Definition.Scope = scope;
+        Configuration.Name = convention.GetFieldName(member);
+        Configuration.Description = convention.GetFieldDescription(member);
+        Configuration.Type = convention.GetFieldType(member);
+        Configuration.Scope = scope;
     }
 
     protected FilterFieldDescriptor(
@@ -45,13 +45,13 @@ public class FilterFieldDescriptor
     {
         var convention = context.GetFilterConvention(scope);
 
-        Definition.Expression = expression;
-        Definition.Scope = scope;
+        Configuration.Expression = expression;
+        Configuration.Scope = scope;
 
-        if (Definition.Expression is LambdaExpression lambda)
+        if (Configuration.Expression is LambdaExpression lambda)
         {
-            Definition.Type = convention.GetFieldType(lambda.ReturnType);
-            Definition.RuntimeType = lambda.ReturnType;
+            Configuration.Type = convention.GetFieldType(lambda.ReturnType);
+            Configuration.RuntimeType = lambda.ReturnType;
         }
     }
 
@@ -60,42 +60,42 @@ public class FilterFieldDescriptor
         string? scope)
         : base(context)
     {
-        Definition.Scope = scope;
+        Configuration.Scope = scope;
     }
 
-    protected internal new FilterFieldDefinition Definition
+    protected internal new FilterFieldConfiguration Configuration
     {
-        get => base.Definition;
-        protected set => base.Definition = value;
+        get => base.Configuration;
+        protected set => base.Configuration = value;
     }
 
-    internal InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
+    internal InputFieldConfiguration CreateFieldConfiguration() => CreateConfiguration();
 
-    protected override void OnCreateDefinition(
-        FilterFieldDefinition definition)
+    protected override void OnCreateConfiguration(
+        FilterFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Member: not null, })
+        if (Configuration is { AttributesAreApplied: false, Member: not null, })
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Member);
+            Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }
 
     public IFilterFieldDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IFilterFieldDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 

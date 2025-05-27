@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// A post processor that can be used to post process async list
+/// A post-processor that can be used to post process async list
 /// results like async enumerables, queryables or executables.
 /// </summary>
 /// <typeparam name="T">
@@ -68,8 +68,7 @@ public sealed class ListPostProcessor<T> : IResolverResultPostProcessor
             return asyncEnumerable;
         }
 
-        if (result is IExecutable executable
-            && result is IDisposable or IAsyncDisposable)
+        if (result is IExecutable executable and (IDisposable or IAsyncDisposable))
         {
             return DisposableStream(executable, result, cancellationToken);
         }

@@ -1,10 +1,10 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public interface IDirectiveArgumentDescriptor
-    : IDescriptor<DirectiveArgumentDefinition>
+    : IDescriptor<DirectiveArgumentConfiguration>
     , IFluent
 {
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>

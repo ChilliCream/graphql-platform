@@ -796,10 +796,7 @@ public class GraphQLRequestParserTests
 
         public void TryAddDocument(string documentId, CachedDocument document)
         {
-            if (!_cache.ContainsKey(documentId))
-            {
-                _cache.Add(documentId, document);
-            }
+            _cache.TryAdd(documentId, document);
         }
 
         public bool TryGetDocument(

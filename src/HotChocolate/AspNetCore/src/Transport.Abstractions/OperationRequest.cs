@@ -7,7 +7,7 @@ namespace HotChocolate.Transport;
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket or HTTP connection.
 /// </summary>
-public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperationRequest
+public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationRequest
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
@@ -28,7 +28,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// A dictionary containing extension values to include with the operation.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown if the query, ID, and extensions parameters are all null.
+    /// Thrown if the `query`, `id`, and `extensions` parameters are all null.
     /// </exception>
     public OperationRequest(
         string? query,
@@ -63,7 +63,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// A dictionary containing extension values to include with the operation.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown if the query, ID, and extensions parameters are all null.
+    /// Thrown if the `query`, `id`, and `extensions` parameters are all null.
     /// </exception>
     public OperationRequest(
         string? query = null,
@@ -146,13 +146,20 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
-    public bool Equals(OperationRequest other)
-        => Id == other.Id &&
-            Query == other.Query &&
-            Equals(Variables, other.Variables) &&
-            Equals(Extensions, other.Extensions) &&
-            Equals(VariablesNode, other.VariablesNode) &&
-            Equals(ExtensionsNode, other.ExtensionsNode);
+    public bool Equals(OperationRequest? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id
+            && Query == other.Query
+            && Equals(Variables, other.Variables)
+            && Equals(Extensions, other.Extensions)
+            && Equals(VariablesNode, other.VariablesNode)
+            && Equals(ExtensionsNode, other.ExtensionsNode);
+    }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)

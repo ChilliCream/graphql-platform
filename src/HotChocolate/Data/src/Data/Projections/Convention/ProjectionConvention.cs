@@ -6,14 +6,11 @@ using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 namespace HotChocolate.Data.Projections;
 
 public class ProjectionConvention
-    : Convention<ProjectionConventionDefinition>
+    : Convention<ProjectionConventionConfiguration>
     , IProjectionConvention
 {
     private Action<IProjectionConventionDescriptor>? _configure;
     private IProjectionProvider _provider = default!;
-
-    public const string IsProjectedKey = nameof(IsProjectedKey);
-    public const string AlwaysProjectedFieldsKey = nameof(AlwaysProjectedFieldsKey);
 
     protected ProjectionConvention()
     {
@@ -26,9 +23,9 @@ public class ProjectionConvention
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionConventionDefinition? Definition => base.Definition;
+    internal new ProjectionConventionConfiguration? Configuration => base.Configuration;
 
-    protected override ProjectionConventionDefinition CreateDefinition(
+    protected override ProjectionConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -44,7 +41,7 @@ public class ProjectionConvention
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IProjectionConventionDescriptor descriptor)
@@ -53,26 +50,26 @@ public class ProjectionConvention
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition?.Provider is null)
+        if (Configuration?.Provider is null)
         {
-            throw ProjectionConvention_NoProviderFound(GetType(), Definition?.Scope);
+            throw ProjectionConvention_NoProviderFound(GetType(), Configuration?.Scope);
         }
 
-        if (Definition.ProviderInstance is null)
+        if (Configuration.ProviderInstance is null)
         {
             _provider =
-                (IProjectionProvider)GetServiceOrCreateInstance(context.Services, Definition.Provider) ??
-                throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
+                (IProjectionProvider)GetServiceOrCreateInstance(context.Services, Configuration.Provider) ??
+                throw ProjectionConvention_NoProviderFound(GetType(), Configuration.Scope);
         }
         else
         {
-            _provider = Definition.ProviderInstance;
+            _provider = Configuration.ProviderInstance;
         }
 
         if (_provider is IProjectionProviderConvention init)
         {
             var extensions =
-                CollectExtensions(context.Services, Definition);
+                CollectExtensions(context.Services, Configuration);
             init.Initialize(context);
             MergeExtensions(context, init, extensions);
             init.Complete(context);
@@ -87,12 +84,12 @@ public class ProjectionConvention
 
     private static IReadOnlyList<IProjectionProviderExtension> CollectExtensions(
         IServiceProvider serviceProvider,
-        ProjectionConventionDefinition definition)
+        ProjectionConventionConfiguration configuration)
     {
         List<IProjectionProviderExtension> extensions = [];
-        extensions.AddRange(definition.ProviderExtensions);
+        extensions.AddRange(configuration.ProviderExtensions);
 
-        foreach (var extensionType in definition.ProviderExtensionsTypes)
+        foreach (var extensionType in configuration.ProviderExtensionsTypes)
         {
             extensions.Add((IProjectionProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }

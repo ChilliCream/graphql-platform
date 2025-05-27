@@ -27,17 +27,10 @@ internal sealed class DocumentRule : IDocumentValidatorRule
 
     public bool IsCacheable => true;
 
-    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
 
         IDefinitionNode? typeSystemNode = null;
 
