@@ -44,6 +44,11 @@ public partial class OperationCompiler
             return optimizers;
         }
 
+        if (optimizers.IsEmpty)
+        {
+            return fieldOptimizers;
+        }
+
         foreach (var optimizer in fieldOptimizers)
         {
             if (!optimizers.Contains(optimizer))

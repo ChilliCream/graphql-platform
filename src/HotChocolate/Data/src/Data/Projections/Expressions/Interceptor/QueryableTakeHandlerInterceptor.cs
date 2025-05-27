@@ -14,7 +14,7 @@ public abstract class QueryableTakeHandlerInterceptor
     private readonly SelectionFlags _selectionFlags;
     private readonly int _take;
 
-    public QueryableTakeHandlerInterceptor(SelectionFlags selectionFlags, int take)
+    protected QueryableTakeHandlerInterceptor(SelectionFlags selectionFlags, int take)
     {
         _selectionFlags = selectionFlags;
         _take = take;
@@ -29,7 +29,7 @@ public abstract class QueryableTakeHandlerInterceptor
         ISelection selection)
     {
         if (selection.IsSelectionFlags(_selectionFlags))
-        {;
+        {
             context.PushInstance(
                 Expression.Call(
                     typeof(Enumerable),

@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;

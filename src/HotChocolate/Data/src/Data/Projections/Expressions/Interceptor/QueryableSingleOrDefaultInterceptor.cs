@@ -5,7 +5,7 @@ public class QueryableSingleOrDefaultInterceptor
     : QueryableTakeHandlerInterceptor
 {
     public QueryableSingleOrDefaultInterceptor()
-        : base(SelectionFlags.SingleOrDefault, 1)
+        : base(SelectionFlags.SingleOrDefault, 2)
     {
     }
 }

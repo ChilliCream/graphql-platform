@@ -88,13 +88,13 @@ public static class SelectionFlagsExtensions
     /// <param name="flags">The flags.</param>
     /// <returns>
     /// <c>true</c> if the selection flags were updated; otherwise, <c>false</c>.</returns>
-    public static bool UpdateSelectionFlags(this ObjectFieldConfiguration field, SelectionFlags flags)
+    public static bool AddSelectionFlags(this ObjectFieldConfiguration field, SelectionFlags flags)
     {
         ArgumentNullException.ThrowIfNull(field);
 
         var actualFlags = field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         actualFlags |= flags;
-        field.Features.Set(actualFlags);
+        field.Features.Set<SelectionFlags?>(actualFlags);
         return true;
     }
 }

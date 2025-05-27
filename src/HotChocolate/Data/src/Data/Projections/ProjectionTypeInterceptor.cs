@@ -1,10 +1,8 @@
-using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
-using static HotChocolate.Data.Projections.ProjectionConvention;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
 namespace HotChocolate.Data.Projections;
@@ -36,7 +34,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
             foreach (var field in fields)
             {
-                if (field.Name is not ("node" or "nodes"))
+                if (field.Name is not "node" and not "nodes")
                 {
                     continue;
                 }
