@@ -43,6 +43,10 @@ type Query {
     @resolver(subgraph: "Reviews", select: "{ reviewOrAuthor }")
   reviews: [Review!]!
     @resolver(subgraph: "Reviews", select: "{ reviews }")
+  testWithTwoArgumentsDifferingNullability(first: Int! second: Int): Int
+    @variable(subgraph: "Accounts", name: "first", argument: "first")
+    @variable(subgraph: "Accounts", name: "second", argument: "second")
+    @resolver(subgraph: "Accounts", select: "{ testWithTwoArgumentsDifferingNullability(first: $first, second: $second) }", arguments: [ { name: "first", type: "Int!" }, { name: "second", type: "Int" } ])
   topProducts(first: Int!): [Product!]!
     @variable(subgraph: "Products", name: "first", argument: "first")
     @resolver(subgraph: "Products", select: "{ topProducts(first: $first) }", arguments: [ { name: "first", type: "Int!" } ])

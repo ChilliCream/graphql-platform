@@ -2572,6 +2572,49 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
+    [Fact]
+    public async Task Two_Arguments_Differing_Nullability_Does_Not_Duplicate_Forwarded_Variables()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query Test($number: Int!) {
+                testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "number", 1 } })
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+
+        Assert.Null(result.ExpectOperationResult().Errors);
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;

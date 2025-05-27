@@ -608,16 +608,11 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             var originalVarDef = context.Operation.Definition.VariableDefinitions
                 .First(t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax));
 
-            if (resolver is null || !resolver.ArgumentTypes.TryGetValue(argumentName, out var type))
-            {
-                type = originalVarDef.Type;
-            }
-
             context.ForwardedVariables.Add(
                 new VariableDefinitionNode(
                     null,
                     variableValue,
-                    type,
+                    originalVarDef.Type,
                     originalVarDef.DefaultValue,
                     Array.Empty<DirectiveNode>()));
         }

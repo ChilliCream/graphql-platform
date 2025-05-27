@@ -2859,6 +2859,34 @@ public class RequestPlannerTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
+    [Fact]
+    public async Task Two_Arguments_Differing_Nullability_Does_Not_Duplicate_Forwarded_Variables()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test($number: Int!) {
+                testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.SchemaDefinition fusionGraph,
         [StringSyntax("graphql")] string query)

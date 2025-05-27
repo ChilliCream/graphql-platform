@@ -14,6 +14,9 @@
           "name": "node"
         },
         {
+          "name": "testWithTwoArgumentsDifferingNullability"
+        },
+        {
           "name": "userById"
         },
         {
@@ -58,6 +61,9 @@
         },
         {
           "name": "reviews"
+        },
+        {
+          "name": "testWithTwoArgumentsDifferingNullability"
         },
         {
           "name": "userById"
