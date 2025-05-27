@@ -44,7 +44,7 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         {
             writer.WriteLine("requirements:");
             writer.Indent();
-            foreach (var requirement in node.Requirements)
+            foreach (var requirement in node.Requirements.OrderBy(t => t.Key))
             {
                 writer.WriteLine("- name: " + requirement.Key);
                 writer.Indent();
@@ -60,7 +60,7 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         {
             writer.WriteLine("dependencies:");
             writer.Indent();
-            foreach (var dependency in node.Dependencies)
+            foreach (var dependency in node.Dependencies.OrderBy(t => t.Id))
             {
                 writer.WriteLine("- id: " + dependency.Id);
             }

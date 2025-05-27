@@ -47,7 +47,6 @@ public abstract class FieldBase
         Description = original.Description;
         IsDeprecated = original.IsDeprecated;
         DeprecationReason = original.DeprecationReason;
-        Flags = original.Flags;
         DeclaringType = original.DeclaringType;
         DeclaringMember = original.DeclaringMember;
         Features = original.Features;

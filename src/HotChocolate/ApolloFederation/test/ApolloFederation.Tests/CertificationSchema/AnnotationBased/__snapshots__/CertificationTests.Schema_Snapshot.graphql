@@ -2,7 +2,7 @@ schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@ta
   query: Query
 }
 
-type Product @key(fields: "id", resolvable: true) @key(fields: "sku package", resolvable: true) @key(fields: "sku variation { id }", resolvable: true) {
+type Product @key(fields: "id") @key(fields: "sku package") @key(fields: "sku variation { id }") {
   id: ID!
   sku: String
   package: String
@@ -26,7 +26,7 @@ type Query {
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type User @key(fields: "email", resolvable: true) {
+type User @key(fields: "email") {
   email: ID! @external
   totalProductsCreated: Int @external
 }

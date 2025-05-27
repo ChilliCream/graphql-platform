@@ -374,7 +374,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     }
 
-    private static Selection CreateProxySelection(ISelection selection, ObjectField field)
+    private static Selection.Sealed CreateProxySelection(ISelection selection, ObjectField field)
     {
         var includeConditionsSource = ((Selection)selection).IncludeConditions;
         var includeConditions = new long[includeConditionsSource.Length];

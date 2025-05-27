@@ -41,11 +41,11 @@ public sealed class EntityResolverDescriptor<TEntity>
         Configuration.EntityType = entityType;
     }
 
-    private void OnCompleteConfiguration(ObjectTypeConfiguration configuration)
+    private void OnCompleteConfiguration(ObjectTypeConfiguration typeConfiguration)
     {
         if (Configuration.Resolver is not null)
         {
-            var resolvers = Configuration.Features.GetOrSet<List<ReferenceResolverConfiguration>>();
+            var resolvers = typeConfiguration.Features.GetOrSet<List<ReferenceResolverConfiguration>>();
             resolvers.Add(Configuration.Resolver);
         }
     }
@@ -114,7 +114,7 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         ArgumentNullException.ThrowIfNull(required);
 
-        Configuration.Resolver = new(fieldResolver, required);
+        Configuration.Resolver = new ReferenceResolverConfiguration(fieldResolver, required);
         return _typeDescriptor;
     }
 

@@ -275,8 +275,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Status Code: BadRequest
                 -------------------------->
                 {""errors"":[{""message"":""Unable to parse the accept header value " +
-                @"`unsupported`."",""extensions"":{""headerValue"":""unsupported""," +
-                @"""code"":""HC0064""}}]}");
+                @"`unsupported`."",""extensions"":{""code"":""HC0064""," +
+                @"""headerValue"":""unsupported""}}]}");
     }
 
     [Fact]

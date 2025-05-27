@@ -37,13 +37,12 @@ public sealed class ObjectField : OutputField
     {
         Member = original.Member;
         ResolverMember = original.ResolverMember ?? original.Member;
-        Middleware = _empty;
+        Middleware = original.Middleware;
         Resolver = original.Resolver!;
         ResolverExpression = original.ResolverExpression;
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
         PureResolver = original.PureResolver;
-        IsParallelExecutable = original.IsParallelExecutable;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
         Flags = original.Flags;

@@ -16,7 +16,18 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
     protected FieldCollection(T[] fields)
     {
         _fields = fields ?? throw new ArgumentNullException(nameof(fields));
-        _fieldsLookup = _fields.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+
+        // We filter out duplicates in the lookup so we do not throw here.
+        // Duplication of fields will be reported gracefully as a schema error
+        // outside of this collection.
+        var fieldsLookup = new Dictionary<string, T>(StringComparer.Ordinal);
+
+        foreach (var field in fields.AsSpan())
+        {
+            fieldsLookup.TryAdd(field.Name, field);
+        }
+
+        _fieldsLookup = fieldsLookup.ToFrozenDictionary();
     }
 
     public T this[string fieldName] => _fieldsLookup[fieldName];

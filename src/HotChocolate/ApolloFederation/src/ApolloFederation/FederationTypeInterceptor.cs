@@ -37,13 +37,13 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private readonly List<ObjectType> _entityTypes = [];
     private readonly Dictionary<Uri, HashSet<string>> _imports = new();
-    private IDescriptorContext _context = default!;
-    private ITypeInspector _typeInspector = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private ObjectType _queryType = default!;
-    private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
-    private SchemaTypeConfiguration _schemaTypeCfg = default!;
-    private RegisteredType _schemaType = default!;
+    private IDescriptorContext _context = null!;
+    private ITypeInspector _typeInspector = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private ObjectType _queryType = null!;
+    private ExtendedTypeDirectiveReference _keyDirectiveReference = null!;
+    private SchemaTypeConfiguration _schemaTypeCfg = null!;
+    private RegisteredType _schemaType = null!;
     private bool _registeredTypes;
 
     internal override void InitializeContext(
@@ -392,7 +392,9 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
             current = Expression.Block([variable], current, variable);
 
-            typeCfg.Features.Set(Expression.Lambda<FieldResolverDelegate>(current, context).Compile());
+            typeCfg.Features.Set(
+                new ReferenceResolver(
+                    Expression.Lambda<FieldResolverDelegate>(current, context).Compile()));
         }
     }
 
