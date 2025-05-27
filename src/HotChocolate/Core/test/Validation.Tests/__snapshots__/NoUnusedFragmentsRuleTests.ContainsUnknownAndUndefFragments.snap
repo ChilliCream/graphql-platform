@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified fragment `bar` does not exist.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 21
+        "Line": 3,
+        "Column": 5
       }
     ],
     "Extensions": {
@@ -30,8 +30,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 7,
-        "Column": 17
+        "Line": 6,
+        "Column": 1
       }
     ],
     "Extensions": {

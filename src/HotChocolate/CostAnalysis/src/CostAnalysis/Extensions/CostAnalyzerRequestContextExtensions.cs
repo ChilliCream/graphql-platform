@@ -1,5 +1,6 @@
 using HotChocolate.CostAnalysis;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -9,21 +10,14 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class CostAnalyzerRequestContextExtensions
 {
-    internal static IRequestContext AddCostMetrics(
+    internal static IRequestContext SetCostMetrics(
         this IRequestContext context,
         CostMetrics costMetrics)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(costMetrics);
 
-        if (costMetrics is null)
-        {
-            throw new ArgumentNullException(nameof(costMetrics));
-        }
-
-        context.ContextData[WellKnownContextData.CostMetrics] = costMetrics;
+        context.Features.Set(costMetrics);
         return context;
     }
 
@@ -42,13 +36,9 @@ public static class CostAnalyzerRequestContextExtensions
     public static CostMetrics GetCostMetrics(
         this IRequestContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
-        if (context.ContextData.TryGetValue(WellKnownContextData.CostMetrics, out var value) &&
-            value is CostMetrics costMetrics)
+        if (context.Features.TryGet<CostMetrics>(out var costMetrics))
         {
             return costMetrics;
         }
@@ -60,10 +50,8 @@ public static class CostAnalyzerRequestContextExtensions
         this IRequestContext context,
         RequestCostOptions options)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(options);
 
         if (options.SkipAnalyzer)
         {
@@ -103,8 +91,9 @@ public static class CostAnalyzerRequestContextExtensions
     /// </returns>
     public static RequestCostOptions GetCostOptions(this IRequestContext context)
     {
-        if (context.ContextData.TryGetValue(WellKnownContextData.RequestCostOptions, out var value)
-            && value is RequestCostOptions options)
+        ArgumentNullException.ThrowIfNull(context);
+
+        if (context.Features.TryGet<RequestCostOptions>(out var options))
         {
             return options;
         }
@@ -123,13 +112,14 @@ public static class CostAnalyzerRequestContextExtensions
     /// </returns>
     public static RequestCostOptions GetCostOptions(this IRequestExecutor executor)
     {
+        ArgumentNullException.ThrowIfNull(executor);
+
         return executor.Schema.Services.GetRequiredService<RequestCostOptions>();
     }
 
     internal static RequestCostOptions? TryGetCostOptions(this IRequestContext context)
     {
-        if (context.ContextData.TryGetValue(WellKnownContextData.RequestCostOptions, out var value)
-            && value is RequestCostOptions options)
+        if (context.Features.TryGet<RequestCostOptions>(out var options))
         {
             return options;
         }
@@ -148,7 +138,10 @@ public static class CostAnalyzerRequestContextExtensions
     /// </param>
     public static void SetCostOptions(this IRequestContext context, RequestCostOptions options)
     {
-        context.ContextData[WellKnownContextData.RequestCostOptions] = options;
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(options);
+
+        context.Features.Set(options);
     }
 
     /// <summary>
@@ -166,5 +159,11 @@ public static class CostAnalyzerRequestContextExtensions
     public static OperationRequestBuilder SetCostOptions(
         this OperationRequestBuilder builder,
         RequestCostOptions options)
-        => builder.SetGlobalState(WellKnownContextData.RequestCostOptions, options);
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(options);
+
+        builder.Features.Set(options);
+        return builder;
+    }
 }

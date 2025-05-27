@@ -11,8 +11,7 @@ public class QueryableProjectionListHandler
 {
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { } &&
-        (selection.IsList ||
-            selection.Field.ContextData.ContainsKey(SelectionOptions.MemberIsList));
+        (selection.IsList || selection.IsMemberIsList());
 
     public override QueryableProjectionContext OnBeforeEnter(
         QueryableProjectionContext context,

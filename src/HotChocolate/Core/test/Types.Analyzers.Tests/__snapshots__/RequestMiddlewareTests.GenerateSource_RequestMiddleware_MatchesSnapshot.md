@@ -34,8 +34,10 @@ namespace HotChocolate.Execution.Generated
 
         [InterceptsLocation("", 15, 14)]
         public static global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder UseRequestGen0<TMiddleware>(
-            this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder) where TMiddleware : class
-            => builder.UseRequest(CreateMiddleware0());
+            this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder,
+            string? key = null)
+            where TMiddleware : class
+            => builder.UseRequest(CreateMiddleware0(), key);
     }
 }
 

@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;

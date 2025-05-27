@@ -15,7 +15,7 @@ internal sealed class PipelineBuilder
     private static readonly ParameterExpression _next =
         Expression.Parameter(typeof(RequestDelegate), "next");
     private static readonly ConstantExpression _schemaName =
-        Expression.Constant(Schema.DefaultName, typeof(string));
+        Expression.Constant(ISchemaDefinition.DefaultName, typeof(string));
     private static readonly ConstantExpression _routing =
         Expression.Constant(MiddlewareRoutingType.Integrated, typeof(MiddlewareRoutingType));
     private static readonly MethodInfo _getService =

@@ -16,17 +16,19 @@ public class FragmentsOnCompositeTypesRuleTests
     [Fact]
     public void Fragment_On_Object_Is_Valid()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                       ... fragOnObject
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ... fragOnObject
+              }
+            }
 
-                fragment fragOnObject on Dog {
-                    name
-                }
-            ");
+            fragment fragOnObject on Dog {
+              name
+            }
+            """
+        );
     }
 
     /// <summary>
@@ -35,17 +37,19 @@ public class FragmentsOnCompositeTypesRuleTests
     [Fact]
     public void Fragment_On_Interface_Is_Valid()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                       ... fragOnInterface
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ... fragOnInterface
+              }
+            }
 
-                fragment fragOnInterface on Pet {
-                    name
-                }
-            ");
+            fragment fragOnInterface on Pet {
+              name
+            }
+            """
+        );
     }
 
     /// <summary>
@@ -54,19 +58,21 @@ public class FragmentsOnCompositeTypesRuleTests
     [Fact]
     public void Object_Is_Valid_Inline_FragmentType()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                       ... validFragment
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ... validFragment
+              }
+            }
 
-                fragment validFragment on Pet {
-                    ... on Dog {
-                        barkVolume
-                    }
-                }
-            ");
+            fragment validFragment on Pet {
+              ... on Dog {
+                barkVolume
+              }
+            }
+            """
+        );
     }
 
     /// <summary>
@@ -75,19 +81,21 @@ public class FragmentsOnCompositeTypesRuleTests
     [Fact]
     public void Interface_Is_Valid_Inline_FragmentType()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                       ... validFragment
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ... validFragment
+              }
+            }
 
-                fragment validFragment on Mammal {
-                    ... on Canine {
-                        name
-                    }
-                }
-            ");
+            fragment validFragment on Mammal {
+              ... on Canine {
+                name
+              }
+            }
+            """
+        );
     }
 
     /// <summary>
@@ -96,19 +104,21 @@ public class FragmentsOnCompositeTypesRuleTests
     [Fact]
     public void InlineFragment_Without_Type_Is_Valid()
     {
-        ExpectValid(@"
-                {
-                    dog {
-                       ... validFragment
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ... validFragment
+              }
+            }
 
-                fragment validFragment on Pet {
-                    ... {
-                        name
-                    }
-                }
-            ");
+            fragment validFragment on Pet {
+              ... {
+                name
+              }
+            }
+            """
+        );
     }
 
     /// <summary>
@@ -118,35 +128,38 @@ public class FragmentsOnCompositeTypesRuleTests
     public void Fragment_On_Union_Is_Valid()
     {
         // arrange
-        ExpectValid(@"
-                {
-                    dog {
-                       ... fragOnUnion
-                    }
-                }
+        ExpectValid(
+            """
+            {
+              dog {
+                ... fragOnUnion
+              }
+            }
 
-                fragment fragOnUnion on CatOrDog {
-                    ... on Dog {
-                        name
-                    }
-                }
-            ");
+            fragment fragOnUnion on CatOrDog {
+              ... on Dog {
+                name
+              }
+            }
+            """
+        );
     }
 
     [Fact]
     public void Fragment_On_Scalar_Is_Invalid()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                       ... fragOnScalar
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              dog {
+                ... fragOnScalar
+              }
+            }
 
-                fragment fragOnScalar on Int {
-                    something
-                }
-            ",
+            fragment fragOnScalar on Int {
+              something
+            }
+            """,
             t => Assert.Equal(
                 "Fragments can only be declared on unions, interfaces, and objects.",
                 t.Message));
@@ -155,19 +168,20 @@ public class FragmentsOnCompositeTypesRuleTests
     [Fact]
     public void InlineFragment_On_Scalar_Is_Invalid()
     {
-        ExpectErrors(@"
-                {
-                    dog {
-                       ... inlineFragOnScalar
-                    }
-                }
+        ExpectErrors(
+            """
+            {
+              dog {
+                ... inlineFragOnScalar
+              }
+            }
 
-                fragment inlineFragOnScalar on Dog {
-                    ... on Boolean {
-                        somethingElse
-                    }
-                }
-            ",
+            fragment inlineFragOnScalar on Dog {
+              ... on Boolean {
+                somethingElse
+              }
+            }
+            """,
             t => Assert.Equal(
                 "Fragments can only be declared on unions, interfaces, and objects.",
                 t.Message));

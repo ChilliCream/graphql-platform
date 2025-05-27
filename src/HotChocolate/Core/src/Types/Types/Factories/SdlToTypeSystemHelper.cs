@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -11,7 +11,7 @@ internal static class SdlToTypeSystemHelper
     public static void AddDirectives<TOwner>(
         IDescriptorContext context,
         TOwner owner,
-        HotChocolate.Language.IHasDirectives ownerSyntax,
+        IHasDirectives ownerSyntax,
         Stack<ITypeSystemConfiguration> path)
         where TOwner : IDirectiveConfigurationProvider, ITypeSystemConfiguration
     {
@@ -28,15 +28,15 @@ internal static class SdlToTypeSystemHelper
                 continue;
             }
 
-            owner.Directives.Add(new(directive));
+            owner.Directives.Add(new DirectiveConfiguration(directive));
         }
     }
 
     public static string? DeprecationReason(
-        this Language.IHasDirectives syntaxNode)
+        this IHasDirectives syntaxNode)
     {
         var directive = syntaxNode.Directives.FirstOrDefault(
-            t => t.Name.Value == WellKnownDirectives.Deprecated);
+            t => t.Name.Value == DirectiveNames.Deprecated.Name);
 
         if (directive is null)
         {
@@ -44,18 +44,18 @@ internal static class SdlToTypeSystemHelper
         }
 
         if (directive.Arguments.Count != 0
-            && directive.Arguments[0].Name.Value == WellKnownDirectives.DeprecationReasonArgument
+            && directive.Arguments[0].Name.Value == DirectiveNames.Deprecated.Arguments.Reason
             && directive.Arguments[0].Value is StringValueNode s
             && !string.IsNullOrEmpty(s.Value))
         {
             return s.Value;
         }
 
-        return WellKnownDirectives.DeprecationDefaultReason;
+        return DirectiveNames.Deprecated.Arguments.DefaultReason;
     }
 
     public static bool IsDeprecationReason(this DirectiveNode directiveNode)
         => string.Equals(directiveNode.Name.Value,
-            WellKnownDirectives.Deprecated,
+            DirectiveNames.Deprecated.Name,
             StringComparison.Ordinal);
 }

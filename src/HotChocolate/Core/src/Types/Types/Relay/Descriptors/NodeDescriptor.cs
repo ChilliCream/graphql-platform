@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable

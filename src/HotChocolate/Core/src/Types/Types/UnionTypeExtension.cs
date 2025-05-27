@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -94,7 +94,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is UnionType unionType)
         {
@@ -103,7 +103,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeConfiguration>
             AssertMutable();
             unionType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
+            TypeExtensionHelper.MergeFeatures(
                 Configuration!,
                 unionType.Configuration!);
 

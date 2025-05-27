@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
 
@@ -103,16 +102,16 @@ public sealed class GraphQLHttpResponse : IDisposable
     {
         var contentType = _message.Content.Headers.ContentType;
 
-        // The server supports the newer graphql-response+json media type and users are free
+        // The server supports the newer graphql-response+json media type, and users are free
         // to use status codes.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.GraphQL, StringComparison.Ordinal) ?? false)
         {
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
         }
 
-        // The server supports the older application/json media type and the status code
+        // The server supports the older application/json media type, and the status code
         // is expected to be a 2xx for a valid GraphQL response.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.Json, StringComparison.Ordinal) ?? false)
         {
             _message.EnsureSuccessStatusCode();
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
@@ -164,21 +163,21 @@ public sealed class GraphQLHttpResponse : IDisposable
     {
         var contentType = _message.Content.Headers.ContentType;
 
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.EventStream) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.EventStream, StringComparison.Ordinal) ?? false)
         {
             return ReadAsResultStreamInternalAsync(contentType.CharSet, cancellationToken);
         }
 
-        // The server supports the newer graphql-response+json media type and users are free
+        // The server supports the newer graphql-response+json media type, and users are free
         // to use status codes.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.GraphQL, StringComparison.Ordinal) ?? false)
         {
             return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
         }
 
-        // The server supports the older application/json media type and the status code
+        // The server supports the older application/json media type, and the status code
         // is expected to be a 2xx for a valid GraphQL response.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.Json, StringComparison.Ordinal) ?? false)
         {
             _message.EnsureSuccessStatusCode();
             return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
@@ -191,8 +190,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         string? charSet,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
-            .ConfigureAwait(false);
+        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 
         var stream = contentStream;
 
