@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;

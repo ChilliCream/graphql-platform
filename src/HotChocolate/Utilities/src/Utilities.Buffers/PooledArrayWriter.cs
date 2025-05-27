@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Runtime.InteropServices;
 using static HotChocolate.Buffers.Properties.BuffersResources;
 
-namespace HotChocolate.Utilities;
+namespace HotChocolate.Buffers;
 
 /// <summary>
 /// A <see cref="IBufferWriter{T}"/> that writes to a rented buffer.

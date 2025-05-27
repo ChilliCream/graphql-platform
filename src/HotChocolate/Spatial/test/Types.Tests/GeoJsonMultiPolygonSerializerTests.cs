@@ -626,9 +626,9 @@ public class GeoJsonMultiPolygonSerializerTests
         }
     }
 
-    private InputObjectType CreateInputType(string typeName)
+    private IInputTypeDefinition CreateInputType(string typeName)
     {
-        return CreateSchema().Types.GetType<InputObjectType>(typeName);
+        return CreateSchema().Types.GetType<IInputTypeDefinition>(typeName);
     }
 
     private ILeafType CreateLeafType(string typeName)

@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 <PropertyGroup>
-    <AssemblyName>HotChocolate.Utilities.Buffers</AssemblyName>
-    <RootNamespace>HotChocolate.Utilities</RootNamespace>
+    <AssemblyName>HotChocolate.Buffers</AssemblyName>
+    <RootNamespace>HotChocolate.Buffers</RootNamespace>
     <PackageId>HotChocolate.Utilities.Buffers</PackageId>
     <Description>This package contains the HotChocolate.Buffers.ArrayWriter.</Description>
   </PropertyGroup>

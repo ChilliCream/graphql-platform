@@ -5,6 +5,8 @@ namespace HotChocolate.Execution;
 /// </summary>
 public interface IGraphQLExecutor
 {
+    ISchemaDefinition Schema { get; }
+
     /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.
     /// </summary>

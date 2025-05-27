@@ -204,7 +204,7 @@ public class GeoJsonLineStringInputTests
                 .Resolve("ghi"))
             .Create();
 
-        var type = schema.Types.GetType<InputObjectType>("GeoJSONLineStringInput");
+        var type = schema.Types.GetType<IInputTypeDefinition>("GeoJSONLineStringInput");
 
         var node = new ObjectValueNode(
             new ObjectFieldNode("type", new EnumValueNode("LineString")),

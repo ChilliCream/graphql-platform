@@ -13,9 +13,13 @@ public abstract class GraphQLRequestContext : IFeatureProvider
         IOperationRequest request,
         IServiceProvider requestServices)
     {
-        Schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        Request = request ?? throw new ArgumentNullException(nameof(request));
-        RequestServices = requestServices ?? throw new ArgumentNullException(nameof(requestServices));
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(requestServices);
+
+        Schema = schema;
+        Request = request;
+        RequestServices = requestServices;
     }
 
     /// <summary>

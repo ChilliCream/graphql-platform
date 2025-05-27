@@ -1,7 +1,7 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Defines the basic properties fro a GraphQL operation request.
+/// Defines the basic properties for a GraphQL operation request.
 /// </summary>
 public interface IOperationRequest : IExecutionRequest
 {

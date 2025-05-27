@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
