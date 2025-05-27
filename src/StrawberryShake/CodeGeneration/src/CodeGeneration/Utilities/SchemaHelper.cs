@@ -27,6 +27,7 @@ public static class SchemaHelper
         IndexSyntaxNodes(schemaFiles, lookup);
 
         var builder = SchemaBuilder.New();
+        builder.Features.Set(typeInfos);
 
         builder.ModifyOptions(o => o.StrictValidation = strictValidation);
 
@@ -96,7 +97,7 @@ public static class SchemaHelper
                     o.EnableFlagEnums = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
-                c => c.Features.GetOrSet<TypeInfos>()))
+                c => c.Features.Set(typeInfos)))
             .TryAddTypeInterceptor(
                 new LeafTypeInterceptor(leafTypes))
             .TryAddTypeInterceptor(

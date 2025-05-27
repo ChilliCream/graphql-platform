@@ -3,17 +3,12 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-public readonly struct SelectionSetInfo : IEquatable<SelectionSetInfo>
+public readonly struct SelectionSetInfo(ITypeDefinition type, SelectionSetNode selectionSet)
+    : IEquatable<SelectionSetInfo>
 {
-    public SelectionSetInfo(ITypeDefinition type, SelectionSetNode selectionSet)
-    {
-        Type = type;
-        SelectionSet = selectionSet;
-    }
+    public ITypeDefinition Type { get; } = type;
 
-    public ITypeDefinition Type { get; }
-
-    public SelectionSetNode SelectionSet { get; }
+    public SelectionSetNode SelectionSet { get; } = selectionSet;
 
     public bool Equals(SelectionSetInfo other) =>
         Type.Equals(other.Type) &&

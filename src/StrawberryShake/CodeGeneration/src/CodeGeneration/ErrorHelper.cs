@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Language;
 using static StrawberryShake.CodeGeneration.CodeGenerationErrorCodes;
 using Location = HotChocolate.Location;
@@ -14,10 +15,11 @@ public static class ErrorHelper
         this IError error,
         IDictionary<ISyntaxNode, string> fileLookup)
     {
-        var extensions = new Dictionary<string, object?>();
-        extensions.Add(TitleExtensionKey, "Schema validation error");
+        var extensions = ImmutableOrderedDictionary<string, object?>.Empty
+            .Add(TitleExtensionKey, "Schema validation error")
+            .Add("code", SchemaValidationError);
 
-        // TODO : we need to bring skimmed in and reenable this.
+        // TODO : we need to bring skimmed in and re-enable this.
         // if the error has a syntax node we will try to lookup the
         // document and add the filename to the error.
         // if (error is Error { SyntaxNode: { } node, } &&
@@ -26,9 +28,7 @@ public static class ErrorHelper
         //    extensions.Add(FileExtensionKey, filename);
         // }
 
-        return error
-            .WithCode(SchemaValidationError)
-            .WithExtensions(extensions);
+        return error.WithExtensions(extensions);
     }
 
     public static IError SchemaError(

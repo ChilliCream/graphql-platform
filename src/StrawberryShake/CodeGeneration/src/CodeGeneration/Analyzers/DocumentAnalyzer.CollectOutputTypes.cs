@@ -113,7 +113,7 @@ public partial class DocumentAnalyzer
 
             arguments.Add(new ArgumentModel(
                 variableDefinition.Variable.Name.Value,
-                (IInputType)variableDefinition.Type.RenameName(namedInputType.Name),
+                (IInputType)variableDefinition.Type.RewriteToType(namedInputType),
                 variableDefinition,
                 variableDefinition.DefaultValue));
         }

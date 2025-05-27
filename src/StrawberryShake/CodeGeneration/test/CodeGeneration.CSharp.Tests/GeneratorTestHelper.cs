@@ -57,8 +57,7 @@ public static class GeneratorTestHelper
         bool skipWarnings,
         params string[] sourceTexts)
     {
-        var clientModel =
-            CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
+        var clientModel = CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
 
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();

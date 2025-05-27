@@ -91,8 +91,7 @@ public class InMemoryClientTests
         // arrange
         var interceptorMock = new Mock<IInMemoryRequestInterceptor>();
         var client = new InMemoryClient("Foo");
-        var variables = new Dictionary<string, object?>();
-        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var operationRequest = new OperationRequest("foo", new StubDocument(), new Dictionary<string, object?>());
         var executor = new StubExecutor();
         client.Executor = executor;
         client.RequestInterceptors.Add(interceptorMock.Object);
@@ -142,13 +141,19 @@ public class InMemoryClientTests
 
         public IServiceProvider Services { get; } =
             new ServiceCollection()
-                .AddSingleton(RootServiceProvider)
+                .AddSingleton<IRootServiceProviderAccessor>(
+                    new StubRootServiceProviderAccessor { ServiceProvider = RootServiceProvider })
                 .BuildServiceProvider();
 
         public static IServiceProvider RootServiceProvider { get; } =
-                new ServiceCollection().BuildServiceProvider();
+            new ServiceCollection().BuildServiceProvider();
+
+        private class StubRootServiceProviderAccessor : IRootServiceProviderAccessor
+        {
+            public required IServiceProvider ServiceProvider { get; set; }
+        }
     }
-    
+
     public class StubDocument : IDocument
     {
         public OperationKind Kind => OperationKind.Query;

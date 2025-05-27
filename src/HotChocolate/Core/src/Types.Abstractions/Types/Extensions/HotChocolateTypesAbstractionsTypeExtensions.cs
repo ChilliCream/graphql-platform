@@ -438,6 +438,20 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
         };
     }
 
+    public static IType RewriteToType(this ITypeNode type, ITypeDefinition typeDefinition)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(typeDefinition);
+
+        return type switch
+        {
+            NamedTypeNode => typeDefinition,
+            ListTypeNode listTypeNode => new ListType(RewriteToType(listTypeNode.Type, typeDefinition)),
+            NonNullTypeNode nonNullTypeNode => new NonNullType(RewriteToType(nonNullTypeNode.Type, typeDefinition)),
+            _ => throw new NotSupportedException(),
+        };
+    }
+
     public static string FullTypeName(this IType type)
     {
         ArgumentNullException.ThrowIfNull(type);

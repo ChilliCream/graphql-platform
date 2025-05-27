@@ -13,10 +13,7 @@ public static class TypeExtensions
 {
     internal static IInputType EnsureInputType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.NamedType() is not IInputType)
         {
@@ -28,10 +25,7 @@ public static class TypeExtensions
 
     internal static IOutputType EnsureOutputType(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.NamedType() is not IOutputType)
         {
@@ -41,13 +35,9 @@ public static class TypeExtensions
         return (IOutputType)type;
     }
 
-
     public static string TypeName(this IType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.NamedType().Name;
     }
@@ -106,18 +96,11 @@ public static class TypeExtensions
 
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
     {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(literal);
+
         while (true)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
             if (literal.Kind is SyntaxKind.NullValue)
             {
                 return type.Kind is not TypeKind.NonNull;
@@ -130,22 +113,22 @@ public static class TypeExtensions
                     continue;
 
                 case TypeKind.List:
-                {
-                    if (literal.Kind is SyntaxKind.ListValue)
                     {
-                        var list = (ListValueNode)literal;
-
-                        if (list.Items.Count == 0)
+                        if (literal.Kind is SyntaxKind.ListValue)
                         {
-                            return true;
+                            var list = (ListValueNode)literal;
+
+                            if (list.Items.Count == 0)
+                            {
+                                return true;
+                            }
+
+                            literal = list.Items[0];
                         }
 
-                        literal = list.Items[0];
+                        type = (IInputType)((ListType)type).ElementType;
+                        continue;
                     }
-
-                    type = (IInputType)((ListType)type).ElementType;
-                    continue;
-                }
 
                 case TypeKind.InputObject:
                     return literal.Kind == SyntaxKind.ObjectValue;
