@@ -9,9 +9,8 @@ namespace HotChocolate.Configuration;
 
 // note: this type is considered internal and should not be used by users.
 /// <summary>
-/// A type initialization interceptors can hook into the various initialization events
-/// of type system members and change / rewrite them. This is useful in order to transform
-/// specified types.
+/// A type initialization interceptor can hook into the various initialization events
+/// of type system objects. This is useful to transform type system shape and behavior.
 /// </summary>
 public abstract class TypeInterceptor
 {

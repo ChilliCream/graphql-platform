@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
-    private readonly OrderedDictionary<string, IFeatureCollection> _nodes = [];
+    private readonly OrderedDictionary<string, ObjectTypeConfiguration> _nodes = [];
 
     internal override uint Position => uint.MaxValue - 101;
 
@@ -58,7 +58,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
         // we store the query types as state on the type interceptor,
         // so that we can use it to get the final field resolver pipeline
-        // form the query fields that double as node resolver once they are
+        // from the query fields that double as node resolver once they are
         // fully compiled.
         var typeInspector = CompletionContext.TypeInspector;
 
@@ -66,7 +66,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
         {
             var resolverMember = fieldDef.ResolverMember ?? fieldDef.Member;
 
-            // candidate fields that we might be able to use as node resolvers must specify
+            // Candidate fields that we might be able to use as node resolvers must specify
             // a resolver member. Delegates or expressions are not supported as node resolvers.
             // Further, we only will look at annotated fields. This feature is always opt-in.
             if (fieldDef.Type is not null &&
@@ -75,7 +75,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 resolverMember.IsDefined(typeof(NodeResolverAttribute)))
             {
                 // Query fields that users want to reuse as node resolvers must exactly specify
-                // one argument and that argument must be the node id.
+                // one argument, and that argument must be the node id.
                 if (fieldDef.Arguments.Count != 1)
                 {
                     CompletionContext.ReportError(
@@ -86,8 +86,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 }
 
                 // We will capture the argument and ensure that it has a type.
-                // If ut does not have a type something is wrong with the initialization
-                // process and we will fail the initialization.
+                // If ut does not have a type, something is wrong with the initialization
+                // process, and we will fail the initialization.
                 var argument = fieldDef.Arguments[0];
 
                 if (argument.Type is null)
@@ -99,8 +99,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // object type.
                 // Node resolvers can only be object types.
                 // Interfaces, unions are not allowed as we resolve a concrete node type.
-                // Also we cannot use resolvers that return a list or really anything else
-                // then an object type.
+                // Also, we cannot use resolvers that return a list or really anything else
+                // than an object type.
                 var fieldType = CompletionContext.GetType<IType>(fieldDef.Type);
 
                 if (!fieldType.IsObjectType())
@@ -112,8 +112,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                // Once we have the type instance we need to grab it type definition to
-                // inject a placeholder for the node resolver pipeline into the types
+                // Once we have the type instance, we need to grab its type definition to
+                // inject a placeholder for the node resolver pipeline into the type
                 // context data.
                 var fieldTypeDef = ((ObjectType)fieldType.NamedType()).Configuration;
 
@@ -122,7 +122,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     throw NodeResolver_ObjNoConfig();
                 }
 
-                // Before we go any further we will ensure that the type either implements the
+                // Before we go any further, we will ensure that the type either implements the
                 // node interface already or it contains an id field.
                 if (!ImplementsNode(CompletionContext, TypeDef))
                 {
@@ -159,8 +159,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     argument,
                     fieldTypeDef.Name);
 
-                // As with the id argument we also want to make sure that the ID field of
-                // the fields result type is a non-null ID type.
+                // As with the id argument, we also want to make sure that the ID field of
+                // the field result type is a non-null ID type.
                 idDef.Type = argument.Type;
 
                 // For the id field we need to make sure that a result formatter is registered
@@ -170,7 +170,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // Last we register the context data of our node with the type
                 // interceptors state.
                 // We do that to replace our marker with the actual NodeResolverInfo instance.
-                _nodes.TryAdd(fieldDef.Name, fieldTypeDef.Features);
+                _nodes.TryAdd(fieldDef.Name, fieldTypeDef);
             }
         }
     }
@@ -182,10 +182,10 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             // After all types are completed, it is guaranteed that all
             // query field resolver pipelines are fully compiled.
             // So, we can start replacing our marker with the actual NodeResolverInfo.
-            foreach (var (fieldName, features) in _nodes)
+            foreach (var (fieldName, type) in _nodes)
             {
                 var field = QueryType.Fields[fieldName];
-                var feature = features.GetOrSet<NodeTypeFeature>();
+                var feature = type.Features.GetOrSet<NodeTypeFeature>();
                 feature.NodeResolver = new NodeResolverInfo(field, field.Middleware);
             }
         }

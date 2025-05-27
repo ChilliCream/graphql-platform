@@ -136,9 +136,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         foreach (var type in _objectTypes)
         {
             var objectType = (ObjectType)type.TypeReg.Type;
-            var nodeResolverInfo = objectType.Features.Get<NodeResolverInfo>();
 
-            if (nodeResolverInfo is null)
+            if (!objectType.TryGetNodeResolver(out var nodeResolverInfo))
             {
                 continue;
             }
@@ -159,7 +158,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 }
             }
 
-            type.TypeDef.Features.Set(new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline));
+            objectType.SetNodeResolver(new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline));
         }
     }
 

@@ -13,7 +13,6 @@ internal sealed class NodeResolverInfo(
     ObjectField? resolverField,
     FieldDelegate pipeline)
 {
-
     /// <summary>
     /// Gets the ID argument for a query field that doubles as node resolver.
     /// This property is null if the node resolver was not inferred from a query field.

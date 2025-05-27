@@ -129,7 +129,7 @@ public abstract class TypeSystemObject : ITypeSystemMember, IFeatureProvider
     }
 
     /// <summary>
-    /// All type system directive are completed.
+    /// All type system directives are completed.
     /// </summary>
     internal virtual void CompleteMetadata(ITypeCompletionContext context)
     {
@@ -137,7 +137,7 @@ public abstract class TypeSystemObject : ITypeSystemMember, IFeatureProvider
     }
 
     /// <summary>
-    /// All resolvers are compiled and the schema becomes executable.
+    /// All resolvers are compiled, and the schema becomes executable.
     /// </summary>
     internal virtual void MakeExecutable(ITypeCompletionContext context)
     {
