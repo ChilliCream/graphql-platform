@@ -182,6 +182,7 @@ public static class TypeNames
     public const string DateTimeOffset = "global::System.DateTimeOffset";
     public const string OrdinalStringComparison = "global::System.StringComparison.Ordinal";
     public const string Func = "global::System.Func";
+    public const string Action = "global::System.Action";
     public const string Task = "global::System.Threading.Tasks.Task";
     public const string IOperationObservable = "global::System.IObservable";
     public const string CancellationToken = "global::System.Threading.CancellationToken";
@@ -209,6 +210,10 @@ public static class TypeNames
     public const string AddSingleton =
         GlobalDependencyInjectionNamespace +
         "ServiceCollectionServiceExtensions.AddSingleton";
+
+    public const string AddScoped =
+        GlobalDependencyInjectionNamespace +
+        "ServiceCollectionServiceExtensions.AddScoped";
 
     public const string BuildServiceProvider =
         GlobalDependencyInjectionNamespace +
@@ -304,7 +309,9 @@ public static class TypeNames
         StrawberryShakeNamespace + "Serialization.UploadSerializer";
 
     public const string IClientBuilder = StrawberryShakeNamespace + "IClientBuilder";
+    public const string IScopedClientBuilder = StrawberryShakeNamespace + "IScopedClientBuilder";
     public const string ClientBuilder = StrawberryShakeNamespace + "ClientBuilder";
+    public const string ScopedClientBuilder = StrawberryShakeNamespace + "ScopedClientBuilder";
 
     public const string ArrayWriter = StrawberryShakeNamespace + "Internal.ArrayWriter";
 }

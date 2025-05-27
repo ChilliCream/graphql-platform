@@ -34,6 +34,56 @@ public static class HttpClientBuilderExtensions
         Action<IHttpClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
+        ConfigureHttpClient((IScopedClientBuilder<T>)clientBuilder, configureClient, configureClientBuilder);
+        return clientBuilder;
+    }
+
+    /// <summary>
+    /// Adds the <see cref="IHttpClientFactory"/> and related services to the
+    /// <see cref="IServiceCollection"/> and configures a <see cref="HttpClient"/>
+    /// with the correct name
+    /// </summary>
+    /// <param name="clientBuilder">
+    /// The <see cref="IClientBuilder{T}"/>
+    /// </param>
+    /// <param name="configureClient">
+    /// A delegate that is used to configure an <see cref="HttpClient"/>.
+    /// </param>
+    /// <param name="configureClientBuilder">
+    /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
+    /// with a <see cref="IHttpClientBuilder"/>
+    /// </param>
+    public static IClientBuilder<T> ConfigureHttpClient<T>(
+        this IClientBuilder<T> clientBuilder,
+        Action<IServiceProvider, HttpClient> configureClient,
+        Action<IHttpClientBuilder>? configureClientBuilder = null)
+        where T : IStoreAccessor
+    {
+        ConfigureHttpClient((IScopedClientBuilder<T>)clientBuilder, configureClient, configureClientBuilder);
+        return clientBuilder;
+    }
+
+    /// <summary>
+    /// Adds the <see cref="IHttpClientFactory"/> and related services to the
+    /// <see cref="IServiceCollection"/> and configures a <see cref="HttpClient"/>
+    /// with the correct name
+    /// </summary>
+    /// <param name="clientBuilder">
+    /// The <see cref="IScopedClientBuilder{T}"/>
+    /// </param>
+    /// <param name="configureClient">
+    /// A delegate that is used to configure an <see cref="HttpClient"/>.
+    /// </param>
+    /// <param name="configureClientBuilder">
+    /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
+    /// with a <see cref="IHttpClientBuilder"/>
+    /// </param>
+    public static IScopedClientBuilder<T> ConfigureHttpClient<T>(
+        this IScopedClientBuilder<T> clientBuilder,
+        Action<HttpClient> configureClient,
+        Action<IHttpClientBuilder>? configureClientBuilder = null)
+        where T : IStoreAccessor
+    {
         if (clientBuilder == null)
         {
             throw new ArgumentNullException(nameof(clientBuilder));
@@ -68,7 +118,7 @@ public static class HttpClientBuilderExtensions
     /// with the correct name
     /// </summary>
     /// <param name="clientBuilder">
-    /// The <see cref="IClientBuilder{T}"/>
+    /// The <see cref="IScopedClientBuilder{T}"/>
     /// </param>
     /// <param name="configureClient">
     /// A delegate that is used to configure an <see cref="HttpClient"/>.
@@ -77,8 +127,8 @@ public static class HttpClientBuilderExtensions
     /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
     /// with a <see cref="IHttpClientBuilder"/>
     /// </param>
-    public static IClientBuilder<T> ConfigureHttpClient<T>(
-        this IClientBuilder<T> clientBuilder,
+    public static IScopedClientBuilder<T> ConfigureHttpClient<T>(
+        this IScopedClientBuilder<T> clientBuilder,
         Action<IServiceProvider, HttpClient> configureClient,
         Action<IHttpClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor

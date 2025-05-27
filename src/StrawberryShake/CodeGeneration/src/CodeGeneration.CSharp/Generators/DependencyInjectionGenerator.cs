@@ -14,6 +14,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 {
     private const string _sessionPool = "sessionPool";
     private const string _services = "services";
+    private const string _configureClientServices = "configureClientServices";
     private const string _strategy = "strategy";
     private const string _parentServices = "parentServices";
     private const string _profile = "profile";
@@ -73,26 +74,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .SetStatic()
             .SetAccessModifier(settings.AccessModifier);
 
-        var addClientMethod = factory
-            .AddMethod($"Add{descriptor.Name}")
-            .SetPublic()
-            .SetStatic()
-            .SetReturnType(IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
-            .AddParameter(_services, x => x.SetThis().SetType(IServiceCollection))
-            .AddParameter(
-                _strategy,
-                x => x.SetType(ExecutionStrategy)
-                    .SetDefault(ExecutionStrategy + "." + "NetworkOnly"))
-            .AddCode(GenerateMethodBody(settings, descriptor));
-
-        if (descriptor.TransportProfiles.Count > 1)
-        {
-            addClientMethod
-                .AddParameter(_profile)
-                .SetType(CreateProfileEnumReference(descriptor))
-                .SetDefault(CreateProfileEnumReference(descriptor) + "." +
-                            descriptor.TransportProfiles[0].Name);
-        }
+        GenerateClientMethod(descriptor, settings, factory, isScoped: false);
+        GenerateClientMethod(descriptor, settings, factory, isScoped: true);
 
         foreach (var profile in descriptor.TransportProfiles)
         {
@@ -102,6 +85,42 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         factory.AddClass(_clientServiceProvider);
 
         factory.Build(writer);
+    }
+
+    private static void GenerateClientMethod(
+        DependencyInjectionDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings,
+        ClassBuilder factory,
+        bool isScoped)
+    {
+        var addClientMethod = factory
+            .AddMethod(isScoped
+                ? $"AddScoped{descriptor.Name}"
+                : $"Add{descriptor.Name}")
+            .SetPublic()
+            .SetStatic()
+            .SetReturnType(isScoped
+                ? IScopedClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType)
+                : IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
+            .AddParameter(_services, x => x.SetThis().SetType(IServiceCollection))
+            .AddParameter(
+                _strategy,
+                x => x.SetType(ExecutionStrategy)
+                    .SetDefault(ExecutionStrategy + "." + "NetworkOnly"))
+            .If(isScoped, builder => builder
+                .AddParameter(
+                    _configureClientServices,
+                    x => x.SetType(TypeNames.Action.WithGeneric(IServiceCollection).MakeNullable()).SetDefault("null")))
+            .AddCode(GenerateMethodBody(settings, descriptor, isScoped));
+
+        if (descriptor.TransportProfiles.Count > 1)
+        {
+            addClientMethod
+                .AddParameter(_profile)
+                .SetType(CreateProfileEnumReference(descriptor))
+                .SetDefault(CreateProfileEnumReference(descriptor) + "." +
+                            descriptor.TransportProfiles[0].Name);
+        }
     }
 
     private static void GenerateClientForProfile(
@@ -125,9 +144,30 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
     }
 
     private static ICode GenerateClientServiceProviderFactory(
-        DependencyInjectionDescriptor descriptor)
+        DependencyInjectionDescriptor descriptor,
+        bool isScoped)
     {
         var codeBuilder = CodeBlockBuilder.New();
+
+        if (isScoped)
+        {
+            codeBuilder
+                .AddCode(AssignmentBuilder
+                .New()
+                .SetLeftHandSide($"var {_serviceCollection}")
+                .SetRightHandSide(MethodCallBuilder
+                    .Inline()
+                    .SetNew()
+                    .SetMethodName(ServiceCollection)));
+        }
+
+        var callConfigureClientServices = IfBuilder
+            .New()
+            .SetCondition($"{_configureClientServices} is not null")
+            .AddCode(MethodCallBuilder
+                .New()
+                .SetMethodName(_configureClientServices)
+                .AddArgument(_serviceCollection));
 
         if (descriptor.TransportProfiles.Count == 1)
         {
@@ -140,6 +180,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                         .AddArgument(_serviceCollection)
                         .AddArgument(_strategy))
                 .AddEmptyLine()
+                .If(isScoped, x => x.AddCode(callConfigureClientServices))
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetReturn()
@@ -178,6 +219,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         return codeBuilder
             .AddCode(ifProfile)
             .AddEmptyLine()
+            .If(isScoped, x => x.AddCode(callConfigureClientServices))
             .AddCode(MethodCallBuilder
                 .New()
                 .SetReturn()
@@ -198,47 +240,56 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
     private static ICode GenerateMethodBody(
         CSharpSyntaxGeneratorSettings settings,
-        DependencyInjectionDescriptor descriptor) =>
+        DependencyInjectionDescriptor descriptor,
+        bool isScoped) =>
         CodeBlockBuilder
             .New()
-            .AddCode(
-                AssignmentBuilder
+            .If(!isScoped,
+                builder => builder
+                    .AddCode(AssignmentBuilder
                     .New()
                     .SetLeftHandSide($"var {_serviceCollection}")
                     .SetRightHandSide(MethodCallBuilder
                         .Inline()
                         .SetNew()
-                        .SetMethodName(ServiceCollection)))
+                        .SetMethodName(ServiceCollection))))
             .AddMethodCall(x => x
-                .SetMethodName(AddSingleton)
+                .SetMethodName(isScoped
+                    ? AddScoped
+                    : AddSingleton)
                 .AddArgument(_services)
                 .AddArgument(LambdaBuilder
                     .New()
                     .SetBlock(true)
                     .AddArgument(_sp)
-                    .SetCode(GenerateClientServiceProviderFactory(descriptor))))
+                    .SetCode(GenerateClientServiceProviderFactory(descriptor, isScoped))))
             .AddEmptyLine()
-            .AddCode(RegisterStoreAccessor(settings, descriptor.StoreAccessor))
+            .AddCode(RegisterStoreAccessor(settings, descriptor.StoreAccessor, isScoped))
             .AddEmptyLine()
             .ForEach(
                 descriptor.Operations,
                 (builder, operation) =>
                     builder.AddCode(ForwardSingletonToClientServiceProvider(
-                        operation.RuntimeType.ToString())))
+                        operation.RuntimeType.ToString(),
+                        isScoped)))
             .AddEmptyLine()
             .AddCode(ForwardSingletonToClientServiceProvider(
-                descriptor.ClientDescriptor.RuntimeType.ToString()))
+                descriptor.ClientDescriptor.RuntimeType.ToString(),
+                isScoped))
             .AddCode(ForwardSingletonToClientServiceProvider(
-                descriptor.ClientDescriptor.InterfaceType.ToString()))
+                descriptor.ClientDescriptor.InterfaceType.ToString(),
+                isScoped))
             .AddEmptyLine()
             .AddMethodCall(x => x
                 .SetReturn()
                 .SetNew()
                 .SetMethodName(
-                    ClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
+                    isScoped
+                    ? ScopedClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType)
+                    : ClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
                 .AddArgument(descriptor.Name.AsStringToken())
                 .AddArgument(_services)
-                .AddArgument(_serviceCollection));
+                .If(!isScoped, builder => builder.AddArgument(_serviceCollection)));
 
     private static ICode RegisterSerializerResolver() =>
         MethodCallBuilder
@@ -277,13 +328,16 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
     private static ICode RegisterStoreAccessor(
         CSharpSyntaxGeneratorSettings settings,
-        StoreAccessorDescriptor storeAccessor)
+        StoreAccessorDescriptor storeAccessor,
+        bool isScoped)
     {
         if (settings.IsStoreDisabled())
         {
             return MethodCallBuilder
                 .New()
-                .SetMethodName(AddSingleton)
+                .SetMethodName(isScoped
+                    ? AddScoped
+                    : AddSingleton)
                 .AddArgument(_services)
                 .AddArgument(LambdaBuilder
                     .New()
@@ -296,7 +350,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         return MethodCallBuilder
             .New()
-            .SetMethodName(AddSingleton)
+            .SetMethodName(isScoped
+                ? AddScoped
+                : AddSingleton)
             .AddArgument(_services)
             .AddArgument(LambdaBuilder
                 .New()
@@ -361,10 +417,12 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                                 IOperationResultDataFactory)))));
     }
 
-    private static ICode ForwardSingletonToClientServiceProvider(string generic) =>
+    private static ICode ForwardSingletonToClientServiceProvider(string generic, bool isScoped) =>
         MethodCallBuilder
             .New()
-            .SetMethodName(AddSingleton)
+            .SetMethodName(isScoped
+                ? AddScoped
+                : AddSingleton)
             .AddArgument(_services)
             .AddArgument(LambdaBuilder
                 .New()
