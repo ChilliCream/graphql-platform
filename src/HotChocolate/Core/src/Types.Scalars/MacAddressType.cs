@@ -21,13 +21,13 @@ public class MacAddressType : RegexType
         "[0-9A-Fa-f]{2})){2,3}$";
 
 #if BACKREFERENCE_NOT_SUPPORTED
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(_validationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 #else
     private static Regex CreateRegex()
         => new Regex(
             _validationPattern,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
+            RegexOptions.Compiled,
             TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
 #endif
 
