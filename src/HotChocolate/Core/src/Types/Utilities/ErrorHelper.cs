@@ -95,6 +95,24 @@ internal static class ErrorHelper
             .SetSpecifiedBy(type.Kind)
             .Build();
 
+    public static ISchemaError InvalidFieldDeprecation(
+        string implementedTypeName,
+        IOutputFieldDefinition implementedField,
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_InvalidFieldDeprecation,
+                implementedTypeName,
+                implementedField.Name,
+                type.Name,
+                field.Name)
+            .SetType(type)
+            .SetField(field)
+            .SetImplementedField(implementedField)
+            .SetSpecifiedBy(type.Kind, isDraft: true)
+            .Build();
+
     public static ISchemaError FieldNotImplemented(
         IComplexTypeDefinition type,
         IOutputFieldDefinition implementedField)
@@ -273,13 +291,14 @@ internal static class ErrorHelper
     private static SchemaErrorBuilder SetSpecifiedBy(
         this SchemaErrorBuilder errorBuilder,
         TypeKind kind,
+        bool isDraft = false,
         int? rfc = null)
     {
         errorBuilder
-            .SpecifiedBy(_interfaceTypeValidation, kind is TypeKind.Interface)
-            .SpecifiedBy(_objectTypeValidation, kind is TypeKind.Object)
-            .SpecifiedBy(_inputObjectTypeValidation, kind is TypeKind.InputObject)
-            .SpecifiedBy(_directiveValidation, kind is TypeKind.Directive);
+            .SpecifiedBy(_interfaceTypeValidation, kind is TypeKind.Interface, isDraft)
+            .SpecifiedBy(_objectTypeValidation, kind is TypeKind.Object, isDraft)
+            .SpecifiedBy(_inputObjectTypeValidation, kind is TypeKind.InputObject, isDraft)
+            .SpecifiedBy(_directiveValidation, kind is TypeKind.Directive, isDraft);
 
         if (rfc.HasValue)
         {

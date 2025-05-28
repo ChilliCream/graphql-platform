@@ -321,4 +321,22 @@ public class ObjectTypeValidation : TypeValidationTestBase
                 }
             ");
     }
+
+    [Fact]
+    public void Object_Deprecates_Field_Not_Deprecated_In_Interface()
+    {
+        ExpectError(@"
+                interface Node {
+                    id: ID!
+                }
+
+                type Foo implements Node {
+                    id: ID! @deprecated
+                }
+
+                type Query {
+                    foo: Foo
+                }
+            ");
+    }
 }

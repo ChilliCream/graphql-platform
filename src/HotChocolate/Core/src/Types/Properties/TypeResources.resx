@@ -868,6 +868,9 @@ Type: `{0}`</value>
   <data name="ErrorHelper_NotTransitivelyImplemented" xml:space="preserve">
     <value>The {0} type must also declare all interfaces declared by implemented interfaces.</value>
   </data>
+  <data name="ErrorHelper_InvalidFieldDeprecation" xml:space="preserve">
+    <value>Interface field {0}.{1} is not deprecated, so implementation field {2}.{3} must not be deprecated.</value>
+  </data>
   <data name="ErrorHelper_InvalidFieldType" xml:space="preserve">
     <value>Field `{0}` must return a type which is equal to or a subtype of (covariant) the return type `{1}` of the interface field.</value>
   </data>
