@@ -7,10 +7,9 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Pagination;
-using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.Types.TagHelper;
 
@@ -38,13 +37,13 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private readonly List<ObjectType> _entityTypes = [];
     private readonly Dictionary<Uri, HashSet<string>> _imports = new();
-    private IDescriptorContext _context = default!;
-    private ITypeInspector _typeInspector = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private ObjectType _queryType = default!;
-    private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
-    private SchemaTypeConfiguration _schemaTypeCfg = default!;
-    private RegisteredType _schemaType = default!;
+    private IDescriptorContext _context = null!;
+    private ITypeInspector _typeInspector = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private ObjectType _queryType = null!;
+    private ExtendedTypeDirectiveReference _keyDirectiveReference = null!;
+    private SchemaTypeConfiguration _schemaTypeCfg = null!;
+    private RegisteredType _schemaType = null!;
     private bool _registeredTypes;
 
     internal override void InitializeContext(
@@ -105,7 +104,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
         }
 
-        if(discoveryContexts.Any(t => t.Type is PageInfoType)
+        if (discoveryContexts.Any(t => t.Type is PageInfoType)
             && discoveryContexts.All(t => t.Type is not DirectiveType<ShareableDirective>))
         {
             yield return _typeInspector.GetTypeRef(typeof(ShareableDirective));
@@ -282,14 +281,13 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void RegisterExportedDirectives()
     {
-        if (!_context.ContextData.TryGetValue(ExportedDirectives, out var value) ||
-            value is not List<Type> exportedDirectives)
+        if (!_context.Features.TryGet(out ExportedDirectives? exportedDirectives))
         {
             return;
         }
 
         var composeDirectives = new List<ComposeDirective>();
-        foreach (var exportedDirective in exportedDirectives)
+        foreach (var exportedDirective in exportedDirectives.Directives)
         {
             var typeReference = _typeInspector.GetTypeRef(exportedDirective);
             if (_typeRegistry.TryGetType(typeReference, out var exportedDirectiveType))
@@ -355,26 +353,16 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void CompleteReferenceResolver(ObjectTypeConfiguration typeCfg)
     {
-        IReadOnlyList<ReferenceResolverConfiguration> resolvers;
+        var resolvers = typeCfg.Features.Get<List<ReferenceResolverConfiguration>>();
+
+        if (resolvers is null)
         {
-            var contextData = typeCfg.GetContextData();
-
-            if (!contextData.TryGetValue(EntityResolver, out var resolversObject))
-            {
-                return;
-            }
-
-            if (resolversObject is not IReadOnlyList<ReferenceResolverConfiguration> r)
-            {
-                return;
-            }
-
-            resolvers = r;
+            return;
         }
 
         if (resolvers.Count == 1)
         {
-            typeCfg.ContextData[EntityResolver] = resolvers[0].Resolver;
+            typeCfg.Features.Set(new ReferenceResolver(resolvers[0].Resolver));
         }
         else
         {
@@ -402,10 +390,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                     current);
             }
 
-            current = Expression.Block(new[] { variable, }, current, variable);
+            current = Expression.Block([variable], current, variable);
 
-            typeCfg.ContextData[EntityResolver] =
-                Expression.Lambda<FieldResolverDelegate>(current, context).Compile();
+            typeCfg.Features.Set(
+                new ReferenceResolver(
+                    Expression.Lambda<FieldResolverDelegate>(current, context).Compile()));
         }
     }
 
@@ -474,8 +463,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (objectTypeCfg.Fields.Any(f => f.ContextData.TryGetValue(KeyMarker, out var resolvable) &&
-                resolvable is true))
+        if (objectTypeCfg.Fields.Any(f => f.Features.TryGet(out KeyMarker? key) && key.Resolvable))
         {
             _entityTypes.Add(objectType);
         }
@@ -488,13 +476,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         // if we find key markers on our fields, we need to construct the key directive
         // from the annotated fields.
-        {
-            var foundMarkers = objectTypeCfg.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker));
+        var foundMarkers = objectTypeCfg.Fields.Any(f => f.Features.TryGet(out KeyMarker? _));
 
-            if (!foundMarkers)
-            {
-                return;
-            }
+        if (!foundMarkers)
+        {
+            return;
         }
 
         IReadOnlyList<ObjectFieldConfiguration> fields = objectTypeCfg.Fields;
@@ -503,14 +489,13 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         foreach (var fieldDefinition in fields)
         {
-            if (fieldDefinition.ContextData.TryGetValue(KeyMarker, out var value) &&
-                value is bool currentResolvable)
+            if (fieldDefinition.Features.TryGet(out KeyMarker? key))
             {
                 if (resolvable is null)
                 {
-                    resolvable = currentResolvable;
+                    resolvable = key.Resolvable;
                 }
-                else if (resolvable != currentResolvable)
+                else if (resolvable != key.Resolvable)
                 {
                     throw Key_FieldSet_ResolvableMustBeConsistent(fieldDefinition.Member!);
                 }

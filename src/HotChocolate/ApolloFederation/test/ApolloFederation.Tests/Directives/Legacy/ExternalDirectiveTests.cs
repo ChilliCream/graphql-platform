@@ -37,7 +37,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
+        var query = schema.Types.GetType<ObjectType>("User");
 
         // assert
         var directive = Assert.Single(query.Fields["idCode"].Directives);
@@ -57,7 +57,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
+        var query = schema.Types.GetType<ObjectType>("User");
 
         // assert
         var directive = Assert.Single(query.Fields["idCode"].Directives);

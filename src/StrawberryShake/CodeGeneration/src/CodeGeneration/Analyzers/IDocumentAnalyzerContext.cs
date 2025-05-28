@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public interface IDocumentAnalyzerContext
 {
-    ISchema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     DocumentNode Document { get; }
 
@@ -36,7 +36,7 @@ public interface IDocumentAnalyzerContext
 
     SelectionSetVariants CollectFields(
         SelectionSetNode selectionSet,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path);
 
     bool TryGetModel<T>(
@@ -46,10 +46,10 @@ public interface IDocumentAnalyzerContext
 
     void RegisterModel(string name, ITypeModel typeModel);
 
-    void RegisterType(INamedType type);
+    void RegisterType(ITypeDefinition type);
 
     void RegisterSelectionSet(
-        INamedType namedType,
+        ITypeDefinition namedType,
         SelectionSetNode from,
         SelectionSetNode to);
 

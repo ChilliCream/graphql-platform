@@ -3,6 +3,7 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
@@ -78,7 +79,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
             throw new ArgumentNullException(nameof(result));
         }
 
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
 
         Format(result, buffer);
 
@@ -226,7 +227,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
         FormatInternal(result, buffer);
 
         await outputStream
@@ -241,7 +242,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
 
         foreach (var result in resultBatch.Results)
         {
@@ -283,7 +284,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
 
         await foreach (var partialResult in batchResult.ReadResultsAsync()
             .WithCancellation(cancellationToken)

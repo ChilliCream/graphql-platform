@@ -43,7 +43,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.Types.GetType<ObjectType>("Review");
 
         // assert
         var providesDirective = Assert.Single(testType.Fields.Single(field => field.Name == "product").Directives);
@@ -52,10 +52,10 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             providesDirective.Type.Name);
         Assert.Equal(
             "fields",
-            providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
+            providesDirective.ToSyntaxNode().Arguments[0].Name.ToString());
         Assert.Equal(
             "\"name\"",
-            providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
+            providesDirective.ToSyntaxNode().Arguments[0].Value.ToString());
 
         schema.MatchSnapshot();
     }
@@ -71,7 +71,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.Types.GetType<ObjectType>("Review");
 
         // assert
         var providesDirective = Assert.Single(testType.Fields.Single(field => field.Name == "product").Directives);
@@ -80,10 +80,10 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             providesDirective.Type.Name);
         Assert.Equal(
             "fields",
-            providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
+            providesDirective.ToSyntaxNode().Arguments[0].Name.ToString());
         Assert.Equal(
             "\"name\"",
-            providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
+            providesDirective.ToSyntaxNode().Arguments[0].Value.ToString());
 
         schema.MatchSnapshot();
     }

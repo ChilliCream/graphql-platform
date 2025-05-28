@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -11,9 +12,7 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public static class SchemaHelper
 {
-    private const string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
-
-    public static ISchema Load(
+    public static Schema Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
         bool strictValidation = true,
         bool noStore = false)
@@ -28,6 +27,7 @@ public static class SchemaHelper
         IndexSyntaxNodes(schemaFiles, lookup);
 
         var builder = SchemaBuilder.New();
+        builder.Features.Set(typeInfos);
 
         builder.ModifyOptions(o => o.StrictValidation = strictValidation);
 
@@ -97,7 +97,7 @@ public static class SchemaHelper
                     o.EnableFlagEnums = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
-                c => c.ContextData.Add(_typeInfosKey, typeInfos)))
+                c => c.Features.Set(typeInfos)))
             .TryAddTypeInterceptor(
                 new LeafTypeInterceptor(leafTypes))
             .TryAddTypeInterceptor(
@@ -107,10 +107,10 @@ public static class SchemaHelper
     }
 
     public static RuntimeTypeInfo GetOrCreateTypeInfo(
-        this ISchema schema,
+        this Schema schema,
         string typeName,
-        bool valueType = false) =>
-        ((TypeInfos)schema.ContextData[_typeInfosKey]!).GetOrAdd(typeName, valueType);
+        bool valueType = false)
+        => schema.Features.GetOrSet<TypeInfos>().GetOrAdd(typeName, valueType);
 
     private static void CollectScalarInfos(
         IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,

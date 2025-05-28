@@ -30,12 +30,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="IndexerPathSegment.cs">
-      <DependentUpon>Path.cs</DependentUpon>
-    </Compile>
-    <Compile Update="NamePathSegment.cs">
-      <DependentUpon>Path.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -48,6 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

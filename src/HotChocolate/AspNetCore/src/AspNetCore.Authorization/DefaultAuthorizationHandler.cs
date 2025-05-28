@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HotChocolate.Authorization;
+using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Authorization;
 using IAuthorizationHandler = HotChocolate.Authorization.IAuthorizationHandler;
@@ -48,7 +49,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     }
 
     /// <summary>
-    /// Authorize current directive using Microsoft.AspNetCore.Authorization.
+    /// Authorize the current directive using Microsoft.AspNetCore.Authorization.
     /// </summary>
     /// <param name="context">The current middleware context.</param>
     /// <param name="directive">The authorization directive.</param>
@@ -62,7 +63,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         AuthorizeDirective directive,
         CancellationToken ct)
     {
-        var userState = GetUserState(context.ContextData);
+        var userState = GetUserState(context);
         var user = userState.User;
         bool authenticated;
 
@@ -72,10 +73,10 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         }
         else
         {
-            // if the authenticated state is not yet set we will determine it and update the state.
+            // if the authenticated state is not yet set, we will determine it and update the state.
             authenticated = user.Identities.Any(t => t.IsAuthenticated);
             userState = userState.SetIsAuthenticated(authenticated);
-            SetUserState(context.ContextData, userState);
+            SetUserState(context, userState);
         }
 
         return await AuthorizeAsync(
@@ -91,7 +92,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         IReadOnlyList<AuthorizeDirective> directives,
         CancellationToken ct)
     {
-        var userState = GetUserState(context.ContextData);
+        var userState = GetUserState(context);
         var user = userState.User;
         bool authenticated;
 
@@ -101,10 +102,10 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         }
         else
         {
-            // if the authenticated state is not yet set we will determine it and update the state.
+            // if the authenticated state is not yet set, we will determine it and update the state.
             authenticated = user.Identities.Any(t => t.IsAuthenticated);
             userState = userState.SetIsAuthenticated(authenticated);
-            SetUserState(context.ContextData, userState);
+            SetUserState(context, userState);
         }
 
         foreach (var directive in directives)
@@ -215,20 +216,19 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         return policyBuilder.Build();
     }
 
-    private static UserState GetUserState(IDictionary<string, object?> contextData)
+    private static UserState GetUserState(IFeatureProvider featureProvider)
     {
-        if (contextData.TryGetValue(WellKnownContextData.UserState, out var value) &&
-            value is UserState p)
+        if (featureProvider.Features.TryGet<UserState>(out var state))
         {
-            return p;
+            return state;
         }
 
         throw new MissingStateException(
             "Authorization",
-            WellKnownContextData.UserState,
+            "HotChocolate.Authorization.UserState",
             StateKind.Global);
     }
 
-    private static void SetUserState(IDictionary<string, object?> contextData, UserState state)
-        => contextData[WellKnownContextData.UserState] = state;
+    private static void SetUserState(IFeatureProvider featureProvider, UserState state)
+        => featureProvider.Features.Set(state);
 }

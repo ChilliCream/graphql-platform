@@ -283,7 +283,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).GetType<BsonType>("Bson");
+            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
 
         // act
         var serialize = type.TrySerialize(null, out var value);
@@ -301,7 +301,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).GetType<BsonType>("Bson");
+            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.TrySerialize("Failes", out _);
@@ -790,7 +790,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new EnumValueNode("foo"));
@@ -813,7 +813,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new ObjectValueNode([]));
@@ -836,7 +836,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new ListValueNode([]));
@@ -859,7 +859,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new StringValueNode("foo"));
@@ -882,7 +882,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new IntValueNode(123));
@@ -905,7 +905,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new FloatValueNode(1.2));
@@ -928,7 +928,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new BooleanValueNode(true));
@@ -951,7 +951,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(NullValueNode.Default);
@@ -974,7 +974,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         void Action() => type.IsInstanceOfType(null!);
@@ -1005,7 +1005,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(value);
@@ -1028,7 +1028,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue((decimal)1);
@@ -1051,7 +1051,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(new List<object>());
@@ -1074,7 +1074,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(new List<string>());
@@ -1097,7 +1097,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(new List<Foo>());
@@ -1120,7 +1120,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(
@@ -1144,7 +1144,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var value = type.Deserialize(new StringValueNode("Foo"));
@@ -1167,7 +1167,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         var toDeserialize = new Dictionary<string, object>
         {
@@ -1195,7 +1195,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         var toDeserialize = new Dictionary<string, object>
         {
@@ -1224,7 +1224,7 @@ public class BsonTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
         var toDeserialize =
             new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar"), };
 

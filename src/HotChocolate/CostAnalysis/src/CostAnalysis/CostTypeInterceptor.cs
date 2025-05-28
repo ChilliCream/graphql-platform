@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,24 +49,22 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
-                if (fieldDef.State.Count > 0
-                    && fieldDef.State.TryGetValue(WellKnownContextData.PagingOptions, out var value)
-                    && value is PagingOptions options
+                if (fieldDef.Features.TryGet(out PagingOptions? options)
                     && !fieldDef.HasListSizeDirective()
-                    && ((fieldDef.Flags & FieldFlags.Connection) == FieldFlags.Connection
-                        || (fieldDef.Flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment))
+                    && ((fieldDef.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
+                        || (fieldDef.Flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment))
                 {
                     var assumedSize = options.MaxPageSize ?? MaxPageSize;
 
                     var slicingArgs =
-                        (fieldDef.Flags & FieldFlags.Connection) == FieldFlags.Connection
+                        (fieldDef.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
                             ? options.AllowBackwardPagination ?? AllowBackwardPagination
                                 ? _forwardAndBackwardSlicingArgs
                                 : _forwardSlicingArgs
                             : _offSetSlicingArgs;
 
                     var sizeFields =
-                        (fieldDef.Flags & FieldFlags.Connection) == FieldFlags.Connection
+                        (fieldDef.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
                             ? _sizedFields
                             : _offsetSizedFields;
 
@@ -98,7 +96,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
                 foreach (var argumentDef in fieldDef.Arguments)
                 {
-                    if ((argumentDef.Flags & FieldFlags.FilterArgument) == FieldFlags.FilterArgument
+                    if ((argumentDef.Flags & CoreFieldFlags.FilterArgument) == CoreFieldFlags.FilterArgument
                         && _options.Sorting.DefaultSortArgumentCost.HasValue
                         && !fieldDef.HasCostDirective())
                     {
@@ -106,7 +104,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                             new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
                             completionContext.DescriptorContext.TypeInspector);
                     }
-                    else if ((argumentDef.Flags & FieldFlags.SortArgument) == FieldFlags.SortArgument
+                    else if ((argumentDef.Flags & CoreFieldFlags.SortArgument) == CoreFieldFlags.SortArgument
                         && _options.Filtering.DefaultFilterArgumentCost.HasValue
                         && !fieldDef.HasCostDirective())
                     {
@@ -122,7 +120,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         {
             foreach (var fieldDef in inputObjectTypeDef.Fields)
             {
-                if ((fieldDef.Flags & FieldFlags.FilterOperationField) == FieldFlags.FilterOperationField
+                if ((fieldDef.Flags & CoreFieldFlags.FilterOperationField) == CoreFieldFlags.FilterOperationField
                     && _options.Filtering.DefaultFilterOperationCost.HasValue
                     && !fieldDef.HasCostDirective())
                 {
@@ -130,8 +128,8 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                         new CostDirective(_options.Filtering.DefaultFilterOperationCost.Value),
                         completionContext.DescriptorContext.TypeInspector);
                 }
-                else if ((fieldDef.Flags & FieldFlags.FilterExpensiveOperationField)
-                    == FieldFlags.FilterExpensiveOperationField
+                else if ((fieldDef.Flags & CoreFieldFlags.FilterExpensiveOperationField)
+                    == CoreFieldFlags.FilterExpensiveOperationField
                     && _options.Filtering.DefaultExpensiveFilterOperationCost.HasValue
                     && !fieldDef.HasCostDirective())
                 {
@@ -139,7 +137,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                         new CostDirective(_options.Filtering.DefaultExpensiveFilterOperationCost.Value),
                         completionContext.DescriptorContext.TypeInspector);
                 }
-                else if ((fieldDef.Flags & FieldFlags.SortOperationField) == FieldFlags.SortOperationField
+                else if ((fieldDef.Flags & CoreFieldFlags.SortOperationField) == CoreFieldFlags.SortOperationField
                     && _options.Sorting.DefaultSortOperationCost.HasValue
                     && !fieldDef.HasCostDirective())
                 {
@@ -158,7 +156,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
             foreach (var fieldDef in objectTypeDef.Fields)
             {
                 if ((fieldDef.PureResolver is null
-                        || (fieldDef.Flags & FieldFlags.TotalCount) == FieldFlags.TotalCount)
+                        || (fieldDef.Flags & CoreFieldFlags.TotalCount) == CoreFieldFlags.TotalCount)
                     && _options.DefaultResolverCost.HasValue
                     && !fieldDef.HasCostDirective())
                 {

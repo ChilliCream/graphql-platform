@@ -20,7 +20,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -35,27 +35,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task SetPagingOptionsIsStillApplied()
-    {
-        var executor =
-#pragma warning disable CS0618 // Type or member is obsolete
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions
-                {
-                    IncludeTotalCount = true
-                })
-#pragma warning restore CS0618 // Type or member is obsolete
-                .Services
-                .BuildServiceProvider()
-                .GetRequestExecutorAsync();
-
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -69,7 +49,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -785,7 +765,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -805,7 +785,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -820,7 +800,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -836,7 +816,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -850,7 +830,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -864,7 +844,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]

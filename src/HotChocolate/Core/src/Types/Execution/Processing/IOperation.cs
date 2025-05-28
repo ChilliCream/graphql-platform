@@ -62,7 +62,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <summary>
     /// Gets the schema for which this operation is compiled.
     /// </summary>
-    ISchema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
@@ -81,7 +81,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext);
+    ISelectionSet GetSelectionSet(ISelection selection, ObjectType typeContext);
 
     /// <summary>
     /// Gets the possible return types for the <paramref name="selection"/>.
@@ -95,7 +95,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    IEnumerable<IObjectType> GetPossibleTypes(ISelection selection);
+    IEnumerable<ObjectType> GetPossibleTypes(ISelection selection);
 
     /// <summary>
     /// Creates the include flags for the specified variable values.

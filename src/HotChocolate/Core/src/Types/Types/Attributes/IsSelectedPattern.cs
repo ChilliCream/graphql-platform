@@ -1,7 +1,7 @@
 #nullable enable
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Attributes;
+namespace HotChocolate.Types;
 
 internal sealed class IsSelectedPattern(ObjectType type, string fieldName, SelectionSetNode pattern)
 {

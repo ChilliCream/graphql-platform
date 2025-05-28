@@ -1,7 +1,7 @@
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -9,7 +9,7 @@ public static class TypeNameHelper
 {
     public static void AddNameFunction<TDefinition>(
         IDescriptor<TDefinition> descriptor,
-        Func<INamedType, string> createName,
+        Func<ITypeDefinition, string> createName,
         Type dependency)
         where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
@@ -57,7 +57,7 @@ public static class TypeNameHelper
 
     public static void AddNameFunction<TDefinition>(
         IDescriptor<TDefinition> descriptor,
-        Func<INamedType, string> createName,
+        Func<ITypeDefinition, string> createName,
         TypeReference dependency)
         where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
