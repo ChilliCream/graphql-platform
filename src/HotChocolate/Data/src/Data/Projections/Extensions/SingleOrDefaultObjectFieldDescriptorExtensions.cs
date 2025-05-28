@@ -1,6 +1,6 @@
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -11,15 +11,15 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
 
     public static IObjectFieldDescriptor UseFirstOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionOptions.FirstOrDefault, _firstMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.FirstOrDefault, _firstMiddleware);
 
     public static IObjectFieldDescriptor UseSingleOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionOptions.SingleOrDefault, _singleMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.SingleOrDefault, _singleMiddleware);
 
     private static IObjectFieldDescriptor ApplyMiddleware(
         this IObjectFieldDescriptor descriptor,
-        string optionName,
+        SelectionFlags selectionFlags,
         Type middlewareDefinition)
     {
         if (descriptor is null)
@@ -37,8 +37,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (context, definition) =>
                 {
-                    definition.ContextData[optionName] = true;
-                    definition.ContextData[SelectionOptions.MemberIsList] = true;
+                    definition.AddSelectionFlags(selectionFlags | SelectionFlags.MemberIsList);
 
                     if (definition.ResultType is null ||
                         !context.TypeInspector.TryCreateTypeInfo(

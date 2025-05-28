@@ -2,12 +2,11 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.FusionUtilitiesResources;
 
 namespace HotChocolate.Fusion.Validators;
 
-public sealed class SelectionSetValidator(MutableSchemaDefinition schema)
+public sealed class SelectionSetValidator(ISchemaDefinition schema)
     : SyntaxWalker<SelectionSetValidatorContext>
 {
     public ImmutableArray<string> Validate(SelectionSetNode selectionSet, ITypeDefinition type)
@@ -25,13 +24,13 @@ public sealed class SelectionSetValidator(MutableSchemaDefinition schema)
     {
         var type = context.TypeContext.Peek();
 
-        if (type is MutableComplexTypeDefinition complexType)
+        if (type is IComplexTypeDefinition complexType)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))
             {
                 var fieldType = field.Type.NullableType();
 
-                if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
+                if (fieldType is IComplexTypeDefinition or IUnionTypeDefinition)
                 {
                     if (node.SelectionSet?.Selections.Any() != true)
                     {
@@ -43,7 +42,7 @@ public sealed class SelectionSetValidator(MutableSchemaDefinition schema)
                         return Break;
                     }
 
-                    if (fieldType is MutableUnionTypeDefinition
+                    if (fieldType is IUnionTypeDefinition
                         && node.SelectionSet.Selections.Any(s => s is not InlineFragmentNode))
                     {
                         context.Errors.Add(

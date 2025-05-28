@@ -69,12 +69,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string MiddlewareContext_ReportErrorCannotBeNull {
-            get {
-                return ResourceManager.GetString("MiddlewareContext_ReportErrorCannotBeNull", resourceCulture);
-            }
-        }
-        
         internal static string DeferredResult_ReadResultsAsync_ReadOnlyOnce {
             get {
                 return ResourceManager.GetString("DeferredResult_ReadResultsAsync_ReadOnlyOnce", resourceCulture);
@@ -390,12 +384,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string ThrowHelper_OneOfFieldMustBeNonNull {
             get {
                 return ResourceManager.GetString("ThrowHelper_OneOfFieldMustBeNonNull", resourceCulture);
-            }
-        }
-        
-        internal static string OperationCompiler_OperationIdNullOrEmpty {
-            get {
-                return ResourceManager.GetString("OperationCompiler_OperationIdNullOrEmpty", resourceCulture);
             }
         }
         

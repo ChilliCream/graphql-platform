@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Types.Pagination;
@@ -25,7 +25,7 @@ public static class ConnectionFlagsHelper
             static (_, ctx) =>
             {
                 if (ctx.Selection.Field is ObjectField field
-                    && !field.Flags.HasFlag(FieldFlags.Connection))
+                    && !field.Flags.HasFlag(CoreFieldFlags.Connection))
                 {
                     return ConnectionFlags.None;
                 }

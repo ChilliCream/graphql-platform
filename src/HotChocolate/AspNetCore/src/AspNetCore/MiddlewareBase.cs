@@ -36,7 +36,7 @@ public class MiddlewareBase : IDisposable
         _responseFormatter = responseFormatter ??
             throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
-        IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
+        IsDefaultSchema = SchemaName.EqualsOrdinal(ISchemaDefinition.DefaultName);
         _executorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 
@@ -89,8 +89,8 @@ public class MiddlewareBase : IDisposable
     /// <returns>
     /// Returns the schema for this middleware.
     /// </returns>
-    protected ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
-        => _executorProxy.GetSchemaAsync(cancellationToken);
+    protected async ValueTask<ISchemaDefinition> GetSchemaAsync(CancellationToken cancellationToken)
+        => await _executorProxy.GetSchemaAsync(cancellationToken);
 
     protected ValueTask WriteResultAsync(
         HttpContext context,

@@ -22,7 +22,7 @@ public class StarWarsCodeFirstTests
         var executor = await CreateExecutorAsync();
 
         // act
-        var schema = executor.Schema.Print();
+        var schema = executor.Schema.ToString();
 
         // assert
         schema.MatchSnapshot();
@@ -1013,7 +1013,7 @@ public class StarWarsCodeFirstTests
 
         var configurationA = new TestConfiguration
         {
-            ConfigureRequest = r => { r.SkipExecutionDepthAnalysis(); },
+            ConfigureRequest = r => r.SkipExecutionDepthAnalysis(),
         };
         var configurationB = new TestConfiguration
         {

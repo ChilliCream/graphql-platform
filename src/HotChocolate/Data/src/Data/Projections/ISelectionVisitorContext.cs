@@ -8,7 +8,7 @@ public interface ISelectionVisitorContext
 {
     Stack<ISelection> Selection { get; }
 
-    Stack<INamedType?> ResolvedType { get; }
+    Stack<ITypeDefinition?> ResolvedType { get; }
 
     [Obsolete("Use ResolverContext")]
     IResolverContext Context => ResolverContext;

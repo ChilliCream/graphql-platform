@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The Oneof Input Object `PetInput` requires that exactly one field must be supplied and that field must not be `null`.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 33
+        "Line": 2,
+        "Column": 15
       }
     ],
     "Extensions": {

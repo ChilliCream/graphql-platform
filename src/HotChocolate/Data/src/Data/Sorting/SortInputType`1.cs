@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Sorting;

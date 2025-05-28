@@ -18,16 +18,9 @@ public abstract class ProjectionProvider
     , IProjectionProviderConvention
 {
     private Action<IProjectionProviderDescriptor>? _configure;
-
-    private readonly IList<IProjectionFieldHandler> _fieldHandlers =
-        new List<IProjectionFieldHandler>();
-
-    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors =
-        new List<IProjectionFieldInterceptor>();
-
-    private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>();
-
-    public const string ProjectionContextIdentifier = "ProjectionMiddleware";
+    private readonly IList<IProjectionFieldHandler> _fieldHandlers = [];
+    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors = [];
+    private readonly IList<IProjectionOptimizer> _optimizer = [];
 
     protected ProjectionProvider()
     {

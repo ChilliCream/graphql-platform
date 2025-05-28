@@ -36,13 +36,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestType");
+        var testType = schema.Types.GetType<ObjectType>("TestType");
 
         // assert
         var keyDirective = Assert.Single(testType.Directives);
         Assert.Equal(FederationTypeNames.KeyDirective_Name, keyDirective.Type.Name);
-        Assert.Equal("fields", keyDirective.AsSyntaxNode().Arguments[0].Name.ToString());
-        Assert.Equal("\"id\"", keyDirective.AsSyntaxNode().Arguments[0].Value.ToString());
+        Assert.Equal("fields", keyDirective.ToSyntaxNode().Arguments[0].Name.ToString());
+        Assert.Equal("\"id\"", keyDirective.ToSyntaxNode().Arguments[0].Value.ToString());
 
         schema.MatchSnapshot();
     }
@@ -58,13 +58,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestTypeClassDirective");
+        var testType = schema.Types.GetType<ObjectType>("TestTypeClassDirective");
 
         // assert
         var keyDirective = Assert.Single(testType.Directives);
         Assert.Equal(FederationTypeNames.KeyDirective_Name, keyDirective.Type.Name);
-        Assert.Equal("fields", keyDirective.AsSyntaxNode().Arguments[0].Name.ToString());
-        Assert.Equal("\"id\"", keyDirective.AsSyntaxNode().Arguments[0].Value.ToString());
+        Assert.Equal("fields", keyDirective.ToSyntaxNode().Arguments[0].Name.ToString());
+        Assert.Equal("\"id\"", keyDirective.ToSyntaxNode().Arguments[0].Value.ToString());
 
         schema.MatchSnapshot();
     }
@@ -80,13 +80,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestTypePropertyDirective");
+        var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirective");
 
         // assert
         var keyDirective = Assert.Single(testType.Directives);
         Assert.Equal(FederationTypeNames.KeyDirective_Name, keyDirective.Type.Name);
-        Assert.Equal("fields", keyDirective.AsSyntaxNode().Arguments[0].Name.ToString());
-        Assert.Equal("\"id\"", keyDirective.AsSyntaxNode().Arguments[0].Value.ToString());
+        Assert.Equal("fields", keyDirective.ToSyntaxNode().Arguments[0].Name.ToString());
+        Assert.Equal("\"id\"", keyDirective.ToSyntaxNode().Arguments[0].Value.ToString());
 
         schema.MatchSnapshot();
     }
@@ -102,13 +102,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestTypePropertyDirectives");
+        var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirectives");
 
         // assert
         var keyDirective = Assert.Single(testType.Directives);
         Assert.Equal(FederationTypeNames.KeyDirective_Name, keyDirective.Type.Name);
-        Assert.Equal("fields", keyDirective.AsSyntaxNode().Arguments[0].Name.ToString());
-        Assert.Equal("\"id name\"", keyDirective.AsSyntaxNode().Arguments[0].Value.ToString());
+        Assert.Equal("fields", keyDirective.ToSyntaxNode().Arguments[0].Name.ToString());
+        Assert.Equal("\"id name\"", keyDirective.ToSyntaxNode().Arguments[0].Value.ToString());
 
         schema.MatchSnapshot();
     }

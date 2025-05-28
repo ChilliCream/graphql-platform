@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -25,13 +26,50 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
 
         // these properties are initialized
         // in the type complete step.
+        DeclaringMember = null!;
         Directives = null!;
         Type = null!;
+        Features = null!;
     }
 
     public string Name { get; }
 
     public string? Description { get; }
+
+    public ITypeSystemMember DeclaringMember
+    {
+        get;
+        set
+        {
+            ThrowHelper.EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
+
+    public SchemaCoordinate Coordinate
+    {
+        get
+        {
+            switch (DeclaringMember)
+            {
+                case IInputObjectTypeDefinition typeDef:
+                    return new SchemaCoordinate(typeDef.Name, Name, ofDirective: false);
+
+                case IDirectiveDefinition directiveDef:
+                    return new SchemaCoordinate(directiveDef.Name, Name, ofDirective: true);
+
+                case IOutputFieldDefinition fieldDef:
+                    return new SchemaCoordinate(
+                        fieldDef.DeclaringType.Name,
+                        fieldDef.Name,
+                        Name,
+                        ofDirective: false);
+
+                default:
+                    throw new InvalidOperationException("The declaring type is not set.");
+            }
+        }
+    }
 
     public IValueNode? DefaultValue { get; }
 
@@ -51,7 +89,21 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
-    public IType Type
+    public IInputType Type
+    {
+        get;
+        private set
+        {
+            ThrowHelper.EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
+
+    public FieldFlags Flags => FieldFlags.None;
+
+    IType IFieldDefinition.Type => Type;
+
+    public IFeatureCollection Features
     {
         get;
         private set
@@ -64,8 +116,10 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
     internal void Complete(CompositeInputFieldCompletionContext context)
     {
         ThrowHelper.EnsureNotSealed(_completed);
+        DeclaringMember = context.DeclaringMember;
         Directives = context.Directives;
         Type = context.Type;
+        Features = context.Features;
         _completed = true;
     }
 

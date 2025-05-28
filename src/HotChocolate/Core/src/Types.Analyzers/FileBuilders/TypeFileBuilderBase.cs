@@ -149,11 +149,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
                 WellKnownTypes.PagingHelper);
             Writer.WriteIndentedLine(
-                "c.Configuration.State = c.Configuration.State.SetItem("
-                + "HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);");
-            Writer.WriteIndentedLine(
-                "c.Configuration.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = "
-                + "pagingOptions;");
+                "c.Configuration.Features.Set(pagingOptions);");
         }
 
         Writer.WriteIndentedLine(

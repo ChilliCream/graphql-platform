@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "Subscription operations must have exactly one root field.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 17
+        "Line": 1,
+        "Column": 1
       }
     ],
     "Extensions": {

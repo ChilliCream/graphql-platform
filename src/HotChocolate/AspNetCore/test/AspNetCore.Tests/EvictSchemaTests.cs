@@ -14,26 +14,25 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var server = CreateStarWarsServer();
 
-        var time1 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", });
+        var time1 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }", });
 
         var resolver = server.Services.GetRequiredService<IRequestExecutorResolver>();
-        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
-        {
-            if (@event.Type == RequestExecutorEventType.Created)
-            {
-                newExecutorCreatedResetEvent.Set();
-            }
-        }));
+        resolver.Events.Subscribe(
+            new RequestExecutorEventObserver(
+                @event =>
+                {
+                    if (@event.Type == RequestExecutorEventType.Created)
+                    {
+                        newExecutorCreatedResetEvent.Set();
+                    }
+                }));
 
         // act
-        await server.GetAsync(
-            new ClientQueryRequest { Query = "{ evict }", });
+        await server.GetAsync(new ClientQueryRequest { Query = "{ evict }", });
         newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
-        var time2 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", });
+        var time2 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }", });
         Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }
 

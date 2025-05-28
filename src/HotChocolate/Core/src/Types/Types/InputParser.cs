@@ -31,7 +31,7 @@ public sealed class InputParser
         _ignoreAdditionalInputFields = options.IgnoreAdditionalInputFields;
     }
 
-    public object? ParseLiteral(IValueNode value, IInputFieldInfo field, Type? targetType = null)
+    public object? ParseLiteral(IValueNode value, IInputValueInfo field, Type? targetType = null)
     {
         if (value is null)
         {
@@ -79,7 +79,7 @@ public sealed class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         if (value.Kind == SyntaxKind.NullValue)
         {
@@ -123,7 +123,7 @@ public sealed class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         if (resultValue.Kind == SyntaxKind.ListValue)
         {
@@ -313,7 +313,7 @@ public sealed class InputParser
         IValueNode resultValue,
         ILeafType type,
         Path path,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         try
         {
@@ -464,7 +464,7 @@ public sealed class InputParser
         return Deserialize(resultValue, type, path ?? _root, null);
     }
 
-    private object? Deserialize(object? resultValue, IType type, Path path, IInputField? field)
+    private object? Deserialize(object? resultValue, IType type, Path path, InputField? field)
     {
         if (resultValue is null or NullValueNode)
         {
@@ -505,7 +505,7 @@ public sealed class InputParser
         object resultValue,
         ListType type,
         Path path,
-        IInputField? field)
+        InputField? field)
     {
         if (resultValue is IList serializedList)
         {
@@ -623,7 +623,7 @@ public sealed class InputParser
         object resultValue,
         ILeafType type,
         Path path,
-        IInputField? field)
+        InputField? field)
     {
         if (resultValue is IValueNode node)
         {
@@ -747,7 +747,7 @@ public sealed class InputParser
             : value;
     }
 
-    private static object? FormatValue(IInputFieldInfo field, object? value)
+    private static object? FormatValue(IInputValueInfo field, object? value)
         => value is null || field.Formatter is null
             ? value
             : field.Formatter.Format(value);
@@ -769,8 +769,8 @@ public sealed class InputParser
             return converted;
         }
 
-        // create from this the required argument value.
-        // This however comes with a performance impact of traversing the dictionary structure
+        // Create from this the required argument value.
+        // This, however, comes with a performance impact of traversing the dictionary structure
         // and creating from this the object.
         if (value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
         {

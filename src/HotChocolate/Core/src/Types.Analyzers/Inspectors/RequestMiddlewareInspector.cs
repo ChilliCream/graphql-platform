@@ -100,7 +100,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 var parameterTypeName = parameter.Type.ToFullyQualified();
 
                 if (parameterTypeName.Equals("global::HotChocolate.Schema") ||
-                    parameterTypeName.Equals("global::HotChocolate.ISchema"))
+                    parameterTypeName.Equals("global::HotChocolate.Schema"))
                 {
                     kind = RequestMiddlewareParameterKind.Schema;
                 }

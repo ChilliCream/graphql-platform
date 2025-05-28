@@ -7,12 +7,12 @@ public sealed class DirectiveDefinitionCollection
     : IList<MutableDirectiveDefinition>
     , IReadOnlyDirectiveDefinitionCollection
 {
-    private readonly List<SchemaCoordinate> _schemaDefinitions;
-    private readonly OrderedDictionary<string, MutableDirectiveDefinition> _definitions = new();
+    private readonly List<SchemaCoordinate> _coordinates;
+    private readonly OrderedDictionary<string, MutableDirectiveDefinition> _definitions = [];
 
     internal DirectiveDefinitionCollection(List<SchemaCoordinate> schemaDefinitions)
     {
-        _schemaDefinitions = schemaDefinitions
+        _coordinates = schemaDefinitions
             ?? throw new ArgumentNullException(nameof(schemaDefinitions));
     }
 
@@ -20,18 +20,53 @@ public sealed class DirectiveDefinitionCollection
 
     public bool IsReadOnly => false;
 
-    public MutableDirectiveDefinition this[string name] => _definitions[name];
+    public MutableDirectiveDefinition this[int index]
+    {
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            return _definitions.GetAt(index).Value;
+        }
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+            ArgumentNullException.ThrowIfNull(value);
+
+            RemoveAt(index);
+            Insert(index, value);
+        }
+    }
+
+    IDirectiveDefinition IReadOnlyList<IDirectiveDefinition>.this[int index]
+        => _definitions.GetAt(index).Value;
+
+    public MutableDirectiveDefinition this[string name]
+    {
+        get
+        {
+            ArgumentException.ThrowIfNullOrEmpty(name);
+
+            return _definitions[name];
+        }
+    }
 
     IDirectiveDefinition IReadOnlyDirectiveDefinitionCollection.this[string name] => _definitions[name];
 
     public bool TryGetDirective(string name, [NotNullWhen(true)] out MutableDirectiveDefinition? definition)
-        => _definitions.TryGetValue(name, out definition);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _definitions.TryGetValue(name, out definition);
+    }
 
     bool IReadOnlyDirectiveDefinitionCollection.TryGetDirective(
         string name,
         [NotNullWhen(true)] out IDirectiveDefinition? definition)
     {
-        if(_definitions.TryGetValue(name, out var directiveDefinition))
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        if (_definitions.TryGetValue(name, out var directiveDefinition))
         {
             definition = directiveDefinition;
             return true;
@@ -43,22 +78,22 @@ public sealed class DirectiveDefinitionCollection
 
     public void Insert(int index, MutableDirectiveDefinition definition)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentNullException.ThrowIfNull(definition);
 
         var type = _definitions.GetAt(index);
-        var definitionIndex = _schemaDefinitions.IndexOf(new SchemaCoordinate(type.Key, ofDirective: true));
-        _schemaDefinitions.Insert(definitionIndex, new SchemaCoordinate(definition.Name, ofDirective: true));
+        var definitionIndex = _coordinates.IndexOf(new SchemaCoordinate(type.Key, ofDirective: true));
+        _coordinates.Insert(definitionIndex, new SchemaCoordinate(definition.Name, ofDirective: true));
         _definitions.Insert(index, definition.Name, definition);
     }
 
     public bool Remove(string name)
     {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
         if (_definitions.Remove(name))
         {
-            _schemaDefinitions.Remove(new SchemaCoordinate(name, ofDirective: true));
+            _coordinates.Remove(new SchemaCoordinate(name, ofDirective: true));
             return true;
         }
 
@@ -67,28 +102,16 @@ public sealed class DirectiveDefinitionCollection
 
     public void RemoveAt(int index)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
         var type = _definitions.GetAt(index);
         _definitions.Remove(type.Key);
-        _schemaDefinitions.Remove(new SchemaCoordinate(type.Key, ofDirective: true));
-    }
-
-    MutableDirectiveDefinition IList<MutableDirectiveDefinition>.this[int index]
-    {
-        get => _definitions.GetAt(index).Value;
-        set
-        {
-            ArgumentNullException.ThrowIfNull(value);
-            RemoveAt(index);
-            Insert(index, value);
-        }
+        _coordinates.Remove(new SchemaCoordinate(type.Key, ofDirective: true));
     }
 
     public void Add(MutableDirectiveDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_definitions.TryGetValue(item.Name, out var existing))
         {
@@ -103,15 +126,12 @@ public sealed class DirectiveDefinitionCollection
         }
 
         _definitions.Add(item.Name, item);
-        _schemaDefinitions.Add(new SchemaCoordinate(item.Name, ofDirective: true));
+        _coordinates.Add(new SchemaCoordinate(item.Name, ofDirective: true));
     }
 
     public bool Remove(MutableDirectiveDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_definitions.TryGetValue(item.Name, out var itemToDelete)
             && ReferenceEquals(item, itemToDelete))
@@ -126,45 +146,46 @@ public sealed class DirectiveDefinitionCollection
     {
         foreach (var typeName in _definitions.Keys)
         {
-            _schemaDefinitions.Remove(new SchemaCoordinate(typeName));
+            _coordinates.Remove(new SchemaCoordinate(typeName));
         }
 
         _definitions.Clear();
     }
 
     public bool ContainsName(string name)
-        => _definitions.ContainsKey(name);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _definitions.ContainsKey(name);
+    }
 
     public int IndexOf(MutableDirectiveDefinition definition)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
 
         return IndexOf(definition.Name);
     }
 
     public int IndexOf(string name)
-        => _definitions.IndexOf(name);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _definitions.IndexOf(name);
+    }
 
     public bool Contains(MutableDirectiveDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
-        if (_definitions.TryGetValue(item.Name, out var itemToDelete) && ReferenceEquals(item, itemToDelete))
-        {
-            return true;
-        }
-
-        return false;
+        return _definitions.TryGetValue(item.Name, out var itemToDelete)
+            && ReferenceEquals(item, itemToDelete);
     }
 
     public void CopyTo(MutableDirectiveDefinition[] array, int arrayIndex)
     {
+        ArgumentNullException.ThrowIfNull(array);
+        ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+
         foreach (var item in _definitions)
         {
             array[arrayIndex++] = item.Value;

@@ -1,5 +1,4 @@
 using HotChocolate.Authorization;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types;
 
@@ -23,15 +22,13 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (apply is ApplyPolicy.Validation)
         {
-            descriptor.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+            descriptor.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
+
         return descriptor.Directive(new AuthorizeDirective(apply: apply));
     }
 
@@ -52,14 +49,11 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         string policy,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (apply is ApplyPolicy.Validation)
         {
-            descriptor.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+            descriptor.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
         }
 
         return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
@@ -80,10 +74,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         params string[] roles)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(roles));
     }
@@ -103,13 +94,10 @@ public static class AuthorizeObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor AllowAnonymous(
         this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Directive(AllowAnonymousDirectiveType.Names.AllowAnonymous);
-        descriptor.Extend().Configuration.ContextData[WellKnownContextData.AllowAnonymous] = true;
+        descriptor.ModifyAuthorizationFieldOptions(o => o with { AllowAnonymous = true });
         return descriptor;
     }
 }
