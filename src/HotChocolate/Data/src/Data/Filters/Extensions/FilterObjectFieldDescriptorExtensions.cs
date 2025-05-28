@@ -4,7 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 
@@ -170,7 +170,7 @@ public static class FilterObjectFieldDescriptorExtensions
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
-                        Flags = FieldFlags.FilterArgument
+                        Flags = CoreFieldFlags.FilterArgument
                     };
 
                     definition.Arguments.Add(argumentDefinition);

@@ -50,7 +50,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     private Selection CreateCombinedSelection(
         SelectionSetOptimizerContext context,
         ISelection selection,
-        IObjectType declaringType,
+        ObjectType declaringType,
         IPageType pageType,
         IReadOnlyList<ISelectionNode> selections)
     {
@@ -80,14 +80,14 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             isInternal: true);
     }
 
-    private static (string filedName, IObjectField field) TryGetObjectField(IPageType type)
+    private static (string filedName, ObjectField field) TryGetObjectField(IPageType type)
     {
-        if (type.Fields.FirstOrDefault(x => x.Name == "nodes") is { } nodes)
+        if (type.Fields.FirstOrDefault(x => x.Name == "nodes") is ObjectField nodes)
         {
             return ("nodes", nodes);
         }
 
-        if (type.Fields.FirstOrDefault(x => x.Name == "items") is { } items)
+        if (type.Fields.FirstOrDefault(x => x.Name == "items") is ObjectField items)
         {
             return ("items", items);
         }

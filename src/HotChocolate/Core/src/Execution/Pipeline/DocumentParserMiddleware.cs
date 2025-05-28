@@ -64,7 +64,7 @@ internal sealed class DocumentParserMiddleware
                             ErrorBuilder.New()
                                 .SetMessage(ex.Message)
                                 .SetCode(ErrorCodes.Execution.SyntaxError)
-                                .AddLocation(ex.Line, ex.Column)
+                                .AddLocation(new Location(ex.Line, ex.Column))
                                 .Build());
 
                         context.Exception = ex;
@@ -93,15 +93,17 @@ internal sealed class DocumentParserMiddleware
     private string ComputeDocumentHash(string? documentHash, string? queryHash, IOperationDocument query)
         => documentHash ?? queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var parserOptions = core.Services.GetRequiredService<ParserOptions>();
-            var middleware = Create(next, diagnosticEvents, documentHashProvider, parserOptions);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var parserOptions = core.Services.GetRequiredService<ParserOptions>();
+                var middleware = Create(next, diagnosticEvents, documentHashProvider, parserOptions);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(DocumentParserMiddleware));
 
     internal static DocumentParserMiddleware Create(
         RequestDelegate next,

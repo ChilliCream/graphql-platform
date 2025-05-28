@@ -2,7 +2,6 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Serialization;

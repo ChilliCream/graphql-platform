@@ -18,19 +18,21 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     {
         var userState = new UserState(context.User);
 
+        requestBuilder.Features.Set(userState);
+        requestBuilder.Features.Set(context);
+        requestBuilder.Features.Set(context.User);
+
         requestBuilder.TrySetServices(context.RequestServices);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
         requestBuilder.TryAddGlobalState(nameof(CancellationToken), context.RequestAborted);
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
-        requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
 
         if (context.IncludeQueryPlan())
         {
             requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
         }
 
-        var costSwitch = context.TryGetCostSwitch();
-        if (costSwitch is not null)
+        if (context.TryGetCostSwitch() is { } costSwitch)
         {
             requestBuilder.TryAddGlobalState(costSwitch, true);
         }

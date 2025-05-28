@@ -42,7 +42,7 @@ public sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
     {
         if (node.TypeCondition is not null)
         {
-            var typeContext = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+            var typeContext = context.Schema.Types[node.TypeCondition.Name.Value];
             var selections = context.Selections.Peek();
             context.Selections.Push(selections.Select(typeContext));
         }

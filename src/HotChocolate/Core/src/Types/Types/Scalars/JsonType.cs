@@ -1,6 +1,7 @@
 #nullable enable
 using System.Buffers;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
@@ -176,7 +177,7 @@ public sealed class JsonType : ScalarType<JsonElement>
 
         public static JsonElement Format(IValueNode node)
         {
-            using var bufferWriter = new ArrayWriter();
+            using var bufferWriter = new PooledArrayWriter();
             using var jsonWriter = new Utf8JsonWriter(bufferWriter);
             _visitor.Visit(node, new JsonFormatterContext(jsonWriter));
             jsonWriter.Flush();

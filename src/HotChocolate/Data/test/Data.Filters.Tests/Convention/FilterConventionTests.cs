@@ -423,7 +423,7 @@ public class FilterConventionTests
         schema.MatchSnapshot();
     }
 
-    protected ISchema CreateSchemaWithTypes(
+    protected Schema CreateSchemaWithTypes(
         IFilterInputType type,
         FilterConvention convention,
         params Type[] extensions)
@@ -447,7 +447,7 @@ public class FilterConventionTests
         return builder.Create();
     }
 
-    protected ISchema CreateSchemaWith(
+    protected Schema CreateSchemaWith(
         IFilterInputType type,
         FilterConvention convention,
         params FilterConventionExtension[] extensions)

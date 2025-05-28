@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Transport.Sockets;
@@ -34,7 +35,7 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -43,7 +44,7 @@ public static class WebSocketExtensions
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionTerminate);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -65,7 +66,7 @@ public static class WebSocketExtensions
         string subscriptionId,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Stop, id: subscriptionId);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }

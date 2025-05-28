@@ -534,7 +534,7 @@ public class ResolverCompilerTests
             .Use(next => next)
             .Create();
 
-        var queryType = schema.GetType<ObjectType>("Query");
+        var queryType = schema.Types.GetType<ObjectType>("Query");
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
         context.SetupGet(t => t.ObjectType).Returns(queryType);
@@ -592,7 +592,7 @@ public class ResolverCompilerTests
             .Use(next => next)
             .Create();
 
-        var queryType = schema.GetType<ObjectType>("Query");
+        var queryType = schema.Types.GetType<ObjectType>("Query");
 
         var selection = new Mock<ISelection>();
         selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
@@ -622,7 +622,7 @@ public class ResolverCompilerTests
             .Use(next => next)
             .Create();
 
-        var queryType = schema.GetType<ObjectType>("Query");
+        var queryType = schema.Types.GetType<ObjectType>("Query");
 
         var selection = new Mock<ISelection>();
         selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
@@ -1402,7 +1402,7 @@ public class ResolverCompilerTests
             objectField != null!;
 
         public bool ResolverWithOutputField(
-            IOutputField outputField) =>
+            IOutputFieldDefinition outputField) =>
             outputField != null!;
 
         public bool ResolverWithDocument(
@@ -1410,7 +1410,7 @@ public class ResolverCompilerTests
             document != null!;
 
         public bool ResolverWithSchema(
-            ISchema schema) =>
+            ISchemaDefinition schema) =>
             schema != null!;
 
         public bool ResolverWithService(

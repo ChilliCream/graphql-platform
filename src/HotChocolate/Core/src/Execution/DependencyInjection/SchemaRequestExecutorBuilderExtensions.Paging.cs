@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Pagination;
 
@@ -6,35 +7,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
-    /// <summary>
-    /// Sets the global paging options.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/>.
-    /// </param>
-    /// <param name="options">
-    /// The paging options.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
-    /// and its execution.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="builder"/> is <c>null</c>.
-    /// </exception>
-    [Obsolete("Use ModifyPagingOptions instead.")]
-    public static IRequestExecutorBuilder SetPagingOptions(
-        this IRequestExecutorBuilder builder,
-        PagingOptions options)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return builder.ConfigureSchema(s => s.SetPagingOptions(options));
-    }
-
     /// <summary>
     /// Modifies the global paging options.
     /// </summary>
@@ -48,15 +20,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<PagingOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(s => s.ModifyPagingOptions(configure));
     }

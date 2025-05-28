@@ -116,8 +116,8 @@ public sealed class CompositeSchemaContext
     private FusionScalarTypeDefinition CreateSpecScalar(string name)
     {
         var type = new FusionScalarTypeDefinition(name, null);
-        var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, Array.Empty<DirectiveNode>());
-        type.Complete(new CompositeScalarTypeCompletionContext(FusionDirectiveCollection.Empty));
+        var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
+        type.Complete(new CompositeScalarTypeCompletionContext(default, FusionDirectiveCollection.Empty));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
         TypeDefinitions = TypeDefinitions.Add(type);

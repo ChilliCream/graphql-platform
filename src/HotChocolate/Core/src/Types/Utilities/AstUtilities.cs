@@ -3,9 +3,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities;
 
+[Obsolete("REMOVE THIS CLASS", error: true)]
 public static class AstUtilities
 {
-    public static bool TryGetTypeFromAst<T>(this ISchema schema, ITypeNode typeNode, out T type)
+    public static bool TryGetTypeFromAst<T>(this Schema schema, ITypeNode typeNode, out T type)
         where T : IType
     {
         if (TryGetTypeFromAst(schema, typeNode, out var internalType)
@@ -19,34 +20,30 @@ public static class AstUtilities
         return false;
     }
 
-    private static bool TryGetTypeFromAst(ISchema schema, ITypeNode typeNode, out IType type)
+    private static bool TryGetTypeFromAst(Schema schema, ITypeNode typeNode, out IType type)
     {
         if (typeNode.Kind == SyntaxKind.NonNullType
-            && TryGetTypeFromAst(schema,
-                ((NonNullTypeNode)typeNode).Type, out type))
+            && TryGetTypeFromAst(schema, ((NonNullTypeNode)typeNode).Type, out type))
         {
             type = new NonNullType(type);
             return true;
         }
 
         if (typeNode.Kind == SyntaxKind.ListType
-            && TryGetTypeFromAst(schema,
-                ((ListTypeNode)typeNode).Type, out type))
+            && TryGetTypeFromAst(schema, ((ListTypeNode)typeNode).Type, out type))
         {
             type = new ListType(type);
             return true;
         }
 
         if (typeNode.Kind == SyntaxKind.NamedType
-            && schema.TryGetType(
-                ((NamedTypeNode)typeNode).Name.Value,
-                out INamedType namedType))
+            && schema.Types.TryGetType(((NamedTypeNode)typeNode).Name.Value, out var namedType))
         {
             type = namedType;
             return true;
         }
 
-        type = default;
+        type = null;
         return false;
     }
 }
