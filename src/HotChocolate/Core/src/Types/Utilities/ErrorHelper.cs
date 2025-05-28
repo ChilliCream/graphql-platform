@@ -97,9 +97,9 @@ internal static class ErrorHelper
 
     public static ISchemaError InvalidFieldDeprecation(
         string implementedTypeName,
-        IOutputField implementedField,
-        IComplexOutputType type,
-        IOutputField field)
+        IOutputFieldDefinition implementedField,
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_InvalidFieldDeprecation,
