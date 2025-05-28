@@ -1,6 +1,6 @@
 #nullable enable
 
-using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
@@ -47,7 +47,7 @@ namespace HotChocolate.Types;
       author: String!
     }
     """)]
-public sealed class Tag
+public sealed partial class Tag
 {
     /// <summary>
     /// Creates a new instance of <see cref="Tag"/>.
@@ -60,7 +60,9 @@ public sealed class Tag
     /// </exception>
     public Tag(string name)
     {
-        if (!IsValidTagName(name))
+        ArgumentNullException.ThrowIfNull(name);
+
+        if (!ValidNameRegex().IsMatch(name))
         {
             throw new ArgumentException(
                 TypeResources.TagDirective_Name_NotValid,
@@ -77,68 +79,6 @@ public sealed class Tag
     [GraphQLDescription("The name of the tag.")]
     public string Name { get; }
 
-    private static bool IsValidTagName(string? name)
-    {
-        if (string.IsNullOrEmpty(name))
-        {
-            return false;
-        }
-
-        var span = name.AsSpan();
-
-        if (IsLetterOrUnderscore(span[0]))
-        {
-            if (span.Length > 1)
-            {
-                for (var i = 1; i < span.Length; i++)
-                {
-                    if (!IsLetterOrDigitOrUnderscoreOrHyphen(span[i]))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsLetterOrDigitOrUnderscoreOrHyphen(char c)
-    {
-        if (c is > (char)96 and < (char)123 or > (char)64 and < (char)91)
-        {
-            return true;
-        }
-
-        if (c is > (char)47 and < (char)58)
-        {
-            return true;
-        }
-
-        if (c == '_' || c == '-')
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsLetterOrUnderscore(char c)
-    {
-        if (c is > (char)96 and < (char)123 or > (char)64 and < (char)91)
-        {
-            return true;
-        }
-
-        if (c == '_')
-        {
-            return true;
-        }
-
-        return false;
-    }
+    [GeneratedRegex("^[a-zA-Z0-9_-]+$")]
+    private static partial Regex ValidNameRegex();
 }
