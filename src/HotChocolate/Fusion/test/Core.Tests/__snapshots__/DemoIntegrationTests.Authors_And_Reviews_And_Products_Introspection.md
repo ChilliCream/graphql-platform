@@ -378,6 +378,13 @@
               }
             },
             {
+              "name": "testWithTwoArgumentsDifferingNullability",
+              "type": {
+                "name": "Int",
+                "kind": "SCALAR"
+              }
+            },
+            {
               "name": "topProducts",
               "type": {
                 "name": null,

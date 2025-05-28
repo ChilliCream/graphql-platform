@@ -15,6 +15,7 @@ type Query {
   reviewById(id: ID!): Review
   reviewOrAuthor: ReviewOrAuthor!
   reviews: [Review!]!
+  testWithTwoArgumentsDifferingNullability(first: Int! second: Int): Int
   userById(id: ID!): User
   users: [User!]!
   usersById(ids: [ID!]!): [User!]!
@@ -111,6 +112,7 @@ type Query {
   reviewById(id: ID!): Review @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewOrAuthor: ReviewOrAuthor! @resolver(subgraph: "Reviews2", select: "{ reviewOrAuthor }")
   reviews: [Review!]! @resolver(subgraph: "Reviews2", select: "{ reviews }")
+  testWithTwoArgumentsDifferingNullability(first: Int! second: Int): Int @variable(subgraph: "Accounts", name: "first", argument: "first") @variable(subgraph: "Accounts", name: "second", argument: "second") @resolver(subgraph: "Accounts", select: "{ testWithTwoArgumentsDifferingNullability(first: $first, second: $second) }", arguments: [ { name: "first", type: "Int!" }, { name: "second", type: "Int" } ])
   userById(id: ID!): User @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
   usersById(ids: [ID!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
@@ -197,7 +199,7 @@ scalar Date
 ```json
 {
   "Name": "Accounts",
-  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  users: [User!]!\n  userById(id: ID!): User\n  usersById(ids: [ID!]!): [User!]!\n  errorField: String\n  viewer: Viewer!\n}\n\ntype Mutation {\n  addUser(input: AddUserInput!): AddUserPayload!\n}\n\n\"The `Date` scalar represents an ISO-8601 compliant date type.\"\nscalar Date\n\ntype Viewer {\n  user: User\n  data: SomeData!\n}\n\ntype User implements Node {\n  errorField: String\n  id: ID!\n  name: String!\n  birthdate: Date!\n  username: String!\n}\n\ntype SomeData {\n  accountValue: String!\n}\n\ninput AddUserInput {\n  name: String!\n  username: String!\n  birthdate: Date!\n}\n\ntype AddUserPayload {\n  user: User\n}",
+  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  users: [User!]!\n  userById(id: ID!): User\n  usersById(ids: [ID!]!): [User!]!\n  errorField: String\n  testWithTwoArgumentsDifferingNullability(first: Int! second: Int): Int\n  viewer: Viewer!\n}\n\ntype Mutation {\n  addUser(input: AddUserInput!): AddUserPayload!\n}\n\n\"The `Date` scalar represents an ISO-8601 compliant date type.\"\nscalar Date\n\ntype User implements Node {\n  errorField: String\n  id: ID!\n  name: String!\n  birthdate: Date!\n  username: String!\n}\n\ntype Viewer {\n  user: User\n  data: SomeData!\n}\n\ntype SomeData {\n  accountValue: String!\n}\n\ninput AddUserInput {\n  name: String!\n  username: String!\n  birthdate: Date!\n}\n\ntype AddUserPayload {\n  user: User\n}",
   "Extensions": [
     "extend type Query {\n  userById(id: ID!\n    @is(field: \"id\")): User!\n  usersById(ids: [ID!]!\n    @is(field: \"id\")): [User!]!\n}"
   ],

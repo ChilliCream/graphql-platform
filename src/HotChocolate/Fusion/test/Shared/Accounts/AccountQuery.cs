@@ -36,4 +36,7 @@ public class AccountQuery
         context.ReportError("SOME TOP LEVEL USER ERROR");
         return null;
     }
+
+    public int? GetTestWithTwoArgumentsDifferingNullability(int first, int? second)
+        => first + second;
 }
