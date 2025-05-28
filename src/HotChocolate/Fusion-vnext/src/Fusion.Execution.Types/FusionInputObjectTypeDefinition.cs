@@ -1,19 +1,31 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.Types.ThrowHelper;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionInputObjectTypeDefinition(
-    string name,
-    string? description,
-    FusionInputFieldDefinitionCollection fields)
-    : IInputObjectTypeDefinition
+public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
 {
-    private FusionDirectiveCollection _directives = default!;
     private bool _completed;
+
+    public FusionInputObjectTypeDefinition(
+        string name,
+        string? description,
+        FusionInputFieldDefinitionCollection fields)
+    {
+        Name = name;
+        Description = description;
+        Fields = fields;
+
+        // these properties are initialized
+        // in the type complete step.
+        Directives = null!;
+        Features = null!;
+    }
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.InputObject;
@@ -21,23 +33,43 @@ public sealed class FusionInputObjectTypeDefinition(
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
-    public string Name => name;
+    public string Name { get; }
 
-    public string? Description => description;
+    public string? Description { get; }
 
-    public FusionDirectiveCollection Directives => _directives;
-
-    public FusionInputFieldDefinitionCollection Fields => fields;
+    public FusionInputFieldDefinitionCollection Fields { get; }
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields => Fields;
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+    public FusionDirectiveCollection Directives
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives;
+
+    public IFeatureCollection Features
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
 
     internal void Complete(CompositeInputObjectTypeCompletionContext context)
     {
-        ThrowHelper.EnsureNotSealed(_completed);
+        EnsureNotSealed(_completed);
 
-        _directives = context.Directives;
+        Directives = context.Directives;
+        Features = context.Features;
 
         _completed = true;
     }

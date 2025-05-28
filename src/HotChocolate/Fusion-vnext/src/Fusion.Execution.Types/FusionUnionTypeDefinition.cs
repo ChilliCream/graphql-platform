@@ -4,42 +4,78 @@ using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.Types.ThrowHelper;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionUnionTypeDefinition(
-    string name,
-    string? description)
-    : IUnionTypeDefinition
+public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
 {
-    private FusionObjectTypeDefinitionCollection _types = default!;
-    private FusionDirectiveCollection _directives = default!;
     private bool _completed;
 
-    public string Name { get; } = name;
+    public FusionUnionTypeDefinition(string name, string? description)
+    {
+        Name = name;
+        Description = description;
 
-    public string? Description { get; } = description;
+        // these properties are initialized
+        // in the type complete step.
+        Types = null!;
+        Directives = null!;
+        Features = null!;
+    }
 
-    public FusionDirectiveCollection Directives => _directives;
+    public string Name { get; }
+
+    public string? Description { get; }
 
     public TypeKind Kind => TypeKind.Union;
 
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
-    public FusionObjectTypeDefinitionCollection Types => _types;
+    public FusionObjectTypeDefinitionCollection Types
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
 
-    IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types => _types;
+    IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types => Types;
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+    public FusionDirectiveCollection Directives
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
 
-    public IFeatureCollection Features => throw new NotImplementedException();
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives;
+
+
+    public IFeatureCollection Features
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
 
     internal void Complete(CompositeUnionTypeCompletionContext context)
     {
-        ThrowHelper.EnsureNotSealed(_completed);
+        EnsureNotSealed(_completed);
 
-        _directives = context.Directives;
-        _types = context.Types;
+        Directives = context.Directives;
+        Types = context.Types;
+        Features = context.Features;
+
         _completed = true;
     }
 
@@ -55,8 +91,7 @@ public sealed class FusionUnionTypeDefinition(
             return ReferenceEquals(this, other);
         }
 
-        return other is FusionUnionTypeDefinition otherUnion
-            && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
+        return other is FusionUnionTypeDefinition otherUnion && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
     }
 
     public bool IsAssignableFrom(ITypeDefinition type)
@@ -67,14 +102,14 @@ public sealed class FusionUnionTypeDefinition(
                 return ReferenceEquals(type, this);
 
             case TypeKind.Object:
-                return _types.ContainsName(((FusionObjectTypeDefinition)type).Name);
+                return Types.ContainsName(((FusionObjectTypeDefinition)type).Name);
 
             default:
                 return false;
         }
     }
 
-     /// <summary>
+    /// <summary>
     /// Get the string representation of the union type definition.
     /// </summary>
     /// <returns>

@@ -349,7 +349,7 @@ public static class CompositeSchemaBuilder
     {
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
         var types = CompletionTools.CreateObjectTypeCollection(typeDef.Types, schemaContext);
-        type.Complete(new CompositeUnionTypeCompletionContext(directives, types));
+        type.Complete(new CompositeUnionTypeCompletionContext(types, directives, FeatureCollection.Empty));
     }
 
     private static void CompleteOutputField(
@@ -451,11 +451,11 @@ public static class CompositeSchemaBuilder
     {
         foreach (var fieldDef in inputObjectTypeDef.Fields)
         {
-            CompleteInputField(inputObjectType.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
+            CompleteInputField(inputObjectType, inputObjectType.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(inputObjectTypeDef.Directives, schemaContext);
-        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(directives));
+        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(directives, FeatureCollection.Empty));
     }
 
     private static void CompleteInputField(
