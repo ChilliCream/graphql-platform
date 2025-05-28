@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The field `unknown_field` does not exist on the type `Dog`.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 21
+        "Line": 2,
+        "Column": 3
       }
     ],
     "Extensions": {

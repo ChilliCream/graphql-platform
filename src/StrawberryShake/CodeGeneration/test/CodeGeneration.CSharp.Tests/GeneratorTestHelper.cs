@@ -19,15 +19,14 @@ public static class GeneratorTestHelper
 {
     public static IReadOnlyList<IError> AssertError(params string[] fileNames)
     {
-        var result = GenerateAsync(
+        var result = Generate(
             fileNames,
             new CSharpGeneratorSettings
             {
                 Namespace = "Foo.Bar",
                 ClientName = "FooClient",
                 AccessModifier = AccessModifier.Public,
-            })
-            .Result;
+            });
 
         Assert.True(
             result.Errors.Any(),
@@ -58,8 +57,7 @@ public static class GeneratorTestHelper
         bool skipWarnings,
         params string[] sourceTexts)
     {
-        var clientModel =
-            CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
+        var clientModel = CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
 
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();
@@ -255,7 +253,7 @@ public static class GeneratorTestHelper
             analyzer.AddDocument(executable);
         }
 
-        return analyzer.AnalyzeAsync().Result;
+        return analyzer.Analyze();
     }
 
     public class AssertSettings

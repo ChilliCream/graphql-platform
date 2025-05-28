@@ -25,14 +25,16 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         var userState = new UserState(context.User);
         var serviceScopeFactory = session.Connection.RequestServices.GetService<IServiceScopeFactory>();
 
+        requestBuilder.Features.Set(userState);
+        requestBuilder.Features.Set(context);
+        requestBuilder.Features.Set(context.User);
+
         requestBuilder.TryAddGlobalState(nameof(IServiceScopeFactory), serviceScopeFactory);
         requestBuilder.TryAddGlobalState(nameof(CancellationToken), session.Connection.RequestAborted);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
         requestBuilder.TryAddGlobalState(nameof(ISocketSession), session);
         requestBuilder.TryAddGlobalState(OperationSessionId, operationSessionId);
-
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
-        requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
 
         if (context.IncludeQueryPlan())
         {

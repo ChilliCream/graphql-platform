@@ -19,7 +19,7 @@ public class RequestExecutorProxyTests
                 .GetRequiredService<IRequestExecutorResolver>();
 
         // act
-        var proxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
+        var proxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
         var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);
         var b = await proxy.GetRequestExecutorAsync(CancellationToken.None);
 
@@ -44,13 +44,13 @@ public class RequestExecutorProxyTests
         var evicted = false;
         var updated = false;
 
-        var proxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
-        proxy.ExecutorEvicted += (sender, args) =>
+        var proxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
+        proxy.ExecutorEvicted += (_, _) =>
         {
             evicted = true;
             executorUpdatedResetEvent.Set();
         };
-        proxy.ExecutorUpdated += (sender, args) => updated = true;
+        proxy.ExecutorUpdated += (_, _) => updated = true;
 
         // act
         var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);

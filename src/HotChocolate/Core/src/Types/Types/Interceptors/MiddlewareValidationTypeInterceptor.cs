@@ -1,6 +1,6 @@
 using System.Text;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -38,7 +38,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     }
 
     private void ValidatePipeline(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         SchemaCoordinate fieldCoordinate,
         IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {

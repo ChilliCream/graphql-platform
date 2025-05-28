@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate;
 
@@ -156,7 +156,7 @@ public class SchemaFirstTests
         // act
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(sourceText)
-            .AddRootResolver(new { Query = new Query(), })
+            .AddRootResolver(new { Query = new Query() })
             .Create();
 
         // assert
@@ -304,7 +304,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -322,7 +322,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -394,7 +394,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -435,7 +435,7 @@ public class SchemaFirstTests
         // assert
         Assert.Equal(
             "abc",
-            schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
+            schema.Types.GetType<ObjectType>("Person")?.Fields["name"].Description);
     }
 
     [Fact]
@@ -460,13 +460,16 @@ public class SchemaFirstTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
-                    type Query {
-                        book(input: Foo): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                   book(input: Foo): String
+                }
 
-                    input Foo { bar: String = ""baz"" }")
+                input Foo { bar: String = "baz" }
+                """)
             .AddResolver<QueryWithFooInput>("Query")
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync("{ book(input: { }) }")
             .MatchSnapshotAsync();
     }
@@ -512,31 +515,31 @@ public class SchemaFirstTests
     public class QueryWithItems
     {
         [UsePaging]
-        public string[] GetItems() => ["a", "b",];
+        public string[] GetItems() => ["a", "b"];
     }
 
     public class QueryWithOffsetItems
     {
         [UseOffsetPaging]
-        public string[] GetItems() => ["a", "b",];
+        public string[] GetItems() => ["a", "b"];
     }
 
     public class QueryWithPersons
     {
         [UsePaging]
-        public Person[] GetItems() => [new Person { Name = "Foo", },];
+        public Person[] GetItems() => [new Person { Name = "Foo" }];
     }
 
     public class QueryWithOffsetPersons
     {
         [UseOffsetPaging]
-        public Person[] GetItems() => [new Person { Name = "Foo", },];
+        public Person[] GetItems() => [new Person { Name = "Foo" }];
     }
 
     public class QueryCodeFirst
     {
         [GraphQLType("Person!")]
-        public object GetPerson() => new Person { Name = "Hello", };
+        public object GetPerson() => new Person { Name = "Hello" };
     }
 
     public class Person
@@ -571,24 +574,14 @@ public class SchemaFirstTests
         string Name { get; }
     }
 
-    public class Cat : IPet
+    public class Cat(string name) : IPet
     {
-        public Cat(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
+        public string Name { get; } = name;
     }
 
-    public class Dog : IPet
+    public class Dog(string name) : IPet
     {
-        public Dog(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
+        public string Name { get; } = name;
     }
 }
 
@@ -602,12 +595,12 @@ public class QueryEnumExample
 
 public enum TestEnum
 {
-    FooBar,
+    FooBar
 }
 
 public enum TestEnumInput
 {
-    FooBarInput,
+    FooBarInput
 }
 
 public class QueryWithFooInput
@@ -615,12 +608,7 @@ public class QueryWithFooInput
     public string GetBook(Foo input) => input.Bar;
 }
 
-public class Foo
+public class Foo(string bar)
 {
-    public Foo(string bar)
-    {
-        Bar = bar;
-    }
-
-    public string Bar { get; }
+    public string Bar { get; } = bar;
 }

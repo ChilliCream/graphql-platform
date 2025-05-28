@@ -115,7 +115,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
         return await new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(

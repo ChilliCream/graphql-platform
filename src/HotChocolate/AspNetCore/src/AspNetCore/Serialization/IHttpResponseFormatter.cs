@@ -47,9 +47,27 @@ public interface IHttpResponseFormatter
         HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Formats the given <paramref name="schema"/> into a GraphQL schema SDL response.
+    /// </summary>
+    /// <param name="response">
+    /// The HTTP response.
+    /// </param>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="version">
+    /// The schema version.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The request cancellation token.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation.
+    /// </returns>
     ValueTask FormatAsync(
         HttpResponse response,
-        ISchema schema,
+        ISchemaDefinition schema,
         ulong version,
         CancellationToken cancellationToken);
 }

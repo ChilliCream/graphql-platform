@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Data.Filters;
@@ -75,7 +75,7 @@ public class FilterInputType
         }
     }
 
-    protected override FieldCollection<InputField> OnCompleteFields(
+    protected override InputFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
         InputObjectTypeConfiguration definition)
     {
@@ -116,7 +116,7 @@ public class FilterInputType
             Array.Resize(ref fields, index);
         }
 
-        return CompleteFields(context, this, fields);
+        return new InputFieldCollection(CompleteFields(context, this, fields));
     }
 
     // we are disabling the default configure method so

@@ -9,7 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data;
 
@@ -387,13 +387,13 @@ internal static class ThrowHelper
 
     public static InvalidOperationException PagingProjectionOptimizer_NotAPagingField(
         IType actualType,
-        IObjectField fieldName) =>
+        IOutputFieldDefinition field) =>
         new(string.Format(
             CultureInfo.InvariantCulture,
             DataResources.PagingProjectionOptimizer_NotAPagingField,
             actualType.Print(),
-            fieldName.Name,
-            fieldName.Type.Print()));
+            field.Name,
+            field.Type.Print()));
 
     public static InvalidOperationException Filtering_CouldNotParseValue(
         IFilterFieldHandler handler,
@@ -432,7 +432,7 @@ internal static class ThrowHelper
             field.Type.Print()));
 
     public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration field) =>
         new(SchemaErrorBuilder
@@ -527,7 +527,7 @@ internal static class ThrowHelper
             field.Type.Print()));
 
     public static SchemaException QueryableSortProvider_ExpressionParameterInvalid(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         ISortInputTypeConfiguration typeConfiguration,
         ISortFieldConfiguration field) =>
         new(SchemaErrorBuilder
@@ -573,7 +573,7 @@ internal static class ThrowHelper
             .Build());
 
     public static InvalidOperationException SelectionContext_NoTypeForAbstractFieldProvided(
-        INamedType type,
+        ITypeDefinition type,
         IEnumerable<ObjectType> possibleTypes) =>
         new(string.Format(
             CultureInfo.CurrentCulture,

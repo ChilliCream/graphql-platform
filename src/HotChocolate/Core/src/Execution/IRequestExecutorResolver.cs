@@ -6,14 +6,6 @@ namespace HotChocolate.Execution;
 public interface IRequestExecutorResolver
 {
     /// <summary>
-    /// An event that is raised when a request executor is being evicted.
-    /// The consumers of a request executor shall subscribe to this event
-    /// in order to release once this event is triggered.
-    /// </summary>
-    [Obsolete("Use the events property instead.")]
-    event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
-
-    /// <summary>
     /// An event that is raised when a request executor is created or evicted.
     /// </summary>
     IObservable<RequestExecutorEvent> Events { get; }
@@ -33,7 +25,7 @@ public interface IRequestExecutorResolver
     /// given configuration <paramref name="schemaName" />.
     /// </returns>
     ValueTask<IRequestExecutor> GetRequestExecutorAsync(
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -46,5 +38,5 @@ public interface IRequestExecutorResolver
     /// <param name="schemaName">
     /// The schema name.
     /// </param>
-    void EvictRequestExecutor(string? schemaName = default);
+    void EvictRequestExecutor(string? schemaName = null);
 }

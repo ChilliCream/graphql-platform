@@ -224,7 +224,7 @@ public class GeoJsonMultiPolygonInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(
             d => d
@@ -237,6 +237,6 @@ public class GeoJsonMultiPolygonInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
     }
 }

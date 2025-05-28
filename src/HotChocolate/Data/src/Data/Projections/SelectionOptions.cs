@@ -1,8 +1,10 @@
 namespace HotChocolate.Data.Projections;
 
-internal static class SelectionOptions
+[Flags]
+public enum SelectionFlags
 {
-    public const string FirstOrDefault = "FirstOrDefault";
-    public const string SingleOrDefault = "SingleOrDefault";
-    public const string MemberIsList = "MemberIsList";
+    None = 0,
+    FirstOrDefault = 1,
+    SingleOrDefault = 2,
+    MemberIsList = 4,
 }

@@ -68,7 +68,7 @@ public class SqlLiteOffsetTestBase
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddDbContextPool<DatabaseContext<TEntity>>(
                 b => b.UseSqlite($"Data Source={Guid.NewGuid():N}.db"))

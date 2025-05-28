@@ -275,8 +275,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Status Code: BadRequest
                 -------------------------->
                 {""errors"":[{""message"":""Unable to parse the accept header value " +
-                @"`unsupported`."",""extensions"":{""headerValue"":""unsupported""," +
-                @"""code"":""HC0064""}}]}");
+                @"`unsupported`."",""extensions"":{""code"":""HC0064""," +
+                @"""headerValue"":""unsupported""}}]}");
     }
 
     [Fact]
@@ -369,12 +369,13 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }", }),
-            Headers = { { "Accept", acceptHeader }, },
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = "{ ... @defer { __typename } }",
+            });
+        request.Headers.Add("Accept", acceptHeader);
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
 

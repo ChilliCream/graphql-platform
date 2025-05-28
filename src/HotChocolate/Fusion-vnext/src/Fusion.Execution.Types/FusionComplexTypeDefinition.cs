@@ -1,4 +1,5 @@
-﻿using HotChocolate.Fusion.Types.Collections;
+﻿using HotChocolate.Features;
+using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
@@ -13,6 +14,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
     private FusionDirectiveCollection _directives = default!;
     private FusionInterfaceTypeDefinitionCollection _implements = default!;
     private ISourceComplexTypeCollection<ISourceComplexType> _sources = default!;
+    private IFeatureCollection _features = FeatureCollection.Empty;
     private bool _completed;
 
     protected FusionComplexTypeDefinition(
@@ -32,6 +34,8 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
     public string Name { get; }
 
     public string? Description { get; }
+
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     public FusionDirectiveCollection Directives
     {
@@ -104,6 +108,21 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         }
     }
 
+    public IFeatureCollection Features
+    {
+        get => _features;
+        private protected set
+        {
+            if (_completed)
+            {
+                throw new NotSupportedException(
+                    "The type definition is sealed and cannot be modified.");
+            }
+
+            _features = value;
+        }
+    }
+
     private protected void Complete()
     {
         if (_completed)
@@ -123,6 +142,14 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 
     /// <inheritdoc />
     public abstract bool IsAssignableFrom(ITypeDefinition type);
+
+    /// <inheritdoc />
+    public bool IsImplementing(string typeName)
+        => Implements.ContainsName(typeName);
+
+    /// <inheritdoc />
+    public bool IsImplementing(IInterfaceTypeDefinition interfaceType)
+        => Implements.ContainsName(interfaceType.Name);
 
     /// <summary>
     /// Gets the string representation of this instance.

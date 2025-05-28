@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified directive is not valid the current location.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 26
+        "Line": 2,
+        "Column": 8
       }
     ],
     "Extensions": {
