@@ -1,16 +1,11 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation;
 
 public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 {
-    internal static ObjectField TypeNameField { get; } =
-        new(IntrospectionFields.CreateTypeNameField(DescriptorContext.Create()), default);
-
     protected TypeDocumentValidatorVisitor(SyntaxVisitorOptions options = default)
         : base(options)
     {
@@ -18,11 +13,11 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.Schema.GetOperationType(node.Operation) is { } type)
+        if (context.Schema.TryGetOperationType(node.Operation, out var operationType))
         {
-            context.Types.Push(type);
+            context.Types.Push(operationType);
             context.Variables.Clear();
             return Continue;
         }
@@ -32,7 +27,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         VariableDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Variables[node.Variable.Name.Value] = node;
         return Continue;
@@ -40,14 +35,14 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         InlineFragmentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (node.TypeCondition is null)
         {
             return Continue;
         }
 
-        if (context.Schema.TryGetType<INamedOutputType>(
+        if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
             node.TypeCondition.Name.Value,
             out var type))
         {
@@ -61,9 +56,9 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         FragmentDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.Schema.TryGetType<INamedOutputType>(
+        if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
             node.TypeCondition.Name.Value,
             out var namedOutputType))
         {
@@ -77,7 +72,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
        OperationDefinitionNode node,
-       IDocumentValidatorContext context)
+       DocumentValidatorContext context)
     {
         context.Types.Pop();
         context.Variables.Clear();
@@ -86,7 +81,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         InlineFragmentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (node.TypeCondition is { })
         {
@@ -98,7 +93,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         FragmentDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         return Continue;

@@ -48,7 +48,7 @@ public class DefaultNamingConventions
 
         if (type == typeof(Schema))
         {
-            return Schema.DefaultName;
+            return ISchemaDefinition.DefaultName;
         }
 
         return type.GetGraphQLName();

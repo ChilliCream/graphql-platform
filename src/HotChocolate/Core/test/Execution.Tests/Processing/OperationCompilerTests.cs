@@ -712,16 +712,17 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"{
+            """
+            {
                 root {
                     bar {
                         text
                     }
                 }
-            }");
+            }
+            """);
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
         var compiler = new OperationCompiler(new InputParser());

@@ -42,7 +42,7 @@ public sealed class CostSyntaxRewriterTests
 
         // act
         var result = _costSyntaxRewriter.Rewrite(
-            schema.ToDocument(),
+            schema.ToSyntaxNode(),
             new CostSyntaxRewriter.Context(schema));
 
         // assert
@@ -84,14 +84,14 @@ public sealed class CostSyntaxRewriterTests
 
         // act
         var result = _costSyntaxRewriter.Rewrite(
-            schema.ToDocument(),
+            schema.ToSyntaxNode(),
             new CostSyntaxRewriter.Context(schema));
 
         // assert
         result.MatchSnapshot();
     }
 
-    private static ISchema CreateSchema(string sourceText)
+    private static Schema CreateSchema(string sourceText)
     {
         return SchemaBuilder
             .New()

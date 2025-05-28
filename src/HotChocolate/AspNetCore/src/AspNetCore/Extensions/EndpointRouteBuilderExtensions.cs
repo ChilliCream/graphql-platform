@@ -75,7 +75,7 @@ public static class EndpointRouteBuilderExtensions
         }
 
         path = path.ToString().TrimEnd('/');
-        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+        var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         requestPipeline.MapGraphQL(path, schemaNameOrDefault);
@@ -195,7 +195,7 @@ public static class EndpointRouteBuilderExtensions
         }
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+        var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
         requestPipeline
             .UseCancellation()
@@ -275,7 +275,7 @@ public static class EndpointRouteBuilderExtensions
         }
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+        var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
         requestPipeline
             .UseCancellation()
@@ -355,7 +355,7 @@ public static class EndpointRouteBuilderExtensions
         }
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+        var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
         requestPipeline
             .UseCancellation()
@@ -493,7 +493,7 @@ public static class EndpointRouteBuilderExtensions
         string? schemaName = default,
         bool requireOperationName = false)
     {
-        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+        var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
         var group = endpointRouteBuilder.MapGroup(path);
         group.MapPersistedOperationMiddleware(schemaNameOrDefault, requireOperationName);

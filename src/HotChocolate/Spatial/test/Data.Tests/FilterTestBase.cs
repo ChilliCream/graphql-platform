@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests;
 
 public abstract class FilterTestBase
 {
-    public ISchema CreateSchema(Action<ISchemaBuilder> configure)
+    public Schema CreateSchema(Action<ISchemaBuilder> configure)
     {
         var builder = SchemaBuilder.New()
             .AddFiltering(x => x

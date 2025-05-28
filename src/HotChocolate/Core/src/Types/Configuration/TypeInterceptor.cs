@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -9,9 +9,8 @@ namespace HotChocolate.Configuration;
 
 // note: this type is considered internal and should not be used by users.
 /// <summary>
-/// A type initialization interceptors can hook into the various initialization events
-/// of type system members and change / rewrite them. This is useful in order to transform
-/// specified types.
+/// A type initialization interceptor can hook into the various initialization events
+/// of type system objects. This is useful to transform type system shape and behavior.
 /// </summary>
 public abstract class TypeInterceptor
 {
@@ -28,13 +27,6 @@ public abstract class TypeInterceptor
 
     internal virtual void SetSiblings(TypeInterceptor[] all) { }
 
-    [Obsolete("This hook is deprecated and will be removed in the next release.")]
-    internal virtual void OnBeforeCreateSchema(
-        IDescriptorContext context,
-        ISchemaBuilder schemaBuilder)
-    {
-    }
-
     // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
@@ -50,9 +42,6 @@ public abstract class TypeInterceptor
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {
-#pragma warning disable CS0618 // Type or member is obsolete
-        OnBeforeCreateSchema(context, schemaBuilder);
-#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     internal virtual void InitializeContext(
@@ -217,9 +206,7 @@ public abstract class TypeInterceptor
     /// <param name="operationType">
     /// Specifies what kind of operation type is resolved.
     /// </param>
-    #if NET8_0_OR_GREATER
     [Experimental(Experiments.RootTypeResolved)]
-    #endif
     public virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeConfiguration configuration,
@@ -417,9 +404,6 @@ public abstract class TypeInterceptor
     {
     }
 
-    [Obsolete("This hook is deprecated and will be removed in the next release.")]
-    public virtual void OnAfterCreateSchema(IDescriptorContext context, ISchema schema) { }
-
     // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked after schema is fully created and gives access
@@ -431,11 +415,9 @@ public abstract class TypeInterceptor
     /// <param name="schema">
     /// The created schema.
     /// </param>
-    internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
+    internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, Schema schema)
     {
-#pragma warning disable CS0618 // Type or member is obsolete
-        OnAfterCreateSchema(context, schema);
-#pragma warning restore CS0618 // Type or member is obsolete
+
     }
 
     /// <summary>

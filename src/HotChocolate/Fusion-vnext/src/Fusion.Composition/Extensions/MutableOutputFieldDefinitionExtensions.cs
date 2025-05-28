@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
@@ -54,24 +53,6 @@ internal static class MutableOutputFieldDefinitionExtensions
         var requirements = (string)fusionRequiresDirective.Arguments[Requirements].Value!;
 
         return ParseSelectionSet($"{{ {requirements} }}");
-    }
-
-    public static ImmutableArray<string> GetSchemaNames(
-        this MutableOutputFieldDefinition field,
-        string? first = null)
-    {
-        var fusionFieldDirectives =
-            field.Directives.AsEnumerable().Where(d => d.Name == FusionField);
-
-        var schemaNames =
-            fusionFieldDirectives.Select(d => (string)d.Arguments[Schema].Value!).ToList();
-
-        if (first is not null && schemaNames.Contains(first))
-        {
-            schemaNames = schemaNames.Where(n => n != first).Prepend(first).ToList();
-        }
-
-        return [.. schemaNames];
     }
 
     public static bool HasInternalDirective(this MutableOutputFieldDefinition type)

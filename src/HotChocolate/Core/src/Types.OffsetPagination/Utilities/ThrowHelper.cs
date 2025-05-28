@@ -7,7 +7,7 @@ internal static class ThrowHelper
     public static GraphQLException OffsetPagingHandler_MaxPageSize(
         int requestedItems,
         int maxAllowedItems,
-        IObjectField field,
+        IOutputFieldDefinition field,
         Path path)
         => new GraphQLException(
             ErrorBuilder.New()
@@ -20,7 +20,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static GraphQLException OffsetPagingHandler_NoBoundariesSet(
-        IObjectField field,
+        IOutputFieldDefinition field,
         Path path)
         => new GraphQLException(
             ErrorBuilder.New()

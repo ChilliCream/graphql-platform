@@ -78,7 +78,7 @@ public class ActivityEnricher
         if (!(context.Items.TryGetValue(SchemaName, out var value) &&
             value is string schemaName))
         {
-            schemaName = Schema.DefaultName;
+            schemaName = ISchemaDefinition.DefaultName;
             isDefault = true;
         }
 

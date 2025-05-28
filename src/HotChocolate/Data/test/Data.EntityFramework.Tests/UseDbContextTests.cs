@@ -501,7 +501,7 @@ public class UseDbContextTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -522,7 +522,7 @@ public class UseDbContextTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -543,7 +543,7 @@ public class UseDbContextTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]

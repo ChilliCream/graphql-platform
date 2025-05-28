@@ -498,17 +498,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetBarsResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetBarsQuery(global::StrawberryShake.IOperationExecutor<IGetBarsResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
+        private GetBarsQuery(global::StrawberryShake.IOperationExecutor<IGetBarsResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetBarsResult);
+
+        public global::Foo.Bar.IGetBarsQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetBarsQuery(_operationExecutor, _configure.Add(configure), _stringFormatter);
+        }
+
+        public global::Foo.Bar.IGetBarsQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetBarsQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(a, b);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -578,6 +606,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetBarsQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetBarsQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetBarsQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetBarsQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBarsResult>> Watch(global::System.String a, global::System.String? b, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -752,17 +783,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISaveBarsResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SaveBarsMutation(global::StrawberryShake.IOperationExecutor<ISaveBarsResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
+        private SaveBarsMutation(global::StrawberryShake.IOperationExecutor<ISaveBarsResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISaveBarsResult);
+
+        public global::Foo.Bar.ISaveBarsMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SaveBarsMutation(_operationExecutor, _configure.Add(configure), _stringFormatter);
+        }
+
+        public global::Foo.Bar.ISaveBarsMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISaveBarsMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISaveBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(a, b);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -832,6 +891,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISaveBarsMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISaveBarsMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISaveBarsMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISaveBarsMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISaveBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISaveBarsResult>> Watch(global::System.String a, global::System.String? b, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

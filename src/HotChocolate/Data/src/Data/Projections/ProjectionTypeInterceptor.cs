@@ -1,8 +1,8 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Data.Projections.ProjectionConvention;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
 namespace HotChocolate.Data.Projections;
@@ -34,7 +34,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
             foreach (var field in fields)
             {
-                if (field.Name is not ("node" or "nodes"))
+                if (field.Name is not "node" and not "nodes")
                 {
                     continue;
                 }
@@ -54,14 +54,12 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
                     .GetProjectionConvention()
                     .CreateOptimizer();
 
-                if (field.ContextData is not ExtensionData extensionData)
+                if (field.Features is not FeatureCollection)
                 {
                     throw ThrowHelper.ProjectionConvention_NodeFieldWasInInvalidState();
                 }
 
-                RegisterOptimizer(
-                    extensionData,
-                    new NodeSelectionSetOptimizer(selectionOptimizer));
+                RegisterOptimizer(field, new NodeSelectionSetOptimizer(selectionOptimizer));
 
                 if (foundNode && foundNodes)
                 {
@@ -81,8 +79,8 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             foreach (var field in objectTypeDefinition.Fields)
             {
                 alwaysProjected ??= [];
-                if (field.GetContextData().TryGetValue(IsProjectedKey, out var value) &&
-                    value is true)
+                if (field.GetFeatures().TryGet(out ProjectionFeature? feature) &&
+                    feature.AlwaysProjected is true)
                 {
                     alwaysProjected.Add(field.Name);
                 }
@@ -90,7 +88,8 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
             if (alwaysProjected?.Count > 0)
             {
-                configuration.ContextData[AlwaysProjectedFieldsKey] = alwaysProjected.ToArray();
+                configuration.Features.Set(
+                    new ProjectionTypeFeature([.. alwaysProjected]));
             }
         }
     }

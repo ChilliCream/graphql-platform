@@ -11,7 +11,7 @@ public class CustomCollectionSegmentHandlerTests
         SchemaBuilder.New()
             .AddQueryType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

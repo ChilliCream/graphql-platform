@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 #nullable enable
@@ -41,7 +41,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated()"/>
     protected void Deprecated()
     {
-        Configuration.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
     }
 
     /// <inheritdoc cref="IArgumentDescriptor.Description(string)"/>
@@ -105,10 +105,10 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// Sets the type of the argument via a type reference
     /// <example>
     /// <code lang="csharp">
-    /// // definitions
+    /// definitions
     /// ITypeInspector inspector;
     /// ParameterInfo parameter;
-    /// // get  reference
+    /// get  reference
     /// TypeReference reference = inspector.GetArgumentType(parameter)
     /// descriptor.Type(reference);
     /// </code>

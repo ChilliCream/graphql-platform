@@ -1,7 +1,10 @@
 #nullable enable
 
 using HotChocolate.Configuration;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types.Helpers;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
@@ -9,9 +12,7 @@ namespace HotChocolate.Types;
 /// Represents a GraphQL enum value.
 /// </summary>
 public abstract class EnumValue
-    : IHasDirectives
-    , IHasReadOnlyContextData
-    , ITypeSystemMember
+    : IEnumValue
     , IEnumValueCompletion
 {
     /// <summary>
@@ -23,6 +24,18 @@ public abstract class EnumValue
     /// Gets the GraphQL description for this enum value.
     /// </summary>
     public abstract string? Description { get; }
+
+    /// <summary>
+    /// Gets the enum type that declares this value.
+    /// </summary>
+    public EnumType DeclaringType { get; private set; } = null!;
+
+    IEnumTypeDefinition IEnumValue.DeclaringType => DeclaringType;
+
+    /// <summary>
+    /// Gets the coordinate of this enum value.
+    /// </summary>
+    public SchemaCoordinate Coordinate => new(DeclaringType.Name, Name, ofDirective: false);
 
     /// <summary>
     /// Defines if this enum value is deprecated.
@@ -42,13 +55,14 @@ public abstract class EnumValue
     /// <summary>
     /// Gets the directives of this enum value.
     /// </summary>
-    public abstract IDirectiveCollection Directives { get; }
+    public abstract DirectiveCollection Directives { get; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives.AsReadOnlyDirectiveCollection();
 
     /// <summary>
-    /// Gets the context data dictionary that can be used by middleware components and
-    /// resolvers to retrieve data during execution.
+    /// Gets the features of this enum value.
     /// </summary>
-    public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
+    public abstract IFeatureCollection Features { get; }
 
     /// <summary>
     /// Will be invoked before the metadata of this enum value is completed.
@@ -65,6 +79,24 @@ public abstract class EnumValue
     {
     }
 
+    private void CompleteMetadata(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember)
+    {
+        DeclaringType = (EnumType)declaringMember;
+        OnCompleteMetadata(context, declaringMember);
+    }
+
     void IEnumValueCompletion.CompleteMetadata(ITypeCompletionContext context, ITypeSystemMember declaringMember)
-        => OnCompleteMetadata(context, declaringMember);
+        => CompleteMetadata(context, declaringMember);
+
+    /// <summary>
+    /// Creates a <see cref="EnumValueDefinitionNode"/> that represents the enum value.
+    /// </summary>
+    /// <returns>
+    /// The GraphQL syntax node that represents the enum value.
+    /// </returns>
+    public EnumValueDefinitionNode ToSyntaxNode() => Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode();
 }

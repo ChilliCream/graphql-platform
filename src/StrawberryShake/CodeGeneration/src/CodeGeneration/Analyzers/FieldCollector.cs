@@ -5,9 +5,10 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using IHasDirectives = HotChocolate.Language.IHasDirectives;
+using HotChocolate.Features;
 using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
 using Path = HotChocolate.Path;
+using IHasDirectives = HotChocolate.Language.IHasDirectives;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
@@ -15,10 +16,10 @@ internal sealed class FieldCollector
 {
     private readonly Dictionary<string, Fragment> _fragments = new();
     private readonly Cache _cache = new();
-    private readonly ISchema _schema;
+    private readonly ISchemaDefinition _schema;
     private readonly DocumentNode _document;
 
-    public FieldCollector(ISchema schema, DocumentNode document)
+    public FieldCollector(ISchemaDefinition schema, DocumentNode document)
     {
         _schema = schema ?? throw new ArgumentNullException(nameof(schema));
         _document = document ?? throw new ArgumentNullException(nameof(document));
@@ -26,7 +27,7 @@ internal sealed class FieldCollector
 
     public SelectionSetVariants CollectFields(
         SelectionSetNode selectionSetSyntax,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path)
     {
         if (type is null)
@@ -89,7 +90,7 @@ internal sealed class FieldCollector
 
     private SelectionSet CollectFieldsInternal(
         SelectionSetNode selectionSetSyntax,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path)
     {
         var fields = new OrderedDictionary<string, FieldSelection>();
@@ -106,7 +107,7 @@ internal sealed class FieldCollector
 
     private void CollectFields(
         SelectionSetNode selectionSetSyntax,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path,
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
@@ -124,13 +125,12 @@ internal sealed class FieldCollector
 
     private void ResolveFields(
         ISelectionNode selectionSyntax,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path,
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
     {
-        if (selectionSyntax is FieldNode fieldSyntax &&
-            type is IComplexOutputType complexOutputType)
+        if (selectionSyntax is FieldNode fieldSyntax && type is IComplexTypeDefinition complexOutputType)
         {
             ResolveFieldSelection(
                 fieldSyntax,
@@ -160,16 +160,16 @@ internal sealed class FieldCollector
 
     internal static void ResolveFieldSelection(
         FieldNode fieldSyntax,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path,
         IDictionary<string, FieldSelection> fields)
     {
         var fieldName = fieldSyntax.Name.Value;
         var responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
-        IOutputField? field = null;
+        IOutputFieldDefinition? field = null;
 
-        if ((type is IComplexOutputType ct && ct.Fields.TryGetField(fieldName, out field)) ||
-            fieldSyntax.Name.Value is WellKnownNames.TypeName)
+        if ((type is IComplexTypeDefinition ct && ct.Fields.TryGetField(fieldName, out field))
+            || fieldSyntax.Name.Value is WellKnownNames.TypeName)
         {
             field ??= TypeNameField.Default;
 
@@ -206,7 +206,7 @@ internal sealed class FieldCollector
 
     private void ResolveFragmentSpread(
         FragmentSpreadNode fragmentSpreadSyntax,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path,
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
@@ -237,7 +237,7 @@ internal sealed class FieldCollector
 
     private void ResolveInlineFragment(
         InlineFragmentNode inlineFragmentSyntax,
-        INamedOutputType type,
+        IOutputTypeDefinition type,
         Path path,
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
@@ -269,9 +269,9 @@ internal sealed class FieldCollector
 
         if (fragmentDefinitionSyntax is not null)
         {
-            if (_schema.TryGetType<INamedType>(
-                    fragmentDefinitionSyntax.TypeCondition.Name.Value,
-                    out var type))
+            if (_schema.Types.TryGetType<ITypeDefinition>(
+                fragmentDefinitionSyntax.TypeCondition.Name.Value,
+                out var type))
             {
                 return new Fragment(
                     fragmentName,
@@ -288,7 +288,7 @@ internal sealed class FieldCollector
 
     private Fragment GetOrCreateInlineFragment(
         InlineFragmentNode inlineFragmentSyntax,
-        INamedOutputType parentType)
+        IOutputTypeDefinition parentType)
     {
         var fragmentName = CreateInlineFragmentName(inlineFragmentSyntax);
 
@@ -303,11 +303,11 @@ internal sealed class FieldCollector
 
     private Fragment CreateFragment(
         InlineFragmentNode inlineFragmentSyntax,
-        INamedOutputType parentType)
+        IOutputTypeDefinition parentType)
     {
         var type = inlineFragmentSyntax.TypeCondition is null
             ? parentType
-            : _schema.GetType<INamedType>(inlineFragmentSyntax.TypeCondition.Name.Value);
+            : _schema.Types.GetType<ITypeDefinition>(inlineFragmentSyntax.TypeCondition.Name.Value);
 
         return new Fragment(
             type.Name,
@@ -319,7 +319,7 @@ internal sealed class FieldCollector
     private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
         $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-    private sealed class Cache : Dictionary<INamedOutputType, SelectionCache>
+    private sealed class Cache : Dictionary<IOutputTypeDefinition, SelectionCache>
     {
     }
 
@@ -327,20 +327,20 @@ internal sealed class FieldCollector
     {
     }
 
-    private sealed class TypeNameField : IOutputField
+    private sealed class TypeNameField : IOutputFieldDefinition
     {
         private TypeNameField()
         {
             Name = WellKnownNames.TypeName;
             Type = new NonNullType(new StringType());
-            Arguments = FieldCollection<IInputField>.Empty;
+            Arguments = EmptyCollections.InputFieldDefinitions;
         }
 
         public string Name { get; }
 
         public string? Description => null;
 
-        public IDirectiveCollection Directives => throw new NotImplementedException();
+        public IReadOnlyDirectiveCollection Directives => throw new NotImplementedException();
 
         public ISyntaxNode? SyntaxNode => null;
 
@@ -350,22 +350,32 @@ internal sealed class FieldCollector
 
         public bool IsIntrospectionField => true;
 
+        public FieldFlags Flags => FieldFlags.Introspection | FieldFlags.TypeNameIntrospectionField;
+
         public bool IsDeprecated => false;
 
         public string? DeprecationReason => null;
 
         public IOutputType Type { get; }
 
-        public IFieldCollection<IInputField> Arguments { get; }
+        IType IFieldDefinition.Type => Type;
 
-        public IComplexOutputType DeclaringType => throw new NotImplementedException();
+        public IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }
 
-        ITypeSystemObject IField.DeclaringType => throw new NotImplementedException();
+        public ITypeSystemMember DeclaringMember => throw new NotImplementedException();
+
+        IComplexTypeDefinition IOutputFieldDefinition.DeclaringType => throw new NotImplementedException();
 
         public SchemaCoordinate Coordinate => throw new NotImplementedException();
 
         public int Index => 0;
 
         public static TypeNameField Default { get; } = new();
+
+        public IFeatureCollection Features => throw new NotImplementedException();
+
+        public FieldDefinitionNode ToSyntaxNode() => throw new NotImplementedException();
+
+        ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode();
     }
 }

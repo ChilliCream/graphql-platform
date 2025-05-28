@@ -15,7 +15,7 @@ public sealed class DependantFactoryTypeReference
     internal DependantFactoryTypeReference(
         string name,
         TypeReference dependency,
-        Func<IDescriptorContext, TypeSystemObjectBase> factory,
+        Func<IDescriptorContext, TypeSystemObject> factory,
         TypeContext context,
         string? scope = null)
         : base(
@@ -41,7 +41,7 @@ public sealed class DependantFactoryTypeReference
     /// <summary>
     /// Gets a factory to create this type.
     /// </summary>
-    public Func<IDescriptorContext, TypeSystemObjectBase> Factory { get; }
+    public Func<IDescriptorContext, TypeSystemObject> Factory { get; }
 
     /// <inheritdoc />
     public override bool Equals(TypeReference? other)
@@ -124,7 +124,7 @@ public sealed class DependantFactoryTypeReference
     public DependantFactoryTypeReference With(
         Optional<string> name = default,
         Optional<TypeReference> dependency = default,
-        Optional<Func<IDescriptorContext, TypeSystemObjectBase>> factory = default,
+        Optional<Func<IDescriptorContext, TypeSystemObject>> factory = default,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default)
     {

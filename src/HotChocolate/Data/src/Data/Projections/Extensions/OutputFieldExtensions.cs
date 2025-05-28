@@ -1,22 +1,22 @@
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
-using static HotChocolate.Data.Projections.ProjectionConvention;
-using static HotChocolate.Data.Projections.ProjectionProvider;
 
 namespace HotChocolate.Data.Projections;
 
 internal static class OutputFieldExtensions
 {
-    public static bool IsNotProjected(this IOutputField field) =>
-        field.IsExcludedManually() || field.HasProjectionMiddleware() || field.IsPagingField();
+    public static bool IsNotProjected(this IOutputFieldDefinition field)
+        => field.IsExcludedManually() || field.HasProjectionMiddleware() || field.IsPagingField();
 
-    private static bool IsExcludedManually(this IOutputField field)
-        => field.ContextData.TryGetValue(IsProjectedKey, out var isProjectedObject) &&
-            isProjectedObject is false;
+    private static bool IsExcludedManually(this IOutputFieldDefinition field)
+        => field.Features.Get<ProjectionFeature>()?.AlwaysProjected is false;
 
-    private static bool HasProjectionMiddleware(this IOutputField field)
-        => field.ContextData.ContainsKey(ProjectionContextIdentifier);
+    public static bool IsAlwaysProjected(this IOutputFieldDefinition field)
+        => field.Features.Get<ProjectionFeature>()?.AlwaysProjected is true;
 
-    private static bool IsPagingField(this IOutputField field)
-        => field.Type.NamedType() is IPageType;
+    public static bool HasProjectionMiddleware(this IOutputFieldDefinition field)
+        => field.Features.Get<ProjectionFeature>()?.HasProjectionMiddleware is true;
+
+    private static bool IsPagingField(this IOutputFieldDefinition field)
+        => ((field.Flags & FieldFlags.Connection) == FieldFlags.Connection)
+            || ((field.Flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment);
 }

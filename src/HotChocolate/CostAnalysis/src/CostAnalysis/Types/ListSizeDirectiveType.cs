@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.CostAnalysis.WellKnownArgumentNames;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 

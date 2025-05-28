@@ -52,9 +52,9 @@ public sealed partial class OperationPlanner
 
         public sealed class Context
         {
-            public OrderedDictionary<string, VariableDefinitionNode> Variables { get; } = new();
+            public OrderedDictionary<string, VariableDefinitionNode> Variables { get; } = [];
 
-            public OrderedDictionary<string, VariableDefinitionNode> Requirements { get; } = new();
+            public OrderedDictionary<string, VariableDefinitionNode> Requirements { get; } = [];
 
             public HashSet<string> UsedVariables { get; } = [];
 

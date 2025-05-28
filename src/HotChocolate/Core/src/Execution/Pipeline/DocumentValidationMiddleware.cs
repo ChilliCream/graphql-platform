@@ -10,12 +10,12 @@ internal sealed class DocumentValidationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly IDocumentValidator _documentValidator;
+    private readonly DocumentValidator _documentValidator;
 
     private DocumentValidationMiddleware(
         RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-        IDocumentValidator documentValidator)
+        [SchemaService] DocumentValidator documentValidator)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
@@ -33,37 +33,34 @@ internal sealed class DocumentValidationMiddleware
         }
         else
         {
-            if (context.ValidationResult is null || _documentValidator.HasDynamicRules)
+            if (context.ValidationResult is null || _documentValidator.HasNonCacheableRules)
             {
                 using (_diagnosticEvents.ValidateDocument(context))
                 {
                     context.ValidationResult =
-                        await _documentValidator
-                            .ValidateAsync(
-                                context.Schema,
-                                context.Document,
-                                context.DocumentId.Value,
-                                context.ContextData,
-                                context.ValidationResult is not null,
-                                context.RequestAborted)
-                            .ConfigureAwait(false);
+                        _documentValidator.Validate(
+                            context.Schema,
+                            context.DocumentId.Value,
+                            context.Document,
+                            context.Features,
+                            context.ValidationResult?.HasErrors == false);
 
                     if (!context.IsValidDocument)
                     {
                         // if the validation failed we will report errors within the validation
-                        // span and we will complete the pipeline since we do not have a valid
+                        // span, and we will complete the pipeline since we do not have a valid
                         // GraphQL request.
                         var validationResult = context.ValidationResult;
 
                         // create result context data that indicate that validation has failed.
                         var resultContextData = new Dictionary<string, object?>
                         {
-                            { ValidationErrors, true },
+                            { ValidationErrors, true }
                         };
 
-                        // if one of the validation rules proposed a status code we will add
+                        // if one of the validation rules proposed a status code, we will add
                         // it as a proposed status code to the result context data.
-                        // depending on the transport this code might not be relevant or
+                        // depending on the transport, this code might not be relevant or
                         // is even overruled.
                         if (context.ContextData.TryGetValue(HttpStatusCode, out var value))
                         {
@@ -84,19 +81,20 @@ internal sealed class DocumentValidationMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var documentValidatorFactory = core.Services.GetRequiredService<IDocumentValidatorFactory>();
-            var documentValidator = documentValidatorFactory.CreateValidator(core.SchemaName);
-            var middleware = Create(next, diagnosticEvents, documentValidator);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var documentValidator = core.SchemaServices.GetRequiredService<DocumentValidator>();
+                var middleware = Create(next, diagnosticEvents, documentValidator);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(DocumentValidationMiddleware));
 
     internal static DocumentValidationMiddleware Create(
         RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-        IDocumentValidator documentValidator)
+        DocumentValidator documentValidator)
         => new(next, diagnosticEvents, documentValidator);
 }

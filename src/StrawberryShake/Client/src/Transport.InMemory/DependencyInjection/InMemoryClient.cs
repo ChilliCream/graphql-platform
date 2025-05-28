@@ -29,7 +29,7 @@ public class InMemoryClient : IInMemoryClient
     }
 
     /// <inheritdoc />
-    public string SchemaName { get; set; } = Schema.DefaultName;
+    public string SchemaName { get; set; } = ISchemaDefinition.DefaultName;
 
     /// <inheritdoc />
     public IRequestExecutor? Executor { get; set; }
@@ -72,7 +72,7 @@ public class InMemoryClient : IInMemoryClient
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
         requestBuilder.SetGlobalState(request.GetContextDataOrNull());
 
-        var applicationService = Executor.Services.GetApplicationServices();
+        var applicationService = Executor.Services.GetRootServiceProvider();
         foreach (var interceptor in RequestInterceptors)
         {
             await interceptor

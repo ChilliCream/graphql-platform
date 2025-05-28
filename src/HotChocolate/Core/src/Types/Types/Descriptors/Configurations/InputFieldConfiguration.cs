@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// The <see cref="InputFieldConfiguration"/> contains the settings

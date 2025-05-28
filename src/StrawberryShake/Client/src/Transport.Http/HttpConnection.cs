@@ -6,19 +6,78 @@ using static StrawberryShake.Transport.Http.ResponseEnumerable;
 
 namespace StrawberryShake.Transport.Http;
 
-public sealed class HttpConnection : IHttpConnection
+public class HttpConnection : IHttpConnection
 {
-    private readonly Func<HttpClient> _createClient;
+    public const string RequestUri = "StrawberryShake.Transport.Http.HttpConnection.RequestUri";
+    public const string HttpClient = "StrawberryShake.Transport.Http.HttpConnection.HttpClient";
+
+    private readonly Func<OperationRequest, object?, HttpClient> _createClient;
+    private readonly object? _clientFactoryState;
 
     public HttpConnection(Func<HttpClient> createClient)
     {
-        _createClient = createClient ?? throw new ArgumentNullException(nameof(createClient));
+        ArgumentNullException.ThrowIfNull(createClient);
+
+        _createClient = static (_, factory) => ((Func<HttpClient>)factory!).Invoke();
+        _clientFactoryState = createClient;
+    }
+
+    public HttpConnection(Func<OperationRequest, object?, HttpClient> clientFactory, object? clientFactoryState = null)
+    {
+        ArgumentNullException.ThrowIfNull(clientFactory);
+
+        _createClient = clientFactory;
+        _clientFactoryState = clientFactoryState;
     }
 
     public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
-        => Create(_createClient, () => MapRequest(request));
+    {
+        ArgumentNullException.ThrowIfNull(request);
 
-    private static GraphQLHttpRequest MapRequest(OperationRequest request)
+        return Create(
+            CreateClient(request),
+            CreateHttpRequest(request),
+            CreateResponse);
+    }
+
+    protected virtual HttpClient CreateClient(OperationRequest request)
+    {
+        var contextData = request.GetContextDataOrNull();
+        HttpClient? httpClient = null;
+        Uri? requestUri = null;
+
+        if (contextData is not null)
+        {
+            if (contextData.TryGetValue(RequestUri, out var value))
+            {
+                if (value is string stringValue)
+                {
+                    requestUri = new Uri(stringValue);
+                }
+                else if (value is Uri uriValue)
+                {
+                    requestUri = uriValue;
+                }
+            }
+
+            if (contextData.TryGetValue(HttpClient, out value)
+                && value is HttpClient httpClientValue)
+            {
+                httpClient = httpClientValue;
+            }
+        }
+
+        httpClient ??= _createClient(request, _clientFactoryState);
+
+        if (requestUri is not null)
+        {
+            httpClient.BaseAddress = requestUri;
+        }
+
+        return httpClient;
+    }
+
+    protected virtual GraphQLHttpRequest CreateHttpRequest(OperationRequest request)
     {
         var (id, name, document, variables, extensions, _, files, strategy) = request;
 
@@ -46,6 +105,18 @@ public sealed class HttpConnection : IHttpConnection
         return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles, };
     }
 
+    protected virtual Response<JsonDocument> CreateResponse(
+        HttpResponseContext responseContext)
+    {
+        return new Response<JsonDocument>(
+            responseContext.Body,
+            responseContext.Exception,
+            responseContext.IsPatch,
+            responseContext.HasNext,
+            responseContext.Extensions,
+            responseContext.ContextData);
+    }
+
     /// <summary>
     /// Converts the variables into a dictionary that can be serialized. This is necessary
     /// because the variables can contain lists of key value pairs which are not supported
@@ -54,7 +125,7 @@ public sealed class HttpConnection : IHttpConnection
     /// <remarks>
     /// We only convert the variables if necessary to avoid unnecessary allocations.
     /// </remarks>
-    private static IReadOnlyDictionary<string, object?>? MapVariables(
+    protected static IReadOnlyDictionary<string, object?>? MapVariables(
         IReadOnlyDictionary<string, object?> variables)
     {
         if (variables.Count == 0)

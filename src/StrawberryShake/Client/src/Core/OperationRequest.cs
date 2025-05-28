@@ -121,7 +121,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     {
         get
         {
-            return _extensions ??= new();
+            return _extensions ??= [];
         }
     }
 
@@ -132,7 +132,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     {
         get
         {
-            return _contextData ??= new();
+            return _contextData ??= [];
         }
     }
 

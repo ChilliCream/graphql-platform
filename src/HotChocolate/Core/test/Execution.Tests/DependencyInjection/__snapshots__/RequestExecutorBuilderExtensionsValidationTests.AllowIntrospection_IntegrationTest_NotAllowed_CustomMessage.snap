@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "Bar",
@@ -9,8 +9,8 @@
         }
       ],
       "extensions": {
-        "field": "__schema",
-        "code": "HC0046"
+        "code": "HC0046",
+        "field": "__schema"
       }
     }
   ]
