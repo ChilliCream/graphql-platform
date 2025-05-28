@@ -19,7 +19,13 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddGlobalObjectIdentification(
         this IRequestExecutorBuilder builder)
     {
-        builder.AddDefaultNodeIdSerializer();
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (builder.Services.All(t => t.ServiceType != typeof(INodeIdSerializer)))
+        {
+            builder.AddDefaultNodeIdSerializer();
+        }
+
         return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification());
     }
 
@@ -39,7 +45,13 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         bool registerNodeInterface)
     {
-        builder.AddDefaultNodeIdSerializer();
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (builder.Services.All(t => t.ServiceType != typeof(INodeIdSerializer)))
+        {
+            builder.AddDefaultNodeIdSerializer();
+        }
+
         return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification(registerNodeInterface));
     }
 
@@ -57,5 +69,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddQueryFieldToMutationPayloads(
         this IRequestExecutorBuilder builder,
         Action<MutationPayloadOptions>? configureOptions = null)
-        => builder.ConfigureSchema(c => c.AddQueryFieldToMutationPayloads(configureOptions));
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.ConfigureSchema(c => c.AddQueryFieldToMutationPayloads(configureOptions));
+    }
 }

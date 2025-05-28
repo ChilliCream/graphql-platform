@@ -19,7 +19,7 @@ public class RequestExecutorProxyTests
                 .GetRequiredService<IRequestExecutorResolver>();
 
         // act
-        var proxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
+        var proxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
         var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);
         var b = await proxy.GetRequestExecutorAsync(CancellationToken.None);
 
@@ -31,6 +31,8 @@ public class RequestExecutorProxyTests
     public async Task Ensure_Executor_Is_Correctly_Swapped_When_Evicted()
     {
         // arrange
+        var executorUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var resolver =
             new ServiceCollection()
                 .AddGraphQL()
@@ -42,17 +44,18 @@ public class RequestExecutorProxyTests
         var evicted = false;
         var updated = false;
 
-        var proxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
-        proxy.ExecutorEvicted += (sender, args) =>
+        var proxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
+        proxy.ExecutorEvicted += (_, _) =>
         {
             evicted = true;
-            updated = false;
+            executorUpdatedResetEvent.Set();
         };
-        proxy.ExecutorUpdated += (sender, args) => updated = true;
+        proxy.ExecutorUpdated += (_, _) => updated = true;
 
         // act
         var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);
         resolver.EvictRequestExecutor();
+        executorUpdatedResetEvent.Wait(cts.Token);
         var b = await proxy.GetRequestExecutorAsync(CancellationToken.None);
 
         // assert

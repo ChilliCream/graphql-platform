@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
@@ -1215,7 +1215,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1232,7 +1232,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1286,7 +1286,7 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1300,7 +1300,27 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task MutationWithError_MutationConventionsNotEnabled_ThrowsSchemaException()
+    {
+        // arrange
+        async Task Act() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult1>()
+                .BuildSchemaAsync();
+
+        // act & assert
+        var exception =
+            (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
+
+        Assert.Equal(
+            "Adding an error type `CustomException` to field `doSomething` failed as query or "
+            + "mutation conventions were not enabled.",
+            exception?.Errors[0].Message);
     }
 
     public class ExplicitMutation
@@ -1390,9 +1410,9 @@ public class AnnotationBasedMutations
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is not ObjectTypeDefinition objTypeDef)
+            if (configuration is not ObjectTypeConfiguration objTypeDef)
             {
                 return;
             }
@@ -1400,9 +1420,9 @@ public class AnnotationBasedMutations
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is ObjectTypeDefinition objTypeDef)
+            if (configuration is ObjectTypeConfiguration objTypeDef)
             {
                 foreach (var fieldDef in objTypeDef.Fields)
                 {
@@ -1736,10 +1756,10 @@ public class AnnotationBasedMutations
     {
         public override void OnConfigure(
             IDescriptorContext context,
-            ObjectFieldDefinition mutationField)
+            ObjectFieldConfiguration mutationField)
         {
             mutationField.AddErrorType(context, typeof(SomeNewError));
-            mutationField.MiddlewareDefinitions.Add(
+            mutationField.MiddlewareConfigurations.Add(
                 new(next => async ctx =>
                 {
                     await next(ctx);

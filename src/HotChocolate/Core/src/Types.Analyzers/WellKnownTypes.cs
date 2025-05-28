@@ -1,3 +1,6 @@
+using System.Data;
+using System.Diagnostics.Contracts;
+
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes
@@ -66,9 +69,32 @@ public static class WellKnownTypes
     public const string PromiseCacheObserver = "GreenDonut.PromiseCacheObserver";
     public const string KeyValuePair = "System.Collections.Generic.KeyValuePair";
     public const string EnumerableExtensions = "System.Linq.Enumerable";
-    public const string SelectorBuilder = "GreenDonut.Selectors.ISelectorBuilder";
-    public const string PredicateBuilder = "GreenDonut.Predicates.IPredicateBuilder";
-    public const string PagingArguments = "HotChocolate.Pagination.PagingArguments";
+    public const string SelectorBuilder = "GreenDonut.Data.ISelectorBuilder";
+    public const string PredicateBuilder = "GreenDonut.Data.IPredicateBuilder";
+    public const string PagingArguments = "GreenDonut.Data.PagingArguments";
+    public const string QueryContext = "GreenDonut.Data.QueryContext";
+    public const string QueryContextGeneric = QueryContext + "<";
+    public const string SortDefinition = "GreenDonut.Data.SortDefinition";
+    public const string SortDefinitionGeneric = SortDefinition + "<";
+    public const string HotChocolateExecutionSelectionExtensions =
+        "HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions";
+    public const string FilterContextResolverContextExtensions =
+        "HotChocolate.Data.Filters.FilterContextResolverContextExtensions";
+    public const string SortingContextResolverContextExtensions =
+        "HotChocolate.Data.Sorting.SortingContextResolverContextExtensions";
+    public const string PagingHelper = "HotChocolate.Types.Pagination.PagingHelper";
+    public const string PagingDefaults = "HotChocolate.Types.Pagination.PagingDefaults";
+    public const string StaticMemberFlags = "HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags";
+    public const string InstanceMemberFlags = "HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags";
+    public const string IObjectTypeDescriptor = "HotChocolate.Types.IObjectTypeDescriptor";
+    public const string IInterfaceTypeDescriptor = "HotChocolate.Types.IInterfaceTypeDescriptor";
+    public const string TypeReference = "HotChocolate.Types.Descriptors.TypeReference";
+    public const string IDescriptorContext = "HotChocolate.Types.Descriptors.IDescriptorContext";
+    public const string ObjectTypeDefinition = "HotChocolate.Types.Descriptors.Configurations.ObjectTypeDefinition";
+    public const string NonNullType = "HotChocolate.Types.NonNullType";
+    public const string ListType = "HotChocolate.Types.ListType";
+    public const string ConnectionFlags = "HotChocolate.Types.Pagination.ConnectionFlags";
+    public const string ConnectionFlagsHelper = "HotChocolate.Types.Pagination.ConnectionFlagsHelper";
 
     public static HashSet<string> TypeClass { get; } =
     [
@@ -116,9 +142,8 @@ public static class WellKnownTypes
         };
 
     public static HashSet<string> TaskWrapper { get; } =
-        new()
-        {
+        [
             "System.Threading.Tasks.Task<>",
             "System.Threading.Tasks.ValueTask<>"
-        };
+        ];
 }

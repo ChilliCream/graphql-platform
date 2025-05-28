@@ -507,6 +507,24 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_CompositeId_With_Escaping()
+    {
+        var compositeId =
+            new CompositeId(
+                ":foo:bar:",
+                42,
+                // The bytes of this GUID contain a part separator (colon).
+                new Guid("3bc83a67-b494-4c0c-a31a-d1921b077a32"),
+                true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
     public void Parse_Legacy_StronglyTypedId()
     {
         var stronglyTypedId = new StronglyTypedId(123, 456);
@@ -516,6 +534,46 @@ public class DefaultNodeIdSerializerTests
         var parsed = serializer.Parse(id, typeof(StronglyTypedId));
 
         Assert.Equal(stronglyTypedId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        Assert.Throws<NodeIdInvalidFormatException>(
+            () => serializer.Parse("!", typeof(string)));
+    }
+
+    [Fact]
+    public void ParseOnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        Assert.Throws<NodeIdInvalidFormatException>(
+            () => serializer.Parse("!", lookup.Object));
+    }
+
+    [Theory]
+    [InlineData("RW50aXR5OjE")]      // No padding (length: 11).
+    [InlineData("RW50aXR5OjE=")]     // Correct padding (length: 12).
+    [InlineData("RW50aXR5OjE==")]    // Excess padding (length: 13).
+    [InlineData("RW50aXR5OjE===")]   // Excess padding (length: 14).
+    [InlineData("RW50aXR5OjE====")]  // Excess padding (length: 15).
+    [InlineData("RW50aXR5OjE=====")] // Excess padding (length: 16).
+    public void Parse_Ensures_Correct_Padding(string id)
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Entity")).Returns(typeof(int));
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
+
+        void Act1() => serializer.Parse(id, typeof(int));
+        void Act2() => serializer.Parse(id, lookup.Object);
+
+        Assert.Null(Record.Exception(Act1));
+        Assert.Null(Record.Exception(Act2));
     }
 
     [Fact]

@@ -88,7 +88,7 @@ public class OperationModel
 
     public bool TryGetFieldResultType(
         FieldNode fieldSyntax,
-        INamedType fieldNamedType,
+        ITypeDefinition fieldNamedType,
         [NotNullWhen(true)] out OutputTypeModel? fieldType)
     {
         if (fieldSyntax is null)

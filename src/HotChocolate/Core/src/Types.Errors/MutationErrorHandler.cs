@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors.Configurations;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -29,5 +31,5 @@ public abstract class MutationErrorConfiguration
     /// </param>
     public abstract void OnConfigure(
         IDescriptorContext context,
-        ObjectFieldDefinition mutationField);
+        ObjectFieldConfiguration mutationField);
 }

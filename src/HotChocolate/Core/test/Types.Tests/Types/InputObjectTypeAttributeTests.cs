@@ -18,7 +18,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Object1Input")
+            schema.Types.GetType<InputObjectType>("Object1Input")
                 .Fields
                 .ContainsField("bar"));
     }
@@ -34,7 +34,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Bar")
+            schema.Types.GetType<InputObjectType>("Bar")
                 .Fields
                 .ContainsField("foo"));
     }
@@ -50,7 +50,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Foo")
+            schema.Types.GetType<InputObjectType>("Foo")
                 .Fields
                 .ContainsField("foo"));
     }
@@ -62,7 +62,7 @@ public class InputObjectTypeAttributeTests
             .AddInputObjectType<InputWithDefaults>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

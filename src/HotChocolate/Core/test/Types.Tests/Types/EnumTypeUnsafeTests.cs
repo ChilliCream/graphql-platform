@@ -1,7 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -46,7 +46,7 @@ public class EnumTypeUnsafeTests
         // arrange
         // act
         var enumType = EnumType.CreateUnsafe(
-            new EnumTypeDefinition("Simple")
+            new EnumTypeConfiguration("Simple")
             {
                 Values =
                 {

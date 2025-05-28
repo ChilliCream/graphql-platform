@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using static HotChocolate.Fusion.Properties.FusionLanguageResources;
-using TokenKind = HotChocolate.Fusion.FieldSelectionMapTokenKind;
+using static HotChocolate.Fusion.Language.Properties.FusionLanguageResources;
+using TokenKind = HotChocolate.Fusion.Language.FieldSelectionMapTokenKind;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// Reads syntax tokens from source text representing a field selection map.
@@ -124,6 +124,46 @@ internal ref struct FieldSelectionMapReader
         throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
     }
 
+    public readonly TokenKind GetNextTokenKind()
+    {
+        if (Position >= _length)
+        {
+            return TokenKind.EndOfFile;
+        }
+
+        var position = Position;
+        var code = _sourceText[position];
+
+        // Skip insignificant characters.
+        while (position < _length - 1)
+        {
+            if (code
+                is CharConstants.Space
+                or CharConstants.LineFeed
+                or CharConstants.Return
+                or CharConstants.HorizontalTab
+                or CharConstants.Comma)
+            {
+                code = _sourceText[++position];
+                continue;
+            }
+
+            break;
+        }
+
+        if (code.IsPunctuator())
+        {
+            return GetPunctuatorTokenKind(code);
+        }
+
+        if (code.IsLetterOrUnderscore())
+        {
+            return TokenKind.Name;
+        }
+
+        throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Skip(TokenKind tokenKind)
     {
@@ -219,8 +259,13 @@ internal ref struct FieldSelectionMapReader
         Start = Position;
         End = ++Position;
         Value = null;
+        TokenKind = GetPunctuatorTokenKind(code);
+    }
 
-        TokenKind = code switch
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static TokenKind GetPunctuatorTokenKind(char code)
+    {
+        return code switch
         {
             CharConstants.Colon => TokenKind.Colon,
             CharConstants.LeftAngleBracket => TokenKind.LeftAngleBracket,

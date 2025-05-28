@@ -2,6 +2,8 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
+using HotChocolate.Features;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
@@ -13,13 +15,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class RequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -46,14 +48,35 @@ public static partial class RequestExecutorBuilderExtensions
                     (ctx, _) => configureSchema(ctx.SchemaBuilder))));
     }
 
+    internal static IRequestExecutorBuilder ConfigureSchemaFeature(
+        this IRequestExecutorBuilder builder,
+        Action<IFeatureCollection> configureSchema)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (configureSchema is null)
+        {
+            throw new ArgumentNullException(nameof(configureSchema));
+        }
+
+        return Configure(
+            builder,
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _) => configureSchema(ctx.SchemaBuilder.Features))));
+    }
+
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -81,13 +104,13 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -119,13 +142,37 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure the descriptor context.
+    /// </summary>
+    public static IRequestExecutorBuilder ConfigureDescriptorContext(
+        this IRequestExecutorBuilder builder,
+        Action<IDescriptorContext> configure)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        return Configure(
+            builder,
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _) => configure(ctx.DescriptorContext))));
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema

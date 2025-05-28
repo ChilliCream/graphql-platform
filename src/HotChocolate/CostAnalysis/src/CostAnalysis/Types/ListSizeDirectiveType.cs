@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.CostAnalysis.WellKnownArgumentNames;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
@@ -80,7 +80,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
     protected override Func<DirectiveNode, object> OnCompleteParse(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => ParseLiteral;
 
     private static object ParseLiteral(DirectiveNode directiveNode)
@@ -135,7 +135,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
     protected override Func<object, DirectiveNode> OnCompleteFormat(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => FormatValue;
 
     private static DirectiveNode FormatValue(object value)

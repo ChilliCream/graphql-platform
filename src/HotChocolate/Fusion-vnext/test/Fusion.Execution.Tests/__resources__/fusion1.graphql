@@ -49,6 +49,7 @@ type Product
   id: ID!
     @fusion__field(schema: PRODUCTS)
     @fusion__field(schema: SHIPPING)
+    @fusion__field(schema: REVIEWS)
   name: String!
     @fusion__field(schema: PRODUCTS)
   description: String
@@ -64,8 +65,9 @@ type Product
     @fusion__field(schema: SHIPPING)
     @fusion__requires(
         schema: SHIPPING
+        requirements: "dimension { height width }"
         field: "estimatedDelivery(postCode: String, height: Int!, width: Int!): Int!"
-        map: ["dimension.height", "dimension.width"]
+        map: [null, "dimension.height", "dimension.width"]
     )
 }
 
@@ -92,6 +94,8 @@ type Review
   stars: Int!
     @fusion__field(schema: REVIEWS)
   author: UserProfile
+    @fusion__field(schema: REVIEWS)
+  product: Product
     @fusion__field(schema: REVIEWS)
 }
 
@@ -221,6 +225,7 @@ directive @fusion__inputField(
 
 directive @fusion__requires(
   schema: fusion__Schema!
+  requirements: fusion__FieldSelectionSet!
   field: fusion__FieldDefinition!
   map: [fusion__FieldSelectionMap]!
 ) repeatable on FIELD_DEFINITION

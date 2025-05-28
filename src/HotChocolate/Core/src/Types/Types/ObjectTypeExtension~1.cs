@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -38,7 +38,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
         _configure = Configure;
     }
 
-    protected override ObjectTypeDefinition CreateDefinition(
+    protected override ObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = ObjectTypeDescriptor.NewExtension<T>(context.DescriptorContext);
@@ -46,7 +46,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>
@@ -60,7 +60,5 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     }
 
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }

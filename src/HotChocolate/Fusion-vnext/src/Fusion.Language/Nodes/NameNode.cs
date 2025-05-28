@@ -1,9 +1,9 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// Equivalent to the <c>Name</c> defined in the GraphQL specification.
 /// </summary>
-internal sealed class NameNode : IFieldSelectionMapSyntaxNode
+public sealed class NameNode : IFieldSelectionMapSyntaxNode
 {
     public NameNode(string value)
     {

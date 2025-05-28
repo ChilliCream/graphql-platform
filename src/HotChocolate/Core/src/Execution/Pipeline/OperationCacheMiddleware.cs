@@ -10,9 +10,10 @@ internal sealed class OperationCacheMiddleware
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IPreparedOperationCache _operationCache;
 
-    private OperationCacheMiddleware(RequestDelegate next,
+    private OperationCacheMiddleware(
+        RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-        IPreparedOperationCache operationCache)
+        [SchemaService] IPreparedOperationCache operationCache)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
@@ -60,12 +61,14 @@ internal sealed class OperationCacheMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var cache = core.Services.GetRequiredService<IPreparedOperationCache>();
-            var middleware = new OperationCacheMiddleware(next, diagnosticEvents, cache);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var cache = core.SchemaServices.GetRequiredService<IPreparedOperationCache>();
+                var middleware = new OperationCacheMiddleware(next, diagnosticEvents, cache);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(OperationCacheMiddleware));
 }

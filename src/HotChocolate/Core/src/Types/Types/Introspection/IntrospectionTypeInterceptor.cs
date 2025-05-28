@@ -3,16 +3,16 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Introspection.IntrospectionFields;
 
 namespace HotChocolate.Types.Introspection;
 
 internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ObjectTypeDefinition> _objectTypeDefinitions = [];
+    private readonly List<ObjectTypeConfiguration> _objectTypeConfigurations = [];
     private IDescriptorContext _context = default!;
-    private ObjectTypeDefinition? _queryTypeDefinition;
+    private ObjectTypeConfiguration? _queryTypeConfiguration;
 
     internal override uint Position => uint.MaxValue - 200;
 
@@ -28,38 +28,38 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if(completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if(completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
-            _objectTypeDefinitions.Add(typeDef);
+            _objectTypeConfigurations.Add(typeDef);
         }
     }
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
         {
-            _queryTypeDefinition = definition;
+            _queryTypeConfiguration = configuration;
         }
     }
 
     public override void OnBeforeCompleteTypes()
     {
-        if (_queryTypeDefinition is not null)
+        if (_queryTypeConfiguration is not null)
         {
             var position = 0;
-            _queryTypeDefinition.Fields.Insert(position++, CreateSchemaField(_context));
-            _queryTypeDefinition.Fields.Insert(position++, CreateTypeField(_context));
-            _queryTypeDefinition.Fields.Insert(position, CreateTypeNameField(_context));
+            _queryTypeConfiguration.Fields.Insert(position++, CreateSchemaField(_context));
+            _queryTypeConfiguration.Fields.Insert(position++, CreateTypeField(_context));
+            _queryTypeConfiguration.Fields.Insert(position, CreateTypeNameField(_context));
         }
 
-        foreach (var typeDef in _objectTypeDefinitions)
+        foreach (var typeDef in _objectTypeConfigurations)
         {
-            if (ReferenceEquals(_queryTypeDefinition, typeDef))
+            if (ReferenceEquals(_queryTypeConfiguration, typeDef))
             {
                 continue;
             }

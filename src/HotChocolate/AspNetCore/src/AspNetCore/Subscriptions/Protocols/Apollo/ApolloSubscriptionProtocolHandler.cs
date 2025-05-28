@@ -2,26 +2,29 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
-using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.AspNetCore.Subscriptions.ConnectionContextKeys;
-using static HotChocolate.Transport.Sockets.WellKnownProtocols;
-using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.MessageProperties;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
+using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
-    private readonly JsonResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
+    private readonly IWebSocketPayloadFormatter _formatter;
 
-    public ApolloSubscriptionProtocolHandler(ISocketSessionInterceptor interceptor)
+    public ApolloSubscriptionProtocolHandler(
+        ISocketSessionInterceptor interceptor,
+        IWebSocketPayloadFormatter formatter)
     {
         _interceptor = interceptor;
+        _formatter = formatter;
     }
 
     public string Name => GraphQL_WS;
@@ -182,17 +185,16 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     return;
                 }
 
-                var syntaxError = new Error(
-                    ex.Message,
-                    locations: new[]
-                    {
-                        new Location(ex.Line, ex.Column),
-                    });
+                var syntaxError = new Error
+                {
+                    Message = ex.Message,
+                    Locations = [new Location(ex.Line, ex.Column)]
+                };
 
                 await SendErrorMessageAsync(
                     session,
                     idProp.GetString()!,
-                    new[] { syntaxError, },
+                    [syntaxError],
                     cancellationToken);
             }
 
@@ -204,7 +206,8 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         {
             if (root.TryGetProperty(Utf8MessageProperties.Id, out idProp) &&
                 idProp.ValueKind is JsonValueKind.String &&
-                idProp.GetString() is { Length: > 0, } id)
+                idProp.GetString() is { Length: > 0, }
+                id)
             {
                 session.Operations.Complete(id);
             }
@@ -239,7 +242,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         IOperationResult result,
         CancellationToken cancellationToken)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
@@ -257,13 +260,13 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         IReadOnlyList<IError> errors,
         CancellationToken cancellationToken)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.FormatError(errors[0], jsonWriter);
+        _formatter.Format(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
@@ -274,7 +277,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         string operationSessionId,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
         await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }
@@ -284,7 +287,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
         await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }
@@ -295,7 +298,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         IReadOnlyDictionary<string, object?>? extensions,
         CancellationToken cancellationToken)
     {
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.ConnectionError);

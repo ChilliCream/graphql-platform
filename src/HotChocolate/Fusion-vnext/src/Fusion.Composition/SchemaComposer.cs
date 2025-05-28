@@ -1,25 +1,35 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
-using HotChocolate.Fusion.PreMergeValidation.Rules;
+using HotChocolate.Fusion.PostMergeValidationRules;
+using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Fusion.SourceSchemaValidation.Rules;
-using HotChocolate.Skimmed;
+using HotChocolate.Fusion.SourceSchemaValidationRules;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer
+public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositionLog log)
 {
-    public CompositionResult<SchemaDefinition> Compose(
-        IEnumerable<SchemaDefinition> schemaDefinitions,
-        ICompositionLog compositionLog)
-    {
-        ArgumentNullException.ThrowIfNull(schemaDefinitions);
-        ArgumentNullException.ThrowIfNull(compositionLog);
+    private readonly IEnumerable<string> _sourceSchemas = sourceSchemas
+        ?? throw new ArgumentNullException(nameof(sourceSchemas));
 
-        var context = new CompositionContext([.. schemaDefinitions], compositionLog);
+    private readonly ICompositionLog _log = log
+        ?? throw new ArgumentNullException(nameof(log));
+
+    public CompositionResult<MutableSchemaDefinition> Compose()
+    {
+        // Parse Source Schemas
+        var (_, isParseFailure, schemas, parseErrors) =
+            new SourceSchemaParser(_sourceSchemas, _log).Parse();
+
+        if (isParseFailure)
+        {
+            return parseErrors;
+        }
 
         // Validate Source Schemas
         var validationResult =
-            new SourceSchemaValidator(_sourceSchemaValidationRules).Validate(context);
+            new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
 
         if (validationResult.IsFailure)
         {
@@ -28,7 +38,7 @@ public sealed class SchemaComposer
 
         // Pre Merge Validation
         var preMergeValidationResult =
-            new PreMergeValidator(_preMergeValidationRules).Validate(context);
+            new PreMergeValidator(schemas, s_preMergeRules, _log).Validate();
 
         if (preMergeValidationResult.IsFailure)
         {
@@ -36,16 +46,17 @@ public sealed class SchemaComposer
         }
 
         // Merge Source Schemas
-        var mergeResult = new SourceSchemaMerger().Merge(context);
+        var (_, isMergeFailure, mergedSchema, mergeErrors) =
+            new SourceSchemaMerger(schemas).Merge();
 
-        if (mergeResult.IsFailure)
+        if (isMergeFailure)
         {
-            return mergeResult;
+            return mergeErrors;
         }
 
         // Post Merge Validation
         var postMergeValidationResult =
-            new PostMergeValidator(_postMergeValidationRules).Validate(mergeResult.Value);
+            new PostMergeValidator(mergedSchema, s_postMergeRules, schemas, _log).Validate();
 
         if (postMergeValidationResult.IsFailure)
         {
@@ -53,21 +64,25 @@ public sealed class SchemaComposer
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator().Validate(mergeResult.Value);
+        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
             return satisfiabilityResult;
         }
 
-        return mergeResult;
+        return mergedSchema;
     }
 
-    private static readonly List<object> _sourceSchemaValidationRules =
+    private static readonly ImmutableArray<object> s_sourceSchemaRules =
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
         new ExternalUnusedRule(),
+        new InvalidShareableUsageRule(),
+        new IsInvalidFieldTypeRule(),
+        new IsInvalidSyntaxRule(),
+        new IsInvalidUsageRule(),
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
@@ -81,29 +96,46 @@ public sealed class SchemaComposer
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),
+        new ProvidesInvalidFieldsRule(),
         new ProvidesInvalidFieldsTypeRule(),
         new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
-        new RequireDirectiveInFieldsArgumentRule(),
-        new RequireInvalidFieldsTypeRule(),
+        new RequireInvalidFieldTypeRule(),
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new TypeDefinitionInvalidRule()
     ];
 
-    private static readonly List<object> _preMergeValidationRules =
+    private static readonly ImmutableArray<object> s_preMergeRules =
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalMissingOnBaseRule(),
         new FieldArgumentTypesMergeableRule(),
+        new FieldWithMissingRequiredArgumentRule(),
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
-        new OutputFieldTypesMergeableRule()
+        new OutputFieldTypesMergeableRule(),
+        new TypeKindMismatchRule()
     ];
 
-    private static readonly List<object> _postMergeValidationRules = [];
+    private static readonly ImmutableArray<object> s_postMergeRules =
+    [
+        new EmptyMergedEnumTypeRule(),
+        new EmptyMergedInputObjectTypeRule(),
+        new EmptyMergedInterfaceTypeRule(),
+        new EmptyMergedObjectTypeRule(),
+        new EmptyMergedUnionTypeRule(),
+        new EnumTypeDefaultValueInaccessibleRule(),
+        new ImplementedByInaccessibleRule(),
+        new InterfaceFieldNoImplementationRule(),
+        new IsInvalidFieldRule(),
+        new NonNullInputFieldIsInaccessibleRule(),
+        new NoQueriesRule(),
+        new RequireInvalidFieldsRule()
+    ];
 }

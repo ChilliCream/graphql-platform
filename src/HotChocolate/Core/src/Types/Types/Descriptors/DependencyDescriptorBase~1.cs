@@ -1,7 +1,7 @@
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -10,11 +10,11 @@ namespace HotChocolate.Types.Descriptors;
 
 internal abstract class DependencyDescriptorBase
 {
-    private readonly ITypeSystemMemberConfiguration _configuration;
+    private readonly ITypeSystemConfigurationTask _configuration;
 
     protected DependencyDescriptorBase(
         ITypeInspector typeInspector,
-        ITypeSystemMemberConfiguration configuration)
+        ITypeSystemConfigurationTask configuration)
     {
         TypeInspector = typeInspector ??
             throw new ArgumentNullException(nameof(typeInspector));
@@ -69,5 +69,21 @@ internal abstract class DependencyDescriptorBase
             new TypeDependency(
                 TypeReference.Create(new NamedTypeNode(typeName)),
                 kind));
+    }
+
+    protected void DependsOn(
+        TypeReference typeReference,
+        bool mustBeNamedOrCompleted)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        var kind = mustBeNamedOrCompleted
+            ? DependencyFulfilled
+            : TypeDependencyFulfilled.Default;
+
+        _configuration.AddDependency(new TypeDependency(typeReference, kind));
     }
 }

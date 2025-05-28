@@ -45,11 +45,11 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         IServiceProvider schemaServiceProvider,
         IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
     {
-        var appServiceProvider = schemaServiceProvider.GetService<IApplicationServiceProvider>();
+        var appServiceProvider = schemaServiceProvider.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
         var serviceInspector = appServiceProvider?.GetService<IServiceProviderIsService>();
 
         var custom = customParameterExpressionBuilders is not null
-            ? [..customParameterExpressionBuilders,]
+            ? [..customParameterExpressionBuilders]
             : new List<IParameterExpressionBuilder>();
 
         // explicit internal expression builders will be added first.
@@ -62,7 +62,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             new ScopedStateParameterExpressionBuilder(),
             new LocalStateParameterExpressionBuilder(),
             new IsSelectedParameterExpressionBuilder(),
-            new EventMessageParameterExpressionBuilder(),
+            new EventMessageParameterExpressionBuilder()
         };
 
         if (customParameterExpressionBuilders is not null)
@@ -91,6 +91,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new FieldParameterExpressionBuilder());
         expressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
         expressionBuilders.Add(new PathParameterExpressionBuilder());
+        expressionBuilders.Add(new ConnectionFlagsParameterExpressionBuilder());
 
         if (serviceInspector is not null)
         {
@@ -214,11 +215,11 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         sourceType ??= member.ReflectedType ?? member.DeclaringType!;
         resolverType ??= sourceType;
 
-        if (member is MethodInfo { IsStatic: true, } method)
+        if (member is MethodInfo { IsStatic: true } method)
         {
             resolver = CompileStaticResolver(method, argumentNames, parameterExpressionBuilders);
         }
-        else if (member is PropertyInfo { GetMethod: { IsStatic: true, } getMethod, })
+        else if (member is PropertyInfo { GetMethod: { IsStatic: true } getMethod })
         {
             resolver = CompileStaticResolver(getMethod, argumentNames, parameterExpressionBuilders);
         }

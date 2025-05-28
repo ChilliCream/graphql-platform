@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
@@ -19,7 +20,7 @@ internal static class GraphQLHttpEventStreamProcessor
         var reader = pipe.Reader;
         var writer = pipe.Writer;
 
-        Task.Run(async () => await ReadFromTransportAsync(stream, writer, ct).ConfigureAwait(false), ct);
+        ReadFromTransportAsync(stream, writer, ct).FireAndForget();
         return ReadMessagesPipeAsync(reader, ct);
     }
 
@@ -69,7 +70,7 @@ internal static class GraphQLHttpEventStreamProcessor
         PipeReader reader,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        using var message = new ArrayWriter();
+        using var message = new PooledArrayWriter();
 
         await using var tokenRegistration = ct.Register(
             static reader => ((PipeReader)reader!).CancelPendingRead(),
@@ -79,7 +80,7 @@ internal static class GraphQLHttpEventStreamProcessor
         while (true)
         {
             // ReSharper disable once RedundantArgumentDefaultValue
-            var result = await reader.ReadAsync(default).ConfigureAwait(false);
+            var result = await reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);
             if (result.IsCanceled)
             {
                 break;
@@ -125,7 +126,7 @@ internal static class GraphQLHttpEventStreamProcessor
         await reader.CompleteAsync().ConfigureAwait(false);
     }
 
-    private static void WriteToMessage(ArrayWriter message, ReadOnlySequence<byte> buffer)
+    private static void WriteToMessage(PooledArrayWriter message, ReadOnlySequence<byte> buffer)
     {
         if (buffer.IsSingleSegment)
         {
@@ -154,7 +155,7 @@ internal static class GraphQLHttpEventStreamProcessor
         message.Advance(1);
     }
 
-    private static bool IsMessageComplete(ArrayWriter message)
+    private static bool IsMessageComplete(PooledArrayWriter message)
     {
         var length = message.Length;
 
@@ -165,7 +166,7 @@ internal static class GraphQLHttpEventStreamProcessor
 
         if (length == 2)
         {
-            var span = message.GetWrittenSpan().Slice(0, 2);
+            var span = message.GetWrittenSpan()[..2];
 
             if (span[0] == (byte) '\n' && span[1] == (byte) '\n')
             {
@@ -176,7 +177,7 @@ internal static class GraphQLHttpEventStreamProcessor
 
         if (length == 3)
         {
-            var span = message.GetWrittenSpan().Slice(0, 3);
+            var span = message.GetWrittenSpan()[..3];
 
             if (span[0] == (byte) ':' && span[1] == (byte) '\n' && span[2] == (byte) '\n')
             {

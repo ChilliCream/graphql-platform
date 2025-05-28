@@ -4,7 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,7 +12,7 @@ namespace HotChocolate.Fetching;
 
 internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 {
-    private IApplicationServiceProvider? _services;
+    private IServiceProvider? _services;
     private HashSet<Type>? _dataLoaderValueTypes;
     private ObjectType _queryType = default!;
 
@@ -23,15 +23,15 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
-        _services = context.Services.GetService<IApplicationServiceProvider>();
+        _services = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
     }
 
-    internal override bool IsEnabled(IDescriptorContext context)
+    public override bool IsEnabled(IDescriptorContext context)
         => context.Options.PublishRootFieldPagesToPromiseCache;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType == OperationType.Query)
@@ -42,10 +42,10 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.Type == _queryType
-            && definition is ObjectTypeDefinition typeDef)
+            && configuration is ObjectTypeConfiguration typeDef)
         {
             if (_services is null)
             {
@@ -66,9 +66,9 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
                     var resultType = completionContext.TypeInspector.GetType(field.ResultType!);
                     if (resultType.IsArrayOrList && dataLoaderValueTypes.Contains(resultType.ElementType.Type))
                     {
-                        field.MiddlewareDefinitions.Insert(
+                        field.MiddlewareConfigurations.Insert(
                             0,
-                            new FieldMiddlewareDefinition(
+                            new FieldMiddlewareConfiguration(
                                 static next => context =>
                                 {
                                     var options = context.RequestServices.GetRequiredService<DataLoaderOptions>();
@@ -88,10 +88,10 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         }
     }
 
-    private static bool IsUsableFieldConnection(ObjectFieldDefinition field)
+    private static bool IsUsableFieldConnection(ObjectFieldConfiguration field)
     {
-        var isConnection = (field.Flags & FieldFlags.Connection) == FieldFlags.Connection;
-        var usesProjection = (field.Flags & FieldFlags.UsesProjections) == FieldFlags.UsesProjections;
+        var isConnection = (field.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection;
+        var usesProjection = (field.Flags & CoreFieldFlags.UsesProjections) == CoreFieldFlags.UsesProjections;
 
         return isConnection
             && !usesProjection

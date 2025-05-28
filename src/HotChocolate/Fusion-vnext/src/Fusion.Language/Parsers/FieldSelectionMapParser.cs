@@ -1,13 +1,13 @@
 using System.Runtime.CompilerServices;
-using static HotChocolate.Fusion.Properties.FusionLanguageResources;
-using TokenKind = HotChocolate.Fusion.FieldSelectionMapTokenKind;
+using TokenKind = HotChocolate.Fusion.Language.FieldSelectionMapTokenKind;
+using static HotChocolate.Fusion.Language.Properties.FusionLanguageResources;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// Parses nodes from source text representing a field selection map.
 /// </summary>
-internal ref struct FieldSelectionMapParser
+public ref struct FieldSelectionMapParser
 {
     private readonly FieldSelectionMapParserOptions _options;
 
@@ -97,9 +97,17 @@ internal ref struct FieldSelectionMapParser
             case TokenKind.LeftAngleBracket: // For a <TypeName>.
                 path = ParsePath();
 
-                if (_reader.TokenKind == TokenKind.LeftSquareBracket)
+                // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+                switch (_reader.TokenKind)
                 {
-                    selectedListValue = ParseSelectedListValue();
+                    case TokenKind.Period:
+                        MoveNext(); // skip "."
+                        selectedObjectValue = ParseSelectedObjectValue();
+                        break;
+
+                    case TokenKind.LeftSquareBracket:
+                        selectedListValue = ParseSelectedListValue();
+                        break;
                 }
 
                 break;
@@ -202,7 +210,8 @@ internal ref struct FieldSelectionMapParser
             Expect(TokenKind.Period);
             pathSegment = ParsePathSegment();
         }
-        else if (_reader.TokenKind == TokenKind.Period)
+        else if (_reader.TokenKind == TokenKind.Period
+            && _reader.GetNextTokenKind() != TokenKind.LeftBrace)
         {
             MoveNext(); // skip "."
             pathSegment = ParsePathSegment();

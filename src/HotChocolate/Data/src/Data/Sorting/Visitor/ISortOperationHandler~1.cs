@@ -25,7 +25,7 @@ public interface ISortOperationHandler<in TContext>
     bool TryHandleEnter(
         TContext context,
         ISortField field,
-        ISortEnumValue? enumValue,
+        SortEnumValue? enumValue,
         EnumValueNode valueNode,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action);
 }

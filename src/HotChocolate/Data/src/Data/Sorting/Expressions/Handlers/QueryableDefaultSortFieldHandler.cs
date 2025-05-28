@@ -12,9 +12,9 @@ public class QueryableDefaultSortFieldHandler
 {
     public override bool CanHandle(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition) =>
-        fieldDefinition.Member is not null || fieldDefinition.Expression is not null;
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration.Member is not null || fieldConfiguration.Expression is not null;
 
     public override bool TryHandleEnter(
         QueryableSortContext context,
@@ -55,8 +55,7 @@ public class QueryableDefaultSortFieldHandler
             }
 
             nextSelector = ReplaceVariableExpressionVisitor
-                .ReplaceParameter(expression, expression.Parameters[0], lastSelector)
-                .Body;
+                .ReplaceParameter(expression.Body, expression.Parameters[0], lastSelector);
         }
         else
         {
@@ -127,11 +126,10 @@ public class QueryableDefaultSortFieldHandler
             return base.VisitParameter(node);
         }
 
-        public static LambdaExpression ReplaceParameter(
-            LambdaExpression lambda,
+        public static Expression ReplaceParameter(
+            Expression lambdaBody,
             ParameterExpression parameter,
             Expression replacement)
-            => (LambdaExpression)
-                new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambda);
+            => new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambdaBody);
     }
 }

@@ -42,7 +42,7 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<string> context,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = context.GetRequiredState<global::HotChocolate.Pagination.PagingArguments>("HotChocolate.Pagination.PagingArguments");
+            var p1 = context.GetRequiredState<global::GreenDonut.Data.PagingArguments>("GreenDonut.Data.PagingArgs");
             var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }

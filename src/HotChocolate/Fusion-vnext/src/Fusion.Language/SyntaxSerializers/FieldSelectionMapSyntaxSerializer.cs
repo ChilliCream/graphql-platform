@@ -1,6 +1,6 @@
-using static HotChocolate.Fusion.CharConstants;
+using static HotChocolate.Fusion.Language.CharConstants;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options)
     : FieldSelectionMapSyntaxVisitor<ISyntaxWriter>
@@ -146,6 +146,11 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         if (node.Path is not null)
         {
             Visit(node.Path, writer);
+
+            if (node.SelectedObjectValue is not null)
+            {
+                writer.Write(Period);
+            }
         }
 
         if (node.SelectedObjectValue is not null)

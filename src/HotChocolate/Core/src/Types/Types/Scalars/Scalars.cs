@@ -31,9 +31,9 @@ public static class Scalars
         { typeof(byte[]), typeof(ByteArrayType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
-        { typeof(DateOnly), typeof(DateType) },
-        { typeof(TimeOnly), typeof(TimeSpanType) },
-        { typeof(JsonElement), typeof(JsonType) },
+        { typeof(DateOnly), typeof(LocalDateType) },
+        { typeof(TimeOnly), typeof(LocalTimeType) },
+        { typeof(JsonElement), typeof(JsonType) }
     };
 
     private static readonly Dictionary<string, Type> _nameLookup = new()
@@ -55,6 +55,9 @@ public static class Scalars
         { ScalarNames.Date, typeof(DateType) },
         { ScalarNames.TimeSpan, typeof(TimeSpanType) },
         { ScalarNames.Any, typeof(AnyType) },
+        { ScalarNames.LocalDate, typeof(LocalDateType) },
+        { ScalarNames.LocalDateTime, typeof(LocalDateTimeType) },
+        { ScalarNames.LocalTime, typeof(LocalTimeType) },
 
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
         { ScalarNames.JSON, typeof(JsonType) }
@@ -86,8 +89,17 @@ public static class Scalars
         { typeof(double?), ValueKind.Float },
         { typeof(decimal?), ValueKind.Float },
         { typeof(bool), ValueKind.Float },
-        { typeof(bool?), ValueKind.Float },
+        { typeof(bool?), ValueKind.Float }
     };
+
+    private static readonly HashSet<string> _specScalars =
+    [
+        ScalarNames.ID,
+        ScalarNames.String,
+        ScalarNames.Int,
+        ScalarNames.Float,
+        ScalarNames.Boolean
+    ];
 
     internal static bool TryGetScalar(
         Type runtimeType,
@@ -170,4 +182,7 @@ public static class Scalars
         kind = ValueKind.Unknown;
         return false;
     }
+
+    internal static bool IsSpec(string typeName)
+        => _specScalars.Contains(typeName);
 }

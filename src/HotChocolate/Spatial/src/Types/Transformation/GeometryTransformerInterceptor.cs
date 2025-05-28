@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Spatial.Configuration;
 using static HotChocolate.Types.Spatial.Properties.Resources;
 using static HotChocolate.Types.Spatial.WellKnownFields;
@@ -18,7 +18,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
     /// <inheritdoc />
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         var convention = completionContext.GetSpatialConvention();
         if (convention.TransformerFactory.HasCoordinateSystems() &&
@@ -29,15 +29,15 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
                 throw ThrowHelper.Transformation_DefaultCRSNotFound(convention.DefaultSrid);
             }
 
-            switch (definition)
+            switch (configuration)
             {
-                case ObjectTypeDefinition def:
+                case ObjectTypeConfiguration def:
                     HandleObjectType(completionContext, def, convention);
                     break;
-                case InputObjectTypeDefinition def:
+                case InputObjectTypeConfiguration def:
                     HandleInputObjectType(completionContext, def, convention);
                     break;
-                case DirectiveTypeDefinition def:
+                case DirectiveTypeConfiguration def:
                     HandleDirectiveType(completionContext, def, convention);
                     break;
             }
@@ -46,7 +46,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
 
     private static void HandleInputObjectType(
         ITypeCompletionContext completionContext,
-        InputObjectTypeDefinition definition,
+        InputObjectTypeConfiguration definition,
         ISpatialConvention convention)
     {
         foreach (var field in definition.Fields)
@@ -64,7 +64,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
 
     private static void HandleDirectiveType(
         ITypeCompletionContext completionContext,
-        DirectiveTypeDefinition definition,
+        DirectiveTypeConfiguration definition,
         ISpatialConvention convention)
     {
         foreach (var arg in definition.Arguments)
@@ -82,7 +82,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
 
     private static void HandleObjectType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         ISpatialConvention convention)
     {
         foreach (var field in definition.Fields)
@@ -111,8 +111,8 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
                     .Type<IntType>()
                     .Description(Transformation_Argument_Crs_Description);
 
-                field.Arguments.Add(argument.CreateDefinition());
-                field.MiddlewareDefinitions.Insert(0,
+                field.Arguments.Add(argument.CreateConfiguration());
+                field.MiddlewareConfigurations.Insert(0,
                     new(FieldClassMiddlewareFactory.Create<GeometryTransformationMiddleware>(
                         (typeof(IGeometryTransformerFactory), convention.TransformerFactory),
                         (typeof(int), convention.DefaultSrid))));

@@ -113,8 +113,8 @@ public interface IFilterConvention : IConvention
 
     bool TryGetHandler(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition,
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration,
         [NotNullWhen(true)] out IFilterFieldHandler? handler);
 
     /// <summary>
@@ -122,8 +122,8 @@ public interface IFilterConvention : IConvention
     /// </summary>
     IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration);
 
     /// <summary>
     /// Creates a middleware that represents the filter execution logic

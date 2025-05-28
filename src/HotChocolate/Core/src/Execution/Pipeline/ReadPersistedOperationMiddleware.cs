@@ -11,12 +11,14 @@ internal sealed class ReadPersistedOperationMiddleware
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IOperationDocumentStorage _operationDocumentStorage;
+    private readonly IDocumentHashProvider _documentHashAlgorithm;
     private readonly PersistedOperationOptions _options;
 
     private ReadPersistedOperationMiddleware(
         RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IOperationDocumentStorage operationDocumentStorage,
+        IDocumentHashProvider documentHashAlgorithm,
         PersistedOperationOptions options)
     {
         _next = next ??
@@ -25,6 +27,8 @@ internal sealed class ReadPersistedOperationMiddleware
             throw new ArgumentNullException(nameof(diagnosticEvents));
         _operationDocumentStorage = operationDocumentStorage ??
             throw new ArgumentNullException(nameof(operationDocumentStorage));
+        _documentHashAlgorithm = documentHashAlgorithm ??
+            throw new ArgumentNullException(nameof(documentHashAlgorithm));
         _options = options;
     }
 
@@ -53,46 +57,61 @@ internal sealed class ReadPersistedOperationMiddleware
                     documentId.Value, context.RequestAborted)
                     .ConfigureAwait(false);
 
-            if (operationDocument is OperationDocument parsedDoc)
+            if (operationDocument is not null)
             {
                 context.DocumentId = documentId;
-                context.Document = parsedDoc.Document;
-                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.Document = GetOrParseDocument(operationDocument);
+                context.DocumentHash = GetDocumentHash(operationDocument);
+                context.ValidationResult = DocumentValidatorResult.OK;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = true;
-                if (_options.SkipPersistedDocumentValidation)
-                {
-                    context.ValidationResult = DocumentValidatorResult.Ok;
-                }
-                _diagnosticEvents.RetrievedDocumentFromStorage(context);
-            }
 
-            if (operationDocument is OperationDocumentSourceText sourceTextDoc)
-            {
-                context.DocumentId = documentId;
-                context.Document = Utf8GraphQLParser.Parse(sourceTextDoc.AsSpan());
-                context.ValidationResult = DocumentValidatorResult.Ok;
-                context.IsCachedDocument = true;
-                context.IsPersistedDocument = true;
                 if (_options.SkipPersistedDocumentValidation)
                 {
-                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.ValidationResult = DocumentValidatorResult.OK;
                 }
+
                 _diagnosticEvents.RetrievedDocumentFromStorage(context);
             }
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
+    private static DocumentNode GetOrParseDocument(IOperationDocument document)
+    {
+        if (document is IOperationDocumentNodeProvider nodeProvider)
         {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
-            var middleware = new ReadPersistedOperationMiddleware(
-                next,
-                diagnosticEvents,
-                persistedOperationStore,
-                core.Options.PersistedOperations);
-            return context => middleware.InvokeAsync(context);
-        };
+            return nodeProvider.Document;
+        }
+
+        return Utf8GraphQLParser.Parse(document.AsSpan());
+    }
+
+    private string? GetDocumentHash(IOperationDocument document)
+    {
+        if (document is IOperationDocumentHashProvider hashProvider
+            && _documentHashAlgorithm.Name.Equals(hashProvider.Hash.AlgorithmName)
+            && _documentHashAlgorithm.Format.Equals(hashProvider.Hash.Format))
+        {
+            return hashProvider.Hash.Hash;
+        }
+
+        return null;
+    }
+
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
+                var documentHashAlgorithm = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var middleware = new ReadPersistedOperationMiddleware(
+                    next,
+                    diagnosticEvents,
+                    persistedOperationStore,
+                    documentHashAlgorithm,
+                    core.Options.PersistedOperations);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(ReadPersistedOperationMiddleware));
 }

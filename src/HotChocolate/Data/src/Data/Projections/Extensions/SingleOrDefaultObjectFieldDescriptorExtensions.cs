@@ -1,6 +1,6 @@
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -11,15 +11,15 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
 
     public static IObjectFieldDescriptor UseFirstOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionOptions.FirstOrDefault, _firstMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.FirstOrDefault, _firstMiddleware);
 
     public static IObjectFieldDescriptor UseSingleOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionOptions.SingleOrDefault, _singleMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.SingleOrDefault, _singleMiddleware);
 
     private static IObjectFieldDescriptor ApplyMiddleware(
         this IObjectFieldDescriptor descriptor,
-        string optionName,
+        SelectionFlags selectionFlags,
         Type middlewareDefinition)
     {
         if (descriptor is null)
@@ -27,18 +27,17 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        FieldMiddlewareDefinition placeholder =
+        FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
 
         descriptor
             .Extend()
             .OnBeforeCreate(
                 (context, definition) =>
                 {
-                    definition.ContextData[optionName] = true;
-                    definition.ContextData[SelectionOptions.MemberIsList] = true;
+                    definition.AddSelectionFlags(selectionFlags | SelectionFlags.MemberIsList);
 
                     if (definition.ResultType is null ||
                         !context.TypeInspector.TryCreateTypeInfo(
@@ -56,8 +55,8 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                     definition.Type =
                         context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, d) =>
                             {
                                 CompileMiddleware(
@@ -75,14 +74,14 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         Type type,
-        ObjectFieldDefinition definition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        FieldMiddlewareConfiguration placeholder,
         Type middlewareDefinition)
     {
         var middlewareType = middlewareDefinition.MakeGenericType(type);
         var middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] =
             new(middleware, key: WellKnownMiddleware.SingleOrDefault);
     }
 }

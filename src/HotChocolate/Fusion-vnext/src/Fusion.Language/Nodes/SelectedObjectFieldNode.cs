@@ -1,10 +1,10 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// <see cref="SelectedObjectFieldNode"/> represents a field within a
 /// <see cref="SelectedObjectValueNode"/>.
 /// </summary>
-internal sealed class SelectedObjectFieldNode(
+public sealed class SelectedObjectFieldNode(
     NameNode name,
     SelectedValueNode? selectedValue = null)
     : IFieldSelectionMapSyntaxNode

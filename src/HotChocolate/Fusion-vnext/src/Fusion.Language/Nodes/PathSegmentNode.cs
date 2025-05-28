@@ -1,10 +1,10 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// Each segment specifies a field in the context of the parent, with the root segment referencing a
 /// field in the return type of the query.
 /// </summary>
-internal sealed class PathSegmentNode(
+public sealed class PathSegmentNode(
     NameNode fieldName,
     NameNode? typeName = null,
     PathSegmentNode? pathSegment = null)

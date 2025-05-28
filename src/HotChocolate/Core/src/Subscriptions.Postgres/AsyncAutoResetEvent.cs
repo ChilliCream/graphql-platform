@@ -67,9 +67,12 @@ internal sealed class AsyncAutoResetEvent : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var wait in _waitingTasks)
+        lock (_waitingTasks)
         {
-            wait.TrySetCanceled();
+            foreach (var wait in _waitingTasks)
+            {
+                wait.TrySetCanceled();
+            }
         }
 
         _isDisposed = true;

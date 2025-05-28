@@ -13,11 +13,11 @@ public abstract class QueryableStringOperationHandler : QueryableOperationHandle
 
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
         return context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
+            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
             operationField.Id == Operation;
     }
 }

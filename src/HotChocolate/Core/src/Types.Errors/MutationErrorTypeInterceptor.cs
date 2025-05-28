@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors.Configurations;
+
 namespace HotChocolate.Types;
 
 internal sealed class MutationErrorTypeInterceptor<T>(T errorRegistrar)
@@ -24,6 +26,6 @@ internal sealed class MutationErrorTypeInterceptor<T>(T errorRegistrar)
 
     public override void OnBeforeCompleteMutationField(
         ITypeCompletionContext completionContext,
-        ObjectFieldDefinition mutationField)
+        ObjectFieldConfiguration mutationField)
         => errorRegistrar.OnConfigure(completionContext.DescriptorContext, mutationField);
 }

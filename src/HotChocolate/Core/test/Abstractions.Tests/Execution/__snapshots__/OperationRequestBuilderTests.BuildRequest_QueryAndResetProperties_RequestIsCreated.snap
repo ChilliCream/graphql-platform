@@ -1,4 +1,4 @@
-﻿{
+{
   "Document": {
     "SourceText": "{ foo }"
   },
@@ -11,6 +11,7 @@
     "one": "foo",
     "two": "bar"
   },
+  "Features": [],
   "Services": null,
   "Flags": "AllowAll"
 }

@@ -40,6 +40,7 @@ depersist
 deprioritization
 deprioritized
 Dispatchable
+DOCKERHUB
 drawio
 enisdenjo
 entityframework
@@ -58,6 +59,7 @@ Giroux
 GraphiQL
 graphqlconfig
 graphqlrc
+graphqls
 graphyne
 greendonut
 Hasura
@@ -77,6 +79,7 @@ LICEN*
 Linq
 Marek
 matchesBrics
+MediatR
 Memberwise
 mercurius
 mergeable
@@ -110,6 +113,7 @@ oneof
 OpenIddict
 opensgid
 OPTOUT
+overfetching
 OWIN
 pageable
 Partitioner
@@ -118,6 +122,7 @@ PKCE
 pkey
 Postgraphile
 preconfigured
+preparables
 PRIMEM
 PROJCS
 protobuf
@@ -134,6 +139,7 @@ resheader
 resmimetype
 resx
 Retval
+Rewriters
 Rgba
 Rhai
 Roslynator
@@ -157,6 +163,7 @@ streamable
 Structs
 subgraphs
 sublicensable
+subselections
 supergraph
 Swashbuckle
 SYSLIB

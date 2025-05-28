@@ -23,7 +23,7 @@ public sealed class DataLoaderDefaultsInfo(
     public override bool Equals(object? obj)
         => obj is DataLoaderDefaultsInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo other)
+    public override bool Equals(SyntaxInfo? other)
         => other is DataLoaderDefaultsInfo info && Equals(info);
 
     private bool Equals(DataLoaderDefaultsInfo other)

@@ -1,6 +1,6 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
-using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,7 +11,9 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class DataLoaderInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [MethodWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [MethodWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.MethodDeclaration];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
@@ -33,8 +35,8 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal) &&
-                        context.SemanticModel.GetDeclaredSymbol(methodSyntax) is { } methodSymbol)
+                    if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal)
+                        && context.SemanticModel.GetDeclaredSymbol(methodSyntax) is { } methodSymbol)
                     {
                         syntaxInfo = new DataLoaderInfo(
                             attributeSyntax,

@@ -16,7 +16,7 @@ public class SchemaCache
         Action<ModelBuilder>? onModelCreating = null,
         bool usePaging = false,
         bool useOffsetPaging = false,
-        INamedType? objectType = null,
+        ITypeDefinition? objectType = null,
         Action<ISchemaBuilder>? configure = null,
         Type? schemaType = null)
         where T : class
@@ -27,9 +27,9 @@ public class SchemaCache
             key,
             _ => base.CreateSchema(
                 entities,
+                onModelCreating: onModelCreating,
                 usePaging: usePaging,
                 useOffsetPaging: useOffsetPaging,
-                onModelCreating: onModelCreating,
                 objectType: objectType,
                 configure: configure,
                 schemaType: schemaType));

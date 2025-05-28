@@ -96,6 +96,59 @@ public class PagingTests
     }
 
     [Fact]
+    public async Task Execute_On_Missing_Root_Type()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                subscription {
+                    books {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        var expectation =
+            JsonDocument.Parse(
+                """
+                {
+                    "fieldCost": 6,
+                    "typeCost": 12
+                }
+                """);
+
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(expectation.RootElement, "Expected")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Require_Paging_Boundaries_By_Default_With_Connections()
     {
         // arrange

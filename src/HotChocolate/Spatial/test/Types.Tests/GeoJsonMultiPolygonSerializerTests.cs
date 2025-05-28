@@ -596,7 +596,7 @@ public class GeoJsonMultiPolygonSerializerTests
         Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddSpatialTypes()
         .AddQueryType(
             d => d
@@ -626,13 +626,13 @@ public class GeoJsonMultiPolygonSerializerTests
         }
     }
 
-    private INamedInputType CreateInputType(string typeName)
+    private IInputTypeDefinition CreateInputType(string typeName)
     {
-        return CreateSchema().GetType<INamedInputType>(typeName);
+        return CreateSchema().Types.GetType<IInputTypeDefinition>(typeName);
     }
 
     private ILeafType CreateLeafType(string typeName)
     {
-        return CreateSchema().GetType<ILeafType>(typeName);
+        return CreateSchema().Types.GetType<ILeafType>(typeName);
     }
 }

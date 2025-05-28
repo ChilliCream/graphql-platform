@@ -1,8 +1,9 @@
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Execution.Configuration;
 
@@ -64,6 +65,63 @@ public class TypeModuleTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Ensure_Warmups_Are_Triggered_An_Appropriate_Number_Of_Times()
+    {
+        // arrange
+        var typeModule = new TriggerableTypeModule();
+        var warmups = 0;
+        var warmupResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var services = new ServiceCollection();
+        services
+            .AddGraphQL()
+            .AddTypeModule(_ => typeModule)
+            .InitializeOnStartup(keepWarm: true, warmup: (_, _) =>
+            {
+                warmups++;
+                warmupResetEvent.Set();
+                return Task.CompletedTask;
+            })
+            .AddQueryType(d => d.Field("foo").Resolve(""));
+        var provider = services.BuildServiceProvider();
+        var warmupService = provider.GetRequiredService<IHostedService>();
+
+        _ = Task.Run(async () =>
+        {
+            await warmupService.StartAsync(CancellationToken.None);
+        }, cts.Token);
+
+        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+
+        await resolver.GetRequestExecutorAsync();
+
+        // act
+        // assert
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
+
+        Assert.Equal(1, warmups);
+
+        typeModule.TriggerChange();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
+
+        Assert.Equal(2, warmups);
+
+        typeModule.TriggerChange();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
+
+        Assert.Equal(3, warmups);
+    }
+
+    private sealed class TriggerableTypeModule : TypeModule
+    {
+        public void TriggerChange() => OnTypesChanged();
+    }
+
     public class DummyTypeModule : ITypeModule
     {
 #pragma warning disable CS0067
@@ -76,14 +134,14 @@ public class TypeModuleTests
         {
             var list = new List<ITypeSystemMember>();
 
-            var typeDefinition = new ObjectTypeDefinition("Query");
+            var typeDefinition = new ObjectTypeConfiguration("Query");
             typeDefinition.Fields.Add(new(
                 "hello",
                 type: TypeReference.Parse("String!"),
                 pureResolver: _ => "world"));
             list.Add(ObjectType.CreateUnsafe(typeDefinition));
 
-            var typeExtensionDefinition = new ObjectTypeDefinition("Person");
+            var typeExtensionDefinition = new ObjectTypeConfiguration("Person");
             typeExtensionDefinition.Fields.Add(new(
                 "dynamic",
                 type: TypeReference.Parse("String!"),

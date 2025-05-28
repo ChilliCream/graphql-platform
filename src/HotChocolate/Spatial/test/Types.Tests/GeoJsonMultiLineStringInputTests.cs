@@ -199,7 +199,7 @@ public class GeoJsonMultiLineStringInputTests
         CreateSchema()
             .MatchSnapshot();
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(d => d
             .Name("Query")
@@ -211,6 +211,6 @@ public class GeoJsonMultiLineStringInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
     }
 }

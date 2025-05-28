@@ -1,11 +1,11 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// The <c>Path</c> literal is a string used to select a single output value from the return type by
 /// specifying a path to that value. This path is defined as a sequence of field names, each
 /// separated by a period (<c>.</c>) to create segments.
 /// </summary>
-internal sealed class PathNode(PathSegmentNode pathSegment, NameNode? typeName = null)
+public sealed class PathNode(PathSegmentNode pathSegment, NameNode? typeName = null)
     : IFieldSelectionMapSyntaxNode
 {
     public PathNode(Location? location, PathSegmentNode pathSegment, NameNode? typeName)

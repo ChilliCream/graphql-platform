@@ -68,7 +68,7 @@ public class CodeFirstTests
             .Create();
 
         // assert
-        var exists = schema.TryGetType<INamedType>("Url", out _);
+        var exists = schema.Types.TryGetType<ITypeDefinition>("Url", out _);
         Assert.False(exists);
     }
 
@@ -79,7 +79,7 @@ public class CodeFirstTests
             .AddQueryType<QueryInterfaces>()
             .AddType<Foo>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -91,7 +91,7 @@ public class CodeFirstTests
             .AddType<Foo>()
             .AddType<IBar>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -224,6 +224,13 @@ public class CodeFirstTests
               foo(foo: [String!]!): String!
             }
             """);
+    }
+
+    [Fact]
+    public void Disallow_Implicitly_Binding_Object()
+    {
+        Assert.Throws<ArgumentException>(
+            () => SchemaBuilder.New().BindRuntimeType<object, StringType>());
     }
 
     public class Query

@@ -168,6 +168,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             throw ThrowHelper.Formatter_InvalidAcceptMediaType();
         }
 
+        try
+        {
+            await FormatInternalAsync(response, result, proposedStatusCode, format, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // if the request is aborted we will fail gracefully.
+        }
+    }
+
+    private async ValueTask FormatInternalAsync(
+        HttpResponse response,
+        IExecutionResult result,
+        HttpStatusCode? proposedStatusCode,
+        FormatInfo format,
+        CancellationToken cancellationToken)
+    {
         switch (result)
         {
             case IOperationResult operationResult:
@@ -234,7 +251,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     public async ValueTask FormatAsync(
         HttpResponse response,
-        ISchema schema,
+        ISchemaDefinition schema,
         ulong version,
         CancellationToken cancellationToken)
     {
@@ -262,7 +279,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSchemaOutput Update(string _) => new(schema, version, _timeProvider.UtcNow);
+        CachedSchemaOutput Update(string _)
+            => new(schema, version, _timeProvider.UtcNow);
     }
 
 
@@ -686,7 +704,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         private readonly byte[] _schema;
 
-        public CachedSchemaOutput(ISchema schema, ulong version, DateTimeOffset lastModifiedTime)
+        public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(schema.ToString());
             FileName = GetSchemaFileName(schema);
@@ -713,8 +731,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return $"\"{version}-{hash}\"";
         }
 
-        private static string GetSchemaFileName(ISchema schema)
-            => schema.Name.EqualsOrdinal(Schema.DefaultName)
+        private static string GetSchemaFileName(ISchemaDefinition schema)
+            => schema.Name.EqualsOrdinal(ISchemaDefinition.DefaultName)
                 ? "schema.graphql"
                 : schema.Name + ".schema.graphql";
     }

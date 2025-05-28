@@ -1,6 +1,6 @@
 using System.Text;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -19,28 +19,28 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            definition is ObjectTypeDefinition objectTypeDef)
+            configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {
-                if (field.MiddlewareDefinitions.Count > 1)
+                if (field.MiddlewareConfigurations.Count > 1)
                 {
                     ValidatePipeline(
                         completionContext.Type,
                         new SchemaCoordinate(completionContext.Type.Name, field.Name),
-                        field.MiddlewareDefinitions);
+                        field.MiddlewareConfigurations);
                 }
             }
         }
     }
 
     private void ValidatePipeline(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         SchemaCoordinate fieldCoordinate,
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         _names.Clear();
 
@@ -138,7 +138,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     }
 
     private static string PrintPipeline(
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         var sb = new StringBuilder();
         var next = false;

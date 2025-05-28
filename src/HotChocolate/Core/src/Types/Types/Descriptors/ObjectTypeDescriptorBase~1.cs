@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.FieldBindingFlags;
 
 namespace HotChocolate.Types.Descriptors;
@@ -22,13 +22,13 @@ public abstract class ObjectTypeDescriptorBase<T>
 
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
         : base(context, definition) { }
 
-    Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
+    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<string, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
         InferFieldsFromFieldBindingType(fields, handledMembers);
@@ -51,7 +51,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     public IObjectTypeDescriptor<T> BindFields(
         BindingBehavior behavior)
     {
-        if (behavior == Definition.Fields.BindingBehavior)
+        if (behavior == Configuration.Fields.BindingBehavior)
         {
             // nothing changed so we just return!
             return this;
@@ -59,13 +59,13 @@ public abstract class ObjectTypeDescriptorBase<T>
 
         if (behavior == BindingBehavior.Explicit)
         {
-            Definition.Fields.BindingBehavior = BindingBehavior.Explicit;
-            Definition.FieldBindingFlags = Default;
+            Configuration.Fields.BindingBehavior = BindingBehavior.Explicit;
+            Configuration.FieldBindingFlags = Default;
         }
         else
         {
-            Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
-            Definition.FieldBindingFlags = Instance;
+            Configuration.Fields.BindingBehavior = BindingBehavior.Implicit;
+            Configuration.FieldBindingFlags = Instance;
         }
 
         return this;
@@ -74,7 +74,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     public IObjectTypeDescriptor<T> BindFields(
         FieldBindingFlags bindingFlags)
     {
-        if (bindingFlags == Definition.FieldBindingFlags)
+        if (bindingFlags == Configuration.FieldBindingFlags)
         {
             // nothing changed so we just return!
             return this;
@@ -82,13 +82,13 @@ public abstract class ObjectTypeDescriptorBase<T>
 
         if (bindingFlags == Default)
         {
-            Definition.Fields.BindingBehavior = BindingBehavior.Explicit;
-            Definition.FieldBindingFlags = Default;
+            Configuration.Fields.BindingBehavior = BindingBehavior.Explicit;
+            Configuration.FieldBindingFlags = Default;
         }
         else
         {
-            Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
-            Definition.FieldBindingFlags = bindingFlags;
+            Configuration.Fields.BindingBehavior = BindingBehavior.Implicit;
+            Configuration.FieldBindingFlags = bindingFlags;
         }
 
         return this;

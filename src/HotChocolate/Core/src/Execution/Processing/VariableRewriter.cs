@@ -36,15 +36,8 @@ public static class VariableRewriter
         IValueNode? defaultValue,
         IVariableValueCollection variableValues)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (variableValues is null)
-        {
-            throw new ArgumentNullException(nameof(variableValues));
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(variableValues);
 
         return TryRewriteValue(
             node,
@@ -68,7 +61,7 @@ public static class VariableRewriter
 
         if (node.Fields.Count == 1)
         {
-            var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+            var oneOf = type.Directives.ContainsDirective(DirectiveNames.OneOf.Name);
             var value = node.Fields[0];
 
             if (type.Fields.TryGetField(value.Name.Value, out var field) &&

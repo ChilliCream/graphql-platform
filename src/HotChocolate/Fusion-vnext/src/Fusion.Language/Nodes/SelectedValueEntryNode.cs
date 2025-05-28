@@ -1,9 +1,35 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 /// <summary>
-/// TODO: Add summary.
+/// Each <c>SelectedValueEntry</c> may take one of the following forms:
+///
+/// <list type="bullet">
+///     <item>
+///         <description>
+///         A <c>Path</c> (when not immediately followed by a dot) that is designed to point to a
+///         single value, although it may reference multiple fields depending on its return type.
+///         </description>
+///     </item>
+///     <item>
+///         <description>
+///         A <c>Path</c> immediately followed by a dot and a <c>SelectedObjectValue</c> to denote
+///         a nested object selection.
+///         </description>
+///     </item>
+///     <item>
+///         <description>
+///         A <c>Path</c> immediately followed by a <c>SelectedListValue</c> to denote selection
+///         from a list.
+///         </description>
+///     </item>
+///     <item>
+///         <description>
+///         A standalone <c>SelectedObjectValue</c>.
+///         </description>
+///     </item>
+/// </list>
 /// </summary>
-internal sealed class SelectedValueEntryNode(
+public sealed class SelectedValueEntryNode(
     Location? location = null,
     PathNode? path = null,
     SelectedObjectValueNode? selectedObjectValue = null,

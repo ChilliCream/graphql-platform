@@ -18,7 +18,7 @@ public class AutoUpdateRequestExecutorProxyTests
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>();
 
-        var innerProxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
+        var innerProxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
 
         // act
         var proxy = await AutoUpdateRequestExecutorProxy.CreateAsync(innerProxy);
@@ -33,6 +33,8 @@ public class AutoUpdateRequestExecutorProxyTests
     public async Task Ensure_Executor_Is_Correctly_Swapped_When_Evicted()
     {
         // arrange
+        var executorUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var resolver =
             new ServiceCollection()
                 .AddGraphQL()
@@ -44,31 +46,22 @@ public class AutoUpdateRequestExecutorProxyTests
         var evicted = false;
         var updated = false;
 
-        var innerProxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
+        var innerProxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
+
+        var proxy = await AutoUpdateRequestExecutorProxy.CreateAsync(innerProxy, cts.Token);
         innerProxy.ExecutorEvicted += (_, _) =>
         {
             evicted = true;
-            updated = false;
+            executorUpdatedResetEvent.Set();
         };
         innerProxy.ExecutorUpdated += (_, _) => updated = true;
-
-        var proxy = await AutoUpdateRequestExecutorProxy.CreateAsync(innerProxy);
 
         // act
         var a = proxy.InnerExecutor;
         resolver.EvictRequestExecutor();
+        executorUpdatedResetEvent.Wait(cts.Token);
 
-        var i = 0;
         var b = proxy.InnerExecutor;
-        while (ReferenceEquals(a, b))
-        {
-            await Task.Delay(100);
-            b = proxy.InnerExecutor;
-            if (i++ > 10)
-            {
-                break;
-            }
-        }
 
         // assert
         Assert.NotSame(a, b);
