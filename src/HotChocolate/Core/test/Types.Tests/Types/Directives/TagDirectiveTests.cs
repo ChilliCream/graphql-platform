@@ -43,6 +43,65 @@ public class TagDirectiveTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task ValidNames()
+    {
+        var exception = await Record.ExceptionAsync(
+            async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        field: String
+                            @tag(name: "tag")
+                            @tag(name: "TAG")
+                            @tag(name: "TAG_123")
+                            @tag(name: "tag_123")
+                            @tag(name: "tag-123")
+                    }
+
+                    directive @tag("The name of the tag." name: String!)
+                        repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION |
+                            ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE |
+                            INPUT_OBJECT | INPUT_FIELD_DEFINITION
+                    """)
+                .UseField(_ => _ => default)
+                .BuildSchemaAsync());
+
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    [InlineData("tag name")]
+    [InlineData("tag*")]
+    [InlineData("@TAG")]
+    [InlineData("tag=name")]
+    [InlineData("tagK")] // K = Kelvin Sign (U+212A)
+    public async Task InvalidNames(string tagName)
+    {
+        async Task Act() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    $$"""
+                    type Query {
+                        field: String @tag(name: "{{tagName}}")
+                    }
+
+                    directive @tag("The name of the tag." name: String!)
+                        repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION |
+                            ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE |
+                            INPUT_OBJECT | INPUT_FIELD_DEFINITION
+                    """)
+                .UseField(_ => _ => default)
+                .BuildSchemaAsync();
+
+        Assert.Equal(
+            "Tag names may only include alphanumeric characters (a-z, A-Z, 0-9), hyphens, and " +
+            "underscores. (Parameter 'name')",
+            (await Assert.ThrowsAsync<ArgumentException>(Act)).Message);
+    }
+
     [Tag("OnObjectType")]
     public class Query
     {
