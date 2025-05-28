@@ -2154,7 +2154,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The tag name must follow the GraphQL type name rules..
+        ///   Looks up a localized string similar to Tag names may only include alphanumeric characters (a-z, A-Z, 0-9), hyphens, and underscores..
         /// </summary>
         internal static string TagDirective_Name_NotValid {
             get {
