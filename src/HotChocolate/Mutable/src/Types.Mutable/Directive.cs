@@ -43,4 +43,7 @@ public sealed class Directive : IDirective
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => Format(this);
+
+    public T ToValue<T>() where T : notnull
+        => throw new NotImplementedException();
 }

@@ -129,9 +129,6 @@
   <data name="PreparedSelection_ReadOnly" xml:space="preserve">
     <value>The selection is read-only.</value>
   </data>
-  <data name="MiddlewareContext_ReportErrorCannotBeNull" xml:space="preserve">
-    <value>errorMessage mustn't be null or empty.</value>
-  </data>
   <data name="DeferredResult_ReadResultsAsync_ReadOnlyOnce" xml:space="preserve">
     <value>You can only read a response stream once.</value>
   </data>
@@ -290,9 +287,6 @@
   </data>
   <data name="ThrowHelper_OneOfFieldMustBeNonNull" xml:space="preserve">
     <value>Value for oneof field {0} must be non-null.</value>
-  </data>
-  <data name="OperationCompiler_OperationIdNullOrEmpty" xml:space="preserve">
-    <value>Value cannot be null or empty.</value>
   </data>
   <data name="ThrowHelper_Operation_NoSelectionSet" xml:space="preserve">
     <value>The specified selection does not have a selection set.</value>

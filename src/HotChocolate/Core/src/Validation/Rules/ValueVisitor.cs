@@ -1,9 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -58,16 +57,24 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     }
 
     protected override ISyntaxVisitorAction Enter(
-        FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentNode node,
+        DocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        context.Features.GetOrSet<ValueVisitorFeature>().Reset();
+        return Continue;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        FieldNode node,
+        DocumentValidatorContext context)
+    {
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             return Skip;
         }
 
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexOutputType ot &&
+            type.NamedType() is IComplexTypeDefinition ot &&
             ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
@@ -81,7 +88,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         context.OutputFields.Pop();
@@ -90,10 +97,11 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         VariableDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.Schema.TryGetType<INamedType>(
-            node.Type.NamedType().Name.Value, out var variableType))
+        if (context.Schema.Types.TryGetType<ITypeDefinition>(
+            node.Type.NamedType().Name.Value,
+            out var variableType))
         {
             context.Types.Push(variableType);
             return base.Enter(node, context);
@@ -105,7 +113,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         VariableDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         return base.Enter(node, context);
@@ -113,9 +121,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         DirectiveNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var d))
+        if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var d))
         {
             context.Directives.Push(d);
             return Continue;
@@ -127,7 +135,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         DirectiveNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Directives.Pop();
         return Continue;
@@ -135,7 +143,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ArgumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Directives.TryPeek(out var directive))
         {
@@ -167,7 +175,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         ArgumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.InputFields.Pop();
         context.Types.Pop();
@@ -176,14 +184,15 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ObjectValueNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.Names.Clear();
+        var inputFieldNames = context.Features.GetOrSet<ValueVisitorFeature>().InputFieldNames;
+        inputFieldNames.Clear();
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
             var field = node.Fields[i];
-            if (!context.Names.Add(field.Name.Value))
+            if (!inputFieldNames.Add(field.Name.Value))
             {
                 context.ReportError(context.InputFieldAmbiguous(field));
             }
@@ -196,9 +205,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Enter((IValueNode)node, context);
         }
 
-        if (namedType is InputObjectType inputObjectType)
+        if (namedType is IInputObjectTypeDefinition inputObjectType)
         {
-            if (inputObjectType.Directives.ContainsDirective(WellKnownDirectives.OneOf))
+            if (inputObjectType.Directives.ContainsName(DirectiveNames.OneOf.Name))
             {
                 if (node.Fields.Count == 0 || node.Fields.Count > 1)
                 {
@@ -235,17 +244,17 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                 }
             }
 
-            if (context.Names.Count >= inputObjectType.Fields.Count)
+            if (inputFieldNames.Count >= inputObjectType.Fields.Count)
             {
                 return Continue;
             }
 
             for (var i = 0; i < inputObjectType.Fields.Count; i++)
             {
-                IInputField field = inputObjectType.Fields[i];
+                var field = inputObjectType.Fields[i];
                 if (field.Type.IsNonNullType() &&
                     field.DefaultValue.IsNull() &&
-                    context.Names.Add(field.Name))
+                    inputFieldNames.Add(field.Name))
                 {
                     context.ReportError(
                         context.FieldIsRequiredButNull(node, field.Name));
@@ -262,10 +271,10 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ObjectFieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is InputObjectType it &&
+            type.NamedType() is IInputObjectTypeDefinition it &&
             it.Fields.TryGetField(node.Name.Value, out var field))
         {
             if (field.Type.IsNonNullType() &&
@@ -279,16 +288,14 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             context.Types.Push(field.Type);
             return Continue;
         }
-        else
-        {
-            context.ReportError(context.InputFieldDoesNotExist(node));
-            return Skip;
-        }
+
+        context.ReportError(context.InputFieldDoesNotExist(node));
+        return Skip;
     }
 
     protected override ISyntaxVisitorAction Leave(
         ObjectFieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.InputFields.Pop();
         context.Types.Pop();
@@ -297,7 +304,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         ListValueNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type))
         {
@@ -319,7 +326,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Leave(
         ListValueNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         return Continue;
@@ -327,7 +334,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
     protected override ISyntaxVisitorAction Enter(
         IValueNode valueNode,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var currentType) &&
             currentType is IInputType locationType)
@@ -349,7 +356,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     }
 
     private static bool TryCreateValueError(
-        IDocumentValidatorContext context,
+        DocumentValidatorContext context,
         IInputType locationType,
         IValueNode valueNode,
         ISyntaxNode node,
@@ -372,8 +379,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         return error != null;
     }
 
-    private bool TryPeekLastDefiningSyntaxNode(
-        IDocumentValidatorContext context,
+    private static bool TryPeekLastDefiningSyntaxNode(
+        DocumentValidatorContext context,
         [NotNullWhen(true)] out ISyntaxNode? node)
     {
         for (var i = context.Path.Count - 1; i > 0; i--)
@@ -390,8 +397,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         return false;
     }
 
-    private bool TryIsInstanceOfType(
-        IDocumentValidatorContext context,
+    private static bool TryIsInstanceOfType(
+        DocumentValidatorContext context,
         IInputType inputType,
         IValueNode value)
     {
@@ -407,8 +414,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         }
     }
 
-    private bool IsInstanceOfType(
-        IDocumentValidatorContext context,
+    private static bool IsInstanceOfType(
+        DocumentValidatorContext context,
         IInputType inputType,
         IValueNode value)
     {
@@ -430,21 +437,16 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        if (internalType is ListType { ElementType: IInputType elementType, } &&
-            value is ListValueNode list)
+        if (internalType is ListType { ElementType: IInputType elementType, }
+            && value is ListValueNode list)
         {
             for (var i = 0; i < list.Items.Count; i++)
             {
-                if (!IsInstanceOfType(context, elementType, list.Items[i]))
+                if (!ValueVisitor.IsInstanceOfType(context, elementType, list.Items[i]))
                 {
                     return false;
                 }
             }
-            return true;
-        }
-
-        if (value.Kind is SyntaxKind.NullValue)
-        {
             return true;
         }
 
@@ -453,35 +455,38 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return false;
         }
 
-        inputType = (INamedInputType)inputType.NamedType();
+        if (value.Kind is SyntaxKind.NullValue)
+        {
+            return true;
+        }
+
+        inputType = (IInputType)inputType.AsTypeDefinition();
 
         if (inputType.IsEnumType())
         {
-            if (value is StringValueNode)
+            if (value is EnumValueNode enumValue)
             {
-                return false;
+                return inputType.ExpectEnumType().Values.ContainsName(enumValue.Value);
             }
 
-            return ((EnumType)inputType).IsInstanceOfType(value);
+            return false;
         }
 
         if (inputType.IsScalarType())
         {
-            return ((ScalarType)inputType).IsInstanceOfType(value);
+            return ((IScalarTypeDefinition)inputType).IsInstanceOfType(value);
         }
 
         return value.Kind is SyntaxKind.ObjectValue;
     }
 
-    private bool IsTypeCompatible(IType left, ITypeNode right)
+    private static bool IsTypeCompatible(IType left, ITypeNode right)
     {
         if (left is NonNullType leftNonNull)
         {
             if (right is NonNullTypeNode rightNonNull)
             {
-                return IsTypeCompatible(
-                    leftNonNull.NullableType,
-                    rightNonNull.Type);
+                return IsTypeCompatible(leftNonNull.NullableType, rightNonNull.Type);
             }
             return false;
         }
@@ -495,19 +500,24 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         {
             if (right is ListTypeNode rightList)
             {
-                return IsTypeCompatible(
-                    leftList.ElementType,
-                    rightList.Type);
+                return IsTypeCompatible(leftList.ElementType, rightList.Type);
             }
             return false;
         }
 
-        if (left is INamedType leftNamedType
+        if (left is ITypeDefinition leftNamedType
             && right is NamedTypeNode rightNamedType)
         {
-            return leftNamedType.Name.EqualsOrdinal(rightNamedType.Name.Value);
+            return leftNamedType.Name.Equals(rightNamedType.Name.Value, StringComparison.Ordinal);
         }
 
         return false;
+    }
+
+    private sealed class ValueVisitorFeature : ValidatorFeature
+    {
+        public HashSet<string> InputFieldNames { get; } = [];
+
+        protected internal override void Reset() => InputFieldNames.Clear();
     }
 }

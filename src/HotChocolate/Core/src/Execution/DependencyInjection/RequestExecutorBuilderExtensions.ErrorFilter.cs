@@ -59,7 +59,7 @@ public static partial class RequestExecutorBuilderExtensions
         builder.Services.TryAddSingleton<T>();
         return builder.ConfigureSchemaServices(
             s => s.AddSingleton<IErrorFilter, T>(
-                sp => sp.GetApplicationService<T>()));
+                sp => sp.GetRootServiceProvider().GetRequiredService<T>()));
     }
 
     public static IServiceCollection AddErrorFilter(

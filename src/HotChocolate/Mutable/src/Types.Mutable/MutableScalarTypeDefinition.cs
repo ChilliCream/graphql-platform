@@ -31,13 +31,16 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     /// <summary>
     /// Gets or sets a value indicating whether this scalar type is a spec scalar.
     /// </summary>
     public bool IsSpecScalar { get; set; }
 
     public DirectiveCollection Directives
-        => _directives ??= new DirectiveCollection();
+        => _directives ??= [];
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => _directives ?? EmptyCollections.Directives;
@@ -45,22 +48,6 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc />
     public IFeatureCollection Features
         => _features ??= new FeatureCollection();
-
-    /// <summary>
-    /// Gets the string representation of this instance.
-    /// </summary>
-    /// <returns>
-    /// The string representation of this instance.
-    /// </returns>
-    public override string ToString()
-        => Format(this).ToString(true);
-
-    /// <summary>
-    /// Creates a <see cref="ScalarTypeDefinitionNode"/> from a <see cref="MutableScalarTypeDefinition"/>.
-    /// </summary>
-    public ScalarTypeDefinitionNode ToSyntaxNode() => Format(this);
-
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => Format(this);
 
     /// <inheritdoc />
     public bool Equals(IType? other)
@@ -81,10 +68,7 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.Scalar)
         {
@@ -93,6 +77,29 @@ public class MutableScalarTypeDefinition(string name)
 
         return false;
     }
+
+    /// <inheritdoc />
+    public bool IsInstanceOfType(IValueNode value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the string representation of this instance.
+    /// </summary>
+    /// <returns>
+    /// The string representation of this instance.
+    /// </returns>
+    public override string ToString()
+        => Format(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="ScalarTypeDefinitionNode"/> from a <see cref="MutableScalarTypeDefinition"/>.
+    /// </summary>
+    public ScalarTypeDefinitionNode ToSyntaxNode() => Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => Format(this);
 
     /// <summary>
     /// Creates a new instance of <see cref="MutableScalarTypeDefinition"/>.

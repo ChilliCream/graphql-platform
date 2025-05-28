@@ -25,5 +25,5 @@ public interface IErrorHandler
     /// <returns>
     /// The error builder that can be used to tweak and build the error object.
     /// </returns>
-    IErrorBuilder CreateUnexpectedError(Exception exception);
+    ErrorBuilder CreateUnexpectedError(Exception exception);
 }

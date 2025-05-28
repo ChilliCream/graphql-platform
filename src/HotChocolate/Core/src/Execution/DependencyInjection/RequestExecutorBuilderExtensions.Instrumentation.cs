@@ -13,17 +13,14 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(
                 s => s.AddSingleton(
-                    sp => (IExecutionDiagnosticEventListener)sp.GetApplicationService<T>()));
+                    sp => (IExecutionDiagnosticEventListener)sp.GetRootServiceProvider().GetRequiredService<T>()));
         }
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
@@ -54,15 +51,8 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> diagnosticEventListener)
         where T : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (diagnosticEventListener is null)
-        {
-            throw new ArgumentNullException(nameof(diagnosticEventListener));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(diagnosticEventListener);
 
         if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {

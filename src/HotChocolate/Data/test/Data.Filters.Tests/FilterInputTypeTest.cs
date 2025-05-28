@@ -294,20 +294,20 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        builder.Create().Print().MatchSnapshot();
+        builder.Create().ToString().MatchSnapshot();
     }
 
     [Fact]
     public void FilterInputType_Should_NotOverrideHandler_OnBeforeCreate()
     {
         // arrange
-        var builder = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<CustomHandlerQueryType>()
             .Create();
 
         // act
-        builder.TryGetType<CustomHandlerFilterInputType>(
+        schema.Types.TryGetType<CustomHandlerFilterInputType>(
             "TestName",
             out var type);
 
@@ -320,13 +320,13 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_NotOverrideHandler_OnBeforeCompletion()
     {
         // arrange
-        var builder = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<CustomHandlerQueryType>()
             .Create();
 
         // act
-        builder.TryGetType<CustomHandlerFilterInputType>(
+        schema.Types.TryGetType<CustomHandlerFilterInputType>(
             "TestName",
             out var type);
 

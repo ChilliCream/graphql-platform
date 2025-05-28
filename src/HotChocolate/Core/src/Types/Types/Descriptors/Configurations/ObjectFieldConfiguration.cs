@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// The <see cref="ObjectFieldConfiguration"/> contains the settings
@@ -158,16 +158,16 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public bool IsIntrospectionField
     {
-        get => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+        get => (Flags & CoreFieldFlags.Introspection) == CoreFieldFlags.Introspection;
         internal set
         {
             if (value)
             {
-                Flags |= FieldFlags.Introspection;
+                Flags |= CoreFieldFlags.Introspection;
             }
             else
             {
-                Flags &= ~FieldFlags.Introspection;
+                Flags &= ~CoreFieldFlags.Introspection;
             }
         }
     }
@@ -177,16 +177,16 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public bool IsParallelExecutable
     {
-        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        get => (Flags & CoreFieldFlags.ParallelExecutable) == CoreFieldFlags.ParallelExecutable;
         set
         {
             if (value)
             {
-                Flags |= FieldFlags.ParallelExecutable;
+                Flags |= CoreFieldFlags.ParallelExecutable;
             }
             else
             {
-                Flags &= ~FieldFlags.ParallelExecutable;
+                Flags &= ~CoreFieldFlags.ParallelExecutable;
             }
         }
     }
@@ -202,16 +202,16 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public bool HasStreamResult
     {
-        get => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
+        get => (Flags & CoreFieldFlags.Stream) == CoreFieldFlags.Stream;
         set
         {
             if (value)
             {
-                Flags |= FieldFlags.Stream;
+                Flags |= CoreFieldFlags.Stream;
             }
             else
             {
-                Flags &= ~FieldFlags.Stream;
+                Flags &= ~CoreFieldFlags.Stream;
             }
         }
     }

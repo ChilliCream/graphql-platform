@@ -208,7 +208,7 @@ public class DescriptionTests
                                               """");
     }
 
-    private static async Task<ISchema> GetSchemaWithAllPossibleDescriptionsAsync()
+    private static async Task<Schema> GetSchemaWithAllPossibleDescriptionsAsync()
     {
         return await new ServiceCollection()
             .AddGraphQL()
