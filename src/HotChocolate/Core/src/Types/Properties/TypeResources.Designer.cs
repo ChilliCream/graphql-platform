@@ -1740,15 +1740,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified type `{0}` does not exist..
-        /// </summary>
-        internal static string Schema_GetDirectiveType_DoesNotExist {
-            get {
-                return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to If this server supports mutation, the type that mutation operations will be rooted at..
         /// </summary>
         internal static string Schema_MutationType {
@@ -1835,15 +1826,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_Interceptor_NotSupported {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Interceptor_NotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The given schema has to inherit from TypeSystemObjectBase in order to be initializable..
-        /// </summary>
-        internal static string SchemaBuilder_ISchemaNotTso {
-            get {
-                return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
             }
         }
         
@@ -1988,15 +1970,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilderExtensions_MustBeDirectiveType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_MustBeDirectiveType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The schema string cannot be null or empty..
-        /// </summary>
-        internal static string SchemaBuilderExtensions_SchemaIsEmpty {
-            get {
-                return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
             }
         }
         
@@ -2692,15 +2665,6 @@ namespace HotChocolate.Properties {
         internal static string TypeDiscoveryInfo_TypeRefKindNotSupported {
             get {
                 return ResourceManager.GetString("TypeDiscoveryInfo_TypeRefKindNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The type structure is invalid..
-        /// </summary>
-        internal static string TypeExtensions_InvalidStructure {
-            get {
-                return ResourceManager.GetString("TypeExtensions_InvalidStructure", resourceCulture);
             }
         }
         

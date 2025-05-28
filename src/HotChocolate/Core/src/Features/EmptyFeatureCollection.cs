@@ -3,13 +3,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Features;
 
-public sealed class EmptyFeatureCollection : IFeatureCollection
+internal sealed class EmptyFeatureCollection : IFeatureCollection
 {
     private EmptyFeatureCollection()
     {
     }
 
     public bool IsReadOnly => true;
+
+    public bool IsEmpty => true;
 
     public int Revision => 0;
 
@@ -22,6 +24,13 @@ public sealed class EmptyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public TFeature? Get<TFeature>()
         => default;
+
+    /// <inheritdoc />
+    public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
+    {
+        feature = default;
+        return false;
+    }
 
     /// <inheritdoc />
     public void Set<TFeature>(TFeature? instance)

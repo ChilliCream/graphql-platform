@@ -54,6 +54,6 @@ public static class IntrospectionTypes
     /// <summary>
     /// Defines if the type represents an introspection type.
     /// </summary>
-    public static bool IsIntrospectionType(INamedType type)
+    public static bool IsIntrospectionType(ITypeDefinition type)
         => IsIntrospectionType(type.Name);
 }

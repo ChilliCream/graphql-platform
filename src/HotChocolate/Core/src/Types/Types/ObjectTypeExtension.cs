@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -92,7 +92,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is ObjectType objectType)
         {

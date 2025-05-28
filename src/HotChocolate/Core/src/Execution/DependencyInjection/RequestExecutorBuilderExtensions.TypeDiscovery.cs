@@ -1,5 +1,7 @@
 using HotChocolate;
+using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
@@ -33,30 +35,11 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IDescriptorContext, T> factory)
         where T : TypeDiscoveryHandler
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
-
-        builder.ConfigureSchema(
-            b => b.SetContextData(
-                WellKnownContextData.TypeDiscoveryHandlers,
-                value =>
-                {
-                    if (value is not List<Func<IDescriptorContext, TypeDiscoveryHandler>> list)
-                    {
-                        list = [];
-                    }
-
-                    list.Add(factory);
-                    return list;
-                }));
-
+        builder.ConfigureSchemaFeature(
+            features => features.GetOrSet<TypeSystemFeature>().TypeDiscoveryHandlers.Add(factory));
         return builder;
     }
 }

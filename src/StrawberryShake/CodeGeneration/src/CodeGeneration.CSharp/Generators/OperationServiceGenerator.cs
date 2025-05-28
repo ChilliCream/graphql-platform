@@ -1,3 +1,4 @@
+using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
@@ -8,8 +9,7 @@ using StrawberryShake.CodeGeneration.Properties;
 using static StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
-using InputObjectTypeDescriptor =
-    StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.InputObjectTypeDescriptor;
+using InputObjectTypeDescriptor = StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.InputObjectTypeDescriptor;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
@@ -73,6 +73,43 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
         if (descriptor is not SubscriptionOperationDescriptor)
         {
+            const string arrayType = "System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>";
+
+            var privateConstructorBuilder = classBuilder
+                .AddConstructor()
+                .SetAccessModifier(AccessModifier.Private)
+                .SetTypeName(fileName);
+
+            var assignment = AssignmentBuilder
+                .New()
+                .SetLeftHandSide(_operationExecutor)
+                .SetRightHandSide(operationExecutor);
+
+            privateConstructorBuilder
+                .AddCode(assignment)
+                .AddParameter(operationExecutor, b => b.SetType(TypeNames.IOperationExecutor.WithGeneric(resultTypeName)));
+
+            classBuilder
+                .AddField()
+                .SetReadOnly()
+                .SetName("_configure")
+                .SetType(arrayType)
+                .SetValue($"{arrayType}.Empty");
+
+            privateConstructorBuilder
+                .AddCode(AssignmentBuilder
+                    .New()
+                    .SetLeftHandSide("_configure")
+                    .SetRightHandSide("configure"))
+                .AddParameter("configure", b => b.SetType(arrayType));
+
+            var serializerAssignments = UseInjectedSerializers(descriptor, privateConstructorBuilder);
+
+            foreach (var method in CreateWitherMethods(descriptor, serializerAssignments))
+            {
+                classBuilder.AddMethod(method);
+            }
+
             classBuilder.AddMethod(CreateExecuteMethod(descriptor, resultTypeName));
         }
 
@@ -149,7 +186,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .GroupBy(x => x.Type.Name)
             .ToDictionary(x => x.Key, x => x.First());
 
-        if (!neededSerializers.Any())
+        if (neededSerializers.Count == 0)
         {
             return;
         }
@@ -192,7 +229,55 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         }
     }
 
-    private MethodCallBuilder CreateRequestMethodCall(OperationDescriptor operationDescriptor)
+    private static string UseInjectedSerializers(
+        OperationDescriptor descriptor,
+        ConstructorBuilder constructorBuilder)
+    {
+        var neededSerializers = descriptor
+            .Arguments
+            .GroupBy(x => x.Type.Name)
+            .ToDictionary(x => x.Key, x => x.First());
+
+        if (neededSerializers.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var parameterAssignments = new StringBuilder();
+
+        foreach (var property in neededSerializers.Values.OrderBy(x => x.Name))
+        {
+            if (property.Type.GetName() is { } name)
+            {
+                var parameterName = $"{GetParameterName(name)}Formatter";
+                var fieldName = $"{GetFieldName(name)}Formatter";
+
+                constructorBuilder
+                    .AddParameter(parameterName)
+                    .SetType(TypeNames.IInputValueFormatter);
+
+                constructorBuilder
+                    .AddCode(
+                        AssignmentBuilder
+                            .New()
+                            .SetLeftHandSide(fieldName)
+                            .SetRightHandSide(parameterName));
+
+                parameterAssignments.Append(", ");
+                parameterAssignments.Append(fieldName);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Serializer for property {descriptor.RuntimeType.Name}." +
+                    $"{property.Name} could not be created. GraphQLTypeName was empty");
+            }
+        }
+
+        return parameterAssignments.ToString();
+    }
+
+    private static MethodCallBuilder CreateRequestMethodCall(OperationDescriptor operationDescriptor)
     {
         var createRequestMethodCall = MethodCallBuilder
             .Inline()
@@ -206,7 +291,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         return createRequestMethodCall;
     }
 
-    private MethodBuilder CreateWatchMethod(
+    private static MethodBuilder CreateWatchMethod(
         OperationDescriptor descriptor,
         string runtimeTypeName)
     {
@@ -281,6 +366,15 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                     .SetRightHandSide(CreateRequestMethodCall(operationDescriptor)))
             .AddEmptyLine()
             .AddCode(
+                CodeInlineBuilder.From(
+                    """
+                    foreach (var configure in _configure)
+                    {
+                        configure(request);
+                    }
+                    """))
+            .AddEmptyLine()
+            .AddCode(
                 MethodCallBuilder
                     .New()
                     .SetReturn()
@@ -293,7 +387,61 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                         .AddArgument("false")));
     }
 
-    private MethodBuilder CreateRequestVariablesMethod(
+    private static IEnumerable<MethodBuilder> CreateWitherMethods(
+       OperationDescriptor operationDescriptor,
+       string serializerAssignments)
+    {
+        var withMethod = MethodBuilder
+            .New()
+            .SetPublic()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("With");
+
+        withMethod
+            .AddParameter("configure")
+            .SetType("global::System.Action<global::StrawberryShake.OperationRequest>");
+
+        yield return withMethod
+            .AddCode(CodeInlineBuilder.From(
+                string.Format(
+                    "return new {0}(_operationExecutor, _configure.Add(configure){1});" + Environment.NewLine,
+                    operationDescriptor.RuntimeType.FullName,
+                    serializerAssignments)));
+
+        var withRequestUriMethod = MethodBuilder
+            .New()
+            .SetPublic()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithRequestUri");
+
+        withRequestUriMethod
+            .AddParameter("requestUri")
+            .SetType(TypeNames.Uri);
+
+        yield return withRequestUriMethod
+            .AddCode(CodeInlineBuilder.From(
+                string.Format(
+                    "return With(r => r.ContextData[\"{0}\"] = requestUri);" + Environment.NewLine,
+                    "StrawberryShake.Transport.Http.HttpConnection.RequestUri")));
+
+        var withHttpClientMethod = MethodBuilder
+            .New()
+            .SetPublic()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithHttpClient");
+
+        withHttpClientMethod
+            .AddParameter("httpClient")
+            .SetType("global::System.Net.Http.HttpClient");
+
+        yield return withHttpClientMethod
+            .AddCode(CodeInlineBuilder.From(
+                string.Format(
+                    "return With(r => r.ContextData[\"{0}\"] = httpClient);" + Environment.NewLine,
+                    "StrawberryShake.Transport.Http.HttpConnection.HttpClient")));
+    }
+
+    private static MethodBuilder CreateRequestVariablesMethod(
         OperationDescriptor descriptor,
         bool hasFiles)
     {
@@ -515,48 +663,48 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         switch (typeReference)
         {
             case ListTypeDescriptor { InnerType: { } lt, }:
-            {
-                var innerVariable = variable + "_lt";
-                var innerPathVariable = pathVariable + "_lt";
-                var counterVariable = pathVariable + "_counter";
+                {
+                    var innerVariable = variable + "_lt";
+                    var innerPathVariable = pathVariable + "_lt";
+                    var counterVariable = pathVariable + "_counter";
 
-                result = CodeBlockBuilder
-                    .New()
-                    .AddCode(AssignmentBuilder
+                    result = CodeBlockBuilder
                         .New()
-                        .SetLeftHandSide($"var {counterVariable}")
-                        .SetRightHandSide("0"))
-                    .AddCode(ForEachBuilder
-                        .New()
-                        .SetLoopHeader($"var {innerVariable} in {checkedVariable}")
                         .AddCode(AssignmentBuilder
                             .New()
-                            .SetLeftHandSide($"var {innerPathVariable}")
-                            .SetRightHandSide($"{pathVariable} + \".\" + ({counterVariable}++)"))
-                        .AddEmptyLine()
-                        .AddCode(BuildUploadFileMapper(lt, innerPathVariable, innerVariable)));
-
-                break;
-            }
-            case InputObjectTypeDescriptor { HasUpload: true, Name: { } inputTypeName, }:
-            {
-                result = MethodCallBuilder.New()
-                    .SetMethodName("MapFilesFromType" + inputTypeName)
-                    .AddArgument(pathVariable)
-                    .AddArgument(checkedVariable)
-                    .AddArgument(_files);
-                break;
-            }
-            case ScalarTypeDescriptor { Name: "Upload", }:
-            {
-                return CodeBlockBuilder.New()
-                    .AddCode(
-                        MethodCallBuilder
+                            .SetLeftHandSide($"var {counterVariable}")
+                            .SetRightHandSide("0"))
+                        .AddCode(ForEachBuilder
                             .New()
-                            .SetMethodName(_files, "Add")
-                            .AddArgument(pathVariable)
-                            .AddArgument($"{variable} is {TypeNames.Upload} u ? u : null"));
-            }
+                            .SetLoopHeader($"var {innerVariable} in {checkedVariable}")
+                            .AddCode(AssignmentBuilder
+                                .New()
+                                .SetLeftHandSide($"var {innerPathVariable}")
+                                .SetRightHandSide($"{pathVariable} + \".\" + ({counterVariable}++)"))
+                            .AddEmptyLine()
+                            .AddCode(BuildUploadFileMapper(lt, innerPathVariable, innerVariable)));
+
+                    break;
+                }
+            case InputObjectTypeDescriptor { HasUpload: true, Name: { } inputTypeName, }:
+                {
+                    result = MethodCallBuilder.New()
+                        .SetMethodName("MapFilesFromType" + inputTypeName)
+                        .AddArgument(pathVariable)
+                        .AddArgument(checkedVariable)
+                        .AddArgument(_files);
+                    break;
+                }
+            case ScalarTypeDescriptor { Name: "Upload", }:
+                {
+                    return CodeBlockBuilder.New()
+                        .AddCode(
+                            MethodCallBuilder
+                                .New()
+                                .SetMethodName(_files, "Add")
+                                .AddArgument(pathVariable)
+                                .AddArgument($"{variable} is {TypeNames.Upload} u ? u : null"));
+                }
             default:
                 throw ThrowHelper.OperationServiceGenerator_HasNoUploadScalar(typeReference);
         }

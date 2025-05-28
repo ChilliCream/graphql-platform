@@ -3,8 +3,7 @@ using System.Collections;
 namespace HotChocolate;
 
 /// <summary>
-/// Represents a abstract executable that is well known in the framework. If the execution
-/// engine encounters a <see cref="IExecutable"/>, it will call execute it
+/// Represents a query that can be executed against a data source.
 /// </summary>
 public interface IExecutable
 {
@@ -61,8 +60,8 @@ public interface IExecutable
     ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Prints the executable in its current state
+    /// Prints the underlying query.
     /// </summary>
-    /// <returns>A string that represents the executables state</returns>
+    /// <returns>A string that represents the underlying query.</returns>
     string Print();
 }

@@ -165,7 +165,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void SetResolverAndInferTypeIsAlwaysRecognisedAsDotNetType()
+    public void SetResolverAndInferTypeIsAlwaysRecognizedAsDotNetType()
     {
         // arrange
         var descriptor =
@@ -177,8 +177,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<__Type>()
-            .Resolve(ctx => ctx.Schema
-                .GetType<INamedType>(ctx.ArgumentValue<string>("type")));
+            .Resolve(ctx => ctx.Schema.Types[ctx.ArgumentValue<string>("type")]);
 
         // assert
         var description = descriptor.CreateConfiguration();

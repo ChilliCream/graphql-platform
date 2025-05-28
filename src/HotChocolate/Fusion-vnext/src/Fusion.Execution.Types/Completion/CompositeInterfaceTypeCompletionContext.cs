@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 
 namespace HotChocolate.Fusion.Types.Completion;
@@ -5,11 +6,14 @@ namespace HotChocolate.Fusion.Types.Completion;
 internal ref struct CompositeInterfaceTypeCompletionContext(
     FusionDirectiveCollection directives,
     FusionInterfaceTypeDefinitionCollection interfaces,
-    SourceInterfaceTypeCollection sources)
+    SourceInterfaceTypeCollection sources,
+    IFeatureCollection features)
 {
     public FusionDirectiveCollection Directives { get; } = directives;
 
     public FusionInterfaceTypeDefinitionCollection Interfaces { get; } = interfaces;
 
     public SourceInterfaceTypeCollection Sources { get; } = sources;
+
+    public IFeatureCollection Features { get; } = features;
 }

@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Defines a factory for creating a type system configuration.

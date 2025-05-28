@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -58,16 +57,11 @@ public readonly struct OperationCompilerRequest
         DocumentNode document,
         OperationDefinitionNode definition,
         ObjectType rootType,
-        ISchema schema,
+        ISchemaDefinition schema,
         ImmutableArray<IOperationOptimizer>? operationOptimizers = null,
         ImmutableArray<ISelectionSetOptimizer>? selectionSetOptimizers = null)
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            throw new ArgumentException(
-                Resources.OperationCompiler_OperationIdNullOrEmpty,
-                nameof(id));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(id);
 
         Id = id;
         Document = document ?? throw new ArgumentNullException(nameof(document));
@@ -102,7 +96,7 @@ public readonly struct OperationCompilerRequest
     /// <summary>
     /// Gets the schema against which the operation shall be executed.
     /// </summary>
-    public ISchema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
     public ImmutableArray<IOperationOptimizer> OperationOptimizers { get; }
 

@@ -458,10 +458,6 @@ public class QueryableFilterVisitorObjectTests
     {
         // arrange
         var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
-        var session = tester.Services.GetApplicationService<IDocumentStore>().OpenAsyncSession();
-        var query = session.Query<BarNullable>()
-            .Where(x => x.Foo!.BarEnum.In(BarEnum.BAR))
-            .ToString();
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -614,7 +610,7 @@ public class QueryableFilterVisitorObjectTests
         // arrange
         var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
         using var session =
-            tester.Services.GetApplicationService<IDocumentStore>().OpenAsyncSession();
+            tester.Services.GetRootServiceProvider().GetRequiredService<IDocumentStore>().OpenAsyncSession();
 
         // act
         var res1 = await tester.ExecuteAsync(

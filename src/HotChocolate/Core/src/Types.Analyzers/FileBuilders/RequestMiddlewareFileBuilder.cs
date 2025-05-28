@@ -121,14 +121,14 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
 
                 case RequestMiddlewareParameterKind.SchemaService when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.SchemaServices.GetRequiredService<global::{1}>();",
+                        "var cp{0} = core.SchemaServices.GetRequiredService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
 
                 case RequestMiddlewareParameterKind.SchemaService when parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.SchemaServices.GetService<global::{1}>();",
+                        "var cp{0} = core.SchemaServices.GetService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
@@ -264,13 +264,15 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
 
         using (_writer.IncreaseIndent())
         {
-            _writer.WriteIndentedLine("this {0} builder) where TMiddleware : class", RequestExecutorBuilder);
+            _writer.WriteIndentedLine("this {0} builder,", RequestExecutorBuilder);
+            _writer.WriteIndentedLine("string? key = null)");
+            _writer.WriteIndentedLine("where TMiddleware : class");
         }
 
         using (_writer.IncreaseIndent())
         {
             _writer.WriteIndentedLine(
-                "=> builder.UseRequest(CreateMiddleware{2}());",
+                "=> builder.UseRequest(CreateMiddleware{2}(), key);",
                 _moduleName,
                 "MiddlewareFactories",
                 middlewareIndex);

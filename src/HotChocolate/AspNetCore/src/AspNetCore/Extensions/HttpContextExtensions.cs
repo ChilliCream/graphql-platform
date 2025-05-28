@@ -30,6 +30,7 @@ internal static class HttpContextExtensions
     public static string? TryGetCostSwitch(this HttpContext context)
     {
         var headers = context.Request.Headers;
+
         if (headers.TryGetValue(HttpHeaderKeys.Cost, out var values))
         {
             var value = values.FirstOrDefault();

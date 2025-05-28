@@ -2,12 +2,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -41,24 +41,12 @@ public sealed class EntityResolverDescriptor<TEntity>
         Configuration.EntityType = entityType;
     }
 
-    private void OnCompleteConfiguration(ObjectTypeConfiguration configuration)
+    private void OnCompleteConfiguration(ObjectTypeConfiguration typeConfiguration)
     {
         if (Configuration.Resolver is not null)
         {
-            if (configuration.ContextData.TryGetValue(EntityResolver, out var value) &&
-                value is List<ReferenceResolverConfiguration> resolvers)
-            {
-                resolvers.Add(Configuration.Resolver);
-            }
-            else
-            {
-                configuration.ContextData.Add(
-                    EntityResolver,
-                    new List<ReferenceResolverConfiguration>
-                    {
-                        Configuration.Resolver,
-                    });
-            }
+            var resolvers = typeConfiguration.Features.GetOrSet<List<ReferenceResolverConfiguration>>();
+            resolvers.Add(Configuration.Resolver);
         }
     }
 
@@ -126,7 +114,7 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         ArgumentNullException.ThrowIfNull(required);
 
-        Configuration.Resolver = new(fieldResolver, required);
+        Configuration.Resolver = new ReferenceResolverConfiguration(fieldResolver, required);
         return _typeDescriptor;
     }
 

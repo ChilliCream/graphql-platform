@@ -49,7 +49,7 @@ namespace TestNamespace
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Span<GreenDonut.Result<global::TestNamespace.Entity?>> results,
-            global::System.Collections.Generic.IReadOnlyDictionary<int, TestNamespace.Entity> resultMap)
+            global::System.Collections.Generic.IReadOnlyDictionary<int, global::TestNamespace.Entity> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {

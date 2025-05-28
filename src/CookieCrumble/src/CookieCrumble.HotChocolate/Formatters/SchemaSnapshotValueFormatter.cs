@@ -4,8 +4,8 @@ using HotChocolate;
 
 namespace CookieCrumble.HotChocolate.Formatters;
 
-internal sealed class SchemaSnapshotValueFormatter() : SnapshotValueFormatter<ISchema>("graphql")
+internal sealed class SchemaSnapshotValueFormatter() : SnapshotValueFormatter<ISchemaDefinition>("graphql")
 {
-    protected override void Format(IBufferWriter<byte> snapshot, ISchema value)
+    protected override void Format(IBufferWriter<byte> snapshot, ISchemaDefinition value)
         => snapshot.Append(value.ToString());
 }

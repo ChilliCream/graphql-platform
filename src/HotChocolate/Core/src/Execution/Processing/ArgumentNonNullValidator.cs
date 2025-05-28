@@ -5,7 +5,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal static class ArgumentNonNullValidator
 {
-    public static ValidationResult Validate(IInputField field, IValueNode? value, Path path)
+    public static ValidationResult Validate(IInputValueDefinition field, IValueNode? value, Path path)
     {
         // if no value was provided
         if (value is null)
