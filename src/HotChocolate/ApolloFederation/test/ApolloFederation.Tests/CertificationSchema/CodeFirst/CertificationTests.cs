@@ -10,7 +10,7 @@ public class CertificationTests
     public async Task Schema_Snapshot()
     {
         var executor = await SchemaSetup.CreateAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]

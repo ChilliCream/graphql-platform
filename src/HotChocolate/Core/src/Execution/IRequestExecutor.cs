@@ -9,7 +9,7 @@ public interface IRequestExecutor
     /// <summary>
     /// Gets the schema to which this executor is bound to.
     /// </summary>
-    ISchema Schema { get; }
+    Schema Schema { get; }
 
     /// <summary>
     /// Gets the services that are bound to this executor.

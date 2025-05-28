@@ -17,7 +17,7 @@ public class FlagEnumInterceptorTests
             .AddQueryType<OutputQuery>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class FlagEnumInterceptorTests
                         .Resolve(FlagsWithDescription.Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class FlagEnumInterceptorTests
             .AddType<Impl>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class FlagEnumInterceptorTests
                             .Type(typeof(FlagsEnum))))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class FlagEnumInterceptorTests
             .AddQueryType<InputQuery>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]

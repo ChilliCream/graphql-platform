@@ -1,5 +1,6 @@
 using System.Text;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Types;
 
@@ -7,7 +8,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
-    private readonly List<ObjectTypeConfiguration> _typeDefs = new();
+    private readonly List<ObjectTypeConfiguration> _typeDefs = [];
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private IDescriptorContext _context = default!;

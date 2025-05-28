@@ -299,7 +299,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<QueryType>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
 
     [Fact]

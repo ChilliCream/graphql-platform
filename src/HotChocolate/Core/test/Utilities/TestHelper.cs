@@ -115,7 +115,7 @@ public static class TestHelper
     }
 
     public static async Task<T> CreateTypeAsync<T>()
-        where T : INamedType
+        where T : ITypeDefinition
     {
         var schema = await CreateSchemaAsync(
             c => c
@@ -126,14 +126,14 @@ public static class TestHelper
     }
 
     public static async Task<T> CreateTypeAsync<T>(T type)
-        where T : INamedType
+        where T : ITypeDefinition
     {
         var schema = await CreateSchemaAsync(type);
-        return schema.GetType<T>(type.Name);
+        return schema.Types.OfType<T>().Single();
     }
 
-    public static Task<ISchema> CreateSchemaAsync(
-        INamedType type)
+    public static Task<Schema> CreateSchemaAsync(
+        ITypeDefinition type)
     {
         return CreateSchemaAsync(
             c => c
@@ -142,7 +142,7 @@ public static class TestHelper
                 .ModifyOptions(o => o.StrictValidation = false));
     }
 
-    public static async Task<ISchema> CreateSchemaAsync(
+    public static async Task<Schema> CreateSchemaAsync(
         Action<IRequestExecutorBuilder> configure,
         bool strict = false)
     {

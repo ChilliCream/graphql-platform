@@ -4,7 +4,6 @@ using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration.Validation;
@@ -13,15 +12,15 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
-        if (!context.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks, out var value))
+        if (!context.Features.TryGet(out IsSelectedFeature? feature))
         {
             return;
         }
 
-        foreach (var pattern in (List<IsSelectedPattern>)value!)
+        foreach (var pattern in feature.Patterns)
         {
             var objectField = schema.QueryType.Fields[pattern.FieldName];
             var validationContext = new ValidateIsSelectedPatternContext(schema, objectField, pattern.Pattern);
@@ -41,7 +40,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
             var field = context.Field.Peek();
             var typeContext = context.TypeContext.Peek() ?? field.Type.NamedType();
 
-            if (typeContext is IComplexOutputType complexOutputType)
+            if (typeContext is IComplexTypeDefinition complexOutputType)
             {
                 if (complexOutputType.Fields.TryGetField(node.Name.Value, out var objectField))
                 {
@@ -109,7 +108,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
         {
             if (node.TypeCondition is not null)
             {
-                var type = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+                var type = context.Schema.Types[node.TypeCondition.Name.Value];
                 var field = context.Field.Peek();
 
                 if (!type.IsAssignableFrom(field.Type.NamedType()))
@@ -154,7 +153,10 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
 
     private sealed class ValidateIsSelectedPatternContext
     {
-        public ValidateIsSelectedPatternContext(ISchema schema, IObjectField field, SelectionSetNode pattern)
+        public ValidateIsSelectedPatternContext(
+            ISchemaDefinition schema,
+            IOutputFieldDefinition field,
+            SelectionSetNode pattern)
         {
             Schema = schema;
             Root = field;
@@ -164,15 +166,15 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
             TypeContext.Push(null);
         }
 
-        public ISchema Schema { get; }
+        public ISchemaDefinition Schema { get; }
 
-        public IObjectField Root { get; }
+        public IOutputFieldDefinition Root { get; }
 
         public SelectionSetNode Pattern { get; }
 
-        public Stack<IOutputField> Field { get; } = new();
+        public Stack<IOutputFieldDefinition> Field { get; } = new();
 
-        public Stack<INamedType?> TypeContext { get; } = new();
+        public Stack<ITypeDefinition?> TypeContext { get; } = new();
 
         public ISchemaError? Error { get; set; }
     }

@@ -4,17 +4,12 @@ namespace HotChocolate.Authorization;
 
 internal sealed partial class AuthorizationTypeInterceptor
 {
-    private sealed class State
+    private sealed class State(AuthorizationOptions options)
     {
-        public State(AuthorizationOptions options)
-        {
-            Options = options;
-        }
-
         /// <summary>
         /// Provides access to the authorization options.
         /// </summary>
-        public AuthorizationOptions Options { get; }
+        public AuthorizationOptions Options { get; } = options;
 
         /// <summary>
         ///  Gets the types to which authorization middleware need to be applied.

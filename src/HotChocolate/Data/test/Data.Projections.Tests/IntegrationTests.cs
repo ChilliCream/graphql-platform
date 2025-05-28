@@ -511,9 +511,9 @@ public class FooExtensions
 {
     public string Baz => "baz";
 
-    public IEnumerable<string> Qux => new[] { "baz", };
+    public IEnumerable<string> Qux => ["baz"];
 
-    public IEnumerable<Foo> NestedList => new[] { new Foo() { Bar = "C", }, };
+    public IEnumerable<Foo> NestedList => [new Foo() { Bar = "C", }];
 
     public Foo Nested => new() { Bar = "C", };
 }

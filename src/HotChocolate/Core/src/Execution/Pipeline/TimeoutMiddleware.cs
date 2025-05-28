@@ -84,11 +84,13 @@ internal sealed class TimeoutMiddleware
         }
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var optionsAccessor = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
-            var middleware = new TimeoutMiddleware(next, optionsAccessor);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var optionsAccessor = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
+                var middleware = new TimeoutMiddleware(next, optionsAccessor);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(TimeoutMiddleware));
 }

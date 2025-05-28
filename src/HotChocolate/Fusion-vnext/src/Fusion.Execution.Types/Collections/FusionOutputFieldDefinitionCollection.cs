@@ -16,6 +16,9 @@ public sealed class FusionOutputFieldDefinitionCollection
     IOutputFieldDefinition IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>.this[string name]
         => this[name];
 
+    IOutputFieldDefinition IReadOnlyList<IOutputFieldDefinition>.this[int index]
+        => this[index];
+
     bool IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>.TryGetField(
         string name,
         [NotNullWhen(true)] out IOutputFieldDefinition? field)

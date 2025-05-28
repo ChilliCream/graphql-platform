@@ -15,15 +15,7 @@ internal sealed class AuthorizeMiddleware(
 
     public async Task InvokeAsync(IMiddlewareContext context)
     {
-        var handler = context.GetGlobalStateOrDefault<IAuthorizationHandler>(AuthorizationHandler);
-
-        if (handler is null)
-        {
-            throw new MissingStateException(
-                "Authorization",
-                AuthorizationHandler,
-                StateKind.Global);
-        }
+        var handler = context.GetAuthorizationHandler();
 
         switch (_directive.Apply)
         {
@@ -78,7 +70,7 @@ internal sealed class AuthorizeMiddleware(
                     .SetMessage(AuthorizeMiddleware_NoDefaultPolicy)
                     .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                     .SetPath(context.Path)
-                    .SetLocations([context.Selection.SyntaxNode])
+                    .AddLocation(context.Selection.SyntaxNode)
                     .Build(),
             AuthorizeResult.PolicyNotFound
                 => ErrorBuilder.New()
@@ -87,7 +79,7 @@ internal sealed class AuthorizeMiddleware(
                         _directive.Policy!)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
-                    .SetLocations([context.Selection.SyntaxNode])
+                    .AddLocation(context.Selection.SyntaxNode)
                     .Build(),
             _
                 => ErrorBuilder.New()
@@ -97,7 +89,7 @@ internal sealed class AuthorizeMiddleware(
                             ? ErrorCodes.Authentication.NotAuthorized
                             : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
-                    .SetLocations([context.Selection.SyntaxNode])
+                    .AddLocation(context.Selection.SyntaxNode)
                     .Build(),
         };
 }

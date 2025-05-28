@@ -8,6 +8,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using ErrorHelper = HotChocolate.CostAnalysis.Utilities.ErrorHelper;
 
 namespace HotChocolate.CostAnalysis;
@@ -15,7 +16,7 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
-    DocumentValidatorContextPool contextPool,
+    ObjectPool<DocumentValidatorContext> contextPool,
     ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
@@ -86,14 +87,19 @@ internal sealed class CostAnalyzerMiddleware(
                         ?? document.GetOperation(context.Request.OperationName);
 
                 validatorContext = contextPool.Get();
-                PrepareContext(context, document, validatorContext);
+                validatorContext.Initialize(
+                    context.Schema,
+                    context.DocumentId!.Value,
+                    document,
+                    maxAllowedErrors: 1,
+                    context.Features);
 
                 var analyzer = new CostAnalyzer(requestOptions);
                 costMetrics = analyzer.Analyze(operationDefinition, validatorContext);
                 cache.TryAddCostMetrics(operationId, costMetrics);
             }
 
-            context.ContextData.Add(WellKnownContextData.CostMetrics, costMetrics);
+            context.SetCostMetrics(costMetrics);
             diagnosticEvents.OperationCost(context, costMetrics.FieldCost, costMetrics.TypeCost);
 
             if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
@@ -135,31 +141,13 @@ internal sealed class CostAnalyzerMiddleware(
         }
     }
 
-    private static void PrepareContext(
-        IRequestContext requestContext,
-        DocumentNode document,
-        DocumentValidatorContext validatorContext)
-    {
-        validatorContext.Schema = requestContext.Schema;
-
-        foreach (var definitionNode in document.Definitions)
-        {
-            if (definitionNode is FragmentDefinitionNode fragmentDefinition)
-            {
-                validatorContext.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
-            }
-        }
-
-        validatorContext.ContextData = requestContext.ContextData;
-    }
-
     public static RequestCoreMiddleware Create()
     {
         return (core, next) =>
         {
             // this needs to be a schema service
             var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
-            var contextPool = core.Services.GetRequiredService<DocumentValidatorContextPool>();
+            var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
             var cache = core.Services.GetRequiredService<ICostMetricsCache>();
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 

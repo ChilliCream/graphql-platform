@@ -11,7 +11,7 @@ internal static class MutableComplexTypeDefinitionExtensions
     {
         var fieldsArgument = new ArgumentAssignment(ArgumentNames.Fields, string.Join(" ", fields));
         var keyDirective =
-            new Directive(new MutableDirectiveDefinition(DirectiveNames.Key), fieldsArgument);
+            new Directive(new MutableDirectiveDefinition(WellKnownDirectiveNames.Key), fieldsArgument);
 
         type.Directives.Add(keyDirective);
     }

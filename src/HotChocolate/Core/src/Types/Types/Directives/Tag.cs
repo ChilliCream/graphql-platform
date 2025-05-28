@@ -2,7 +2,6 @@
 
 using System.Text.RegularExpressions;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -21,7 +20,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 [DirectiveType(
-    WellKnownDirectives.Tag,
+    DirectiveNames.Tag.Name,
     DirectiveLocation.Object |
     DirectiveLocation.Interface |
     DirectiveLocation.Union |
@@ -76,6 +75,7 @@ public sealed partial class Tag
     /// <summary>
     /// The name of the tag.
     /// </summary>
+    [GraphQLName(DirectiveNames.Tag.Arguments.Name)]
     [GraphQLDescription("The name of the tag.")]
     public string Name { get; }
 

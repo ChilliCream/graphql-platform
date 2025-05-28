@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The parent type does not match the type condition on the fragment.",
     "Code": null,
@@ -19,8 +19,8 @@
     },
     "Locations": [
       {
-        "Line": 13,
-        "Column": 17
+        "Line": 12,
+        "Column": 1
       }
     ],
     "Extensions": {
