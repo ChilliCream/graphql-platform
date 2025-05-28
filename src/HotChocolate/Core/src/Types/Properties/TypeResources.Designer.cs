@@ -881,6 +881,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interface field {0}.{1} is not deprecated, so implementation field {2}.{3} must not be deprecated..
+        /// </summary>
+        internal static string ErrorHelper_InvalidFieldDeprecation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidFieldDeprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field `{0}` must return a type which is equal to or a subtype of (covariant) the return type `{1}` of the interface field..
         /// </summary>
         internal static string ErrorHelper_InvalidFieldType {
