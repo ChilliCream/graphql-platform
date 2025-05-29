@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Sorting;
 /// The sort convention extensions can be used to extend a sort convention.
 /// </summary>
 public class SortConventionExtension
-    : ConventionExtension<SortConventionDefinition>
+    : ConventionExtension<SortConventionConfiguration>
 {
     private Action<ISortConventionDescriptor>? _configure;
 
@@ -22,7 +22,7 @@ public class SortConventionExtension
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override SortConventionDefinition CreateDefinition(
+    protected override SortConventionConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -38,7 +38,7 @@ public class SortConventionExtension
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected internal new void Initialize(IConventionContext context)
@@ -53,56 +53,56 @@ public class SortConventionExtension
     public override void Merge(IConventionContext context, Convention convention)
     {
         if (convention is SortConvention sortConvention &&
-            Definition is not null &&
-            sortConvention.Definition is not null)
+            Configuration is not null &&
+            sortConvention.Configuration is not null)
         {
             ExtensionHelpers.MergeDictionary(
-                Definition.Bindings,
-                sortConvention.Definition.Bindings);
+                Configuration.Bindings,
+                sortConvention.Configuration.Bindings);
 
             ExtensionHelpers.MergeListDictionary(
-                Definition.Configurations,
-                sortConvention.Definition.Configurations);
+                Configuration.Configurations,
+                sortConvention.Configuration.Configurations);
 
             ExtensionHelpers.MergeListDictionary(
-                Definition.EnumConfigurations,
-                sortConvention.Definition.EnumConfigurations);
+                Configuration.EnumConfigurations,
+                sortConvention.Configuration.EnumConfigurations);
 
-            for (var i = 0; i < Definition.Operations.Count; i++)
+            for (var i = 0; i < Configuration.Operations.Count; i++)
             {
-                sortConvention.Definition.Operations.Add(Definition.Operations[i]);
+                sortConvention.Configuration.Operations.Add(Configuration.Operations[i]);
             }
 
-            for (var i = 0; i < Definition.ProviderExtensions.Count; i++)
+            for (var i = 0; i < Configuration.ProviderExtensions.Count; i++)
             {
-                sortConvention.Definition.ProviderExtensions.Add(
-                    Definition.ProviderExtensions[i]);
+                sortConvention.Configuration.ProviderExtensions.Add(
+                    Configuration.ProviderExtensions[i]);
             }
 
-            for (var i = 0; i < Definition.ProviderExtensionsTypes.Count; i++)
+            for (var i = 0; i < Configuration.ProviderExtensionsTypes.Count; i++)
             {
-                sortConvention.Definition.ProviderExtensionsTypes.Add(
-                    Definition.ProviderExtensionsTypes[i]);
+                sortConvention.Configuration.ProviderExtensionsTypes.Add(
+                    Configuration.ProviderExtensionsTypes[i]);
             }
 
-            if (Definition.ArgumentName != SortConventionDefinition.DefaultArgumentName)
+            if (Configuration.ArgumentName != SortConventionConfiguration.DefaultArgumentName)
             {
-                sortConvention.Definition.ArgumentName = Definition.ArgumentName;
+                sortConvention.Configuration.ArgumentName = Configuration.ArgumentName;
             }
 
-            if (Definition.Provider is not null)
+            if (Configuration.Provider is not null)
             {
-                sortConvention.Definition.Provider = Definition.Provider;
+                sortConvention.Configuration.Provider = Configuration.Provider;
             }
 
-            if (Definition.ProviderInstance is not null)
+            if (Configuration.ProviderInstance is not null)
             {
-                sortConvention.Definition.ProviderInstance = Definition.ProviderInstance;
+                sortConvention.Configuration.ProviderInstance = Configuration.ProviderInstance;
             }
 
-            if (Definition.DefaultBinding is not null)
+            if (Configuration.DefaultBinding is not null)
             {
-                sortConvention.Definition.DefaultBinding = Definition.DefaultBinding;
+                sortConvention.Configuration.DefaultBinding = Configuration.DefaultBinding;
             }
         }
     }

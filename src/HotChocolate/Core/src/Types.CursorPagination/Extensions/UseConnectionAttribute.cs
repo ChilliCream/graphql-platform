@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 
@@ -124,19 +124,12 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
 
         if (descriptor is IObjectFieldDescriptor fieldDesc)
         {
-            var definition = fieldDesc.Extend().Definition;
-            definition.Configurations.Add(
-                new CreateConfiguration(
-                    (_, d) =>
-                    {
-                        ((ObjectFieldDefinition)d).State =
-                            ((ObjectFieldDefinition)d).State.SetItem(
-                                WellKnownContextData.PagingOptions,
-                                options);
-                    },
-                    definition));
-            definition.Configurations.Add(
-                new CompleteConfiguration<ObjectFieldDefinition>(
+            var definition = fieldDesc.Extend().Configuration;
+            definition.Tasks.Add(
+                new OnCreateTypeSystemConfigurationTask(
+                    (_, d) => d.Features.Set(options), definition));
+            definition.Tasks.Add(
+                new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
                     definition,
                     ApplyConfigurationOn.BeforeCompletion));
@@ -144,11 +137,11 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
 
         static void ApplyPagingOptions(
             IDescriptorContext context,
-            ObjectFieldDefinition definition,
+            ObjectFieldConfiguration definition,
             PagingOptions options)
         {
             options = context.GetPagingOptions(options);
-            definition.ContextData[WellKnownContextData.PagingOptions] = options;
+            definition.Features.Set(options);
 
             if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
             {

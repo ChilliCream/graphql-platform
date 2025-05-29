@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution;
@@ -501,7 +500,7 @@ public sealed class OptInFeaturesIntrospectionTests
             """);
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .SetSchema(

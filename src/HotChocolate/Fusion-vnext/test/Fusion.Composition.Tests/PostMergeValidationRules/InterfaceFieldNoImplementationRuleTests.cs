@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class InterfaceFieldNoImplementationRuleTests : CompositionTestBase
+public sealed class InterfaceFieldNoImplementationRuleTests
 {
     private static readonly object s_rule = new InterfaceFieldNoImplementationRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -15,7 +17,9 @@ public sealed class InterfaceFieldNoImplementationRuleTests : CompositionTestBas
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -33,7 +37,9 @@ public sealed class InterfaceFieldNoImplementationRuleTests : CompositionTestBas
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 

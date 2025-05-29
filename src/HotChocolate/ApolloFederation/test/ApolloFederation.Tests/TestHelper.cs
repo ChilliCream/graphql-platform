@@ -10,7 +10,7 @@ namespace HotChocolate.ApolloFederation;
 public static class TestHelper
 {
     public static IResolverContext CreateResolverContext(
-        ISchema schema,
+        Schema schema,
         ObjectType? type = null,
         Action<Mock<IResolverContext>>? additionalMockSetup = null)
     {

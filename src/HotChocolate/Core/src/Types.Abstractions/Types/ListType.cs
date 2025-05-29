@@ -5,8 +5,9 @@ namespace HotChocolate.Types;
 
 /// <summary>
 /// Represents a GraphQL list type.
+/// https://spec.graphql.org/October2021/#sec-List
 /// </summary>
-public sealed class ListType : IType
+public sealed class ListType : IWrapperType, ISyntaxNodeProvider<ListTypeNode>
 {
     /// <summary>
     /// Represents a GraphQL list type definition.
@@ -25,6 +26,8 @@ public sealed class ListType : IType
     /// </summary>
     public IType ElementType { get; }
 
+    IType IWrapperType.InnerType => ElementType;
+
     /// <summary>
     /// Gets the string representation of this instance.
     /// </summary>
@@ -34,7 +37,16 @@ public sealed class ListType : IType
     public override string ToString()
         => FormatTypeRef(this).ToString(true);
 
-    public ISyntaxNode ToSyntaxNode()
+    /// <summary>
+    /// Creates a <see cref="ListTypeNode"/> from the current <see cref="ListType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="ListTypeNode"/>.
+    /// </returns>
+    public ListTypeNode ToSyntaxNode()
+        => (ListTypeNode)FormatTypeRef(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => FormatTypeRef(this);
 
     /// <inheritdoc />

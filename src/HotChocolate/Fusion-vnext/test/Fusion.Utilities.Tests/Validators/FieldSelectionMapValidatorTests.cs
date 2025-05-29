@@ -268,6 +268,7 @@ public sealed class FieldSelectionMapValidatorTests
             { "FindMediaInput", "Media", "{ bookId: <Book>.id } | { movieId: <Movie>.id }" },
             { "Nested", "Media", "{ nested: { bookId: <Book>.id } | { movieId: <Movie>.id } }" },
             // Other tests.
+            { "String", "Book", "{ id title }" },
             { "ID", "Query", "mediaById<Book>.author.id | mediaById<Movie>.id" },
             { "ID", "Media", "{ bookId: <Book>.author.id } | { movieId: <Movie>.id }" }
         };
@@ -319,6 +320,15 @@ public sealed class FieldSelectionMapValidatorTests
             // TODO: 6.3.6 Selected Object Field Uniqueness examples.
             // Blocked by https://github.com/graphql/composite-schemas-spec/issues/171.
             // Additional tests.
+            {
+                "String",
+                "Book",
+                "{ id unknownField1 unknownField2 }",
+                [
+                    "The field 'unknownField1' does not exist on the type 'Book'.",
+                    "The field 'unknownField2' does not exist on the type 'Book'."
+                ]
+            },
             {
                 "ID",
                 "Media",

@@ -1,9 +1,10 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
@@ -14,7 +15,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Type : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var booleanType = Create(ScalarNames.Boolean);
@@ -30,7 +31,7 @@ internal sealed class __Type : ObjectType
 
         var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
 
-        var def = new ObjectTypeDefinition(
+        var def = new ObjectTypeConfiguration(
             Names.__Type,
             TypeResources.Type_Description,
             typeof(IType))
@@ -52,9 +53,9 @@ internal sealed class __Type : ObjectType
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
                 new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
@@ -70,9 +71,9 @@ internal sealed class __Type : ObjectType
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(
                     Names.InputFields,
@@ -86,16 +87,16 @@ internal sealed class __Type : ObjectType
                         new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.OfType, type: typeType, pureResolver: Resolvers.OfType),
                 new(Names.SpecifiedByUrl,
                     TypeResources.Type_SpecifiedByUrl_Description,
                     stringType,
-                    pureResolver: Resolvers.SpecifiedBy),
-            },
+                    pureResolver: Resolvers.SpecifiedBy)
+            }
         };
 
         if (context.DescriptorContext.Options.EnableOneOf)
@@ -136,16 +137,16 @@ internal sealed class __Type : ObjectType
             => context.Parent<IType>().Kind;
 
         public static object? Name(IResolverContext context)
-            => context.Parent<IType>() is INamedType n ? n.Name : null;
+            => context.Parent<IType>() is ITypeDefinition n ? n.Name : null;
 
         public static object? Description(IResolverContext context)
-            => context.Parent<IType>() is INamedType n ? n.Description : null;
+            => context.Parent<IType>() is ITypeDefinition n ? n.Description : null;
 
         public static object? FieldsWithOptIn(IResolverContext context)
         {
             var type = context.Parent<IType>();
 
-            if (type is IComplexOutputType)
+            if (type is IComplexTypeDefinition)
             {
                 var fields = Fields(context);
 
@@ -161,20 +162,20 @@ internal sealed class __Type : ObjectType
                 return fields.Where(
                     f => f
                         .Directives
-                        .Where(d => d.Type is RequiresOptInDirectiveType)
-                        .Select(d => d.AsValue<RequiresOptInDirective>().Feature)
+                        .Where(d => d.Definition is RequiresOptInDirectiveType)
+                        .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
                         .Any(feature => includeOptIn.Contains(feature)));
             }
 
             return default;
         }
 
-        public static IEnumerable<IOutputField>? Fields(IResolverContext context)
+        public static IEnumerable<IOutputFieldDefinition>? Fields(IResolverContext context)
         {
             var type = context.Parent<IType>();
             var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
 
-            if (type is IComplexOutputType ct)
+            if (type is IComplexTypeDefinition ct)
             {
                 return !includeDeprecated
                     ? ct.Fields.Where(t => !t.IsIntrospectionField && !t.IsDeprecated)
@@ -185,12 +186,12 @@ internal sealed class __Type : ObjectType
         }
 
         public static object? Interfaces(IResolverContext context)
-            => context.Parent<IType>() is IComplexOutputType complexType
+            => context.Parent<IType>() is IComplexTypeDefinition complexType
                 ? complexType.Implements
                 : null;
 
         public static object? PossibleTypes(IResolverContext context)
-            => context.Parent<IType>() is INamedType nt
+            => context.Parent<IType>() is ITypeDefinition nt
                 ? nt.IsAbstractType()
                     ? context.Schema.GetPossibleTypes(nt)
                     : null
@@ -216,8 +217,8 @@ internal sealed class __Type : ObjectType
                 return enumValues.Where(
                     v => v
                         .Directives
-                        .Where(d => d.Type is RequiresOptInDirectiveType)
-                        .Select(d => d.AsValue<RequiresOptInDirective>().Feature)
+                        .Where(d => d.Definition is RequiresOptInDirectiveType)
+                        .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
                         .Any(feature => includeOptIn.Contains(feature)));
             }
 
@@ -235,7 +236,7 @@ internal sealed class __Type : ObjectType
         {
             var type = context.Parent<IType>();
 
-            if (type is IInputObjectType)
+            if (type is IInputObjectTypeDefinition)
             {
                 var inputFields = InputFields(context);
 
@@ -252,16 +253,16 @@ internal sealed class __Type : ObjectType
                 return inputFields.Where(
                     f => f
                         .Directives
-                        .Where(d => d.Type is RequiresOptInDirectiveType)
-                        .Select(d => d.AsValue<RequiresOptInDirective>().Feature)
+                        .Where(d => d.Definition is RequiresOptInDirectiveType)
+                        .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
                         .Any(feature => includeOptIn.Contains(feature)));
             }
 
             return default;
         }
 
-        public static IEnumerable<IInputField>? InputFields(IResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot
+        public static IEnumerable<IInputValueDefinition>? InputFields(IResolverContext context)
+            => context.Parent<IType>() is IInputObjectTypeDefinition iot
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? iot.Fields
                     : iot.Fields.Where(t => !t.IsDeprecated)
@@ -271,13 +272,13 @@ internal sealed class __Type : ObjectType
             => context.Parent<IType>() switch
             {
                 ListType lt => lt.ElementType,
-                NonNullType nnt => nnt.Type,
-                _ => null,
+                NonNullType nnt => nnt.NullableType,
+                _ => null
             };
 
         public static object? OneOf(IResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot
-                ? iot.Directives.ContainsDirective(WellKnownDirectives.OneOf)
+            => context.Parent<IType>() is IInputObjectTypeDefinition iot
+                ? iot.Directives.ContainsName(DirectiveNames.OneOf.Name)
                 : null;
 
         public static object? SpecifiedBy(IResolverContext context)
@@ -286,8 +287,10 @@ internal sealed class __Type : ObjectType
                 : null;
 
         public static object AppliedDirectives(IResolverContext context) =>
-            context.Parent<IType>() is IHasDirectives hasDirectives
-                ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.AsSyntaxNode())
+            context.Parent<IType>() is IDirectivesProvider hasDirectives
+                ? hasDirectives.Directives
+                    .Where(t => Unsafe.As<DirectiveType>(t.Definition).IsPublic)
+                    .Select(d => d.ToSyntaxNode())
                 : [];
     }
 

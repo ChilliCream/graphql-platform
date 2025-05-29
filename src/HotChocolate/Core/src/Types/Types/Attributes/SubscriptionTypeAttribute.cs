@@ -31,7 +31,7 @@ public sealed class SubscriptionTypeAttribute
     {
         descriptor.Name(OperationTypeNames.Subscription);
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)

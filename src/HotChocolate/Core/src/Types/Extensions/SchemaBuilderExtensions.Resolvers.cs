@@ -1,4 +1,6 @@
 using System.Reflection;
+using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Interceptors;
@@ -563,18 +565,11 @@ public static partial class SchemaBuilderExtensions
         Type resolverType,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(resolverType);
 
-        if (resolverType is null)
-        {
-            throw new ArgumentNullException(nameof(resolverType));
-        }
-
-        if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true, } or
-            { IsClass: true, IsAbstract: false, IsNestedPublic: true, })
+        if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
+            { IsClass: true, IsAbstract: false, IsNestedPublic: true })
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -621,7 +616,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (resolverType is { IsClass: true, } or { IsInterface: true, })
+        if (resolverType is { IsClass: true } or { IsInterface: true })
         {
             foreach (var property in resolverType.GetProperties())
             {
@@ -652,7 +647,9 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(root));
         }
 
-        builder.SetContextData(WellKnownContextData.RootInstance, root);
+        InitializeResolverTypeInterceptor(builder);
+        var feature = builder.Features.GetRequired<ResolverFeature>();
+        feature.RootInstance = root;
         return AddRootResolver(builder, typeof(T));
     }
 
@@ -676,13 +673,8 @@ public static partial class SchemaBuilderExtensions
         Type? resultType)
     {
         InitializeResolverTypeInterceptor(builder);
-
-        if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
-            o is List<FieldResolverConfig> resolverConfigs)
-        {
-            resolverConfigs.Add(new(fieldCoordinate, resolver, null, resultType));
-        }
-
+        var feature = builder.Features.GetRequired<ResolverFeature>();
+        feature.FieldResolvers.Add(new(fieldCoordinate, resolver, null, resultType));
         return builder;
     }
 
@@ -692,30 +684,24 @@ public static partial class SchemaBuilderExtensions
         Type resolverType)
     {
         InitializeResolverTypeInterceptor(builder);
-
-        if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverTypes, out var o) &&
-            o is List<(string, Type)> resolverTypes)
-        {
-            resolverTypes.Add((typeName, resolverType));
-        }
-
+        var feature = builder.Features.GetRequired<ResolverFeature>();
+        feature.ResolverTypes.Add((typeName, resolverType));
         return builder;
     }
 
     private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
     {
-        if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
+        if (builder.Features.Get<ResolverFeature>() is null)
         {
-            var resolverConfigs = new List<FieldResolverConfig>();
-            var resolverTypes = new List<(string, Type)>();
-            var runtimeTypes = new Dictionary<string, Type>();
+            builder.Features.Set(new ResolverFeature());
 
-            builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
-            builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
-            builder.ContextData.Add(WellKnownContextData.RuntimeTypes, runtimeTypes);
+            // the type system feature will most likely be already there.
+            // still we make sure here that it is.
+            builder.Features.GetOrSet<TypeSystemFeature>();
 
-            builder.TryAddTypeInterceptor(
-                new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
+            // when all the features are in place, we also initialize the
+            // type interceptor to bin resolvers.
+            builder.TryAddTypeInterceptor(new ResolverTypeInterceptor());
         }
     }
 }

@@ -48,9 +48,7 @@ public class SchemaSerializerTests
     {
         // arrange
         // act
-        async Task Action() => await SchemaPrinter.PrintAsync(
-            default(ISchema),
-            new MemoryStream());
+        async Task Action() => await SchemaPrinter.PrintAsync(default(Schema), new MemoryStream());
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -154,7 +152,7 @@ public class SchemaSerializerTests
         // act
         using var stream = new MemoryStream();
         await SchemaPrinter.PrintAsync(
-            new INamedType[] { schema.QueryType, },
+            new ITypeDefinition[] { schema.QueryType, },
             stream,
             true);
 
@@ -174,7 +172,7 @@ public class SchemaSerializerTests
         // act
         using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
-            default(IEnumerable<INamedType>),
+            default(IEnumerable<ITypeDefinition>),
             stream,
             true);
 
@@ -194,7 +192,7 @@ public class SchemaSerializerTests
         // act
         using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
-            new INamedType[] { schema.QueryType, },
+            [schema.QueryType,],
             null,
             true);
 

@@ -12,10 +12,12 @@ rulers = 120
 # ReSharper properties
 resharper_align_multiline_statement_conditions = false
 resharper_braces_for_ifelse = not_required
-resharper_wrap_object_and_collection_initializer_style = chop_always
+resharper_keep_existing_initializer_arrangement = false
+resharper_trailing_comma_in_multiline_lists = false
+resharper_wrap_object_and_collection_initializer_style = wrap_if_long
 
 # Microsoft .NET properties
-csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_object_initializers = false
 
 [*.md]
 trim_trailing_whitespace = false
@@ -137,3 +139,13 @@ resharper_csharp_braces_for_while = required
 resharper_csharp_braces_for_using = required
 resharper_csharp_braces_for_lock = required
 resharper_csharp_braces_for_fixed = required
+
+# Static fields should have s_ prefix
+dotnet_naming_rule.static_fields_should_have_prefix.severity = suggestion
+dotnet_naming_rule.static_fields_should_have_prefix.symbols = static_fields
+dotnet_naming_rule.static_fields_should_have_prefix.style = static_prefix_style
+dotnet_naming_symbols.static_fields.applicable_kinds = field
+dotnet_naming_symbols.static_fields.required_modifiers = static
+dotnet_naming_symbols.static_fields.applicable_accessibilities = private, internal, private_protected
+dotnet_naming_style.static_prefix_style.required_prefix = s_
+dotnet_naming_style.static_prefix_style.capitalization = camel_case

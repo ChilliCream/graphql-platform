@@ -11,7 +11,7 @@ public class TypeInitializerTests
     {
         // arrange
         var typeInterceptor = new AggregateTypeInterceptor();
-        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor(), });
+        typeInterceptor.SetInterceptors([new IntrospectionTypeInterceptor()]);
         IDescriptorContext context = DescriptorContext.Create(
             typeInterceptor: typeInterceptor);
         var typeRegistry = new TypeRegistry(context.TypeInterceptor);
@@ -184,7 +184,7 @@ public class TypeInitializerTests
                 .Create();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public class TypeInitializerTests
                 .Create();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     public class FooType : ObjectType<Foo>

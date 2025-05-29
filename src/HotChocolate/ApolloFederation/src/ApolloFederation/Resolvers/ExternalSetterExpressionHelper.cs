@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static System.Linq.Expressions.Expression;
 using static System.Reflection.BindingFlags;
 
@@ -24,7 +24,7 @@ internal static class ExternalSetterExpressionHelper
     private static readonly ParameterExpression _data = Parameter(typeof(IValueNode), "data");
     private static readonly ParameterExpression _entity = Parameter(typeof(object), "entity");
 
-    public static void TryAddExternalSetter(ObjectType type, ObjectTypeDefinition typeDef)
+    public static void TryAddExternalSetter(ObjectType type, ObjectTypeConfiguration typeDef)
     {
         List<Expression>? block = null;
 
@@ -40,10 +40,10 @@ internal static class ExternalSetterExpressionHelper
 
         if (block is not null)
         {
-            typeDef.ContextData[FederationContextData.ExternalSetter] =
+            typeDef.Features.Set(new ExternalSetter(
                 Lambda<Action<ObjectType, IValueNode, object>>(
                     Block(block), _type, _data, _entity)
-                        .Compile();
+                        .Compile()));
         }
     }
 

@@ -49,7 +49,7 @@ internal sealed class SourceSchemaValidator(
 
                 if (type is MutableComplexTypeDefinition complexType)
                 {
-                    if (complexType.Directives.ContainsName(DirectiveNames.Key))
+                    if (complexType.Directives.ContainsName(WellKnownDirectiveNames.Key))
                     {
                         PublishKeyEvents(complexType, schema, context);
                     }
@@ -63,7 +63,7 @@ internal sealed class SourceSchemaValidator(
 
                         PublishEvent(new OutputFieldEvent(field, type, schema), context);
 
-                        if (field.Directives.ContainsName(DirectiveNames.Provides))
+                        if (field.Directives.ContainsName(WellKnownDirectiveNames.Provides))
                         {
                             PublishProvidesEvents(field, complexType, schema, context);
                         }
@@ -73,7 +73,17 @@ internal sealed class SourceSchemaValidator(
                             PublishEvent(
                                 new FieldArgumentEvent(argument, field, type, schema), context);
 
-                            if (argument.Directives.ContainsName(DirectiveNames.Require))
+                            if (argument.Directives.ContainsName(WellKnownDirectiveNames.Is))
+                            {
+                                PublishIsEvents(
+                                    argument,
+                                    field,
+                                    complexType,
+                                    schema,
+                                    context);
+                            }
+
+                            if (argument.Directives.ContainsName(WellKnownDirectiveNames.Require))
                             {
                                 PublishRequireEvents(
                                     argument,
@@ -114,7 +124,7 @@ internal sealed class SourceSchemaValidator(
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var keyDirectives = type.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key);
+        var keyDirectives = type.Directives.AsEnumerable().Where(d => d.Name == WellKnownDirectiveNames.Key);
 
         foreach (var keyDirective in keyDirectives)
         {
@@ -175,7 +185,7 @@ internal sealed class SourceSchemaValidator(
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var providesDirective = field.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Provides);
+        var providesDirective = field.Directives.AsEnumerable().First(d => d.Name == WellKnownDirectiveNames.Provides);
 
         if (!providesDirective.Arguments.TryGetValue(ArgumentNames.Fields, out var f)
             || f is not StringValueNode fieldsArgument)
@@ -242,6 +252,45 @@ internal sealed class SourceSchemaValidator(
         }
     }
 
+    private void PublishIsEvents(
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema,
+        CompositionContext context)
+    {
+        var isDirective =
+            argument.Directives.AsEnumerable().First(d => d.Name == WellKnownDirectiveNames.Is);
+
+        PublishEvent(new IsDirectiveEvent(isDirective, argument, field, type, schema), context);
+
+        if (!isDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
+            || f is not StringValueNode fieldArgument)
+        {
+            PublishEvent(
+                new IsFieldInvalidTypeEvent(isDirective, argument, field, type, schema),
+                context);
+
+            return;
+        }
+
+        try
+        {
+            new FieldSelectionMapParser(fieldArgument.Value).Parse();
+        }
+        catch (FieldSelectionMapSyntaxException)
+        {
+            PublishEvent(
+                new IsFieldInvalidSyntaxEvent(
+                    isDirective,
+                    argument,
+                    field,
+                    type,
+                    schema),
+                context);
+        }
+    }
+
     private void PublishRequireEvents(
         MutableInputFieldDefinition argument,
         MutableOutputFieldDefinition field,
@@ -249,7 +298,7 @@ internal sealed class SourceSchemaValidator(
         MutableSchemaDefinition schema,
         CompositionContext context)
     {
-        var requireDirective = argument.Directives.AsEnumerable().First(d => d.Name == DirectiveNames.Require);
+        var requireDirective = argument.Directives.AsEnumerable().First(d => d.Name == WellKnownDirectiveNames.Require);
 
         if (!requireDirective.Arguments.TryGetValue(ArgumentNames.Field, out var f)
             || f is not StringValueNode fieldArgument)

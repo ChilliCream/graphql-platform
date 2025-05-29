@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class EnumTypeDefaultValueInaccessibleRuleTests : CompositionTestBase
+public sealed class EnumTypeDefaultValueInaccessibleRuleTests
 {
     private static readonly object s_rule = new EnumTypeDefaultValueInaccessibleRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -15,7 +17,9 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : CompositionTestB
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -33,7 +37,9 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : CompositionTestB
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -64,6 +70,28 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : CompositionTestB
                     enum Enum1 {
                         FOO
                         BAR
+                    }
+                    """
+                ]
+            },
+            // Non-nullable default values.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        field1(type: Enum1! = FOO): [Baz!]!
+                        field2(type: [Int!]! = [1]): [Baz!]!
+                        field3(type: Input1! = { field1: 1 }): [Baz!]!
+                    }
+
+                    enum Enum1 {
+                        FOO
+                        BAR
+                    }
+
+                    input Input1 {
+                        field1: Int!
                     }
                     """
                 ]

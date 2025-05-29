@@ -13,7 +13,7 @@ using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Encapsulated all sorting specific information
+/// Encapsulated all sorting-specific information
 /// </summary>
 public class SortingContext : ISortingContext
 {
@@ -48,14 +48,9 @@ public class SortingContext : ISortingContext
     /// <inheritdoc />
     public void Handled(bool isHandled)
     {
-        if (isHandled)
-        {
-            _context.LocalContextData = _context.LocalContextData.SetItem(SkipSortingKey, true);
-        }
-        else
-        {
-            _context.LocalContextData = _context.LocalContextData.Remove(SkipSortingKey);
-        }
+        _context.LocalContextData = isHandled
+            ? _context.LocalContextData.SetItem(SkipSortingKey, true)
+            : _context.LocalContextData.Remove(SkipSortingKey);
     }
 
     /// <inheritdoc />
@@ -120,8 +115,8 @@ public class SortingContext : ISortingContext
     public SortDefinition<T>? AsSortDefinition<T>()
     {
         if(_valueNode.Kind == SyntaxKind.NullValue
-            || (_valueNode is ListValueNode listValue && listValue.Items.Count == 0)
-            || (_valueNode is ObjectValueNode objectValue && objectValue.Fields.Count == 0))
+            || _valueNode is ListValueNode { Items.Count: 0 }
+            || _valueNode is ObjectValueNode { Fields.Count: 0 })
         {
             return null;
         }
@@ -129,7 +124,7 @@ public class SortingContext : ISortingContext
         var builder = ImmutableArray.CreateBuilder<ISortBy<T>>();
         var parameter = Expression.Parameter(typeof(T), "t");
 
-        foreach (var (selector, ascending, type) in _formatter.Rewrite<T>(_valueNode, _type, parameter))
+        foreach (var (selector, ascending, type) in _formatter.Rewrite(_valueNode, _type, parameter))
         {
             var factory = _sortByFactoryCache.GetOrAdd(
                 (typeof(T), type),
@@ -145,13 +140,11 @@ public class SortingContext : ISortingContext
         ParameterExpression parameter,
         Expression selector,
         bool ascending)
-        => new SortBy<TEntity, TValue>(
-            Expression.Lambda<Func<TEntity, TValue>>(selector, parameter),
-            ascending);
+        => new(Expression.Lambda<Func<TEntity, TValue>>(selector, parameter), ascending);
 
     private sealed class SortDefinitionFormatter : SyntaxWalker<SortDefinitionFormatter.Context>
     {
-        public IEnumerable<(Expression, bool, Type)> Rewrite<T>(IValueNode node, IType type, Expression parameter)
+        public IEnumerable<(Expression, bool, Type)> Rewrite(IValueNode node, IType type, Expression parameter)
         {
             var context = new Context();
             context.Types.Push((InputObjectType)type);

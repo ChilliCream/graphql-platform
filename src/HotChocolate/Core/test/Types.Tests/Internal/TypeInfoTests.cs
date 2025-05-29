@@ -413,7 +413,7 @@ public class TypeInfoTests
 
         Assert.IsType<StringType>(
             Assert.IsType<NonNullType>(
-                Assert.IsType<ListType>(schemaType).ElementType).Type);
+                Assert.IsType<ListType>(schemaType).ElementType).NullableType);
     }
 
     [Fact]
@@ -451,11 +451,11 @@ public class TypeInfoTests
         // assert
         Assert.True(success);
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<ListType>(type);
         type = ((ListType)type).ElementType as IOutputType;
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<StringType>(type);
     }
 
@@ -477,7 +477,7 @@ public class TypeInfoTests
         Assert.IsType<ListType>(type);
         type = ((ListType)type).ElementType as IOutputType;
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<StringType>(type);
     }
 
@@ -497,7 +497,7 @@ public class TypeInfoTests
         // assert
         Assert.True(success);
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<ListType>(type);
         type = ((ListType)type).ElementType as IOutputType;
         Assert.IsType<StringType>(type);
@@ -519,7 +519,7 @@ public class TypeInfoTests
         // assert
         Assert.True(success);
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<StringType>(type);
     }
 

@@ -1,10 +1,10 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public interface ISchemaTypeDescriptor
-    : IDescriptor<SchemaTypeDefinition>
+    : IDescriptor<SchemaTypeConfiguration>
     , IFluent
 {
     ISchemaTypeDescriptor Name(string value);

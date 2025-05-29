@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Interceptors;
 
@@ -13,9 +13,9 @@ internal sealed class OptInFeaturesTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is SchemaTypeDefinition schema)
+        if (configuration is SchemaTypeConfiguration schema)
         {
             schema.Features.Set(_optInFeatures);
         }
@@ -23,21 +23,21 @@ internal sealed class OptInFeaturesTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
-            case EnumTypeDefinition enumType:
+            case EnumTypeConfiguration enumType:
                 _optInFeatures.UnionWith(enumType.Values.SelectMany(v => v.GetOptInFeatures()));
 
                 break;
 
-            case InputObjectTypeDefinition inputType:
+            case InputObjectTypeConfiguration inputType:
                 _optInFeatures.UnionWith(inputType.Fields.SelectMany(f => f.GetOptInFeatures()));
 
                 break;
 
-            case ObjectTypeDefinition objectType:
+            case ObjectTypeConfiguration objectType:
                 _optInFeatures.UnionWith(objectType.Fields.SelectMany(f => f.GetOptInFeatures()));
 
                 _optInFeatures.UnionWith(objectType.Fields.SelectMany(
@@ -50,9 +50,10 @@ internal sealed class OptInFeaturesTypeInterceptor : TypeInterceptor
 
 file static class Extensions
 {
-    public static IEnumerable<string> GetOptInFeatures(this IHasDirectiveDefinition definition)
+    public static IEnumerable<string> GetOptInFeatures(
+        this IDirectiveConfigurationProvider configuration)
     {
-        return definition.Directives
+        return configuration.Directives
             .Select(d => d.Value)
             .OfType<RequiresOptInDirective>()
             .Select(r => r.Feature);

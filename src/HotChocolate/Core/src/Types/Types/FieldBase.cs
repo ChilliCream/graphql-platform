@@ -1,5 +1,7 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
@@ -9,23 +11,47 @@ using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types;
 
 public abstract class FieldBase
-    : IField
+    : IFieldDefinition
     , IFieldCompletion
+    , IFieldIndexProvider
+    , IHasRuntimeType
 {
-    private FieldDefinitionBase? _definition;
-    private FieldFlags _flags;
+    private FieldConfiguration? _config;
+    private CoreFieldFlags _coreFlags;
 
-    protected FieldBase(FieldDefinitionBase definition, int index)
+    protected FieldBase(FieldConfiguration configuration, int index)
     {
-        _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
         Index = index;
 
-        Name = definition.Name.EnsureGraphQLName();
-        Description = definition.Description;
-        Flags = definition.Flags;
-        DeclaringType = default!;
-        ContextData = default!;
-        Directives = default!;
+        Name = configuration.Name.EnsureGraphQLName();
+        Description = configuration.Description;
+        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = configuration.DeprecationReason;
+        Flags = configuration.Flags;
+        DeclaringType = null!;
+        DeclaringMember = null!;
+        Features = null!;
+        Directives = null!;
+        Type = null!;
+    }
+
+    protected FieldBase(FieldBase original, IType type)
+    {
+        ArgumentNullException.ThrowIfNull(original);
+        ArgumentNullException.ThrowIfNull(type);
+
+        _config = original._config;
+        Index = original.Index;
+        Name = original.Name;
+        Description = original.Description;
+        IsDeprecated = original.IsDeprecated;
+        DeprecationReason = original.DeprecationReason;
+        DeclaringType = original.DeclaringType;
+        DeclaringMember = original.DeclaringMember;
+        Features = original.Features;
+        Directives = original.Directives;
+        Type = type;
     }
 
     /// <inheritdoc />
@@ -34,53 +60,86 @@ public abstract class FieldBase
     /// <inheritdoc />
     public string? Description { get; }
 
+    /// <summary>
+    /// Gets the type that declares this field.
+    /// </summary>
+    public ITypeSystemMember DeclaringType { get; private set; }
+
     /// <inheritdoc />
-    public ITypeSystemObject DeclaringType { get; private set; }
+    public ITypeSystemMember DeclaringMember { get; private set; }
 
     /// <inheritdoc />
     public SchemaCoordinate Coordinate { get; private set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the index of this field in the declaring members field collection.
+    /// </summary>
     public int Index { get; }
 
+    /// <summary>
+    /// Gets the directives that are applied to this field.
+    /// </summary>
+    public DirectiveCollection Directives { get; private set; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
+
     /// <inheritdoc />
-    public IDirectiveCollection Directives { get; private set; }
+    public bool IsDeprecated { get; }
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; }
+
+    /// <inheritdoc />
+    public IType Type { get; private set; }
 
     /// <inheritdoc />
     public abstract Type RuntimeType { get; }
 
-    internal FieldFlags Flags
+    internal CoreFieldFlags Flags
     {
-        get => _flags;
+        get => _coreFlags;
         set
         {
             AssertMutable();
-            _flags = value;
+            _coreFlags = value;
         }
     }
 
+    FieldFlags IFieldDefinition.Flags => FieldFlagsMapper.MapToPublic(_coreFlags);
+
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
+    public IFeatureCollection Features { get; private set; }
 
     internal void CompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnCompleteField(context, declaringMember, _definition!);
-        ContextData = _definition!.GetContextData();
+        OnCompleteField(context, declaringMember, _config!);
+        Features = _config!.GetFeatures();
     }
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
         DeclaringType = context.Type;
-        Coordinate = declaringMember is IField field
-            ? new SchemaCoordinate(context.Type.Name, field.Name, definition.Name)
-            : new SchemaCoordinate(context.Type.Name, definition.Name);
+        DeclaringMember = context.Type;
         Flags = definition.Flags;
+
+        if (declaringMember is IFieldDefinition field)
+        {
+            DeclaringMember = field;
+            Coordinate = new SchemaCoordinate(context.Type.Name, field.Name, definition.Name);
+        }
+        else
+        {
+            Coordinate = new SchemaCoordinate(context.Type.Name, definition.Name);
+        }
+
+        Type = context.GetType<IType>(definition.Type!);
     }
 
     void IFieldCompletion.CompleteField(
@@ -93,16 +152,19 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnCompleteMetadata(context, declaringMember, _definition!);
+        OnCompleteMetadata(context, declaringMember, _config!);
     }
 
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
-        Directives = DirectiveCollection.CreateAndComplete(
-            context, this, definition.GetDirectives());
+        Directives =
+            DirectiveCollection.CreateAndComplete(
+                context,
+                this,
+                definition.GetDirectives());
     }
 
     void IFieldCompletion.CompleteMetadata(
@@ -115,13 +177,13 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnMakeExecutable(context, declaringMember, _definition!);
+        OnMakeExecutable(context, declaringMember, _config!);
     }
 
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
     }
 
@@ -135,15 +197,16 @@ public abstract class FieldBase
         ITypeSystemMember declaringMember)
     {
         AssertMutable();
-        OnFinalizeField(context, declaringMember, _definition!);
-        _definition = null;
-        _flags |= FieldFlags.Sealed;
+        OnFinalizeField(context, declaringMember, _config!);
+        Features = Features.ToReadOnly();
+        _config = null;
+        _coreFlags |= CoreFieldFlags.Sealed;
     }
 
     protected virtual void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
+        FieldConfiguration definition)
     {
     }
 
@@ -154,9 +217,23 @@ public abstract class FieldBase
 
     private void AssertMutable()
     {
-        if ((_flags & FieldFlags.Sealed) == FieldFlags.Sealed)
+        if ((_coreFlags & CoreFieldFlags.Sealed) == CoreFieldFlags.Sealed)
         {
             throw ThrowHelper.FieldBase_Sealed();
         }
     }
+
+    /// <summary>
+    /// Returns a string representation of the field.
+    /// </summary>
+    public sealed override string ToString()
+        => FormatField().ToString();
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
+        => FormatField();
+
+    /// <summary>
+    /// Creates a <see cref="ISyntaxNode"/> from a type system member.
+    /// </summary>
+    protected abstract ISyntaxNode FormatField();
 }

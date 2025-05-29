@@ -12,20 +12,20 @@ public sealed class OptInFeatureStabilityDirectiveType
         IDirectiveTypeDescriptor<OptInFeatureStabilityDirective> descriptor)
     {
         descriptor
-            .Name(WellKnownDirectives.OptInFeatureStability)
+            .Name(DirectiveNames.OptInFeatureStability.Name)
             .Description(TypeResources.OptInFeatureStabilityDirectiveType_TypeDescription)
             .Location(DirectiveLocation.Schema)
             .Repeatable();
 
         descriptor
             .Argument(t => t.Feature)
-            .Name(WellKnownDirectives.OptInFeatureStabilityFeatureArgument)
+            .Name(DirectiveNames.OptInFeatureStability.Arguments.Feature)
             .Description(TypeResources.OptInFeatureStabilityDirectiveType_FeatureDescription)
             .Type<NonNullType<StringType>>();
 
         descriptor
             .Argument(t => t.Stability)
-            .Name(WellKnownDirectives.OptInFeatureStabilityStabilityArgument)
+            .Name(DirectiveNames.OptInFeatureStability.Arguments.Stability)
             .Description(TypeResources.OptInFeatureStabilityDirectiveType_StabilityDescription)
             .Type<NonNullType<StringType>>();
     }

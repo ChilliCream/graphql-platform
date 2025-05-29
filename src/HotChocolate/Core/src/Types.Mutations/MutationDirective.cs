@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors.Configurations;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -10,29 +12,24 @@ internal sealed class MutationDirective : ISchemaDirective
     public void ApplyConfiguration(
         IDescriptorContext context,
         DirectiveNode directiveNode,
-        IDefinition definition,
-        Stack<IDefinition> path)
+        ITypeSystemConfiguration definition,
+        Stack<ITypeSystemConfiguration> path)
     {
-        if (definition is not ObjectFieldDefinition fieldDef)
+        if (definition is not ObjectFieldConfiguration fieldDef)
         {
             throw ThrowHelper.MutationConventionDirective_In_Wrong_Location(directiveNode);
         }
 
-        fieldDef.Configurations.Add(
-            new CompleteConfiguration<ObjectFieldDefinition>(
-                (c, d) =>
-                {
-                    c.ContextData
-                        .GetMutationFields()
-                        .Add(CreateMutationContextData(directiveNode, d));
-                },
+        fieldDef.Tasks.Add(
+            new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
+                (c, d) => c.GetMutationFields().Add(CreateMutationContextData(directiveNode, d)),
                 fieldDef,
                 ApplyConfigurationOn.BeforeNaming));
     }
 
     private static MutationContextData CreateMutationContextData(
         DirectiveNode directiveNode,
-        ObjectFieldDefinition fieldDef)
+        ObjectFieldConfiguration fieldDef)
     {
         var data = new MutationDirectiveData { Enabled = true, };
         var args = directiveNode.Arguments;

@@ -5,7 +5,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Interceptors;
@@ -33,33 +33,33 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
-            case ObjectTypeDefinition o:
+            case ObjectTypeConfiguration o:
                 ProcessOutputFields(o.Fields);
 
                 break;
 
-            case InterfaceTypeDefinition i:
+            case InterfaceTypeConfiguration i:
                 ProcessOutputFields(i.Fields);
 
                 break;
 
-            case InputObjectTypeDefinition i:
+            case InputObjectTypeConfiguration i:
                 ProcessInputFields(i.Fields);
 
                 break;
 
-            case DirectiveTypeDefinition i:
+            case DirectiveTypeConfiguration i:
                 ProcessArguments(i.Arguments);
 
                 break;
         }
     }
 
-    private void ProcessOutputFields(IEnumerable<OutputFieldDefinitionBase> fields)
+    private void ProcessOutputFields(IEnumerable<OutputFieldConfiguration> fields)
     {
         foreach (var field in fields)
         {
@@ -73,7 +73,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void ProcessArguments(IEnumerable<ArgumentDefinition> argumentDefinitions)
+    private void ProcessArguments(IEnumerable<ArgumentConfiguration> argumentDefinitions)
     {
         foreach (var arg in argumentDefinitions)
         {
@@ -86,7 +86,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void ProcessInputFields(IEnumerable<InputFieldDefinition> fields)
+    private void ProcessInputFields(IEnumerable<InputFieldConfiguration> fields)
     {
         foreach (var field in fields)
         {
@@ -99,7 +99,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void RegisterType(TypeSystemObjectBase type)
+    private void RegisterType(TypeSystemObject type)
     {
         _typeInitializer.InitializeType(type);
     }
@@ -113,9 +113,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
         var typeName = _namingConventions.GetTypeName(type) + _flagNameAddition;
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
-        var objectTypeDefinition = new ObjectTypeDefinition(typeName, desc)
+        var objectTypeDefinition = new ObjectTypeConfiguration(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>),
+            RuntimeType = typeof(Dictionary<string, object>)
         };
 
         foreach (var value in Enum.GetValues(type))
@@ -125,7 +125,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             var typeReference = TypeReference.Parse("Boolean!");
             PureFieldDelegate resolver = c => c.Parent<Enum>().HasFlag((Enum)value);
             var fieldDefinition =
-                new ObjectFieldDefinition(valueName, description, typeReference, null, resolver);
+                new ObjectFieldConfiguration(valueName, description, typeReference, null, resolver);
             objectTypeDefinition.Fields.Add(fieldDefinition);
         }
 
@@ -144,9 +144,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
         var typeName = $"{_namingConventions.GetTypeName(type)}{_flagNameAddition}Input";
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
-        var objectTypeDefinition = new InputObjectTypeDefinition(typeName, desc)
+        var objectTypeDefinition = new InputObjectTypeConfiguration(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>),
+            RuntimeType = typeof(Dictionary<string, object>)
         };
 
         var metadata = new Dictionary<string, object>();
@@ -155,7 +155,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             var valueName = GetFlagFieldName(type, value);
             var description = _namingConventions.GetEnumValueDescription(value);
             var typeReference = TypeReference.Parse("Boolean");
-            var fieldDefinition = new InputFieldDefinition(valueName, description, typeReference);
+            var fieldDefinition = new InputFieldConfiguration(valueName, description, typeReference);
             objectTypeDefinition.Fields.Add(fieldDefinition);
             metadata[valueName] = value;
         }

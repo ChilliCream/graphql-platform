@@ -8,7 +8,7 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         if (!context.Options.EnableOptInFeatures)
@@ -20,13 +20,13 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
         {
             switch (type)
             {
-                case IInputObjectType inputObjectType:
+                case IInputObjectTypeDefinition inputObjectType:
                     foreach (var field in inputObjectType.Fields)
                     {
                         if (field.Type.IsNonNullType() && field.DefaultValue is null)
                         {
                             var requiresOptInDirectives = field.Directives
-                                .Where(d => d.Type is RequiresOptInDirectiveType);
+                                .Where(d => d.Definition is RequiresOptInDirectiveType);
 
                             foreach (var _ in requiresOptInDirectives)
                             {
@@ -39,7 +39,7 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
 
                     break;
 
-                case IObjectType objectType:
+                case IObjectTypeDefinition objectType:
                     foreach (var field in objectType.Fields)
                     {
                         foreach (var argument in field.Arguments)
@@ -47,7 +47,7 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
                             if (argument.Type.IsNonNullType() && argument.DefaultValue is null)
                             {
                                 var requiresOptInDirectives = argument.Directives
-                                    .Where(d => d.Type is RequiresOptInDirectiveType);
+                                    .Where(d => d.Definition is RequiresOptInDirectiveType);
 
                                 foreach (var _ in requiresOptInDirectives)
                                 {

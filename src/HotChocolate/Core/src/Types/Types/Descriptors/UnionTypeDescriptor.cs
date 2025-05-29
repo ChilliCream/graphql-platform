@@ -1,11 +1,11 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors;
 
 public class UnionTypeDescriptor
-    : DescriptorBase<UnionTypeDefinition>
+    : DescriptorBase<UnionTypeConfiguration>
     , IUnionTypeDescriptor
 {
     protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
@@ -16,58 +16,58 @@ public class UnionTypeDescriptor
             throw new ArgumentNullException(nameof(clrType));
         }
 
-        Definition.RuntimeType = clrType;
-        Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Union);
-        Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Union);
+        Configuration.RuntimeType = clrType;
+        Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Union);
+        Configuration.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Union);
     }
 
     protected UnionTypeDescriptor(
         IDescriptorContext context,
-        UnionTypeDefinition definition)
+        UnionTypeConfiguration definition)
         : base(context)
     {
-        Definition = definition;
+        Configuration = definition;
     }
 
     protected UnionTypeDescriptor(IDescriptorContext context)
         : base(context)
     {
-        Definition.RuntimeType = typeof(object);
+        Configuration.RuntimeType = typeof(object);
     }
 
-    protected internal override UnionTypeDefinition Definition { get; protected set; } = new();
+    protected internal override UnionTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(UnionTypeDefinition definition)
+    protected override void OnCreateConfiguration(UnionTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.RuntimeType);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.RuntimeType);
+            Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
 
     public IUnionTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IUnionTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     public IUnionTypeDescriptor Type<TObjectType>()
         where TObjectType : ObjectType
     {
-        Definition.Types.Add(
+        Configuration.Types.Add(
             Context.TypeInspector.GetTypeRef(typeof(TObjectType), TypeContext.Output));
         return this;
     }
@@ -79,7 +79,7 @@ public class UnionTypeDescriptor
         {
             throw new ArgumentNullException(nameof(objectType));
         }
-        Definition.Types.Add(TypeReference.Create(objectType));
+        Configuration.Types.Add(TypeReference.Create(objectType));
         return this;
     }
 
@@ -89,14 +89,14 @@ public class UnionTypeDescriptor
         {
             throw new ArgumentNullException(nameof(objectType));
         }
-        Definition.Types.Add(TypeReference.Create(objectType, TypeContext.Output));
+        Configuration.Types.Add(TypeReference.Create(objectType, TypeContext.Output));
         return this;
     }
 
     public IUnionTypeDescriptor ResolveAbstractType(
         ResolveAbstractType resolveAbstractType)
     {
-        Definition.ResolveAbstractType = resolveAbstractType
+        Configuration.ResolveAbstractType = resolveAbstractType
            ?? throw new ArgumentNullException(nameof(resolveAbstractType));
         return this;
     }
@@ -104,14 +104,14 @@ public class UnionTypeDescriptor
     public IUnionTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public IUnionTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
@@ -119,7 +119,7 @@ public class UnionTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -137,12 +137,12 @@ public class UnionTypeDescriptor
         Type schemaType)
     {
         var descriptor = New(context, schemaType);
-        descriptor.Definition.RuntimeType = typeof(object);
+        descriptor.Configuration.RuntimeType = typeof(object);
         return descriptor;
     }
 
     public static UnionTypeDescriptor From(
         IDescriptorContext context,
-        UnionTypeDefinition definition) =>
+        UnionTypeConfiguration definition) =>
         new(context, definition);
 }

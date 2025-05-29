@@ -5,10 +5,9 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// The filter input descriptor allows to configure a <see cref="FilterInputType"/>.
+/// The filter input descriptor allows configuring a <see cref="FilterInputType"/>.
 /// </summary>
-public interface IFilterInputTypeDescriptor<T>
-    : IFilterInputTypeDescriptor
+public interface IFilterInputTypeDescriptor<T> : IFilterInputTypeDescriptor
 {
     /// <summary>
     /// Defines the name of the <see cref="FilterInputType{T}"/>.

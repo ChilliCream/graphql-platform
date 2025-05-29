@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -25,20 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\AbstractionResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="IndexerPathSegment.cs">
-      <DependentUpon>Path.cs</DependentUpon>
-    </Compile>
-    <Compile Update="NamePathSegment.cs">
-      <DependentUpon>Path.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -47,6 +37,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>AbstractionResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,20 +2,23 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// Interface type extensions are used to represent an interface which has been extended
 /// from some original interface.
-///
+/// </para>
+/// <para>
 /// For example, this might be used to represent common local data on many types,
 /// or by a GraphQL service which is itself an extension of another GraphQL service.
+/// </para>
 /// </summary>
-public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefinition>
+public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfiguration>
 {
     private Action<IInterfaceTypeDescriptor>? _configure;
 
@@ -51,24 +54,24 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefini
     /// <returns>
     /// Returns the newly created interface type extension.
     /// </returns>
-    public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;
 
-    protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InterfaceTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = InterfaceTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -80,15 +83,15 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefini
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
     }
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is InterfaceType interfaceType)
         {
@@ -97,23 +100,23 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefini
             AssertMutable();
             interfaceType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
-                Definition!,
-                interfaceType.Definition!);
+            TypeExtensionHelper.MergeFeatures(
+                Configuration!,
+                interfaceType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Definition!.Directives,
-                interfaceType.Definition!.Directives);
+                Configuration!.Directives,
+                interfaceType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeInterfaceFields(
                 context,
-                Definition!.Fields,
-                interfaceType.Definition!.Fields);
+                Configuration!.Fields,
+                interfaceType.Configuration!.Fields);
 
             TypeExtensionHelper.MergeConfigurations(
-                Definition!.Configurations,
-                interfaceType.Definition!.Configurations);
+                Configuration!.Tasks,
+                interfaceType.Configuration!.Tasks);
         }
         else
         {

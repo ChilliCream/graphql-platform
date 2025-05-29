@@ -1,7 +1,7 @@
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -11,7 +11,7 @@ internal static class DescriptorHelpers
         this TDefinition definition,
         IExtendedType type,
         TypeContext context)
-        where TDefinition : FieldDefinitionBase
+        where TDefinition : FieldConfiguration
     {
         if (IsTypeMoreSpecific(definition.Type, type))
         {
@@ -24,7 +24,7 @@ internal static class DescriptorHelpers
         this TDefinition definition,
         ITypeNode typeNode,
         TypeContext context)
-        where TDefinition : FieldDefinitionBase
+        where TDefinition : FieldConfiguration
     {
         if (IsTypeMoreSpecific(definition.Type, typeNode))
         {

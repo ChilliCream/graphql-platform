@@ -173,6 +173,7 @@ public class IdTypeTests
                 .Type<IdType>()
                 .Resolve("abc"))
             .Create()
+            .Types
             .GetType<IdType>("ID");
         var serialized = 123456;
 

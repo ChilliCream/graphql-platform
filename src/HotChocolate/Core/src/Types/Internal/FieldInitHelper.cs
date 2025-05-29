@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -14,7 +14,7 @@ public static class FieldInitHelper
 {
     internal static IValueNode? CompleteDefaultValue(
         ITypeCompletionContext context,
-        ArgumentDefinition argumentDefinition,
+        ArgumentConfiguration argumentDefinition,
         IInputType argumentType,
         SchemaCoordinate argumentCoordinate)
     {
@@ -47,33 +47,18 @@ public static class FieldInitHelper
         }
     }
 
-    public static FieldCollection<TField> CompleteFields<TFieldDefinition, TField>(
+    public static TField[] CompleteFields<TFieldDefinition, TField>(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         IReadOnlyList<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory)
-        where TFieldDefinition : FieldDefinitionBase
-        where TField : class, IField
+        where TFieldDefinition : FieldConfiguration
+        where TField : class, IFieldDefinition
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (declaringMember is null)
-        {
-            throw new ArgumentNullException(nameof(declaringMember));
-        }
-
-        if (fieldDefs is null)
-        {
-            throw new ArgumentNullException(nameof(fieldDefs));
-        }
-
-        if (fieldFactory is null)
-        {
-            throw new ArgumentNullException(nameof(fieldFactory));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(declaringMember);
+        ArgumentNullException.ThrowIfNull(fieldDefs);
+        ArgumentNullException.ThrowIfNull(fieldFactory);
 
         return CompleteFieldsInternal(
             context,
@@ -83,42 +68,20 @@ public static class FieldInitHelper
             fieldDefs.Count);
     }
 
-    public static FieldCollection<TField> CompleteFields<TFieldDefinition, TField>(
+    public static TField[] CompleteFields<TFieldDefinition, TField>(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         IEnumerable<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int maxFieldCount)
-        where TFieldDefinition : FieldDefinitionBase
-        where TField : class, IField
+        where TFieldDefinition : FieldConfiguration
+        where TField : class, IFieldDefinition
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (declaringMember is null)
-        {
-            throw new ArgumentNullException(nameof(declaringMember));
-        }
-
-        if (fieldDefs is null)
-        {
-            throw new ArgumentNullException(nameof(fieldDefs));
-        }
-
-        if (fieldFactory is null)
-        {
-            throw new ArgumentNullException(nameof(fieldFactory));
-        }
-
-        if (maxFieldCount < 1)
-        {
-            throw new ArgumentOutOfRangeException(
-                paramName: nameof(maxFieldCount),
-                actualValue: maxFieldCount,
-                message: TypeResources.FieldInitHelper_CompleteFields_MaxFieldCountToSmall);
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(declaringMember);
+        ArgumentNullException.ThrowIfNull(fieldDefs);
+        ArgumentNullException.ThrowIfNull(fieldFactory);
+        ArgumentOutOfRangeException.ThrowIfNegative(maxFieldCount);
 
         return CompleteFieldsInternal(
             context,
@@ -128,39 +91,35 @@ public static class FieldInitHelper
             maxFieldCount);
     }
 
-    public static FieldCollection<TField> CompleteFields<TField>(
+    public static TField[] CompleteFields<TField>(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         TField[] fields)
-        where TField : class, IField
+        where TField : class, IFieldDefinition
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(declaringMember);
+        ArgumentNullException.ThrowIfNull(fields);
 
-        if (declaringMember is null)
-        {
-            throw new ArgumentNullException(nameof(declaringMember));
-        }
+        CompleteFieldsInternal(context, declaringMember, fields);
 
-        if (fields is null)
-        {
-            throw new ArgumentNullException(nameof(fields));
-        }
-
-        return CompleteFieldsInternal(context, declaringMember, fields);
+        return fields;
     }
 
-    public static FieldCollection<TField> CompleteFieldsInternal<TFieldDefinition, TField>(
+    public static TField[] CompleteFieldsInternal<TFieldDefinition, TField>(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         IEnumerable<TFieldDefinition> fieldDefinitions,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int fieldCount)
-        where TFieldDefinition : FieldDefinitionBase
-        where TField : class, IField
+        where TFieldDefinition : FieldConfiguration
+        where TField : class, IFieldDefinition
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(declaringMember);
+        ArgumentNullException.ThrowIfNull(fieldDefinitions);
+        ArgumentNullException.ThrowIfNull(fieldFactory);
+
         var fieldDefs = fieldDefinitions.Where(t => !t.Ignore);
 
         if (context.DescriptorContext.Options.SortFieldsByName)
@@ -182,38 +141,46 @@ public static class FieldInitHelper
             Array.Resize(ref fields, index);
         }
 
-        return CompleteFieldsInternal(context, declaringMember, fields);
+        CompleteFieldsInternal(context, declaringMember, fields);
+
+        return fields;
     }
 
-    private static FieldCollection<TField> CompleteFieldsInternal<TField>(
+    private static void CompleteFieldsInternal<TField>(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         TField[] fields)
-        where TField : class, IField
+        where TField : class, IFieldDefinition
     {
         if (declaringMember is IType type && fields.Length == 0)
         {
             context.ReportError(NoFields(context.Type, type));
-            return FieldCollection<TField>.Empty;
+            return;
         }
+
+        var names = TypeMemHelper.RentNameSet();
+        HashSet<string>? duplicates = null;
 
         foreach (var field in fields)
         {
             ((IFieldCompletion)field).CompleteField(context, declaringMember);
+
+            if (!names.Add(field.Name))
+            {
+                (duplicates ??= []).Add(field.Name);
+            }
         }
 
-        var collection =  FieldCollection<TField>.TryCreate(fields, out var duplicateFieldNames);
+        TypeMemHelper.Return(names);
 
-        if (duplicateFieldNames?.Count > 0)
+        if (duplicates?.Count > 0)
         {
            context.ReportError(
                DuplicateFieldName(
                    context.Type,
                    declaringMember,
-                   duplicateFieldNames));
+                   duplicates));
         }
-
-        return collection;
     }
 
     internal static Type CompleteRuntimeType(IType type, Type? runtimeType)

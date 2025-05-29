@@ -12,6 +12,7 @@ internal static class WellKnownArgumentNames
     public const string Partial = "partial";
     public const string Path = "path";
     public const string Provides = "provides";
+    public const string Requirements = "requirements";
     public const string Schema = "schema";
     public const string SourceType = "sourceType";
     public const string Value = "value";

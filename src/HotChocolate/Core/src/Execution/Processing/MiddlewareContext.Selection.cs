@@ -10,9 +10,9 @@ internal partial class MiddlewareContext
     private readonly PureResolverContext _childContext;
     private ISelection _selection = default!;
 
-    public IObjectType ObjectType => _selection.DeclaringType;
+    public ObjectType ObjectType => _selection.DeclaringType;
 
-    public IObjectField Field => _selection.Field;
+    public ObjectField Field => _selection.Field;
 
     public ISelection Selection => _selection;
 
@@ -42,20 +42,17 @@ internal partial class MiddlewareContext
     }
 
     public IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
+        ObjectType typeContext,
         ISelection? selection = null,
         bool allowInternals = false)
     {
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
+        ArgumentNullException.ThrowIfNull(typeContext);
 
         selection ??= _selection;
 
         if (selection.SelectionSet is null)
         {
-            return Array.Empty<ISelection>();
+            return [];
         }
 
         var selectionSet = _operationContext.CollectFields(selection, typeContext);
@@ -84,7 +81,10 @@ internal partial class MiddlewareContext
     }
 
     public ISelectionCollection Select()
-        => new SelectionCollection(Schema, Operation, [Selection], _operationContext.IncludeFlags);
+    {
+        var schema = Unsafe.As<Schema>(_operationContext.Schema);
+        return new SelectionCollection(schema, Operation, [Selection], _operationContext.IncludeFlags);
+    }
 
     public ISelectionCollection Select(string fieldName)
         => Select().Select(fieldName);

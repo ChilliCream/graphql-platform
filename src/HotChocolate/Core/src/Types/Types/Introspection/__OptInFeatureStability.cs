@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
@@ -17,11 +17,11 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __OptInFeatureStability : ObjectType<DirectiveNode>
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var nonNullStringType = Parse($"{ScalarNames.String}!");
 
-        return new ObjectTypeDefinition(
+        return new ObjectTypeConfiguration(
             Names.__OptInFeatureStability,
             TypeResources.OptInFeatureStability_Description,
             typeof(DirectiveNode))

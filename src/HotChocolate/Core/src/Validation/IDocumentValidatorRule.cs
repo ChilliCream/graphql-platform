@@ -27,5 +27,5 @@ public interface IDocumentValidatorRule
     /// <param name="document">
     /// The GraphQL document that shall be inspected.
     /// </param>
-    void Validate(IDocumentValidatorContext context, DocumentNode document);
+    void Validate(DocumentValidatorContext context, DocumentNode document);
 }

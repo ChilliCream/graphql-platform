@@ -72,7 +72,7 @@ public class SortProviderExtensionsTests
         Action<ISortProviderDescriptor<QueryableSortContext>> configure)
         : SortProvider<QueryableSortContext>(configure)
     {
-        public SortProviderDefinition? DefinitionAccessor => Definition;
+        public SortProviderConfiguration? DefinitionAccessor => Configuration;
 
         public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
             => throw new NotImplementedException();

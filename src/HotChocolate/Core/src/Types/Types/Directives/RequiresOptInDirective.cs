@@ -20,7 +20,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 [DirectiveType(
-    WellKnownDirectives.RequiresOptIn,
+    DirectiveNames.RequiresOptIn.Name,
     DirectiveLocation.ArgumentDefinition |
     DirectiveLocation.EnumValue |
     DirectiveLocation.FieldDefinition |

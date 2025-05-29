@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -11,7 +11,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node descriptor allows to configure a node type.
+/// The node descriptor allows configuring a node type.
 /// </summary>
 /// <typeparam name="TNode">
 /// The node runtime type.
@@ -25,25 +25,25 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
     public NodeDescriptor(
         IDescriptorContext context,
-        NodeDefinition definition,
+        NodeConfiguration configuration,
         Func<IObjectFieldDescriptor> configureNodeField)
     {
         Context = context;
-        Definition = definition;
+        Configuration = configuration;
         _configureNodeField = configureNodeField;
     }
 
     private IDescriptorContext Context { get; }
 
-    private NodeDefinition Definition { get; }
+    private NodeConfiguration Configuration { get; }
 
     public IObjectFieldDescriptor NodeResolver(NodeResolverDelegate<TNode, TId> nodeResolver)
         => ResolveNode(nodeResolver);
 
     public IObjectFieldDescriptor ResolveNode(FieldResolverDelegate fieldResolver)
     {
-        Definition.ResolverField ??= new ObjectFieldDefinition();
-        Definition.ResolverField.Resolver = fieldResolver ??
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        Configuration.ResolverField.Resolver = fieldResolver ??
             throw new ArgumentNullException(nameof(fieldResolver));
 
         return _configureNodeField();
@@ -83,9 +83,9 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
         if (member is MethodInfo m)
         {
-            Definition.ResolverField ??= new ObjectFieldDefinition();
-            Definition.ResolverField.Member = m;
-            Definition.ResolverField.ResolverType = typeof(TResolver);
+            Configuration.ResolverField ??= new ObjectFieldConfiguration();
+            Configuration.ResolverField.Member = m;
+            Configuration.ResolverField.ResolverType = typeof(TResolver);
             return _configureNodeField();
         }
 
@@ -101,9 +101,9 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
             throw new ArgumentNullException(nameof(method));
         }
 
-        Definition.ResolverField ??= new ObjectFieldDefinition();
-        Definition.ResolverField.Member = method;
-        Definition.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        Configuration.ResolverField.Member = method;
+        Configuration.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
         return _configureNodeField();
     }
 

@@ -767,7 +767,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .BuildRequestExecutorAsync();
 
         // act
-        var result = executor.Schema.Print();
+        var result = executor.Schema.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -787,7 +787,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .BuildRequestExecutorAsync();
 
         // act
-        var result = executor.Schema.Print();
+        var result = executor.Schema.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -804,7 +804,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .BuildRequestExecutorAsync();
 
         // act
-        var result = executor.Schema.Print();
+        var result = executor.Schema.ToString();
 
         // assert
         result.MatchSnapshot();

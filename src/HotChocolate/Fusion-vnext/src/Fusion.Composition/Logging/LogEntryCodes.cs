@@ -16,12 +16,17 @@ public static class LogEntryCodes
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
+    public const string ImplementedByInaccessible = "IMPLEMENTED_BY_INACCESSIBLE";
     public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
     public const string InputFieldTypesNotMergeable = "INPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string InputWithMissingRequiredFields = "INPUT_WITH_MISSING_REQUIRED_FIELDS";
     public const string InterfaceFieldNoImplementation = "INTERFACE_FIELD_NO_IMPLEMENTATION";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
+    public const string IsInvalidField = "IS_INVALID_FIELD";
+    public const string IsInvalidFieldType = "IS_INVALID_FIELD_TYPE";
+    public const string IsInvalidSyntax = "IS_INVALID_SYNTAX";
+    public const string IsInvalidUsage = "IS_INVALID_USAGE";
     public const string KeyDirectiveInFieldsArg = "KEY_DIRECTIVE_IN_FIELDS_ARG";
     public const string KeyFieldsHasArgs = "KEY_FIELDS_HAS_ARGS";
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";
@@ -51,4 +56,5 @@ public static class LogEntryCodes
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string TypeDefinitionInvalid = "TYPE_DEFINITION_INVALID";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
+    public const string Unsatisfiable = "UNSATISFIABLE";
 }

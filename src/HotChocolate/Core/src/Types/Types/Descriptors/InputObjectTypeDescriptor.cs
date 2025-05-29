@@ -2,7 +2,7 @@
 
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
@@ -10,7 +10,7 @@ using static System.Reflection.BindingFlags;
 namespace HotChocolate.Types.Descriptors;
 
 public class InputObjectTypeDescriptor
-    : DescriptorBase<InputObjectTypeDefinition>
+    : DescriptorBase<InputObjectTypeConfiguration>
     , IInputObjectTypeDescriptor
 {
     private readonly List<InputFieldDescriptor> _fields = [];
@@ -23,25 +23,25 @@ public class InputObjectTypeDescriptor
             throw new ArgumentNullException(nameof(runtimeType));
         }
 
-        Definition.RuntimeType = runtimeType;
-        Definition.Name = context.Naming.GetTypeName(
+        Configuration.RuntimeType = runtimeType;
+        Configuration.Name = context.Naming.GetTypeName(
             runtimeType, TypeKind.InputObject);
-        Definition.Description = context.Naming.GetTypeDescription(
+        Configuration.Description = context.Naming.GetTypeDescription(
             runtimeType, TypeKind.InputObject);
     }
 
     protected InputObjectTypeDescriptor(IDescriptorContext context)
         : base(context)
     {
-        Definition.RuntimeType = typeof(object);
+        Configuration.RuntimeType = typeof(object);
     }
 
     protected InputObjectTypeDescriptor(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
 
         foreach (var field in definition.Fields)
         {
@@ -49,31 +49,31 @@ public class InputObjectTypeDescriptor
         }
     }
 
-    protected internal override InputObjectTypeDefinition Definition { get; protected set; } =
+    protected internal override InputObjectTypeConfiguration Configuration { get; protected set; } =
         new();
 
     protected ICollection<InputFieldDescriptor> Fields => _fields;
 
-    protected override void OnCreateDefinition(
-        InputObjectTypeDefinition definition)
+    protected override void OnCreateConfiguration(
+        InputObjectTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.RuntimeType);
-            Definition.AttributesAreApplied = true;
+                Configuration.RuntimeType);
+            Configuration.AttributesAreApplied = true;
         }
 
-        var fields = TypeMemHelper.RentInputFieldDefinitionMap();
+        var fields = TypeMemHelper.RentInputFieldConfigurationMap();
         var handledMembers = TypeMemHelper.RentMemberSet();
 
         foreach (var fieldDescriptor in _fields)
         {
-            var fieldDefinition = fieldDescriptor.CreateDefinition();
+            var fieldDefinition = fieldDescriptor.CreateConfiguration();
 
             if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
             {
@@ -88,26 +88,26 @@ public class InputObjectTypeDescriptor
 
         OnCompleteFields(fields, handledMembers);
 
-        Definition.Fields.Clear();
-        Definition.Fields.AddRange(fields.Values);
+        Configuration.Fields.Clear();
+        Configuration.Fields.AddRange(fields.Values);
 
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
 
     protected void InferFieldsFromFieldBindingType(
-        IDictionary<string, InputFieldDefinition> fields,
+        IDictionary<string, InputFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
-        if (Definition.Fields.IsImplicitBinding())
+        if (Configuration.Fields.IsImplicitBinding())
         {
             var inspector = Context.TypeInspector;
             var naming = Context.Naming;
-            var type = Definition.RuntimeType;
+            var type = Configuration.RuntimeType;
             var members = inspector.GetMembers(type);
 
             foreach (var member in members)
@@ -128,7 +128,7 @@ public class InputObjectTypeDescriptor
                         // the create definition call will trigger the OnCompleteField call
                         // on the field description and trigger the initialization of the
                         // fields arguments.
-                        fields[name] = descriptor.CreateDefinition();
+                        fields[name] = descriptor.CreateConfiguration();
                     }
                 }
             }
@@ -136,25 +136,25 @@ public class InputObjectTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, InputFieldDefinition> fields,
+        IDictionary<string, InputFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     { }
 
     public IInputObjectTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IInputObjectTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     public IInputFieldDescriptor Field(string name)
     {
-        var fieldDescriptor = _fields.Find(t => t.Definition.Name.EqualsOrdinal(name));
+        var fieldDescriptor = _fields.Find(t => t.Configuration.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
@@ -169,14 +169,14 @@ public class InputObjectTypeDescriptor
     public IInputObjectTypeDescriptor Directive<T>(T directive)
         where T : class
     {
-        Definition.AddDirective(directive, Context.TypeInspector);
+        Configuration.AddDirective(directive, Context.TypeInspector);
         return this;
     }
 
     public IInputObjectTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
@@ -184,7 +184,7 @@ public class InputObjectTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -200,18 +200,18 @@ public class InputObjectTypeDescriptor
         Type schemaType)
     {
         var descriptor = New(context, schemaType);
-        descriptor.Definition.RuntimeType = typeof(object);
+        descriptor.Configuration.RuntimeType = typeof(object);
         return descriptor;
     }
 
     public static InputObjectTypeDescriptor From(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         => new(context, definition);
 
     public static InputObjectTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
         => new(context, definition);
 
     /// <summary>

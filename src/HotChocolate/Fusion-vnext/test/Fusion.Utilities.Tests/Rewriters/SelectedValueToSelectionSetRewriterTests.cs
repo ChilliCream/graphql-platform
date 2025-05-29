@@ -60,7 +60,18 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 }
                 """
             },
-            // TODO: Test "dimension.{ size weight }" (not yet supported by parser).
+            {
+                "Product",
+                "dimensions.{ size weight }",
+                """
+                {
+                    dimensions {
+                        size
+                        weight
+                    }
+                }
+                """
+            },
             {
                 "Product",
                 "{ size: dimensions.size weight: dimensions.weight }",

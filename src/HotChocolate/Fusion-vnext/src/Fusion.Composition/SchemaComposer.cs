@@ -64,7 +64,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema).Validate();
+        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema, _log).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
@@ -80,6 +80,9 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ExternalOnInterfaceRule(),
         new ExternalUnusedRule(),
         new InvalidShareableUsageRule(),
+        new IsInvalidFieldTypeRule(),
+        new IsInvalidSyntaxRule(),
+        new IsInvalidUsageRule(),
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
@@ -128,7 +131,9 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
         new EnumTypeDefaultValueInaccessibleRule(),
+        new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
+        new IsInvalidFieldRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
         new RequireInvalidFieldsRule()

@@ -24,11 +24,11 @@ public abstract class QueryableListOperationHandlerBase
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
         return context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
+            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
             operationField.Id == Operation;
     }
 
@@ -103,7 +103,7 @@ public abstract class QueryableListOperationHandlerBase
     }
 
     /// <summary>
-    /// Maps a operation field to a list filter definition.
+    /// Maps a operation field to a list filter configuration.
     /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
     /// field
     /// </summary>

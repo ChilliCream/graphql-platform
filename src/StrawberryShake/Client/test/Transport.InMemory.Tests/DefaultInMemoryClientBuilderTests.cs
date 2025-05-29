@@ -136,30 +136,39 @@ public class DefaultInMemoryClientBuilderTests
     public async Task CreateClientAsync_ExecutorSet_SchemaNameOfExecutor()
     {
         // arrange
-        var nameString = "FooBar";
-        Mock<IRequestExecutor> executorMock = new();
-        Mock<ISchema> schemaMock = new();
-        Mock<IRequestExecutorResolver> executorResolverMock = new();
-        var executorResolver = executorResolverMock.Object;
+        const string nameString = "FooBar";
+        var executorProvider = CreateExecutorProvider(nameString);
+        var executor = await executorProvider.GetRequestExecutorAsync(nameString);
+
         var optionsMonitor =
             new ServiceCollection()
-                .Configure<InMemoryClientFactoryOptions>("Foo",
-                    x => x.InMemoryClientActions.Add((memoryClient, token) =>
+                .Configure<InMemoryClientFactoryOptions>(
+                    "Foo",
+                    options => options.InMemoryClientActions.Add((client, _) =>
                     {
-                        memoryClient.Executor = executorMock.Object;
+                        client.Executor = executor;
                         return default;
                     }))
                 .BuildServiceProvider()
                 .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
-        var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);
 
-        schemaMock.Setup(x => x.Name).Returns(nameString);
-        executorMock.Setup(x => x.Schema).Returns(schemaMock.Object);
+        var factory = new DefaultInMemoryClientFactory(executorProvider, optionsMonitor);
 
         // act
         var client = await factory.CreateAsync("Foo");
 
         // assert
-        Assert.Equal(client.SchemaName, nameString);
+        Assert.Equal(nameString, client.SchemaName);
+    }
+
+    private static IRequestExecutorResolver CreateExecutorProvider(string schemaName)
+    {
+        return new ServiceCollection()
+            .AddGraphQLServer(schemaName)
+            .AddDocumentFromString("type Query { hello: String }")
+            .UseField(next => next)
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>();
     }
 }

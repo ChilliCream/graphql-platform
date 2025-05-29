@@ -57,7 +57,7 @@ internal static class InputObjectCompiler
         expressions.Add(Expression.Assign(variable, instance));
         CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable, }, expressions);
+        Expression body = Expression.Block(new[] { variable }, expressions);
 
         var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
 
@@ -107,7 +107,7 @@ internal static class InputObjectCompiler
         expressions.Add(Expression.Assign(variable, instance));
         CompileSetProperties(variable, arguments.Values, _fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable, }, expressions);
+        Expression body = Expression.Block([variable], expressions);
 
         var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
 
@@ -167,18 +167,16 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputField, IHasProperty
-    {
-        return Expression.New(
+        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
-    }
 
     private static Expression[] CompileAssignParameters<T>(
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
     {
         var parameters = constructor.GetParameters();
 
@@ -198,7 +196,7 @@ internal static class InputObjectCompiler
                 fields.Remove(field.Property!.Name);
                 var value = GetFieldValue(field, fieldValues);
 
-                if (field is InputField { IsOptional: true, })
+                if (field is InputField { IsOptional: true })
                 {
                     value = CreateOptional(value, field.RuntimeType);
                 }
@@ -230,14 +228,14 @@ internal static class InputObjectCompiler
         IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
-        where T : class, IInputField, IHasProperty
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IHasRuntimeType
     {
         foreach (var field in fields)
         {
             var setter = field.Property!.GetSetMethod(true)!;
             var value = GetFieldValue(field, fieldValues);
 
-            if (field is InputField { IsOptional: true, })
+            if (field is InputField { IsOptional: true })
             {
                 value = CreateOptional(value, field.RuntimeType);
             }
@@ -249,13 +247,14 @@ internal static class InputObjectCompiler
     }
 
     private static Expression GetFieldValue<T>(T field, Expression fieldValues)
-        where T : class, IInputField, IHasProperty
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider
         => Expression.ArrayIndex(fieldValues, Expression.Constant(field.Index));
 
-    private static Expression SetFieldValue(
-        IInputField field,
+    private static Expression SetFieldValue<T>(
+        T field,
         Expression fieldValues,
         Expression fieldValue)
+        where T : IInputValueDefinition, IFieldIndexProvider
     {
         Expression index = Expression.Constant(field.Index);
         Expression element = Expression.ArrayAccess(fieldValues, index);

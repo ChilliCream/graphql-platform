@@ -13,48 +13,52 @@ public class KnownFragmentNamesTests
     [Fact]
     public void UniqueFragments()
     {
-        ExpectValid(@"
-                 {
-                    human(id: 4) {
-                        ...HumanFields1
-                        ... on Human {
-                            ...HumanFields2
-                        }
-                        ... {
-                            name
-                        }
-                    }
+        ExpectValid(
+            """
+            {
+              human(id: 4) {
+                ...HumanFields1
+                ... on Human {
+                  ...HumanFields2
                 }
-                fragment HumanFields1 on Human {
-                    name
-                    ...HumanFields3
+                ... {
+                  name
                 }
-                fragment HumanFields2 on Human {
-                    name
-                }
-                fragment HumanFields3 on Human {
-                    name
-                }
-            ");
+              }
+            }
+            fragment HumanFields1 on Human {
+              name
+              ...HumanFields3
+            }
+            fragment HumanFields2 on Human {
+              name
+            }
+            fragment HumanFields3 on Human {
+              name
+            }
+            """
+        );
     }
 
     [Fact]
     public void DuplicateFragments()
     {
         // arrange
-        ExpectErrors(@"
-                {
-                    human(id: 4) {
-                        ...UnknownFragment1
-                        ... on Human {
-                            ...UnknownFragment2
-                        }
-                    }
+        ExpectErrors(
+            """
+            {
+              human(id: 4) {
+                ...UnknownFragment1
+                ... on Human {
+                  ...UnknownFragment2
                 }
-                fragment HumanFields on Human {
-                    name
-                    ...UnknownFragment3
-                }
-            " );
+              }
+            }
+            fragment HumanFields on Human {
+              name
+              ...UnknownFragment3
+            }
+            """
+        );
     }
 }

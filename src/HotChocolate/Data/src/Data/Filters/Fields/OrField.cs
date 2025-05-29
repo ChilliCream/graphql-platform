@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
@@ -10,7 +10,7 @@ public sealed class OrField
     , IOrField
 {
     internal OrField(IDescriptorContext context, int index, string? scope)
-        : base(CreateDefinition(context, scope), index)
+        : base(CreateConfiguration(context, scope), index)
     {
     }
 
@@ -21,7 +21,7 @@ public sealed class OrField
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        InputFieldDefinition definition)
+        InputFieldConfiguration definition)
     {
         definition.Type = TypeReference.Parse(
             $"[{context.Type.Name}!]",
@@ -31,10 +31,10 @@ public sealed class OrField
         base.OnCompleteField(context, declaringMember, definition);
     }
 
-    private static FilterOperationFieldDefinition CreateDefinition(
+    private static FilterOperationFieldConfiguration CreateConfiguration(
         IDescriptorContext context,
         string? scope) =>
         FilterOperationFieldDescriptor
             .New(context, DefaultFilterOperations.Or, scope)
-            .CreateDefinition();
+            .CreateConfiguration();
 }

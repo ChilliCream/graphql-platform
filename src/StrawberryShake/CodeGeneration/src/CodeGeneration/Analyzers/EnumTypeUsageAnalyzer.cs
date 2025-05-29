@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<object?>
+internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object?>
 {
     private readonly HashSet<EnumType> _enumTypes = [];
     private readonly HashSet<IInputType> _visitedTypes = [];
@@ -36,7 +36,7 @@ internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<objec
 
     protected override ISyntaxVisitorAction Enter(VariableDefinitionNode node, object? context)
     {
-        if (schema.TryGetType<INamedType>(node.Type.NamedType().Name.Value, out var type) &&
+        if (schema.Types.TryGetType<ITypeDefinition>(node.Type.NamedType().Name.Value, out var type) &&
             type is IInputType inputType)
         {
             VisitInputType(inputType);
@@ -49,7 +49,7 @@ internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<objec
     {
         var currentType = _typeContext.Peek();
 
-        if (currentType is IComplexOutputType complexType &&
+        if (currentType is IComplexTypeDefinition complexType &&
             complexType.Fields.TryGetField(node.Name.Value, out var field))
         {
             var fieldType = field.Type.NamedType();
@@ -75,7 +75,7 @@ internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<objec
 
     protected override ISyntaxVisitorAction Enter(FragmentDefinitionNode node, object? context)
     {
-        var type = schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+        var type = schema.Types.GetType<ITypeDefinition>(node.TypeCondition.Name.Value);
 
         _typeContext.Push(type);
 
@@ -93,7 +93,7 @@ internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<objec
     {
         if (node.TypeCondition != null)
         {
-            var type = schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+            var type = schema.Types.GetType<ITypeDefinition>(node.TypeCondition.Name.Value);
             _typeContext.Push(type);
         }
 
@@ -122,7 +122,7 @@ internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<objec
                         type = elementType;
                         continue;
 
-                    case NonNullType { Type: IInputType innerType }:
+                    case NonNullType { NullableType: IInputType innerType }:
                         type = innerType;
                         continue;
 
@@ -142,7 +142,7 @@ internal sealed class EnumTypeUsageAnalyzer(ISchema schema) : SyntaxWalker<objec
 
     private void VisitInputObjectType(InputObjectType type)
     {
-        foreach (IInputField field in type.Fields)
+        foreach (InputField field in type.Fields)
         {
             VisitInputType(field.Type);
         }

@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.PagingDefaults;
@@ -115,8 +115,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
-                d.Flags |= FieldFlags.CollectionSegment;
+                d.Features.Set(pagingOptions);
+                d.Flags |= CoreFieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -235,8 +235,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
-                d.Flags |= FieldFlags.CollectionSegment;
+                d.Features.Set(pagingOptions);
+                d.Flags |= CoreFieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -268,7 +268,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         }
 
         var skip = descriptor.Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>());
-        skip.Extend().Definition.Flags |= FieldFlags.SkipArgument;
+        skip.Extend().Configuration.Flags |= CoreFieldFlags.CollectionSegmentSkipArgument;
 
         return descriptor
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
@@ -349,7 +349,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             PagingProviderEntry? defaultEntry = null;
 
             // if we find an application service provider we will prefer that one.
-            var applicationServices = services.GetService<IApplicationServiceProvider>();
+            var applicationServices = services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
 
             if (applicationServices is not null)
             {

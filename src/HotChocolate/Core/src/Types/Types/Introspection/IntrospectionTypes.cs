@@ -18,7 +18,7 @@ public static class IntrospectionTypes
         __Type.Names.__Type,
         __TypeKind.Names.__TypeKind,
         __AppliedDirective.Names.__AppliedDirective,
-        __DirectiveArgument.Names.__DirectiveArgument,
+        __DirectiveArgument.Names.__DirectiveArgument
     ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(
@@ -33,7 +33,7 @@ public static class IntrospectionTypes
                 context.TypeInspector.GetTypeRef(typeof(__InputValue)),
                 context.TypeInspector.GetTypeRef(typeof(__Schema)),
                 context.TypeInspector.GetTypeRef(typeof(__Type)),
-                context.TypeInspector.GetTypeRef(typeof(__TypeKind)),
+                context.TypeInspector.GetTypeRef(typeof(__TypeKind))
             };
 
         if (context.Options.EnableDirectiveIntrospection)
@@ -59,6 +59,6 @@ public static class IntrospectionTypes
     /// <summary>
     /// Defines if the type represents an introspection type.
     /// </summary>
-    public static bool IsIntrospectionType(INamedType type)
+    public static bool IsIntrospectionType(ITypeDefinition type)
         => IsIntrospectionType(type.Name);
 }

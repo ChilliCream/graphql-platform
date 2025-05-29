@@ -53,7 +53,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .UseWritePersistedOperation()
                     .UseDocumentParser()
                     .UseDocumentValidation()
-                    .UseCostAnalyzer()
                     .UseOperationCache()
                     .UseOperationResolver()
                     .UseOperationVariableCoercion()

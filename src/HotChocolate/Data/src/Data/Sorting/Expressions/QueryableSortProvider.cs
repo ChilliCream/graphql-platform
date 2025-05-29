@@ -29,19 +29,6 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
 {
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that defines the name of the argument for sorting
-    /// </summary>
-    public const string ContextArgumentNameKey = "SortArgumentName";
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that holds the delegate which does the visitation of the sorting argument.
-    /// <see cref="VisitSortArgument"/>
-    /// </summary>
-    public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the sorting to input
     /// <see cref="ApplySorting"/>
     /// </summary>
@@ -124,31 +111,30 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             return visitorContext;
         }
 
-        var contextData = descriptor.Extend().Definition.ContextData;
-        var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
-        contextData[ContextVisitSortArgumentKey] = argumentKey;
-        contextData[ContextArgumentNameKey] = argumentName;
+        var configuration = descriptor.Extend().Configuration;
+        var feature = new SortingFeature(argumentName, VisitSortArgumentExecutor);
+        configuration.Features.Set(feature);
     }
 
     /// <inheritdoc />
     public override ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration)
     {
-        if (fieldDefinition.Expression is not null)
+        if (fieldConfiguration.Expression is not null)
         {
-            if (fieldDefinition.Expression is not LambdaExpression lambda ||
+            if (fieldConfiguration.Expression is not LambdaExpression lambda ||
                 lambda.Parameters.Count != 1 ||
-                lambda.Parameters[0].Type != typeDefinition.EntityType)
+                lambda.Parameters[0].Type != typeConfiguration.EntityType)
             {
                 throw ThrowHelper.QueryableSortProvider_ExpressionParameterInvalid(
                     context.Type,
-                    typeDefinition,
-                    fieldDefinition);
+                    typeConfiguration,
+                    fieldConfiguration);
             }
 
-            return new ExpressionSortMetadata(fieldDefinition.Expression);
+            return new ExpressionSortMetadata(fieldConfiguration.Expression);
         }
 
         return null;
@@ -206,15 +192,14 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             }
 
             var sortingIsDefined = false;
-            if (argument.Type is ListType lt &&
-                lt.ElementType is NonNullType nn &&
-                nn.NamedType() is ISortInputType sortInput &&
-                context.Selection.Field.ContextData.TryGetValue(ContextVisitSortArgumentKey, out var executorObj) &&
-                executorObj is VisitSortArgument executor)
+            if (argument.Type is ListType lt
+                && lt.ElementType is NonNullType nn
+                && nn.NamedType() is ISortInputType sortInput
+                && context.Selection.Field.Features.TryGet(out SortingFeature? feature))
             {
                 var inMemory = IsInMemoryQuery<TEntityType>(input);
 
-                var visitorContext = executor(sort, sortInput, inMemory);
+                var visitorContext = feature.ArgumentVisitor.Invoke(sort, sortInput, inMemory);
 
                 // compile expression tree
                 if (visitorContext.Errors.Count == 0)

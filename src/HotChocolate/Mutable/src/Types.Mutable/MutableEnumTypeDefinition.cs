@@ -15,7 +15,6 @@ public class MutableEnumTypeDefinition
     , IMutableTypeDefinition
     , IFeatureProvider
 {
-    private readonly EnumValueCollection _values = [];
     private DirectiveCollection? _directives;
 
     /// <summary>
@@ -24,6 +23,7 @@ public class MutableEnumTypeDefinition
     public MutableEnumTypeDefinition(string name)
     {
         Name = name;
+        Values = new EnumValueCollection(this);
     }
 
     /// <inheritdoc />
@@ -51,16 +51,18 @@ public class MutableEnumTypeDefinition
     /// <value>
     /// The values of this enum type.
     /// </value>
-    public EnumValueCollection Values
-        => _values;
+    public EnumValueCollection Values { get; }
 
     IReadOnlyEnumValueCollection IEnumTypeDefinition.Values
-        => _values;
+        => Values;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
         => field ??= new FeatureCollection();
+
+    public SchemaCoordinate Coordinate
+        => new(Name, ofDirective: false);
 
     /// <summary>
     /// Gets the string representation of this instance.

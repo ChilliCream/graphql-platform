@@ -85,7 +85,7 @@ public class IsSelectedAttribute : Attribute
     /// </param>
     public IsSelectedAttribute(string fieldName1, string fieldName2)
     {
-        FieldNames = [fieldName1, fieldName2,];
+        FieldNames = [fieldName1, fieldName2];
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class IsSelectedAttribute : Attribute
     /// </param>
     public IsSelectedAttribute(string fieldName1, string fieldName2, string fieldName3)
     {
-        FieldNames = [fieldName1, fieldName2, fieldName3,];
+        FieldNames = [fieldName1, fieldName2, fieldName3];
     }
 
     /// <summary>

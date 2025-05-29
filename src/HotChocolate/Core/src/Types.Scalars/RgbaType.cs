@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 public partial class RgbaType : RegexType
 {
     private const string _validationPattern =
-        "((?:rgba?)\\((?:\\d+%?(?:,|\\s)+){2,3}[\\s\\/]*[\\d\\.]+%?\\))";
+        "((?:rgba?)\\((?:[0-9]+%?(?:,|\\s)+){2,3}[\\s\\/]*[0-9\\.]+%?\\))";
 
     [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();

@@ -22,7 +22,7 @@ public sealed class RequiresOptInDirectiveType : DirectiveType<RequiresOptInDire
         IDirectiveTypeDescriptor<RequiresOptInDirective> descriptor)
     {
         descriptor
-            .Name(WellKnownDirectives.RequiresOptIn)
+            .Name(DirectiveNames.RequiresOptIn.Name)
             .Description(TypeResources.RequiresOptInDirectiveType_TypeDescription)
             .Location(DirectiveLocation.ArgumentDefinition)
             .Location(DirectiveLocation.EnumValue)
@@ -31,7 +31,7 @@ public sealed class RequiresOptInDirectiveType : DirectiveType<RequiresOptInDire
 
         descriptor
             .Argument(t => t.Feature)
-            .Name(WellKnownDirectives.RequiresOptInFeatureArgument)
+            .Name(DirectiveNames.RequiresOptIn.Arguments.Feature)
             .Description(TypeResources.RequiresOptInDirectiveType_FeatureDescription)
             .Type<NonNullType<StringType>>();
     }

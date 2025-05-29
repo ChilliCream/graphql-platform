@@ -18,17 +18,10 @@ internal static class SchemaValidator
 
     public static IReadOnlyList<ISchemaError> Validate(
         IDescriptorContext context,
-        ISchema schema)
+        ISchemaDefinition schema)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (schema == null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(schema);
 
         var errors = new List<ISchemaError>();
 

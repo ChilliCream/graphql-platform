@@ -2,14 +2,14 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
 public class DirectiveTypeDescriptor
-    : DescriptorBase<DirectiveTypeDefinition>
+    : DescriptorBase<DirectiveTypeConfiguration>
     , IDirectiveTypeDescriptor
 {
     protected internal DirectiveTypeDescriptor(
@@ -22,53 +22,53 @@ public class DirectiveTypeDescriptor
             throw new ArgumentNullException(nameof(clrType));
         }
 
-        Definition.RuntimeType = clrType;
-        Definition.Name = context.Naming.GetTypeName(
+        Configuration.RuntimeType = clrType;
+        Configuration.Name = context.Naming.GetTypeName(
             clrType, TypeKind.Directive);
-        Definition.Description = context.Naming.GetTypeDescription(
+        Configuration.Description = context.Naming.GetTypeDescription(
             clrType, TypeKind.Directive);
-        Definition.IsPublic =
+        Configuration.IsPublic =
             context.Options.DefaultDirectiveVisibility == DirectiveVisibility.Public;
     }
 
     protected internal DirectiveTypeDescriptor(IDescriptorContext context)
         : base(context)
     {
-        Definition.RuntimeType = typeof(object);
+        Configuration.RuntimeType = typeof(object);
     }
 
     protected internal DirectiveTypeDescriptor(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override DirectiveTypeDefinition Definition { get; protected set; } = new();
+    protected internal override DirectiveTypeConfiguration Configuration { get; protected set; } = new();
 
     protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
         new List<DirectiveArgumentDescriptor>();
 
-    protected override void OnCreateDefinition(
-        DirectiveTypeDefinition definition)
+    protected override void OnCreateConfiguration(
+        DirectiveTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.RuntimeType);
-            Definition.AttributesAreApplied = true;
+                Configuration.RuntimeType);
+            Configuration.AttributesAreApplied = true;
         }
 
-        var arguments = new Dictionary<string, DirectiveArgumentDefinition>(StringComparer.Ordinal);
+        var arguments = new Dictionary<string, DirectiveArgumentConfiguration>(StringComparer.Ordinal);
         var handledMembers = new HashSet<PropertyInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
-            Arguments.Select(t => t.CreateDefinition()),
+            Arguments.Select(t => t.CreateConfiguration()),
             f => f.Property,
             arguments,
             handledMembers);
@@ -77,32 +77,32 @@ public class DirectiveTypeDescriptor
 
         definition.Arguments.AddRange(arguments.Values);
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteArguments(
-        IDictionary<string, DirectiveArgumentDefinition> arguments,
+        IDictionary<string, DirectiveArgumentConfiguration> arguments,
         ISet<PropertyInfo> handledProperties)
     {
     }
 
     public IDirectiveTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IDirectiveTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     public IDirectiveArgumentDescriptor Argument(string name)
     {
-        var descriptor = Arguments.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
+        var descriptor = Arguments.FirstOrDefault(t => t.Configuration.Name.EqualsOrdinal(name));
 
         if (descriptor is not null)
         {
@@ -116,7 +116,7 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveTypeDescriptor Location(DirectiveLocation value)
     {
-        Definition.Locations |= value;
+        Configuration.Locations |= value;
         return this;
     }
 
@@ -127,7 +127,7 @@ public class DirectiveTypeDescriptor
             throw new ArgumentNullException(nameof(middleware));
         }
 
-        Definition.MiddlewareComponents.Add(middleware);
+        Configuration.MiddlewareComponents.Add(middleware);
         return this;
     }
 
@@ -151,19 +151,19 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveTypeDescriptor Repeatable()
     {
-        Definition.IsRepeatable = true;
+        Configuration.IsRepeatable = true;
         return this;
     }
 
     public IDirectiveTypeDescriptor Public()
     {
-        Definition.IsPublic = true;
+        Configuration.IsPublic = true;
         return this;
     }
 
     public IDirectiveTypeDescriptor Internal()
     {
-        Definition.IsPublic = false;
+        Configuration.IsPublic = false;
         return this;
     }
 
@@ -179,17 +179,17 @@ public class DirectiveTypeDescriptor
         Type schemaType)
     {
         var descriptor = New(context, schemaType);
-        descriptor.Definition.RuntimeType = typeof(object);
+        descriptor.Configuration.RuntimeType = typeof(object);
         return descriptor;
     }
 
     public static DirectiveTypeDescriptor From(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => new(context, definition);
 
     public static DirectiveTypeDescriptor From<T>(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => new DirectiveTypeDescriptor<T>(context, definition);
 }
