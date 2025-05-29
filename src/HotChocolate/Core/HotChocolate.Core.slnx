@@ -67,7 +67,7 @@
     <Project Path="test/Subscriptions.RabbitMQ.Tests/HotChocolate.Subscriptions.RabbitMQ.Tests.csproj" />
     <Project Path="test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj" />
     <Project Path="test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj" />
-    <Project Path="test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Integration.Tests.csproj" />
+    <Project Path="test/Types.Analyzers.Integration.Tests/HotChocolate.Types.Analyzers.Integration.Tests.csproj" />
     <Project Path="test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
     <Project Path="test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj" />
     <Project Path="test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj" />
