@@ -149,3 +149,9 @@ dotnet_naming_symbols.static_fields.required_modifiers = static
 dotnet_naming_symbols.static_fields.applicable_accessibilities = private, internal, private_protected
 dotnet_naming_style.static_prefix_style.required_prefix = s_
 dotnet_naming_style.static_prefix_style.capitalization = camel_case
+
+# Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance.
+dotnet_diagnostic.CA1510.severity = warning
+
+[src/HotChocolate/Language/**/*.cs]
+dotnet_diagnostic.CA1510.severity = none

@@ -28,10 +28,7 @@ public abstract class ExecutionResult : IExecutionResult
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)
     {
-        if (clean is null)
-        {
-            throw new ArgumentNullException(nameof(clean));
-        }
+        ArgumentNullException.ThrowIfNull(clean);
 
         var length = _cleanupTasks.Length;
         Array.Resize(ref _cleanupTasks, length + 1);

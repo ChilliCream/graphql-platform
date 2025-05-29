@@ -27,10 +27,7 @@ internal static class OperationDocumentHelper
         IEnumerable<DocumentNode> documents,
         Schema? schema = null)
     {
-        if (documents is null)
-        {
-            throw new ArgumentNullException(nameof(documents));
-        }
+        ArgumentNullException.ThrowIfNull(documents);
 
         var mergedDocument = MergeDocuments(documents);
         mergedDocument = RemovedUnusedFragmentRewriter.Rewrite(mergedDocument);

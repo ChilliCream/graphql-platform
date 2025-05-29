@@ -58,10 +58,7 @@ public class Selection : ISelection
 
     protected Selection(Selection selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         Id = selection.Id;
         Strategy = selection.Strategy;

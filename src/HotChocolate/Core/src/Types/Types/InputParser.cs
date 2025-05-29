@@ -33,15 +33,8 @@ public sealed class InputParser
 
     public object? ParseLiteral(IValueNode value, IInputValueInfo field, Type? targetType = null)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        if (field is null)
-        {
-            throw new ArgumentNullException(nameof(field));
-        }
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(field);
 
         var path = Path.Root.Append(field.Name);
         var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
@@ -60,15 +53,8 @@ public sealed class InputParser
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(type);
 
         return ParseLiteralInternal(value, type, path ?? _root, 0, true, null);
     }
@@ -341,15 +327,8 @@ public sealed class InputParser
         DirectiveType type,
         Path? path = null)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(type);
 
         return ParseDirective(node, type, path ?? Path.Root, 0, true);
     }
@@ -456,10 +435,7 @@ public sealed class InputParser
 
     public object? ParseResult(object? resultValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return Deserialize(resultValue, type, path ?? _root, null);
     }

@@ -32,10 +32,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
     /// <param name="client">The blob container client instance.</param>
     public AzureBlobOperationDocumentStorage(BlobContainerClient client)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         _client = client;
     }
@@ -117,10 +114,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         IOperationDocument document,
         CancellationToken cancellationToken = default)
     {
-        if(document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         if (OperationDocumentId.IsNullOrEmpty(documentId))
         {

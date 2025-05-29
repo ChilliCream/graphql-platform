@@ -32,10 +32,7 @@ public static class DataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (key == null)
         {
@@ -75,15 +72,8 @@ public static class DataLoaderExtensions
         where TKey : notnull
         where TValue : notnull
     {
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (keys == null)
-        {
-            throw new ArgumentNullException(nameof(keys));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(keys);
 
         var values = await dataLoader.LoadAsync(keys, cancellationToken).ConfigureAwait(false);
 
@@ -156,10 +146,7 @@ public static class DataLoaderExtensions
         TValue? value)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (key == null)
         {
@@ -186,15 +173,8 @@ public static class DataLoaderExtensions
         object key,
         object? value)
     {
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (key == null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(key);
 
         dataLoader.SetCacheEntry(key, Task.FromResult(value));
     }
@@ -273,10 +253,7 @@ public static class DataLoaderExtensions
         TState value)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         return dataLoader.SetState(typeof(TState).FullName ?? typeof(TState).Name, value);
     }
@@ -317,10 +294,7 @@ public static class DataLoaderExtensions
         TState value)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (string.IsNullOrEmpty(key))
         {
@@ -362,10 +336,7 @@ public static class DataLoaderExtensions
         TState value)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         return dataLoader.TrySetState(typeof(TState).FullName ?? typeof(TState).Name, value);
     }
@@ -406,10 +377,7 @@ public static class DataLoaderExtensions
         TState value)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (string.IsNullOrEmpty(key))
         {
@@ -456,10 +424,7 @@ public static class DataLoaderExtensions
         Func<string, TState> createValue)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         var key = typeof(TState).FullName ?? typeof(TState).Name;
 
@@ -509,10 +474,7 @@ public static class DataLoaderExtensions
         Func<string, TState> createValue)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (string.IsNullOrEmpty(key))
         {
@@ -559,10 +521,7 @@ public static class DataLoaderExtensions
         TState value)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         return dataLoader.AddStateEnumerable(typeof(TState).FullName ?? typeof(TState).Name, value);
     }
@@ -603,10 +562,7 @@ public static class DataLoaderExtensions
         TState value)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (string.IsNullOrEmpty(key))
         {

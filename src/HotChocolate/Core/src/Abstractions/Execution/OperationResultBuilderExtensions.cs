@@ -16,15 +16,8 @@ public static class OperationResultBuilderExtensions
     /// </param>
     public static void RegisterForCleanup(this OperationResultBuilder builder, Action clean)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (clean is null)
-        {
-            throw new ArgumentNullException(nameof(clean));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(clean);
 
         builder.RegisterForCleanup(() =>
         {
@@ -44,15 +37,8 @@ public static class OperationResultBuilderExtensions
     /// </param>
     public static void RegisterForCleanup(this OperationResultBuilder builder, IDisposable disposable)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (disposable is null)
-        {
-            throw new ArgumentNullException(nameof(disposable));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(disposable);
 
         builder.RegisterForCleanup(disposable.Dispose);
     }
@@ -70,15 +56,8 @@ public static class OperationResultBuilderExtensions
         this OperationResultBuilder builder,
         IAsyncDisposable disposable)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (disposable is null)
-        {
-            throw new ArgumentNullException(nameof(disposable));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(disposable);
 
         builder.RegisterForCleanup(disposable.DisposeAsync);
     }

@@ -12,10 +12,7 @@ public static class FireAndForgetTaskExtensions
         Action? onComplete = null,
         Action<Exception>? onError = null)
     {
-        if (task is null)
-        {
-            throw new ArgumentNullException(nameof(task));
-        }
+        ArgumentNullException.ThrowIfNull(task);
 
         _ = FireAndForgetInternal(task, onComplete, onError);
 
@@ -107,20 +104,14 @@ public static class FireAndForgetTaskExtensions
 
     internal static void SubscribeToErrors(BackgroundTaskErrorInterceptor interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         ImmutableInterlocked.Update(ref _interceptors, x => x.Add(interceptor));
     }
 
     internal static void UnsubscribeFromErrors(BackgroundTaskErrorInterceptor interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         ImmutableInterlocked.Update(ref _interceptors, x => x.Remove(interceptor));
     }

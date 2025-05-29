@@ -18,10 +18,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var name = GetFromType(type);
 
@@ -30,10 +27,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this PropertyInfo property)
     {
-        if (property is null)
-        {
-            throw new ArgumentNullException(nameof(property));
-        }
+        ArgumentNullException.ThrowIfNull(property);
 
         var name = property.IsDefined(
             typeof(GraphQLNameAttribute), false)
@@ -45,10 +39,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this MethodInfo method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var name = method.IsDefined(
             typeof(GraphQLNameAttribute), false)
@@ -60,10 +51,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         var name = parameter.IsDefined(
             typeof(GraphQLNameAttribute), false)
@@ -75,10 +63,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         if (member is MethodInfo m)
         {

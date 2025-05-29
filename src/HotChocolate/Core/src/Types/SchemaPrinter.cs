@@ -10,10 +10,7 @@ public static class SchemaPrinter
 {
     public static string Print(Schema schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var document = PrintSchema(schema);
         return document.Print();
@@ -21,15 +18,8 @@ public static class SchemaPrinter
 
     public static void Serialize(Schema schema, TextWriter textWriter)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (textWriter is null)
-        {
-            throw new ArgumentNullException(nameof(textWriter));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(textWriter);
 
         var document = PrintSchema(schema);
         textWriter.Write(document.Print());

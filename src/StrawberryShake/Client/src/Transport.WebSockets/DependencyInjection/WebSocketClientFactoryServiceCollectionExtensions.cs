@@ -22,10 +22,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     public static IServiceCollection AddProtocol<TFactory>(this IServiceCollection services)
         where TFactory : class, ISocketProtocolFactory
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton<ISocketProtocolFactory, TFactory>();
 
@@ -61,15 +58,8 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
         this IServiceCollection services,
         string name)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
 
         AddWebSocketClient(services);
 
@@ -110,20 +100,9 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
         string name,
         Action<IWebSocketClient> configureClient)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         AddWebSocketClient(services);
 
@@ -166,20 +145,9 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
         string name,
         Action<IServiceProvider, IWebSocketClient> configureClient)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         AddWebSocketClient(services);
 
@@ -190,10 +158,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
 
     private static IServiceCollection AddWebSocketClient(this IServiceCollection services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddOptions();
 

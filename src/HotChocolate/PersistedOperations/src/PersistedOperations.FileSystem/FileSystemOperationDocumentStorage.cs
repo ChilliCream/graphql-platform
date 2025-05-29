@@ -73,10 +73,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         var filePath = _documentMap.MapToFilePath(documentId.Value);
         return SaveInternalAsync(filePath, document, cancellationToken);

@@ -20,10 +20,7 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
     {
         _diagnosticEvents = diagnosticEvents ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
-        if (connectionFactory is null)
-        {
-            throw new ArgumentNullException(nameof(connectionFactory));
-        }
+        ArgumentNullException.ThrowIfNull(connectionFactory);
 
         InitializeConnection(connectionFactory);
     }

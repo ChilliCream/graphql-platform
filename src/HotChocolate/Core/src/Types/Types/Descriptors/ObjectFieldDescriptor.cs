@@ -317,10 +317,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     public IObjectFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         Configuration.Resolver = fieldResolver;
         return this;
@@ -331,10 +328,7 @@ public class ObjectFieldDescriptor
         FieldResolverDelegate fieldResolver,
         Type? resultType)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         Configuration.Resolver = fieldResolver;
 
@@ -366,10 +360,7 @@ public class ObjectFieldDescriptor
     public IObjectFieldDescriptor ResolveWith<TResolver>(
         Expression<Func<TResolver, object?>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
     }
@@ -377,10 +368,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     public IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
     }
@@ -433,10 +421,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     public IObjectFieldDescriptor Use(FieldMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         Configuration.MiddlewareConfigurations.Add(new(middleware));
         return this;

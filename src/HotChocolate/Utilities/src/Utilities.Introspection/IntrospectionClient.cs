@@ -56,10 +56,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return IntrospectServerInternalAsync(client, options, cancellationToken);
     }
@@ -108,10 +105,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return IntrospectServerInternalAsync(client, options, cancellationToken);
     }
@@ -162,10 +156,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return InspectServerInternalAsync(client, options, cancellationToken);
     }
@@ -212,10 +203,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return InspectAsync(client, options, cancellationToken);
     }

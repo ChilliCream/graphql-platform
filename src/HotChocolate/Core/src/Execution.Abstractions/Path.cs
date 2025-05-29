@@ -294,10 +294,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     /// </exception>
     public static Path FromList(IReadOnlyList<object> path)
     {
-        if (path is null)
-        {
-            throw new ArgumentNullException(nameof(path));
-        }
+        ArgumentNullException.ThrowIfNull(path);
 
         if (path.Count == 0)
         {

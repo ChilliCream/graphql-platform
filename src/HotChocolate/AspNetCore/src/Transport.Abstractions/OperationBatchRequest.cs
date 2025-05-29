@@ -31,10 +31,7 @@ public readonly struct OperationBatchRequest(
     /// </exception>
     public void WriteTo(Utf8JsonWriter writer)
     {
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
     }

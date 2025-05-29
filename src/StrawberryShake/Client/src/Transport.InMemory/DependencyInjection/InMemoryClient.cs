@@ -46,10 +46,7 @@ public class InMemoryClient : IInMemoryClient
         OperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         if (Executor is null)
         {

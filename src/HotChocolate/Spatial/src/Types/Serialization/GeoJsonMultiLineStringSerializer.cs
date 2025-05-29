@@ -20,10 +20,7 @@ internal class GeoJsonMultiLineStringSerializer
         object? coordinates,
         int? crs)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (coordinates is IList { Count: > 0, } list)
         {
@@ -75,10 +72,7 @@ internal class GeoJsonMultiLineStringSerializer
 
     public override object CreateInstance(IType type, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (fieldValues[0] is not GeoJsonGeometryType.MultiLineString)
         {
@@ -90,10 +84,7 @@ internal class GeoJsonMultiLineStringSerializer
 
     public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is not MultiLineString geometry)
         {
@@ -107,10 +98,7 @@ internal class GeoJsonMultiLineStringSerializer
 
     public override IValueNode ParseValue(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {

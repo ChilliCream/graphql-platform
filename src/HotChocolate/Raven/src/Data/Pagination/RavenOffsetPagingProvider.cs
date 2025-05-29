@@ -28,10 +28,7 @@ public sealed class RavenOffsetPagingProvider : OffsetPagingProvider
         IExtendedType source,
         PagingOptions options)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return (OffsetPagingHandler)_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source.GetGenericArguments()[0])

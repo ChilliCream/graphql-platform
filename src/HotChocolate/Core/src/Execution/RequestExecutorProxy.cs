@@ -62,10 +62,7 @@ public sealed class RequestExecutorProxy : IDisposable
         IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         var executor =
             await GetRequestExecutorAsync(cancellationToken)
@@ -95,10 +92,7 @@ public sealed class RequestExecutorProxy : IDisposable
         OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
     {
-        if (requestBatch == null)
-        {
-            throw new ArgumentNullException(nameof(requestBatch));
-        }
+        ArgumentNullException.ThrowIfNull(requestBatch);
 
         var executor =
             await GetRequestExecutorAsync(cancellationToken)

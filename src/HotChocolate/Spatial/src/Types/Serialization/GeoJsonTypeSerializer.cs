@@ -35,10 +35,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         object? runtimeValue,
         out object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
@@ -59,15 +56,8 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
 
     public override bool IsInstanceOfType(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -89,15 +79,8 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
 
     public override object? ParseLiteral(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is EnumValueNode evn &&
             _nameLookup.TryGetValue(evn.Value, out var ev))
@@ -121,10 +104,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
 
     public override IValueNode ParseValue(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
@@ -152,10 +132,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
 
     public override IValueNode ParseResult(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -179,10 +156,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
 
     public override bool IsInstanceOfType(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return runtimeValue is null or GeoJsonGeometryType;
     }
@@ -195,10 +169,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         object? resultValue,
         out object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {

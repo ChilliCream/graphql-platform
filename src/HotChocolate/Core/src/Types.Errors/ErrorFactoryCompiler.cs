@@ -8,10 +8,7 @@ internal static class ErrorFactoryCompiler
 {
     public static IReadOnlyList<ErrorConfiguration> Compile(Type errorType)
     {
-        if (errorType is null)
-        {
-            throw new ArgumentNullException(nameof(errorType));
-        }
+        ArgumentNullException.ThrowIfNull(errorType);
 
         if (TryCreateDefaultErrorFactory(errorType, out var definitions))
         {

@@ -41,10 +41,7 @@ public static class CSharpGenerator
         IEnumerable<string> fileNames,
         CSharpGeneratorSettings? settings = null)
     {
-        if (fileNames is null)
-        {
-            throw new ArgumentNullException(nameof(fileNames));
-        }
+        ArgumentNullException.ThrowIfNull(fileNames);
 
         settings ??= new CSharpGeneratorSettings();
 
@@ -140,10 +137,7 @@ public static class CSharpGenerator
         ClientModel clientModel,
         CSharpGeneratorSettings settings)
     {
-        if (clientModel is null)
-        {
-            throw new ArgumentNullException(nameof(clientModel));
-        }
+        ArgumentNullException.ThrowIfNull(clientModel);
 
         if (string.IsNullOrEmpty(settings.ClientName))
         {

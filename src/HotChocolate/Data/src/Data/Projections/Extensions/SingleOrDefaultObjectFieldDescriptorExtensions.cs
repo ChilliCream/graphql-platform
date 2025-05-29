@@ -22,10 +22,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
         SelectionFlags selectionFlags,
         Type middlewareDefinition)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);

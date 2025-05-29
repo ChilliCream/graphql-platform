@@ -19,15 +19,8 @@ public static class CleanupExecutionResultExtensions
     /// </param>
     public static void RegisterForCleanup(this IExecutionResult result, Action clean)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (clean is null)
-        {
-            throw new ArgumentNullException(nameof(clean));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(clean);
 
         result.RegisterForCleanup(() =>
         {
@@ -47,15 +40,8 @@ public static class CleanupExecutionResultExtensions
     /// </param>
     public static void RegisterForCleanup(this IExecutionResult result, IDisposable disposable)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (disposable is null)
-        {
-            throw new ArgumentNullException(nameof(disposable));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(disposable);
 
         result.RegisterForCleanup(disposable.Dispose);
     }
@@ -71,15 +57,8 @@ public static class CleanupExecutionResultExtensions
     /// </param>
     public static void RegisterForCleanup(this IExecutionResult result, IAsyncDisposable disposable)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (disposable is null)
-        {
-            throw new ArgumentNullException(nameof(disposable));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(disposable);
 
         result.RegisterForCleanup(disposable.DisposeAsync);
     }

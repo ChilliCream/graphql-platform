@@ -8,15 +8,8 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
 
     public DictionaryServiceProvider(Type service, object instance)
     {
-        if (service == null)
-        {
-            throw new ArgumentNullException(nameof(service));
-        }
-
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(service);
+        ArgumentNullException.ThrowIfNull(instance);
 
         _services = new Dictionary<Type, object> { { service, instance }, };
         _services[typeof(IServiceProviderIsService)] = this;
@@ -24,10 +17,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
 
     public DictionaryServiceProvider(params KeyValuePair<Type, object>[] services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = services.ToDictionary(t => t.Key, t => t.Value);
         _services[typeof(IServiceProviderIsService)] = this;
@@ -35,10 +25,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
 
     public DictionaryServiceProvider(params (Type, object)[] services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = services.ToDictionary(t => t.Item1, t => t.Item2);
         _services[typeof(IServiceProviderIsService)] = this;
@@ -46,10 +33,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
 
     public DictionaryServiceProvider(IEnumerable<KeyValuePair<Type, object>> services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = services.ToDictionary(t => t.Key, t => t.Value);
         _services[typeof(IServiceProviderIsService)] = this;

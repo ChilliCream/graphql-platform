@@ -11,10 +11,7 @@ internal sealed class DirectiveDelegateMiddleware : IDirectiveMiddleware
             throw new ArgumentNullException(nameof(directiveName));
         }
 
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         DirectiveName = directiveName;
         Middleware = middleware;

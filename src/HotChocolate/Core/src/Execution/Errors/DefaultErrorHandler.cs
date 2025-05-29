@@ -14,15 +14,8 @@ internal sealed class DefaultErrorHandler : IErrorHandler
         IEnumerable<IErrorFilter> errorFilters,
         IErrorHandlerOptionsAccessor options)
     {
-        if (errorFilters is null)
-        {
-            throw new ArgumentNullException(nameof(errorFilters));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(errorFilters);
+        ArgumentNullException.ThrowIfNull(options);
 
         _filters = errorFilters.ToArray();
         _includeExceptionDetails = options.IncludeExceptionDetails;
@@ -36,10 +29,7 @@ internal sealed class DefaultErrorHandler : IErrorHandler
 
     public IError Handle(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         var current = error;
 
@@ -59,10 +49,7 @@ internal sealed class DefaultErrorHandler : IErrorHandler
 
     public ErrorBuilder CreateUnexpectedError(Exception exception)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
         return CreateErrorFromException(exception);
     }

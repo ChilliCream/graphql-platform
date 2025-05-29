@@ -27,15 +27,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<TService, TService> initializer)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (initializer == null)
-        {
-            throw new ArgumentNullException(nameof(initializer));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(initializer);
 
         builder.Services.AddSingleton<IServiceScopeInitializer>(new DelegateServiceInitializer<TService>(initializer));
         return builder;

@@ -111,7 +111,6 @@ public sealed class EntityResolverDescriptor<TEntity>
         IReadOnlyList<string[]> required)
     {
         ArgumentNullException.ThrowIfNull(fieldResolver);
-
         ArgumentNullException.ThrowIfNull(required);
 
         Configuration.Resolver = new ReferenceResolverConfiguration(fieldResolver, required);

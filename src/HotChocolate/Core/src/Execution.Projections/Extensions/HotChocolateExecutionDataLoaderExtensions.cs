@@ -32,15 +32,8 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ISelection selection)
         where TKey : notnull
     {
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
 
         var expression = selection.AsSelector<TValue>();
         return dataLoader.Select(expression);
@@ -125,15 +118,8 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ISelection selection)
         where TKey : notnull
     {
-        if (dataLoader == null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
-
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
 
         var expression = selection.AsSelector<TValue>();
         return dataLoader.Select(expression);

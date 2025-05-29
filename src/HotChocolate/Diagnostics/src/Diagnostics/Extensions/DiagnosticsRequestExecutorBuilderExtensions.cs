@@ -45,15 +45,8 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, InstrumentationOptions> options)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(options);
 
         builder.Services.TryAddSingleton(
             sp =>

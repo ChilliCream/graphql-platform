@@ -21,15 +21,8 @@ internal static class GraphQLWebSocketWriterExtension
         string operationId,
         OperationRequest request)
     {
-        if (operationId == null)
-        {
-            throw new ArgumentNullException(nameof(operationId));
-        }
-
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(operationId);
+        ArgumentNullException.ThrowIfNull(request);
 
         writer.WriteStartObject();
         writer.WriteType(GraphQLWebSocketMessageType.Start);
@@ -48,10 +41,7 @@ internal static class GraphQLWebSocketWriterExtension
         this SocketMessageWriter writer,
         string operationId)
     {
-        if (operationId == null)
-        {
-            throw new ArgumentNullException(nameof(operationId));
-        }
+        ArgumentNullException.ThrowIfNull(operationId);
 
         writer.WriteStartObject();
         writer.WriteType(GraphQLWebSocketMessageType.Stop);

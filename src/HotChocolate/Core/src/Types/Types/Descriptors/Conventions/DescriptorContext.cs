@@ -156,10 +156,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         string? scope = null)
         where T : class, IConvention
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(factory);
 
         var key = (typeof(T), scope);
 

@@ -27,10 +27,7 @@ public static class FilterObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return UseFiltering(descriptor, null, null, scope);
     }
@@ -47,10 +44,7 @@ public static class FilterObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var filterType =
             typeof(IFilterInputType).IsAssignableFrom(typeof(T))
@@ -74,15 +68,8 @@ public static class FilterObjectFieldDescriptorExtensions
         Action<IFilterInputTypeDescriptor<T>> configure,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(configure);
 
         var filterType = new FilterInputType<T>(configure);
         return UseFiltering(descriptor, filterType.GetType(), filterType, scope);
@@ -101,15 +88,8 @@ public static class FilterObjectFieldDescriptorExtensions
         Type type,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(type);
 
         var filterType =
             typeof(IFilterInputType).IsAssignableFrom(type)

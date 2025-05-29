@@ -62,10 +62,7 @@ public sealed class OperationManager : IOperationManager
                 nameof(sessionId));
         }
 
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         if (_disposed)
         {
