@@ -38,7 +38,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();
@@ -63,7 +66,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();
@@ -93,7 +99,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")
@@ -125,7 +134,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")

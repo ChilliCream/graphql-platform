@@ -90,7 +90,10 @@ public class QueryableFilterVisitorDistanceTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "2")
             .AddResult(res2, "1")
             .MatchAsync();

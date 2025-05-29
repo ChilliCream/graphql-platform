@@ -7,7 +7,7 @@
     <Description>This package contains common abstractions and base classes for socket transport.</Description>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
