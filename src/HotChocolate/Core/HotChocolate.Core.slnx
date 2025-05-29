@@ -36,9 +36,9 @@
     <Project Path="src/Subscriptions.Redis/HotChocolate.Subscriptions.Redis.csproj" />
     <Project Path="src/Subscriptions.Serializers.Newtonsoft/HotChocolate.Subscriptions.Serializers.Newtonsoft.csproj" />
     <Project Path="src/Subscriptions/HotChocolate.Subscriptions.csproj" />
-    <Project Path="src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj" />
     <Project Path="src/Types.Analyzers/HotChocolate.Types.Analyzers.csproj" />
     <Project Path="src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
+    <Project Path="src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
     <Project Path="src/Types.Errors/HotChocolate.Types.Errors.csproj" />
     <Project Path="src/Types.Json/HotChocolate.Types.Json.csproj" />
     <Project Path="src/Types.Mutations/HotChocolate.Types.Mutations.csproj" />
@@ -50,9 +50,6 @@
     <Project Path="src/Types.Shared/HotChocolate.Types.Shared.csproj" />
     <Project Path="src/Types/HotChocolate.Types.csproj" />
     <Project Path="src/Validation/HotChocolate.Validation.csproj" />
-  </Folder>
-  <Folder Name="/src/Types.CursorPagination.Extensions/">
-    <Project Path="src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj" />
@@ -67,6 +64,7 @@
     <Project Path="test/Subscriptions.RabbitMQ.Tests/HotChocolate.Subscriptions.RabbitMQ.Tests.csproj" />
     <Project Path="test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj" />
     <Project Path="test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj" />
+    <Project Path="test/Types.Analyzers.Integration.Tests/HotChocolate.Types.Analyzers.Integration.Tests.csproj" />
     <Project Path="test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
     <Project Path="test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj" />
     <Project Path="test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj" />
@@ -80,8 +78,5 @@
     <Project Path="test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
-  </Folder>
-  <Folder Name="/test/Types.Analyzer.Integration.Tests/">
-    <Project Path="test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
   </Folder>
 </Solution>

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Analyzers.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Types.Analyzers.Integration.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <NoWarn>$(NoWarn);GD0001</NoWarn>
   </PropertyGroup>
