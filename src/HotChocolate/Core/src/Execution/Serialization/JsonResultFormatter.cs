@@ -74,10 +74,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public unsafe string Format(IOperationResult result)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
         using var buffer = new PooledArrayWriter();
 
@@ -104,15 +101,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public void Format(IOperationResult result, Utf8JsonWriter writer)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
 
         WriteResult(writer, result);
     }
@@ -132,15 +122,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public void FormatError(IError error, Utf8JsonWriter writer)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(error);
+        ArgumentNullException.ThrowIfNull(writer);
 
         WriteError(writer, error);
     }
@@ -160,15 +143,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public void FormatErrors(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
+        ArgumentNullException.ThrowIfNull(writer);
 
         writer.WriteStartArray();
 
@@ -183,15 +159,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// <inheritdoc cref="IOperationResultFormatter.Format"/>
     public void Format(IOperationResult result, IBufferWriter<byte> writer)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
 
         FormatInternal(result, writer);
     }
@@ -209,15 +178,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (outputStream is null)
-        {
-            throw new ArgumentNullException(nameof(outputStream));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(outputStream);
 
         return FormatInternalAsync(result, outputStream, cancellationToken);
     }

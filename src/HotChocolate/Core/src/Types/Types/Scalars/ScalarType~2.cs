@@ -23,10 +23,7 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     /// <inheritdoc />
     public sealed override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         return valueSyntax is TLiteral casted && IsInstanceOfType(casted)
             || valueSyntax is NullValueNode;
@@ -86,10 +83,7 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     /// <inheritdoc />
     public sealed override object? ParseLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is TLiteral casted && IsInstanceOfType(casted))
         {

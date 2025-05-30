@@ -44,10 +44,7 @@ internal static class TypeResourceHelper
                 nameof(typeName));
         }
 
-        if (literalType is null)
-        {
-            throw new ArgumentNullException(nameof(literalType));
-        }
+        ArgumentNullException.ThrowIfNull(literalType);
 
         return string.Format(
             CultureInfo.InvariantCulture,
@@ -66,10 +63,7 @@ internal static class TypeResourceHelper
                 nameof(typeName));
         }
 
-        if (valueType is null)
-        {
-            throw new ArgumentNullException(nameof(valueType));
-        }
+        ArgumentNullException.ThrowIfNull(valueType);
 
         return string.Format(
             CultureInfo.InvariantCulture,
@@ -88,10 +82,7 @@ internal static class TypeResourceHelper
                 nameof(typeName));
         }
 
-        if (valueType is null)
-        {
-            throw new ArgumentNullException(nameof(valueType));
-        }
+        ArgumentNullException.ThrowIfNull(valueType);
 
         return string.Format(
             CultureInfo.InvariantCulture,

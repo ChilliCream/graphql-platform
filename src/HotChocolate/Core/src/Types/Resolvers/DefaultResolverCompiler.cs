@@ -149,10 +149,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.TryExtractMember();
 
@@ -181,10 +178,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         Type sourceType,
         Type? resolverType = null)
     {
-        if (lambda is null)
-        {
-            throw new ArgumentNullException(nameof(lambda));
-        }
+        ArgumentNullException.ThrowIfNull(lambda);
 
         resolverType ??= sourceType ?? throw new ArgumentNullException(nameof(sourceType));
 
@@ -202,10 +196,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         FieldResolverDelegate resolver;
         PureFieldDelegate? pureResolver = null;
@@ -251,10 +242,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         sourceType ??= member.ReflectedType ?? member.DeclaringType!;
         resolverType ??= sourceType;
@@ -299,10 +287,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
     {
-        if (parameters is null)
-        {
-            throw new ArgumentNullException(nameof(parameters));
-        }
+        ArgumentNullException.ThrowIfNull(parameters);
 
         foreach (var parameter in parameters)
         {
@@ -323,10 +308,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         ParameterInfo[] parameters,
         ObjectFieldDescriptor descriptor)
     {
-        if (parameters is null)
-        {
-            throw new ArgumentNullException(nameof(parameters));
-        }
+        ArgumentNullException.ThrowIfNull(parameters);
 
         foreach (var parameter in parameters)
         {

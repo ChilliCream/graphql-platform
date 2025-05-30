@@ -88,10 +88,7 @@ public sealed class OperationResult : IDisposable
 
     public static OperationResult Parse(JsonDocument document)
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         var root = document.RootElement;
 

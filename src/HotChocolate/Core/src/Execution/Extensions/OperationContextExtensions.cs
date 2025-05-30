@@ -15,10 +15,7 @@ internal static class OperationContextExtensions
         selection ??= resolverContext.Selection;
         path ??= resolverContext.Path;
 
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
         if (exception is GraphQLException ex)
         {

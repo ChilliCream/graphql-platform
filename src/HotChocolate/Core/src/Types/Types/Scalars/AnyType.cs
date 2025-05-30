@@ -47,10 +47,7 @@ public class AnyType : ScalarType
 
     public override bool IsInstanceOfType(IValueNode literal)
     {
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(literal);
 
         switch (literal)
         {

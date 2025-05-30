@@ -7,10 +7,7 @@ public abstract class CacheDataLoader<TKey, TValue>
     protected CacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         if (options.Cache is null)
         {
@@ -60,10 +57,7 @@ public abstract class StatefulCacheDataLoader<TKey, TValue>
     protected StatefulCacheDataLoader(DataLoaderOptions options)
         : base(AutoBatchScheduler.Default, CreateLocalOptions(options))
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         if (options.Cache is null)
         {

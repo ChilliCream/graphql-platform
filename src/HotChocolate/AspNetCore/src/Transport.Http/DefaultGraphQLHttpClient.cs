@@ -71,10 +71,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         GraphQLHttpRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         if (request.Uri is null && _http.BaseAddress is null)
         {

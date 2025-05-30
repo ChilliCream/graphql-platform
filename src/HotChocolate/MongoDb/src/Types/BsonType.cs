@@ -46,10 +46,7 @@ public class BsonType : ScalarType
     /// <inheritdoc />
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         switch (valueSyntax)
         {

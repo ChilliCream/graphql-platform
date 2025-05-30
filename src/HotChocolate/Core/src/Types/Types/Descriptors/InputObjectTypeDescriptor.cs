@@ -18,10 +18,7 @@ public class InputObjectTypeDescriptor
     protected InputObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
         Configuration.RuntimeType = runtimeType;
         Configuration.Name = context.Naming.GetTypeName(

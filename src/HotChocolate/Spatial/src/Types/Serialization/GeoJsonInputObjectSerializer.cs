@@ -24,10 +24,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
         object? runtimeValue,
         out object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {
@@ -74,15 +71,8 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override bool IsInstanceOfType(IType type, IValueNode literal)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(literal);
 
         return literal is ObjectValueNode ||
             literal is NullValueNode;
@@ -90,10 +80,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override bool IsInstanceOfType(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return runtimeValue is T t &&
             GeoJsonTypeSerializer.Default.TryParseString(
@@ -104,10 +91,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override object? ParseLiteral(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax is NullValueNode)
         {
@@ -132,10 +116,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override IValueNode ParseResult(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -181,10 +162,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override IValueNode ParseValue(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
@@ -222,10 +200,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
         object? resultValue,
         out object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {

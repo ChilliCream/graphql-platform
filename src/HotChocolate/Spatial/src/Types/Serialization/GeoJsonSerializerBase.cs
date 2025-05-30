@@ -13,10 +13,7 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
 
     public virtual bool IsInstanceOfType(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
@@ -28,10 +25,7 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
 
     public virtual object? Deserialize(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (TryDeserialize(type, resultValue, out var deserialized))
         {
@@ -43,10 +37,7 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
 
     public virtual object? Serialize(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (TrySerialize(type, runtimeValue, out var serialized))
         {
@@ -317,10 +308,7 @@ internal abstract class GeoJsonSerializerBase<T> : GeoJsonSerializerBase
 {
     public override bool IsInstanceOfType(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {

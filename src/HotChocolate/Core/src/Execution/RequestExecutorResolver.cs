@@ -686,10 +686,7 @@ internal sealed partial class RequestExecutorResolver
                 throw new ObjectDisposedException(nameof(EventObservable));
             }
 
-            if (observer is null)
-            {
-                throw new ArgumentNullException(nameof(observer));
-            }
+            ArgumentNullException.ThrowIfNull(observer);
 
             var subscription = new Subscription(this, observer);
 

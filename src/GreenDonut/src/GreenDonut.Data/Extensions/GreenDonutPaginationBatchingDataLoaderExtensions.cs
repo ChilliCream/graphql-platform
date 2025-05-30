@@ -77,10 +77,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         QueryContext<TValue>? context)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         var branchKey = pagingArguments.ComputeHash(context);
         var state = new PagingState<TValue>(pagingArguments, context);
@@ -113,10 +110,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (selector is null)
         {
@@ -162,10 +156,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         Expression<Func<TValue, bool>>? predicate)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (predicate is null)
         {
@@ -205,10 +196,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         SortDefinition<TValue>? sortDefinition)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (sortDefinition is null)
         {

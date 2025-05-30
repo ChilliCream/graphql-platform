@@ -86,10 +86,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     public void Type<TInputType>(TInputType inputType)
         where TInputType : class, IInputType
     {
-        if (inputType is null)
-        {
-            throw new ArgumentNullException(nameof(inputType));
-        }
+        ArgumentNullException.ThrowIfNull(inputType);
 
         if (!inputType.IsInputType())
         {
@@ -124,10 +121,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// </summary>
     public void Type(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         Configuration.Type = typeReference;
     }
@@ -135,10 +129,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// <inheritdoc cref="IArgumentDescriptor.Type(ITypeNode)"/>
     public void Type(ITypeNode typeNode)
     {
-        if (typeNode is null)
-        {
-            throw new ArgumentNullException(nameof(typeNode));
-        }
+        ArgumentNullException.ThrowIfNull(typeNode);
 
         Configuration.SetMoreSpecificType(typeNode, TypeContext.Input);
     }

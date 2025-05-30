@@ -37,10 +37,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
         Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (selector is null)
         {
@@ -85,10 +82,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
         Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (selector is null)
         {
@@ -133,10 +127,7 @@ public static class GreenDonutSelectionDataLoaderExtensions
         Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (selector is null)
         {
@@ -321,21 +312,15 @@ public static class GreenDonutSelectionDataLoaderExtensions
 
     private static void AssertIncludePossible(IDataLoader dataLoader, Expression includeSelector)
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
-        if(!dataLoader.ContextData.ContainsKey(DataLoaderStateKeys.Selector))
+        if (!dataLoader.ContextData.ContainsKey(DataLoaderStateKeys.Selector))
         {
             throw new InvalidOperationException(
                 "The Include method must be called after the Select method.");
         }
 
-        if (includeSelector is null)
-        {
-            throw new ArgumentNullException(nameof(includeSelector));
-        }
+        ArgumentNullException.ThrowIfNull(includeSelector);
 
         if (includeSelector is not LambdaExpression lambda)
         {

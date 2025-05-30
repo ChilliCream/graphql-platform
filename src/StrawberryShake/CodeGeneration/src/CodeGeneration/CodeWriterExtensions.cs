@@ -4,10 +4,7 @@ public static class CodeWriterExtensions
 {
     public static void WriteGeneratedAttribute(this CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
 

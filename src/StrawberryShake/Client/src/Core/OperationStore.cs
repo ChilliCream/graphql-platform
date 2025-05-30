@@ -34,15 +34,8 @@ public sealed partial class OperationStore : IOperationStore
         IOperationResult<T> operationResult)
         where T : class
     {
-        if (operationRequest is null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
-
-        if (operationResult is null)
-        {
-            throw new ArgumentNullException(nameof(operationResult));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
+        ArgumentNullException.ThrowIfNull(operationResult);
 
         if (_disposed)
         {
@@ -63,10 +56,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public void Reset(OperationRequest operationRequest)
     {
-        if (operationRequest is null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
 
         if (_disposed)
         {
@@ -83,10 +73,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public void Remove(OperationRequest operationRequest)
     {
-        if (operationRequest == null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
 
         if (_disposed)
         {
@@ -135,10 +122,7 @@ public sealed partial class OperationStore : IOperationStore
         [NotNullWhen(true)] out IOperationResult<T>? result)
         where T : class
     {
-        if (operationRequest == null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
 
         if (_disposed)
         {
@@ -185,10 +169,7 @@ public sealed partial class OperationStore : IOperationStore
         OperationRequest operationRequest)
         where T : class
     {
-        if (operationRequest is null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
 
         if (_disposed)
         {

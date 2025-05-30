@@ -306,10 +306,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
-        if (expression is null)
-        {
-            throw new ArgumentNullException(nameof(expression));
-        }
+        ArgumentNullException.ThrowIfNull(expression);
 
         var rewriter = new OrderByRemovalRewriter();
         var (result, orderExpressions, orderMethods) = rewriter.Rewrite(expression);

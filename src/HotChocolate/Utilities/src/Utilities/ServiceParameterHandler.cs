@@ -18,10 +18,7 @@ public sealed class ServiceParameterHandler : IParameterHandler
 
     public Expression CreateExpression(ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return Expression.Convert(Expression.Call(
             _services,

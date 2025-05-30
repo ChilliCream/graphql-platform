@@ -13,20 +13,9 @@ public static class TypeNameHelper
         Type dependency)
         where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
-
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
+        ArgumentNullException.ThrowIfNull(dependency);
 
         if (!typeof(ITypeSystemMember).IsAssignableFrom(dependency))
         {
@@ -61,20 +50,9 @@ public static class TypeNameHelper
         TypeReference dependency)
         where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
-
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
+        ArgumentNullException.ThrowIfNull(dependency);
 
         descriptor.Extend().Configuration.NeedsNameCompletion = true;
 

@@ -92,10 +92,7 @@ public class InterfaceTypeDescriptor<T>
     public IInterfaceFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.ExtractMember();
         if (member is PropertyInfo or MethodInfo)

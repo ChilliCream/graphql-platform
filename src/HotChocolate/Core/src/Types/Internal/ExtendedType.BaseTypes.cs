@@ -59,10 +59,7 @@ internal sealed partial class ExtendedType
 
         public static bool IsGenericBaseType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             if (type.IsGenericType && _baseTypes.Contains(type.GetGenericTypeDefinition()))
             {
@@ -74,10 +71,7 @@ internal sealed partial class ExtendedType
 
         public static bool IsNonGenericBaseType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            ArgumentNullException.ThrowIfNull(type);
 
             return _baseTypes.Contains(type);
         }

@@ -34,10 +34,7 @@ public static class GreenDonutPageExtensions
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeBackwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
-        if (page == null)
-        {
-            throw new ArgumentNullException(nameof(page));
-        }
+        ArgumentNullException.ThrowIfNull(page);
 
         if (maxCursors < 0)
         {
@@ -95,10 +92,7 @@ public static class GreenDonutPageExtensions
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeForwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
-        if (page == null)
-        {
-            throw new ArgumentNullException(nameof(page));
-        }
+        ArgumentNullException.ThrowIfNull(page);
 
         if (maxCursors < 0)
         {

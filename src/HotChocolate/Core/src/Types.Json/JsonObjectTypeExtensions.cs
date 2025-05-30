@@ -27,10 +27,7 @@ public static class JsonObjectTypeExtensions
         this IObjectFieldDescriptor descriptor,
         string? propertyName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()
@@ -76,15 +73,8 @@ public static class JsonObjectTypeExtensions
         this IObjectFieldDescriptor descriptor,
         Func<JsonElement, TResult> resolve)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolve is null)
-        {
-            throw new ArgumentNullException(nameof(resolve));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolve);
 
         descriptor
             .Extend()

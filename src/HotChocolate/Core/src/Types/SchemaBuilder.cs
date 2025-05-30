@@ -43,10 +43,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (typeof(Schema).IsAssignableFrom(type))
         {
@@ -80,10 +77,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(_options);
         return this;
@@ -92,10 +86,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder Use(FieldMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         _globalComponents.Add(middleware);
         return this;
@@ -104,10 +95,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddType(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         _types.Add(ti => ti.GetTypeRef(type));
 

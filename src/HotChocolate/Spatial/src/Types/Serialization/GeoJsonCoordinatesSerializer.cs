@@ -9,10 +9,7 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
 {
     public override bool IsInstanceOfType(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax is NullValueNode)
         {
@@ -29,10 +26,7 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
 
     public override object? ParseLiteral(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax is null)
         {
@@ -54,10 +48,7 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
 
     public override IValueNode ParseValue(IType type, object? value)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (value is null)
         {
@@ -147,10 +138,7 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
 
     public override IValueNode ParseResult(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -183,10 +171,7 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
 
     public override bool TryDeserialize(IType type, object? serialized, out object? value)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (serialized is null)
         {
@@ -227,10 +212,7 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
 
     public override bool TrySerialize(IType type, object? value, out object? serialized)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (value is null)
         {

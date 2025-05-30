@@ -20,10 +20,7 @@ internal class GeoJsonMultiPolygonSerializer
         object? coordinates,
         int? crs)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Polygon[]? geometries;
 
@@ -66,10 +63,7 @@ Error:
 
     public override object CreateInstance(IType type, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (fieldValues[0] is not GeoJsonGeometryType.MultiPolygon)
         {
@@ -81,10 +75,7 @@ Error:
 
     public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is not MultiPolygon geometry ||
             !TrySerializeCoordinates(type, runtimeValue, out var serialized))
@@ -99,10 +90,7 @@ Error:
 
     public override IValueNode ParseValue(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {

@@ -36,10 +36,7 @@ public static class BuiltInTypes
 
     public static DocumentNode RemoveBuiltInTypes(this DocumentNode schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var definitions = new List<IDefinitionNode>();
 

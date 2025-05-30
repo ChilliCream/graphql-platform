@@ -44,15 +44,8 @@ public static class GreenDonutQueryableExtensions
         Expression<Func<T, object?>> keySelector,
         ISelectorBuilder builder)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(builder);
 
         var selector = builder.TryCompile<T>();
 
@@ -87,10 +80,7 @@ public static class GreenDonutQueryableExtensions
         Expression<Func<T, object?>> keySelector,
         Expression<Func<T, T>>? selector)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
+        ArgumentNullException.ThrowIfNull(query);
 
         if (selector is not null)
         {
@@ -199,15 +189,8 @@ public static class GreenDonutQueryableExtensions
         this IQueryable<T> query,
         IPredicateBuilder builder)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(builder);
 
         var predicate = builder.TryCompile<T>();
 
@@ -240,10 +223,7 @@ public static class GreenDonutQueryableExtensions
     /// </exception>
     public static IQueryable<T> OrderBy<T>(this IQueryable<T> queryable, SortDefinition<T>? sortDefinition)
     {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
+        ArgumentNullException.ThrowIfNull(queryable);
 
         if (sortDefinition is null || sortDefinition.Operations.Length == 0)
         {
@@ -282,10 +262,7 @@ public static class GreenDonutQueryableExtensions
     /// </exception>
     public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> queryable, SortDefinition<T>? sortDefinition)
     {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
+        ArgumentNullException.ThrowIfNull(queryable);
 
         if (sortDefinition is null || sortDefinition.Operations.Length == 0)
         {
@@ -326,10 +303,7 @@ public static class GreenDonutQueryableExtensions
         QueryContext<T>? queryContext,
         Func<SortDefinition<T>, SortDefinition<T>>? modifySortDefinition = null)
     {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
+        ArgumentNullException.ThrowIfNull(queryable);
 
         if (queryContext is null)
         {
