@@ -3,14 +3,11 @@ using HotChocolate.Fusion.Types.Collections;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-internal ref struct CompositeUnionTypeCompletionContext(
-    FusionObjectTypeDefinitionCollection types,
+internal ref struct CompositeInputObjectTypeCompletionContext(
     FusionDirectiveCollection directives,
     IFeatureCollection features)
 {
     public FusionDirectiveCollection Directives { get; } = directives;
-
-    public FusionObjectTypeDefinitionCollection Types { get; } = types;
 
     public IFeatureCollection Features { get; } = features;
 }
