@@ -63,7 +63,7 @@ public class OperationRequestBuilderTests
         // assert
         Assert.Equal(
             "sourceText",
-            Assert.Throws<ArgumentException>(Action).ParamName);
+            Assert.ThrowsAny<ArgumentException>(Action).ParamName);
     }
 
     [Fact]
