@@ -40,10 +40,7 @@ public abstract class ExecutionResult : IExecutionResult
     /// </summary>
     protected void EnsureNotDisposed()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(ResponseStream));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 
     /// <inheritdoc cref="IAsyncDisposable"/>

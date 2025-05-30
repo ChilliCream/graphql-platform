@@ -75,10 +75,7 @@ public sealed class WebSocketClient : IWebSocketClient
     /// <inheritdoc />
     public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(WebSocketClient));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (Uri is null)
         {

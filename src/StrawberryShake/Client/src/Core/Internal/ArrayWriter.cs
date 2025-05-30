@@ -71,11 +71,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// </exception>
     public void Advance(int count)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(ArrayWriter));
-        }
-
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         if (count > _capacity)
@@ -104,11 +100,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// </exception>
     public Memory<byte> GetMemory(int sizeHint = 0)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(ArrayWriter));
-        }
-
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1
@@ -132,11 +124,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// </exception>
     public Span<byte> GetSpan(int sizeHint = 0)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(ArrayWriter));
-        }
-
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1

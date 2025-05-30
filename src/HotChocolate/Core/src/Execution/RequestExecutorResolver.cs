@@ -681,11 +681,7 @@ internal sealed partial class RequestExecutorResolver
 
         public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(EventObservable));
-            }
-
+            ObjectDisposedException.ThrowIf(_disposed, this);
             ArgumentNullException.ThrowIfNull(observer);
 
             var subscription = new Subscription(this, observer);
@@ -700,10 +696,7 @@ internal sealed partial class RequestExecutorResolver
 
         public void RaiseEvent(RequestExecutorEvent eventMessage)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(EventObservable));
-            }
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             lock (_sync)
             {

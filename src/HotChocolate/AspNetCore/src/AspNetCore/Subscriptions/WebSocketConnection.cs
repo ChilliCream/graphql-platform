@@ -39,10 +39,7 @@ internal sealed class WebSocketConnection : ISocketConnection
 
     public async Task<IProtocolHandler?> TryAcceptConnection()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(WebSocketConnection));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var webSocketManager = HttpContext.WebSockets;
 

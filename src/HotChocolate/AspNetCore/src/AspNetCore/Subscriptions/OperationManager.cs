@@ -57,11 +57,7 @@ public sealed class OperationManager : IOperationManager
     {
         ArgumentException.ThrowIfNullOrEmpty(sessionId);
         ArgumentNullException.ThrowIfNull(request);
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationManager));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         IOperationSession? session = null;
         _lock.EnterWriteLock();
@@ -93,11 +89,7 @@ public sealed class OperationManager : IOperationManager
     public bool Complete(string sessionId)
     {
         ArgumentException.ThrowIfNullOrEmpty(sessionId);
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationManager));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         _lock.EnterWriteLock();
 
