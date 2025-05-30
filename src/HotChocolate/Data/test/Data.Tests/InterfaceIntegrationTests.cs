@@ -64,11 +64,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
-#if NET9_0_OR_GREATER
-        await Snapshot.Create("NET_9_0")
-#else
-        await Snapshot.Create()
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -119,11 +116,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
-#if NET9_0_OR_GREATER
-        await Snapshot.Create("NET_9_0")
-#else
-        await Snapshot.Create()
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -178,11 +172,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
-#if NET9_0_OR_GREATER
-        await Snapshot.Create("NET_9_0")
-#else
-        await Snapshot.Create()
-#endif
+        await Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
@@ -224,7 +215,11 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
 
         var operationResult = result.ExpectOperationResult();
 
-        await Snapshot.Create()
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddQueries(queries)
             .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
             .MatchMarkdownAsync();
