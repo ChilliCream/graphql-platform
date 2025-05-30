@@ -27,7 +27,7 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
 
     public async Task<IModel> GetChannelAsync()
     {
-        ThrowIfDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_channel is not null)
         {
@@ -61,14 +61,6 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
         _completionSource.TrySetCanceled();
         _channel?.Dispose();
         _connection?.Dispose();
-    }
-
-    private void ThrowIfDisposed()
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(typeof(RabbitMQResources).FullName);
-        }
     }
 
     private void InitializeConnection(ConnectionFactory connectionFactory)

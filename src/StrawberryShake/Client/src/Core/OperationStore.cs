@@ -36,11 +36,7 @@ public sealed partial class OperationStore : IOperationStore
     {
         ArgumentNullException.ThrowIfNull(operationRequest);
         ArgumentNullException.ThrowIfNull(operationResult);
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var storedOperation = GetOrAddStoredOperation<T>(operationRequest);
         storedOperation.SetResult(operationResult);
@@ -57,11 +53,7 @@ public sealed partial class OperationStore : IOperationStore
     public void Reset(OperationRequest operationRequest)
     {
         ArgumentNullException.ThrowIfNull(operationRequest);
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_results.TryGetValue(operationRequest, out var storedOperation))
         {
@@ -74,11 +66,7 @@ public sealed partial class OperationStore : IOperationStore
     public void Remove(OperationRequest operationRequest)
     {
         ArgumentNullException.ThrowIfNull(operationRequest);
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_results.TryRemove(operationRequest, out var storedOperation))
         {
@@ -90,10 +78,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public void Clear()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var results = _results.Values;
         _results.Clear();
@@ -123,11 +108,7 @@ public sealed partial class OperationStore : IOperationStore
         where T : class
     {
         ArgumentNullException.ThrowIfNull(operationRequest);
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_results.TryGetValue(operationRequest, out var storedOperation) &&
             storedOperation is StoredOperation<T> { LastResult: not null, } casted)
@@ -142,10 +123,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public IEnumerable<StoredOperationVersion> GetAll()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return _results.Values.Select(
             op => new StoredOperationVersion(
@@ -157,10 +135,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public IReadOnlyList<EntityId> GetUsedEntityIds()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return _results.Values.SelectMany(t => t.EntityIds).ToArray();
     }
@@ -170,21 +145,14 @@ public sealed partial class OperationStore : IOperationStore
         where T : class
     {
         ArgumentNullException.ThrowIfNull(operationRequest);
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return GetOrAddStoredOperation<T>(operationRequest);
     }
 
     public IObservable<OperationUpdate> Watch()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return _operationStoreObservable;
     }

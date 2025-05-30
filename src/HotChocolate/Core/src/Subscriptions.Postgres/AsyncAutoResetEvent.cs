@@ -15,10 +15,7 @@ internal sealed class AsyncAutoResetEvent : IDisposable
 
     public Task WaitAsync(CancellationToken cancellationToken)
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncAutoResetEvent));
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         lock (_waitingTasks)
         {
@@ -36,10 +33,7 @@ internal sealed class AsyncAutoResetEvent : IDisposable
 
     public void Set()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncAutoResetEvent));
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         TaskCompletionSource<bool>? toRelease = null;
         lock (_waitingTasks)
