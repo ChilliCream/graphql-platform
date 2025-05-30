@@ -146,13 +146,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(document);
-
-        if (maxAllowedErrors < 1)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(maxAllowedErrors),
-                "The maximum allowed errors must be greater than 0.");
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedErrors, 1);
 
         _schema = schema;
         DocumentId = documentId;

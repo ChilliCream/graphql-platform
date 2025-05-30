@@ -35,10 +35,7 @@ public sealed class FeatureCollection : IFeatureCollection
     /// </exception>
     public FeatureCollection(int initialCapacity)
     {
-        if (initialCapacity < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(initialCapacity));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(initialCapacity);
 
         _initialCapacity = initialCapacity;
     }

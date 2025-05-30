@@ -26,10 +26,7 @@ public class RequestWriter
     /// <inheritdoc />
     public void Advance(int count)
     {
-        if (count < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         _start += count;
         _capacity -= count;

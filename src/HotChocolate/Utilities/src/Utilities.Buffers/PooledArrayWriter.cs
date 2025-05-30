@@ -78,10 +78,7 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ObjectDisposedException(nameof(PooledArrayWriter));
         }
 
-        if (count < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         if (count > _capacity)
         {
@@ -114,10 +111,7 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ObjectDisposedException(nameof(PooledArrayWriter));
         }
 
-        if (sizeHint < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(sizeHint));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1
             ? _initialBufferSize
@@ -145,10 +139,7 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ObjectDisposedException(nameof(PooledArrayWriter));
         }
 
-        if (sizeHint < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(sizeHint));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
         EnsureBufferCapacity(size);

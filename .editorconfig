@@ -150,11 +150,14 @@ dotnet_naming_symbols.static_fields.applicable_accessibilities = private, intern
 dotnet_naming_style.static_prefix_style.required_prefix = s_
 dotnet_naming_style.static_prefix_style.capitalization = camel_case
 
-# Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance.
+# Use ArgumentNullException throw helper.
 dotnet_diagnostic.CA1510.severity = warning
-# Use 'ArgumentException.ThrowIfNullOrEmpty' instead of explicitly throwing a new exception instance.
+# Use ArgumentException throw helper.
 dotnet_diagnostic.CA1511.severity = warning
+# Use ArgumentOutOfRangeException throw helper.
+dotnet_diagnostic.CA1512.severity = warning
 
 [src/HotChocolate/Language/**/*.cs]
 dotnet_diagnostic.CA1510.severity = none
 dotnet_diagnostic.CA1511.severity = none
+dotnet_diagnostic.CA1512.severity = none

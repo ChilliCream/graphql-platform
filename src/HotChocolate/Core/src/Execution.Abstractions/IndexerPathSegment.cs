@@ -9,10 +9,7 @@ public sealed class IndexerPathSegment : Path
     internal IndexerPathSegment(Path parent, int index)
         : base(parent)
     {
-        if (index < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         Index = index;
     }
