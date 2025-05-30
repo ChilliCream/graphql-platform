@@ -118,8 +118,14 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton(
             sp =>
             {
+                var requestContextAccessor = sp.GetRequiredService<IRequestContextAccessor>();
+
+                var requestExecutorOptions = requestContextAccessor.RequestContext.Schema
+                    .Services?.GetService<RequestExecutorOptions>() ?? new();
+
                 var provider = sp.GetRequiredService<ObjectPoolProvider>();
-                var policy = new DeferredWorkStatePooledObjectPolicy();
+                var policy = new DeferredWorkStatePooledObjectPolicy(requestExecutorOptions.StreamBufferSize);
+
                 return provider.Create(policy);
             });
 
@@ -258,9 +264,10 @@ internal static class InternalServiceCollectionExtensions
         }
     }
 
-    private sealed class DeferredWorkStatePooledObjectPolicy : PooledObjectPolicy<DeferredWorkState>
+    private sealed class DeferredWorkStatePooledObjectPolicy(int streamBufferSize)
+        : PooledObjectPolicy<DeferredWorkState>
     {
-        public override DeferredWorkState Create() => new();
+        public override DeferredWorkState Create() => new(streamBufferSize);
 
         public override bool Return(DeferredWorkState obj)
         {

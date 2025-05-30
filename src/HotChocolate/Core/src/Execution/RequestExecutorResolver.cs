@@ -289,6 +289,8 @@ internal sealed partial class RequestExecutorResolver
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
+        serviceCollection.AddSingleton<IStreamOptionsAccessor>(
+            static s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IPreparedOperationCache>(
             static sp => new DefaultPreparedOperationCache(
