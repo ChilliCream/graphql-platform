@@ -10,12 +10,7 @@ public partial class SchemaErrorBuilder
 
     public SchemaErrorBuilder SetMessage(string message)
     {
-        if (string.IsNullOrEmpty(message))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaErrorBuilder_MessageIsNull,
-                nameof(message));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(message);
 
         _error.Message = message;
         return this;

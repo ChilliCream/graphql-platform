@@ -131,10 +131,7 @@ internal partial class MiddlewareContext
 
         public T ArgumentValue<T>(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -147,10 +144,7 @@ internal partial class MiddlewareContext
         public TValueNode ArgumentLiteral<TValueNode>(string name)
             where TValueNode : IValueNode
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -170,10 +164,7 @@ internal partial class MiddlewareContext
 
         public Optional<T> ArgumentOptional<T>(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {

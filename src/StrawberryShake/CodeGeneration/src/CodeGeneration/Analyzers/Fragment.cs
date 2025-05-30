@@ -27,12 +27,7 @@ public class Fragment
 
     public Fragment WithName(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentException(
-                $"'{nameof(name)}' cannot be null or empty",
-                nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return new Fragment(name,Kind, TypeCondition, SelectionSet);
     }

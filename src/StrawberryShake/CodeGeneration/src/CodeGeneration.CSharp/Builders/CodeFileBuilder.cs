@@ -12,12 +12,7 @@ public class CodeFileBuilder : ICodeBuilder
 
     public CodeFileBuilder AddUsing(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException(
-                Resources.CodeFileBuilder_NamespaceCannotBeNull,
-                nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
         _usings.Add(value);
         return this;
@@ -25,12 +20,7 @@ public class CodeFileBuilder : ICodeBuilder
 
     public CodeFileBuilder SetNamespace(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException(
-                Resources.CodeFileBuilder_NamespaceCannotBeNull,
-                nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
         _namespace = value;
         return this;

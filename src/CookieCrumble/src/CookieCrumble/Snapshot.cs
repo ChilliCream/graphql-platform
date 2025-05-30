@@ -183,10 +183,7 @@ public class Snapshot
 
     public Snapshot SetExtension(string extension)
     {
-        if (string.IsNullOrEmpty(extension))
-        {
-            throw new ArgumentNullException(nameof(extension));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(extension);
 
         _extension = extension;
         return this;
@@ -194,10 +191,7 @@ public class Snapshot
 
     public Snapshot SetPostFix(string postFix)
     {
-        if (string.IsNullOrEmpty(postFix))
-        {
-            throw new ArgumentNullException(nameof(postFix));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(postFix);
 
         _postFix = postFix;
         return this;

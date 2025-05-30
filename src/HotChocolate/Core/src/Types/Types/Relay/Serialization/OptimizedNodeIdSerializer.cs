@@ -50,13 +50,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
     public string Format(string typeName, object internalId)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                "Value cannot be null or empty.",
-                nameof(typeName));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(internalId);
 
         if (!_stringSerializerMap.TryGetValue(typeName, out var serializer))

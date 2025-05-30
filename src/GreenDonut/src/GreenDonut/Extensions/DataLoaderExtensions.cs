@@ -295,13 +295,7 @@ public static class DataLoaderExtensions
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dataLoader);
-
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                "The key must not be null or empty.",
-                nameof(key));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
         dataLoader.ContextData = dataLoader.ContextData.SetItem(key, value);
         return dataLoader;
@@ -378,13 +372,7 @@ public static class DataLoaderExtensions
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dataLoader);
-
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                "The key must not be null or empty.",
-                nameof(key));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
         if (!dataLoader.ContextData.ContainsKey(key))
         {
@@ -475,13 +463,7 @@ public static class DataLoaderExtensions
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dataLoader);
-
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                "The key must not be null or empty.",
-                nameof(key));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
         if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
         {
@@ -563,13 +545,7 @@ public static class DataLoaderExtensions
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dataLoader);
-
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                "The key must not be null or empty.",
-                nameof(key));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
         if (dataLoader.ContextData.TryGetValue(key, out var internalValue)
             && internalValue is ImmutableArray<TState> values)

@@ -42,12 +42,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// </exception>
     public OperationRequestBuilder SetDocument([StringSyntax("graphql")] string sourceText)
     {
-        if (string.IsNullOrEmpty(sourceText))
-        {
-            throw new ArgumentException(
-                OperationRequestBuilder_OperationIsNullOrEmpty,
-                nameof(sourceText));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sourceText);
 
         _document = new OperationDocumentSourceText(sourceText);
         return this;

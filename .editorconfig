@@ -152,6 +152,9 @@ dotnet_naming_style.static_prefix_style.capitalization = camel_case
 
 # Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance.
 dotnet_diagnostic.CA1510.severity = warning
+# Use 'ArgumentException.ThrowIfNullOrEmpty' instead of explicitly throwing a new exception instance.
+dotnet_diagnostic.CA1511.severity = warning
 
 [src/HotChocolate/Language/**/*.cs]
 dotnet_diagnostic.CA1510.severity = none
+dotnet_diagnostic.CA1511.severity = none
