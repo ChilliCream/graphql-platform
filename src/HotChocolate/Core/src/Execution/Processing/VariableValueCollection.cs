@@ -27,10 +27,7 @@ internal class VariableValueCollection(
 
     public bool TryGetVariable<T>(string name, out T? value)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (coercedValues.TryGetValue(name, out var variableValue))
         {

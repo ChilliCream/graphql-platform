@@ -6,12 +6,7 @@ internal static class TypeResourceHelper
 {
     public static string Scalar_Cannot_Serialize(string typeName)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                TypeResources.TypeResourceHelper_TypeNameEmptyOrNull,
-                nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
 
         return string.Format(
             CultureInfo.InvariantCulture,
@@ -21,12 +16,7 @@ internal static class TypeResourceHelper
 
     public static string Scalar_Cannot_Deserialize(string typeName)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                TypeResources.TypeResourceHelper_TypeNameEmptyOrNull,
-                nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
 
         return string.Format(
             CultureInfo.InvariantCulture,
@@ -37,13 +27,7 @@ internal static class TypeResourceHelper
     public static string Scalar_Cannot_ParseLiteral(
         string typeName, Type literalType)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                TypeResources.TypeResourceHelper_TypeNameEmptyOrNull,
-                nameof(typeName));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(literalType);
 
         return string.Format(
@@ -56,13 +40,7 @@ internal static class TypeResourceHelper
     public static string Scalar_Cannot_ParseValue(
         string typeName, Type valueType)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                TypeResources.TypeResourceHelper_TypeNameEmptyOrNull,
-                nameof(typeName));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(valueType);
 
         return string.Format(
@@ -75,13 +53,7 @@ internal static class TypeResourceHelper
     public static string Scalar_Cannot_ParseResult(
         string typeName, Type valueType)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                TypeResources.TypeResourceHelper_TypeNameEmptyOrNull,
-                nameof(typeName));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(valueType);
 
         return string.Format(

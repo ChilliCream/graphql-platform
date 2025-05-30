@@ -61,10 +61,7 @@ public static class Directives
     /// </summary>
     public static bool IsBuiltIn(string typeName)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
 
         return _directiveNames.Contains(typeName);
     }

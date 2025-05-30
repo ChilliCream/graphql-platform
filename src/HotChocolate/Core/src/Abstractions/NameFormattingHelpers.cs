@@ -205,12 +205,7 @@ internal static class NameFormattingHelpers
 
     public static unsafe string FormatFieldName(string fieldName)
     {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentException(
-                AbstractionResources.AttributeExtensions_FormatFieldName_FieldNameEmpty,
-                nameof(fieldName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
         // quick exit
         if (char.IsLower(fieldName[0]))

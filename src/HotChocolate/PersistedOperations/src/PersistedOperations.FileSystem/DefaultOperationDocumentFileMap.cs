@@ -39,10 +39,7 @@ public class DefaultOperationDocumentFileMap : IOperationDocumentFileMap
     /// <inheritdoc />
     public string MapToFilePath(string documentId)
     {
-        if (string.IsNullOrEmpty(documentId))
-        {
-            throw new ArgumentNullException(nameof(documentId));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(documentId);
 
         return IOPath.Combine(_cacheDirectory, EncodeDocumentId(documentId));
     }

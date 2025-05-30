@@ -112,10 +112,7 @@ public static class Scalars
         string typeName,
         [NotNullWhen(true)] out Type? schemaType)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
 
         return _nameLookup.TryGetValue(typeName, out schemaType);
     }

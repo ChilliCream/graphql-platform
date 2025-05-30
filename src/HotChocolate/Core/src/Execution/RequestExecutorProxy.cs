@@ -19,10 +19,7 @@ public sealed class RequestExecutorProxy : IDisposable
 
     public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
     {
-        if (string.IsNullOrEmpty(schemaName))
-        {
-            throw new ArgumentNullException(nameof(schemaName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));

@@ -1,7 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using StrawberryShake.Tools.Configuration.Properties;
 
 namespace StrawberryShake.Tools.Configuration;
 
@@ -33,14 +32,7 @@ public class GraphQLConfig
 
     public static GraphQLConfig FromJson(string json)
     {
-        if (string.IsNullOrEmpty(json))
-        {
-            throw new ArgumentException(
-                string.Format(
-                    ToolsConfigResources.GraphQLConfig_FromJson_JsonCannotBeNull,
-                    nameof(json)),
-                nameof(json));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(json);
 
         var config = JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
 

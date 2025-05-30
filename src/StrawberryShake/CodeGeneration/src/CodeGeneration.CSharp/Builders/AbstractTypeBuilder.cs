@@ -26,12 +26,7 @@ public abstract class AbstractTypeBuilder : ITypeBuilder
 
     public void AddImplements(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException(
-                Resources.ClassBuilder_AddImplements_TypeNameCannotBeNull,
-                nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
         Implements.Add(value);
     }

@@ -1,5 +1,3 @@
-using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
-
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 
 /// <summary>
@@ -62,12 +60,7 @@ public sealed class ConnectionStatus
         string message,
         IReadOnlyDictionary<string, object?>? extensions)
     {
-        if (string.IsNullOrEmpty(message))
-        {
-            throw new ArgumentException(
-                ConnectionStatus_Reject_MessageCannotBeNullOrEmpty,
-                nameof(message));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(message);
 
         return new ConnectionStatus(false, message, extensions);
     }

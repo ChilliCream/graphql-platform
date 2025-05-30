@@ -55,13 +55,7 @@ public sealed class OperationManager : IOperationManager
     /// <inheritdoc />
     public bool Enqueue(string sessionId, GraphQLRequest request)
     {
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            throw new ArgumentException(
-                OperationManager_Register_SessionIdNullOrEmpty,
-                nameof(sessionId));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
         ArgumentNullException.ThrowIfNull(request);
 
         if (_disposed)
@@ -98,12 +92,7 @@ public sealed class OperationManager : IOperationManager
     /// <inheritdoc />
     public bool Complete(string sessionId)
     {
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            throw new ArgumentException(
-                OperationManager_Register_SessionIdNullOrEmpty,
-                nameof(sessionId));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
 
         if (_disposed)
         {

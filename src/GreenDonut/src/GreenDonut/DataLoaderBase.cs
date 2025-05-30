@@ -278,11 +278,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         CreateDataLoaderBranch<TKey, TValue, TState> createBranch,
         TState state)
     {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException("Value cannot be null or empty.", nameof(key));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(createBranch);
 
         if (!AllowBranching)

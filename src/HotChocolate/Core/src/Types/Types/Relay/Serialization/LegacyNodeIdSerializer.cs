@@ -25,11 +25,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
     internal static string FormatInternal(string typeName, object internalId)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(internalId);
 
         string? idString = null;

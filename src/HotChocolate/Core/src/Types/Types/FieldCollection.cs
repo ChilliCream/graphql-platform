@@ -38,20 +38,14 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
 
     public bool ContainsField(string fieldName)
     {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentNullException(fieldName);
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
         return _fieldsLookup.ContainsKey(fieldName);
     }
 
     public bool TryGetField(string fieldName, [NotNullWhen(true)] out T? field)
     {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentNullException(nameof(fieldName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
         if (_fieldsLookup.TryGetValue(fieldName, out var item))
         {

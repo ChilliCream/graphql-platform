@@ -28,12 +28,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public new ClassBuilder SetName(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException(
-                Resources.ClassBuilder_SetName_ClassNameCannotBeNull,
-                nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
         _name = value;
         return this;

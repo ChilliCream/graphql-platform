@@ -32,13 +32,7 @@ public sealed class DefaultNodeIdSerializer(
 
     public string Format(string typeName, object internalId)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                "Value cannot be null or empty.",
-                nameof(typeName));
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(internalId);
 
         var runtimeType = internalId.GetType();

@@ -14,12 +14,8 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         string connectionName,
         TypeReference nodeType)
     {
+        ArgumentException.ThrowIfNullOrEmpty(connectionName);
         ArgumentNullException.ThrowIfNull(nodeType);
-
-        if (string.IsNullOrEmpty(connectionName))
-        {
-            throw new ArgumentNullException(nameof(connectionName));
-        }
 
         ConnectionName = connectionName;
         Configuration = CreateConfiguration(nodeType);

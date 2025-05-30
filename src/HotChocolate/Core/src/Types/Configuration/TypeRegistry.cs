@@ -165,12 +165,8 @@ internal sealed class TypeRegistry
 
     public void Register(string typeName, RegisteredType registeredType)
     {
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(registeredType);
-
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
 
         if (registeredType.IsExtension)
         {
