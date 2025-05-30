@@ -76,10 +76,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ObjectDisposedException(nameof(ArrayWriter));
         }
 
-        if (count < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         if (count > _capacity)
         {
@@ -112,10 +109,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ObjectDisposedException(nameof(ArrayWriter));
         }
 
-        if (sizeHint < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(sizeHint));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1
             ? _initialBufferSize
@@ -143,10 +137,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
             throw new ObjectDisposedException(nameof(ArrayWriter));
         }
 
-        if (sizeHint < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(sizeHint));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1
             ? _initialBufferSize

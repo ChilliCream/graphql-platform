@@ -45,10 +45,7 @@ public abstract class ResultData
     /// </param>
     public void SetParent(ResultData parent, int index)
     {
-        if (index < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         Parent = parent ?? throw new ArgumentNullException(nameof(parent));
         ParentIndex = index;
