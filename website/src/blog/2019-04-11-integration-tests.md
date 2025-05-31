@@ -35,7 +35,7 @@ public class Query
 In order to create a schema from that simple type we could just do the following:
 
 ```csharp
-Schema schema = Schema.Create(c => c.RegisterQueryType<Query>());
+ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());
 ```
 
 OK, now we have a schema against which we can write our tests.
@@ -205,7 +205,7 @@ Our test could look like the following:
 public async Task Ensure_Schema_IsCorrect()
 {
     // arrange
-    Schema schema = Schema.Create(c =>
+    ISchema schema = Schema.Create(c =>
     {
         c.RegisterQueryType<Query>();
     });
@@ -234,7 +234,7 @@ public async Task SayHello_HelloIsReturned()
             .AddSingleton<IDataLayer, MyDataLayer>()
             .BuildServiceProvider();
 
-    Schema schema = Schema.Create(c =>
+    ISchema schema = Schema.Create(c =>
     {
         c.RegisterQueryType<Query>();
     });
