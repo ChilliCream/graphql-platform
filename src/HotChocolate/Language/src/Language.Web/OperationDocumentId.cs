@@ -1,9 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static HotChocolate.ExecutionAbstractionsResources;
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.Language;
 
 /// <summary>
 /// Represents a valid identifier for a GraphQL operation document.
@@ -141,7 +140,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         if(!IsValidId(operationId))
         {
             throw new ArgumentException(
-                OperationDocumentId_InvalidOperationIdFormat,
+                "Invalid operation id format.",
                 nameof(operationId));
         }
     }
@@ -234,4 +233,9 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         id = new OperationDocumentId(value, skipValidation: true);
         return true;
     }
+
+    /// <summary>
+    /// Gets an empty operation document id.
+    /// </summary>
+    public static OperationDocumentId Empty => default;
 }

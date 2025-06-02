@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="OperationDocumentId_InvalidOperationIdFormat" xml:space="preserve">
-    <value>Invalid operation id format.</value>
-  </data>
   <data name="OperationRequest_DocumentOrIdMustBeSet" xml:space="preserve">
     <value>A GraphQL operation document or a document id is required to create a query request.</value>
   </data>

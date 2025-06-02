@@ -10,8 +10,8 @@ namespace HotChocolate.Execution;
 /// The next middleware in the pipeline.
 /// </param>
 /// <returns>
-/// Returns a <see cref="GraphQLRequestDelegate"/> that can process a GraphQL request.
+/// Returns a <see cref="RequestDelegate"/> that can process a GraphQL request.
 /// </returns>
-public delegate GraphQLRequestDelegate GraphQLRequestMiddleware(
-    GraphQLMiddlewareFactoryContext context,
-    GraphQLRequestDelegate next);
+public delegate RequestDelegate GraphQLRequestMiddleware(
+    RequestMiddlewareFactoryContext context,
+    RequestDelegate next);

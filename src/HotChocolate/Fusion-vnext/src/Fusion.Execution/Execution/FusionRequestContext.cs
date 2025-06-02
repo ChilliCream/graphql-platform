@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Execution;
 /// <summary>
 /// Represents a Fusion GraphQL request context.
 /// </summary>
-public sealed class FusionRequestContext : GraphQLRequestContext
+public sealed class FusionRequestContext : RequestContext
 {
     /// <summary>
     /// Initializes a new instance of <see cref="FusionRequestContext"/> with the specified

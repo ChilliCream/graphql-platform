@@ -105,13 +105,13 @@ public class ActivityEnricher
             activity.SetTag("graphql.http.request.query.hash", request.QueryHash);
         }
 
-        if (request.Query is not null &&
+        if (request.Document is not null &&
             (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
         {
-            if (!_queryCache.TryGetValue(request.Query, out var query))
+            if (!_queryCache.TryGetValue(request.Document, out var query))
             {
-                query = request.Query.Print();
-                _queryCache.Add(request.Query, query);
+                query = request.Document.Print();
+                _queryCache.Add(request.Document, query);
             }
 
             activity.SetTag("graphql.http.request.query.body", query);
@@ -160,10 +160,10 @@ public class ActivityEnricher
                 activity.SetTag($"graphql.http.request[{i}].query.hash", request.QueryHash);
             }
 
-            if (request.Query is not null &&
+            if (request.Document is not null &&
                 (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
             {
-                activity.SetTag($"graphql.http.request[{i}].query.body", request.Query.Print());
+                activity.SetTag($"graphql.http.request[{i}].query.body", request.Document.Print());
             }
 
             if (request.OperationName is not null &&
@@ -207,10 +207,10 @@ public class ActivityEnricher
             activity.SetTag("graphql.http.request.query.hash", request.QueryHash);
         }
 
-        if (request.Query is not null &&
+        if (request.Document is not null &&
             (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
         {
-            activity.SetTag("graphql.http.request.query.body", request.Query.Print());
+            activity.SetTag("graphql.http.request.query.body", request.Document.Print());
         }
 
         if (request.OperationName is not null &&

@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
@@ -47,7 +48,7 @@ public sealed class OperationRequest : IOperationRequest
     public OperationRequest(
         IOperationDocument? document,
         OperationDocumentId? documentId,
-        string? documentHash,
+        OperationDocumentHash? documentHash,
         string? operationName,
         IReadOnlyDictionary<string, object?>? variableValues,
         IReadOnlyDictionary<string, object?>? extensions,
@@ -62,8 +63,8 @@ public sealed class OperationRequest : IOperationRequest
         }
 
         Document = document;
-        DocumentId = documentId;
-        DocumentHash = documentHash;
+        DocumentId = documentId ?? OperationDocumentId.Empty;
+        DocumentHash = documentHash ?? OperationDocumentHash.Empty;
         OperationName = operationName;
         VariableValues = variableValues;
         Extensions = extensions;
@@ -81,12 +82,12 @@ public sealed class OperationRequest : IOperationRequest
     /// <summary>
     /// Gets the GraphQL request document ID.
     /// </summary>
-    public OperationDocumentId? DocumentId { get; }
+    public OperationDocumentId DocumentId { get; }
 
     /// <summary>
     /// Gets GraphQL request document hash.
     /// </summary>
-    public string? DocumentHash { get; }
+    public OperationDocumentHash DocumentHash { get; }
 
     /// <summary>
     /// A name of an operation in the GraphQL request document that shall be executed;
@@ -177,7 +178,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified document hash.
     /// </returns>
-    public OperationRequest WithDocumentHash(string documentHash)
+    public OperationRequest WithDocumentHash(OperationDocumentHash documentHash)
         => new OperationRequest(
             Document,
             DocumentId,
@@ -382,7 +383,7 @@ public sealed class OperationRequest : IOperationRequest
     /// </exception>
     public static OperationRequest FromId(
         OperationDocumentId documentId,
-        string? documentHash = null,
+        OperationDocumentHash? documentHash = null,
         string? operationName = null,
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
@@ -447,7 +448,7 @@ public sealed class OperationRequest : IOperationRequest
     /// </exception>
     public static OperationRequest FromId(
         string documentId,
-        string? documentHash = null,
+        OperationDocumentHash? documentHash = null,
         string? operationName = null,
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
@@ -501,7 +502,7 @@ public sealed class OperationRequest : IOperationRequest
     /// </returns>
     public static OperationRequest FromSourceText(
         string sourceText,
-        string? documentHash = null,
+        OperationDocumentHash? documentHash = null,
         string? operationName = null,
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,

@@ -180,8 +180,4 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
             isDataSet: IsDataSet,
             requestIndex: RequestIndex,
             variableIndex: VariableIndex);
-
-    /// <inheritdoc />
-    public IReadOnlyDictionary<string, object?> ToDictionary()
-        => OperationResultHelper.ToDictionary(this);
 }

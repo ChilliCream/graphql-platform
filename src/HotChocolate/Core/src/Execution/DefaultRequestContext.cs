@@ -7,7 +7,7 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Execution;
 
-internal sealed class RequestContext(
+internal sealed class DefaultRequestContext(
     Schema schema,
     ulong executorVersion,
     IErrorHandler errorHandler,

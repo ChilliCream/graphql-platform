@@ -1,5 +1,6 @@
 namespace HotChocolate.Execution;
 
+// Leave it as IRequestExecutor
 /// <summary>
 /// This executor processes GraphQL query, mutation and subscription requests against an underlying schema.
 /// </summary>

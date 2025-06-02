@@ -31,10 +31,10 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// Adds a delegate that will be used to create middleware for the execution pipeline.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="middleware">A delegate that is used to create a middleware for the execution pipeline.</param>
+    /// <param name="middleware">A delegate that is used to create middleware for the execution pipeline.</param>
     /// <param name="key">A unique identifier for the middleware.</param>
     /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
     public static IRequestExecutorBuilder UseRequest(
@@ -73,7 +73,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Appends a middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
+    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -139,7 +139,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Appends a middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
+    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -203,7 +203,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Appends a middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
+    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
     /// </summary>
     /// <typeparam name="TMiddleware">
     /// The type of the middleware to append.
@@ -268,7 +268,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Inserts a middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
+    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -398,7 +398,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Inserts a middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
+    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
     /// </summary>
     /// <typeparam name="TMiddleware">
     /// The type of the middleware to insert.

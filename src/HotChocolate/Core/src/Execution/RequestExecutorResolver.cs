@@ -335,7 +335,7 @@ internal sealed partial class RequestExecutorResolver
                 sp.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),
-                sp.GetRequiredService<ObjectPool<RequestContext>>(),
+                sp.GetRequiredService<ObjectPool<DefaultRequestContext>>(),
                 sp.GetRootServiceProvider().GetRequiredService<DefaultRequestContextAccessor>(),
                 sp.GetRequiredService<SchemaVersionInfo>().Version));
 
@@ -654,7 +654,7 @@ internal sealed partial class RequestExecutorResolver
         IErrorHandler errorHandler,
         IExecutionDiagnosticEvents diagnosticEvents,
         ulong executorVersion)
-        : PooledObjectPolicy<RequestContext>
+        : PooledObjectPolicy<DefaultRequestContext>
     {
         private readonly Schema _schema = schema ??
             throw new ArgumentNullException(nameof(schema));
@@ -663,10 +663,10 @@ internal sealed partial class RequestExecutorResolver
         private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
 
-        public override RequestContext Create()
+        public override DefaultRequestContext Create()
             => new(_schema, executorVersion, _errorHandler, _diagnosticEvents);
 
-        public override bool Return(RequestContext obj)
+        public override bool Return(DefaultRequestContext obj)
         {
             obj.Reset();
             return true;

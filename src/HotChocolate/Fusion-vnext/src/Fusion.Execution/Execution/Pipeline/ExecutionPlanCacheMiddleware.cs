@@ -9,7 +9,7 @@ public class ExecutionPlanCacheMiddleware(Cache<OperationPlan> cache)
 {
     private readonly Cache<OperationPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
-    public async ValueTask InvokeAsync(GraphQLRequestContext context, GraphQLRequestDelegate next)
+    public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
         var operationDocumentInfo = context.GetOperationDocumentInfo();
 
@@ -19,7 +19,7 @@ public class ExecutionPlanCacheMiddleware(Cache<OperationPlan> cache)
                 "The operation document info is not available in the context.");
         }
 
-        var planKey = $"{operationDocumentInfo.DocumentHash}.{context.Request.OperationName ?? "Default"}";
+        var planKey = $"{operationDocumentInfo.Hash}.{context.Request.OperationName ?? "Default"}";
         var isPlanCached = false;
 
         if(_cache.TryGet(planKey, out var plan))

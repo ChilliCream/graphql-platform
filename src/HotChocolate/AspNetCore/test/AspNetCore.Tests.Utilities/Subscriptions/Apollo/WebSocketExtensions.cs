@@ -116,7 +116,7 @@ public static class WebSocketExtensions
     {
         if (message is DataStartMessage dataStart)
         {
-            var query = dataStart.Payload.Query!.Print();
+            var query = dataStart.Payload.Document!.Print();
 
             var payload = new Dictionary<string, object> { { "query", query }, };
 

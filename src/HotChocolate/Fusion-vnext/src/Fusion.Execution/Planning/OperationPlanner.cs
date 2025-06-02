@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Reactive.Disposables;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;

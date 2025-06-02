@@ -30,7 +30,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.QueryId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -126,7 +126,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.QueryId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -155,7 +155,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -182,7 +182,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -213,7 +213,7 @@ public class GraphQLRequestParserTests
 
         var first = requestParser.Parse();
 
-        cache.TryAddDocument(first[0].QueryId!, new CachedDocument(first[0].Query!, null, false));
+        cache.TryAddDocument(first[0].QueryId!, new CachedDocument(first[0].Document!, null, false));
 
         // act
         requestParser = new Utf8GraphQLRequestParser(
@@ -225,7 +225,7 @@ public class GraphQLRequestParserTests
         var second = requestParser.Parse();
 
         // assert
-        Assert.Equal(first[0].Query, second[0].Query);
+        Assert.Equal(first[0].Document, second[0].Document);
         Assert.Collection(second,
             r =>
             {
@@ -234,7 +234,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Extensions);
 
                 Assert.Equal(expectedHash, r.QueryId);
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -277,7 +277,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Extensions);
 
                 Assert.Equal(expectedHash, r.QueryId);
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -321,7 +321,7 @@ public class GraphQLRequestParserTests
 
                 Assert.Equal("FooBar", r.QueryId);
                 Assert.Equal(expectedHash, r.QueryHash);
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -402,7 +402,7 @@ public class GraphQLRequestParserTests
 
                 snapshot.Add(r.Variables, "Variables:");
                 snapshot.Add(r.Extensions, "Extensions:");
-                snapshot.Add(r.Query, "Query:");
+                snapshot.Add(r.Document, "Query:");
             });
         snapshot.Match();
     }
@@ -552,7 +552,7 @@ public class GraphQLRequestParserTests
                 Assert.Equal("hashOfQuery", r.QueryId);
                 Assert.Null(r.Variables);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                Assert.Null(r.Query);
+                Assert.Null(r.Document);
                 Assert.Null(r.QueryHash);
             });
     }
@@ -582,7 +582,7 @@ public class GraphQLRequestParserTests
                 Assert.Equal("hashOfQuery", r.QueryId);
                 Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                Assert.Null(r.Query);
+                Assert.Null(r.Document);
                 Assert.Null(r.QueryHash);
             });
     }
@@ -611,7 +611,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.OperationName);
                 Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                Assert.NotNull(r.Query);
+                Assert.NotNull(r.Document);
 
                 if (r.Extensions.TryGetValue("persistedQuery", out var o)
                     && o is IReadOnlyDictionary<string, object> persistedQuery

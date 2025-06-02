@@ -5,8 +5,8 @@ public sealed class OperationResultBuilder
     private IReadOnlyDictionary<string, object?>? _data;
     private IReadOnlyList<object?>? _items;
     private List<IError>? _errors;
-    private ExtensionData? _extensionData;
-    private ExtensionData? _contextData;
+    private OrderedDictionary<string, object?>? _extensionData;
+    private Dictionary<string, object?>? _contextData;
     private List<IOperationResult>? _incremental;
     private string? _label;
     private Path? _path;
@@ -62,27 +62,27 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddExtension(string key, object? data)
     {
-        _extensionData ??= new ExtensionData();
+        _extensionData ??= new OrderedDictionary<string, object?>();
         _extensionData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetExtension(string key, object? data)
     {
-        _extensionData ??= new ExtensionData();
+        _extensionData ??= new OrderedDictionary<string, object?>();
         _extensionData[key] = data;
         return this;
     }
 
     public OperationResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions)
     {
-        if (extensions is ExtensionData extensionData)
+        if (extensions is OrderedDictionary<string, object?> extensionData)
         {
             _extensionData = extensionData;
         }
         else if (extensions is not null)
         {
-            _extensionData = new ExtensionData(extensions);
+            _extensionData = new OrderedDictionary<string, object?>(extensions);
         }
         else
         {
@@ -93,27 +93,27 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddContextData(string key, object? data)
     {
-        _contextData ??= new ExtensionData();
+        _contextData ??= new Dictionary<string, object?>();
         _contextData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetContextData(string key, object? data)
     {
-        _contextData ??= new ExtensionData();
+        _contextData ??= new Dictionary<string, object?>();
         _contextData[key] = data;
         return this;
     }
 
     public OperationResultBuilder SetContextData(IReadOnlyDictionary<string, object?>? contextData)
     {
-        if (contextData is ExtensionData extensionData)
+        if (contextData is Dictionary<string, object?> extensionData)
         {
             _contextData = extensionData;
         }
         else if (contextData is not null)
         {
-            _contextData = new ExtensionData(contextData);
+            _contextData = new Dictionary<string, object?>(contextData);
         }
         else
         {
@@ -192,22 +192,22 @@ public sealed class OperationResultBuilder
             builder._errors = [..result.Errors,];
         }
 
-        if (result.Extensions is ExtensionData ext)
+        if (result.Extensions is OrderedDictionary<string, object?> ext)
         {
-            builder._extensionData = new ExtensionData(ext);
+            builder._extensionData = ext;
         }
         else if (result.Extensions is not null)
         {
-            builder._extensionData = new ExtensionData(result.Extensions);
+            builder._extensionData = new OrderedDictionary<string, object?>(result.Extensions);
         }
 
-        if (result.ContextData is ExtensionData cd)
+        if (result.ContextData is Dictionary<string, object?> cd)
         {
-            builder._contextData = new ExtensionData(cd);
+            builder._contextData = cd;
         }
         else if (result.ContextData is not null)
         {
-            builder._contextData = new ExtensionData(result.ContextData);
+            builder._contextData = new Dictionary<string, object?>(result.ContextData);
         }
 
         builder._label = result.Label;

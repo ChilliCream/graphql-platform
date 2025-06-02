@@ -129,9 +129,9 @@ internal sealed class OperationSession : IOperationSession
     {
         var requestBuilder = new OperationRequestBuilder();
 
-        if (request.Query is not null)
+        if (request.Document is not null)
         {
-            requestBuilder.SetDocument(request.Query);
+            requestBuilder.SetDocument(request.Document);
         }
 
         if (request.OperationName is not null)

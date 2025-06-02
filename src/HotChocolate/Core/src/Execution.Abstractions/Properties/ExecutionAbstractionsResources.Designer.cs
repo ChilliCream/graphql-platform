@@ -45,12 +45,6 @@ namespace HotChocolate {
             }
         }
 
-        internal static string OperationDocumentId_InvalidOperationIdFormat {
-            get {
-                return ResourceManager.GetString("OperationDocumentId_InvalidOperationIdFormat", resourceCulture);
-            }
-        }
-
         internal static string OperationRequest_DocumentOrIdMustBeSet {
             get {
                 return ResourceManager.GetString("OperationRequest_DocumentOrIdMustBeSet", resourceCulture);
