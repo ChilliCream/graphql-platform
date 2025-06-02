@@ -10,12 +10,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
 {
-    private const string _entityStore = "entityStore";
-    private const string _idSerializer = "idSerializer";
-    private const string _resultDataFactory = "ResultDataFactory";
-    private const string _serializerResolver = "serializerResolver";
-    private const string _entityIds = "entityIds";
-    private const string _obj = "obj";
+    private const string EntityStore = "entityStore";
+    private const string IdSerializer = "idSerializer";
+    private const string ResultDataFactory = "ResultDataFactory";
+    private const string SerializerResolver = "serializerResolver";
+    private const string EntityIds = "entityIds";
+    private const string Obj = "obj";
 
     protected override void Generate(
         ResultBuilderDescriptor resultBuilderDescriptor,
@@ -52,21 +52,21 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         {
             AddConstructorAssignedField(
                 TypeNames.IEntityStore,
-                GetFieldName(_entityStore),
-                GetParameterName(_entityStore),
+                GetFieldName(EntityStore),
+                GetParameterName(EntityStore),
                 classBuilder,
                 constructorBuilder);
 
             AddConstructorAssignedField(
                 TypeNames.IEntityIdSerializer,
-                GetFieldName(_idSerializer),
-                GetParameterName(_idSerializer),
+                GetFieldName(IdSerializer),
+                GetParameterName(IdSerializer),
                 classBuilder,
                 constructorBuilder);
         }
 
         classBuilder.AddProperty(
-            GetPropertyName(_resultDataFactory),
+            GetPropertyName(ResultDataFactory),
             b => b.SetType(TypeNames.IOperationResultDataFactory
                     .WithGeneric(resultTypeDescriptor.RuntimeType.ToString()))
                 .SetAccessModifier(AccessModifier.Protected)
@@ -74,19 +74,19 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
         var assignment = AssignmentBuilder
             .New()
-            .SetLeftHandSide(GetPropertyName(_resultDataFactory))
-            .SetRightHandSide(GetParameterName(_resultDataFactory))
+            .SetLeftHandSide(GetPropertyName(ResultDataFactory))
+            .SetRightHandSide(GetParameterName(ResultDataFactory))
             .SetAssertNonNull();
 
         constructorBuilder
             .AddCode(assignment)
             .AddParameter(
-                GetParameterName(_resultDataFactory),
+                GetParameterName(ResultDataFactory),
                 b => b.SetType(TypeNames.IOperationResultDataFactory
                     .WithGeneric(resultTypeDescriptor.RuntimeType.ToString())));
 
         constructorBuilder
-            .AddParameter(_serializerResolver)
+            .AddParameter(SerializerResolver)
             .SetType(TypeNames.ISerializerResolver);
 
         var valueParsers =
@@ -106,7 +106,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
             var getLeaveValueParser = MethodCallBuilder
                 .Inline()
-                .SetMethodName(_serializerResolver, "GetLeafValueParser")
+                .SetMethodName(SerializerResolver, "GetLeafValueParser")
                 .AddGeneric(valueParser.SerializedType.ToString())
                 .AddGeneric(valueParser.RuntimeType.ToString())
                 .AddArgument(valueParser.Name.AsStringToken());
@@ -197,22 +197,22 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             if (typeReference.IsOrContainsEntity())
             {
                 methodBuilder
-                    .AddParameter(_session, x => x.SetType(TypeNames.IEntityStoreUpdateSession))
-                    .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement.MakeNullable()))
+                    .AddParameter(Session, x => x.SetType(TypeNames.IEntityStoreUpdateSession))
+                    .AddParameter(Obj, x => x.SetType(TypeNames.JsonElement.MakeNullable()))
                     .AddParameter(
-                        _entityIds,
+                        EntityIds,
                         x => x.SetType(TypeNames.ISet.WithGeneric(TypeNames.EntityId)));
             }
             else
             {
                 methodBuilder
-                    .AddParameter(_obj)
+                    .AddParameter(Obj)
                     .SetType(TypeNames.JsonElement.MakeNullable());
             }
 
             var jsonElementNullCheck = IfBuilder
                 .New()
-                .SetCondition($"!{_obj}.HasValue")
+                .SetCondition($"!{Obj}.HasValue")
                 .AddCode(
                     typeReference.IsNonNull()
                         ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
@@ -226,7 +226,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             // element will be not null, but instead a JSON element of kind JsonValueKind.Null.
             var jsonElementNullValueKindCheck = IfBuilder
                 .New()
-                .SetCondition($"{_obj}.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null")
+                .SetCondition($"{Obj}.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null")
                 .AddCode(
             typeReference.IsNonNull()
                 ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
@@ -290,7 +290,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         var propertyAccessor = MethodCallBuilder
             .Inline()
             .SetMethodName(TypeNames.GetPropertyOrNull)
-            .AddArgument(_obj)
+            .AddArgument(Obj)
             .AddArgument(property.FieldName.AsStringToken());
 
         var setNullForgiving = property.Kind is PropertyKind.DeferredField;
@@ -307,7 +307,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         return MethodCallBuilder
             .Inline()
             .SetMethodName(TypeNames.ContainsFragment)
-            .AddArgument(_obj)
+            .AddArgument(Obj)
             .AddArgument(fragment.FragmentIndicatorField.AsStringToken());
     }
 
@@ -323,9 +323,9 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         if (property.IsOrContainsEntity())
         {
             deserializeMethodCaller
-                .AddArgument(_session)
+                .AddArgument(Session)
                 .AddArgument(argument)
-                .AddArgument(_entityIds);
+                .AddArgument(EntityIds);
         }
         else
         {

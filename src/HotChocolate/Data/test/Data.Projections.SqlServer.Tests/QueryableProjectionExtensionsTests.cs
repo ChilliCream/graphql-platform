@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableProjectionExtensionsTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new Foo { Bar = true, Baz = "a", }, new Foo { Bar = false, Baz = "b", },
     ];
@@ -89,7 +89,7 @@ public class QueryableProjectionExtensionsTests
         [UseProjection]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            return _fooEntities.Project(context);
+            return s_fooEntities.Project(context);
         }
 
         [CatchErrorMiddleware]
@@ -97,13 +97,13 @@ public class QueryableProjectionExtensionsTests
         [AddTypeMismatchMiddleware]
         public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
-            return _fooEntities.Project(context);
+            return s_fooEntities.Project(context);
         }
 
         [CatchErrorMiddleware]
         public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
-            return _fooEntities.Project(context);
+            return s_fooEntities.Project(context);
         }
     }
 

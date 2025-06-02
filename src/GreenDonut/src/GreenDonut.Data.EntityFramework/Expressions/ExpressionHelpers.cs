@@ -11,10 +11,10 @@ namespace GreenDonut.Data.Expressions;
 /// </summary>
 internal static class ExpressionHelpers
 {
-    private static readonly MethodInfo _createAndConvert = typeof(ExpressionHelpers)
+    private static readonly MethodInfo s_createAndConvert = typeof(ExpressionHelpers)
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
 
-    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedConverters = new();
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> s_cachedConverters = new();
 
     /// <summary>
     /// Builds a where expression that can be used to slice a dataset.
@@ -315,11 +315,11 @@ internal static class ExpressionHelpers
 
     private static Expression CreateParameter(object? value, Type type)
     {
-        var converter = _cachedConverters.GetOrAdd(
+        var converter = s_cachedConverters.GetOrAdd(
             type,
             t =>
             {
-                var method = _createAndConvert.MakeGenericMethod(t);
+                var method = s_createAndConvert.MakeGenericMethod(t);
                 return v => (Expression)method.Invoke(null, [v])!;
             });
 

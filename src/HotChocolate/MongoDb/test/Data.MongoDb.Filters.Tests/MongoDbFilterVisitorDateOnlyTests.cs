@@ -12,13 +12,13 @@ public class MongoDbFilterVisitorDateOnlyTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = new DateOnly(2022, 01, 16), },
         new() { Bar = new DateOnly(2022, 01, 15), },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = new DateOnly(2022, 01, 16), },
         new() { Bar = null, },
@@ -34,7 +34,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_DateOnlyEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         // assert
@@ -60,7 +60,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_DateOnlyNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -86,7 +86,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -118,7 +118,7 @@ public class MongoDbFilterVisitorDateOnlyTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         // assert

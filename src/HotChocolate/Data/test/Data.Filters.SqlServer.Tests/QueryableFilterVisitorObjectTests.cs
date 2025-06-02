@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorObjectTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -47,7 +47,7 @@ public class QueryableFilterVisitorObjectTests
         },
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -104,8 +104,8 @@ public class QueryableFilterVisitorObjectTests
         },
     ];
 
-    private static readonly Baz[] _bazEntities =
-        _barEntities.Select(b => new Baz { Bar = b }).ToArray();
+    private static readonly Baz[] s_bazEntities =
+        s_barEntities.Select(b => new Baz { Bar = b }).ToArray();
 
     private readonly SchemaCache _cache = new();
 
@@ -113,7 +113,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -153,7 +153,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectShortIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -193,7 +193,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -233,7 +233,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -270,7 +270,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -302,7 +302,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -342,7 +342,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectEnumEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -382,7 +382,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectEnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -423,7 +423,7 @@ public class QueryableFilterVisitorObjectTests
     {
         // arrange
         var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(
-            _barNullableEntities);
+            s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -463,7 +463,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectNullableEnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -500,7 +500,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -539,7 +539,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectStringIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -580,7 +580,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -623,7 +623,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -660,7 +660,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectStringEqual_Flattened()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -702,7 +702,7 @@ public class QueryableFilterVisitorObjectTests
     public async Task Create_ObjectStringEquals_Related_Flattened()
     {
         // arrange
-        var tester = _cache.CreateSchema<Baz, BazFilterInput>(_bazEntities);
+        var tester = _cache.CreateSchema<Baz, BazFilterInput>(s_bazEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

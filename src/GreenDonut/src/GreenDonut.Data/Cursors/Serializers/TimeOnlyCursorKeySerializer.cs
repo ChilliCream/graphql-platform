@@ -6,20 +6,20 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class TimeOnlyCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo _compareTo =
+    private static readonly MethodInfo s_compareTo =
         CompareToResolver.GetCompareToMethod<TimeOnly>();
 
-    private const string _timeFormat = "HHmmssfffffff";
+    private const string TimeFormat = "HHmmssfffffff";
 
     public bool IsSupported(Type type)
         => type == typeof(TimeOnly);
 
     public MethodInfo GetCompareToMethod(Type type)
-        => _compareTo;
+        => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
     {
-        Span<char> timeOnlyChars = stackalloc char[_timeFormat.Length];
+        Span<char> timeOnlyChars = stackalloc char[TimeFormat.Length];
 
         if (Utf8.ToUtf16(formattedKey, timeOnlyChars, out _, out _) != OperationStatus.Done)
         {
@@ -27,16 +27,16 @@ internal sealed class TimeOnlyCursorKeySerializer : ICursorKeySerializer
         }
 
         // Parse date.
-        return TimeOnly.ParseExact(timeOnlyChars, _timeFormat);
+        return TimeOnly.ParseExact(timeOnlyChars, TimeFormat);
     }
 
     public bool TryFormat(object key, Span<byte> buffer, out int written)
     {
         var timeOnly = (TimeOnly)key;
-        Span<char> characters = stackalloc char[_timeFormat.Length];
+        Span<char> characters = stackalloc char[TimeFormat.Length];
 
         // Format time.
-        if (!timeOnly.TryFormat(characters, out _, _timeFormat))
+        if (!timeOnly.TryFormat(characters, out _, TimeFormat))
         {
             written = 0;
             return false;

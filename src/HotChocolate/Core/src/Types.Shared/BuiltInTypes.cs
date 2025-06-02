@@ -4,7 +4,7 @@ namespace HotChocolate.Utilities.Introspection;
 
 public static class BuiltInTypes
 {
-    private static readonly HashSet<string> _typeNames =
+    private static readonly HashSet<string> s_typeNames =
     [
         WellKnownTypes.__Directive,
         WellKnownTypes.__DirectiveLocation,
@@ -21,7 +21,7 @@ public static class BuiltInTypes
         WellKnownTypes.Int,
     ];
 
-    private static readonly HashSet<string> _directiveNames =
+    private static readonly HashSet<string> s_directiveNames =
     [
         WellKnownDirectives.Skip,
         WellKnownDirectives.Include,
@@ -32,7 +32,7 @@ public static class BuiltInTypes
     ];
 
     public static bool IsBuiltInType(string name)
-        => _typeNames.Contains(name) || _directiveNames.Contains(name);
+        => s_typeNames.Contains(name) || s_directiveNames.Contains(name);
 
     public static DocumentNode RemoveBuiltInTypes(this DocumentNode schema)
     {
@@ -44,14 +44,14 @@ public static class BuiltInTypes
         {
             if (definition is INamedSyntaxNode type)
             {
-                if (!_typeNames.Contains(type.Name.Value))
+                if (!s_typeNames.Contains(type.Name.Value))
                 {
                     definitions.Add(definition);
                 }
             }
             else if (definition is DirectiveDefinitionNode directive)
             {
-                if (!_directiveNames.Contains(directive.Name.Value))
+                if (!s_directiveNames.Contains(directive.Name.Value))
                 {
                     definitions.Add(definition);
                 }

@@ -4,7 +4,7 @@ namespace HotChocolate.Utilities;
 
 public static class FireAndForgetTaskExtensions
 {
-    private static ImmutableArray<BackgroundTaskErrorInterceptor> _interceptors =
+    private static ImmutableArray<BackgroundTaskErrorInterceptor> s_interceptors =
         ImmutableArray<BackgroundTaskErrorInterceptor>.Empty;
 
     public static void FireAndForget(
@@ -28,7 +28,7 @@ public static class FireAndForgetTaskExtensions
             }
             catch (Exception ex)
             {
-                var interceptors = _interceptors;
+                var interceptors = s_interceptors;
                 foreach (var interceptor in interceptors)
                 {
                     interceptor.OnError(ex);
@@ -58,7 +58,7 @@ public static class FireAndForgetTaskExtensions
             }
             catch (Exception ex)
             {
-                var interceptors = _interceptors;
+                var interceptors = s_interceptors;
                 foreach (var interceptor in interceptors)
                 {
                     interceptor.OnError(ex);
@@ -91,7 +91,7 @@ public static class FireAndForgetTaskExtensions
             }
             catch (Exception ex)
             {
-                var interceptors = _interceptors;
+                var interceptors = s_interceptors;
                 foreach (var interceptor in interceptors)
                 {
                     interceptor.OnError(ex);
@@ -106,13 +106,13 @@ public static class FireAndForgetTaskExtensions
     {
         ArgumentNullException.ThrowIfNull(interceptor);
 
-        ImmutableInterlocked.Update(ref _interceptors, x => x.Add(interceptor));
+        ImmutableInterlocked.Update(ref s_interceptors, x => x.Add(interceptor));
     }
 
     internal static void UnsubscribeFromErrors(BackgroundTaskErrorInterceptor interceptor)
     {
         ArgumentNullException.ThrowIfNull(interceptor);
 
-        ImmutableInterlocked.Update(ref _interceptors, x => x.Remove(interceptor));
+        ImmutableInterlocked.Update(ref s_interceptors, x => x.Remove(interceptor));
     }
 }

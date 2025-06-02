@@ -289,16 +289,16 @@ public class OperationExecutorTests
 
     private sealed class ResultObserver : IObserver<IOperationResult<string>>
     {
-        private static readonly TimeSpan _timeout = TimeSpan.FromMilliseconds(500);
+        private static readonly TimeSpan s_timeout = TimeSpan.FromMilliseconds(500);
 
         private readonly SemaphoreSlim _resultSemaphore = new(0);
         private readonly Queue<IOperationResult<string>> _results = new();
 
         public async Task<IOperationResult<string>> WaitForResult()
         {
-            if (!await _resultSemaphore.WaitAsync(_timeout))
+            if (!await _resultSemaphore.WaitAsync(s_timeout))
             {
-                throw new TimeoutException($"Did not receive a result in {_timeout}");
+                throw new TimeoutException($"Did not receive a result in {s_timeout}");
             }
 
             return _results.Dequeue();

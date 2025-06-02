@@ -190,7 +190,7 @@ public ref partial struct Utf8GraphQLRequestParser
     {
         if (extensions is not null
             && hashProvider is not null
-            && extensions.TryGetValue(_persistedQuery, out var obj)
+            && extensions.TryGetValue(PersistedQuery, out var obj)
             && obj is IReadOnlyDictionary<string, object> persistedQuery
             && persistedQuery.TryGetValue(hashProvider.Name, out obj)
             && obj is string h)

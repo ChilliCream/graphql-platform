@@ -6,12 +6,12 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorStringTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = "testatest", }, new() { Bar = "testbtest", },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = "testatest", }, new() { Bar = "testbtest", }, new() { Bar = null, },
     ];
@@ -27,7 +27,7 @@ public class QueryableSortVisitorStringTests
     public async Task Create_String_OrderBy()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooSortType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -53,7 +53,7 @@ public class QueryableSortVisitorStringTests
     {
         // arrange
         var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

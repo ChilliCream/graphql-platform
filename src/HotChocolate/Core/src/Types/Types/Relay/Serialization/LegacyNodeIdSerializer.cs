@@ -10,15 +10,15 @@ namespace HotChocolate.Types.Relay;
 
 internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 {
-    private const int _stackallocThreshold = 256;
-    private const byte _separator = (byte)'\n';
+    private const int StackallocThreshold = 256;
+    private const byte Separator = (byte)'\n';
     internal const byte Guid = (byte)'g';
     internal const byte Short = (byte)'s';
     internal const byte Int = (byte)'i';
     internal const byte Long = (byte)'l';
     internal const byte Default = (byte)'d';
 
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
 
     public string Format(string typeName, object internalId)
         => FormatInternal(typeName, internalId);
@@ -57,7 +57,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
         byte[]? serializedArray = null;
 
-        var serialized = serializedSize <= _stackallocThreshold
+        var serialized = serializedSize <= StackallocThreshold
             ? stackalloc byte[serializedSize]
             : serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize);
 
@@ -66,7 +66,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             var position = 0;
 
             position += CopyString(typeName, serialized.Slice(position, nameSize));
-            serialized[position++] = _separator;
+            serialized[position++] = Separator;
 
             var value = serialized.Slice(position + 1);
 
@@ -163,7 +163,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
         byte[]? serializedArray = null;
 
-        var serialized = serializedSize <= _stackallocThreshold
+        var serialized = serializedSize <= StackallocThreshold
             ? stackalloc byte[serializedSize]
             : serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize);
 
@@ -243,7 +243,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         {
             fixed (char* charPtr = value)
             {
-                return _utf8.GetBytes(
+                return s_utf8.GetBytes(
                     charPtr, value.Length,
                     bytePtr, serialized.Length);
             }
@@ -259,7 +259,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
         fixed (byte* bytePtr = serialized)
         {
-            return _utf8.GetString(bytePtr, serialized.Length);
+            return s_utf8.GetString(bytePtr, serialized.Length);
         }
     }
 
@@ -271,7 +271,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             short => 6,
             int => 11,
             long => 20,
-            string s => _utf8.GetByteCount(s),
+            string s => s_utf8.GetByteCount(s),
             _ => throw new NotSupportedException()
         };
     }
@@ -280,7 +280,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
     {
         for (var i = 0; i < serializedId.Length; i++)
         {
-            if (serializedId[i] == _separator)
+            if (serializedId[i] == Separator)
             {
                 return i;
             }

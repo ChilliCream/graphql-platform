@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbCursorPagingProvider : CursorPagingProvider
 {
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(MongoDbCursorPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -26,7 +26,7 @@ public class MongoDbCursorPagingProvider : CursorPagingProvider
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        return (CursorPagingHandler)_createHandler
+        return (CursorPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
             .Invoke(null, [options,])!;
     }

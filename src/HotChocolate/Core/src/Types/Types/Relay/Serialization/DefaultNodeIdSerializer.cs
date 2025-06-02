@@ -16,10 +16,10 @@ public sealed class DefaultNodeIdSerializer(
     bool urlSafeBase64 = true)
     : INodeIdSerializer
 {
-    private const byte _delimiter = (byte)':';
-    private const byte _legacyDelimiter = (byte)'\n';
-    private const int _stackallocThreshold = 256;
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private const byte Delimiter = (byte)':';
+    private const byte LegacyDelimiter = (byte)'\n';
+    private const int StackallocThreshold = 256;
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private readonly ConcurrentDictionary<string, byte[]> _names = new();
     private readonly INodeIdValueSerializer[] _serializers = serializers ??
     [
@@ -44,7 +44,7 @@ public sealed class DefaultNodeIdSerializer(
         }
 
         return Format(
-            _names.GetOrAdd(typeName, static n => _utf8.GetBytes(n)),
+            _names.GetOrAdd(typeName, static n => s_utf8.GetBytes(n)),
             internalId,
             serializer,
             outputNewIdFormat,
@@ -60,8 +60,8 @@ public sealed class DefaultNodeIdSerializer(
     {
         var minLength = typeName.Length + 128;
         byte[]? rentedBuffer = null;
-        var span = minLength <= _stackallocThreshold
-            ? stackalloc byte[_stackallocThreshold]
+        var span = minLength <= StackallocThreshold
+            ? stackalloc byte[StackallocThreshold]
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(minLength);
         var capacity = span.Length;
 
@@ -150,11 +150,11 @@ public sealed class DefaultNodeIdSerializer(
 
         if (outputNewIdFormat)
         {
-            valueSpan[0] = _delimiter;
+            valueSpan[0] = Delimiter;
             return valueSpan.Slice(1);
         }
 
-        valueSpan[0] = _legacyDelimiter;
+        valueSpan[0] = LegacyDelimiter;
         valueSpan[1] = LegacyNodeIdSerializer.GetLegacyValueCode(value);
         return valueSpan.Slice(2);
     }
@@ -168,11 +168,11 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        var expectedSize = _utf8.GetByteCount(formattedId);
+        var expectedSize = s_utf8.GetByteCount(formattedId);
 
         byte[]? rentedBuffer = null;
-        var span = expectedSize <= _stackallocThreshold
-            ? stackalloc byte[_stackallocThreshold]
+        var span = expectedSize <= StackallocThreshold
+            ? stackalloc byte[StackallocThreshold]
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
 
         Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
@@ -227,7 +227,7 @@ public sealed class DefaultNodeIdSerializer(
         }
 
         var delimiterOffset = 1;
-        if (span[delimiterIndex] == _legacyDelimiter)
+        if (span[delimiterIndex] == LegacyDelimiter)
         {
             delimiterOffset = 2;
         }
@@ -260,11 +260,11 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        var expectedSize = _utf8.GetByteCount(formattedId);
+        var expectedSize = s_utf8.GetByteCount(formattedId);
 
         byte[]? rentedBuffer = null;
-        var span = expectedSize <= _stackallocThreshold
-            ? stackalloc byte[_stackallocThreshold]
+        var span = expectedSize <= StackallocThreshold
+            ? stackalloc byte[StackallocThreshold]
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
 
         Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
@@ -319,7 +319,7 @@ public sealed class DefaultNodeIdSerializer(
         }
 
         var delimiterOffset = 1;
-        if (span[delimiterIndex] == _legacyDelimiter)
+        if (span[delimiterIndex] == LegacyDelimiter)
         {
             delimiterOffset = 2;
         }
@@ -360,14 +360,14 @@ public sealed class DefaultNodeIdSerializer(
         return null;
     }
 
-    private static readonly byte[] _delimiters = [_delimiter, _legacyDelimiter];
-    private static readonly SearchValues<byte> _delimiterSearchValues =
-        SearchValues.Create(_delimiters);
+    private static readonly byte[] s_delimiters = [Delimiter, LegacyDelimiter];
+    private static readonly SearchValues<byte> s_delimiterSearchValues =
+        SearchValues.Create(s_delimiters);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int FindDelimiterIndex(ReadOnlySpan<byte> span)
     {
-        return span.IndexOfAny(_delimiterSearchValues);
+        return span.IndexOfAny(s_delimiterSearchValues);
     }
 
     private static void Clear(byte[]? rentedBuffer = null)
@@ -391,7 +391,7 @@ public sealed class DefaultNodeIdSerializer(
     {
         fixed (byte* buffer = span)
         {
-            return _utf8.GetString(buffer, span.Length);
+            return s_utf8.GetString(buffer, span.Length);
         }
     }
 }

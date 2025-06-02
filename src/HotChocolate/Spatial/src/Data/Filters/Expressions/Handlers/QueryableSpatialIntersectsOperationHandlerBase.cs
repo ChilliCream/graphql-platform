@@ -12,14 +12,14 @@ namespace HotChocolate.Data.Filters.Spatial;
 public abstract class QueryableSpatialIntersectsOperationHandlerBase
     : QueryableSpatialBooleanMethodHandler
 {
-    private static readonly MethodInfo _intersects =
+    private static readonly MethodInfo s_intersects =
         typeof(Geometry).GetMethod(nameof(Geometry.Intersects))!;
 
     public QueryableSpatialIntersectsOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)
-        : base(convention, inspector, inputParser, _intersects)
+        : base(convention, inspector, inputParser, s_intersects)
     {
     }
 

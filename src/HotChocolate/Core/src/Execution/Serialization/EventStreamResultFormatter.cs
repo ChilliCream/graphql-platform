@@ -231,8 +231,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
     private sealed class KeepAliveJob : IDisposable
     {
-        private static readonly TimeSpan _timerPeriod = TimeSpan.FromSeconds(12);
-        private static readonly TimeSpan _keepAlivePeriod = TimeSpan.FromSeconds(8);
+        private static readonly TimeSpan s_timerPeriod = TimeSpan.FromSeconds(12);
+        private static readonly TimeSpan s_keepAlivePeriod = TimeSpan.FromSeconds(8);
         private readonly PipeWriter _writer;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
@@ -241,14 +241,14 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         public KeepAliveJob(PipeWriter writer)
         {
             _writer = writer;
-            _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, _timerPeriod, _timerPeriod);
+            _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, s_timerPeriod, s_timerPeriod);
         }
 
         public void Reset() => _lastWriteTime = DateTime.UtcNow;
 
         private void EnsureKeepAlive()
         {
-            if (DateTime.UtcNow - _lastWriteTime >= _keepAlivePeriod)
+            if (DateTime.UtcNow - _lastWriteTime >= s_keepAlivePeriod)
             {
                 WriteKeepAliveAsync().FireAndForget();
             }
@@ -283,10 +283,10 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
     private static class MessageHelper
     {
-        private static readonly byte[] _nextEvent = "event: next\ndata: "u8.ToArray();
-        private static readonly byte[] _completeEvent = "event: complete\n\n"u8.ToArray();
-        private static readonly byte[] _keepAlive = ":\n\n"u8.ToArray();
-        private static readonly byte[] _newLine2 = "\n\n"u8.ToArray();
+        private static readonly byte[] s_nextEvent = "event: next\ndata: "u8.ToArray();
+        private static readonly byte[] s_completeEvent = "event: complete\n\n"u8.ToArray();
+        private static readonly byte[] s_keepAlive = ":\n\n"u8.ToArray();
+        private static readonly byte[] s_newLine2 = "\n\n"u8.ToArray();
 
         public static void WriteNextMessage(
             JsonResultFormatter payloadFormatter,
@@ -294,27 +294,27 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             PooledArrayWriter writer)
         {
             // write the SSE event field
-            var span = writer.GetSpan(_nextEvent.Length);
-            _nextEvent.CopyTo(span);
-            writer.Advance(_nextEvent.Length);
+            var span = writer.GetSpan(s_nextEvent.Length);
+            s_nextEvent.CopyTo(span);
+            writer.Advance(s_nextEvent.Length);
 
             // write the actual result data
             payloadFormatter.Format(result, writer);
 
             // write the new line
-            span = writer.GetSpan(_newLine2.Length);
-            _newLine2.CopyTo(span);
-            writer.Advance(_newLine2.Length);
+            span = writer.GetSpan(s_newLine2.Length);
+            s_newLine2.CopyTo(span);
+            writer.Advance(s_newLine2.Length);
         }
 
         public static void WriteCompleteMessage(
             IBufferWriter<byte> writer)
         {
-            var span = writer.GetSpan(_completeEvent.Length);
-            _completeEvent.CopyTo(span);
-            writer.Advance(_completeEvent.Length);
+            var span = writer.GetSpan(s_completeEvent.Length);
+            s_completeEvent.CopyTo(span);
+            writer.Advance(s_completeEvent.Length);
         }
 
-        public static ReadOnlySpan<byte> KeepAlive() => _keepAlive;
+        public static ReadOnlySpan<byte> KeepAlive() => s_keepAlive;
     }
 }

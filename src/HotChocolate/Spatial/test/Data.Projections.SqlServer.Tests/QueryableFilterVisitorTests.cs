@@ -8,7 +8,7 @@ public class QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> r
     : SchemaCache(resource)
     , IClassFixture<PostgreSqlResource<PostgisConfig>>
 {
-    private static readonly Polygon _truePolygon =
+    private static readonly Polygon s_truePolygon =
         new(new LinearRing(
         [
             new Coordinate(0, 0),
@@ -18,7 +18,7 @@ public class QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> r
                 new Coordinate(0, 0),
         ]));
 
-    private static readonly Polygon _falsePolygon =
+    private static readonly Polygon s_falsePolygon =
         new(new LinearRing(
         [
             new Coordinate(0, 0),
@@ -28,17 +28,17 @@ public class QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> r
                 new Coordinate(0, 0),
         ]));
 
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon, },
-        new() { Id = 2, Bar = _falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon, },
+        new() { Id = 2, Bar = s_falsePolygon, },
     ];
 
     [Fact]
     public async Task Create_Expression()
     {
         // arrange
-        var tester = await CreateSchemaAsync(_fooEntities);
+        var tester = await CreateSchemaAsync(s_fooEntities);
 
         // act
         var result = await tester.ExecuteAsync(

@@ -9,7 +9,7 @@ namespace CookieCrumble;
 
 public class SnapshotTests
 {
-    private const string _strictModeExceptionMessage =
+    private const string StrictModeExceptionMessage =
         "Strict mode is enabled and no snapshot has been found " +
         "for the current test. Create a new snapshot locally and " +
         "rerun your tests.";
@@ -134,16 +134,16 @@ public class SnapshotTests
         try
         {
             Assert.Equal(
-                _strictModeExceptionMessage,
+                StrictModeExceptionMessage,
                 (await Assert.ThrowsAsync<XunitException>(Act1)).Message);
 
-            Assert.Equal(_strictModeExceptionMessage, Assert.Throws<XunitException>(Act2).Message);
+            Assert.Equal(StrictModeExceptionMessage, Assert.Throws<XunitException>(Act2).Message);
 
             Assert.Equal(
-                _strictModeExceptionMessage,
+                StrictModeExceptionMessage,
                 (await Assert.ThrowsAsync<XunitException>(Act3)).Message);
 
-            Assert.Equal(_strictModeExceptionMessage, Assert.Throws<XunitException>(Act4).Message);
+            Assert.Equal(StrictModeExceptionMessage, Assert.Throws<XunitException>(Act4).Message);
         }
         finally
         {

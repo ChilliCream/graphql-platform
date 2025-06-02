@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore;
 
 public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
-    private static readonly Uri _url = new("http://localhost:5000/graphql");
+    private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
     [Fact]
     public async Task Simple_IsAlive_Test()
@@ -980,7 +980,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __schema { description } }", }),
@@ -1016,7 +1016,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __schema { description } }", }),

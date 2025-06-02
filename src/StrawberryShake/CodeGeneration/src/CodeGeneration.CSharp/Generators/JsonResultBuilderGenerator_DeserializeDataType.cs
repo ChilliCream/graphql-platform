@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class JsonResultBuilderGenerator
 {
-    private const string _typename = "typename";
+    private const string Typename = "typename";
 
     private void AddDataTypeDeserializerMethod(
         ClassBuilder classBuilder,
@@ -47,11 +47,11 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLeftHandSide($"var {_typename}")
+                .SetLeftHandSide($"var {Typename}")
                 .SetRightHandSide(MethodCallBuilder
                     .Inline()
                     .SetMethodName(
-                        _obj,
+                        Obj,
                         "Value",
                         nameof(JsonElement.GetProperty))
                     .AddArgument(WellKnownNames.TypeName.AsStringToken())

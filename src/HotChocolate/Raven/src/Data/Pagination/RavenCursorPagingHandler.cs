@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Raven.Pagination;
 internal sealed class RavenCursorPagingHandler<TEntity>(PagingOptions options)
     : CursorPagingHandler<RavenPagingContainer<TEntity>, TEntity>(options)
 {
-    private static readonly QueryExecutor _executor = new();
+    private static readonly QueryExecutor s_executor = new();
     private readonly RavenCursorPaginationAlgorithm<TEntity> _paginationAlgorithm = new();
 
     public ValueTask<Connection<TEntity>> SliceAsync(
@@ -21,7 +21,7 @@ internal sealed class RavenCursorPagingHandler<TEntity>(PagingOptions options)
             source,
             arguments,
             _paginationAlgorithm,
-            _executor,
+            s_executor,
             context.RequestAborted);
 
     protected override ValueTask<Connection> SliceAsync(
@@ -39,7 +39,7 @@ internal sealed class RavenCursorPagingHandler<TEntity>(PagingOptions options)
                 source,
                 arguments,
                 _paginationAlgorithm,
-                _executor,
+                s_executor,
                 context.RequestAborted)
             .ConfigureAwait(false);
 

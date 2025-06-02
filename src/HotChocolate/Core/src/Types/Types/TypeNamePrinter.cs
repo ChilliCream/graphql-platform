@@ -2,7 +2,7 @@ namespace HotChocolate.Types;
 
 public static class TypeNamePrinter
 {
-    private const int _maxTypeDepth = 6;
+    private const int MaxTypeDepth = 6;
 
     public static string Print(this IType type) => Print(type, 0);
 
@@ -10,7 +10,7 @@ public static class TypeNamePrinter
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (count > _maxTypeDepth)
+        if (count > MaxTypeDepth)
         {
             throw new InvalidOperationException(
                 "A type can only consist of four components.");

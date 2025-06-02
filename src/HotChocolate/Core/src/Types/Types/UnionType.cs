@@ -54,7 +54,7 @@ public class UnionType
     : NamedTypeBase<UnionTypeConfiguration>
     , IUnionTypeDefinition
 {
-    private const string _typeReference = "typeReference";
+    private const string TypeReference = "typeReference";
 
     private ObjectTypeCollection _typeMap = default!;
     private Action<IUnionTypeDescriptor>? _configure;
@@ -246,7 +246,7 @@ public class UnionType
                             type.ToTypeNode().Print())
                         .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(this)
-                        .SetExtension(_typeReference, typeReference)
+                        .SetExtension(TypeReference, typeReference)
                         .Build());
                     continue;
                 }
@@ -262,7 +262,7 @@ public class UnionType
                     .SetMessage(TypeResources.UnionType_UnableToResolveType)
                     .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(this)
-                    .SetExtension(_typeReference, typeReference)
+                    .SetExtension(TypeReference, typeReference)
                     .Build());
             }
         }

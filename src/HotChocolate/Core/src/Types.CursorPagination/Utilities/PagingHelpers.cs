@@ -7,9 +7,9 @@ namespace HotChocolate.Types.Pagination.Utilities;
 /// </summary>
 public static class PagingHelpers
 {
-    private const string _pagingFlagsKey = "HotChocolate.Pagination.Flags";
-    private const string _originalQuery = "HotChocolate.Pagination.OriginalQuery";
-    private const string _slicedQuery = "HotChocolate.Pagination.SlicedQuery";
+    private const string PagingFlagsKey = "HotChocolate.Pagination.Flags";
+    private const string OriginalQuery = "HotChocolate.Pagination.OriginalQuery";
+    private const string SlicedQuery = "HotChocolate.Pagination.SlicedQuery";
 
     /// <summary>
     /// Gets the paging flags from the context.
@@ -25,7 +25,7 @@ public static class PagingHelpers
     /// </returns>
     public static PagingFlags GetPagingFlags(this IResolverContext context, bool totalCountEnabled = false)
     {
-        var pagingFlags = context.GetLocalStateOrDefault(_pagingFlagsKey, PagingFlags.None);
+        var pagingFlags = context.GetLocalStateOrDefault(PagingFlagsKey, PagingFlags.None);
 
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
@@ -62,7 +62,7 @@ public static class PagingHelpers
     /// The paging flags.
     /// </param>
     public static void SetPagingFlags(this IResolverContext context, PagingFlags flags)
-        => context.SetLocalState(_pagingFlagsKey, flags);
+        => context.SetLocalState(PagingFlagsKey, flags);
 
     /// <summary>
     /// Sets the original query before the paging middleware appended any slicing.
@@ -77,7 +77,7 @@ public static class PagingHelpers
     /// The type of the query.
     /// </typeparam>
     public static void SetOriginalQuery<TQuery>(this IResolverContext context, TQuery query)
-        => context.SetLocalState(_originalQuery, query);
+        => context.SetLocalState(OriginalQuery, query);
 
     /// <summary>
     /// Sets the sliced query after the paging middleware appended slicing.
@@ -92,7 +92,7 @@ public static class PagingHelpers
     /// The type of the query.
     /// </typeparam>
     public static void SetSlicedQuery<TQuery>(this IResolverContext context, TQuery query)
-        => context.SetLocalState(_slicedQuery, query);
+        => context.SetLocalState(SlicedQuery, query);
 
     /// <summary>
     /// Gets the original query before the paging middleware appended any slicing.
@@ -107,7 +107,7 @@ public static class PagingHelpers
     /// Returns the original query.
     /// </returns>
     public static TQuery GetOriginalQuery<TQuery>(this IResolverContext context)
-        => context.GetLocalState<TQuery>(_originalQuery);
+        => context.GetLocalState<TQuery>(OriginalQuery);
 
     /// <summary>
     /// Gets the sliced query after the paging middleware appended slicing.
@@ -122,5 +122,5 @@ public static class PagingHelpers
     /// Returns the sliced query.
     /// </returns>
     public static TQuery GetSlicedQuery<TQuery>(this IResolverContext context)
-        => context.GetLocalState<TQuery>(_slicedQuery);
+        => context.GetLocalState<TQuery>(SlicedQuery);
 }

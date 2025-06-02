@@ -4,13 +4,13 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true, },
         new() { Bar = false, },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = true, },
         new() { Bar = null, },
@@ -28,7 +28,7 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -53,7 +53,7 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -79,7 +79,7 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         // assert
@@ -112,7 +112,7 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

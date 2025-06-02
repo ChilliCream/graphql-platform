@@ -8,7 +8,7 @@ namespace StrawberryShake;
 
 public sealed partial class OperationStore : IOperationStore
 {
-    private static readonly MethodInfo _setGeneric = typeof(OperationStore)
+    private static readonly MethodInfo s_setGeneric = typeof(OperationStore)
         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
         .First(t =>
             t.IsGenericMethodDefinition &&
@@ -45,7 +45,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public void Set(OperationRequest operationRequest, IOperationResult operationResult)
     {
-        _setGeneric
+        s_setGeneric
             .MakeGenericMethod(operationResult.DataType)
             .Invoke(this, [operationRequest, operationResult,]);
     }

@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionFilterTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -39,7 +39,7 @@ public class QueryableProjectionFilterTests
         },
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -96,7 +96,7 @@ public class QueryableProjectionFilterTests
         },
     ];
 
-    private static readonly BarNullable[] _barWithoutRelation =
+    private static readonly BarNullable[] s_barWithoutRelation =
     [
         new()
         {
@@ -135,7 +135,7 @@ public class QueryableProjectionFilterTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -172,7 +172,7 @@ public class QueryableProjectionFilterTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -211,7 +211,7 @@ public class QueryableProjectionFilterTests
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities);
+        var tester = _cache.CreateSchema(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -248,7 +248,7 @@ public class QueryableProjectionFilterTests
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities);
+        var tester = _cache.CreateSchema(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -286,7 +286,7 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -311,7 +311,7 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -338,7 +338,7 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(

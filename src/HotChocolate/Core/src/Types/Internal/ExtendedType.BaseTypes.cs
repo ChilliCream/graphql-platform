@@ -8,7 +8,7 @@ internal sealed partial class ExtendedType
 {
     private static class BaseTypes
     {
-        private static readonly HashSet<Type> _baseTypes =
+        private static readonly HashSet<Type> s_baseTypes =
         [
             typeof(ScalarType),
             typeof(InputObjectType),
@@ -46,7 +46,7 @@ internal sealed partial class ExtendedType
                 return true;
             }
 
-            foreach (var baseType in _baseTypes)
+            foreach (var baseType in s_baseTypes)
             {
                 if (baseType.IsAssignableFrom(type))
                 {
@@ -61,7 +61,7 @@ internal sealed partial class ExtendedType
         {
             ArgumentNullException.ThrowIfNull(type);
 
-            if (type.IsGenericType && _baseTypes.Contains(type.GetGenericTypeDefinition()))
+            if (type.IsGenericType && s_baseTypes.Contains(type.GetGenericTypeDefinition()))
             {
                 return true;
             }
@@ -73,7 +73,7 @@ internal sealed partial class ExtendedType
         {
             ArgumentNullException.ThrowIfNull(type);
 
-            return _baseTypes.Contains(type);
+            return s_baseTypes.Contains(type);
         }
     }
 }

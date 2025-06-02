@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Spatial.Filters;
 [Collection("Postgres")]
 public class QueryableFilterVisitorWithinTests : SchemaCache
 {
-    private static readonly Polygon _truePolygon =
+    private static readonly Polygon s_truePolygon =
         new(new LinearRing(
         [
             new Coordinate(20, 20),
@@ -18,7 +18,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
             new Coordinate(20, 20),
         ]));
 
-    private static readonly Polygon _falsePolygon =
+    private static readonly Polygon s_falsePolygon =
         new(new LinearRing(
         [
             new Coordinate(1000, 1000),
@@ -28,10 +28,10 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
             new Coordinate(1000, 1000),
         ]));
 
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon, },
-        new() { Id = 2, Bar = _falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon, },
+        new() { Id = 2, Bar = s_falsePolygon, },
     ];
 
     public QueryableFilterVisitorWithinTests(PostgreSqlResource<PostgisConfig> resource)
@@ -43,7 +43,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
     public async Task Create_Within_Query()
     {
         // arrange
-        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

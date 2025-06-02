@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 public class AuthorizationTestData : IEnumerable<object[]>
 {
-    private const string _sdl = $@"
+    private const string Sdl = $@"
         type Query {{
             default: String @authorize
             age: String @authorize(policy: ""{Policies.HasDefinedAge}"")
@@ -29,7 +29,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
 
     private Action<IRequestExecutorBuilder, int> CreateSchema() =>
         (builder, port) => builder
-            .AddDocumentFromString(_sdl)
+            .AddDocumentFromString(Sdl)
             .AddOpaAuthorization(
                 (_, o) =>
                 {
@@ -49,7 +49,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
 
     private Action<IRequestExecutorBuilder, int> CreateSchemaWithBuilder() =>
         (builder, port) => builder
-            .AddDocumentFromString(_sdl)
+            .AddDocumentFromString(Sdl)
             .AddOpaAuthorization(
                 (_, o) =>
                 {

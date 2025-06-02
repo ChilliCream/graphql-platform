@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 {
-    private static readonly BarInterface[] _barEntities =
+    private static readonly BarInterface[] s_barEntities =
     [
         new() { Test = new InterfaceImpl1 { Prop = "a", }, },
         new() { Test = new InterfaceImpl1 { Prop = "b", }, },
@@ -26,7 +26,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache
             .CreateSchema<BarInterface, FilterInputType<BarInterface>>(
-                _barEntities,
+                s_barEntities,
                 configure: Configure,
                 onModelCreating: OnModelCreating);
 

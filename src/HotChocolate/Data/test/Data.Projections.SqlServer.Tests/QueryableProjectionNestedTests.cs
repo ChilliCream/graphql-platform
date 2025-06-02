@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableProjectionNestedTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new() { Foo = new Foo { BarString = "testatest", }, },
         new() { Foo = new Foo { BarString = "testbtest", }, },
@@ -17,7 +17,7 @@ public class QueryableProjectionNestedTests
     public async Task Create_Object()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -44,7 +44,7 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectNotSettable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -71,7 +71,7 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectNotSettableList()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -98,7 +98,7 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectMethod()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -125,7 +125,7 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectMethodList()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(

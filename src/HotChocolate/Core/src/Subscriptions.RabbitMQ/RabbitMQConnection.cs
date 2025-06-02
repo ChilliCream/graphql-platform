@@ -8,7 +8,7 @@ namespace HotChocolate.Subscriptions.RabbitMQ;
 
 internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
 {
-    private const int _retryCount = 6;
+    private const int RetryCount = 6;
     private readonly object _sync = new();
     private readonly TaskCompletionSource<IConnection> _completionSource = new();
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
@@ -72,7 +72,7 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
         connectionFactory.DispatchConsumersAsync = true;
         var connectionAttempt = 0;
 
-        while (connectionAttempt < _retryCount)
+        while (connectionAttempt < RetryCount)
         {
             try
             {
@@ -94,7 +94,7 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
                     connectionAttempt));
             }
 
-            if (connectionAttempt < _retryCount)
+            if (connectionAttempt < RetryCount)
             {
                 await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, connectionAttempt))).ConfigureAwait(false);
             }

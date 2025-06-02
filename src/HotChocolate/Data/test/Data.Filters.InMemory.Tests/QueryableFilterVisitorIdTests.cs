@@ -5,27 +5,27 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = "testatest", },
         new() { Bar = "testbtest", },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = "testatest", },
         new() { Bar = "testbtest", },
         new() { Bar = null, },
     ];
 
-    private static readonly FooShort[] _fooShortEntities =
+    private static readonly FooShort[] s_fooShortEntities =
     [
         new() { BarShort = 12, },
         new() { BarShort = 14, },
         new() { BarShort = 13, },
     ];
 
-    private static readonly FooShortNullable[] _fooShortNullableEntities =
+    private static readonly FooShortNullable[] s_fooShortNullableEntities =
     [
         new() { BarShort = 12, },
         new() { BarShort = null, },
@@ -45,7 +45,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
-            _fooEntities,
+            s_fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -78,7 +78,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
-            _fooEntities,
+            s_fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -111,7 +111,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
-            _fooEntities,
+            s_fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -153,7 +153,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
-            _fooEntities,
+            s_fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -195,7 +195,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -228,7 +228,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -261,7 +261,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -304,7 +304,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -349,7 +349,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
-            _fooShortEntities,
+            s_fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -382,7 +382,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
-            _fooShortEntities,
+            s_fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -416,7 +416,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
-                _fooShortNullableEntities,
+                s_fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -450,7 +450,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
-                _fooShortNullableEntities,
+                s_fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -483,7 +483,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
-            _fooShortEntities,
+            s_fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -534,7 +534,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
-            _fooShortEntities,
+            s_fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -580,7 +580,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
-                _fooShortNullableEntities,
+                s_fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
@@ -632,7 +632,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // assert
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
-                _fooShortNullableEntities,
+                s_fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act

@@ -7,13 +7,13 @@ namespace HotChocolate.Data.Raven.Filtering.Handlers;
 
 public static class RavenFilterExpressionBuilder
 {
-    private static readonly MethodInfo _inMethod =
+    private static readonly MethodInfo s_inMethod =
         typeof(RavenQueryableExtensions)
             .GetMethods()
             .Single(x => x.Name == nameof(RavenQueryableExtensions.In) &&
                 x.GetParameters() is [_, { ParameterType.IsArray: false, },]);
 
-    private static readonly MethodInfo _isMatch =
+    private static readonly MethodInfo s_isMatch =
         typeof(Regex)
             .GetMethods()
             .Single(x => x.Name == nameof(Regex.IsMatch) &&
@@ -27,7 +27,7 @@ public static class RavenFilterExpressionBuilder
         object? parsedValue)
     {
         return Expression.Call(
-            _inMethod.MakeGenericMethod(genericType),
+            s_inMethod.MakeGenericMethod(genericType),
             [property, Expression.Constant(parsedValue),]);
     }
 
@@ -38,7 +38,7 @@ public static class RavenFilterExpressionBuilder
         parsedValue = $".*{Regex.Escape(parsedValue)}.*";
 
         return Expression.Call(
-            _isMatch,
+            s_isMatch,
             [property, Expression.Constant(parsedValue),]);
     }
 }

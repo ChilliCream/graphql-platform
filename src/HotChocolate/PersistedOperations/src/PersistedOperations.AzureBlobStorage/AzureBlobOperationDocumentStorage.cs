@@ -12,9 +12,9 @@ namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 /// </summary>
 public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
 {
-    private static readonly char[] _fileExtension = ".graphql".ToCharArray();
+    private static readonly char[] s_fileExtension = ".graphql".ToCharArray();
 
-    private static readonly BlobOpenWriteOptions _writeOptions = new()
+    private static readonly BlobOpenWriteOptions s_writeOptions = new()
     {
         HttpHeaders = new BlobHttpHeaders
         {
@@ -130,7 +130,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         CancellationToken ct)
     {
         var blobClient = _client.GetBlobClient(CreateFileName(documentId));
-        await using var outStream = await blobClient.OpenWriteAsync(true, _writeOptions, ct).ConfigureAwait(false);
+        await using var outStream = await blobClient.OpenWriteAsync(true, s_writeOptions, ct).ConfigureAwait(false);
         await document.WriteToAsync(outStream, ct).ConfigureAwait(false);
         await outStream.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -138,7 +138,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
 
     private static string CreateFileName(OperationDocumentId documentId)
     {
-        var length = documentId.Value.Length + _fileExtension.Length;
+        var length = documentId.Value.Length + s_fileExtension.Length;
         char[]? rented = null;
         Span<char> span = length <= 256
             ? stackalloc char[length]
@@ -147,7 +147,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         try
         {
             documentId.Value.AsSpan().CopyTo(span);
-            _fileExtension.AsSpan().CopyTo(span.Slice(documentId.Value.Length));
+            s_fileExtension.AsSpan().CopyTo(span.Slice(documentId.Value.Length));
             return new string(span);
         }
         finally

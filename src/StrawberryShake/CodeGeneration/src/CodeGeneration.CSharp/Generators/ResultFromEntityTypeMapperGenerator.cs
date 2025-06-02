@@ -10,10 +10,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFromEntityDescriptor>
 {
-    private const string _entity = "entity";
-    private const string _entityStore = "entityStore";
-    private const string _map = "Map";
-    private const string _snapshot = "snapshot";
+    private const string Entity = "entity";
+    private const string EntityStore = "entityStore";
+    private const string Map = "Map";
+    private const string Snapshot = "snapshot";
 
     protected override bool CanHandle(
         ResultFromEntityDescriptor descriptor,
@@ -50,15 +50,15 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
 
         AddConstructorAssignedField(
             IEntityStore,
-            GetFieldName(_entityStore),
-            _entityStore,
+            GetFieldName(EntityStore),
+            EntityStore,
             classBuilder,
             constructorBuilder);
 
         // Define map method
         var mapMethod = MethodBuilder
             .New()
-            .SetName(_map)
+            .SetName(Map)
             .SetAccessModifier(AccessModifier.Public)
             .SetReturnType(descriptor.RuntimeType.Name)
             .AddParameter(
@@ -68,20 +68,20 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
                         descriptor.Kind is TypeKind.Entity
                             ? entityType.FullName
                             : descriptor.Name)
-                    .SetName(_entity))
+                    .SetName(Entity))
             .AddParameter(
-                _snapshot,
+                Snapshot,
                 b => b.SetDefault("null")
                     .SetType(IEntityStoreSnapshot.MakeNullable()));
 
         mapMethod
             .AddCode(IfBuilder
                 .New()
-                .SetCondition($"{_snapshot} is null")
+                .SetCondition($"{Snapshot} is null")
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLeftHandSide(_snapshot)
-                    .SetRightHandSide($"{GetFieldName(_entityStore)}.CurrentSnapshot")))
+                    .SetLeftHandSide(Snapshot)
+                    .SetRightHandSide($"{GetFieldName(EntityStore)}.CurrentSnapshot")))
             .AddEmptyLine();
 
         // creates the instance of the model that is being mapped.
@@ -94,7 +94,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
 
         foreach (var property in descriptor.Properties)
         {
-            createModelCall.AddArgument(BuildMapMethodCall(settings, _entity, property));
+            createModelCall.AddArgument(BuildMapMethodCall(settings, Entity, property));
         }
 
         mapMethod.AddCode(createModelCall);
@@ -116,9 +116,9 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
             createModelCall.AddArgument(
                 MethodCallBuilder
                     .Inline()
-                    .SetMethodName($"{_map}{deferred.Class.RuntimeType.Name}")
-                    .AddArgument(_entity)
-                    .AddArgument(_snapshot));
+                    .SetMethodName($"{Map}{deferred.Class.RuntimeType.Name}")
+                    .AddArgument(Entity)
+                    .AddArgument(Snapshot));
 
             AddMapFragmentMethod(
                 classBuilder,

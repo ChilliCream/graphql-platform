@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Spatial.Filters;
 [Collection("Postgres")]
 public class QueryableFilterVisitorOverlapsTests : SchemaCache
 {
-    private static readonly Polygon _truePolygon =
+    private static readonly Polygon s_truePolygon =
         new(new LinearRing(
         [
             new Coordinate(150, 150),
@@ -20,7 +20,7 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
             new Coordinate(150, 150),
         ]));
 
-    private static readonly Polygon _falsePolygon =
+    private static readonly Polygon s_falsePolygon =
         new(new LinearRing(
         [
             new Coordinate(1000, 1000),
@@ -30,10 +30,10 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
             new Coordinate(1000, 1000),
         ]));
 
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon, },
-        new() { Id = 2, Bar = _falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon, },
+        new() { Id = 2, Bar = s_falsePolygon, },
     ];
 
     public QueryableFilterVisitorOverlapsTests(PostgreSqlResource<PostgisConfig> resource)
@@ -45,7 +45,7 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
     public async Task Create_Overlaps_Query()
     {
         // arrange
-        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

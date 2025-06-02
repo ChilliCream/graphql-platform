@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Interceptors;
 
 public class FlagsEnumInterceptor : TypeInterceptor
 {
-    private const string _flagNameAddition = "Flags";
+    private const string FlagNameAddition = "Flags";
 
     private readonly Dictionary<Type, string> _outputTypeCache = new();
     private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = new();
@@ -111,7 +111,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return outputType;
         }
 
-        var typeName = _namingConventions.GetTypeName(type) + _flagNameAddition;
+        var typeName = _namingConventions.GetTypeName(type) + FlagNameAddition;
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new ObjectTypeConfiguration(typeName, desc)
         {
@@ -142,7 +142,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return result;
         }
 
-        var typeName = $"{_namingConventions.GetTypeName(type)}{_flagNameAddition}Input";
+        var typeName = $"{_namingConventions.GetTypeName(type)}{FlagNameAddition}Input";
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new InputObjectTypeConfiguration(typeName, desc)
         {
