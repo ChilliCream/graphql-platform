@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal sealed class SelectionSet : ISelectionSet
 {
-    private static readonly Fragment[] _empty = [];
+    private static readonly Fragment[] s_empty = [];
     private readonly Selection[] _selections;
     private readonly Fragment[] _fragments;
     private Flags _flags;
@@ -40,7 +40,7 @@ internal sealed class SelectionSet : ISelectionSet
     {
         Id = id;
         _selections = selections;
-        _fragments = fragments ?? _empty;
+        _fragments = fragments ?? s_empty;
         _flags = isConditional ? Flags.Conditional : Flags.None;
     }
 

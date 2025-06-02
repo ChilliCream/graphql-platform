@@ -7,8 +7,8 @@ namespace HotChocolate.Data.MongoDb.Paging;
 internal class MongoDbCursorPagingHandler<TEntity>(PagingOptions options)
     : CursorPagingHandler<IMongoPagingContainer<TEntity>, TEntity>(options)
 {
-    private static readonly MongoCursorPaginationAlgorithm<TEntity> _paginationAlgorithmAlgorithm = new();
-    private static readonly QueryExecutor _executor = new();
+    private static readonly MongoCursorPaginationAlgorithm<TEntity> s_paginationAlgorithmAlgorithm = new();
+    private static readonly QueryExecutor s_executor = new();
 
     protected override ValueTask<Connection> SliceAsync(
         IResolverContext context,
@@ -27,8 +27,8 @@ internal class MongoDbCursorPagingHandler<TEntity>(PagingOptions options)
                 context,
                 source,
                 arguments,
-                _paginationAlgorithmAlgorithm,
-                _executor,
+                s_paginationAlgorithmAlgorithm,
+                s_executor,
                 context.RequestAborted)
             .ConfigureAwait(false);
 

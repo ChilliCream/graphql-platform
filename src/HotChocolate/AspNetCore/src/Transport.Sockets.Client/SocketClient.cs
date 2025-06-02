@@ -9,7 +9,7 @@ namespace HotChocolate.Transport.Sockets.Client;
 
 public sealed class SocketClient : ISocket
 {
-    private static readonly IProtocolHandler[] _protocolHandlers =
+    private static readonly IProtocolHandler[] s_protocolHandlers =
     [
         new GraphQLOverWebSocketProtocolHandler(),
     ];
@@ -55,7 +55,7 @@ public sealed class SocketClient : ISocket
     {
         var protocolHandler =
             Array.Find(
-                _protocolHandlers,
+                s_protocolHandlers,
                 t => t.Name.EqualsOrdinal(socket.SubProtocol));
 
         if (protocolHandler is null)

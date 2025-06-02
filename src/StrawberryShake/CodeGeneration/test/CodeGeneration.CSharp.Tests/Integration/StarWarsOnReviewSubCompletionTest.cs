@@ -133,20 +133,21 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
 
 public class SubscriptionSocketStateMonitor
 {
-    private const BindingFlags _bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+    private const BindingFlags NonPublicAndInstance =
+        BindingFlags.NonPublic | BindingFlags.Instance;
 
     private readonly ISessionPool _sessionPool;
     private readonly Type _sessionPoolType;
     private readonly FieldInfo _sessionsField;
 
     private readonly FieldInfo _socketOperationsDictionaryField =
-        typeof(Session).GetField("_operations", _bindingFlags)!;
+        typeof(Session).GetField("_operations", NonPublicAndInstance)!;
     private readonly FieldInfo _socketOperationManagerField =
-        typeof(SocketOperation).GetField("_manager", _bindingFlags)!;
+        typeof(SocketOperation).GetField("_manager", NonPublicAndInstance)!;
     private readonly FieldInfo _socketProtocolField =
-        typeof(Session).GetField("_socketProtocol", _bindingFlags)!;
+        typeof(Session).GetField("_socketProtocol", NonPublicAndInstance)!;
     private readonly FieldInfo _protocolReceiverField =
-        typeof(GraphQLWebSocketProtocol).GetField("_receiver", _bindingFlags)!;
+        typeof(GraphQLWebSocketProtocol).GetField("_receiver", NonPublicAndInstance)!;
 
     private Type? _sessionInfoType;
     private PropertyInfo? _sessionProperty;
@@ -157,7 +158,7 @@ public class SubscriptionSocketStateMonitor
     {
         _sessionPool = sessionPool;
         _sessionPoolType = _sessionPool.GetType();
-        _sessionsField = _sessionPoolType.GetField("_sessions", _bindingFlags)!;
+        _sessionsField = _sessionPoolType.GetField("_sessions", NonPublicAndInstance)!;
     }
 
     public void AbortSocket()
@@ -183,12 +184,12 @@ public class SubscriptionSocketStateMonitor
                 var receiver = _protocolReceiverField.GetValue(protocol)!;
 
                 _receiverType ??= receiver.GetType();
-                _receiverClientField ??= _receiverType.GetField("_client", _bindingFlags)!;
+                _receiverClientField ??= _receiverType.GetField("_client", NonPublicAndInstance)!;
                 var client = _receiverClientField.GetValue(receiver) as ISocketClient;
 
                 if (client!.IsClosed is false && client is WebSocketClient webSocketClient)
                 {
-                    var socket = typeof(WebSocketClient).GetField("_socket", _bindingFlags)!
+                    var socket = typeof(WebSocketClient).GetField("_socket", NonPublicAndInstance)!
                         .GetValue(webSocketClient) as ClientWebSocket;
                     socket!.Abort();
                 }

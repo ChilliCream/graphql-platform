@@ -16,12 +16,12 @@ namespace Microsoft.AspNetCore.Builder;
 /// </summary>
 public static class EndpointRouteBuilderExtensions
 {
-    private const string _graphQLHttpPath = "/graphql";
-    private const string _graphQLWebSocketPath = "/graphql/ws";
-    private const string _graphQLSchemaPath = "/graphql/sdl";
-    private const string _graphQLToolPath = "/graphql/ui";
-    private const string _graphQLPersistedOperationPath = "/graphql/persisted";
-    private const string _graphQLToolRelativeRequestPath = "..";
+    private const string GraphQLHttpPath = "/graphql";
+    private const string GraphQLWebSocketPath = "/graphql/ws";
+    private const string GraphQLSchemaPath = "/graphql/sdl";
+    private const string GraphQLToolPath = "/graphql/ui";
+    private const string GraphQLPersistedOperationPath = "/graphql/persisted";
+    private const string GraphQLToolRelativeRequestPath = "..";
 
     /// <summary>
     /// Adds a GraphQL endpoint to the endpoint configurations.
@@ -41,7 +41,7 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder MapGraphQL(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string path = _graphQLHttpPath,
+        string path = GraphQLHttpPath,
         string? schemaName = default)
         => MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
@@ -150,7 +150,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = _graphQLHttpPath,
+        string pattern = GraphQLHttpPath,
         string? schemaName = default)
         => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -223,7 +223,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = _graphQLWebSocketPath,
+        string pattern = GraphQLWebSocketPath,
         string? schemaName = default)
         => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -296,7 +296,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = _graphQLSchemaPath,
+        string pattern = GraphQLSchemaPath,
         string? schemaName = default)
         => MapGraphQLSchema(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -364,8 +364,8 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static NitroAppEndpointConventionBuilder MapNitroApp(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string toolPath = _graphQLToolPath,
-        string? relativeRequestPath = _graphQLToolRelativeRequestPath)
+        string toolPath = GraphQLToolPath,
+        string? relativeRequestPath = GraphQLToolRelativeRequestPath)
         => MapNitroApp(endpointRouteBuilder, new PathString(toolPath), relativeRequestPath);
 
     /// <summary>
@@ -387,12 +387,12 @@ public static class EndpointRouteBuilderExtensions
     public static NitroAppEndpointConventionBuilder MapNitroApp(
         this IEndpointRouteBuilder endpointRouteBuilder,
         PathString toolPath,
-        string? relativeRequestPath = _graphQLToolRelativeRequestPath)
+        string? relativeRequestPath = GraphQLToolRelativeRequestPath)
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
 
         toolPath = toolPath.ToString().TrimEnd('/');
-        relativeRequestPath ??= _graphQLToolRelativeRequestPath;
+        relativeRequestPath ??= GraphQLToolRelativeRequestPath;
 
         var pattern = Parse(toolPath + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
@@ -434,7 +434,7 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        [StringSyntax("Route")] string path = _graphQLPersistedOperationPath,
+        [StringSyntax("Route")] string path = GraphQLPersistedOperationPath,
         string? schemaName = default,
         bool requireOperationName = false)
         => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName, requireOperationName);

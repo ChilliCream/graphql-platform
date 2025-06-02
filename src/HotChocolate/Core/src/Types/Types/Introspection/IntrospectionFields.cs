@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Introspection;
 
 internal static class IntrospectionFields
 {
-    private static readonly PureFieldDelegate _typeNameResolver =
+    private static readonly PureFieldDelegate s_typeNameResolver =
         ctx => ctx.ObjectType.Name;
 
     internal static ObjectFieldConfiguration CreateSchemaField(IDescriptorContext context)
@@ -62,7 +62,7 @@ internal static class IntrospectionFields
             .Type<NonNullType<StringType>>();
 
         var configuration = descriptor.Extend().Configuration;
-        configuration.PureResolver = _typeNameResolver;
+        configuration.PureResolver = s_typeNameResolver;
         configuration.Flags |= CoreFieldFlags.TypeNameIntrospectionField | CoreFieldFlags.Introspection;
 
         return CreateConfiguration(descriptor);

@@ -8,13 +8,13 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionVisitorPagingTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true, Baz = "a", },
         new() { Bar = false, Baz = "b", },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = true, Baz = "a", },
         new() { Bar = null, Baz = null, },
@@ -33,7 +33,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -53,7 +53,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -73,7 +73,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -93,7 +93,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -113,7 +113,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -133,7 +133,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -153,7 +153,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
@@ -173,7 +173,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
@@ -193,7 +193,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
@@ -213,7 +213,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
@@ -233,7 +233,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
@@ -253,7 +253,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
@@ -273,7 +273,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -293,7 +293,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
@@ -313,7 +313,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
@@ -333,7 +333,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
@@ -353,7 +353,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
@@ -373,7 +373,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             useOffsetPaging: true);
 
         // act
@@ -393,7 +393,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             useOffsetPaging: true);
 
         // act
@@ -413,7 +413,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
@@ -433,7 +433,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
@@ -453,7 +453,7 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act

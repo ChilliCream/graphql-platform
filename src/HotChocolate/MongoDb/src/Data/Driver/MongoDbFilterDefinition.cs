@@ -6,12 +6,12 @@ namespace HotChocolate.Data.MongoDb;
 
 public abstract class MongoDbFilterDefinition : FilterDefinition<BsonDocument>
 {
-    private static readonly MongoDbFilterDefinition _empty =  new MongoDbEmptyFilterDefinition();
+    private static readonly MongoDbFilterDefinition s_empty =  new MongoDbEmptyFilterDefinition();
 
     /// <summary>
     /// Gets an empty filter. An empty filter matches everything.
     /// </summary>
-    public new static MongoDbFilterDefinition Empty => _empty;
+    public new static MongoDbFilterDefinition Empty => s_empty;
 
     public abstract BsonDocument Render(
         IBsonSerializer documentSerializer,

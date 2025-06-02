@@ -7,7 +7,7 @@ namespace StrawberryShake.Internal;
 /// </summary>
 public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
 {
-    private const int _initialBufferSize = 512;
+    private const int InitialBufferSize = 512;
     private byte[] _buffer;
     private int _capacity;
     private int _start;
@@ -18,7 +18,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// </summary>
     public ArrayWriter()
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
+        _buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
     }
@@ -104,7 +104,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1
-            ? _initialBufferSize
+            ? InitialBufferSize
             : sizeHint;
         EnsureBufferCapacity(size);
         return _buffer.AsMemory().Slice(_start, size);
@@ -128,7 +128,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1
-            ? _initialBufferSize
+            ? InitialBufferSize
             : sizeHint;
         EnsureBufferCapacity(size);
         return _buffer.AsSpan().Slice(_start, size);

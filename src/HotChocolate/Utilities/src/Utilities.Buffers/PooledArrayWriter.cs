@@ -9,7 +9,7 @@ namespace HotChocolate.Buffers;
 /// </summary>
 public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
 {
-    private const int _initialBufferSize = 512;
+    private const int InitialBufferSize = 512;
     private byte[] _buffer;
     private int _capacity;
     private int _start;
@@ -20,7 +20,7 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
     /// </summary>
     public PooledArrayWriter()
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
+        _buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
     }
@@ -106,7 +106,7 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
         var size = sizeHint < 1
-            ? _initialBufferSize
+            ? InitialBufferSize
             : sizeHint;
         EnsureBufferCapacity(size);
         return _buffer.AsMemory().Slice(_start, size);
@@ -129,7 +129,7 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 
-        var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
+        var size = sizeHint < 1 ? InitialBufferSize : sizeHint;
         EnsureBufferCapacity(size);
 
         return MemoryMarshal.CreateSpan(ref _buffer[_start], size);

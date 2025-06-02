@@ -13,7 +13,7 @@ namespace HotChocolate.AspNetCore;
 
 public class HttpPostMiddlewareBase : MiddlewareBase
 {
-    private const string _batchOperations = "batchOperations";
+    private const string BatchOperations = "batchOperations";
 
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
@@ -157,9 +157,9 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // An operation batch consists of a single GraphQL request document that
                 // contains multiple operations. The batch operation query parameter
                 // defines the order in which the operations shall be executed.
-                case 1 when context.Request.Query.ContainsKey(_batchOperations):
+                case 1 when context.Request.Query.ContainsKey(BatchOperations):
                 {
-                    string? operationNames = context.Request.Query[_batchOperations];
+                    string? operationNames = context.Request.Query[BatchOperations];
 
                     if (!string.IsNullOrEmpty(operationNames) &&
                         TryParseOperations(operationNames, out var ops) &&

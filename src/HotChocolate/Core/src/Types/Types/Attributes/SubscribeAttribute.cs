@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 {
-    private static readonly MethodInfo _subscribeFactory =
+    private static readonly MethodInfo s_subscribeFactory =
         typeof(SubscribeAttribute).GetMethod(nameof(SubscribeFactory), NonPublic | Static)!;
 
     /// <summary>
@@ -55,7 +55,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             descriptor.Extend().OnBeforeNaming(
                 (_, fieldDef) =>
                 {
-                    var factory = _subscribeFactory.MakeGenericMethod(MessageType);
+                    var factory = s_subscribeFactory.MakeGenericMethod(MessageType);
                     factory.Invoke(null, [fieldDef, topicString]);
                 });
         }

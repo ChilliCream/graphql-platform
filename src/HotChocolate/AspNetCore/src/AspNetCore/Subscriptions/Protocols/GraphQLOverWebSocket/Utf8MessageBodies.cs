@@ -2,7 +2,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 internal static class Utf8MessageBodies
 {
-    private static readonly byte[] _defaultPong =
+    private static readonly byte[] s_defaultPong =
     [
         (byte)'{',
         (byte)'"',
@@ -21,7 +21,7 @@ internal static class Utf8MessageBodies
         (byte)'}',
     ];
 
-    private static readonly byte[] _defaultPing =
+    private static readonly byte[] s_defaultPing =
     [
         (byte)'{',
         (byte)'"',
@@ -40,7 +40,7 @@ internal static class Utf8MessageBodies
         (byte)'}',
     ];
 
-    public static ReadOnlyMemory<byte> DefaultPing => _defaultPing;
+    public static ReadOnlyMemory<byte> DefaultPing => s_defaultPing;
 
-    public static ReadOnlyMemory<byte> DefaultPong => _defaultPong;
+    public static ReadOnlyMemory<byte> DefaultPong => s_defaultPong;
 }

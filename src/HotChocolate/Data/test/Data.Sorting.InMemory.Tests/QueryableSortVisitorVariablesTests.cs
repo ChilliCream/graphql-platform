@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true, },
         new() { Bar = false, },
@@ -20,7 +20,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
-        var tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await CreateSchema<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
 
@@ -49,7 +49,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Create_Boolean_OrderBy_NonNull()
     {
         // arrange
-        var tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await CreateSchema<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType!){ root(order: { bar: $order}){ bar}}";
 
@@ -78,7 +78,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Integration_Create_Boolean_OrderBy()
     {
         // arrange
-        var server = CreateServer<Foo, FooSortType>(_fooEntities);
+        var server = CreateServer<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
 
@@ -103,7 +103,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Integration_Create_Boolean_OrderBy_NonNull()
     {
         // arrange
-        var server = CreateServer<Foo, FooSortType>(_fooEntities);
+        var server = CreateServer<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType!){ root(order: { bar: $order}){ bar}}";
 

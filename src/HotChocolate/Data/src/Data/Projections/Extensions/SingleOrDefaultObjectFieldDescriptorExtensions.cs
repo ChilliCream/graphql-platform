@@ -6,16 +6,16 @@ namespace HotChocolate.Types;
 
 public static class SingleOrDefaultObjectFieldDescriptorExtensions
 {
-    private static readonly Type _firstMiddleware = typeof(FirstOrDefaultMiddleware<>);
-    private static readonly Type _singleMiddleware = typeof(SingleOrDefaultMiddleware<>);
+    private static readonly Type s_firstMiddleware = typeof(FirstOrDefaultMiddleware<>);
+    private static readonly Type s_singleMiddleware = typeof(SingleOrDefaultMiddleware<>);
 
     public static IObjectFieldDescriptor UseFirstOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionFlags.FirstOrDefault, _firstMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.FirstOrDefault, s_firstMiddleware);
 
     public static IObjectFieldDescriptor UseSingleOrDefault(
         this IObjectFieldDescriptor descriptor) =>
-        ApplyMiddleware(descriptor, SelectionFlags.SingleOrDefault, _singleMiddleware);
+        ApplyMiddleware(descriptor, SelectionFlags.SingleOrDefault, s_singleMiddleware);
 
     private static IObjectFieldDescriptor ApplyMiddleware(
         this IObjectFieldDescriptor descriptor,

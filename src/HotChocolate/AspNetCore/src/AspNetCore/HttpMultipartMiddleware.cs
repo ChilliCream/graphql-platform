@@ -15,8 +15,8 @@ namespace HotChocolate.AspNetCore;
 
 public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 {
-    private const string _operations = "operations";
-    private const string _map = "map";
+    private const string Operations = "operations";
+    private const string Map = "map";
     private readonly FormOptions _formOptions;
     private readonly IOperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
@@ -107,14 +107,14 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         foreach (var field in form)
         {
-            if (field.Key == _operations)
+            if (field.Key == Operations)
             {
                 if (!field.Value.TryPeek(out operations) || string.IsNullOrEmpty(operations))
                 {
                     throw ThrowHelper.HttpMultipartMiddleware_No_Operations_Specified();
                 }
             }
-            else if (field.Key == _map)
+            else if (field.Key == Map)
             {
                 if (string.IsNullOrEmpty(operations))
                 {

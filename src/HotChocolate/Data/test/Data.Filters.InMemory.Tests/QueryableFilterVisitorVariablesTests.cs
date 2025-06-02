@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new Foo { Bar = true, },
         new Foo { Bar = false, },
@@ -14,7 +14,7 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
         const string query =
             "query Test($where: Boolean){ root(where: {bar: { eq: $where}}){ bar}}";
 
@@ -43,7 +43,7 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
     public async Task Create_BooleanEqual_Expression_NonNull()
     {
         // arrange
-        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
         const string query =
             "query Test($where: Boolean!){ root(where: {bar: { eq: $where}}){ bar}}";
 

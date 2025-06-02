@@ -51,7 +51,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         ArgumentNullException.ThrowIfNull(batchScheduler);
         ArgumentNullException.ThrowIfNull(options);
 
-        _diagnosticEvents = options.DiagnosticEvents ?? Default;
+        _diagnosticEvents = options.DiagnosticEvents ?? s_default;
         Cache = options.Cache;
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;

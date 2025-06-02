@@ -33,11 +33,11 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLeftHandSide($"var {_typename}")
+                .SetLeftHandSide($"var {Typename}")
                 .SetRightHandSide(MethodCallBuilder
                     .Inline()
                     .SetMethodName(
-                        _obj,
+                        Obj,
                         "Value",
                         nameof(JsonElement.GetProperty))
                     .AddArgument(WellKnownNames.TypeName.AsStringToken())
@@ -53,19 +53,19 @@ public partial class JsonResultBuilderGenerator
                     .AddCode(
                         AssignmentBuilder
                             .New()
-                            .SetLeftHandSide($"{TypeNames.EntityId} {_entityId}")
+                            .SetLeftHandSide($"{TypeNames.EntityId} {EntityId}")
                             .SetRightHandSide(
                                 MethodCallBuilder
                                     .Inline()
-                                    .SetMethodName(GetFieldName(_idSerializer), "Parse")
-                                    .AddArgument($"{_obj}.Value")))
+                                    .SetMethodName(GetFieldName(IdSerializer), "Parse")
+                                    .AddArgument($"{Obj}.Value")))
                     .AddCode(CreateUpdateEntityStatement(concreteType)
                         .AddCode(MethodCallBuilder
                             .New()
                             .SetReturn()
                             .SetNew()
                             .SetMethodName(TypeNames.EntityIdOrData)
-                            .AddArgument(_entityId)));
+                            .AddArgument(EntityId)));
             }
             else
             {

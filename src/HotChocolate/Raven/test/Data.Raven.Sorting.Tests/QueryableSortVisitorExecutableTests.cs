@@ -5,9 +5,9 @@ namespace HotChocolate.Data.Sorting;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorExecutableTests
 {
-    private static readonly Foo[] _fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
+    private static readonly Foo[] s_fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = true, }, new() { Bar = null, }, new() { Bar = false, },
     ];
@@ -23,7 +23,7 @@ public class QueryableSortVisitorExecutableTests
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -48,7 +48,7 @@ public class QueryableSortVisitorExecutableTests
     public async Task Create_Boolean_OrderBy_List()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -74,7 +74,7 @@ public class QueryableSortVisitorExecutableTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

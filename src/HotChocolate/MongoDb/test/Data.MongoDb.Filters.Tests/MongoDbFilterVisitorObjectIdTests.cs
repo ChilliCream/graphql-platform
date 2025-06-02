@@ -10,14 +10,14 @@ public class MongoDbFilterVisitorObjectIdTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69"), },
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a"), },
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b"), },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69"), },
         new() { },
@@ -34,7 +34,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -67,7 +67,7 @@ public class MongoDbFilterVisitorObjectIdTests
     [Fact]
     public async Task Create_ObjectIdNotEqual_Expression()
     {
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         // assert
@@ -102,7 +102,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -143,7 +143,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNotGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -184,7 +184,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -225,7 +225,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -266,7 +266,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -303,7 +303,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNotLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -344,7 +344,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -385,7 +385,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -425,7 +425,7 @@ public class MongoDbFilterVisitorObjectIdTests
     [Fact]
     public async Task Create_ObjectIdIn_Expression()
     {
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -478,7 +478,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -544,7 +544,7 @@ public class MongoDbFilterVisitorObjectIdTests
     {
         // arrange
         var tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+            CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -578,7 +578,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -612,7 +612,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -649,7 +649,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableNotGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -690,7 +690,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -731,7 +731,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -772,7 +772,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -809,7 +809,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableNotLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -850,7 +850,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableLowerThanOrEquals_Expression()
     {
         var tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+            CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         // assert
@@ -892,7 +892,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -932,7 +932,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -969,7 +969,7 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdNullableNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

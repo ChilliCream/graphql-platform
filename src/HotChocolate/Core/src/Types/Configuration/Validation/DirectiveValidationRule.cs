@@ -11,7 +11,7 @@ namespace HotChocolate.Configuration.Validation;
 /// </summary>
 internal sealed class DirectiveValidationRule : ISchemaValidationRule
 {
-    private const char _prefixCharacter = '_';
+    private const char PrefixCharacter = '_';
 
     public void Validate(
         IDescriptorContext context,
@@ -37,8 +37,8 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
         {
             var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
 
-            if (firstTwoLetters[0] == _prefixCharacter &&
-                firstTwoLetters[1] == _prefixCharacter)
+            if (firstTwoLetters[0] == PrefixCharacter &&
+                firstTwoLetters[1] == PrefixCharacter)
             {
                 errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
             }

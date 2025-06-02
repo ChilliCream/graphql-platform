@@ -2,12 +2,12 @@ namespace HotChocolate.Execution.Requirements;
 
 internal class TypeContainer(List<TypeNode>? nodes = null)
 {
-    private static readonly IReadOnlyList<TypeNode> _emptyNodes = Array.Empty<TypeNode>();
+    private static readonly IReadOnlyList<TypeNode> s_emptyNodes = Array.Empty<TypeNode>();
     private List<TypeNode>? _nodes = nodes;
     private bool _sealed;
 
     public IReadOnlyList<TypeNode> Nodes
-        => _nodes ?? _emptyNodes;
+        => _nodes ?? s_emptyNodes;
 
     public void TryAddNode(TypeNode newNode)
     {

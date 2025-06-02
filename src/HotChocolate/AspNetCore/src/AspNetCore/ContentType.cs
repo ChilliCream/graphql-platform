@@ -4,31 +4,31 @@ namespace HotChocolate.AspNetCore;
 
 internal static class ContentType
 {
-    private const string _utf8 = "charset=utf-8";
-    private const string _boundary = "boundary=\"-\"";
-    public const string GraphQL = $"{Types.Application}/{SubTypes.GraphQL}; {_utf8}";
-    public const string Json = $"{Types.Application}/{SubTypes.Json}; {_utf8}";
-    public const string MultiPartMixed = $"{Types.MultiPart}/{SubTypes.Mixed}; {_boundary}";
-    public const string GraphQLResponse = $"{Types.Application}/{SubTypes.GraphQLResponse}; {_utf8}";
-    public const string EventStream = $"{Types.Text}/{SubTypes.EventStream}; {_utf8}";
+    private const string Utf8 = "charset=utf-8";
+    private const string Boundary = "boundary=\"-\"";
+    public const string GraphQL = $"{Types.Application}/{SubTypes.GraphQL}; {Utf8}";
+    public const string Json = $"{Types.Application}/{SubTypes.Json}; {Utf8}";
+    public const string MultiPartMixed = $"{Types.MultiPart}/{SubTypes.Mixed}; {Boundary}";
+    public const string GraphQLResponse = $"{Types.Application}/{SubTypes.GraphQLResponse}; {Utf8}";
+    public const string EventStream = $"{Types.Text}/{SubTypes.EventStream}; {Utf8}";
     public const string Html = $"{Types.Text}/{SubTypes.Html}";
 
-    private static readonly char[] _jsonArray =
+    private static readonly char[] s_jsonArray =
     [
         'a', 'p', 'p', 'l', 'i', 'c', 'a', 't', 'i', 'o', 'n', '/', 'j', 's', 'o', 'n',
     ];
 
-    private static readonly char[] _multiPartFormArray =
+    private static readonly char[] s_multiPartFormArray =
     [
         'm', 'u', 'l', 't', 'i', 'p', 'a', 'r', 't', '/', 'f', 'o', 'r', 'm', '-', 'd', 'a',
         't', 'a',
     ];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<char> JsonSpan() => _jsonArray;
+    public static ReadOnlySpan<char> JsonSpan() => s_jsonArray;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<char> MultiPartFormSpan() => _multiPartFormArray;
+    public static ReadOnlySpan<char> MultiPartFormSpan() => s_multiPartFormArray;
 
     public static class Types
     {

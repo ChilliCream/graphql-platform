@@ -4,13 +4,13 @@ namespace GreenDonut.Data.Expressions;
 
 internal sealed class ExtractSelectExpressionVisitor : ExpressionVisitor
 {
-    private const string _selectMethod = "Select";
+    private const string SelectMethod = "Select";
 
     public LambdaExpression? Selector { get; private set; }
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
-        if (node.Method.Name == _selectMethod && node.Arguments.Count == 2)
+        if (node.Method.Name == SelectMethod && node.Arguments.Count == 2)
         {
             var lambda = ConvertToLambda(node.Arguments[1]);
             if (lambda.Type.IsGenericType

@@ -8,7 +8,7 @@ public class AuthorFixture : IDisposable
 {
     private readonly string _fileName;
 
-    private static readonly Author[] _authors =
+    private static readonly Author[] s_authors =
     [
         new Author
         {
@@ -21,7 +21,7 @@ public class AuthorFixture : IDisposable
         new Author { Id = 3, Name = "Baz", Books = { new Book { Id = 3, Title = "Baz1", }, }, },
     ];
 
-    private static readonly SingleOrDefaultAuthor[] _singleOrDefaultAuthors =
+    private static readonly SingleOrDefaultAuthor[] s_singleOrDefaultAuthors =
     [
         new SingleOrDefaultAuthor { Id = 1, Name = "Foo", },
     ];
@@ -41,9 +41,9 @@ public class AuthorFixture : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<BookContext>();
         context.Database.EnsureCreated();
-        context.Authors.AddRange(_authors);
+        context.Authors.AddRange(s_authors);
         context.SaveChanges();
-        context.SingleOrDefaultAuthors.AddRange(_singleOrDefaultAuthors);
+        context.SingleOrDefaultAuthors.AddRange(s_singleOrDefaultAuthors);
         context.SaveChanges();
         Context = context;
     }

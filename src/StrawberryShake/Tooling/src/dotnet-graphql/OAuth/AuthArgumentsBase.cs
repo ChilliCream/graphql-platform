@@ -5,7 +5,7 @@ namespace StrawberryShake.Tools.OAuth;
 
 public sealed class AuthArguments
 {
-    private const string _defaultScheme = "bearer";
+    private const string DefaultScheme = "bearer";
 
     public AuthArguments(
         CommandOption token,
@@ -41,7 +41,7 @@ public sealed class AuthArguments
 
         if (!NoScheme.HasValue())
         {
-            scheme = Scheme.HasValue() ? Scheme.Value()!.Trim() : _defaultScheme;
+            scheme = Scheme.HasValue() ? Scheme.Value()!.Trim() : DefaultScheme;
         }
 
         if (Token.HasValue())

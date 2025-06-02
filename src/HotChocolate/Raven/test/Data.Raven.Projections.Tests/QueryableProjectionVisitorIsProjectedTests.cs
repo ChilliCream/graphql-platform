@@ -5,19 +5,19 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionVisitorIsProjectedTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { IsProjectedTrue = true, IsProjectedFalse = false, },
         new() { IsProjectedTrue = true, IsProjectedFalse = false, },
     ];
 
-    private static readonly MultipleFoo[] _fooMultipleEntities =
+    private static readonly MultipleFoo[] s_fooMultipleEntities =
     [
         new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
         new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new() { IsProjectedFalse = false, },
         new() { IsProjectedFalse = false, },
@@ -34,7 +34,7 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -53,7 +53,7 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithTwoProps()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -72,7 +72,7 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_True()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -91,7 +91,7 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_TrueAndMultiple()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooMultipleEntities);
+        var tester = _cache.CreateSchema(s_fooMultipleEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -110,7 +110,7 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_NotFailWhenSelectionSetSkippedCompletely()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

@@ -5,7 +5,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal static class PathHelper
 {
-    private const int _initialPathLength = 64;
+    private const int InitialPathLength = 64;
 
     public static Path CreatePathFromContext(ObjectResult parent)
     {
@@ -47,7 +47,7 @@ internal static class PathHelper
 
     private static Path CreatePath(ResultData parent, object segmentValue)
     {
-        var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
+        var segments = ArrayPool<object>.Shared.Rent(InitialPathLength);
         segments[0] = segmentValue;
         var current = parent;
         var length = Build(segments, ref current);
@@ -58,7 +58,7 @@ internal static class PathHelper
 
     private static Path CreatePath(ResultData parent)
     {
-        var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
+        var segments = ArrayPool<object>.Shared.Rent(InitialPathLength);
         var current = parent;
         var length = Build(segments, ref current, 0);
         var path = CreatePath(current.PatchPath, segments, length);

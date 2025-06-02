@@ -9,7 +9,7 @@ namespace GreenDonut;
 /// </summary>
 public sealed class PromiseCache : IPromiseCache
 {
-    private const int _minimumSize = 10;
+    private const int MinimumSize = 10;
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<PromiseCacheKey, Entry> _map = new();
     private readonly ConcurrentDictionary<Type, ImmutableArray<Subscription>> _subscriptions = new();
@@ -28,7 +28,7 @@ public sealed class PromiseCache : IPromiseCache
     /// </param>
     public PromiseCache(int size)
     {
-        _size = size < _minimumSize ? _minimumSize : size;
+        _size = size < MinimumSize ? MinimumSize : size;
         _order = Convert.ToInt32(size * 0.9);
     }
 

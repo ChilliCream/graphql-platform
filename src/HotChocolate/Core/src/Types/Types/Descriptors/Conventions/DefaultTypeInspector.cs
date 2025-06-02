@@ -23,11 +23,11 @@ namespace HotChocolate.Types.Descriptors;
 /// </summary>
 public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Convention, ITypeInspector
 {
-    private const string _toString = "ToString";
-    private const string _getHashCode = "GetHashCode";
-    private const string _compareTo = "CompareTo";
-    private const string _equals = "Equals";
-    private const string _clone = "<Clone>$";
+    private const string ToStringMethodName = "ToString";
+    private const string GetHashCodeMethodName = "GetHashCode";
+    private const string CompareToMethodName = "CompareTo";
+    private const string EqualsMethodName = "Equals";
+    private const string CloneMethodName = "<Clone>$";
 
     private readonly TypeCache _typeCache = new();
     private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
@@ -849,11 +849,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private static bool IsSystemMember(MemberInfo member)
     {
         if (member is MethodInfo m &&
-            (m.Name.EqualsOrdinal(_toString) ||
-                m.Name.EqualsOrdinal(_getHashCode) ||
-                m.Name.EqualsOrdinal(_equals) ||
-                m.Name.EqualsOrdinal(_compareTo) ||
-                m.Name.EqualsOrdinal(_clone)))
+            (m.Name.EqualsOrdinal(ToStringMethodName) ||
+                m.Name.EqualsOrdinal(GetHashCodeMethodName) ||
+                m.Name.EqualsOrdinal(EqualsMethodName) ||
+                m.Name.EqualsOrdinal(CompareToMethodName) ||
+                m.Name.EqualsOrdinal(CloneMethodName)))
         {
             return true;
         }

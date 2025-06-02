@@ -22,7 +22,7 @@ internal sealed class OpenApiMutableSchemaBuilder
     private const string DateFormat = "yyyy-MM-dd";
     private const string DateTimeFormat = @"yyyy-MM-ddTHH\:mm\:ss.fffzzz";
 
-    private static readonly MutableScalarTypeDefinition _jsonType = new(ScalarNames.JSON);
+    private static readonly MutableScalarTypeDefinition s_jsonType = new(ScalarNames.JSON);
 
     private readonly MutableSchemaDefinition _skimmedSchema = new();
     private readonly Dictionary<string, OpenApiOperationWrapper> _wrappedOperations = [];
@@ -396,7 +396,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             if (response.Content.Count is 0)
             {
                 // If no response content is defined, then use a (schemaless) JSON type.
-                typeMap.Add(httpStatusCode, _jsonType);
+                typeMap.Add(httpStatusCode, s_jsonType);
             }
             else
             {

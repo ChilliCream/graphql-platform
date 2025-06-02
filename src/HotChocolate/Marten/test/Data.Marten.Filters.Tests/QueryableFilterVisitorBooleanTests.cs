@@ -6,13 +6,13 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true, },
         new() { Bar = false, },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = true, },
         new() { Bar = null, },
@@ -23,7 +23,7 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -48,7 +48,7 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -73,7 +73,7 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -105,7 +105,7 @@ public class QueryableFilterVisitorBooleanTests(SchemaCache cache)
     {
         // arrange
         var tester = await cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

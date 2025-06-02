@@ -11,10 +11,10 @@ public class DefaultNamingConventions
     : Convention
     , INamingConventions
 {
-    private const string _inputPostfix = "Input";
-    private const string _inputTypePostfix = "InputType";
-    private const string _directivePostfix = "Directive";
-    private const string _directiveTypePostfix = "DirectiveType";
+    private const string InputPostfix = "Input";
+    private const string InputTypePostfix = "InputType";
+    private const string DirectivePostfix = "Directive";
+    private const string DirectiveTypePostfix = "DirectiveType";
 
     private readonly IDocumentationProvider _documentation;
     private bool _formatInterfaceName;
@@ -72,8 +72,8 @@ public class DefaultNamingConventions
         if (kind == TypeKind.InputObject)
         {
             var isInputObjectType = typeof(InputObjectType).IsAssignableFrom(type);
-            var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
-            var isEndingInputType = name.EndsWith(_inputTypePostfix, StringComparison.Ordinal);
+            var isEndingInput = name.EndsWith(InputPostfix, StringComparison.Ordinal);
+            var isEndingInputType = name.EndsWith(InputTypePostfix, StringComparison.Ordinal);
 
             if (isInputObjectType && isEndingInputType)
             {
@@ -82,26 +82,26 @@ public class DefaultNamingConventions
 
             if (isInputObjectType && !isEndingInput && !isEndingInputType)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
 
             if (!isInputObjectType && !isEndingInput)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
         }
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > _directivePostfix.Length &&
-                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length &&
+                name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - _directivePostfix.Length);
+                name = name.Substring(0, name.Length - DirectivePostfix.Length);
             }
-            else if (name.Length > _directiveTypePostfix.Length &&
-                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length &&
+                name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - _directiveTypePostfix.Length);
+                name = name.Substring(0, name.Length - DirectiveTypePostfix.Length);
             }
 
             name = NameFormattingHelpers.FormatFieldName(name);
@@ -127,25 +127,25 @@ public class DefaultNamingConventions
 
         if (kind == TypeKind.InputObject)
         {
-            var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
+            var isEndingInput = name.EndsWith(InputPostfix, StringComparison.Ordinal);
 
             if (!isEndingInput)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
         }
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > _directivePostfix.Length &&
-                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length &&
+                name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
-                name = name[..^_directivePostfix.Length];
+                name = name[..^DirectivePostfix.Length];
             }
-            else if (name.Length > _directiveTypePostfix.Length &&
-                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length &&
+                name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
-                name = name[..^_directiveTypePostfix.Length];
+                name = name[..^DirectiveTypePostfix.Length];
             }
 
             name = NameFormattingHelpers.FormatFieldName(name);

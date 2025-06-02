@@ -17,7 +17,7 @@ public class PostalCodeType : StringType
     /// <summary>
     /// Different validation patterns for postal codes.
     /// </summary>
-    private static readonly Regex[] _validationPatterns =
+    private static readonly Regex[] s_validationPatterns =
     [
         CreateRegexUs(),
         CreateRegexUk(),
@@ -236,9 +236,9 @@ public class PostalCodeType : StringType
 
     private static bool ValidatePostCode(string postCode)
     {
-        for (var i = 0; i < _validationPatterns.Length; i++)
+        for (var i = 0; i < s_validationPatterns.Length; i++)
         {
-            if (_validationPatterns[i].IsMatch(postCode))
+            if (s_validationPatterns[i].IsMatch(postCode))
             {
                 return true;
             }

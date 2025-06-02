@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Spatial.Serialization;
 
 internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType>
 {
-    private static readonly IDictionary<string, GeoJsonGeometryType> _nameLookup =
+    private static readonly IDictionary<string, GeoJsonGeometryType> s_nameLookup =
         new Dictionary<string, GeoJsonGeometryType>
         {
                 { nameof(Point), Point },
@@ -18,7 +18,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
                 { nameof(GeometryCollection), GeometryCollection },
         };
 
-    private static readonly IDictionary<GeoJsonGeometryType, string> _valueLookup =
+    private static readonly IDictionary<GeoJsonGeometryType, string> s_valueLookup =
         new Dictionary<GeoJsonGeometryType, string>
         {
                 { Point, nameof(Point) },
@@ -44,7 +44,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         }
 
         if (runtimeValue is GeoJsonGeometryType geometryType &&
-            _valueLookup.TryGetValue(geometryType, out var enumValue))
+            s_valueLookup.TryGetValue(geometryType, out var enumValue))
         {
             resultValue = enumValue;
             return true;
@@ -66,12 +66,12 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
 
         if (valueSyntax is EnumValueNode ev)
         {
-            return _nameLookup.ContainsKey(ev.Value);
+            return s_nameLookup.ContainsKey(ev.Value);
         }
 
         if (valueSyntax is StringValueNode sv)
         {
-            return _nameLookup.ContainsKey(sv.Value);
+            return s_nameLookup.ContainsKey(sv.Value);
         }
 
         return false;
@@ -83,13 +83,13 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is EnumValueNode evn &&
-            _nameLookup.TryGetValue(evn.Value, out var ev))
+            s_nameLookup.TryGetValue(evn.Value, out var ev))
         {
             return ev;
         }
 
         if (valueSyntax is StringValueNode svn &&
-            _nameLookup.TryGetValue(svn.Value, out ev))
+            s_nameLookup.TryGetValue(svn.Value, out ev))
         {
             return ev;
         }
@@ -112,7 +112,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         }
 
         if (runtimeValue is GeoJsonGeometryType value &&
-            _valueLookup.TryGetValue(value, out var enumValue))
+            s_valueLookup.TryGetValue(value, out var enumValue))
         {
             return new EnumValueNode(enumValue);
         }
@@ -140,13 +140,13 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         }
 
         if (resultValue is string s &&
-            _nameLookup.ContainsKey(s))
+            s_nameLookup.ContainsKey(s))
         {
             return new EnumValueNode(s);
         }
 
         if (resultValue is GeoJsonGeometryType value &&
-            _valueLookup.TryGetValue(value, out var name))
+            s_valueLookup.TryGetValue(value, out var name))
         {
             return new EnumValueNode(name);
         }
@@ -162,7 +162,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
     }
 
     public bool TryParseString(string type, out GeoJsonGeometryType geometryType) =>
-        _nameLookup.TryGetValue(type, out geometryType);
+        s_nameLookup.TryGetValue(type, out geometryType);
 
     public override bool TryDeserialize(
         IType type,
@@ -178,14 +178,14 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         }
 
         if (resultValue is string s &&
-            _nameLookup.TryGetValue(s, out var enumValue))
+            s_nameLookup.TryGetValue(s, out var enumValue))
         {
             runtimeValue = enumValue;
             return true;
         }
 
         if (resultValue is GeoJsonGeometryType geometryType &&
-            _valueLookup.ContainsKey(geometryType))
+            s_valueLookup.ContainsKey(geometryType))
         {
             runtimeValue = geometryType;
             return true;

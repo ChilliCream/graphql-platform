@@ -6,7 +6,7 @@ namespace HotChocolate.Subscriptions.Postgres;
 /// </summary>
 internal sealed class AsyncAutoResetEvent : IDisposable
 {
-    private static readonly Task _completedTask = Task.FromResult(true);
+    private static readonly Task s_completedTask = Task.FromResult(true);
 
     private readonly Queue<TaskCompletionSource<bool>> _waitingTasks = new();
     private bool _signaled;
@@ -22,7 +22,7 @@ internal sealed class AsyncAutoResetEvent : IDisposable
             if (_signaled)
             {
                 _signaled = false;
-                return _completedTask;
+                return s_completedTask;
             }
 
             var tcs = new TaskCompletionSource<bool>();

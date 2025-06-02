@@ -12,7 +12,7 @@ namespace System.Linq;
 /// </summary>
 public static class GreenDonutQueryableExtensions
 {
-    private static readonly MethodInfo _selectMethod =
+    private static readonly MethodInfo s_selectMethod =
         typeof(Enumerable)
             .GetMethods()
             .Where(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
@@ -139,7 +139,7 @@ public static class GreenDonutQueryableExtensions
         // we will need to combine this into the list expression.
         if (elementSelectorExpr is not null)
         {
-            var selectMethod = _selectMethod.MakeGenericMethod(typeof(TValue), typeof(TValue));
+            var selectMethod = s_selectMethod.MakeGenericMethod(typeof(TValue), typeof(TValue));
 
             rewrittenList = Expression.Lambda<Func<T, IEnumerable<TValue>>>(
                 Expression.Call(

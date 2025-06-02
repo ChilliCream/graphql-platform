@@ -6,7 +6,7 @@ namespace HotChocolate.ApolloFederation;
 
 internal static class FederationVersionExtensions
 {
-    private static readonly Dictionary<Uri, FederationVersion> _uriToVersion = new()
+    private static readonly Dictionary<Uri, FederationVersion> s_uriToVersion = new()
     {
         [new Uri(FederationVersionUrls.Federation20)] = FederationVersion.Federation20,
         [new Uri(FederationVersionUrls.Federation21)] = FederationVersion.Federation21,
@@ -18,7 +18,7 @@ internal static class FederationVersionExtensions
         [new Uri(FederationVersionUrls.Federation27)] = FederationVersion.Federation27,
     };
 
-    private static readonly Dictionary<FederationVersion, Uri> _versionToUri = new()
+    private static readonly Dictionary<FederationVersion, Uri> s_versionToUri = new()
     {
         [FederationVersion.Federation20] = new(FederationVersionUrls.Federation20),
         [FederationVersion.Federation21] = new(FederationVersionUrls.Federation21),
@@ -41,7 +41,7 @@ internal static class FederationVersionExtensions
 
     public static Uri ToUrl(this FederationVersion version)
     {
-        if (_versionToUri.TryGetValue(version, out var url))
+        if (s_versionToUri.TryGetValue(version, out var url))
         {
             return url;
         }
@@ -52,7 +52,7 @@ internal static class FederationVersionExtensions
 
     public static FederationVersion ToVersion(this Uri url)
     {
-        if (_uriToVersion.TryGetValue(url, out var version))
+        if (s_uriToVersion.TryGetValue(url, out var version))
         {
             return version;
         }
@@ -62,5 +62,5 @@ internal static class FederationVersionExtensions
     }
 
     public static bool TryToVersion(this Uri url, out FederationVersion version)
-        => _uriToVersion.TryGetValue(url, out version);
+        => s_uriToVersion.TryGetValue(url, out version);
 }

@@ -4,14 +4,14 @@ namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new() { Foo = new Foo { BarShort = 12, }, },
         new() { Foo = new Foo { BarShort = 14, }, },
         new() { Foo = new Foo { BarShort = 13, }, },
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -52,7 +52,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -84,7 +84,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester =
-            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -116,7 +116,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester =
-            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -146,7 +146,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester =
-            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -181,7 +181,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester =
-            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+            _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
