@@ -13,10 +13,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         TypeReference nodeType,
         bool withTotalCount)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         Configuration = CreateConfiguration(withTotalCount);
 

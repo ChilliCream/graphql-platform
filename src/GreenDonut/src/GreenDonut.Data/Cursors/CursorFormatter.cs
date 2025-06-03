@@ -43,10 +43,7 @@ public static class CursorFormatter
             throw new ArgumentNullException(nameof(entity));
         }
 
-        if (keys == null)
-        {
-            throw new ArgumentNullException(nameof(keys));
-        }
+        ArgumentNullException.ThrowIfNull(keys);
 
         if (keys.Length == 0)
         {

@@ -13,8 +13,8 @@ namespace HotChocolate.Utilities;
 
 public partial class DefaultTypeConverter
 {
-    private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
-    private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+    private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
 
     private static void RegisterConverters(
         DefaultTypeConverter registry)
@@ -66,15 +66,15 @@ public partial class DefaultTypeConverter
 
         registry.Register<DateTimeOffset, string>(
             from => from.ToString(from.Offset == TimeSpan.Zero
-                ? _utcFormat
-                : _localFormat, InvariantCulture));
+                ? UtcFormat
+                : LocalFormat, InvariantCulture));
         registry.Register<DateTime, string>(
             from =>
             {
                 var offset = new DateTimeOffset(from);
                 return offset.ToString(offset.Offset == TimeSpan.Zero
-                    ? _utcFormat
-                    : _localFormat, InvariantCulture);
+                    ? UtcFormat
+                    : LocalFormat, InvariantCulture);
             });
 
         registry.Register<DateOnly, DateTimeOffset>(from => from.ToDateTime(default));

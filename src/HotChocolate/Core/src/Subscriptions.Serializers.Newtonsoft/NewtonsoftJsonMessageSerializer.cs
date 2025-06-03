@@ -5,7 +5,7 @@ namespace HotChocolate.Subscriptions;
 
 internal sealed class NewtonsoftJsonMessageSerializer : IMessageSerializer
 {
-    private const string _completed = "{\"Kind\":1}";
+    private const string Completed = "{\"Kind\":1}";
     private readonly JsonSerializerSettings _settings = new()
     {
         TypeNameHandling = TypeNameHandling.All,
@@ -13,7 +13,7 @@ internal sealed class NewtonsoftJsonMessageSerializer : IMessageSerializer
         Formatting = Formatting.None,
     };
 
-    public string CompleteMessage => _completed;
+    public string CompleteMessage => Completed;
 
     public string Serialize<TMessage>(TMessage message)
     {

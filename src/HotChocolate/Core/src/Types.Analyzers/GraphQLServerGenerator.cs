@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Analyzers;
 #pragma warning restore RS1041
 public class GraphQLServerGenerator : IIncrementalGenerator
 {
-    private static readonly ISyntaxInspector[] _allInspectors =
+    private static readonly ISyntaxInspector[] s_allInspectors =
     [
         new TypeAttributeInspector(),
         new ClassBaseClassInspector(),
@@ -31,12 +31,12 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new ConnectionInspector()
     ];
 
-    private static readonly IPostCollectSyntaxTransformer[] _postCollectTransformers =
+    private static readonly IPostCollectSyntaxTransformer[] s_postCollectTransformers =
     [
         new ConnectionTypeTransformer()
     ];
 
-    private static readonly ISyntaxGenerator[] _generators =
+    private static readonly ISyntaxGenerator[] s_generators =
     [
         new TypeModuleSyntaxGenerator(),
         new TypesSyntaxGenerator(),
@@ -45,15 +45,15 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new DataLoaderGenerator()
     ];
 
-    private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> _inspectorLookup;
-    private static readonly Func<SyntaxNode, bool> _predicate;
+    private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_inspectorLookup;
+    private static readonly Func<SyntaxNode, bool> s_predicate;
 
     static GraphQLServerGenerator()
     {
         var filterBuilder = new SyntaxFilterBuilder();
         var inspectorLookup = new Dictionary<SyntaxKind, List<ISyntaxInspector>>();
 
-        foreach (var inspector in _allInspectors)
+        foreach (var inspector in s_allInspectors)
         {
             filterBuilder.AddRange(inspector.Filters);
 
@@ -69,8 +69,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
             }
         }
 
-        _predicate = filterBuilder.Build();
-        _inspectorLookup = inspectorLookup.ToFrozenDictionary(t => t.Key, t => t.Value.ToImmutableArray());
+        s_predicate = filterBuilder.Build();
+        s_inspectorLookup = inspectorLookup.ToFrozenDictionary(t => t.Key, t => t.Value.ToImmutableArray());
     }
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -103,7 +103,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         Compilation compilation,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        foreach (var transformer in _postCollectTransformers)
+        foreach (var transformer in s_postCollectTransformers)
         {
             syntaxInfos = transformer.Transform(compilation, syntaxInfos);
         }
@@ -112,11 +112,11 @@ public class GraphQLServerGenerator : IIncrementalGenerator
     }
 
     private static bool Predicate(SyntaxNode node)
-        => _predicate(node);
+        => s_predicate(node);
 
     private static SyntaxInfo? Transform(GeneratorSyntaxContext context)
     {
-        if (!_inspectorLookup.TryGetValue(context.Node.Kind(), out var inspectors))
+        if (!s_inspectorLookup.TryGetValue(context.Node.Kind(), out var inspectors))
         {
             return null;
         }
@@ -152,7 +152,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
                 }
             }
 
-            foreach (var generator in _generators.AsSpan())
+            foreach (var generator in s_generators.AsSpan())
             {
                 generator.Generate(context, assemblyName, syntaxInfos, AddSource);
             }

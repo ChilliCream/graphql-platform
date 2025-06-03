@@ -10,23 +10,23 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class RequestClassMiddlewareFactory
 {
-    private static readonly PropertyInfo _getSchemaName =
+    private static readonly PropertyInfo s_getSchemaName =
         typeof(IRequestCoreMiddlewareContext)
             .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaName))!;
 
-    private static readonly PropertyInfo _requestServices =
+    private static readonly PropertyInfo s_requestServices =
         typeof(IRequestContext)
             .GetProperty(nameof(IRequestContext.Services))!;
 
-    private static readonly PropertyInfo _appServices =
+    private static readonly PropertyInfo s_appServices =
         typeof(IRequestCoreMiddlewareContext)
             .GetProperty(nameof(IRequestCoreMiddlewareContext.Services))!;
 
-    private static readonly PropertyInfo _schemaServices =
+    private static readonly PropertyInfo s_schemaServices =
         typeof(IRequestCoreMiddlewareContext)
             .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaServices))!;
 
-    private static readonly MethodInfo _getService =
+    private static readonly MethodInfo s_getService =
         typeof(IServiceProvider)
             .GetMethod(nameof(IServiceProvider.GetService))!;
 
@@ -55,9 +55,9 @@ internal static class RequestClassMiddlewareFactory
         IRequestExecutorOptionsAccessor options,
         Type middleware)
     {
-        Expression schemaName = Expression.Property(context, _getSchemaName);
-        Expression services = Expression.Property(context, _appServices);
-        Expression schemaServices = Expression.Property(context, _schemaServices);
+        Expression schemaName = Expression.Property(context, s_getSchemaName);
+        Expression services = Expression.Property(context, s_appServices);
+        Expression schemaServices = Expression.Property(context, s_schemaServices);
 
         var list = new List<IParameterHandler>();
 
@@ -96,7 +96,7 @@ internal static class RequestClassMiddlewareFactory
         Type serviceType)
     {
         Expression serviceTypeConst = Expression.Constant(serviceType);
-        Expression getService = Expression.Call(service, _getService, serviceTypeConst);
+        Expression getService = Expression.Call(service, s_getService, serviceTypeConst);
         Expression castService = Expression.Convert(getService, serviceType);
         parameterHandlers.Add(new TypeParameterHandler(serviceType, castService));
     }
@@ -107,7 +107,7 @@ internal static class RequestClassMiddlewareFactory
     {
         var list = new List<IParameterHandler>();
         AddOptions(list, options);
-        list.Add(new ServiceParameterHandler(Expression.Property(context, _requestServices)));
+        list.Add(new ServiceParameterHandler(Expression.Property(context, s_requestServices)));
         return list;
     }
 

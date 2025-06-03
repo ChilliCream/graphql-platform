@@ -10,7 +10,7 @@ namespace HotChocolate.Data.MongoDb.Paging;
 /// </summary>
 public class MongoDbOffsetPagingProvider : OffsetPagingProvider
 {
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(MongoDbOffsetPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -29,12 +29,9 @@ public class MongoDbOffsetPagingProvider : OffsetPagingProvider
         IExtendedType source,
         PagingOptions options)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
-        return (OffsetPagingHandler)_createHandler
+        return (OffsetPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
             .Invoke(null, [options,])!;
     }

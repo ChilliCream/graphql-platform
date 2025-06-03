@@ -5,7 +5,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLRequestParser
 {
-    private const string _persistedQuery = "persistedQuery";
+    private const string PersistedQuery = "persistedQuery";
     private readonly IDocumentHashProvider? _hashProvider;
     private readonly IDocumentCache? _cache;
     private readonly bool _useCache;
@@ -176,21 +176,21 @@ public ref partial struct Utf8GraphQLRequestParser
 
         switch (fieldName[0])
         {
-            case _o:
+            case O:
                 if (fieldName.SequenceEqual(OperationName))
                 {
                     request.OperationName = ParseStringOrNull();
                 }
                 break;
 
-            case _i:
+            case I:
                 if (fieldName.SequenceEqual(Id))
                 {
                     request.DocumentId = ParseStringOrNull();
                 }
                 break;
 
-            case _q:
+            case Q:
                 if (fieldName.SequenceEqual(Query))
                 {
                     request.ContainsDocument = !IsNullToken();
@@ -205,14 +205,14 @@ public ref partial struct Utf8GraphQLRequestParser
                 }
                 break;
 
-            case _v:
+            case V:
                 if (fieldName.SequenceEqual(Variables))
                 {
                     request.Variables = ParseVariables();
                 }
                 break;
 
-            case _e:
+            case E:
                 if (fieldName.SequenceEqual(Extensions))
                 {
                     request.Extensions = ParseObjectOrNull();
@@ -232,21 +232,21 @@ public ref partial struct Utf8GraphQLRequestParser
 
         switch (fieldName[0])
         {
-            case _t:
+            case T:
                 if (fieldName.SequenceEqual(Type))
                 {
                     message.Type = ParseStringOrNull();
                 }
                 break;
 
-            case _i:
+            case I:
                 if (fieldName.SequenceEqual(Id))
                 {
                     message.Id = ParseStringOrNull();
                 }
                 break;
 
-            case _p:
+            case P:
                 if (fieldName.SequenceEqual(Payload))
                 {
                     var start = _reader.Start;

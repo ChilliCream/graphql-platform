@@ -173,6 +173,7 @@
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
   <Folder Name="/HotChocolate/Fusion-vnext/src/">
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.CommandLine/HotChocolate.Fusion.CommandLine.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
@@ -180,6 +181,7 @@
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/test/">
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.CommandLine.Tests/HotChocolate.Fusion.CommandLine.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />

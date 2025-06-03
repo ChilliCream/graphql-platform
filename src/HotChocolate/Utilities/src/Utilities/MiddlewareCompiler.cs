@@ -28,7 +28,7 @@ internal delegate IEnumerable<IParameterHandler> CreateDelegateHandlers(
 /// </summary>
 internal static class MiddlewareCompiler<[DynamicallyAccessedMembers(PublicConstructors | PublicMethods)] TMiddleware>
 {
-    private static readonly MethodInfo _awaitHelper =
+    private static readonly MethodInfo s_awaitHelper =
         typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
 
     internal static MiddlewareFactory<TMiddleware, TContext, TNext> CompileFactory<TContext, TNext>(
@@ -90,7 +90,7 @@ internal static class MiddlewareCompiler<[DynamicallyAccessedMembers(PublicConst
     {
         if (method.ReturnType == typeof(Task))
         {
-            return Expression.Call(_awaitHelper,
+            return Expression.Call(s_awaitHelper,
                 Expression.Call(middleware, method, arguments));
         }
 

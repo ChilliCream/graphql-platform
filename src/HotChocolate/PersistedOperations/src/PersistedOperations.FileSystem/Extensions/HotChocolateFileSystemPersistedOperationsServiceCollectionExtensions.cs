@@ -23,10 +23,7 @@ public static class HotChocolateFileSystemPersistedOperationsServiceCollectionEx
         this IServiceCollection services,
         string? cacheDirectory = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services
             .RemoveService<IOperationDocumentStorage>()

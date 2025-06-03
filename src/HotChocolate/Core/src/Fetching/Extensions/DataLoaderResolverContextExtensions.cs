@@ -61,15 +61,8 @@ public static class DataLoaderResolverContextExtensions
         string? name = null)
         where TKey : notnull
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (fetch is null)
-        {
-            throw new ArgumentNullException(nameof(fetch));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(fetch);
 
         var services = context.RequestServices;
         var scope = services.GetRequiredService<IDataLoaderScope>();
@@ -135,15 +128,8 @@ public static class DataLoaderResolverContextExtensions
         string? name = null)
         where TKey : notnull
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (fetch is null)
-        {
-            throw new ArgumentNullException(nameof(fetch));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(fetch);
 
         var services = context.RequestServices;
         var scope = services.GetRequiredService<IDataLoaderScope>();
@@ -194,15 +180,8 @@ public static class DataLoaderResolverContextExtensions
         string? name = null)
         where TKey : notnull
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (fetch is null)
-        {
-            throw new ArgumentNullException(nameof(fetch));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(fetch);
 
         var services = context.RequestServices;
         var scope = services.GetRequiredService<IDataLoaderScope>();
@@ -228,15 +207,8 @@ public static class DataLoaderResolverContextExtensions
         Func<CancellationToken, Task<TValue>> fetch,
         string? name = null)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (fetch is null)
-        {
-            throw new ArgumentNullException(nameof(fetch));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(fetch);
 
         return CacheDataLoader<string, TValue>(context, (_, ct) => fetch(ct), name)
             .LoadAsync("default", context.RequestAborted);
@@ -246,10 +218,7 @@ public static class DataLoaderResolverContextExtensions
     public static T DataLoader<T>(this IResolverContext context)
         where T : IDataLoader
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderScope>();

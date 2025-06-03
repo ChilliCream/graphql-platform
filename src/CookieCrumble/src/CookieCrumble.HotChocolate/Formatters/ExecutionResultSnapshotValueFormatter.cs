@@ -101,18 +101,15 @@ internal sealed class ExecutionResultSnapshotValueFormatter
 
 internal sealed class JsonResultPatcher
 {
-    private const string _data = "data";
-    private const string _items = "items";
-    private const string _incremental = "incremental";
-    private const string _path = "path";
+    private const string Data = "data";
+    private const string Items = "items";
+    private const string Incremental = "incremental";
+    private const string Path = "path";
     private JsonObject? _json;
 
     public void SetResponse(JsonDocument response)
     {
-        if (response is null)
-        {
-            throw new ArgumentNullException(nameof(response));
-        }
+        ArgumentNullException.ThrowIfNull(response);
 
         _json = JsonObject.Create(response.RootElement);
     }
@@ -141,18 +138,18 @@ internal sealed class JsonResultPatcher
                 "You must first set the initial response before you can apply patches.");
         }
 
-        if (!patch.RootElement.TryGetProperty(_incremental, out var incremental))
+        if (!patch.RootElement.TryGetProperty(Incremental, out var incremental))
         {
             throw new ArgumentException("A patch result must contain a property `incremental`.");
         }
 
         foreach (var element in incremental.EnumerateArray())
         {
-            if (element.TryGetProperty(_data, out var data))
+            if (element.TryGetProperty(Data, out var data))
             {
                 PatchIncrementalData(element, JsonObject.Create(data)!);
             }
-            else if (element.TryGetProperty(_items, out var items))
+            else if (element.TryGetProperty(Items, out var items))
             {
                 PatchIncrementalItems(element, JsonArray.Create(items)!);
             }
@@ -161,18 +158,18 @@ internal sealed class JsonResultPatcher
 
     private void PatchIncrementalData(JsonElement incremental, JsonObject data)
     {
-        if (incremental.TryGetProperty(_path, out var pathProp))
+        if (incremental.TryGetProperty(Path, out var pathProp))
         {
-            var (current, last) = SelectNodeToPatch(_json![_data]!, pathProp);
+            var (current, last) = SelectNodeToPatch(_json![Data]!, pathProp);
             ApplyPatch(current, last, data);
         }
     }
 
     private void PatchIncrementalItems(JsonElement incremental, JsonArray items)
     {
-        if (incremental.TryGetProperty(_path, out var pathProp))
+        if (incremental.TryGetProperty(Path, out var pathProp))
         {
-            var (current, last) = SelectNodeToPatch(_json![_data]!, pathProp);
+            var (current, last) = SelectNodeToPatch(_json![Data]!, pathProp);
             var i = last.GetInt32();
             var target = current.AsArray();
 

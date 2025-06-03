@@ -36,10 +36,7 @@ internal sealed class WorkQueue
 
     public void Push(IExecutionTask executionTask)
     {
-        if (executionTask is null)
-        {
-            throw new ArgumentNullException(nameof(executionTask));
-        }
+        ArgumentNullException.ThrowIfNull(executionTask);
 
         _stack.Push(executionTask);
     }

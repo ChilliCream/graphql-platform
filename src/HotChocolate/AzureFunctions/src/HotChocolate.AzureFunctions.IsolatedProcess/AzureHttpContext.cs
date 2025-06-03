@@ -15,10 +15,7 @@ internal sealed class AzureHttpContext : HttpContext
 
     public AzureHttpContext(HttpRequestData requestData)
     {
-        if (requestData is null)
-        {
-            throw new ArgumentNullException(nameof(requestData));
-        }
+        ArgumentNullException.ThrowIfNull(requestData);
 
         _innerContext = new DefaultHttpContext();
         _innerResponse = new AzureHttpResponse(_innerContext.Response, requestData);

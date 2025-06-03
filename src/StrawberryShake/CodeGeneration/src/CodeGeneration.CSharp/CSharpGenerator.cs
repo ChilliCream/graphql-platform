@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static class CSharpGenerator
 {
-    private static readonly ICSharpSyntaxGenerator[] _generators =
+    private static readonly ICSharpSyntaxGenerator[] s_generators =
     [
         new ClientGenerator(), new ClientInterfaceGenerator(), new EntityTypeGenerator(),
         new EntityIdFactoryGenerator(), new DependencyInjectionGenerator(),
@@ -41,10 +41,7 @@ public static class CSharpGenerator
         IEnumerable<string> fileNames,
         CSharpGeneratorSettings? settings = null)
     {
-        if (fileNames is null)
-        {
-            throw new ArgumentNullException(nameof(fileNames));
-        }
+        ArgumentNullException.ThrowIfNull(fileNames);
 
         settings ??= new CSharpGeneratorSettings();
 
@@ -140,10 +137,7 @@ public static class CSharpGenerator
         ClientModel clientModel,
         CSharpGeneratorSettings settings)
     {
-        if (clientModel is null)
-        {
-            throw new ArgumentNullException(nameof(clientModel));
-        }
+        ArgumentNullException.ThrowIfNull(clientModel);
 
         if (string.IsNullOrEmpty(settings.ClientName))
         {
@@ -318,7 +312,7 @@ public static class CSharpGenerator
 
         foreach (var descriptor in context.GetAllDescriptors())
         {
-            foreach (var generator in _generators)
+            foreach (var generator in s_generators)
             {
                 if (generator.CanHandle(descriptor, generatorSettings))
                 {

@@ -8,10 +8,7 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder)
         where T : TypeInterceptor
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.TryAddTypeInterceptor(typeof(T));
     }

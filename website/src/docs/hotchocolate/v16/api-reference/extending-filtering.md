@@ -351,7 +351,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
     }
 
     // For creating a expression tree we need the `MethodInfo` of the `ToLower` method of string
-    private static readonly MethodInfo _toLower = typeof(string)
+    private static readonly MethodInfo s_toLower = typeof(string)
         .GetMethods()
         .Single(
             x => x.Name == nameof(string.ToLower) &&
@@ -377,7 +377,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
             // Creates and returns the operation
             // e.g. ~> y.Street.ToLower() == "221b baker street"
             return Expression.Equal(
-                Expression.Call(property, _toLower),
+                Expression.Call(property, s_toLower),
                 Expression.Constant(str.ToLower()));
         }
 

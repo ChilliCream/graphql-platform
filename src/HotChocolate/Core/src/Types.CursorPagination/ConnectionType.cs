@@ -20,15 +20,8 @@ internal sealed class ConnectionType
         bool includeTotalCount,
         bool includeNodesField)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
-
-        if (string.IsNullOrEmpty(connectionName))
-        {
-            throw new ArgumentNullException(nameof(connectionName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(connectionName);
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         ConnectionName = connectionName;
         var edgeTypeName = NameHelper.CreateEdgeName(connectionName);
@@ -69,10 +62,7 @@ internal sealed class ConnectionType
 
     internal ConnectionType(TypeReference nodeType, bool includeTotalCount, bool includeNodesField)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         var edgeType =
             TypeReference.Create(

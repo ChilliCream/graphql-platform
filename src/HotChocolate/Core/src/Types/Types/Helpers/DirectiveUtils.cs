@@ -13,10 +13,7 @@ public static class DirectiveUtils
         ITypeInspector typeInspector)
         where T : class
     {
-        if (directive is null)
-        {
-            throw new ArgumentNullException(nameof(directive));
-        }
+        ArgumentNullException.ThrowIfNull(directive);
 
         switch (directive)
         {

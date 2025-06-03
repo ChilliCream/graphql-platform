@@ -6,13 +6,13 @@ namespace HotChocolate.Subscriptions;
 
 internal sealed class TopicFormatter
 {
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private readonly ThreadLocal<MD5> _md5 = new(MD5.Create);
     private readonly byte[] _prefix;
 
     public TopicFormatter(string? prefix)
     {
-        _prefix = prefix is not null ? _utf8.GetBytes(prefix) : [];
+        _prefix = prefix is not null ? s_utf8.GetBytes(prefix) : [];
     }
 
     public string Format(string topic)
@@ -28,12 +28,12 @@ internal sealed class TopicFormatter
         {
             _prefix.AsSpan().CopyTo(topicSpan);
             topicSpan[_prefix.Length] = (byte)':';
-            var topicLength = _utf8.GetBytes(topic, topicSpan.Slice(_prefix.Length + 1));
+            var topicLength = s_utf8.GetBytes(topic, topicSpan.Slice(_prefix.Length + 1));
             topicSpan = topicSpan.Slice(0, _prefix.Length + 1 + topicLength );
         }
         else
         {
-            var topicLength = _utf8.GetBytes(topic, topicSpan);
+            var topicLength = s_utf8.GetBytes(topic, topicSpan);
             topicSpan = topicSpan.Slice(0, topicLength);
         }
 

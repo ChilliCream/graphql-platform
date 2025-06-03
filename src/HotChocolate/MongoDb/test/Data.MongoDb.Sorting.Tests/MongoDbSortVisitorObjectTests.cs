@@ -10,7 +10,7 @@ public class MongoDbSortVisitorObjectTests
     : SchemaCache,
       IClassFixture<MongoResource>
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -53,7 +53,7 @@ public class MongoDbSortVisitorObjectTests
         }
     ];
 
-    private static readonly BarNullable?[] _barNullableEntities =
+    private static readonly BarNullable?[] s_barNullableEntities =
     [
         new()
         {
@@ -120,7 +120,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectShort_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -150,7 +150,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -179,7 +179,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectEnum_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -209,7 +209,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -238,7 +238,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectString_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -268,7 +268,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -297,7 +297,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectBool_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -327,7 +327,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(

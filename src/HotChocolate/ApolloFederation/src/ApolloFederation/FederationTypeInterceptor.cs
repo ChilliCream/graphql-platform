@@ -17,19 +17,19 @@ namespace HotChocolate.ApolloFederation;
 
 internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
-    private static readonly MethodInfo _matches =
+    private static readonly MethodInfo s_matches =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.Matches),
                 BindingFlags.Static | BindingFlags.Public)!;
 
-    private static readonly MethodInfo _execute =
+    private static readonly MethodInfo s_execute =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.ExecuteAsync),
                 BindingFlags.Static | BindingFlags.Public)!;
 
-    private static readonly MethodInfo _invalid =
+    private static readonly MethodInfo s_invalid =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.Invalid),
@@ -373,12 +373,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             {
                 Expression required = Expression.Constant(resolverDef.Required);
                 Expression resolver = Expression.Constant(resolverDef.Resolver);
-                Expression condition = Expression.Call(_matches, context, required);
-                Expression execute = Expression.Call(_execute, context, resolver);
+                Expression condition = Expression.Call(s_matches, context, required);
+                Expression execute = Expression.Call(s_execute, context, resolver);
                 expressions.Push((condition, execute));
             }
 
-            Expression current = Expression.Call(_invalid, context);
+            Expression current = Expression.Call(s_invalid, context);
             var variable = Expression.Variable(typeof(ValueTask<object?>));
 
             while (expressions.Count > 0)

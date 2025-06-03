@@ -1974,15 +1974,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
-        /// </summary>
-        internal static string SchemaErrorBuilder_MessageIsNull {
-            get {
-                return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to For more details look at the `Errors` property..
         /// </summary>
         internal static string SchemaException_ErrorSummaryText {
@@ -2854,15 +2845,6 @@ namespace HotChocolate.Properties {
         internal static string TypeRegistrar_TypesInconsistent {
             get {
                 return ResourceManager.GetString("TypeRegistrar_TypesInconsistent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The typeName mustn&apos;t be null or empty..
-        /// </summary>
-        internal static string TypeResourceHelper_TypeNameEmptyOrNull {
-            get {
-                return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
             }
         }
         

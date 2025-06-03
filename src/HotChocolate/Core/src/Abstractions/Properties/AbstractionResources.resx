@@ -168,9 +168,6 @@
   <data name="ExtensionDataCollection_CollectionIsReadOnly" xml:space="preserve">
     <value>This collection is read-only.</value>
   </data>
-  <data name="SingleValueExtensionData_KeyIsEmpty" xml:space="preserve">
-    <value>Value cannot be null or empty.</value>
-  </data>
   <data name="ResultValue_NameIsNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or whitespace.</value>
   </data>
@@ -209,9 +206,6 @@
   </data>
   <data name="MissingStateException_Message" xml:space="preserve">
     <value>The feature `{0}` is missing the state with the key `{1}`.</value>
-  </data>
-  <data name="AttributeExtensions_FormatFieldName_FieldNameEmpty" xml:space="preserve">
-    <value>The fieldName cannot be null or empty.</value>
   </data>
   <data name="MutationError_ErrorsEmpty" xml:space="preserve">
     <value>There must be at least one error in the errors list.</value>

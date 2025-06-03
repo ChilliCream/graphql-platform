@@ -33,10 +33,7 @@ public class ArgumentDescriptor
         Type argumentType)
         : this(context, argumentName)
     {
-        if (argumentType is null)
-        {
-            throw new ArgumentNullException(nameof(argumentType));
-        }
+        ArgumentNullException.ThrowIfNull(argumentType);
 
         Configuration.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
     }

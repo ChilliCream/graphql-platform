@@ -6,11 +6,11 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class WritePersistedOperationMiddleware
 {
-    private const string _persistedQuery = "persistedQuery";
-    private const string _persisted = "persisted";
-    private const string _expectedValue = "expectedHashValue";
-    private const string _expectedType = "expectedHashType";
-    private const string _expectedFormat = "expectedHashFormat";
+    private const string PersistedQuery = "persistedQuery";
+    private const string Persisted = "persisted";
+    private const string ExpectedValue = "expectedHashValue";
+    private const string ExpectedType = "expectedHashType";
+    private const string ExpectedFormat = "expectedHashFormat";
     private readonly RequestDelegate _next;
     private readonly IDocumentHashProvider _hashProvider;
     private readonly IOperationDocumentStorage _operationDocumentStorage;
@@ -38,7 +38,7 @@ internal sealed class WritePersistedOperationMiddleware
             context.Result is IOperationResult result &&
             context.IsValidDocument &&
             context.Request.Extensions is not null &&
-            context.Request.Extensions.TryGetValue(_persistedQuery, out var s) &&
+            context.Request.Extensions.TryGetValue(PersistedQuery, out var s) &&
             s is IReadOnlyDictionary<string, object> settings)
         {
             var resultBuilder = OperationResultBuilder.FromResult(result);
@@ -51,11 +51,11 @@ internal sealed class WritePersistedOperationMiddleware
 
                 // add persistence receipt to the result
                 resultBuilder.SetExtension(
-                    _persistedQuery,
+                    PersistedQuery,
                     new Dictionary<string, object>
                     {
                         { _hashProvider.Name, userHash },
-                        { _persisted, true },
+                        { Persisted, true },
                     });
 
                 context.ContextData[WellKnownContextData.DocumentSaved] = true;
@@ -63,14 +63,14 @@ internal sealed class WritePersistedOperationMiddleware
             else
             {
                 resultBuilder.SetExtension(
-                    _persistedQuery,
+                    PersistedQuery,
                     new Dictionary<string, object?>
                     {
                         { _hashProvider.Name, userHash },
-                        { _expectedValue, context.DocumentId },
-                        { _expectedType, _hashProvider.Name },
-                        { _expectedFormat, _hashProvider.Format.ToString() },
-                        { _persisted, false },
+                        { ExpectedValue, context.DocumentId },
+                        { ExpectedType, _hashProvider.Name },
+                        { ExpectedFormat, _hashProvider.Format.ToString() },
+                        { Persisted, false },
                     });
             }
 

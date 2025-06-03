@@ -11,10 +11,10 @@ public class DefaultNamingConventions
     : Convention
     , INamingConventions
 {
-    private const string _inputPostfix = "Input";
-    private const string _inputTypePostfix = "InputType";
-    private const string _directivePostfix = "Directive";
-    private const string _directiveTypePostfix = "DirectiveType";
+    private const string InputPostfix = "Input";
+    private const string InputTypePostfix = "InputType";
+    private const string DirectivePostfix = "Directive";
+    private const string DirectiveTypePostfix = "DirectiveType";
 
     private readonly IDocumentationProvider _documentation;
     private bool _formatInterfaceName;
@@ -41,10 +41,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string GetTypeName(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type == typeof(Schema))
         {
@@ -57,10 +54,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string GetTypeName(Type type, TypeKind kind)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var name = type.GetGraphQLName();
 
@@ -78,8 +72,8 @@ public class DefaultNamingConventions
         if (kind == TypeKind.InputObject)
         {
             var isInputObjectType = typeof(InputObjectType).IsAssignableFrom(type);
-            var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
-            var isEndingInputType = name.EndsWith(_inputTypePostfix, StringComparison.Ordinal);
+            var isEndingInput = name.EndsWith(InputPostfix, StringComparison.Ordinal);
+            var isEndingInputType = name.EndsWith(InputTypePostfix, StringComparison.Ordinal);
 
             if (isInputObjectType && isEndingInputType)
             {
@@ -88,26 +82,26 @@ public class DefaultNamingConventions
 
             if (isInputObjectType && !isEndingInput && !isEndingInputType)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
 
             if (!isInputObjectType && !isEndingInput)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
         }
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > _directivePostfix.Length &&
-                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length &&
+                name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - _directivePostfix.Length);
+                name = name.Substring(0, name.Length - DirectivePostfix.Length);
             }
-            else if (name.Length > _directiveTypePostfix.Length &&
-                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length &&
+                name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - _directiveTypePostfix.Length);
+                name = name.Substring(0, name.Length - DirectiveTypePostfix.Length);
             }
 
             name = NameFormattingHelpers.FormatFieldName(name);
@@ -133,25 +127,25 @@ public class DefaultNamingConventions
 
         if (kind == TypeKind.InputObject)
         {
-            var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
+            var isEndingInput = name.EndsWith(InputPostfix, StringComparison.Ordinal);
 
             if (!isEndingInput)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
         }
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > _directivePostfix.Length &&
-                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length &&
+                name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
-                name = name[..^_directivePostfix.Length];
+                name = name[..^DirectivePostfix.Length];
             }
-            else if (name.Length > _directiveTypePostfix.Length &&
-                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length &&
+                name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
-                name = name[..^_directiveTypePostfix.Length];
+                name = name[..^DirectiveTypePostfix.Length];
             }
 
             name = NameFormattingHelpers.FormatFieldName(name);
@@ -163,10 +157,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type type, TypeKind kind)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         // we do not want the description of our internal schema types.
         if (ExtendedType.Tools.IsNonGenericBaseType(type) ||
@@ -190,10 +181,7 @@ public class DefaultNamingConventions
         MemberInfo member,
         MemberKind kind)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         return member.GetGraphQLName();
     }
@@ -210,10 +198,7 @@ public class DefaultNamingConventions
         MemberInfo member,
         MemberKind kind)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         var description = member.GetGraphQLDescription();
 
@@ -228,10 +213,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string GetArgumentName(ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return parameter.GetGraphQLName();
     }
@@ -239,10 +221,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string? GetArgumentDescription(ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         var description = parameter.GetGraphQLDescription();
 
@@ -257,10 +236,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual unsafe string GetEnumValueName(object value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var enumType = value.GetType();
 
@@ -363,10 +339,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string? GetEnumValueDescription(object value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var enumType = value.GetType();
 
@@ -391,10 +364,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual bool IsDeprecated(MemberInfo member, out string? reason)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         return member.IsDeprecated(out reason);
     }
@@ -402,10 +372,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual bool IsDeprecated(object value, out string? reason)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var enumType = value.GetType();
 

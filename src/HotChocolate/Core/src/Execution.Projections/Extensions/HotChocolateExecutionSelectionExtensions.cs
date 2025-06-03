@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public static class HotChocolateExecutionSelectionExtensions
 {
-    private static readonly SelectionExpressionBuilder _builder = new();
+    private static readonly SelectionExpressionBuilder s_builder = new();
 
     /// <summary>
     /// Creates a selector expression from a GraphQL selection.
@@ -87,7 +87,7 @@ public static class HotChocolateExecutionSelectionExtensions
         => selection.DeclaringOperation.GetOrAddState(
             CreateExpressionKey(selection.Id),
             static (_, ctx) => ctx._builder.BuildExpression<TValue>(ctx.selection),
-            (_builder, selection));
+            (_builder: s_builder, selection));
 
     private static Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(
         ISelection selection,
@@ -102,7 +102,7 @@ public static class HotChocolateExecutionSelectionExtensions
         => selection.DeclaringOperation.GetOrAddState(
             CreateNodeExpressionKey<TValue>(selection.Id),
             static (_, ctx) => ctx._builder.BuildNodeExpression<TValue>(ctx.selection),
-            (_builder, selection));
+            (_builder: s_builder, selection));
 
     private static bool TryGetExpression<TValue>(
         ISelection selection,

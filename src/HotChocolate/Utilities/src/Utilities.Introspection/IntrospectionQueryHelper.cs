@@ -8,12 +8,12 @@ namespace HotChocolate.Utilities.Introspection;
 
 internal static class IntrospectionQueryHelper
 {
-    private const string _resourceNamespace = "HotChocolate.Utilities.Introspection.Queries";
-    private const string _argumentDeprecationQueryFile = "inspect_argument_deprecation.graphql";
-    private const string _inspectDirectiveType = "inspect_directive_type.graphql";
-    private const string _inspectDirectives = "inspect_directives.graphql";
-    private const string _inspectSchema = "inspect_schema.graphql";
-    private const string _operationName = "IntrospectionQuery";
+    private const string ResourceNamespace = "HotChocolate.Utilities.Introspection.Queries";
+    private const string ArgumentDeprecationQueryFile = "inspect_argument_deprecation.graphql";
+    private const string InspectDirectiveType = "inspect_directive_type.graphql";
+    private const string InspectDirectives = "inspect_directives.graphql";
+    private const string InspectSchema = "inspect_schema.graphql";
+    private const string OperationName = "IntrospectionQuery";
 
     public static GraphQLHttpRequest CreateInspectArgumentDeprecationRequest(IntrospectionOptions options)
         => CreateRequest(CreateOperation(GetArgumentDeprecationQuery()), options);
@@ -31,7 +31,7 @@ internal static class IntrospectionQueryHelper
         => CreateRequest(CreateOperation(Build(features, options).Print(false)), options);
 
     private static OperationRequest CreateOperation(string document)
-        => new(document, operationName: _operationName);
+        => new(document, operationName: OperationName);
 
     private static GraphQLHttpRequest CreateRequest(OperationRequest operation, IntrospectionOptions options)
         => new(operation)
@@ -41,18 +41,18 @@ internal static class IntrospectionQueryHelper
             OnMessageCreated = options.OnMessageCreated,
         };
 
-    private static string GetArgumentDeprecationQuery() => GetQueryFile(_argumentDeprecationQueryFile);
+    private static string GetArgumentDeprecationQuery() => GetQueryFile(ArgumentDeprecationQueryFile);
 
-    private static string GetInspectDirectiveTypeQuery() => GetQueryFile(_inspectDirectiveType);
+    private static string GetInspectDirectiveTypeQuery() => GetQueryFile(InspectDirectiveType);
 
-    private static string GetInspectDirectivesQuery() => GetQueryFile(_inspectDirectives);
+    private static string GetInspectDirectivesQuery() => GetQueryFile(InspectDirectives);
 
-    private static string GetInspectSchemaQuery() => GetQueryFile(_inspectSchema);
+    private static string GetInspectSchemaQuery() => GetQueryFile(InspectSchema);
 
     private static string GetQueryFile(string fileName)
     {
         var stream = typeof(IntrospectionClient).Assembly
-            .GetManifestResourceStream($"{_resourceNamespace}.{fileName}");
+            .GetManifestResourceStream($"{ResourceNamespace}.{fileName}");
 
         if (stream is not null)
         {

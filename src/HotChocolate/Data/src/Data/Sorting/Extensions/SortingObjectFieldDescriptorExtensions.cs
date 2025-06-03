@@ -17,7 +17,7 @@ namespace HotChocolate.Types;
 
 public static class SortingObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(SortingObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateBuilder), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -32,10 +32,7 @@ public static class SortingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return UseSortingInternal(descriptor, null, null, scope);
     }
@@ -52,10 +49,7 @@ public static class SortingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var sortType =
             typeof(ISortInputType).IsAssignableFrom(typeof(T))
@@ -78,15 +72,8 @@ public static class SortingObjectFieldDescriptorExtensions
         Type type,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(type);
 
         var sortType =
             typeof(ISortInputType).IsAssignableFrom(type)
@@ -110,15 +97,8 @@ public static class SortingObjectFieldDescriptorExtensions
         Action<ISortInputTypeDescriptor<T>> configure,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(configure);
 
         var filterType = new SortInputType<T>(configure);
         return UseSortingInternal(descriptor, filterType.GetType(), filterType, scope);
@@ -233,7 +213,7 @@ public static class SortingObjectFieldDescriptorExtensions
         var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
         convention.ConfigureField(fieldDescriptor);
 
-        var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
+        var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);

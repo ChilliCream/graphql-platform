@@ -6,8 +6,8 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Operations section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = [];
-    private static readonly List<ArgumentNode> _emptyArguments = [];
+    private static readonly List<VariableDefinitionNode> s_emptyVariableDefinitions = [];
+    private static readonly List<ArgumentNode> s_emptyArguments = [];
 
     /// <summary>
     /// Parses an operation definition.
@@ -108,7 +108,7 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyVariableDefinitions;
+        return s_emptyVariableDefinitions;
     }
 
     /// <summary>
@@ -280,7 +280,7 @@ public ref partial struct Utf8GraphQLParser
 
             return list;
         }
-        return _emptyArguments;
+        return s_emptyArguments;
     }
 
     /// <summary>

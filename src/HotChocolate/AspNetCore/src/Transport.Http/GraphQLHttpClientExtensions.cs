@@ -205,10 +205,7 @@ public static class GraphQLHttpClientExtensions
         OperationRequest operation,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         var request = new GraphQLHttpRequest(operation)
         {
@@ -242,15 +239,8 @@ public static class GraphQLHttpClientExtensions
         string uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(operation, new Uri(uri))
         {
@@ -284,15 +274,8 @@ public static class GraphQLHttpClientExtensions
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(operation, uri)
         {
@@ -502,10 +485,7 @@ public static class GraphQLHttpClientExtensions
         OperationRequest operation,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Post, };
         return client.SendAsync(request, cancellationToken);
@@ -531,10 +511,7 @@ public static class GraphQLHttpClientExtensions
         VariableBatchRequest batch,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         var request = new GraphQLHttpRequest(batch) { Method = GraphQLHttpMethod.Post, };
         return client.SendAsync(request, cancellationToken);
@@ -560,10 +537,7 @@ public static class GraphQLHttpClientExtensions
         OperationBatchRequest batch,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         var request = new GraphQLHttpRequest(batch) { Method = GraphQLHttpMethod.Post, };
         return client.SendAsync(request, cancellationToken);
@@ -593,15 +567,8 @@ public static class GraphQLHttpClientExtensions
         string uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(operation, new Uri(uri))
         {
@@ -635,15 +602,8 @@ public static class GraphQLHttpClientExtensions
         string uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(batch, new Uri(uri))
         {
@@ -677,15 +637,8 @@ public static class GraphQLHttpClientExtensions
         string uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(batch, new Uri(uri))
         {
@@ -719,15 +672,8 @@ public static class GraphQLHttpClientExtensions
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(operation, uri)
         {
@@ -761,15 +707,8 @@ public static class GraphQLHttpClientExtensions
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(batch, uri)
         {
@@ -803,15 +742,8 @@ public static class GraphQLHttpClientExtensions
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(batch, uri)
         {

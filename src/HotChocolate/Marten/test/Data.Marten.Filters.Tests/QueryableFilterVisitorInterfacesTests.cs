@@ -10,7 +10,7 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorInterfacesTests
 {
-    private static readonly BarInterface[] _barEntities =
+    private static readonly BarInterface[] s_barEntities =
     [
         new() { Test = new InterfaceImpl1 { Prop = "a", }, },
         new() { Test = new InterfaceImpl1 { Prop = "b", }, },
@@ -28,7 +28,7 @@ public class QueryableFilterVisitorInterfacesTests
     {
         // arrange
         var tester = await _cache
-            .CreateSchemaAsync<BarInterface, FilterInputType<BarInterface>>(_barEntities,
+            .CreateSchemaAsync<BarInterface, FilterInputType<BarInterface>>(s_barEntities,
                 configure: Configure);
 
         // act

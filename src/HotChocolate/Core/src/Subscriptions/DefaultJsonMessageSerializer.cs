@@ -10,7 +10,7 @@ namespace HotChocolate.Subscriptions;
 /// </summary>
 public sealed class DefaultJsonMessageSerializer : IMessageSerializer
 {
-    private const string _completed = "{\"kind\":1}";
+    private const string Completed = "{\"kind\":1}";
 
     private readonly JsonSerializerOptions _options =
         new(JsonSerializerDefaults.Web)
@@ -19,7 +19,7 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
         };
 
     /// <inheritdoc />
-    public string CompleteMessage => _completed;
+    public string CompleteMessage => Completed;
 
     /// <inheritdoc />
     public string Serialize<TMessage>(TMessage message)

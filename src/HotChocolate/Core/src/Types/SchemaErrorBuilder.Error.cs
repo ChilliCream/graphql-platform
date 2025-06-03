@@ -15,7 +15,7 @@ public partial class SchemaErrorBuilder
 {
     private sealed class Error : ISchemaError
     {
-        private static readonly JsonWriterOptions _serializationOptions = new()
+        private static readonly JsonWriterOptions s_serializationOptions = new()
         {
             Indented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
@@ -45,7 +45,7 @@ public partial class SchemaErrorBuilder
         {
             using var buffer = new PooledArrayWriter();
 
-            using var writer = new Utf8JsonWriter(buffer, _serializationOptions);
+            using var writer = new Utf8JsonWriter(buffer, s_serializationOptions);
 
             writer.WriteStartObject();
             Serialize(writer);

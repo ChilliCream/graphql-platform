@@ -28,12 +28,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public new ClassBuilder SetName(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException(
-                Resources.ClassBuilder_SetName_ClassNameCannotBeNull,
-                nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
         _name = value;
         return this;
@@ -67,10 +62,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public ClassBuilder AddConstructor(ConstructorBuilder constructor)
     {
-        if (constructor is null)
-        {
-            throw new ArgumentNullException(nameof(constructor));
-        }
+        ArgumentNullException.ThrowIfNull(constructor);
 
         _constructors.Add(constructor);
         return this;
@@ -78,10 +70,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public ClassBuilder AddField(FieldBuilder field)
     {
-        if (field is null)
-        {
-            throw new ArgumentNullException(nameof(field));
-        }
+        ArgumentNullException.ThrowIfNull(field);
 
         _fields.Add(field);
         return this;
@@ -95,10 +84,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public ClassBuilder AddMethod(MethodBuilder method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         _methods.Add(method);
         return this;
@@ -106,10 +92,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public ClassBuilder AddClass(ClassBuilder classBuilder)
     {
-        if (classBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(classBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(classBuilder);
 
         _classes.Add(classBuilder);
         return this;
@@ -117,10 +100,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public ClassBuilder AddClass(string @class)
     {
-        if (@class is null)
-        {
-            throw new ArgumentNullException(nameof(@class));
-        }
+        ArgumentNullException.ThrowIfNull(@class);
 
         _classes.Add(CodeInlineBuilder.From(@class));
         return this;
@@ -152,10 +132,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
     public override void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         _xmlComment?.Build(writer);
 

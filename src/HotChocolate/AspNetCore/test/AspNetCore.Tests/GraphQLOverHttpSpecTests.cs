@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore;
 
 public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
-    private static readonly Uri _url = new("http://localhost:5000/graphql");
+    private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
     [Theory]
     [InlineData(null, Latest, ContentType.GraphQLResponse)]
@@ -56,7 +56,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __typename }", }),
@@ -89,7 +89,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __typename }", }),
@@ -138,7 +138,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = new ByteArrayContent([])
             {
@@ -187,7 +187,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __typ$ename }", }),
@@ -230,7 +230,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __type name }", }),
@@ -254,7 +254,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __typename }", }),
@@ -287,7 +287,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ __typename }", }),
@@ -325,7 +325,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ ... @defer { __typename } }", }),
@@ -369,7 +369,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(
             new ClientQueryRequest
             {
@@ -410,7 +410,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ ... @defer { __typename } }", }),
@@ -443,7 +443,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         client.Timeout = TimeSpan.FromSeconds(30);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(
             new ClientQueryRequest
             {
@@ -490,7 +490,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         client.Timeout = TimeSpan.FromSeconds(30);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(
             new ClientQueryRequest
             {
@@ -537,7 +537,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         client.Timeout = TimeSpan.FromSeconds(30);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(
             new ClientQueryRequest
             {

@@ -8,9 +8,9 @@ namespace HotChocolate.AspNetCore;
 
 internal static class HttpResponseExtensions
 {
-    private const string _contentDepositionHeader = "Content-Disposition";
-    private const string _contentDepositionValue = "attachment; filename=\"{0}\"";
-    private static readonly JsonSerializerOptions _serializerOptions = new()
+    private const string ContentDispositionHeader = "Content-Disposition";
+    private const string ContentDispositionValue = "attachment; filename=\"{0}\"";
+    private static readonly JsonSerializerOptions s_serializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -27,7 +27,7 @@ internal static class HttpResponseExtensions
         return JsonSerializer.SerializeAsync(
             response.Body,
             value,
-            _serializerOptions,
+            s_serializerOptions,
             cancellationToken);
     }
 
@@ -35,8 +35,8 @@ internal static class HttpResponseExtensions
         this IHeaderDictionary headers,
         string fileName)
     {
-        headers[_contentDepositionHeader] =
-            Format(InvariantCulture, _contentDepositionValue, fileName);
+        headers[ContentDispositionHeader] =
+            Format(InvariantCulture, ContentDispositionValue, fileName);
         return headers;
     }
 }

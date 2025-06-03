@@ -4,13 +4,13 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true, },
         new() { Bar = false, },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { Bar = true, },
         new() { Bar = null, },
@@ -28,7 +28,7 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
         var snapshot = new Snapshot();
 
         // act
@@ -52,7 +52,7 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
         var snapshot = new Snapshot();
 
         // act
@@ -76,7 +76,7 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
         var snapshot = new Snapshot();
 
         // act
@@ -106,7 +106,7 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
         var snapshot = new Snapshot();
 
         // act

@@ -9,10 +9,7 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
 
     public AggregateServiceScopeInitializer(IEnumerable<IServiceScopeInitializer> serviceScopeInitializers)
     {
-        if (serviceScopeInitializers == null)
-        {
-            throw new ArgumentNullException(nameof(serviceScopeInitializers));
-        }
+        ArgumentNullException.ThrowIfNull(serviceScopeInitializers);
 
         _initializers = serviceScopeInitializers.ToArray();
     }

@@ -11,11 +11,11 @@ namespace HotChocolate.AspNetCore.Serialization;
 
 internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
-    private const int _minRequestSize = 256;
+    private const int MinRequestSize = 256;
     internal const string QueryIdKey = "id";
-    private const string _operationNameKey = "operationName";
+    private const string OperationNameKey = "operationName";
     internal const string QueryKey = "query";
-    private const string _variablesKey = "variables";
+    private const string VariablesKey = "variables";
     internal const string ExtensionsKey = "extensions";
 
     private readonly IDocumentCache _documentCache;
@@ -33,8 +33,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             throw new ArgumentNullException(nameof(documentCache));
         _documentHashProvider = documentHashProvider ??
             throw new ArgumentNullException(nameof(documentHashProvider));
-        _maxRequestSize = maxRequestSize < _minRequestSize
-            ? _minRequestSize
+        _maxRequestSize = maxRequestSize < MinRequestSize
+            ? MinRequestSize
             : maxRequestSize;
         _parserOptions = parserOptions ??
             throw new ArgumentNullException(nameof(parserOptions));
@@ -93,7 +93,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         // next we deserialize the GET request with the query request builder ...
         string? query = parameters[QueryKey];
         string? queryId = parameters[QueryIdKey];
-        string? operationName = parameters[_operationNameKey];
+        string? operationName = parameters[OperationNameKey];
         IReadOnlyDictionary<string, object?>? extensions = null;
 
         // if we have no query or query id we cannot execute anything.
@@ -138,7 +138,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             }
 
             IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
-            if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
+            if ((string?)parameters[VariablesKey] is { Length: > 0, } sv)
             {
                 variableSet = ParseVariables(sv);
             }
@@ -172,13 +172,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         string? operationName,
         IQueryCollection parameters)
     {
-        operationName ??= parameters[_operationNameKey];
+        operationName ??= parameters[OperationNameKey];
         EnsureValidQueryId(operationId);
 
         try
         {
             IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
-            if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
+            if ((string?)parameters[VariablesKey] is { Length: > 0, } sv)
             {
                 variableSet = ParseVariables(sv);
             }

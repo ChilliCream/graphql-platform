@@ -34,10 +34,7 @@ internal sealed class TypeRegistry
 
     public bool IsRegistered(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         if (_typeRegister.ContainsKey(typeReference))
         {
@@ -57,10 +54,7 @@ internal sealed class TypeRegistry
         TypeReference typeRef,
         [NotNullWhen(true)] out RegisteredType? registeredType)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (typeRef is ExtendedTypeReference clrTypeRef &&
             _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
@@ -75,10 +69,7 @@ internal sealed class TypeRegistry
         ExtendedTypeReference runtimeTypeRef,
         [NotNullWhen(true)] out TypeReference? typeRef)
     {
-        if (runtimeTypeRef is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeTypeRef));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeTypeRef);
 
         return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
     }
@@ -110,10 +101,7 @@ internal sealed class TypeRegistry
 
     public void Register(RegisteredType registeredType)
     {
-        if (registeredType is null)
-        {
-            throw new ArgumentNullException(nameof(registeredType));
-        }
+        ArgumentNullException.ThrowIfNull(registeredType);
 
         var addToTypes = !_typeRegister.ContainsValue(registeredType);
 
@@ -168,10 +156,7 @@ internal sealed class TypeRegistry
 
     public void Register(string typeName, ExtendedTypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         typeName.EnsureGraphQLName();
 
@@ -180,15 +165,8 @@ internal sealed class TypeRegistry
 
     public void Register(string typeName, RegisteredType registeredType)
     {
-        if (registeredType is null)
-        {
-            throw new ArgumentNullException(nameof(registeredType));
-        }
-
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
+        ArgumentNullException.ThrowIfNull(registeredType);
 
         if (registeredType.IsExtension)
         {

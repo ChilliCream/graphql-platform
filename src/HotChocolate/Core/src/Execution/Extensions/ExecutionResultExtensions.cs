@@ -8,8 +8,8 @@ namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonResultFormatter _formatter = new(new() { Indented = false, });
-    private static readonly JsonResultFormatter _formatterIndented = new(new() { Indented = true, });
+    private static readonly JsonResultFormatter s_formatter = new(new() { Indented = false, });
+    private static readonly JsonResultFormatter s_formatterIndented = new(new() { Indented = true, });
 
     public static void WriteTo(
         this IOperationResult result,
@@ -21,11 +21,11 @@ public static class ExecutionResultExtensions
 
         if (withIndentations)
         {
-            _formatterIndented.Format(result, writer);
+            s_formatterIndented.Format(result, writer);
         }
         else
         {
-            _formatter.Format(result, writer);
+            s_formatter.Format(result, writer);
         }
     }
 
@@ -54,8 +54,8 @@ public static class ExecutionResultExtensions
         if (result is IOperationResult queryResult)
         {
             return withIndentations
-                ? _formatterIndented.Format(queryResult)
-                : _formatter.Format(queryResult);
+                ? s_formatterIndented.Format(queryResult)
+                : s_formatter.Format(queryResult);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

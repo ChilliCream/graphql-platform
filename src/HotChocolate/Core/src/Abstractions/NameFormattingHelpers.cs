@@ -12,16 +12,13 @@ namespace HotChocolate;
 /// </summary>
 internal static class NameFormattingHelpers
 {
-    private const string _get = "Get";
-    private const string _async = "Async";
-    private const char _genericTypeDelimiter = '`';
+    private const string Get = "Get";
+    private const string Async = "Async";
+    private const char GenericTypeDelimiter = '`';
 
     public static string GetGraphQLName(this Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var name = GetFromType(type);
 
@@ -30,10 +27,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this PropertyInfo property)
     {
-        if (property is null)
-        {
-            throw new ArgumentNullException(nameof(property));
-        }
+        ArgumentNullException.ThrowIfNull(property);
 
         var name = property.IsDefined(
             typeof(GraphQLNameAttribute), false)
@@ -45,10 +39,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this MethodInfo method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var name = method.IsDefined(
             typeof(GraphQLNameAttribute), false)
@@ -60,10 +51,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         var name = parameter.IsDefined(
             typeof(GraphQLNameAttribute), false)
@@ -75,10 +63,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(this MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         if (member is MethodInfo m)
         {
@@ -98,17 +83,17 @@ internal static class NameFormattingHelpers
     {
         var name = method.Name;
 
-        if (name.StartsWith(_get, StringComparison.Ordinal)
-            && name.Length > _get.Length)
+        if (name.StartsWith(Get, StringComparison.Ordinal)
+            && name.Length > Get.Length)
         {
-            name = name.Substring(_get.Length);
+            name = name.Substring(Get.Length);
         }
 
         if (IsAsyncMethod(method.ReturnType)
-            && name.Length > _async.Length
-            && name.EndsWith(_async, StringComparison.Ordinal))
+            && name.Length > Async.Length
+            && name.EndsWith(Async, StringComparison.Ordinal))
         {
-            name = name.Substring(0, name.Length - _async.Length);
+            name = name.Substring(0, name.Length - Async.Length);
         }
 
         return FormatFieldName(name);
@@ -189,7 +174,7 @@ internal static class NameFormattingHelpers
                 typeName = type.GetGenericTypeDefinition().Name;
 
                 var nameSpan = typeName.AsSpan();
-                var index = nameSpan.LastIndexOf(_genericTypeDelimiter);
+                var index = nameSpan.LastIndexOf(GenericTypeDelimiter);
 
                 if (index >= 0)
                 {
@@ -220,12 +205,7 @@ internal static class NameFormattingHelpers
 
     public static unsafe string FormatFieldName(string fieldName)
     {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentException(
-                AbstractionResources.AttributeExtensions_FormatFieldName_FieldNameEmpty,
-                nameof(fieldName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
         // quick exit
         if (char.IsLower(fieldName[0]))

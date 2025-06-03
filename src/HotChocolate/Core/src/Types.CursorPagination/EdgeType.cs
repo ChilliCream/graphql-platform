@@ -14,15 +14,8 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         string connectionName,
         TypeReference nodeType)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
-
-        if (string.IsNullOrEmpty(connectionName))
-        {
-            throw new ArgumentNullException(nameof(connectionName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(connectionName);
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         ConnectionName = connectionName;
         Configuration = CreateConfiguration(nodeType);
@@ -36,10 +29,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
 
     internal EdgeType(TypeReference nodeType)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         // the property is set later in the configuration.
         ConnectionName = default!;

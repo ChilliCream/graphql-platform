@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Relay;
 
 internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 {
-    private const string _defaultFieldName = "query";
+    private const string DefaultFieldName = "query";
     private readonly HashSet<string> _payloads = [];
 
     private ITypeCompletionContext _context = default!;
@@ -47,7 +47,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
             TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
             _queryField = new ObjectFieldConfiguration(
-                options.QueryFieldName ?? _defaultFieldName,
+                options.QueryFieldName ?? DefaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
             _queryField.Flags |= CoreFieldFlags.MutationQueryField;

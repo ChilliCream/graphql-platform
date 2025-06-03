@@ -6,13 +6,13 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class FilteringAndPaging(SchemaCache cache)
 {
-    private static readonly Foo[] _fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
+    private static readonly Foo[] s_fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
 
     [Fact]
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities, true);
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities, true);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -37,7 +37,7 @@ public class FilteringAndPaging(SchemaCache cache)
     public async Task Paging_With_TotalCount()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities, true);
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities, true);
 
         // act
         var res1 = await tester.ExecuteAsync(

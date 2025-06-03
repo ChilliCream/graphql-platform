@@ -167,7 +167,7 @@ public partial class TypeMapperGenerator
 
                 return mapperMethodCall
                     .AddArgument(argString)
-                    .If(settings.IsStoreEnabled(), x => x.AddArgument(_snapshot));
+                    .If(settings.IsStoreEnabled(), x => x.AddArgument(Snapshot));
 
             default:
                 throw new ArgumentOutOfRangeException();

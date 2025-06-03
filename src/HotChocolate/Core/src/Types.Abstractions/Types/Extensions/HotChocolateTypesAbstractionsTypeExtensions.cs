@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 
 public static class HotChocolateTypesAbstractionsTypeExtensions
 {
-    private const int _maxDepth = 16;
+    private const int MaxDepth = 16;
 
     /// <summary>
     /// Calculates the depth of a type. The depth is defined as the
@@ -493,7 +493,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
     private static bool FullTypeName(IType type, int currentDepth, Span<char> buffer, out int written)
     {
-        if (currentDepth > _maxDepth)
+        if (currentDepth > MaxDepth)
         {
             throw new InvalidOperationException(
                 "The type resolution depth limit was exceeded.");
@@ -610,7 +610,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        var depthRemaining = _maxDepth;
+        var depthRemaining = MaxDepth;
 
         if (type is ITypeDefinition typeDefinition)
         {
@@ -621,7 +621,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
         {
             if (depthRemaining-- <= 0)
             {
-                throw new InvalidOperationException($"The type resolution depth limit of {_maxDepth} was exceeded.");
+                throw new InvalidOperationException($"The type resolution depth limit of {MaxDepth} was exceeded.");
             }
 
             switch (type.Kind)
@@ -671,13 +671,13 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
     public static bool IsStructurallyEqual(this IType thisType, IType otherType)
     {
-        var depthRemaining = _maxDepth;
+        var depthRemaining = MaxDepth;
 
         while (true)
         {
             if (depthRemaining-- <= 0)
             {
-                throw new InvalidOperationException($"The type comparison depth limit of {_maxDepth} was reached.");
+                throw new InvalidOperationException($"The type comparison depth limit of {MaxDepth} was reached.");
             }
 
             if (thisType.Kind != otherType.Kind)

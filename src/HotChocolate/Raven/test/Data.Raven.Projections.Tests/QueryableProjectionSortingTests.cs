@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionSortingTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -43,7 +43,7 @@ public class QueryableProjectionSortingTests
         },
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -126,7 +126,7 @@ public class QueryableProjectionSortingTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -162,7 +162,7 @@ public class QueryableProjectionSortingTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -199,7 +199,7 @@ public class QueryableProjectionSortingTests
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities);
+        var tester = _cache.CreateSchema(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -235,7 +235,7 @@ public class QueryableProjectionSortingTests
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities);
+        var tester = _cache.CreateSchema(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

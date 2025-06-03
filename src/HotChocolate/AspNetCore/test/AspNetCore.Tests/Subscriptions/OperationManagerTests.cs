@@ -30,7 +30,7 @@ public class OperationManagerTests
         // assert
         Assert.Equal(
             "sessionId",
-            Assert.Throws<ArgumentException>(Action).ParamName);
+            Assert.Throws<ArgumentNullException>(Action).ParamName);
     }
 
     [Fact]
@@ -242,7 +242,7 @@ public class OperationManagerTests
         // assert
         Assert.Equal(
             "sessionId",
-            Assert.Throws<ArgumentException>(Action).ParamName);
+            Assert.Throws<ArgumentNullException>(Action).ParamName);
     }
 
     [Fact]

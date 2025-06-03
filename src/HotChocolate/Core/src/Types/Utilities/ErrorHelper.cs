@@ -11,10 +11,10 @@ namespace HotChocolate.Utilities;
 
 internal static class ErrorHelper
 {
-    private const string _interfaceTypeValidation = "sec-Interfaces.Type-Validation";
-    private const string _objectTypeValidation = "sec-Objects.Type-Validation";
-    private const string _inputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
-    private const string _directiveValidation = "sec-Type-System.Directives.Validation";
+    private const string InterfaceTypeValidation = "sec-Interfaces.Type-Validation";
+    private const string ObjectTypeValidation = "sec-Objects.Type-Validation";
+    private const string InputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
+    private const string DirectiveValidation = "sec-Type-System.Directives.Validation";
 
     public static ISchemaError NeedsOneAtLeastField(ITypeDefinition type)
         => SchemaErrorBuilder.New()
@@ -295,10 +295,10 @@ internal static class ErrorHelper
         int? rfc = null)
     {
         errorBuilder
-            .SpecifiedBy(_interfaceTypeValidation, kind is TypeKind.Interface, isDraft)
-            .SpecifiedBy(_objectTypeValidation, kind is TypeKind.Object, isDraft)
-            .SpecifiedBy(_inputObjectTypeValidation, kind is TypeKind.InputObject, isDraft)
-            .SpecifiedBy(_directiveValidation, kind is TypeKind.Directive, isDraft);
+            .SpecifiedBy(InterfaceTypeValidation, kind is TypeKind.Interface, isDraft)
+            .SpecifiedBy(ObjectTypeValidation, kind is TypeKind.Object, isDraft)
+            .SpecifiedBy(InputObjectTypeValidation, kind is TypeKind.InputObject, isDraft)
+            .SpecifiedBy(DirectiveValidation, kind is TypeKind.Directive, isDraft);
 
         if (rfc.HasValue)
         {

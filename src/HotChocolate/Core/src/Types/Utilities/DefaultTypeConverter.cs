@@ -40,15 +40,8 @@ public partial class DefaultTypeConverter : ITypeConverter
 
     public bool TryConvert(Type from, Type to, object? source, out object? converted)
     {
-        if (from is null)
-        {
-            throw new ArgumentNullException(nameof(from));
-        }
-
-        if (to is null)
-        {
-            throw new ArgumentNullException(nameof(to));
-        }
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
 
         if (from == to)
         {

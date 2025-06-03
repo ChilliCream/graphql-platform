@@ -416,10 +416,7 @@ public static class TagDirectiveExtensions
         this IDescriptor descriptor,
         string name)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         switch (descriptor)
         {

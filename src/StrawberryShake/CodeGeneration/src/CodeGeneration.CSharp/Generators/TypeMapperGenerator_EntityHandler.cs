@@ -8,8 +8,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class TypeMapperGenerator
 {
-    private const string _entityId = "entityId";
-    private const string _snapshot = "snapshot";
+    private const string EntityId = "entityId";
+    private const string Snapshot = "snapshot";
 
     private static void AddEntityHandler(
         ClassBuilder classBuilder,
@@ -20,16 +20,16 @@ public partial class TypeMapperGenerator
         bool isNonNullable)
     {
         method
-            .AddParameter(_entityId)
+            .AddParameter(EntityId)
             .SetType(TypeNames.EntityId.MakeNullable(!isNonNullable));
 
         method
-            .AddParameter(_snapshot)
+            .AddParameter(Snapshot)
             .SetType(TypeNames.IEntityStoreSnapshot);
 
         if (!isNonNullable)
         {
-            method.AddCode(EnsureProperNullability(_entityId, isNonNullable));
+            method.AddCode(EnsureProperNullability(EntityId, isNonNullable));
         }
 
         if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
@@ -84,12 +84,12 @@ public partial class TypeMapperGenerator
 
         var argument = MethodCallBuilder
             .Inline()
-            .SetMethodName(_snapshot, "GetEntity")
+            .SetMethodName(Snapshot, "GetEntity")
             .AddGeneric(CreateEntityType(
                     objectTypeDescriptor.Name,
                     objectTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .ToString())
-            .AddArgument(isNonNullable ? _entityId : $"{_entityId}.Value");
+            .AddArgument(isNonNullable ? EntityId : $"{EntityId}.Value");
 
         constructorCall.AddArgument(
             NullCheckBuilder
@@ -108,13 +108,13 @@ public partial class TypeMapperGenerator
                         isNonNullable
                             ?
                             [
-                                _entityId,
+                                EntityId,
                                 "Name",
                                 nameof(string.Equals),
                             ]
                             :
                             [
-                                _entityId,
+                                EntityId,
                                 "Value",
                                 "Name",
                                 nameof(string.Equals),

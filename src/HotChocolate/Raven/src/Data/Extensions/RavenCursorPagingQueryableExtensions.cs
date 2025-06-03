@@ -63,15 +63,8 @@ public static class RavenCursorPagingQueryableExtensions
         IResolverContext context,
         int? defaultPageSize)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(context);
 
         var first = context.ArgumentValue<int?>("first");
         var last = context.ArgumentValue<int?>("last");

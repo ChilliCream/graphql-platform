@@ -479,7 +479,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private sealed class FieldVisitorFeature : ValidatorFeature
     {
-        private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
+        private static readonly FieldInfoListBufferPool s_fieldInfoPool = new();
         private readonly List<FieldInfoListBuffer> _buffers = [new()];
 
         public IType NonNullString { get; private set; } = null!;
@@ -503,7 +503,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
             while (!buffer.TryPop(out list))
             {
-                buffer = _fieldInfoPool.Get();
+                buffer = s_fieldInfoPool.Get();
                 _buffers.Push(buffer);
             }
 
@@ -530,7 +530,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
                 for (var i = 0; i < _buffers.Count; i++)
                 {
-                    _fieldInfoPool.Return(_buffers[i]);
+                    s_fieldInfoPool.Return(_buffers[i]);
                 }
 
                 _buffers.Push(buffer);

@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
-    private static readonly AcceptMediaType[] _mediaTypes =
+    private static readonly AcceptMediaType[] s_mediaTypes =
     [
         new AcceptMediaType(
             ContentType.Types.Application,
@@ -102,7 +102,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     TypeNameIsEmpty(),
-                    _mediaTypes,
+                    s_mediaTypes,
                     BadRequest);
                 return;
             }
@@ -132,7 +132,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     InvalidTypeName(typeName),
-                    _mediaTypes,
+                    s_mediaTypes,
                     BadRequest);
                 return;
             }
@@ -142,7 +142,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     TypeNotFound(typeName),
-                    _mediaTypes,
+                    s_mediaTypes,
                     NotFound);
                 return;
             }

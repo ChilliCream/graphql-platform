@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
 public static class WebSocketExtensions
 {
-    private static readonly JsonSerializerSettings _settings =
+    private static readonly JsonSerializerSettings s_settings =
         new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -139,7 +139,7 @@ public static class WebSocketExtensions
                 dataStart.Type, dataStart.Id, payload);
         }
 
-        var json = JsonConvert.SerializeObject(message, _settings);
+        var json = JsonConvert.SerializeObject(message, s_settings);
         if (largeMessage)
         {
             json += new string(' ', 1024 * 16);

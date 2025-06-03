@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableProjectionHashSetTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -47,7 +47,7 @@ public class QueryableProjectionHashSetTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -79,7 +79,7 @@ public class QueryableProjectionHashSetTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(

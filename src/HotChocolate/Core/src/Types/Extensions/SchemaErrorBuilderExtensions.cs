@@ -9,10 +9,7 @@ public static class SchemaErrorBuilderExtensions
         string format,
         params object[] args)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.SetMessage(string.Format(
             CultureInfo.InvariantCulture,

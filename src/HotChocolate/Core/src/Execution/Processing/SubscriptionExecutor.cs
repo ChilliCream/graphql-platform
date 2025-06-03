@@ -24,10 +24,7 @@ internal sealed partial class SubscriptionExecutor
         IRequestContext requestContext,
         Func<object?> resolveQueryValue)
     {
-        if (requestContext is null)
-        {
-            throw new ArgumentNullException(nameof(requestContext));
-        }
+        ArgumentNullException.ThrowIfNull(requestContext);
 
         if (requestContext.Operation is null || requestContext.Variables is null)
         {

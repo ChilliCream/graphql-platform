@@ -6,7 +6,7 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorEnumTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { BarEnum = FooEnum.BAR, },
         new() { BarEnum = FooEnum.BAZ, },
@@ -14,7 +14,7 @@ public class QueryableSortVisitorEnumTests
         new() { BarEnum = FooEnum.QUX, },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { BarEnum = FooEnum.BAR, },
         new() { BarEnum = FooEnum.BAZ, },
@@ -34,7 +34,7 @@ public class QueryableSortVisitorEnumTests
     public async Task Create_Enum_OrderBy()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooSortType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -60,7 +60,7 @@ public class QueryableSortVisitorEnumTests
     {
         // arrange
         var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

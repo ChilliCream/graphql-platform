@@ -6,7 +6,7 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorEnumTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { BarEnum = FooEnum.BAR, },
         new() { BarEnum = FooEnum.BAZ, },
@@ -14,7 +14,7 @@ public class QueryableFilterVisitorEnumTests
         new() { BarEnum = FooEnum.QUX, },
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { BarEnum = FooEnum.BAR, },
         new() { BarEnum = FooEnum.BAZ, },
@@ -34,7 +34,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -68,7 +68,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumNotEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -102,7 +102,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -136,7 +136,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_EnumNotIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -170,7 +170,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_NullableEnumEqual_Expression()
     {
         var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         // assert
@@ -205,7 +205,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_NullableEnumNotEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -239,7 +239,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_NullableEnumIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -273,7 +273,7 @@ public class QueryableFilterVisitorEnumTests
     public async Task Create_NullableEnumNotIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

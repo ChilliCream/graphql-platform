@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Raven.Pagination;
 /// </summary>
 public sealed class RavenCursorPagingProvider : CursorPagingProvider
 {
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(RavenCursorPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -28,12 +28,9 @@ public sealed class RavenCursorPagingProvider : CursorPagingProvider
         IExtendedType source,
         PagingOptions options)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
-        return (CursorPagingHandler)_createHandler
+        return (CursorPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source.GetGenericArguments()[0])
             .Invoke(null, [options,])!;
     }
