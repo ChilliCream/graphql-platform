@@ -234,6 +234,6 @@ public class MethodBuilder : ICodeContainer<MethodBuilder>
             Inheritance.Override => "override ",
             Inheritance.Sealed => "sealed override ",
             Inheritance.Virtual => "virtual ",
-            _ => string.Empty,
+            _ => string.Empty
         };
 }

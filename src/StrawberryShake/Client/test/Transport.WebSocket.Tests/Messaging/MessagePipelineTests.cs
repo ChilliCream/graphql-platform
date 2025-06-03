@@ -10,7 +10,7 @@ public class MessagePipelineTests
     {
         // arrange
         ProcessAsync a = (_, _) => default;
-        ISocketClient socketClient = new SocketClientStub() { IsClosed = false, };
+        ISocketClient socketClient = new SocketClientStub() { IsClosed = false };
 
         // act
         await using var messagePipeline = new MessagePipeline(socketClient, a);
@@ -39,7 +39,7 @@ public class MessagePipelineTests
     {
         // arrange
         ProcessAsync a = (_, _) => default;
-        SocketClientStub socketClient = new() { IsClosed = false, };
+        SocketClientStub socketClient = new() { IsClosed = false };
 
         await using var messagePipeline = new MessagePipeline(socketClient, a);
 
@@ -55,7 +55,7 @@ public class MessagePipelineTests
     public async Task Start_StartMultipleTimes_StartsOnlyOnce()
     {
         // arrange
-        SocketClientStub socketClient = new() { IsClosed = false, };
+        SocketClientStub socketClient = new() { IsClosed = false };
         ProcessAsync a = (_, _) => default;
         await using var messagePipeline = new MessagePipeline(socketClient, a);
 
@@ -83,7 +83,7 @@ public class MessagePipelineTests
             processed.Release();
             return default;
         };
-        SocketClientStub socketClient = new() { IsClosed = false, };
+        SocketClientStub socketClient = new() { IsClosed = false };
         socketClient.MessagesReceive.Enqueue("ab");
         await using var messagePipeline = new MessagePipeline(socketClient, a);
 
@@ -101,7 +101,7 @@ public class MessagePipelineTests
     {
         // arrange
         ProcessAsync a = (_, _) => default;
-        SocketClientStub socketClient = new() { IsClosed = false, };
+        SocketClientStub socketClient = new() { IsClosed = false };
         socketClient.MessagesReceive.Enqueue("ab");
         await using var messagePipeline = new MessagePipeline(socketClient, a);
 
@@ -118,7 +118,7 @@ public class MessagePipelineTests
     {
         // arrange
         ProcessAsync a = (_, _) => default;
-        SocketClientStub socketClient = new() { IsClosed = false, };
+        SocketClientStub socketClient = new() { IsClosed = false };
         socketClient.MessagesReceive.Enqueue("ab");
         await using var messagePipeline = new MessagePipeline(socketClient, a);
 
@@ -138,7 +138,7 @@ public class MessagePipelineTests
     {
         // arrange
         ProcessAsync a = (_, _) => default;
-        SocketClientStub socketClient = new() { IsClosed = false, };
+        SocketClientStub socketClient = new() { IsClosed = false };
         socketClient.MessagesReceive.Enqueue("ab");
 
         // act

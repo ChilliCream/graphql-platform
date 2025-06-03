@@ -165,7 +165,7 @@ internal static class OpenApiResolverFactory
 
         return new HttpRequestMessage(new HttpMethod(operationWrapper.Type.ToString()), requestUri)
         {
-            Content = content,
+            Content = content
         };
     }
 
@@ -233,7 +233,7 @@ internal static class OpenApiResolverFactory
             OpenApiObject o => GetOpenApiAnyObjectValue(o),
             OpenApiPassword p => p.Value,
             OpenApiString s => s.Value,
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
     }
 

@@ -102,7 +102,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // so, if we do not find a top-level query or top-level id we will try to parse
             // the extensions and look in the extensions for Apollo`s active persisted
             // query extensions.
-            if ((string?)parameters[ExtensionsKey] is { Length: > 0, } se)
+            if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -130,7 +130,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             string? queryHash = null;
             DocumentNode? document = null;
 
-            if (query is { Length: > 0, })
+            if (query is { Length: > 0 })
             {
                 var result = ParseQueryString(query);
                 queryHash = result.QueryHash;
@@ -138,13 +138,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             }
 
             IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
-            if ((string?)parameters[VariablesKey] is { Length: > 0, } sv)
+            if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
             {
                 variableSet = ParseVariables(sv);
             }
 
             if (extensions is null &&
-                (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
+                (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -178,14 +178,14 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         try
         {
             IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
-            if ((string?)parameters[VariablesKey] is { Length: > 0, } sv)
+            if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
             {
                 variableSet = ParseVariables(sv);
             }
 
             IReadOnlyDictionary<string, object?>? extensions = null;
             if (extensions is null &&
-                (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
+                (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }

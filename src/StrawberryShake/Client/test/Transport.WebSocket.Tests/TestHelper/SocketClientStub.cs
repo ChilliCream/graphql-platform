@@ -112,7 +112,7 @@ public sealed class SocketClientStub : ISocketClient
 
     public void Increment(Expression<Action<ISocketClient>> member)
     {
-        if (member.Body is MethodCallExpression { Method: { } m, })
+        if (member.Body is MethodCallExpression { Method: { } m })
         {
             _callCount.AddOrUpdate(m, _ => 1, (m, c) => c + 1);
         }
@@ -120,7 +120,7 @@ public sealed class SocketClientStub : ISocketClient
 
     public int GetCallCount(Expression<Action<ISocketClient>> member)
     {
-        if (member.Body is MethodCallExpression { Method: { } m, })
+        if (member.Body is MethodCallExpression { Method: { } m })
         {
             _callCount.TryGetValue(m, out var counter);
             return counter;

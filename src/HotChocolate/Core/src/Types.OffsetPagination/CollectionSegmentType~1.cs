@@ -74,7 +74,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         var definition = new ObjectTypeConfiguration
         {
             Description = CollectionSegmentType_Description,
-            RuntimeType = typeof(CollectionSegment),
+            RuntimeType = typeof(CollectionSegment)
         };
 
         definition.Fields.Add(new(

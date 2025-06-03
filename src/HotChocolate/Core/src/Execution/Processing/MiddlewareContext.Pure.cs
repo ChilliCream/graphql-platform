@@ -126,7 +126,7 @@ internal partial class MiddlewareContext
                     Selection.Field.Coordinate,
                     Path,
                     typeof(T),
-                    _parent.GetType()),
+                    _parent.GetType())
             };
 
         public T ArgumentValue<T>(string name)

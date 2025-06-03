@@ -16,7 +16,7 @@ public class QueryableFilterVisitorDistanceTests
             new Coordinate(0, 2),
             new Coordinate(2, 2),
             new Coordinate(2, 0),
-            new Coordinate(0, 0),
+            new Coordinate(0, 0)
         ]));
 
     private static readonly Polygon s_falsePolygon = new(
@@ -26,13 +26,13 @@ public class QueryableFilterVisitorDistanceTests
             new Coordinate(0, -2),
             new Coordinate(-2, -2),
             new Coordinate(-2, 0),
-            new Coordinate(0, 0),
+            new Coordinate(0, 0)
         ]));
 
     private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = s_truePolygon, },
-        new() { Id = 2, Bar = s_falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon },
+        new() { Id = 2, Bar = s_falsePolygon }
     ];
 
     public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)

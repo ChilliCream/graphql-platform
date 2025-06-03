@@ -1095,7 +1095,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var type = new ProductType
         {
-            Name = "T-Shirt",
+            Name = "T-Shirt"
         };
         context.ProductTypes.Add(type);
 
@@ -1115,7 +1115,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 {
                     Name = $"Product {i}-{j}",
                     Type = type,
-                    Brand = brand,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }

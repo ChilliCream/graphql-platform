@@ -48,7 +48,7 @@ public class MongoDbSortProvider : SortProvider<MongoDbSortVisitorContext>
                 return null;
             }
 
-            if (argument.Type is ListType { ElementType: NonNullType nn, } &&
+            if (argument.Type is ListType { ElementType: NonNullType nn } &&
                 nn.NamedType() is SortInputType sortInputType)
             {
                 var visitorContext = new MongoDbSortVisitorContext(sortInputType);

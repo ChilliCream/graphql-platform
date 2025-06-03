@@ -15,17 +15,17 @@ internal static class OperationResultHelper
     {
         var formatted = new OrderedDictionary<string, object?>();
 
-        if (result.Errors is { Count: > 0, })
+        if (result.Errors is { Count: > 0 })
         {
             formatted[Errors] = SerializeErrors(result.Errors);
         }
 
-        if (result.Data is { Count: > 0, })
+        if (result.Data is { Count: > 0 })
         {
             formatted[Data] = result.Data;
         }
 
-        if (result.Extensions is { Count: > 0, })
+        if (result.Extensions is { Count: > 0 })
         {
             formatted[Extensions] = result.Extensions;
         }
@@ -40,9 +40,9 @@ internal static class OperationResultHelper
 
         foreach (var error in errors)
         {
-            var formattedError = new OrderedDictionary<string, object?> { [Message] = error.Message, };
+            var formattedError = new OrderedDictionary<string, object?> { [Message] = error.Message };
 
-            if (error.Locations is { Count: > 0, })
+            if (error.Locations is { Count: > 0 })
             {
                 formattedError[Locations] = SerializeLocations(error.Locations);
             }
@@ -52,7 +52,7 @@ internal static class OperationResultHelper
                 formattedError[Path] = error.Path.ToList();
             }
 
-            if (error.Extensions is { Count: > 0, })
+            if (error.Extensions is { Count: > 0 })
             {
                 formattedError[Extensions] = error.Extensions;
             }
@@ -74,7 +74,7 @@ internal static class OperationResultHelper
             serializedLocations[i] = new OrderedDictionary<string, int>
                 {
                     { Line, location.Line },
-                    { Column, location.Column },
+                    { Column, location.Column }
                 };
         }
 

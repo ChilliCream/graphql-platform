@@ -17,7 +17,7 @@ public sealed class FieldError : IFieldResult
     {
         ArgumentNullException.ThrowIfNull(error);
 
-        Errors = new[] { error, };
+        Errors = new[] { error };
     }
 
     /// <summary>

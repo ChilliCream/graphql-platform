@@ -44,7 +44,7 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
                         Expression.Call(
                             typeof(Enumerable),
                             nameof(Enumerable.Where),
-                            [filterInputType.EntityType.Source,],
+                            [filterInputType.EntityType.Source],
                             instance,
                             expression));
                 }

@@ -6,8 +6,8 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
 {
     private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Bar = true, },
-        new Foo { Bar = false, },
+        new Foo { Bar = true },
+        new Foo { Bar = false }
     ];
 
     [Fact]
@@ -22,13 +22,13 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "where", true }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "where", true } })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "where", false }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "where", false } })
                 .Build());
 
         // assert
@@ -51,13 +51,13 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "where", true}, })
+                .SetVariableValues(new Dictionary<string, object?> { { "where", true} })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "where", false}, })
+                .SetVariableValues(new Dictionary<string, object?> { { "where", false} })
                 .Build());
 
         // assert

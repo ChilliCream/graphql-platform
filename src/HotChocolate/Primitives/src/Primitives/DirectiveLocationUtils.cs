@@ -52,7 +52,7 @@ public static class DirectiveLocationUtils
             { DirectiveLocation.Enum, Language.DirectiveLocation.Enum },
             { DirectiveLocation.EnumValue, Language.DirectiveLocation.EnumValue },
             { DirectiveLocation.InputObject, Language.DirectiveLocation.InputObject },
-            { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition },
+            { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition }
         };
 
 

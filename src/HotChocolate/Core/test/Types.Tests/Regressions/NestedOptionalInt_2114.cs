@@ -70,7 +70,7 @@ public class NestedOptionalInt_2114
                             "complexAssigned",
                             new Dictionary<string, object?>
                             {
-                                { "value", 3 },
+                                { "value", 3 }
                             }
                         },
                         { "complexAssignedNull", null} ,
@@ -78,11 +78,11 @@ public class NestedOptionalInt_2114
                             "complexList",
                             new List<Dictionary<string, object?>>
                             {
-                                new() { { "value", 2 }, },
+                                new() { { "value", 2 } }
                             }
-                        },
+                        }
                     }
-                },
+                }
             });
 
         // assert

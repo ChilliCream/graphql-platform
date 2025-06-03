@@ -75,7 +75,7 @@ public partial class TypeMapperGenerator
             {
                 ImplementedBy.Count: > 1,
                 Kind: TypeKind.Entity,
-                ParentRuntimeType: { } parentRuntimeType,
+                ParentRuntimeType: { } parentRuntimeType
             } => parentRuntimeType.Name,
 
             INamedTypeDescriptor namedTypeDescriptor =>
@@ -85,7 +85,7 @@ public partial class TypeMapperGenerator
                 ? BuildMapMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
                 : "NonNullable" + BuildMapMethodName(nonNullTypeDescriptor.InnerType),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor)),
+            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
         };
     }
 
@@ -196,10 +196,10 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.Leaf, }:
+            case ComplexTypeDescriptor { Kind: TypeKind.Leaf }:
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData, } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData } d:
                 AddEntityOrUnionDataHandler(
                     settings,
                     classBuilder,
@@ -210,7 +210,7 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.AbstractData, } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.AbstractData } d:
                 AddComplexDataHandler(
                     settings,
                     classBuilder,
@@ -221,7 +221,7 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.Data, } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.Data } d:
                 AddDataHandler(
                     settings,
                     classBuilder,
@@ -232,7 +232,7 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.Entity, } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.Entity } d:
                 AddEntityHandler(
                     classBuilder,
                     constructorBuilder,

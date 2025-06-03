@@ -134,7 +134,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -178,7 +178,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out OperationType? operationType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {

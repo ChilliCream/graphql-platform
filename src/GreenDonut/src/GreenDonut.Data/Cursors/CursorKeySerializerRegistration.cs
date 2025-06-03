@@ -26,7 +26,7 @@ public static class CursorKeySerializerRegistration
         new BoolCursorKeySerializer(),
         new UShortCursorKeySerializer(),
         new UIntCursorKeySerializer(),
-        new ULongCursorKeySerializer(),
+        new ULongCursorKeySerializer()
     ];
 
     /// <summary>

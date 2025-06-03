@@ -11,14 +11,14 @@ public class QueryableProjectionInterfaceTypeTests
 {
     private static readonly AbstractType[] s_barEntities =
     [
-        new Bar { Name = "Bar", BarProp = "BarProp", },
-        new Foo { Name = "Foo", FooProp = "FooProp", },
+        new Bar { Name = "Bar", BarProp = "BarProp" },
+        new Foo { Name = "Foo", FooProp = "FooProp" }
     ];
 
     private static readonly NestedObject[] s_barNestedEntities =
     [
-        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp", }, },
-        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp", }, },
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } }
     ];
 
     private static readonly NestedList[] s_barListEntities =
@@ -27,18 +27,18 @@ public class QueryableProjectionInterfaceTypeTests
         {
             List =
             [
-                new Foo { Name = "Foo", FooProp = "FooProp", },
-                new Bar { Name = "Bar", BarProp = "BarProp", },
-            ],
+                new Foo { Name = "Foo", FooProp = "FooProp" },
+                new Bar { Name = "Bar", BarProp = "BarProp" }
+            ]
         },
         new()
         {
             List =
             [
-                new Bar { Name = "Bar", BarProp = "BarProp", },
-                new Foo { Name = "Foo", FooProp = "FooProp", },
-            ],
-        },
+                new Bar { Name = "Bar", BarProp = "BarProp" },
+                new Foo { Name = "Foo", FooProp = "FooProp" }
+            ]
+        }
     ];
 
     private readonly SchemaCache _cache;

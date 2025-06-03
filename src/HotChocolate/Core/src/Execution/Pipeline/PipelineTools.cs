@@ -7,7 +7,7 @@ internal static class PipelineTools
 {
     private static readonly Dictionary<string, object?> s_empty = new();
 
-    private static readonly IReadOnlyList<VariableValueCollection> s_noVariables = [VariableValueCollection.Empty,];
+    private static readonly IReadOnlyList<VariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
     public static string CreateOperationId(string documentId, string? operationName)
         => operationName is null
@@ -59,7 +59,7 @@ internal static class PipelineTools
                     operationRequest.VariableValues ?? s_empty,
                     coercedValues);
 
-                context.Variables = new[] { new VariableValueCollection(coercedValues), };
+                context.Variables = new[] { new VariableValueCollection(coercedValues) };
                 return context.Variables;
             }
         }

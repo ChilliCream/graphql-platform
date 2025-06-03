@@ -13,7 +13,7 @@ public class QueryableFilterCombinatorTests
     private static readonly Foo[] s_fooEntities =
     [
         new Foo(bar: true),
-        new Foo(bar: false),
+        new Foo(bar: false)
     ];
 
     private readonly SchemaCache _cache = new();

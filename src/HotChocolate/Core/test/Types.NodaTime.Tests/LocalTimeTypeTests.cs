@@ -49,7 +49,7 @@ public class LocalTimeTypeIntegrationTests
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" } })
                     .Build());
 
         Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
@@ -62,7 +62,7 @@ public class LocalTimeTypeIntegrationTests
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" } })
                     .Build());
 
         Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
@@ -75,7 +75,7 @@ public class LocalTimeTypeIntegrationTests
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42" } })
                     .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

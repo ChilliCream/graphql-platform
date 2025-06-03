@@ -47,7 +47,7 @@ public sealed partial class OperationStore : IOperationStore
     {
         s_setGeneric
             .MakeGenericMethod(operationResult.DataType)
-            .Invoke(this, [operationRequest, operationResult,]);
+            .Invoke(this, [operationRequest, operationResult]);
     }
 
     public void Reset(OperationRequest operationRequest)
@@ -111,7 +111,7 @@ public sealed partial class OperationStore : IOperationStore
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_results.TryGetValue(operationRequest, out var storedOperation) &&
-            storedOperation is StoredOperation<T> { LastResult: not null, } casted)
+            storedOperation is StoredOperation<T> { LastResult: not null } casted)
         {
             result = casted.LastResult!;
             return true;
@@ -210,7 +210,7 @@ public sealed partial class OperationStore : IOperationStore
                     operation.Request,
                     operation.LastResult,
                     operation.Subscribers,
-                    operation.LastModified),
+                    operation.LastModified)
             },
             kind);
 

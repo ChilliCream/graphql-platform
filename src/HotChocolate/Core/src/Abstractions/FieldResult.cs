@@ -42,7 +42,7 @@ public readonly struct FieldResult<TResult> : IFieldResult
         ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
-        Errors = new[] { error, };
+        Errors = new[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -208,7 +208,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -410,7 +410,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -514,7 +514,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -817,7 +817,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -921,7 +921,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1025,7 +1025,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1356,7 +1356,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1460,7 +1460,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1564,7 +1564,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1668,7 +1668,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2027,7 +2027,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2131,7 +2131,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2235,7 +2235,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2339,7 +2339,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2443,7 +2443,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }

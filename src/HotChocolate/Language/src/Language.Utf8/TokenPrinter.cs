@@ -28,7 +28,7 @@ internal static class TokenPrinter
             { TokenKind.String, "String" },
             { TokenKind.BlockString, "BlockString" },
             { TokenKind.Comment, "Comment" },
-            { TokenKind.Dot, "." },
+            { TokenKind.Dot, "." }
         };
 
     public static string Print(ref Utf8GraphQLReader reader)

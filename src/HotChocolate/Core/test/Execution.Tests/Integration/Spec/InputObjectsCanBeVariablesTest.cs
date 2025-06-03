@@ -27,7 +27,7 @@ public class InputObjectsCanBeVariablesTest
                     new Dictionary<string, object?>
                     {
                         { "a", "a" },
-                        { "b", "b" },
+                        { "b", "b" }
                     }))
             .MatchSnapshotAsync();
     }
@@ -48,7 +48,7 @@ public class InputObjectsCanBeVariablesTest
             }
             """,
             r => r.AddQueryType<Query>(),
-            r => r.SetVariableValues(new Dictionary<string, object?> { { "a", "a" }, }))
+            r => r.SetVariableValues(new Dictionary<string, object?> { { "a", "a" } }))
             .MatchSnapshotAsync();
     }
 

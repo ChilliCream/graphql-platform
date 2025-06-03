@@ -8,15 +8,15 @@ public class QueryableFilterVisitorStringTests
 {
     private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
     ];
 
     private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
-        new() { Bar = null, },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
     ];
 
     private readonly SchemaCache _cache;

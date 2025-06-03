@@ -115,7 +115,7 @@ public static class Keywords
         "when",
         "where",
         "with",
-        "yield",
+        "yield"
     ];
 
     public static string ToSafeName(string name)

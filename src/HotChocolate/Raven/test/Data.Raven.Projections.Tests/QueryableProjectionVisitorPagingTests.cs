@@ -10,15 +10,15 @@ public class QueryableProjectionVisitorPagingTests
 {
     private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
     ];
 
     private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = null, Baz = null, },
-        new() { Bar = false, Baz = "c", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = null, Baz = null },
+        new() { Bar = false, Baz = "c" }
     ];
 
     private readonly SchemaCache _cache;
@@ -516,8 +516,8 @@ public class QueryableProjectionVisitorPagingTests
             descriptor.Resolve(
                 new List<Bar>
                 {
-                    new() { BarBaz = "a_a", BarQux = "a_c", },
-                    new() { BarBaz = "a_b", BarQux = "a_d", },
+                    new() { BarBaz = "a_a", BarQux = "a_c" },
+                    new() { BarBaz = "a_b", BarQux = "a_d" }
                 });
         }
     }

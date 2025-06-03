@@ -162,7 +162,7 @@ internal static class MiddlewareHelper
         GraphQLRequestFlags requestFlags,
         GraphQLServerOptions options)
     {
-        if (options is null or { AllowedGetOperations: AllowedGetOperations.Query, })
+        if (options is null or { AllowedGetOperations: AllowedGetOperations.Query })
         {
             requestFlags = (requestFlags & GraphQLRequestFlags.AllowStreams) == GraphQLRequestFlags.AllowStreams
                 ? GraphQLRequestFlags.AllowQuery | GraphQLRequestFlags.AllowStreams

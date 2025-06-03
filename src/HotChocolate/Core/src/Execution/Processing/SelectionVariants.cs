@@ -140,7 +140,7 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
                 {
                     { _firstType, _firstSelectionSet! },
                     { _secondType, _secondSelectionSet! },
-                    { typeContext, selectionSet },
+                    { typeContext, selectionSet }
                 };
 
                 _firstType = null;

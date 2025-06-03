@@ -333,7 +333,7 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 file sealed class CostContext : ValidatorFeature
 {
     private static readonly FieldInfoListBufferPool s_fieldInfoPool = new();
-    private readonly List<FieldInfoListBuffer> _buffers = [new(),];
+    private readonly List<FieldInfoListBuffer> _buffers = [new()];
 
     public IType NonNullString { get; private set; } = null!;
 

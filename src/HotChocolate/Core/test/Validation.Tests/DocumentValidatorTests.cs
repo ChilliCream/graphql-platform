@@ -713,7 +713,7 @@ public class DocumentValidatorTests
             originalOperation.SelectionSet.WithSelections(
                 [
                     originalOperation.SelectionSet.Selections[0],
-                    originalOperation.SelectionSet.Selections[0],
+                    originalOperation.SelectionSet.Selections[0]
                 ]));
 
         document = document.WithDefinitions(

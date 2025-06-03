@@ -27,13 +27,13 @@ internal ref struct GraphQLWebSocketMessageParser
         (byte)'t',
         (byte)'y',
         (byte)'p',
-        (byte)'e',
+        (byte)'e'
     ];
 
     private static ReadOnlySpan<byte> Id =>
     [
         (byte)'i',
-        (byte)'d',
+        (byte)'d'
     ];
 
     private static ReadOnlySpan<byte> Payload =>
@@ -44,7 +44,7 @@ internal ref struct GraphQLWebSocketMessageParser
         (byte)'l',
         (byte)'o',
         (byte)'a',
-        (byte)'d',
+        (byte)'d'
     ];
 
     private Utf8JsonReader _reader;

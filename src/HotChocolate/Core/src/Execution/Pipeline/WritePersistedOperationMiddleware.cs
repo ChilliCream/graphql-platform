@@ -55,7 +55,7 @@ internal sealed class WritePersistedOperationMiddleware
                     new Dictionary<string, object>
                     {
                         { _hashProvider.Name, userHash },
-                        { Persisted, true },
+                        { Persisted, true }
                     });
 
                 context.ContextData[WellKnownContextData.DocumentSaved] = true;
@@ -70,7 +70,7 @@ internal sealed class WritePersistedOperationMiddleware
                         { ExpectedValue, context.DocumentId },
                         { ExpectedType, _hashProvider.Name },
                         { ExpectedFormat, _hashProvider.Format.ToString() },
-                        { Persisted, false },
+                        { Persisted, false }
                     });
             }
 

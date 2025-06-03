@@ -109,7 +109,7 @@ public sealed class OperationFieldFileBuilder : IDisposable
             OperationType.Query => "global::HotChocolate.Types.OperationTypeNames.Query",
             OperationType.Mutation => "global::HotChocolate.Types.OperationTypeNames.Mutation",
             OperationType.Subscription => "global::HotChocolate.Types.OperationTypeNames.Subscription",
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
 
     public override string ToString()

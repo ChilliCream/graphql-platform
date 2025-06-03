@@ -86,7 +86,7 @@ public static class HotChocolateTypesAbstractionsDirectiveLocationExtensions
            {
                DirectiveLocation.InputFieldDefinition,
                Language.DirectiveLocation.InputFieldDefinition
-           },
+           }
        };
 
     private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> s_langToType =
@@ -167,7 +167,7 @@ public static class HotChocolateTypesAbstractionsDirectiveLocationExtensions
             {
                 Language.DirectiveLocation.InputFieldDefinition,
                 DirectiveLocation.InputFieldDefinition
-            },
+            }
         };
 
     public static DirectiveLocation ToLocation(this Language.DirectiveLocation location)

@@ -11,13 +11,13 @@ public static class RavenFilterExpressionBuilder
         typeof(RavenQueryableExtensions)
             .GetMethods()
             .Single(x => x.Name == nameof(RavenQueryableExtensions.In) &&
-                x.GetParameters() is [_, { ParameterType.IsArray: false, },]);
+                x.GetParameters() is [_, { ParameterType.IsArray: false }]);
 
     private static readonly MethodInfo s_isMatch =
         typeof(Regex)
             .GetMethods()
             .Single(x => x.Name == nameof(Regex.IsMatch) &&
-                x.GetParameters() is [{ } first, { } second,] &&
+                x.GetParameters() is [{ } first, { } second] &&
                 first.ParameterType == typeof(string) &&
                 second.ParameterType == typeof(string));
 
@@ -28,7 +28,7 @@ public static class RavenFilterExpressionBuilder
     {
         return Expression.Call(
             s_inMethod.MakeGenericMethod(genericType),
-            [property, Expression.Constant(parsedValue),]);
+            [property, Expression.Constant(parsedValue)]);
     }
 
     public static Expression IsMatch(
@@ -39,6 +39,6 @@ public static class RavenFilterExpressionBuilder
 
         return Expression.Call(
             s_isMatch,
-            [property, Expression.Constant(parsedValue),]);
+            [property, Expression.Constant(parsedValue)]);
     }
 }

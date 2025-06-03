@@ -78,6 +78,6 @@ public class DefaultJsonMessageSerializerTests
 
     public enum Foo
     {
-        Bar,
+        Bar
     }
 }

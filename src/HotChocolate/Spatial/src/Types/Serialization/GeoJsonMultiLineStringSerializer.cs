@@ -22,7 +22,7 @@ internal class GeoJsonMultiLineStringSerializer
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (coordinates is IList { Count: > 0, } list)
+        if (coordinates is IList { Count: > 0 } list)
         {
             if (list.Count == 0)
             {
@@ -49,7 +49,7 @@ internal class GeoJsonMultiLineStringSerializer
             }
         }
 
-        if (coordinates is not Coordinate[][] { Length: > 0, } parts)
+        if (coordinates is not Coordinate[][] { Length: > 0 } parts)
         {
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
@@ -124,7 +124,7 @@ internal class GeoJsonMultiLineStringSerializer
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID)),
+                        new IntValueNode(geometry.SRID))
                 };
 
             return new ObjectValueNode(list);

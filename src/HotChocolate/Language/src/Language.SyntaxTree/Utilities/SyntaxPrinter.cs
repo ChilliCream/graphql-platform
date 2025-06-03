@@ -7,8 +7,8 @@ namespace HotChocolate.Language.Utilities;
 /// </summary>
 public static class SyntaxPrinter
 {
-    private static readonly SyntaxSerializer s_serializer = new(new() { Indented = true, });
-    private static readonly SyntaxSerializer s_serializerNoIndent = new(new() { Indented = false, });
+    private static readonly SyntaxSerializer s_serializer = new(new() { Indented = true });
+    private static readonly SyntaxSerializer s_serializerNoIndent = new(new() { Indented = false });
 
     /// <summary>
     /// Prints a GraphQL syntax node`s string representation.

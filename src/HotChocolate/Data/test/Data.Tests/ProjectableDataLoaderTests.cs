@@ -971,7 +971,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 .Where(p => p.Id == id)
                 .Select(p => new ProductProjection // Cast to an object with nullable Type property
                 {
-                    Name = p.Name,
+                    Name = p.Name
                 })
                 .Select(selection.AsSelector<ProductProjection>());
 

@@ -32,7 +32,7 @@ public sealed class RavenCursorPagingProvider : CursorPagingProvider
 
         return (CursorPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source.GetGenericArguments()[0])
-            .Invoke(null, [options,])!;
+            .Invoke(null, [options])!;
     }
 
     private static RavenCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

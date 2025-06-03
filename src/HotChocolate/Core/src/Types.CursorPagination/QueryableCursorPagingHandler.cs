@@ -42,7 +42,7 @@ internal sealed class QueryableCursorPagingHandler<TEntity> : CursorPagingHandle
                 ? throw new GraphQLException("Cannot handle the specified data source.")
                 : SliceAsyncInternal(context, Executable.From(e.AsQueryable()), arguments),
             IQueryableExecutable<TEntity> ex => SliceAsyncInternal(context, ex, arguments),
-            _ => throw new GraphQLException("Cannot handle the specified data source."),
+            _ => throw new GraphQLException("Cannot handle the specified data source.")
         };
 
     private async ValueTask<Connection> SliceAsyncInternal(

@@ -22,7 +22,7 @@ internal static class OperationPrinter
                 var includeCondition = operation.IncludeConditions[i];
                 long flag = 2 ^ i;
 
-                var arguments = new List<ArgumentNode> { new("flag", new IntValueNode(flag)), };
+                var arguments = new List<ArgumentNode> { new("flag", new IntValueNode(flag)) };
 
                 if (includeCondition.Skip is BooleanValueNode)
                 {
@@ -92,7 +92,7 @@ internal static class OperationPrinter
                     new FragmentSpreadNode(
                         null,
                         new(fragmentName),
-                        new[] { new DirectiveNode("defer"), }));
+                        new[] { new DirectiveNode("defer") }));
             }
         }
 

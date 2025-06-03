@@ -36,10 +36,10 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -94,7 +94,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             IFilterInputTypeConfiguration typeConfiguration,
             IFilterFieldConfiguration fieldConfiguration)
         {
-            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 155, };
+            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 155 };
         }
 
         public override bool TryHandleEnter(
@@ -145,7 +145,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             IFilterFieldConfiguration fieldConfiguration)
         {
             _extendedType ??= context.TypeInspector.GetReturnType(s_method);
-            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 156, };
+            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 156 };
         }
 
         public override bool TryHandleEnter(

@@ -169,7 +169,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         {
             null => false,
             Path p => Equals(p),
-            _ => false,
+            _ => false
         };
 
     /// <summary>
@@ -309,7 +309,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             {
                 string n => segment.Append(n),
                 int n => segment.Append(n),
-                _ => throw new NotSupportedException(),
+                _ => throw new NotSupportedException()
             };
         }
 

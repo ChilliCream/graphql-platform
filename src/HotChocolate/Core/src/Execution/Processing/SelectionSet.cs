@@ -105,7 +105,7 @@ internal sealed class SelectionSet : ISelectionSet
     {
         None = 0,
         Conditional = 1,
-        Sealed = 2,
+        Sealed = 2
     }
 
     public override string ToString()
