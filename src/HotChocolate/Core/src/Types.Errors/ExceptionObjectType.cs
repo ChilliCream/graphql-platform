@@ -24,7 +24,7 @@ internal sealed class ExceptionObjectType<T> : ObjectType<T> where T : Exception
         const string exceptionSuffix = nameof(Exception);
 
         return name.EndsWith(exceptionSuffix)
-            ? $"{name.Substring(0, name.Length - exceptionSuffix.Length)}Error"
+            ? $"{name[..^exceptionSuffix.Length]}Error"
             : name;
     }
 }

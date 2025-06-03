@@ -202,7 +202,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             throw ThrowHelper.Flags_IllegalFlagEnumName(type, valueName);
         }
 
-        return $"is{char.ToUpper(valueName[0])}{valueName.Substring(1)}";
+        return $"is{char.ToUpper(valueName[0])}{valueName[1..]}";
     }
 
     private static TypeReference? CreateTypeReference(TypeReference? reference, string typeName)

@@ -35,7 +35,7 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
     {
         if (type.Name.Length > 2)
         {
-            var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
+            var firstTwoLetters = type.Name.AsSpan()[..2];
 
             if (firstTwoLetters[0] == PrefixCharacter &&
                 firstTwoLetters[1] == PrefixCharacter)

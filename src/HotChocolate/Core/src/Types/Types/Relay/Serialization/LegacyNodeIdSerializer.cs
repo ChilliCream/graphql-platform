@@ -68,7 +68,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             position += CopyString(typeName, serialized.Slice(position, nameSize));
             serialized[position++] = Separator;
 
-            var value = serialized.Slice(position + 1);
+            var value = serialized[(position + 1)..];
 
             int bytesWritten;
             switch (internalId)
@@ -113,7 +113,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
                     idString);
             }
 
-            serialized = serialized.Slice(0, bytesWritten);
+            serialized = serialized[..bytesWritten];
 
             return CreateString(serialized);
         }
@@ -170,7 +170,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         try
         {
             var bytesWritten = CopyString(formattedId, serialized);
-            serialized = serialized.Slice(0, bytesWritten);
+            serialized = serialized[..bytesWritten];
 
             var operationStatus = Base64.DecodeFromUtf8InPlace(serialized, out bytesWritten);
 
@@ -182,10 +182,10 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
                     formattedId);
             }
 
-            var decoded = serialized.Slice(0, bytesWritten);
+            var decoded = serialized[..bytesWritten];
             var nextSeparator = NextSeparator(decoded);
-            var typeName = CreateString(decoded.Slice(0, nextSeparator));
-            decoded = decoded.Slice(nextSeparator + 1);
+            var typeName = CreateString(decoded[..nextSeparator]);
+            decoded = decoded[(nextSeparator + 1)..];
 
             var value = ParseValueInternal(decoded);
             return new NodeId(typeName, value);
@@ -207,23 +207,23 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         switch (formattedId[0])
         {
             case Guid:
-                TryParse(formattedId.Slice(1), out Guid g, out _, 'N');
+                TryParse(formattedId[1..], out Guid g, out _, 'N');
                 value = g;
                 break;
             case Short:
-                TryParse(formattedId.Slice(1), out short s, out _);
+                TryParse(formattedId[1..], out short s, out _);
                 value = s;
                 break;
             case Int:
-                TryParse(formattedId.Slice(1), out int i, out _);
+                TryParse(formattedId[1..], out int i, out _);
                 value = i;
                 break;
             case Long:
-                TryParse(formattedId.Slice(1), out long l, out _);
+                TryParse(formattedId[1..], out long l, out _);
                 value = l;
                 break;
             default:
-                value = CreateString(formattedId.Slice(1));
+                value = CreateString(formattedId[1..]);
                 break;
         }
 

@@ -119,7 +119,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        span = span.Slice(0, written);
+        span = span[..written];
 
         var delimiterIndex = FindDelimiterIndex(span);
         if (delimiterIndex == -1)
@@ -134,7 +134,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             delimiterOffset = 2;
         }
 
-        var typeName = span.Slice(0, delimiterIndex);
+        var typeName = span[..delimiterIndex];
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
             var typeNameString = ToString(typeName);
@@ -142,7 +142,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw new NodeIdMissingSerializerException(typeNameString);
         }
 
-        var value = serializer.Parse(span.Slice(delimiterIndex + delimiterOffset));
+        var value = serializer.Parse(span[(delimiterIndex + delimiterOffset)..]);
         Clear(rentedBuffer);
         return value;
     }
@@ -206,7 +206,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        span = span.Slice(0, written);
+        span = span[..written];
 
         var delimiterIndex = FindDelimiterIndex(span);
         if (delimiterIndex == -1)
@@ -221,7 +221,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             delimiterOffset = 2;
         }
 
-        var typeName = span.Slice(0, delimiterIndex);
+        var typeName = span[..delimiterIndex];
         INodeIdValueSerializer? valueSerializer = null;
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
@@ -260,7 +260,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw SerializerMissing(typeName, rentedBuffer);
         }
 
-        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(delimiterIndex + delimiterOffset));
+        var value = ParseValue(valueSerializer, serializer.TypeName, span[(delimiterIndex + delimiterOffset)..]);
         Clear(rentedBuffer);
         return value;
     }
@@ -387,7 +387,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                 {
                     capacity *= 2;
                     var newBuffer = ArrayPool<byte>.Shared.Rent(capacity);
-                    span.Slice(0, dataLength).CopyTo(newBuffer);
+                    span[..dataLength].CopyTo(newBuffer);
                     span = newBuffer;
                     capacity = newBuffer.Length;
 
@@ -399,7 +399,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                     rentedBuffer = newBuffer;
                 }
 
-                span = span.Slice(0, written);
+                span = span[..written];
 
                 if (urlSafeBase64)
                 {
@@ -438,17 +438,17 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         {
             typeName.CopyTo(span);
 
-            var valueSpan = span.Slice(typeName.Length);
+            var valueSpan = span[typeName.Length..];
 
             if (outputNewIdFormat)
             {
                 valueSpan[0] = Delimiter;
-                return valueSpan.Slice(1);
+                return valueSpan[1..];
             }
 
             valueSpan[0] = LegacyDelimiter;
             valueSpan[1] = LegacyNodeIdSerializer.GetLegacyValueCode(value);
-            return valueSpan.Slice(2);
+            return valueSpan[2..];
         }
     }
 

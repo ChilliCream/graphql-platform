@@ -47,7 +47,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// A <see cref="ReadOnlyMemory{T}"/> of the written portion of the buffer.
     /// </returns>
     public ReadOnlyMemory<byte> GetWrittenMemory()
-        => _buffer.AsMemory().Slice(0, _start);
+        => _buffer.AsMemory()[.._start];
 
     /// <summary>
     /// Gets the part of the buffer that has been written to.
@@ -56,7 +56,7 @@ public sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     /// A <see cref="ReadOnlySpan{T}"/> of the written portion of the buffer.
     /// </returns>
     public ReadOnlySpan<byte> GetWrittenSpan()
-        => _buffer.AsSpan().Slice(0, _start);
+        => _buffer.AsSpan()[.._start];
 
     /// <summary>
     /// Advances the writer by the specified number of bytes.

@@ -192,7 +192,7 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
 
         if (moreItemsReturnedThanRequested)
         {
-            edges = edges.Slice(0, length);
+            edges = edges[..length];
         }
 
         var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);

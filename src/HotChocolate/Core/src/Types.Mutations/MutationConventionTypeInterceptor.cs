@@ -745,17 +745,17 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         public string FormatInputTypeName(string mutationName)
             => InputTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
 
         public string FormatPayloadTypeName(string mutationName)
             => PayloadTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
 
         public string FormatErrorTypeName(string mutationName)
             => PayloadErrorTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
     }
 
     private readonly struct FieldDef(string name, TypeReference type)

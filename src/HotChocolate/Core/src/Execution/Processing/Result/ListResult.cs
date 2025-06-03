@@ -116,7 +116,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     {
         if (_capacity > 0)
         {
-            _buffer.AsSpan().Slice(0, _capacity).Clear();
+            _buffer.AsSpan()[.._capacity].Clear();
             _capacity = 0;
             _count = 0;
         }

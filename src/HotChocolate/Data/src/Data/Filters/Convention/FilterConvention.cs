@@ -163,7 +163,7 @@ public class FilterConvention
 
         if (isInputObjectType && isEndingInputType)
         {
-            return name.Substring(0, name.Length - 4);
+            return name[..^4];
         }
 
         if (isInputObjectType && !isEndingInput && !isEndingInputType)

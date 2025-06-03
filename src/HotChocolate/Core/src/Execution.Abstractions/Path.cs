@@ -352,7 +352,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
                         $"Invalid path: empty name segment at position {start}.");
                 }
 
-                var nameSpan = s.Slice(start, i - start);
+                var nameSpan = s[start..i];
                 current = current.Append(nameSpan.ToString()); // allocate string only once!
             }
             else if (s[i] == '[')
@@ -371,7 +371,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
                         $"Invalid path: unterminated indexer at position {start}.");
                 }
 
-                var numberSpan = s.Slice(start, i - start);
+                var numberSpan = s[start..i];
                 if (!int.TryParse(numberSpan, out var index) || index < 0)
                 {
                     throw new FormatException(

@@ -53,7 +53,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
                 stream,
                 static (buffer, buffered) =>
                 {
-                    var span = buffer.AsSpan().Slice(0, buffered);
+                    var span = buffer.AsSpan()[..buffered];
                     return Utf8GraphQLParser.Parse(span);
                 },
                 cancellationToken)

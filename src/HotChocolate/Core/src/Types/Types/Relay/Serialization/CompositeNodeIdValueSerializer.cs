@@ -185,7 +185,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return false;
         }
 
-        buffer = buffer.Slice(written);
+        buffer = buffer[written..];
         if (buffer.Length < 1)
         {
             return false;
@@ -218,7 +218,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return false;
         }
 
-        buffer = buffer.Slice(written);
+        buffer = buffer[written..];
         if (buffer.Length < 1)
         {
             return false;
@@ -251,7 +251,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return false;
         }
 
-        buffer = buffer.Slice(written);
+        buffer = buffer[written..];
         if (buffer.Length < 1)
         {
             return false;
@@ -437,7 +437,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out int consumed)
     {
         var index = buffer.IndexOf(PartSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (Utf8Parser.TryParse(valueSpan, out short parsedValue, out _))
         {
@@ -472,7 +472,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out int consumed)
     {
         var index = buffer.IndexOf(PartSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (Utf8Parser.TryParse(valueSpan, out int parsedValue, out _))
         {
@@ -507,7 +507,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out int consumed)
     {
         var index = buffer.IndexOf(PartSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (Utf8Parser.TryParse(valueSpan, out long parsedValue, out _))
         {
@@ -542,7 +542,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out int consumed)
     {
         var index = buffer.IndexOf(PartSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (valueSpan.Length == 1)
         {
