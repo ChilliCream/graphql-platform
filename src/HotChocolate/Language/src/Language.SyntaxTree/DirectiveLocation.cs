@@ -5,11 +5,11 @@ namespace HotChocolate.Language;
 
 public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
 {
-    private static readonly Dictionary<string, DirectiveLocation> _cache;
+    private static readonly Dictionary<string, DirectiveLocation> s_cache;
 
     static DirectiveLocation()
     {
-        _cache = GetAll().ToDictionary(t => t.Value);
+        s_cache = GetAll().ToDictionary(t => t.Value);
     }
 
     private DirectiveLocation(string value)
@@ -105,14 +105,14 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
     public static DirectiveLocation InputFieldDefinition { get; } = new("INPUT_FIELD_DEFINITION");
 
     public static bool IsValidName(string value)
-        => _cache.ContainsKey(value);
+        => s_cache.ContainsKey(value);
 
 #if NETSTANDARD2_0
     public static bool TryParse(string value, out DirectiveLocation? location)
 #else
     public static bool TryParse(string value, [NotNullWhen(true)] out DirectiveLocation? location)
 #endif
-        => _cache.TryGetValue(value, out location);
+        => s_cache.TryGetValue(value, out location);
 
     private static IEnumerable<DirectiveLocation> GetAll()
     {
