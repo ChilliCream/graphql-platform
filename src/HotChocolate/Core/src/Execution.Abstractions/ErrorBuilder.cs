@@ -7,6 +7,9 @@ namespace HotChocolate;
 /// </summary>
 public sealed class ErrorBuilder
 {
+    private const string _messageProperty = "message";
+    private const string _stackTraceProperty = "stackTrace";
+
     private string? _message;
     private Path? _path;
     private Exception? _exception;
@@ -200,5 +203,16 @@ public sealed class ErrorBuilder
             _extensions = extensions,
             _locations = locations
         };
+    }
+
+    public static ErrorBuilder FromException(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return New()
+            .SetMessage("Unexpected Execution Error")
+            .SetException(exception)
+            .SetExtension(_messageProperty, exception.Message)
+            .SetExtension(_stackTraceProperty, exception.StackTrace);
     }
 }

@@ -4,9 +4,6 @@ namespace HotChocolate.Execution.Errors;
 
 internal sealed class DefaultErrorHandler : IErrorHandler
 {
-    private const string _messageProperty = "message";
-    private const string _stackTraceProperty = "stackTrace";
-
     private readonly IErrorFilter[] _filters;
     private readonly bool _includeExceptionDetails;
 

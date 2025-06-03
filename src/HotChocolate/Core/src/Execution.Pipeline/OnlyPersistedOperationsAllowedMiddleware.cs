@@ -7,16 +7,18 @@ namespace HotChocolate.Execution.Pipeline;
 internal sealed class OnlyPersistedOperationsAllowedMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
     private readonly PersistedOperationOptions _options;
+    private readonly IErrorHandler _errorHandler;
+    private readonly IError _error;
     private readonly IOperationResult _errorResult;
-    private readonly GraphQLException _exception;
     private readonly Dictionary<string, object?> _statusCode = new() { { WellKnownContextData.HttpStatusCode, 400 }, };
 
     private OnlyPersistedOperationsAllowedMiddleware(
         RequestDelegate next,
-        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-        [SchemaService] IPersistedOperationOptionsAccessor options)
+        ICoreExecutionDiagnosticEvents diagnosticEvents,
+        IPersistedOperationOptionsAccessor options,
+        IErrorHandler errorHandler)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
@@ -24,25 +26,26 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
 
         _next = next;
         _diagnosticEvents = diagnosticEvents;
+        _errorHandler = errorHandler;
 
         // prepare options.
         _options = options.PersistedOperations;
-        var error = options.PersistedOperations.OperationNotAllowedError;
-        _errorResult = OperationResultBuilder.CreateError(error, _statusCode);
-        _exception = new GraphQLException(error);
+        _error = options.PersistedOperations.OperationNotAllowedError;
+        _errorResult = OperationResultBuilder.CreateError(_error, _statusCode);
     }
 
-    public ValueTask InvokeAsync(IRequestContext context)
+    public ValueTask InvokeAsync(RequestContext context)
     {
-        // if all operations are allowed or the request is a warmup request, we can skip this middleware.
-        if (!_options.OnlyAllowPersistedDocuments || context.IsWarmupRequest())
+        // if all operations are allowed.
+        if (!_options.OnlyAllowPersistedDocuments)
         {
             return _next(context);
         }
 
         // if the document is a persisted operation document, then in general we can
         // skip this middleware.
-        if (context.IsPersistedDocument)
+        var documentInfo = context.GetOperationDocumentInfo();
+        if (documentInfo.IsPersisted)
         {
             // however, this could still be a standard GraphQL request that contains a document
             // that just matches a persisted operation document.
@@ -69,18 +72,24 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
         }
 
         // if we reach this point, we have to throw an error since the request is not allowed.
-        _diagnosticEvents.RequestError(context, _exception);
+        var error = _errorHandler.Handle(_error);
+        _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
         context.Result = _errorResult;
         return default;
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
-                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
-                var middleware = new OnlyPersistedOperationsAllowedMiddleware(next, diagnosticEvents, options);
+                var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
+                var middleware = new OnlyPersistedOperationsAllowedMiddleware(
+                    next,
+                    diagnosticEvents,
+                    options,
+                    errorHandler);
                 return context => middleware.InvokeAsync(context);
             },
             nameof(OnlyPersistedOperationsAllowedMiddleware));

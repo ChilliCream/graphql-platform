@@ -6,10 +6,10 @@ namespace HotChocolate.Execution.Pipeline;
 internal sealed class InstrumentationMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
 
     private InstrumentationMiddleware(RequestDelegate next,
-        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
+        ICoreExecutionDiagnosticEvents diagnosticEvents)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
@@ -17,24 +17,19 @@ internal sealed class InstrumentationMiddleware
             throw new ArgumentNullException(nameof(diagnosticEvents));
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         using (_diagnosticEvents.ExecuteRequest(context))
         {
             await _next(context).ConfigureAwait(false);
-
-            if (context.Exception is { } exception)
-            {
-                _diagnosticEvents.RequestError(context, exception);
-            }
         }
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
-                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var middleware = new InstrumentationMiddleware(next, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },

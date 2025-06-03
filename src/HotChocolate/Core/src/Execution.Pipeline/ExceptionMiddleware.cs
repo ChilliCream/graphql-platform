@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -6,16 +7,23 @@ internal sealed class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IErrorHandler _errorHandler;
+    private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
 
-    private ExceptionMiddleware(RequestDelegate next, [SchemaService] IErrorHandler errorHandler)
+    private ExceptionMiddleware(
+        RequestDelegate next,
+        ICoreExecutionDiagnosticEvents diagnosticEvents,
+        IErrorHandler errorHandler)
     {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _errorHandler = errorHandler ??
-            throw new ArgumentNullException(nameof(errorHandler));
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+        ArgumentNullException.ThrowIfNull(errorHandler);
+
+        _next = next;
+        _diagnosticEvents = diagnosticEvents;
+        _errorHandler = errorHandler;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         try
         {
@@ -23,34 +31,38 @@ internal sealed class ExceptionMiddleware
         }
         catch (OperationCanceledException ex)
         {
-            context.Exception = ex;
-            context.Result = ErrorHelper.OperationCanceled();
+            var error = _errorHandler.Handle(ErrorHelper.OperationCanceled(ex));
+            context.Result = OperationResultBuilder.CreateError(error);
+            _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
         }
         catch (GraphQLException ex)
         {
-            context.Exception = ex;
-            context.Result = OperationResultBuilder.CreateError(_errorHandler.Handle(ex.Errors));
+            var errors = _errorHandler.Handle(ex.Errors);
+            context.Result = OperationResultBuilder.CreateError(errors);
+            _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, errors);
         }
         catch (Exception ex)
         {
-            context.Exception = ex;
-            var error = _errorHandler.CreateUnexpectedError(ex).Build();
-            context.Result = OperationResultBuilder.CreateError(_errorHandler.Handle(error));
+            var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
+            context.Result = OperationResultBuilder.CreateError(error);
+            _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
         }
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
-                var middleware = Create(next, errorHandler);
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
+                var middleware = Create(next, diagnosticEvents, errorHandler);
                 return context => middleware.InvokeAsync(context);
             },
             nameof(ExceptionMiddleware));
 
     internal static ExceptionMiddleware Create(
         RequestDelegate next,
+        ICoreExecutionDiagnosticEvents diagnosticEvents,
         IErrorHandler errorHandler)
-        => new(next, errorHandler);
+        => new(next, diagnosticEvents, errorHandler);
 }
