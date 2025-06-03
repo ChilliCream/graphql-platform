@@ -262,12 +262,12 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         if (pagingArguments.First.HasValue)
         {
-            var span = buffer.Slice(written);
+            var span = buffer[written..];
             span[0] = 'f';
             span[1] = ':';
             written += 2;
 
-            if (!pagingArguments.First.Value.TryFormat(buffer.Slice(written), out var charsWritten))
+            if (!pagingArguments.First.Value.TryFormat(buffer[written..], out var charsWritten))
             {
                 throw new InvalidOperationException("Buffer is too small.");
             }
@@ -277,24 +277,24 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         if (pagingArguments.After is not null)
         {
-            var span = buffer.Slice(written);
+            var span = buffer[written..];
             span[0] = 'a';
             span[1] = ':';
             written += 2;
 
             var after = pagingArguments.After.AsSpan();
-            after.CopyTo(buffer.Slice(written));
+            after.CopyTo(buffer[written..]);
             written += after.Length;
         }
 
         if (pagingArguments.Last.HasValue)
         {
-            var span = buffer.Slice(written);
+            var span = buffer[written..];
             span[0] = 'l';
             span[1] = ':';
             written += 2;
 
-            if (!pagingArguments.Last.Value.TryFormat(buffer.Slice(written), out var charsWritten))
+            if (!pagingArguments.Last.Value.TryFormat(buffer[written..], out var charsWritten))
             {
                 throw new InvalidOperationException("Buffer is too small.");
             }
@@ -304,17 +304,17 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         if (pagingArguments.Before is not null)
         {
-            var span = buffer.Slice(written);
+            var span = buffer[written..];
             span[0] = 'b';
             span[1] = ':';
             written += 2;
 
             var before = pagingArguments.Before.AsSpan();
-            before.CopyTo(buffer.Slice(written));
+            before.CopyTo(buffer[written..]);
             written += before.Length;
         }
 
-        hasher.Add(buffer.Slice(0, written));
+        hasher.Add(buffer[..written]);
 
         if (rentedBuffer != null)
         {

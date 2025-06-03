@@ -288,7 +288,7 @@ internal ref struct FieldSelectionMapReader
         TokenKind = TokenKind.Name;
         Start = start;
         End = position;
-        Value = _sourceText.Slice(start, position - start);
+        Value = _sourceText[start..position];
         Position = position;
     }
 

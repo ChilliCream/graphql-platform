@@ -69,7 +69,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             }
         }
 
-        var span = temp.AsSpan().Slice(0, next);
+        var span = temp.AsSpan()[..next];
         var selectedMembers = new MemberInfo[next];
         span.CopyTo(selectedMembers);
         span.Clear();
@@ -382,7 +382,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         Array.Sort(temp, 0, i, DescriptorAttributeComparer.Default);
 
-        var span = temp.AsSpan().Slice(0, i);
+        var span = temp.AsSpan()[..i];
 
         foreach (var attribute in span)
         {

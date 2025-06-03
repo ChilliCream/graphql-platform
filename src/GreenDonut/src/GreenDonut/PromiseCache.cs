@@ -185,7 +185,7 @@ public sealed class PromiseCache : IPromiseCache
     public void PublishMany<T>(ReadOnlySpan<T> values)
     {
         var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Length);
-        var bufferedPromises = buffer.AsSpan().Slice(0, values.Length);
+        var bufferedPromises = buffer.AsSpan()[..values.Length];
 
         // first we add the promises tp the promise list, which we keep
         // for DataLoader that are not instantiated yet.

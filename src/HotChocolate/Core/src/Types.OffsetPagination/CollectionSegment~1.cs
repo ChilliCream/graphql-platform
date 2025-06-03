@@ -56,7 +56,7 @@ public class CollectionSegment<T> : CollectionSegment
         ReadOnlySpan<T> items = buffer.AsSpan(0, Items.Count);
         observer.OnAfterSliced(items, Info);
 
-        buffer.AsSpan().Slice(0, Items.Count).Clear();
+        buffer.AsSpan()[..Items.Count].Clear();
         ArrayPool<T>.Shared.Return(buffer);
     }
 

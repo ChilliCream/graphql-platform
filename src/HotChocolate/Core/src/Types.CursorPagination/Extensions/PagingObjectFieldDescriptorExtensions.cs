@@ -430,5 +430,5 @@ public static class PagingObjectFieldDescriptorExtensions
     private static string EnsureConnectionNameCasing(string connectionName)
         => char.IsUpper(connectionName[0])
             ? connectionName
-            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName.Substring(1));
+            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName[1..]);
 }

@@ -106,7 +106,7 @@ public static class CursorFormatter
             throw new InvalidOperationException("The input is not a valid UTF-8 string.");
         }
 
-        var result = Encoding.UTF8.GetString(span.Slice(0, bytesWritten));
+        var result = Encoding.UTF8.GetString(span[..bytesWritten]);
 
         if (poolArray != null)
         {

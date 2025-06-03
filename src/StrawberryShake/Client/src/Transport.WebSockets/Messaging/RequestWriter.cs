@@ -21,7 +21,7 @@ public class RequestWriter
     }
 
     /// <inheritdoc />
-    public ReadOnlyMemory<byte> Body => _buffer.AsMemory().Slice(0, _start);
+    public ReadOnlyMemory<byte> Body => _buffer.AsMemory()[.._start];
 
     /// <inheritdoc />
     public void Advance(int count)

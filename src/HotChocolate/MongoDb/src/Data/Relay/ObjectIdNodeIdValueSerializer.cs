@@ -26,7 +26,7 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
 
                 var rawBytes = ArrayPool<byte>.Shared.Rent(12);
                 o.ToByteArray(rawBytes, 0);
-                rawBytes.AsSpan().Slice(0, 12).CopyTo(buffer);
+                rawBytes.AsSpan()[..12].CopyTo(buffer);
                 ArrayPool<byte>.Shared.Return(rawBytes);
                 written = 12;
                 return NodeIdFormatterResult.Success;

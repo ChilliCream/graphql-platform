@@ -101,7 +101,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         {
             if(position > 0)
             {
-                buffer.AsSpan().Slice(0, position).Clear();
+                buffer.AsSpan()[..position].Clear();
             }
 
             ArrayPool<byte>.Shared.Return(buffer);
@@ -147,7 +147,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         try
         {
             documentId.Value.AsSpan().CopyTo(span);
-            s_fileExtension.AsSpan().CopyTo(span.Slice(documentId.Value.Length));
+            s_fileExtension.AsSpan().CopyTo(span[documentId.Value.Length..]);
             return new string(span);
         }
         finally

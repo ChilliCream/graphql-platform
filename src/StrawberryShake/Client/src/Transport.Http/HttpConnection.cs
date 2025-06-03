@@ -196,12 +196,12 @@ public class HttpConnection : IHttpConnection
                 continue;
             }
 
-            var currentPath = path.Substring("variables.".Length);
+            var currentPath = path["variables.".Length..];
             object? currentObject = variables;
             int index;
             while ((index = currentPath.IndexOf('.')) >= 0)
             {
-                var segment = currentPath.Substring(0, index);
+                var segment = currentPath[..index];
                 switch (currentObject)
                 {
                     case Dictionary<string, object> dictionary:
@@ -234,7 +234,7 @@ public class HttpConnection : IHttpConnection
                             string.Format(HttpConnection_FileMapDoesNotMatch, path));
                 }
 
-                currentPath = currentPath.Substring(index + 1);
+                currentPath = currentPath[(index + 1)..];
             }
 
             switch (currentObject)
