@@ -21,4 +21,10 @@
   <data name="ThrowHelper_QueryTypeNotSupported_Message" xml:space="preserve">
     <value>The specified query type is not supported.</value>
   </data>
+  <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
+    <value>The query request contains no document or no document id.</value>
+  </data>
+  <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
+    <value>The GraphQL request execution was canceled.</value>
+  </data>
 </root>

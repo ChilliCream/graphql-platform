@@ -38,7 +38,7 @@ internal sealed class OperationExecutionMiddleware
     }
 
     public async ValueTask InvokeAsync(
-        IRequestContext context,
+        RequestContext context,
         IBatchDispatcher? batchDispatcher)
     {
         if (batchDispatcher is null)

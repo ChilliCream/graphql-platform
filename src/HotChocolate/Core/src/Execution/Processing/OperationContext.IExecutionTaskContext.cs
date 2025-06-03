@@ -6,7 +6,7 @@ internal sealed partial class OperationContext : IExecutionTaskContext
         => ReportError(task, error);
 
     void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
-        => ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
+        => ReportError(task, ErrorBuilder.FromException(exception).Build());
 
     void IExecutionTaskContext.Register(IExecutionTask task)
         => Scheduler.Register(task);

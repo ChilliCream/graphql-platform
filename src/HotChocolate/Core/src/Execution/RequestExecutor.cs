@@ -336,7 +336,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
     }
 
-    private void EnrichContext(IRequestContext context)
+    private void EnrichContext(RequestContext context)
     {
         if (_enricher.Length == 0)
         {

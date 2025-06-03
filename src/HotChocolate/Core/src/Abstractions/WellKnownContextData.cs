@@ -15,13 +15,6 @@ public static class WellKnownContextData
     /// </summary>
     public const string Subscription = "HotChocolate.Execution.Subscription";
 
-
-
-    /// <summary>
-    /// The key for setting a flag that the execution had document validation errors.
-    /// </summary>
-    public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
-
     /// <summary>
     /// The key allows users to override the status code behavior of the default
     /// HTTP response formatter.

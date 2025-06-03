@@ -129,12 +129,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ErrorHelper_StateInvalidForDocumentValidation_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForDocumentValidation_Message", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_VariableIsNotAnInputType_Message {
             get {
                 return ResourceManager.GetString("ThrowHelper_VariableIsNotAnInputType_Message", resourceCulture);
@@ -318,12 +312,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string WorkBacklog_NotFullyInitialized {
             get {
                 return ResourceManager.GetString("WorkBacklog_NotFullyInitialized", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_OperationCanceled_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
             }
         }
         

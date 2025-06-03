@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -21,18 +22,18 @@ internal sealed partial class SubscriptionExecutor
     }
 
     public async Task<IExecutionResult> ExecuteAsync(
-        IRequestContext requestContext,
+        RequestContext requestContext,
         Func<object?> resolveQueryValue)
     {
         ArgumentNullException.ThrowIfNull(requestContext);
 
-        if (requestContext.Operation is null || requestContext.Variables is null)
+        var operationInfo = requestContext.GetOperationInfo();
+        if (operationInfo.Operation is null || requestContext.VariableValues.Length == 0)
         {
             throw SubscriptionExecutor_ContextInvalidState();
         }
 
-        var selectionSet = requestContext.Operation.RootSelectionSet;
-
+        var selectionSet = operationInfo.Operation.RootSelectionSet;
         if (selectionSet.Selections.Count != 1)
         {
             throw SubscriptionExecutor_SubscriptionsMustHaveOneField();
@@ -51,7 +52,7 @@ internal sealed partial class SubscriptionExecutor
                 _operationContextPool,
                 _queryExecutor,
                 requestContext,
-                requestContext.Operation.RootType,
+                operationInfo.Operation.RootType,
                 selectionSet,
                 resolveQueryValue,
                 _diagnosticEvents)

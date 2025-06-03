@@ -25,13 +25,17 @@ internal sealed class OperationResolverMiddleware
             ?? throw new ArgumentNullException(nameof(operationCompilerOptimizer));
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.Operation is not null)
+        var operationInfo = context.GetOperationInfo();
+
+        if (operationInfo.Operation is not null)
         {
             await _next(context).ConfigureAwait(false);
+            return;
         }
-        else if (context.Document is not null && context.IsValidDocument)
+
+        if (context.Document is not null && context.IsValidDocument)
         {
             using (context.DiagnosticEvents.CompileOperation(context))
             {
@@ -53,11 +57,10 @@ internal sealed class OperationResolverMiddleware
             }
 
             await _next(context).ConfigureAwait(false);
+            return;
         }
-        else
-        {
-            context.Result = StateInvalidForOperationResolver();
-        }
+
+        context.Result = StateInvalidForOperationResolver();
     }
 
     private IOperation CompileOperation(

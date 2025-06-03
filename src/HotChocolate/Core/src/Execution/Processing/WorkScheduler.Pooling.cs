@@ -12,7 +12,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private readonly WorkQueue _serial = new();
     private readonly ProcessingPause _pause = new();
 
-    private IRequestContext _requestContext = default!;
+    private RequestContext _requestContext = default!;
     private IBatchDispatcher _batchDispatcher = default!;
     private IErrorHandler _errorHandler = default!;
     private ResultBuilder _result = default!;

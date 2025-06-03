@@ -14,7 +14,12 @@ public static class ExecutionContextData
     public const string HttpStatusCode = "HotChocolate.Execution.Transport.HttpStatusCode";
 
     /// <summary>
-    /// The key for setting a flag the a document was saved to the persisted operation storage.
+    /// The key for setting a flag the document was saved to the persisted operation storage.
     /// </summary>
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
+
+    /// <summary>
+    /// The key for setting a flag that the execution had document validation errors.
+    /// </summary>
+    public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
 }

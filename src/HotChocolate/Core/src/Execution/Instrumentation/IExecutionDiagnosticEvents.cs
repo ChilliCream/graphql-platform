@@ -90,37 +90,6 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     IDisposable ResolveFieldValue(IMiddlewareContext context);
 
     /// <summary>
-    /// Called for any errors during field resolution, including unhandled exceptions.
-    /// </summary>
-    /// <param name="context">
-    /// The middleware context encapsulates all resolver-specific information about the
-    /// execution of an individual field selection.
-    /// </param>
-    /// <param name="error">
-    /// The error object.
-    /// </param>
-    void ResolverError(IMiddlewareContext context, IError error);
-
-    /// <summary>
-    /// Called for field errors that do NOT occur within the resolver task.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <param name="selection">
-    /// The selection that is affected by the error.
-    /// </param>
-    /// <param name="error">
-    /// The error object.
-    /// </param>
-    /// <remarks>
-    /// Some field level errors are handled after the resolver was completed, and this
-    /// is handled in the request scope.
-    /// </remarks>
-    void ResolverError(RequestContext context, ISelection selection, IError error);
-
-    /// <summary>
     /// Called when starting to run an execution engine task.
     /// </summary>
     /// <remarks>
@@ -166,15 +135,23 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     void StopProcessing(RequestContext context);
 
     /// <summary>
-    /// Called when an error occurred while producing the subscription event result.
+    /// A compiled operation was added to the operation cache.
     /// </summary>
-    /// <param name="subscription">
-    /// The subscription object.
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
     /// </param>
-    /// <param name="exception">
-    /// The exception that occurred.
+    void AddedOperationToCache(RequestContext context);
+
+    /// <summary>
+    /// A compiled operation was retrieved from the operation cache.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
     /// </param>
-    void SubscriptionTransportError(ISubscription subscription, Exception exception);
+    void RetrievedOperationFromCache(RequestContext context);
+
 
     /// <summary>
     /// During execution, we allow components like the DataLoader to defer execution of data

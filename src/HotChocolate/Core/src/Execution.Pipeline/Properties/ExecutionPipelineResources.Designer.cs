@@ -50,5 +50,17 @@ namespace HotChocolate.Execution.Pipeline.Properties {
                 return ResourceManager.GetString("ThrowHelper_QueryTypeNotSupported_Message", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_StateInvalidForDocumentValidation_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_StateInvalidForDocumentValidation_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OperationCanceled_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
+            }
+        }
     }
 }

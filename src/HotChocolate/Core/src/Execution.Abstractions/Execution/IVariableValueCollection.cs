@@ -21,7 +21,7 @@ public interface IVariableValueCollection : IEnumerable<VariableValue>
     /// The <paramref name="name" /> mustn't be null or
     /// <see cref="string.Empty" />.
     /// </exception>
-    T? GetVariable<T>(string name);
+    T GetValue<T>(string name) where T : IValueNode;
 
     /// <summary>
     /// Tries to get a coerced variable value from the collection.
@@ -32,5 +32,5 @@ public interface IVariableValueCollection : IEnumerable<VariableValue>
     /// <c>true</c> if a coerced variable exists and can be converted
     /// to the requested type; otherwise, <c>false</c> will be returned.
     /// </returns>
-    bool TryGetVariable<T>(string name, out T? value);
+    bool TryGetValue<T>(string name, out T? value) where T : IValueNode;
 }

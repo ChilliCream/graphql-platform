@@ -159,9 +159,6 @@
   <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
     <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
-  <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
-    <value>The query request contains no document or no document id.</value>
-  </data>
   <data name="ThrowHelper_VariableIsNotAnInputType_Message" xml:space="preserve">
     <value>Variable `{0}` is not an input type.</value>
   </data>
@@ -254,9 +251,6 @@
   </data>
   <data name="WorkBacklog_NotFullyInitialized" xml:space="preserve">
     <value>The WorkBacklog is not fully initialized.</value>
-  </data>
-  <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
-    <value>The GraphQL request execution was canceled.</value>
   </data>
   <data name="ThrowHelper_ResolverContext_CannotCastParent" xml:space="preserve">
     <value>The resolver parent type of field `{0}` is `{1}` but the resolver requested the type `{2}`. The resolver was unable to cast the parent type to the requested type.</value>

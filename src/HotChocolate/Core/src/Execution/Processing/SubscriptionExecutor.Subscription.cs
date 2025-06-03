@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fetching;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +20,7 @@ internal sealed partial class SubscriptionExecutor
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
         private IDisposable? _subscriptionScope;
-        private readonly IRequestContext _requestContext;
+        private readonly RequestContext _requestContext;
         private readonly ObjectType _subscriptionType;
         private readonly ISelectionSet _rootSelections;
         private readonly Func<object?> _resolveQueryRootValue;
@@ -31,7 +33,7 @@ internal sealed partial class SubscriptionExecutor
         private Subscription(
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            IRequestContext requestContext,
+            RequestContext requestContext,
             ObjectType subscriptionType,
             ISelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
@@ -49,7 +51,7 @@ internal sealed partial class SubscriptionExecutor
             _rootSelections = rootSelections;
             _resolveQueryRootValue = resolveQueryRootValue;
             _diagnosticEvents = diagnosticEvents;
-            _errorHandler = _requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
+            _errorHandler = Unsafe.As<Schema>(_requestContext.Schema).Services.GetRequiredService<IErrorHandler>();
         }
 
         /// <summary>
@@ -83,7 +85,7 @@ internal sealed partial class SubscriptionExecutor
         public static async ValueTask<Subscription> SubscribeAsync(
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            IRequestContext requestContext,
+            RequestContext requestContext,
             ObjectType subscriptionType,
             ISelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
@@ -98,7 +100,7 @@ internal sealed partial class SubscriptionExecutor
                 resolveQueryRootValue,
                 diagnosticsEvents);
 
-            subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(subscription);
+            subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(requestContext);
             subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
 
             return subscription;
@@ -116,7 +118,7 @@ internal sealed partial class SubscriptionExecutor
         public ulong Id => _id;
 
         /// <inheritdoc />
-        public IOperation Operation => _requestContext.Operation!;
+        public IOperation Operation => _requestContext.GetOperationInfo().Operation!;
 
         public async ValueTask DisposeAsync()
         {
@@ -140,8 +142,8 @@ internal sealed partial class SubscriptionExecutor
         /// </returns>
         private async Task<IOperationResult> OnEvent(object payload)
         {
-            using var es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
-            using var serviceScope = _requestContext.Services.CreateScope();
+            using var es = _diagnosticEvents.OnSubscriptionEvent(_requestContext);
+            using var serviceScope = _requestContext.RequestServices.CreateScope();
 
             serviceScope.ServiceProvider.InitializeDataLoaderScope();
 
@@ -169,8 +171,8 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext,
                     eventServices,
                     dispatcher,
-                    _requestContext.Operation!,
-                    _requestContext.Variables![0],
+                    _requestContext.GetOperationInfo().Operation!,
+                    _requestContext.VariableValues[0],
                     rootValue,
                     _resolveQueryRootValue);
 

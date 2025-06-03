@@ -77,7 +77,7 @@ internal sealed class DocumentParserMiddleware
             }
             else
             {
-                throw QueryTypeNotSupported();
+                throw ErrorHelper.QueryTypeNotSupported();
             }
 
             if (success)
@@ -129,7 +129,4 @@ internal sealed class DocumentParserMiddleware
         IErrorHandler errorHandler,
         ParserOptions parserOptions)
         => new(next, diagnosticEvents, documentHashProvider, errorHandler, parserOptions);
-
-    public static NotSupportedException QueryTypeNotSupported()
-        => new(ExecutionPipelineResources.ThrowHelper_QueryTypeNotSupported_Message);
 }

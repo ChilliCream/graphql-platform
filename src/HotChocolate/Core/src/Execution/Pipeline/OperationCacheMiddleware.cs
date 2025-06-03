@@ -1,5 +1,8 @@
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -26,44 +29,42 @@ internal sealed class OperationCacheMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.GetOperationDocumentInfo().Id.IsEmpty)
+        var documentInfo = context.GetOperationDocumentInfo();
+
+        if (documentInfo.Id.IsEmpty)
         {
             await _next(context).ConfigureAwait(false);
         }
         else
         {
             var addToCache = true;
-            var operationId = context.OperationId;
+            var operationInfo = context.GetOperationInfo();
 
-            if (operationId is null)
-            {
-                operationId = context.CreateCacheId();
-                context.OperationId = operationId;
-            }
+            operationInfo.OperationId ??= context.CreateCacheId();
 
-            if (_operationCache.TryGetOperation(operationId, out var operation))
+            if (_operationCache.TryGetOperation(operationInfo.OperationId, out var operation))
             {
-                context.Operation = operation;
+                operationInfo.Operation = operation;
                 addToCache = false;
                 _diagnosticEvents.RetrievedOperationFromCache(context);
             }
 
             await _next(context).ConfigureAwait(false);
 
-            if (addToCache &&
-                context.Operation is not null &&
-                !OperationDocumentId.IsNullOrEmpty(context.DocumentId) &&
-                context.Document is not null &&
-                context.IsValidDocument)
+            if (addToCache
+                && !documentInfo.Id.IsEmpty
+                && documentInfo.Document is not null
+                && documentInfo.IsValidated
+                && operationInfo.Operation is not null)
             {
-                _operationCache.TryAddOperation(operationId, context.Operation);
+                _operationCache.TryAddOperation(operationInfo.OperationId, operationInfo.Operation);
                 _diagnosticEvents.AddedOperationToCache(context);
             }
         }
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
@@ -72,4 +73,27 @@ internal sealed class OperationCacheMiddleware
                 return context => middleware.InvokeAsync(context);
             },
             nameof(OperationCacheMiddleware));
+}
+
+public sealed class OperationInfo : RequestContextFeature
+{
+    public string? OperationId { get; set; }
+
+    public OperationDefinitionNode? OperationDefinition { get; set; }
+
+    public IOperation? Operation { get; set; }
+
+    public override void Reset()
+    {
+        OperationId = null;
+        OperationDefinition = null;
+        Operation = null;
+    }
+}
+
+public static class HotChocolateExecutionRequestContextExtensions
+{
+    public static OperationInfo GetOperationInfo(
+        this RequestContext context)
+        => context.Features.GetOrSet<OperationInfo>();
 }

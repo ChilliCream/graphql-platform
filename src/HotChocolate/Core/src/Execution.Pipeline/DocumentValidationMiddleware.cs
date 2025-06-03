@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline.Properties;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,11 +28,10 @@ internal sealed class DocumentValidationMiddleware
     public async ValueTask InvokeAsync(RequestContext context)
     {
         var documentInfo = context.GetOperationDocumentInfo();
-        var request = context.Request;
 
         if (documentInfo.Document is null || documentInfo.Id.IsEmpty)
         {
-            context.Result = StateInvalidForDocumentValidation();
+            context.Result = ErrorHelper.StateInvalidForDocumentValidation();
         }
         else
         {
@@ -52,16 +52,16 @@ internal sealed class DocumentValidationMiddleware
                         // create result context data that indicate that validation has failed.
                         var resultContextData = new Dictionary<string, object?>
                         {
-                            { ValidationErrors, true }
+                            { ExecutionContextData.ValidationErrors, true }
                         };
 
                         // if one of the validation rules proposed a status code, we will add
                         // it as a proposed status code to the result context data.
                         // depending on the transport, this code might not be relevant or
                         // is even overruled.
-                        if (context.ContextData.TryGetValue(HttpStatusCode, out var value))
+                        if (context.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value))
                         {
-                            resultContextData.Add(HttpStatusCode, value);
+                            resultContextData.Add(ExecutionContextData.HttpStatusCode, value);
                         }
 
                         context.Result = OperationResultBuilder.CreateError(result.Errors, resultContextData);

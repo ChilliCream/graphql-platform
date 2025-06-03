@@ -35,4 +35,18 @@ internal sealed partial class OperationContext
     /// </summary>
     /// <value></value>
     public ITypeConverter Converter { get; }
+
+    /// <summary>
+    /// Reports a field error.
+    /// </summary>
+    /// <param name="errors">
+    /// The errors to report.
+    /// </param>
+    public void FieldError(IReadOnlyList<IError> errors)
+    {
+        DiagnosticEvents.ExecutionError(
+            _requestContext,
+            ErrorKind.FieldError,
+            errors);
+    }
 }
