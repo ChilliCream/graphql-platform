@@ -9,7 +9,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Encapsulates all GraphQL-specific information about an individual GraphQL request.
 /// </summary>
-public interface IRequestContext : IFeatureProvider, IHasContextData
+public interface _IRequestContext : IFeatureProvider, IHasContextData
 {
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.

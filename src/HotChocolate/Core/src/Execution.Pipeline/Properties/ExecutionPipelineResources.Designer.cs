@@ -7,28 +7,28 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate {
+namespace HotChocolate.Execution.Pipeline.Properties {
     using System;
     
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ExecutionAbstractionsResources {
+    internal class ExecutionPipelineResources {
         
         private static System.Resources.ResourceManager resourceMan;
         
         private static System.Globalization.CultureInfo resourceCulture;
         
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ExecutionAbstractionsResources() {
+        internal ExecutionPipelineResources() {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Properties.ExecutionAbstractionsResources", typeof(ExecutionAbstractionsResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Execution.Pipeline.Properties.ExecutionPipelineResources", typeof(ExecutionPipelineResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -45,27 +45,9 @@ namespace HotChocolate {
             }
         }
         
-        internal static string OperationRequest_DocumentOrIdMustBeSet {
+        internal static string ThrowHelper_QueryTypeNotSupported_Message {
             get {
-                return ResourceManager.GetString("OperationRequest_DocumentOrIdMustBeSet", resourceCulture);
-            }
-        }
-        
-        internal static string AggregateError_Message {
-            get {
-                return ResourceManager.GetString("AggregateError_Message", resourceCulture);
-            }
-        }
-        
-        internal static string QueryResult_DataAndResultAreNull {
-            get {
-                return ResourceManager.GetString("QueryResult_DataAndResultAreNull", resourceCulture);
-            }
-        }
-        
-        internal static string OperationResultBatch_ResponseStreamOrOperationResult {
-            get {
-                return ResourceManager.GetString("OperationResultBatch_ResponseStreamOrOperationResult", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_QueryTypeNotSupported_Message", resourceCulture);
             }
         }
     }

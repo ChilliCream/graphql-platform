@@ -49,6 +49,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.PersistedOpera
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.PersistedOperations.AzureBlobStorage", "src\PersistedOperations.AzureBlobStorage\HotChocolate.PersistedOperations.AzureBlobStorage.csproj", "{4F022EBA-58D1-419B-9667-7291316BD401}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PersistedOperations.Abstractions", "PersistedOperations.Abstractions", "{6DCD9F56-DA07-A1DB-D724-AF29DE55E6B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.PersistedOperations.Abstractions", "src\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj", "{06C81A19-F133-47CB-8FA3-1F1D574570D5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PersistedOperations.Pipeline", "PersistedOperations.Pipeline", "{9E2A35C6-8484-D048-56B7-D63A97555C8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.PersistedOperations.Pipeline", "src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj", "{993765B0-6353-41B8-8EB4-7DDA21B7D03B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -263,6 +271,30 @@ Global
 		{4F022EBA-58D1-419B-9667-7291316BD401}.Release|x64.Build.0 = Release|Any CPU
 		{4F022EBA-58D1-419B-9667-7291316BD401}.Release|x86.ActiveCfg = Release|Any CPU
 		{4F022EBA-58D1-419B-9667-7291316BD401}.Release|x86.Build.0 = Release|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Debug|x64.Build.0 = Debug|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Debug|x86.Build.0 = Debug|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Release|x64.ActiveCfg = Release|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Release|x64.Build.0 = Release|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Release|x86.ActiveCfg = Release|Any CPU
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5}.Release|x86.Build.0 = Release|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Debug|x64.Build.0 = Debug|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Debug|x86.Build.0 = Debug|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Release|x64.ActiveCfg = Release|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Release|x64.Build.0 = Release|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Release|x86.ActiveCfg = Release|Any CPU
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -285,6 +317,10 @@ Global
 		{406929B9-06ED-428D-B478-A21B41B9BDC0} = {A302B0E8-3C01-458D-8C2D-D59FF528287A}
 		{705B7DF2-F2B6-4561-BDCC-365C92BD3E52} = {A302B0E8-3C01-458D-8C2D-D59FF528287A}
 		{4F022EBA-58D1-419B-9667-7291316BD401} = {9313BB55-188C-4067-9514-9317E83847BC}
+		{6DCD9F56-DA07-A1DB-D724-AF29DE55E6B6} = {9313BB55-188C-4067-9514-9317E83847BC}
+		{06C81A19-F133-47CB-8FA3-1F1D574570D5} = {6DCD9F56-DA07-A1DB-D724-AF29DE55E6B6}
+		{9E2A35C6-8484-D048-56B7-D63A97555C8F} = {9313BB55-188C-4067-9514-9317E83847BC}
+		{993765B0-6353-41B8-8EB4-7DDA21B7D03B} = {9E2A35C6-8484-D048-56B7-D63A97555C8F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FAA72987-7EEF-40D2-B232-34E3D16C9489}

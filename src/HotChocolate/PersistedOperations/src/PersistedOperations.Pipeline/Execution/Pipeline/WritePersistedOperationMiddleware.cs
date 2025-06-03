@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -11,43 +12,47 @@ internal sealed class WritePersistedOperationMiddleware
     private const string ExpectedValue = "expectedHashValue";
     private const string ExpectedType = "expectedHashType";
     private const string ExpectedFormat = "expectedHashFormat";
+
     private readonly RequestDelegate _next;
     private readonly IDocumentHashProvider _hashProvider;
     private readonly IOperationDocumentStorage _operationDocumentStorage;
 
     private WritePersistedOperationMiddleware(RequestDelegate next,
         IDocumentHashProvider documentHashProvider,
-        [SchemaService] IOperationDocumentStorage operationDocumentStorage)
+        IOperationDocumentStorage operationDocumentStorage)
     {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _hashProvider = documentHashProvider ??
-            throw new ArgumentNullException(nameof(documentHashProvider));
-        _operationDocumentStorage = operationDocumentStorage ??
-            throw new ArgumentNullException(nameof(operationDocumentStorage));
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(documentHashProvider);
+        ArgumentNullException.ThrowIfNull(operationDocumentStorage);
+
+        _next = next;
+        _hashProvider = documentHashProvider;
+        _operationDocumentStorage = operationDocumentStorage;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         await _next(context).ConfigureAwait(false);
 
-        if (!context.IsCachedDocument &&
-            context.Document is not null &&
-            context.DocumentId is { } documentId &&
-            context.Request.Document is { } document &&
-            context.Result is IOperationResult result &&
-            context.IsValidDocument &&
-            context.Request.Extensions is not null &&
-            context.Request.Extensions.TryGetValue(PersistedQuery, out var s) &&
-            s is IReadOnlyDictionary<string, object> settings)
+        var documentInfo = context.GetOperationDocumentInfo();
+
+        if (!documentInfo.IsCached
+            && documentInfo.IsValidated
+            && documentInfo.Document is not null
+            && !documentInfo.Id.IsEmpty
+            && context.Result is IOperationResult result
+            && context.Request.Document is { } document
+            && context.Request.Extensions is not null
+            && context.Request.Extensions.TryGetValue(PersistedQuery, out var s)
+            && s is IReadOnlyDictionary<string, object> settings)
         {
             var resultBuilder = OperationResultBuilder.FromResult(result);
 
             // hash is found and matches the query key -> store the query
-            if (DoHashesMatch(settings, documentId, _hashProvider.Name, out var userHash))
+            if (DoHashesMatch(settings, documentInfo.Id, _hashProvider.Name, out var userHash))
             {
                 // save the query
-                await _operationDocumentStorage.SaveAsync(documentId, document).ConfigureAwait(false);
+                await _operationDocumentStorage.SaveAsync(documentInfo.Id, document).ConfigureAwait(false);
 
                 // add persistence receipt to the result
                 resultBuilder.SetExtension(
@@ -58,7 +63,7 @@ internal sealed class WritePersistedOperationMiddleware
                         { Persisted, true },
                     });
 
-                context.ContextData[WellKnownContextData.DocumentSaved] = true;
+                context.ContextData[ExecutionContextData.DocumentSaved] = true;
             }
             else
             {
@@ -67,7 +72,7 @@ internal sealed class WritePersistedOperationMiddleware
                     new Dictionary<string, object?>
                     {
                         { _hashProvider.Name, userHash },
-                        { ExpectedValue, context.DocumentId },
+                        { ExpectedValue, documentInfo.Id.Value },
                         { ExpectedType, _hashProvider.Name },
                         { ExpectedFormat, _hashProvider.Format.ToString() },
                         { Persisted, false },
@@ -84,8 +89,7 @@ internal sealed class WritePersistedOperationMiddleware
         string hashName,
         [NotNullWhen(true)] out string? userHash)
     {
-        if (settings.TryGetValue(hashName, out var h) &&
-            h is string hash)
+        if (settings.TryGetValue(hashName, out var value) && value is string hash)
         {
             userHash = hash;
             return hash.Equals(expectedHash.Value, StringComparison.Ordinal);
@@ -95,8 +99,8 @@ internal sealed class WritePersistedOperationMiddleware
         return false;
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();

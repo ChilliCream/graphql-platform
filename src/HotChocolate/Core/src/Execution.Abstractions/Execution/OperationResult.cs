@@ -1,5 +1,3 @@
-using HotChocolate.Properties;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -32,7 +30,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
             hasNext is not false)
         {
             throw new ArgumentException(
-                AbstractionResources.QueryResult_DataAndResultAreNull,
+                ExecutionAbstractionsResources.QueryResult_DataAndResultAreNull,
                 nameof(data));
         }
 
@@ -73,7 +71,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
             hasNext is not false)
         {
             throw new ArgumentException(
-                AbstractionResources.QueryResult_DataAndResultAreNull,
+                ExecutionAbstractionsResources.QueryResult_DataAndResultAreNull,
                 nameof(data));
         }
 

@@ -15,17 +15,18 @@ internal sealed class OperationCacheMiddleware
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IPreparedOperationCache operationCache)
     {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _diagnosticEvents = diagnosticEvents ??
-            throw new ArgumentNullException(nameof(diagnosticEvents));
-        _operationCache = operationCache ??
-            throw new ArgumentNullException(nameof(operationCache));
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+        ArgumentNullException.ThrowIfNull(operationCache);
+
+        _next = next;
+        _diagnosticEvents = diagnosticEvents;
+        _operationCache = operationCache;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (OperationDocumentId.IsNullOrEmpty(context.DocumentId))
+        if (context.GetOperationDocumentInfo().Id.IsEmpty)
         {
             await _next(context).ConfigureAwait(false);
         }

@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline.Properties;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -76,7 +77,7 @@ internal sealed class DocumentParserMiddleware
             }
             else
             {
-                throw ThrowHelper.QueryTypeNotSupported();
+                throw QueryTypeNotSupported();
             }
 
             if (success)
@@ -128,4 +129,7 @@ internal sealed class DocumentParserMiddleware
         IErrorHandler errorHandler,
         ParserOptions parserOptions)
         => new(next, diagnosticEvents, documentHashProvider, errorHandler, parserOptions);
+
+    public static NotSupportedException QueryTypeNotSupported()
+        => new(ExecutionPipelineResources.ThrowHelper_QueryTypeNotSupported_Message);
 }

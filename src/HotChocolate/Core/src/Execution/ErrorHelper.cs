@@ -214,13 +214,6 @@ internal static class ErrorHelper
             .AddLocation(selection)
             .Build();
 
-    public static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
-        => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_PersistedOperationNotFound)
-            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
-            .SetExtension(nameof(requestedKey), requestedKey)
-            .Build();
-
     public static IError OnlyPersistedOperationsAreAllowed()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_OnlyPersistedOperationsAreAllowed)

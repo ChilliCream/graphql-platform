@@ -171,9 +171,6 @@
   <data name="ThrowHelper_VariableValueInvalidType_Message" xml:space="preserve">
     <value>Variable `{0}` got an invalid value.</value>
   </data>
-  <data name="ThrowHelper_QueryTypeNotSupported_Message" xml:space="preserve">
-    <value>The specified query type is not supported.</value>
-  </data>
   <data name="ThrowHelper_VariableNotFound_Message" xml:space="preserve">
     <value>The variable with the name `{0}` does not exist.</value>
   </data>
@@ -296,12 +293,6 @@
   </data>
   <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
     <value>Its not allowed to set `items` and `data` at the same time.</value>
-  </data>
-  <data name="ErrorHelper_PersistedOperationNotFound" xml:space="preserve">
-    <value>The specified persisted operation key is invalid.</value>
-  </data>
-  <data name="ErrorHelper_OnlyPersistedOperationsAreAllowed" xml:space="preserve">
-    <value>Only persisted operations are allowed.</value>
   </data>
   <data name="MiddlewareContext_ReplaceArgument_InvalidKey" xml:space="preserve">
     <value>There is no argument with the name `{0}`.</value>

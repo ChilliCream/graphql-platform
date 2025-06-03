@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.PersistedOperations;
 
 /// <summary>
 /// Provides the hash of an operation document.

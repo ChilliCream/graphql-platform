@@ -233,6 +233,8 @@
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.FileSystem/HotChocolate.PersistedOperations.FileSystem.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.InMemory/HotChocolate.PersistedOperations.InMemory.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Redis/HotChocolate.PersistedOperations.Redis.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Abstractions/HotChocolate.PersistedOperations.Abstractions.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Pipeline/HotChocolate.PersistedOperations.Pipeline.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/PersistedOperations/test/">
     <Project Path="HotChocolate/PersistedOperations/test/PersistedOperations.AzureBlobStorage.Tests/HotChocolate.PersistedOperations.AzureBlobStorage.Tests.csproj" />

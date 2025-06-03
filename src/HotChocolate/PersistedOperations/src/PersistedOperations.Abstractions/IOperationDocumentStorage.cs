@@ -1,6 +1,7 @@
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.PersistedOperations;
 
 /// <summary>
 /// Represents a storage for operation documents.

@@ -1,5 +1,3 @@
-using HotChocolate.Properties;
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -25,14 +23,16 @@ public sealed class OperationResultBatch : ExecutionResult
     public OperationResultBatch(
         IReadOnlyList<IExecutionResult> results,
         IReadOnlyDictionary<string, object?>? contextData = null)
-        : base(cleanupTasks: [() => RunCleanUp(results),])
+        : base(cleanupTasks: [() => RunCleanUp(results)])
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         foreach (var result in results)
         {
             if (result is not IResponseStream and not OperationResult)
             {
                 throw new ArgumentException(
-                    AbstractionResources.OperationResultBatch_ResponseStreamOrOperationResult,
+                    ExecutionAbstractionsResources.OperationResultBatch_ResponseStreamOrOperationResult,
                     nameof(results));
             }
         }

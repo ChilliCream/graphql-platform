@@ -153,12 +153,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ThrowHelper_QueryTypeNotSupported_Message {
-            get {
-                return ResourceManager.GetString("ThrowHelper_QueryTypeNotSupported_Message", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_VariableNotFound_Message {
             get {
                 return ResourceManager.GetString("ThrowHelper_VariableNotFound_Message", resourceCulture);
@@ -402,18 +396,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string ResultBuilder_DataAndItemsNotAllowed {
             get {
                 return ResourceManager.GetString("ResultBuilder_DataAndItemsNotAllowed", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_PersistedOperationNotFound {
-            get {
-                return ResourceManager.GetString("ErrorHelper_PersistedOperationNotFound", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_OnlyPersistedOperationsAreAllowed {
-            get {
-                return ResourceManager.GetString("ErrorHelper_OnlyPersistedOperationsAreAllowed", resourceCulture);
             }
         }
         

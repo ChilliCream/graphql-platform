@@ -12,7 +12,8 @@ public abstract class RequestContext : IFeatureProvider
     protected RequestContext(
         ISchemaDefinition schema,
         IOperationRequest request,
-        IServiceProvider requestServices)
+        IServiceProvider requestServices,
+        ulong executorVersion)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(request);
@@ -21,12 +22,18 @@ public abstract class RequestContext : IFeatureProvider
         Schema = schema;
         Request = request;
         RequestServices = requestServices;
+        ExecutorVersion = executorVersion;
     }
 
     /// <summary>
     /// Gets the GraphQL schema definition against which the request is executed.
     /// </summary>
     public ISchemaDefinition Schema { get; }
+
+    /// <summary>
+    /// Gets the request executor version.
+    /// </summary>
+    public ulong ExecutorVersion { get; }
 
     /// <summary>
     /// Gets the GraphQL request definition.

@@ -1,11 +1,14 @@
-namespace HotChocolate.Execution.Options;
+namespace HotChocolate.PersistedOperations;
 
 /// <summary>
 /// Represents the persisted operation options.
 /// </summary>
 public sealed class PersistedOperationOptions
 {
-    private IError _operationNotAllowedError = ErrorHelper.OnlyPersistedOperationsAreAllowed();
+    private IError _operationNotAllowedError = ErrorBuilder.New()
+        .SetMessage("Only persisted operations are allowed.")
+        .SetCode(ErrorCodes.Execution.OnlyPersistedOperationsAllowed)
+        .Build();
 
     /// <summary>
     /// Specifies if only persisted operation documents are allowed.
@@ -34,8 +37,8 @@ public sealed class PersistedOperationOptions
         get => _operationNotAllowedError;
         set
         {
-            _operationNotAllowedError = value
-                ?? throw new ArgumentNullException(nameof(OperationNotAllowedError));
+            ArgumentNullException.ThrowIfNull(value);
+            _operationNotAllowedError = value;
         }
     }
 }

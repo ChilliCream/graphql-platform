@@ -14,9 +14,10 @@ internal static class PipelineTools
             ? documentId
             : $"{documentId}+{operationName}";
 
-    public static string CreateCacheId(this IRequestContext context)
+    public static string CreateCacheId(this RequestContext context)
     {
-        var documentId = context.DocumentId!.Value.Value;
+        var documentInfo = context.GetOperationDocumentInfo();
+        var documentId = documentInfo.Id.Value;
         var operationName = context.Request.OperationName;
 
         if (string.IsNullOrEmpty(documentId))
@@ -32,7 +33,7 @@ internal static class PipelineTools
     }
 
     public static IReadOnlyList<IVariableValueCollection> CoerceVariables(
-        IRequestContext context,
+        RequestContext context,
         VariableCoercionHelper coercionHelper,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions)
     {
