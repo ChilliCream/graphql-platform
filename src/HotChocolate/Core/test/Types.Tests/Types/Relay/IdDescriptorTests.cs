@@ -33,7 +33,7 @@ public class IdDescriptorTests
                             {
                                 { "intId", intId },
                                 { "stringId", stringId },
-                                { "guidId", guidId },
+                                { "guidId", guidId }
                             })
                         .Build());
 

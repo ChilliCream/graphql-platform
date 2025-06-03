@@ -81,7 +81,7 @@ public class HttpConnection : IHttpConnection
     {
         var (id, name, document, variables, extensions, _, files, strategy) = request;
 
-        var hasFiles = files is { Count: > 0, };
+        var hasFiles = files is { Count: > 0 };
 
         variables = MapVariables(variables);
         if (hasFiles && variables is not null)
@@ -102,7 +102,7 @@ public class HttpConnection : IHttpConnection
             operation = new HotChocolate.Transport.OperationRequest(body, null, name, variables, extensions);
         }
 
-        return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles, };
+        return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles };
     }
 
     protected virtual Response<JsonDocument> CreateResponse(

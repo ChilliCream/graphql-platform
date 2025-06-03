@@ -41,7 +41,7 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
         object result = await executable.ToListAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }
+        new { result, executable = executable.Print() }
             .MatchSnapshot(postFix: TestEnvironment.TargetFramework);
     }
 
@@ -68,6 +68,6 @@ public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<Author
         var result = await executable.FirstOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 }

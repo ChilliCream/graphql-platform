@@ -61,7 +61,7 @@ public class SqlLiteOffsetTestBase
                         })
                     .UseOffsetPaging<ObjectType<TEntity>>(options: new()
                     {
-                        IncludeTotalCount = true,
+                        IncludeTotalCount = true
                     }));
 
         var schema = builder.Create();

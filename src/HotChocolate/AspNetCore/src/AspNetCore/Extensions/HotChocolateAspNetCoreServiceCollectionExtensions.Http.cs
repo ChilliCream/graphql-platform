@@ -107,8 +107,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 {
                     Json = new JsonResultFormatterOptions
                     {
-                        Indented = indented,
-                    },
+                        Indented = indented
+                    }
                 },
                 sp.GetRequiredService<ITimeProvider>()));
         return services;

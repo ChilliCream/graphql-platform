@@ -18,7 +18,7 @@ public class QueryableProjectionListHandler
         ISelection selection)
     {
         var field = selection.Field;
-        if (field.Member is PropertyInfo { CanWrite: true, })
+        if (field.Member is PropertyInfo { CanWrite: true })
         {
             var next = context.GetInstance().Append(field.Member);
 
@@ -35,7 +35,7 @@ public class QueryableProjectionListHandler
     {
         var field = selection.Field;
 
-        if (field.Member is not PropertyInfo { CanWrite: true, })
+        if (field.Member is not PropertyInfo { CanWrite: true })
         {
             action = SelectionVisitor.Skip;
 

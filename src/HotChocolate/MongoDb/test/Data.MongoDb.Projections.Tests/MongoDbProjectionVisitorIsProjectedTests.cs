@@ -13,19 +13,19 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
         new Foo
         {
             IsProjectedTrue = true,
-            IsProjectedFalse = false,
+            IsProjectedFalse = false
         },
         new Foo
         {
             IsProjectedTrue = true,
-            IsProjectedFalse = false,
-        },
+            IsProjectedFalse = false
+        }
     ];
 
     private static readonly Bar[] s_barEntities =
     [
-        new Bar { IsProjectedFalse = false, },
-        new Bar { IsProjectedFalse = false, },
+        new Bar { IsProjectedFalse = false },
+        new Bar { IsProjectedFalse = false }
     ];
 
     private readonly SchemaCache _cache = new(resource);

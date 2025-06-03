@@ -673,7 +673,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     private static ITypeSymbol ExtractMapType(ITypeSymbol returnType)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType
             && namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2 } dict)
         {
             return dict;

@@ -110,14 +110,14 @@ public partial class TypeMapperGenerator
                             [
                                 EntityId,
                                 "Name",
-                                nameof(string.Equals),
+                                nameof(string.Equals)
                             ]
                             :
                             [
                                 EntityId,
                                 "Value",
                                 "Name",
-                                nameof(string.Equals),
+                                nameof(string.Equals)
                             ])
                     .AddArgument(objectTypeDescriptor.Name.AsStringToken())
                     .AddArgument(TypeNames.OrdinalStringComparison));

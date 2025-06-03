@@ -118,7 +118,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
                     IncludeTotalCount = _includeTotalCount,
                     RequirePagingBoundaries = _requirePagingBoundaries,
                     ProviderName = ProviderName,
-                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField,
+                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField
                 });
         }
 
@@ -136,7 +136,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
                     IncludeTotalCount = _includeTotalCount,
                     RequirePagingBoundaries = _requirePagingBoundaries,
                     ProviderName = ProviderName,
-                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField,
+                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField
                 });
         }
     }

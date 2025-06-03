@@ -44,7 +44,7 @@ public class QueryableDefaultSortFieldHandler
 
         var lastSelector = lastFieldSelector.Selector;
         Expression nextSelector;
-        if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression, })
+        if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
         {
             if (expression.Parameters.Count != 1 ||
                 expression.Parameters[0].Type != context.RuntimeTypes.Peek()!.Source)
@@ -64,7 +64,7 @@ public class QueryableDefaultSortFieldHandler
                 PropertyInfo i => Expression.Property(lastSelector, i),
                 MethodInfo i => Expression.Call(lastSelector, i),
                 { } i => throw ThrowHelper.QueryableSorting_MemberInvalid(i, field),
-                null => throw ThrowHelper.QueryableSorting_NoMemberDeclared(field),
+                null => throw ThrowHelper.QueryableSorting_NoMemberDeclared(field)
             };
         }
 

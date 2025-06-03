@@ -176,7 +176,7 @@ public class PooledArrayWriterTests
     {
         // Arrange
         using var writer = new PooledArrayWriter();
-        var testData = new byte[] { 1, 2, 3, 4, };
+        var testData = new byte[] { 1, 2, 3, 4 };
 
         // Act
         var span = writer.GetSpan(4);
@@ -194,7 +194,7 @@ public class PooledArrayWriterTests
     {
         // Arrange
         using var writer = new PooledArrayWriter();
-        var testData = new byte[] { 1, 2, 3, 4, };
+        var testData = new byte[] { 1, 2, 3, 4 };
 
         // Act
         var memory = writer.GetMemory(4);

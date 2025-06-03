@@ -390,5 +390,5 @@ public class MutableSchemaDefinition
     /// <returns>
     /// Returns a new schema definition.
     /// </returns>
-    public static MutableSchemaDefinition Create(string name) => new() { Name = name, };
+    public static MutableSchemaDefinition Create(string name) => new() { Name = name };
 }

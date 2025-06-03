@@ -11,7 +11,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
     private readonly PersistedOperationOptions _options;
     private readonly IOperationResult _errorResult;
     private readonly GraphQLException _exception;
-    private readonly Dictionary<string, object?> _statusCode = new() { { WellKnownContextData.HttpStatusCode, 400 }, };
+    private readonly Dictionary<string, object?> _statusCode = new() { { WellKnownContextData.HttpStatusCode, 400 } };
 
     private OnlyPersistedOperationsAllowedMiddleware(
         RequestDelegate next,

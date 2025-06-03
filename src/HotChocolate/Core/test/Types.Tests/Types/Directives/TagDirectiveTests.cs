@@ -128,7 +128,7 @@ public class TagDirectiveTests
     {
         [Tag("OnEnumValue")]
         Foo,
-        Bar,
+        Bar
     }
 
     [Tag("OnInputObjectType")]

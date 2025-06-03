@@ -22,11 +22,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                         Foo = new Foo
                         {
                             // ScalarArray = new[] { "c", "d", "a" }
-                            BarShort = 12, BarString = "a",
-                        },
-                    },
-                },
-            },
+                            BarShort = 12, BarString = "a"
+                        }
+                    }
+                }
+            }
         },
         new Bar
         {
@@ -44,11 +44,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                         Foo = new Foo
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = 14, BarString = "d",
-                        },
-                    },
-                },
-            },
+                            BarShort = 14, BarString = "d"
+                        }
+                    }
+                }
+            }
         },
         new Bar
         {
@@ -59,9 +59,9 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
     private static readonly BarNullable?[] s_barNullableEntities =
@@ -82,11 +82,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "a" }
-                            BarShort = 12,
-                        },
-                    },
-                },
-            },
+                            BarShort = 12
+                        }
+                    }
+                }
+            }
         },
         new BarNullable
         {
@@ -104,11 +104,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = null,
-                        },
-                    },
-                },
-            },
+                            BarShort = null
+                        }
+                    }
+                }
+            }
         },
         new BarNullable
         {
@@ -126,11 +126,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = 14,
-                        },
-                    },
-                },
-            },
+                            BarShort = 14
+                        }
+                    }
+                }
+            }
         },
         new BarNullable
         {
@@ -141,10 +141,10 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
+                ObjectArray = null
+            }
         },
-        new BarNullable { Foo = null, },
+        new BarNullable { Foo = null }
     ];
 
     [Fact]
@@ -478,10 +478,10 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                                     "foo",
                                     new Dictionary<string, object>
                                     {
-                                        { "barShort", "ASC" }, { "barBool", "ASC" },
+                                        { "barShort", "ASC" }, { "barBool", "ASC" }
                                     }
-                                },
-                            },
+                                }
+                            }
                         }
                     })
                 .Build());
@@ -507,16 +507,16 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string, object> { { "barShort", "ASC" }, }
-                                },
+                                    new Dictionary<string, object> { { "barShort", "ASC" } }
+                                }
                             },
                             new()
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string, object> { { "barBool", "ASC" }, }
-                                },
-                            },
+                                    new Dictionary<string, object> { { "barBool", "ASC" } }
+                                }
+                            }
                         }
                     })
                 .Build());
@@ -544,10 +544,10 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                                     "foo",
                                     new Dictionary<string, object>
                                     {
-                                        { "barShort", "DESC" }, { "barBool", "DESC" },
+                                        { "barShort", "DESC" }, { "barBool", "DESC" }
                                     }
-                                },
-                            },
+                                }
+                            }
                         }
                     })
                 .Build());
@@ -573,16 +573,16 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string, object> { { "barShort", "DESC" }, }
-                                },
+                                    new Dictionary<string, object> { { "barShort", "DESC" } }
+                                }
                             },
                             new()
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string, object> { { "barBool", "DESC" }, }
-                                },
-                            },
+                                    new Dictionary<string, object> { { "barBool", "DESC" } }
+                                }
+                            }
                         }
                     })
                 .Build());
@@ -656,6 +656,6 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache) : IClassFixture<
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

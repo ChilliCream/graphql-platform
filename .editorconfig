@@ -168,6 +168,9 @@ dotnet_diagnostic.CA1512.severity = warning
 dotnet_diagnostic.CA1513.severity = warning
 # Use range operator.
 dotnet_diagnostic.IDE0057.severity = warning
+# Add/remove trailing comma.
+dotnet_diagnostic.RCS1260.severity = warning
+roslynator_trailing_comma_style = omit
 
 # netstandard2.0
 [src/HotChocolate/{Core/src/Types.Analyzers,Language}/**/*.cs]

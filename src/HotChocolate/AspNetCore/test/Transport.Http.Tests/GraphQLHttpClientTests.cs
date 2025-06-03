@@ -201,7 +201,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -237,7 +237,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var requestUri = CreateUrl("/graphql");
@@ -273,7 +273,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["traits"] = JsonSerializer.SerializeToElement(new { lastJedi = true, }),
+            ["traits"] = JsonSerializer.SerializeToElement(new { lastJedi = true })
         };
 
         var requestUri = CreateUrl("/graphql");
@@ -310,7 +310,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         // act
@@ -349,7 +349,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             """,
             variables: new Dictionary<string, object?>
             {
-                ["episode"] = "JEDI",
+                ["episode"] = "JEDI"
             },
             operationName: "B");
 
@@ -477,7 +477,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -513,7 +513,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var requestUri = CreateUrl("/graphql");
@@ -550,7 +550,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         // act
@@ -589,7 +589,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             """,
             variables: new Dictionary<string, object?>
             {
-                ["episode"] = "JEDI",
+                ["episode"] = "JEDI"
             },
             operationName: "B");
 
@@ -640,8 +640,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["review"] = new Dictionary<string, object?>
                 {
                     ["stars"] = 5,
-                    ["commentary"] = "This is a great movie!",
-                },
+                    ["commentary"] = "This is a great movie!"
+                }
             });
 
         var client = new DefaultGraphQLHttpClient(httpClient);
@@ -697,8 +697,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["review"] = new Dictionary<string, object?>
                 {
                     ["stars"] = 5,
-                    ["commentary"] = "This is a great movie!",
-                },
+                    ["commentary"] = "This is a great movie!"
+                }
             });
 
         var client = new DefaultGraphQLHttpClient(httpClient);
@@ -788,7 +788,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             """,
             variables: new Dictionary<string, object?>
             {
-                ["upload"] = new FileReference(() => stream, "test.txt"),
+                ["upload"] = new FileReference(() => stream, "test.txt")
             });
 
         var requestUri = new Uri(CreateUrl("/upload"));
@@ -796,7 +796,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true,
+            EnableFileUploads = true
         };
 
         // act
@@ -840,7 +840,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true,
+            EnableFileUploads = true
         };
 
         // act

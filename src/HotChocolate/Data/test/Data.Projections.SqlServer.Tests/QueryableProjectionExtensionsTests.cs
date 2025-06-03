@@ -12,7 +12,7 @@ public class QueryableProjectionExtensionsTests
 {
     private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Bar = true, Baz = "a", }, new Foo { Bar = false, Baz = "b", },
+        new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
     ];
 
     [Fact]

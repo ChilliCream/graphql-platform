@@ -709,7 +709,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalStateWithKey))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, };
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
         // act
         var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
@@ -729,7 +729,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalState))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, };
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
         // act
         var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
@@ -874,7 +874,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedStateWithKey))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -896,7 +896,7 @@ public class ResolverCompilerTests
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedState))!;
 
-        var contextData = new Dictionary<string, object?>{ { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?>{ { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -1056,7 +1056,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalStateWithKey))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -1077,7 +1077,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalState))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -1216,7 +1216,7 @@ public class ResolverCompilerTests
 
         var contextData = new Dictionary<string, object?>
         {
-            { nameof(ClaimsPrincipal), new ClaimsPrincipal() },
+            { nameof(ClaimsPrincipal), new ClaimsPrincipal() }
         };
 
         // act

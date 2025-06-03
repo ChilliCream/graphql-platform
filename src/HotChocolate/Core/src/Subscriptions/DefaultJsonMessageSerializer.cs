@@ -15,7 +15,7 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
     private readonly JsonSerializerOptions _options =
         new(JsonSerializerDefaults.Web)
         {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
     /// <inheritdoc />

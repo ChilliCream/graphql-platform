@@ -93,7 +93,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
         {
             TypeKind.List => true,
             TypeKind.NonNull when ((NonNullType)type).NullableType.Kind == TypeKind.List => true,
-            _ => false,
+            _ => false
         };
     }
 
@@ -334,7 +334,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
         {
             ListType listType => listType.ElementType,
             NonNullType nonNullType => nonNullType.NullableType,
-            _ => type,
+            _ => type
         };
     }
 
@@ -381,7 +381,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             NamedTypeNode => new NamedTypeNode(typeDefinition.Name),
             ListTypeNode t => new ListTypeNode(ToType(t.Type, typeDefinition)),
             NonNullTypeNode t => new NonNullTypeNode((INullableTypeNode)ToType(t.Type, typeDefinition)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 
@@ -394,7 +394,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             ITypeDefinition namedType => new NamedTypeNode(namedType.Name),
             ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 
@@ -434,7 +434,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             ITypeDefinition namedType => newNamedType(namedType.Name),
             ListType listType => new ListType(ReplaceNamedType(listType.ElementType, newNamedType)),
             NonNullType nonNullType => new NonNullType(ReplaceNamedType(nonNullType.NullableType, newNamedType)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 
@@ -448,7 +448,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             NamedTypeNode => typeDefinition,
             ListTypeNode listTypeNode => new ListType(RewriteToType(listTypeNode.Type, typeDefinition)),
             NonNullTypeNode nonNullTypeNode => new NonNullType(RewriteToType(nonNullTypeNode.Type, typeDefinition)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 

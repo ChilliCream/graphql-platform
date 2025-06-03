@@ -595,7 +595,7 @@ public class ActivityEnricher
         var tags = new ActivityTagsCollection
         {
             new(AttributeExceptionMessage, error.Message),
-            new(AttributeExceptionType, error.Code ?? "GRAPHQL_ERROR"),
+            new(AttributeExceptionType, error.Code ?? "GRAPHQL_ERROR")
         };
 
         if (error.Path is not null)
@@ -615,7 +615,7 @@ public class ActivityEnricher
     private static ISyntaxNode CreateVariablesNode(
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
     {
-        if (variableSet is null or { Count: 0, })
+        if (variableSet is null or { Count: 0 })
         {
             return NullValueNode.Default;
         }

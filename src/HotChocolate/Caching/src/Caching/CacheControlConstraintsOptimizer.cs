@@ -35,7 +35,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     : null,
                 SharedMaxAge = constraints.SharedMaxAge is not null
                     ? TimeSpan.FromSeconds(constraints.SharedMaxAge.Value)
-                    : null,
+                    : null
             };
 
             context.ContextData.Add(

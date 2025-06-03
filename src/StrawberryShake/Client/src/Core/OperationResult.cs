@@ -110,7 +110,7 @@ public static class OperationResult
             .MakeGenericMethod(dataType)
             .Invoke(
                 null,
-                [data, dataInfo, dataFactory, errors, extensions, contextData,])!;
+                [data, dataInfo, dataFactory, errors, extensions, contextData])!;
     }
 
     public static IOperationResult<TData> Create<TData>(

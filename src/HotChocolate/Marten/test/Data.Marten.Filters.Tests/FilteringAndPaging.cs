@@ -6,7 +6,7 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class FilteringAndPaging(SchemaCache cache)
 {
-    private static readonly Foo[] s_fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
+    private static readonly Foo[] s_fooEntities = [new() { Bar = true }, new() { Bar = false }];
 
     [Fact]
     public async Task Create_BooleanEqual_Expression()

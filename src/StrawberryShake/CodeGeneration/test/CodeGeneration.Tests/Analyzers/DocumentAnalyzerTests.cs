@@ -25,7 +25,7 @@ public class DocumentAnalyzerTests
                 [
                     new(schema.ToSyntaxNode()),
                     new(Utf8GraphQLParser.Parse(
-                        @"extend scalar String @runtimeType(name: ""Abc"")")),
+                        @"extend scalar String @runtimeType(name: ""Abc"")"))
                 ]);
 
         var document =
@@ -90,7 +90,7 @@ public class DocumentAnalyzerTests
                     new(Utf8GraphQLParser.Parse(
                         @"extend scalar String @runtimeType(name: ""Abc"")")),
                     new(Utf8GraphQLParser.Parse(
-                        "extend schema @key(fields: \"id\")")),
+                        "extend schema @key(fields: \"id\")"))
                 });
 
         var document =

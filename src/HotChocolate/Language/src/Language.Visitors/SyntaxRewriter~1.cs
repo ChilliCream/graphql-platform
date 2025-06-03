@@ -68,7 +68,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             VariableDefinitionNode n => RewriteVariableDefinition(n, context),
             VariableNode n => RewriteVariable(n, context),
             IValueNode n => RewriteCustomValue(n, context),
-            _ => throw new ArgumentOutOfRangeException(nameof(node)),
+            _ => throw new ArgumentOutOfRangeException(nameof(node))
         };
 
     protected virtual void OnLeave(

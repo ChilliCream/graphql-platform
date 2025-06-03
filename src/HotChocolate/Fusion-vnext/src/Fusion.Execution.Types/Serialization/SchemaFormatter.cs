@@ -591,7 +591,7 @@ file static class Extensions
             ITypeDefinition namedType => new NamedTypeNode(namedType.Name),
             ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     public static IEnumerable<T> OrderBy<T, TKey>(

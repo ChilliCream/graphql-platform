@@ -324,6 +324,6 @@ internal static class GraphQLHttpEventStreamProcessor
     private enum EventType
     {
         Next,
-        Complete,
+        Complete
     }
 }

@@ -26,7 +26,7 @@ public ref partial struct Utf8GraphQLRequestParser
         (byte)'N',
         (byte)'a',
         (byte)'m',
-        (byte)'e',
+        (byte)'e'
     ];
 
     private static ReadOnlySpan<byte> Query =>
@@ -35,7 +35,7 @@ public ref partial struct Utf8GraphQLRequestParser
         (byte)'u',
         (byte)'e',
         (byte)'r',
-        (byte)'y',
+        (byte)'y'
     ];
 
     private static ReadOnlySpan<byte> Variables =>
@@ -48,7 +48,7 @@ public ref partial struct Utf8GraphQLRequestParser
             (byte)'b',
             (byte)'l',
             (byte)'e',
-            (byte)'s',
+            (byte)'s'
     ];
 
     private static ReadOnlySpan<byte> Extensions =>
@@ -62,7 +62,7 @@ public ref partial struct Utf8GraphQLRequestParser
         (byte)'i',
         (byte)'o',
         (byte)'n',
-        (byte)'s',
+        (byte)'s'
     ];
 
     private static ReadOnlySpan<byte> Type =>
@@ -70,13 +70,13 @@ public ref partial struct Utf8GraphQLRequestParser
         (byte)'t',
         (byte)'y',
         (byte)'p',
-        (byte)'e',
+        (byte)'e'
     ];
 
     private static ReadOnlySpan<byte> Id =>
     [
         (byte)'i',
-        (byte)'d',
+        (byte)'d'
     ];
 
     private static ReadOnlySpan<byte> Payload =>
@@ -87,6 +87,6 @@ public ref partial struct Utf8GraphQLRequestParser
         (byte)'l',
         (byte)'o',
         (byte)'a',
-        (byte)'d',
+        (byte)'d'
     ];
 }

@@ -81,7 +81,7 @@ internal static class DirectiveLocationExtensions
            {
                DirectiveLocation.InputFieldDefinition,
                Language.DirectiveLocation.InputFieldDefinition
-           },
+           }
        };
 
     private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> s_langToType =
@@ -162,7 +162,7 @@ internal static class DirectiveLocationExtensions
             {
                 Language.DirectiveLocation.InputFieldDefinition,
                 DirectiveLocation.InputFieldDefinition
-            },
+            }
         };
 
     public static DirectiveLocation MapLocation(this Language.DirectiveLocation location)

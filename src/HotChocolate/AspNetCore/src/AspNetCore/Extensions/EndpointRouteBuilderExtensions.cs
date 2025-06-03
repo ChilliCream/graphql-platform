@@ -409,7 +409,7 @@ public static class EndpointRouteBuilderExtensions
         var builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
             .WithDisplayName("Nitro Pipeline")
-            .WithMetadata(new NitroAppOptions { GraphQLEndpoint = relativeRequestPath, });
+            .WithMetadata(new NitroAppOptions { GraphQLEndpoint = relativeRequestPath });
 
         return new NitroAppEndpointConventionBuilder(builder);
     }
@@ -511,7 +511,7 @@ public static class EndpointRouteBuilderExtensions
             {
                 AllowedGetOperations = httpOptions.AllowedGetOperations,
                 EnableGetRequests = httpOptions.EnableGetRequests,
-                EnableMultipartRequests = httpOptions.EnableMultipartRequests,
+                EnableMultipartRequests = httpOptions.EnableMultipartRequests
             });
 
     /// <summary>
@@ -551,7 +551,7 @@ public static class EndpointRouteBuilderExtensions
     public static WebSocketEndpointConventionBuilder WithOptions(
         this WebSocketEndpointConventionBuilder builder,
         GraphQLSocketOptions socketOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions, });
+        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
 
     private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
         => builder.Use(
@@ -580,6 +580,6 @@ public static class EndpointRouteBuilderExtensions
             UseGet = options.HttpMethod == DefaultHttpMethod.Get,
             Enable = options.Enable,
             GaTrackingId = options.GaTrackingId,
-            DisableTelemetry = options.DisableTelemetry,
+            DisableTelemetry = options.DisableTelemetry
         };
 }

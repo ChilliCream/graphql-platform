@@ -123,5 +123,5 @@ public enum TokenKind : byte
     /// <summary>
     /// .
     /// </summary>
-    Dot,
+    Dot
 }

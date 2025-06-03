@@ -48,7 +48,7 @@ public class UseSortingAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-            s_generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope,]);
+            s_generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope]);
         }
     }
 }

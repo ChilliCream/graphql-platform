@@ -14,15 +14,15 @@ public class MongoDbFilterVisitorDateOnlyTests
 {
     private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = new DateOnly(2022, 01, 16), },
-        new() { Bar = new DateOnly(2022, 01, 15), },
+        new() { Bar = new DateOnly(2022, 01, 16) },
+        new() { Bar = new DateOnly(2022, 01, 15) }
     ];
 
     private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = new DateOnly(2022, 01, 16), },
-        new() { Bar = null, },
-        new() { Bar = new DateOnly(2022, 01, 15), },
+        new() { Bar = new DateOnly(2022, 01, 16) },
+        new() { Bar = null },
+        new() { Bar = new DateOnly(2022, 01, 15) }
     ];
 
     public MongoDbFilterVisitorDateOnlyTests(MongoResource resource)

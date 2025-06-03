@@ -57,7 +57,7 @@ public static class DocumentHelper
                     VisitArguments = true,
                     VisitDescriptions = true,
                     VisitDirectives = true,
-                    VisitNames = true,
+                    VisitNames = true
                 })
             .Visit(file.Document);
     }

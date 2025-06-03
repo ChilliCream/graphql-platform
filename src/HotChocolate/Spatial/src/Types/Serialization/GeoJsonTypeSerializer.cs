@@ -15,7 +15,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
                 { nameof(MultiLineString), MultiLineString },
                 { nameof(Polygon), Polygon },
                 { nameof(MultiPolygon), MultiPolygon },
-                { nameof(GeometryCollection), GeometryCollection },
+                { nameof(GeometryCollection), GeometryCollection }
         };
 
     private static readonly IDictionary<GeoJsonGeometryType, string> s_valueLookup =
@@ -27,7 +27,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
                 { MultiLineString, nameof(MultiLineString) },
                 { Polygon, nameof(Polygon) },
                 { MultiPolygon, nameof(MultiPolygon) },
-                { GeometryCollection, nameof(GeometryCollection) },
+                { GeometryCollection, nameof(GeometryCollection) }
         };
 
     public override bool TrySerialize(

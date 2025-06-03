@@ -185,7 +185,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         }
 
         var factory = s_factoryTemplate.MakeGenericMethod(type);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Projection);

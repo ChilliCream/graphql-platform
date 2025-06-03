@@ -12,8 +12,8 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     [Fact]
@@ -28,13 +28,13 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" } })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" } })
                 .Build());
 
         // assert
@@ -57,13 +57,13 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" } })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" } })
                 .Build());
 
         // assert
@@ -84,11 +84,11 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         ClientQueryRequest request1 =
-            new() { Query = query, Variables = new() { ["order"] = "ASC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "ASC" } };
         var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
-            new() { Query = query, Variables = new() { ["order"] = "DESC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "DESC" } };
         var res2 = await server.PostAsync(request2);
 
         // assert
@@ -109,11 +109,11 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         ClientQueryRequest request1 =
-            new() { Query = query, Variables = new() { ["order"] = "ASC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "ASC" } };
         var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
-            new() { Query = query, Variables = new() { ["order"] = "DESC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "DESC" } };
         var res2 = await server.PostAsync(request2);
 
         // assert

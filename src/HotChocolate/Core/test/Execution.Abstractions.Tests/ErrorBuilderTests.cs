@@ -30,7 +30,7 @@ public class ErrorBuilderTests
             Message = "123",
             Extensions = new OrderedDictionary<string, object?>
             {
-                {"foo", "bar"},
+                {"foo", "bar"}
             }
         };
 
@@ -53,7 +53,7 @@ public class ErrorBuilderTests
             Message = "123",
             Extensions = new OrderedDictionary<string, object?>
             {
-                {"foo", "bar"},
+                {"foo", "bar"}
             }
         };
 
@@ -75,7 +75,7 @@ public class ErrorBuilderTests
             Extensions = new OrderedDictionary<string, object?>
             {
                 {"foo", "bar"},
-                {"bar", "foo"},
+                {"bar", "foo"}
             }
         };
 

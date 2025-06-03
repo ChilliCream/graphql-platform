@@ -8,8 +8,8 @@ namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonResultFormatter s_formatter = new(new() { Indented = false, });
-    private static readonly JsonResultFormatter s_formatterIndented = new(new() { Indented = true, });
+    private static readonly JsonResultFormatter s_formatter = new(new() { Indented = false });
+    private static readonly JsonResultFormatter s_formatterIndented = new(new() { Indented = true });
 
     public static void WriteTo(
         this IOperationResult result,

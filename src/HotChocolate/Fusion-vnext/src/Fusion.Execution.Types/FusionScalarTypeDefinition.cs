@@ -114,7 +114,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
             SyntaxKind.BooleanValue => ValueKind.HasFlag(ScalarValueKind.Boolean),
             SyntaxKind.ListValue => ValueKind.HasFlag(ScalarValueKind.List),
             SyntaxKind.ObjectValue => ValueKind.HasFlag(ScalarValueKind.Object),
-            _ => false,
+            _ => false
         };
     }
 

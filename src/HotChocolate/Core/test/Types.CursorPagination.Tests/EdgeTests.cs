@@ -79,7 +79,7 @@ public class EdgeTests
     public class Query
     {
         [UsePaging]
-        public IEnumerable<User> GetUsers() => new[] { new User(name: "Hello"), };
+        public IEnumerable<User> GetUsers() => new[] { new User(name: "Hello") };
     }
 
     [ExtendObjectType("UsersEdge")]

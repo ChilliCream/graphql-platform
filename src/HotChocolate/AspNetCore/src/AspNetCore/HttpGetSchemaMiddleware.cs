@@ -18,7 +18,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
-            default),
+            default)
     ];
 
     private readonly MiddlewareRoutingType _routing;
