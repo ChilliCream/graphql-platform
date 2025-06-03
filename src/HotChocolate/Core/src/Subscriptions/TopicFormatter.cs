@@ -44,7 +44,7 @@ internal sealed class TopicFormatter
         var hashSpan = hashBytes.AsSpan();
         if (bytesWritten < 16)
         {
-            hashSpan.Slice(0, bytesWritten);
+            hashSpan = hashSpan[..bytesWritten];
         }
 
         var topicString = Convert.ToHexString(hashSpan);
