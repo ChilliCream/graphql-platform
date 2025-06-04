@@ -31,5 +31,5 @@ public enum GraphQLExecutorEventType
     /// <summary>
     /// A request executor was evicted.
     /// </summary>
-    Evicted,
+    Evicted
 }

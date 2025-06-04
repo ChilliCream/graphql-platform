@@ -152,7 +152,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
         {
             _operationContext = operationContext;
             _scopedContextData = _scopedContextData.SetItem(DeferredResultId, taskId);
-            base.Reset();
+            Reset();
         }
     }
 }

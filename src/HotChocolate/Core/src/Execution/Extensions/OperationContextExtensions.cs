@@ -26,8 +26,8 @@ internal static class OperationContextExtensions
         }
         else
         {
-            var error = operationContext.ErrorHandler
-                .CreateUnexpectedError(exception)
+            var error = ErrorBuilder
+                .FromException(exception)
                 .SetPath(path)
                 .AddLocation(selection.SyntaxNode)
                 .Build();

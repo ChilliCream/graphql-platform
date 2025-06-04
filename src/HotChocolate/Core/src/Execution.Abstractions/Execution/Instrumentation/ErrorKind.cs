@@ -6,5 +6,7 @@ public enum ErrorKind
     SyntaxError,
     ValidationError,
     RequestError,
-    FieldError
+    FieldError,
+    SubscriptionEventError,
+    OtherError
 }
