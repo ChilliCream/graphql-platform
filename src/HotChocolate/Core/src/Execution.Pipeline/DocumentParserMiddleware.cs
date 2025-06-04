@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Pipeline.Properties;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 

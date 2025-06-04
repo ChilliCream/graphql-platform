@@ -1,0 +1,38 @@
+namespace HotChocolate.Execution.Pipeline;
+
+/// <summary>
+/// Provides common middleware configurations.
+/// </summary>
+public static class CommonMiddleware
+{
+    /// <summary>
+    /// Gets the middleware configuration for wrapping
+    /// the request execution in an instrumentation scope.
+    /// </summary>
+    public static RequestMiddlewareConfiguration Instrumentation
+        => InstrumentationMiddleware.Create();
+
+    /// <summary>
+    /// Gets the middleware configuration for catching unhandled exceptions.
+    /// </summary>
+    public static RequestMiddlewareConfiguration UnhandledExceptions
+        => ExceptionMiddleware.Create();
+
+    /// <summary>
+    /// Gets the middleware configuration for caching GraphQL operation documents.
+    /// </summary>
+    public static RequestMiddlewareConfiguration DocumentCache
+        => DocumentCacheMiddleware.Create();
+
+    /// <summary>
+    /// Gets the middleware configuration for parsing GraphQL operation documents.
+    /// </summary>
+    public static RequestMiddlewareConfiguration DocumentParser
+        => DocumentParserMiddleware.Create();
+
+    /// <summary>
+    /// Gets the middleware configuration for validating GraphQL operation documents.
+    /// </summary>
+    public static RequestMiddlewareConfiguration DocumentValidation
+        => DocumentValidationMiddleware.Create();
+}

@@ -472,7 +472,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(DocumentCacheMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.DocumentCache);
     }
 
     /// <summary>
@@ -489,7 +489,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(DocumentParserMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.DocumentParser);
     }
 
     /// <summary>
@@ -506,7 +506,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(DocumentValidationMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.DocumentValidation);
     }
 
     /// <summary>
@@ -523,7 +523,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(ExceptionMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.UnhandledExceptions);
     }
 
     /// <summary>
@@ -557,7 +557,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(InstrumentationMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.Instrumentation);
     }
 
     /// <summary>
@@ -661,7 +661,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(ReadPersistedOperationMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.ReadPersistedOperation);
     }
 
     public static IRequestExecutorBuilder UseAutomaticPersistedOperationNotFound(
@@ -695,7 +695,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(WritePersistedOperationMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.WritePersistedOperation);
     }
 
     public static IRequestExecutorBuilder UsePersistedOperationNotFound(
@@ -703,7 +703,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(PersistedOperationNotFoundMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.PersistedOperationNotFound);
     }
 
     public static IRequestExecutorBuilder UseOnlyPersistedOperationAllowed(
@@ -711,7 +711,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OnlyPersistedOperationsAllowedMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
     }
 
     public static IRequestExecutorBuilder UseDefaultPipeline(
@@ -768,30 +768,18 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
-    internal static void AddDefaultPipeline(this IList<RequestCoreMiddlewareConfiguration> pipeline)
+    internal static void AddDefaultPipeline(this IList<RequestMiddlewareConfiguration> pipeline)
     {
-        pipeline.Add(InstrumentationMiddleware.Create());
-        pipeline.Add(ExceptionMiddleware.Create());
+        pipeline.Add(CommonMiddleware.Instrumentation);
+        pipeline.Add(CommonMiddleware.UnhandledExceptions);
         pipeline.Add(TimeoutMiddleware.Create());
-        pipeline.Add(DocumentCacheMiddleware.Create());
-        pipeline.Add(DocumentParserMiddleware.Create());
-        pipeline.Add(DocumentValidationMiddleware.Create());
+        pipeline.Add(CommonMiddleware.DocumentCache);
+        pipeline.Add(CommonMiddleware.DocumentParser);
+        pipeline.Add(CommonMiddleware.DocumentValidation);
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
         pipeline.Add(SkipWarmupExecutionMiddleware.Create());
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(OperationExecutionMiddleware.Create());
-    }
-
-    internal static IRequestExecutorBuilder UseRequest(
-        this IRequestExecutorBuilder builder,
-        RequestCoreMiddlewareConfiguration configuration)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        return Configure(
-            builder,
-            options => options.Pipeline.Add(configuration));
     }
 }

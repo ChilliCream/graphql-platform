@@ -20,6 +20,9 @@ public sealed class FusionRequestContext : RequestContext
     /// <param name="requestServices">
     /// The GraphQL request service provider.
     /// </param>
+    /// <param name="executorVersion">
+    /// The executor version.
+    /// </param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="schema"/>, <paramref name="request"/> or
     /// <paramref name="requestServices"/> is <c>null</c>.
@@ -27,8 +30,9 @@ public sealed class FusionRequestContext : RequestContext
     public FusionRequestContext(
         FusionSchemaDefinition schema,
         IOperationRequest request,
-        IServiceProvider requestServices)
-        : base(schema, request, requestServices)
+        IServiceProvider requestServices,
+        ulong executorVersion)
+        : base(schema, request, requestServices, executorVersion)
     {
         Schema = schema;
     }
