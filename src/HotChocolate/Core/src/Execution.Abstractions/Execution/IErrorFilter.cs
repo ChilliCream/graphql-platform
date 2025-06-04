@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace HotChocolate.Execution;
 
 /// <summary>
 /// An error filter can handle and rewrite errors that occurred

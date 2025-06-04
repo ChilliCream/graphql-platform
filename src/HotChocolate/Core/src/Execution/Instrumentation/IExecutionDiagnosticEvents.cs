@@ -105,18 +105,6 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     IDisposable RunTask(IExecutionTask task);
 
     /// <summary>
-    /// Called for any errors reported on a <see cref="IExecutionTaskContext"/>
-    /// during task execution.
-    /// </summary>
-    /// <param name="task">
-    /// Execution engine tasks are things like executing a DataLoader.
-    /// </param>
-    /// <param name="error">
-    /// The error that occurred while running the execution task.
-    /// </param>
-    void TaskError(IExecutionTask task, IError error);
-
-    /// <summary>
     /// This event is called when the request execution pipeline scales
     /// the task processors up or down.
     /// </summary>

@@ -15,7 +15,7 @@ internal static class RequestClassMiddlewareFactory
             .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaName))!;
 
     private static readonly PropertyInfo s_requestServices =
-        typeof(IRequestContext)
+        typeof(RequestContext)
             .GetProperty(nameof(IRequestContext.Services))!;
 
     private static readonly PropertyInfo s_appServices =
@@ -43,7 +43,7 @@ internal static class RequestClassMiddlewareFactory
                     .Invoke(context, next);
 
             var compiled =
-                MiddlewareCompiler<TMiddleware>.CompileDelegate<IRequestContext>(
+                MiddlewareCompiler<TMiddleware>.CompileDelegate<RequestContext>(
                     (c, _) => CreateDelegateParameterHandlers(c, context.Options));
 
             return c => compiled(c, middleware);

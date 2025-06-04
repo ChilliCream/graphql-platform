@@ -36,5 +36,5 @@ public interface IOperationRequest : IExecutionRequest
     /// <summary>
     /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
-    GraphQLRequestFlags Flags { get; }
+    RequestFlags Flags { get; }
 }

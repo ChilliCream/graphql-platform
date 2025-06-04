@@ -40,9 +40,9 @@ internal sealed class OperationCacheMiddleware
             var addToCache = true;
             var operationInfo = context.GetOperationInfo();
 
-            operationInfo.OperationId ??= context.CreateCacheId();
+            operationInfo.Id ??= context.CreateCacheId();
 
-            if (_operationCache.TryGetOperation(operationInfo.OperationId, out var operation))
+            if (_operationCache.TryGetOperation(operationInfo.Id, out var operation))
             {
                 operationInfo.Operation = operation;
                 addToCache = false;
@@ -57,7 +57,7 @@ internal sealed class OperationCacheMiddleware
                 && documentInfo.IsValidated
                 && operationInfo.Operation is not null)
             {
-                _operationCache.TryAddOperation(operationInfo.OperationId, operationInfo.Operation);
+                _operationCache.TryAddOperation(operationInfo.Id, operationInfo.Operation);
                 _diagnosticEvents.AddedOperationToCache(context);
             }
         }
@@ -77,16 +77,16 @@ internal sealed class OperationCacheMiddleware
 
 public sealed class OperationInfo : RequestContextFeature
 {
-    public string? OperationId { get; set; }
-
-    public OperationDefinitionNode? OperationDefinition { get; set; }
+    public string? Id { get; set; }
 
     public IOperation? Operation { get; set; }
 
+    public OperationDefinitionNode? Definition { get; set; }
+
     public override void Reset()
     {
-        OperationId = null;
-        OperationDefinition = null;
+        Id = null;
+        Definition = null;
         Operation = null;
     }
 }

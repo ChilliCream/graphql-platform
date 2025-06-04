@@ -9,15 +9,18 @@ internal sealed partial class SubscriptionExecutor
 {
     private readonly ObjectPool<OperationContext> _operationContextPool;
     private readonly QueryExecutor _queryExecutor;
+    private readonly IErrorHandler _errorHandler;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
     public SubscriptionExecutor(
         ObjectPool<OperationContext> operationContextPool,
         QueryExecutor queryExecutor,
+        IErrorHandler errorHandler,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         _operationContextPool = operationContextPool;
         _queryExecutor = queryExecutor;
+        _errorHandler = errorHandler;
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -77,9 +80,7 @@ internal sealed partial class SubscriptionExecutor
         }
         catch (Exception ex)
         {
-            requestContext.Exception = ex;
-            var errorBuilder = requestContext.ErrorHandler.CreateUnexpectedError(ex);
-            var error = requestContext.ErrorHandler.Handle(errorBuilder.Build());
+            var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
 
             if (subscription is not null)
             {
@@ -89,14 +90,14 @@ internal sealed partial class SubscriptionExecutor
             return new OperationResult(null, Unwrap(error));
         }
 
-        IReadOnlyList<IError> Unwrap(IError error)
+        static IReadOnlyList<IError> Unwrap(IError error)
         {
             if (error is AggregateError aggregateError)
             {
                 return aggregateError.Errors;
             }
 
-            return new[] { error, };
+            return [error];
         }
     }
 }

@@ -44,7 +44,7 @@ public class RequestMiddlewareFactoryContext : IFeatureProvider
 
 
 public record RequestMiddlewareConfiguration(
-    GraphQLRequestMiddleware Middleware,
+    RequestMiddleware Middleware,
     string? Key = null);
 
 public sealed class SchemaServicesProviderAccessor

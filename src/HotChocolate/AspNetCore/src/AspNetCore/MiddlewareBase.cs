@@ -102,7 +102,7 @@ public class MiddlewareBase : IDisposable
             context.RequestAborted);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected GraphQLRequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
+    protected RequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
         => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 
     protected static async Task<IExecutionResult> ExecuteSingleAsync(
@@ -111,7 +111,7 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
-        GraphQLRequestFlags flags)
+        RequestFlags flags)
     {
         diagnosticEvents.StartSingleRequest(context, request);
 
@@ -135,7 +135,7 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
-        GraphQLRequestFlags flags,
+        RequestFlags flags,
         IReadOnlyList<string> operationNames)
     {
         diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
@@ -168,7 +168,7 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         IReadOnlyList<GraphQLRequest> requests,
-        GraphQLRequestFlags flags)
+        RequestFlags flags)
     {
         diagnosticEvents.StartBatchRequest(context, requests);
 

@@ -55,7 +55,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
-        GraphQLRequestFlags flags)
+        RequestFlags flags)
     {
         if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
@@ -123,7 +123,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <summary>
     /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
-    public GraphQLRequestFlags Flags { get; }
+    public RequestFlags Flags { get; }
 
     /// <summary>
     /// Creates a new request with the specified services.

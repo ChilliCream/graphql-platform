@@ -4,7 +4,7 @@ namespace HotChocolate.Execution;
 /// The GraphQL request flags allow limiting the GraphQL executor.
 /// </summary>
 [Flags]
-public enum GraphQLRequestFlags
+public enum RequestFlags
 {
     /// <summary>
     /// No flags are set.

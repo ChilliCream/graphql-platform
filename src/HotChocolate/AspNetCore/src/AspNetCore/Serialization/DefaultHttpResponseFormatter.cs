@@ -98,15 +98,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             : _graphqlResponseFormat;
     }
 
-    public GraphQLRequestFlags CreateRequestFlags(
+    public RequestFlags CreateRequestFlags(
         AcceptMediaType[] acceptMediaTypes)
     {
         if (acceptMediaTypes.Length == 0)
         {
-            return GraphQLRequestFlags.AllowLegacy;
+            return RequestFlags.AllowLegacy;
         }
 
-        var flags = GraphQLRequestFlags.None;
+        var flags = RequestFlags.None;
 
         ref var searchSpace = ref MemoryMarshal.GetReference(acceptMediaTypes.AsSpan());
 
@@ -115,9 +115,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var acceptMediaType = Unsafe.Add(ref searchSpace, i);
             flags |= CreateRequestFlags(acceptMediaType);
 
-            if (flags is GraphQLRequestFlags.AllowAll)
+            if (flags is RequestFlags.AllowAll)
             {
-                return GraphQLRequestFlags.AllowAll;
+                return RequestFlags.AllowAll;
             }
         }
 
@@ -125,27 +125,27 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected virtual GraphQLRequestFlags CreateRequestFlags(
+    protected virtual RequestFlags CreateRequestFlags(
         AcceptMediaType acceptMediaType)
     {
-        var flags = GraphQLRequestFlags.None;
+        var flags = RequestFlags.None;
 
         if (acceptMediaType.Kind is ApplicationGraphQL or ApplicationJson or AllApplication)
         {
-            flags |= GraphQLRequestFlags.AllowQuery;
-            flags |= GraphQLRequestFlags.AllowMutation;
+            flags |= RequestFlags.AllowQuery;
+            flags |= RequestFlags.AllowMutation;
         }
 
         if (acceptMediaType.Kind is MultiPartMixed or AllMultiPart)
         {
-            flags |= GraphQLRequestFlags.AllowQuery;
-            flags |= GraphQLRequestFlags.AllowMutation;
-            flags |= GraphQLRequestFlags.AllowStreams;
+            flags |= RequestFlags.AllowQuery;
+            flags |= RequestFlags.AllowMutation;
+            flags |= RequestFlags.AllowStreams;
         }
 
         if (acceptMediaType.Kind is EventStream or All)
         {
-            flags = GraphQLRequestFlags.AllowAll;
+            flags = RequestFlags.AllowAll;
         }
 
         return flags;

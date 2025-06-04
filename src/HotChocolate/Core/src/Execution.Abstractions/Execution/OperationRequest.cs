@@ -55,7 +55,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
-        GraphQLRequestFlags flags)
+        RequestFlags flags)
     {
         if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
@@ -123,7 +123,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <summary>
     /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
-    public GraphQLRequestFlags Flags { get; }
+    public RequestFlags Flags { get; }
 
     /// <summary>
     /// Creates a new request with the specified document.
@@ -332,7 +332,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified flags.
     /// </returns>
-    public OperationRequest WithFlags(GraphQLRequestFlags flags)
+    public OperationRequest WithFlags(RequestFlags flags)
         => new OperationRequest(
             Document,
             DocumentId,
@@ -390,7 +390,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? contextData = null,
         IFeatureCollection? features = null,
         IServiceProvider? services = null,
-        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
+        RequestFlags flags = RequestFlags.AllowAll)
     {
         if (OperationDocumentId.IsNullOrEmpty(documentId))
         {
@@ -455,7 +455,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? contextData = null,
         IFeatureCollection? features = null,
         IServiceProvider? services = null,
-        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
+        RequestFlags flags = RequestFlags.AllowAll)
         => FromId(
             new OperationDocumentId(documentId),
             documentHash,
@@ -509,7 +509,7 @@ public sealed class OperationRequest : IOperationRequest
         IReadOnlyDictionary<string, object?>? contextData = null,
         IFeatureCollection? features = null,
         IServiceProvider? services = null,
-        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
+        RequestFlags flags = RequestFlags.AllowAll)
         => new OperationRequest(
             new OperationDocumentSourceText(sourceText),
             null,

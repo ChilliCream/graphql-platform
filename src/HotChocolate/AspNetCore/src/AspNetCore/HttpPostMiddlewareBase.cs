@@ -6,7 +6,7 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
-using static HotChocolate.Execution.GraphQLRequestFlags;
+using static HotChocolate.Execution.RequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;

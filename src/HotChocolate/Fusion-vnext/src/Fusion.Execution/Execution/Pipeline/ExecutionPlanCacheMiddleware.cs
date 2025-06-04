@@ -48,7 +48,7 @@ public class ExecutionPlanCacheMiddleware(Cache<OperationPlan> cache)
         }
     }
 
-    public static GraphQLRequestMiddleware Create()
+    public static RequestMiddleware Create()
     {
         return static (factoryContext, next) =>
         {

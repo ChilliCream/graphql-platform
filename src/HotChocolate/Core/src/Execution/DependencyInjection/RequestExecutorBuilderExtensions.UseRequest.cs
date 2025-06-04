@@ -19,7 +19,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
-        RequestCoreMiddleware middleware,
+        RequestMiddleware middleware,
         string? key = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -27,7 +27,7 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.Pipeline.Add(new RequestCoreMiddlewareConfiguration(middleware, key)));
+            options => options.Pipeline.Add(new RequestMiddlewareConfiguration(middleware, key)));
     }
 
     /// <summary>

@@ -12,6 +12,6 @@ namespace HotChocolate.Execution;
 /// <returns>
 /// Returns a <see cref="RequestDelegate"/> that can process a GraphQL request.
 /// </returns>
-public delegate RequestDelegate GraphQLRequestMiddleware(
+public delegate RequestDelegate RequestMiddleware(
     RequestMiddlewareFactoryContext context,
     RequestDelegate next);

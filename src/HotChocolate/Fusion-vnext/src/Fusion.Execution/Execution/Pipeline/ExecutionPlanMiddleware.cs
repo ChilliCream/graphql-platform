@@ -56,7 +56,7 @@ public sealed class ExecutionPlanMiddleware
         }
     }
 
-    public static GraphQLRequestMiddleware Create()
+    public static RequestMiddleware Create()
     {
         return static (factoryContext, next) =>
         {

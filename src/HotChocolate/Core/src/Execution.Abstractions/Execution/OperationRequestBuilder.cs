@@ -20,7 +20,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     private Dictionary<string, object?>? _contextData;
     private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
     private IServiceProvider? _services;
-    private GraphQLRequestFlags _flags = GraphQLRequestFlags.AllowAll;
+    private RequestFlags _flags = RequestFlags.AllowAll;
     private IFeatureCollection? _features;
 
     /// <summary>
@@ -353,7 +353,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder SetFlags(GraphQLRequestFlags flags)
+    public OperationRequestBuilder SetFlags(RequestFlags flags)
     {
         _flags = flags;
         return this;
@@ -378,7 +378,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         _readOnlyContextData = null;
         _services = null;
         _features = null;
-        _flags = GraphQLRequestFlags.AllowAll;
+        _flags = RequestFlags.AllowAll;
         return this;
     }
 

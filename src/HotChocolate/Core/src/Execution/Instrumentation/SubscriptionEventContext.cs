@@ -22,8 +22,11 @@ public readonly ref struct SubscriptionEventContext
     /// </exception>
     public SubscriptionEventContext(ISubscription subscription, object payload)
     {
-        Subscription = subscription ?? throw new ArgumentNullException(nameof(subscription));
-        Payload = payload ?? throw new ArgumentNullException(nameof(payload));
+        ArgumentNullException.ThrowIfNull(subscription);
+        ArgumentNullException.ThrowIfNull(payload);
+
+        Subscription = subscription;
+        Payload = payload;
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation;
@@ -14,7 +15,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         _resolverListener = listeners.Where(t => t.EnableResolveFieldValue).ToArray();
     }
 
-    public IDisposable ExecuteRequest(IRequestContext context)
+    public IDisposable ExecuteRequest(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -26,15 +27,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void RequestError(IRequestContext context, Exception exception)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].RequestError(context, exception);
-        }
-    }
-
-    public IDisposable ParseDocument(IRequestContext context)
+    public IDisposable ParseDocument(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -46,15 +39,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void SyntaxError(IRequestContext context, IError error)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].SyntaxError(context, error);
-        }
-    }
-
-    public IDisposable ValidateDocument(IRequestContext context)
+    public IDisposable ValidateDocument(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -66,15 +51,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].ValidationErrors(context, errors);
-        }
-    }
-
-    public IDisposable AnalyzeOperationCost(IRequestContext context)
+    public IDisposable AnalyzeOperationCost(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -86,7 +63,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void OperationCost(IRequestContext context, double fieldCost, double typeCost)
+    public void OperationCost(RequestContext context, double fieldCost, double typeCost)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -94,7 +71,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public IDisposable CoerceVariables(IRequestContext context)
+    public IDisposable CoerceVariables(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -106,7 +83,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable CompileOperation(IRequestContext context)
+    public IDisposable CompileOperation(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -118,7 +95,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable ExecuteOperation(IRequestContext context)
+    public IDisposable ExecuteOperation(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -171,22 +148,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void ResolverError(IMiddlewareContext context, IError error)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].ResolverError(context, error);
-        }
-    }
-
-    public void ResolverError(IRequestContext context, ISelection selection, IError error)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].ResolverError(context, selection, error);
-        }
-    }
-
     public IDisposable RunTask(IExecutionTask task)
     {
         if (_listeners.Length == 0)
@@ -204,15 +165,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void TaskError(IExecutionTask task, IError error)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].TaskError(task, error);
-        }
-    }
-
-    public void StartProcessing(IRequestContext context)
+    public void StartProcessing(RequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -220,7 +173,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void StopProcessing(IRequestContext context)
+    public void StopProcessing(RequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -228,19 +181,19 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public IDisposable ExecuteSubscription(ISubscription subscription)
+    public IDisposable ExecuteSubscription(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
         for (var i = 0; i < _listeners.Length; i++)
         {
-            scopes[i] = _listeners[i].ExecuteSubscription(subscription);
+            scopes[i] = _listeners[i].ExecuteSubscription(context);
         }
 
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable OnSubscriptionEvent(SubscriptionEventContext context)
+    public IDisposable OnSubscriptionEvent(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -252,39 +205,15 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void SubscriptionEventResult(SubscriptionEventContext context, IOperationResult result)
+    public void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
-            _listeners[i].SubscriptionEventResult(context, result);
+            _listeners[i].ExecutionError(context, kind, errors);
         }
     }
 
-    public void SubscriptionEventError(SubscriptionEventContext context, Exception exception)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].SubscriptionEventError(context, exception);
-        }
-    }
-
-    public void SubscriptionEventError(ISubscription subscription, Exception exception)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].SubscriptionEventError(subscription, exception);
-        }
-    }
-
-    public void SubscriptionTransportError(ISubscription subscription, Exception exception)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].SubscriptionTransportError(subscription, exception);
-        }
-    }
-
-    public void AddedDocumentToCache(IRequestContext context)
+    public void AddedDocumentToCache(RequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -292,7 +221,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void RetrievedDocumentFromCache(IRequestContext context)
+    public void RetrievedDocumentFromCache(RequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -300,7 +229,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void RetrievedDocumentFromStorage(IRequestContext context)
+    public void RetrievedDocumentFromStorage(RequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -309,7 +238,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
     }
 
     public void DocumentNotFoundInStorage(
-        IRequestContext context,
+        RequestContext context,
         OperationDocumentId documentId)
     {
         for (var i = 0; i < _listeners.Length; i++)
@@ -318,7 +247,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void AddedOperationToCache(IRequestContext context)
+    public void AddedOperationToCache(RequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -326,7 +255,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void RetrievedOperationFromCache(IRequestContext context)
+    public void RetrievedOperationFromCache(RequestContext context)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -334,7 +263,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public IDisposable DispatchBatch(IRequestContext context)
+    public IDisposable DispatchBatch(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
@@ -346,7 +275,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void ExecutorCreated(string name, IRequestExecutor executor)
+    public void ExecutorCreated(string name, IGraphQLExecutor executor)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -354,7 +283,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void ExecutorEvicted(string name, IRequestExecutor executor)
+    public void ExecutorEvicted(string name, IGraphQLExecutor executor)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -362,15 +291,10 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    private sealed class AggregateActivityScope : IDisposable
+    private sealed class AggregateActivityScope(IDisposable[] scopes) : IDisposable
     {
-        private readonly IDisposable[] _scopes;
+        private readonly IDisposable[] _scopes = scopes;
         private bool _disposed;
-
-        public AggregateActivityScope(IDisposable[] scopes)
-        {
-            _scopes = scopes;
-        }
 
         public void Dispose()
         {
