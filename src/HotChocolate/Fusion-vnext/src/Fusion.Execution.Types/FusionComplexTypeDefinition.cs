@@ -13,8 +13,6 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 {
     private FusionDirectiveCollection _directives = default!;
     private FusionInterfaceTypeDefinitionCollection _implements = default!;
-    private ISourceComplexTypeCollection<ISourceComplexType> _sources = default!;
-    private IFeatureCollection _features = FeatureCollection.Empty;
     private bool _completed;
 
     protected FusionComplexTypeDefinition(
@@ -87,18 +85,18 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
     /// </value>
     public ISourceComplexTypeCollection<ISourceComplexType> Sources
     {
-        get => _sources;
+        get;
         private protected set
         {
             ThrowHelper.EnsureNotSealed(_completed);
 
-            _sources = value;
+            field = value;
         }
-    }
+    } = default!;
 
     public IFeatureCollection Features
     {
-        get => _features;
+        get;
         private protected set
         {
             if (_completed)
@@ -107,9 +105,9 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
                     "The type definition is sealed and cannot be modified.");
             }
 
-            _features = value;
+            field = value;
         }
-    }
+    } = FeatureCollection.Empty;
 
     private protected void Complete()
     {

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -14,9 +15,7 @@ public class MutableScalarTypeDefinition(string name)
     , IMutableTypeDefinition
     , IFeatureProvider
 {
-    private string _name = name.EnsureGraphQLName();
     private DirectiveCollection? _directives;
-    private IFeatureCollection? _features;
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Scalar;
@@ -24,9 +23,9 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc cref="IMutableTypeDefinition.Name" />
     public string Name
     {
-        get => _name;
-        set => _name = value.EnsureGraphQLName();
-    }
+        get;
+        set => field = value.EnsureGraphQLName();
+    } = name.EnsureGraphQLName();
 
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
@@ -46,8 +45,9 @@ public class MutableScalarTypeDefinition(string name)
         => _directives ?? EmptyCollections.Directives;
 
     /// <inheritdoc />
+    [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
-        => _features ??= new FeatureCollection();
+        => field ??= new FeatureCollection();
 
     /// <inheritdoc />
     public bool Equals(IType? other)

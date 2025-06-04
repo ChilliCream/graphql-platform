@@ -43,7 +43,7 @@ public class MutableInputFieldDefinition
     /// </summary>
     public ITypeSystemMember? DeclaringMember
     {
-        get => field;
+        get;
         set
         {
             if (value is not MutableInputObjectTypeDefinition

@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL output field definition.
 /// </summary>
-public class MutableOutputFieldDefinition
+public class MutableOutputFieldDefinition(string name, IOutputType? type = null)
     : INamedTypeSystemMemberDefinition<MutableOutputFieldDefinition>
     , IOutputFieldDefinition
     , IMutableFieldDefinition
@@ -19,25 +19,13 @@ public class MutableOutputFieldDefinition
     private string? _deprecationReason;
     private DirectiveCollection? _directives;
     private InputFieldDefinitionCollection? _arguments;
-    private IOutputType _type;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MutableOutputFieldDefinition"/> class.
-    /// </summary>
-    /// <param name="name">The name of the field.</param>
-    /// <param name="type">The type of the field.</param>
-    public MutableOutputFieldDefinition(string name, IOutputType? type = null)
-    {
-        Name = name;
-        _type = type ?? NotSetType.Default;
-    }
 
     /// <inheritdoc cref="IMutableFieldDefinition.Name" />
     public string Name
     {
-        get => field;
+        get;
         set => field = value.EnsureGraphQLName();
-    }
+    } = name;
 
     /// <inheritdoc cref="IMutableFieldDefinition.Description" />
     public string? Description { get; set; }
@@ -119,9 +107,9 @@ public class MutableOutputFieldDefinition
     /// </value>
     public IOutputType Type
     {
-        get => _type;
-        set => _type = value.ExpectOutputType();
-    }
+        get;
+        set => field = value.ExpectOutputType();
+    } = type ?? NotSetType.Default;
 
     public FieldFlags Flags { get; set; }
 
