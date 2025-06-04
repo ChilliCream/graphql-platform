@@ -7,8 +7,7 @@ internal class VariableValueCollection(
     Dictionary<string, VariableValueOrLiteral> coercedValues)
     : IVariableValueCollection
 {
-    public static VariableValueCollection Empty { get; } =
-        new(new Dictionary<string, VariableValueOrLiteral>());
+    public static VariableValueCollection Empty { get; } = new([]);
 
     public T? GetVariable<T>(string name)
     {

@@ -14,7 +14,7 @@ public class Brand
     [MaxLength(100)]
     public string? DisplayName { get; set; }
 
-    public ICollection<Product> Products { get; } = new List<Product>();
+    public ICollection<Product> Products { get; } = [];
 
     public BrandDetails Details { get; set; } = default!;
 }

@@ -794,7 +794,7 @@ public class IntegrationTests
         [UseOffsetPaging]
         public ImmutableArray<int> Test()
         {
-            return ImmutableArray<int>.Empty;
+            return [];
         }
     }
 }
@@ -854,5 +854,5 @@ public class CustomCollectionSegmentQuery
 {
     [UseOffsetPaging(IncludeTotalCount = true)]
     public CollectionSegment<string> GetFoos(int? first, string? after)
-        => new(new[] { "asd", "asd2" }, new CollectionSegmentInfo(false, false), 2);
+        => new(["asd", "asd2"], new CollectionSegmentInfo(false, false), 2);
 }

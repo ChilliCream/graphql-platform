@@ -13,7 +13,7 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 public sealed class OperationManager : IOperationManager
 {
     private readonly ReaderWriterLockSlim _lock = new();
-    private readonly Dictionary<string, IOperationSession> _subs = new();
+    private readonly Dictionary<string, IOperationSession> _subs = [];
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _cancellationToken;
     private readonly ISocketSession _socketSession;

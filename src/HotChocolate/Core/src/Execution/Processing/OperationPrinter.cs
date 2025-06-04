@@ -230,7 +230,7 @@ internal static class OperationPrinter
         private sealed class GlobalState
         {
             public int FragmentId;
-            public readonly Dictionary<int, string> FragmentNames = new();
+            public readonly Dictionary<int, string> FragmentNames = [];
         }
     }
 }

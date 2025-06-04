@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeRegistry
 {
-    private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = new();
+    private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = [];
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);

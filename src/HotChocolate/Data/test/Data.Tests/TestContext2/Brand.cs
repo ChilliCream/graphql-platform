@@ -15,7 +15,7 @@ public class Brand
 
     public string? AlwaysNull { get; set; }
 
-    public ICollection<Product> Products { get; } = new List<Product>();
+    public ICollection<Product> Products { get; } = [];
 
     public BrandDetails BrandDetails { get; set; } = default!;
 }

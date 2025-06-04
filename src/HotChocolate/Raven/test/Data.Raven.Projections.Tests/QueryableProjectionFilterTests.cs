@@ -16,10 +16,7 @@ public class QueryableProjectionFilterTests
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }]
             }
         },
         new()
@@ -31,10 +28,7 @@ public class QueryableProjectionFilterTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }]
             }
         }
     ];
@@ -49,10 +43,7 @@ public class QueryableProjectionFilterTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12 } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12 } }]
             }
         },
         new()
@@ -63,10 +54,7 @@ public class QueryableProjectionFilterTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } }
-                }
+                ObjectArray = [new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } }]
             }
         },
         new()
@@ -77,10 +65,7 @@ public class QueryableProjectionFilterTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } }
-                }
+                ObjectArray = [new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } }]
             }
         },
         new()

@@ -15,8 +15,8 @@ public class FlagsEnumInterceptor : TypeInterceptor
 {
     private const string FlagNameAddition = "Flags";
 
-    private readonly Dictionary<Type, string> _outputTypeCache = new();
-    private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = new();
+    private readonly Dictionary<Type, string> _outputTypeCache = [];
+    private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = [];
     private INamingConventions _namingConventions = default!;
     private TypeInitializer _typeInitializer = default!;
 

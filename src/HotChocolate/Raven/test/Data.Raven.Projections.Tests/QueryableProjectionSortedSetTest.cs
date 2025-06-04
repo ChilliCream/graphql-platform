@@ -20,10 +20,7 @@ public class QueryableProjectionSortedSetTests
                     {
                         Foo = new FooDeep { BarShort = 12, BarString = "a" }
                     },
-                ObjectSet = new SortedSet<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
+                ObjectSet = [new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }]
             }
         },
         new()
@@ -39,10 +36,7 @@ public class QueryableProjectionSortedSetTests
                     {
                         Foo = new FooDeep { BarShort = 12, BarString = "d" }
                     },
-                ObjectSet = new SortedSet<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
+                ObjectSet = [new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }]
             }
         }
     ];

@@ -10,8 +10,11 @@ internal static class IntrospectionFormatter
 {
     public static DocumentNode Format(IntrospectionResult result)
     {
-        var typeDefinitions = new List<IDefinitionNode>();
-        typeDefinitions.Add(CreateSchema(result.Data!.Schema));
+        var typeDefinitions = new List<IDefinitionNode>
+        {
+            CreateSchema(result.Data!.Schema)
+        };
+
         typeDefinitions.AddRange(CreateTypes(result.Data.Schema.Types));
 
         foreach (var directive in result.Data.Schema.Directives)

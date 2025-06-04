@@ -33,8 +33,7 @@ public class SortEnumTypeDescriptor
 
     protected internal override SortEnumTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<SortEnumValueDescriptor> Values { get; } =
-        new List<SortEnumValueDescriptor>();
+    protected ICollection<SortEnumValueDescriptor> Values { get; } = [];
 
     protected override void OnCreateConfiguration(
         SortEnumTypeConfiguration configuration)

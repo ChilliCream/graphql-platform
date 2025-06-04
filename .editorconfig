@@ -166,8 +166,25 @@ dotnet_diagnostic.CA1511.severity = warning
 dotnet_diagnostic.CA1512.severity = warning
 # Use ObjectDisposedException throw helper.
 dotnet_diagnostic.CA1513.severity = warning
+# Use collection initializers or expressions.
+dotnet_diagnostic.IDE0028.severity = warning
 # Use range operator.
 dotnet_diagnostic.IDE0057.severity = warning
+# Use collection expression for array.
+dotnet_diagnostic.IDE0300.severity = warning
+# Use collection expression for empty.
+dotnet_diagnostic.IDE0301.severity = warning
+# Use collection expression for stackalloc.
+dotnet_diagnostic.IDE0302.severity = warning
+# Use collection expression for Create().
+dotnet_diagnostic.IDE0303.severity = warning
+# Use collection expression for builder.
+dotnet_diagnostic.IDE0304.severity = warning
+# Use collection expression for fluent.
+dotnet_diagnostic.IDE0305.severity = silent # see https://github.com/dotnet/roslyn/issues/70833
+# Use collection expression for new.
+dotnet_diagnostic.IDE0306.severity = warning
+dotnet_style_prefer_collection_expression = when_types_exactly_match
 # Add/remove trailing comma.
 dotnet_diagnostic.RCS1260.severity = warning
 roslynator_trailing_comma_style = omit

@@ -24,7 +24,7 @@ internal sealed partial class AuthorizationTypeInterceptor
         /// <summary>
         /// Gets a lookup table from abstract types to concrete types that need authorization.
         /// </summary>
-        public Dictionary<TypeReference, List<TypeReference>> AbstractToConcrete { get; } = new();
+        public Dictionary<TypeReference, List<TypeReference>> AbstractToConcrete { get; } = [];
 
         /// <summary>
         /// Gets a helper queue for processing types.

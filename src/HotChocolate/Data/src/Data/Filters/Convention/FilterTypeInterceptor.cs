@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters;
 
 public sealed class FilterTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, IFilterConvention> _conventions = new();
+    private readonly Dictionary<string, IFilterConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,

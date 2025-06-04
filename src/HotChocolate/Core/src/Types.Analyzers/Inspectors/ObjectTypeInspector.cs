@@ -84,7 +84,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                         classSymbol.Name,
                         member,
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty,
+                        [],
                         member.GetMemberBindings());
                 }
             }
@@ -103,7 +103,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                 nodeResolver,
                 possibleType,
                 i == 0
-                    ? ImmutableArray<Resolver>.Empty
+                    ? []
                     : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
             if (diagnostics.Length > 0)
@@ -118,7 +118,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             operationType!.Value,
             possibleType,
             i == 0
-                ? ImmutableArray<Resolver>.Empty
+                ? []
                 : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
         if (diagnostics.Length > 0)

@@ -23,5 +23,5 @@ public abstract class ProjectionVisitorContext<T>
 
     public Stack<IType> Types { get; } = new Stack<IType>();
 
-    public IList<IError> Errors { get; } = new List<IError>();
+    public IList<IError> Errors { get; } = [];
 }

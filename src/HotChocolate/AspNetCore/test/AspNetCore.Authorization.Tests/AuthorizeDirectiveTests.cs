@@ -12,9 +12,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        var authorizeDirective = new AuthorizeDirective(
-            null,
-            new[] { "a", "b" });
+        var authorizeDirective = new AuthorizeDirective(null, ["a", "b"]);
 
         // assert
         Assert.Null(authorizeDirective.Policy);
@@ -69,8 +67,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        var authorizeDirective = new AuthorizeDirective(
-            new[] { "a", "b" });
+        var authorizeDirective = new AuthorizeDirective(["a", "b"]);
 
         // assert
         Assert.Null(authorizeDirective.Policy);
@@ -84,8 +81,7 @@ public class AuthorizeDirectiveTests
     public void CacheKey_Policy_NoRoles()
     {
         // arrange
-        var authorizeDirective = new AuthorizeDirective(
-            policy: "policy");
+        var authorizeDirective = new AuthorizeDirective(policy: "policy");
 
         // act
         var cacheKey = authorizeDirective.GetPolicyCacheKey();

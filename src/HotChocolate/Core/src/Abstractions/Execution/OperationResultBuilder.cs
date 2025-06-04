@@ -56,14 +56,14 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddExtension(string key, object? data)
     {
-        _extensionData ??= new ExtensionData();
+        _extensionData ??= [];
         _extensionData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetExtension(string key, object? data)
     {
-        _extensionData ??= new ExtensionData();
+        _extensionData ??= [];
         _extensionData[key] = data;
         return this;
     }
@@ -76,7 +76,7 @@ public sealed class OperationResultBuilder
         }
         else if (extensions is not null)
         {
-            _extensionData = new ExtensionData(extensions);
+            _extensionData = [.. extensions];
         }
         else
         {
@@ -87,14 +87,14 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddContextData(string key, object? data)
     {
-        _contextData ??= new ExtensionData();
+        _contextData ??= [];
         _contextData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetContextData(string key, object? data)
     {
-        _contextData ??= new ExtensionData();
+        _contextData ??= [];
         _contextData[key] = data;
         return this;
     }
@@ -107,7 +107,7 @@ public sealed class OperationResultBuilder
         }
         else if (contextData is not null)
         {
-            _contextData = new ExtensionData(contextData);
+            _contextData = [.. contextData];
         }
         else
         {
@@ -182,20 +182,20 @@ public sealed class OperationResultBuilder
 
         if (result.Extensions is ExtensionData ext)
         {
-            builder._extensionData = new ExtensionData(ext);
+            builder._extensionData = [.. ext];
         }
         else if (result.Extensions is not null)
         {
-            builder._extensionData = new ExtensionData(result.Extensions);
+            builder._extensionData = [.. result.Extensions];
         }
 
         if (result.ContextData is ExtensionData cd)
         {
-            builder._contextData = new ExtensionData(cd);
+            builder._contextData = [.. cd];
         }
         else if (result.ContextData is not null)
         {
-            builder._contextData = new ExtensionData(result.ContextData);
+            builder._contextData = [.. result.ContextData];
         }
 
         builder._label = result.Label;

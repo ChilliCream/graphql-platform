@@ -83,7 +83,7 @@ public class FieldResultTests
     [Fact]
     public void Union_1_Errors_Empty()
     {
-        void Error() => new FieldResult<string>(Array.Empty<object>());
+        void Error() => new FieldResult<string>([]);
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -236,7 +236,7 @@ public class FieldResultTests
     [Fact]
     public void Union_2_Errors_Empty()
     {
-        void Error() => new FieldResult<string, ErrorObj1>(Array.Empty<ErrorObj1>());
+        void Error() => new FieldResult<string, ErrorObj1>([]);
 
         Assert.Throws<ArgumentException>(Error);
     }

@@ -16,10 +16,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
-                }
+                ObjectArray = [new() { Foo = new Foo { BarShort = 12, BarString = "a" } }]
             }
         },
         new Bar
@@ -31,8 +28,8 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
@@ -41,7 +38,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                             BarShort = 14, BarString = "d"
                         }
                     }
-                }
+                ]
             }
         },
         new Bar
@@ -69,8 +66,8 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 //ScalarArray = new[] { "c", "d", "a" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -79,7 +76,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                             BarShort = 12
                         }
                     }
-                }
+                ]
             }
         },
         new BarNullable
@@ -91,8 +88,8 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -101,7 +98,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                             BarShort = null
                         }
                     }
-                }
+                ]
             }
         },
         new BarNullable
@@ -113,8 +110,8 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -123,7 +120,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                             BarShort = 14
                         }
                     }
-                }
+                ]
             }
         },
         new BarNullable

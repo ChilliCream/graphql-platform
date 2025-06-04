@@ -562,7 +562,7 @@ public class CodeFirstTests
 
         public Task<IEnumerable<string>> GetNames()
         {
-            return Task.FromResult<IEnumerable<string>>(new[] { "a", "b" });
+            return Task.FromResult<IEnumerable<string>>(["a", "b"]);
         }
     }
 

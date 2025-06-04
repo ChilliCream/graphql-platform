@@ -123,7 +123,7 @@ internal static class RequiredDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<RequireDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

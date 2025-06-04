@@ -49,8 +49,8 @@ public class FilterAttributeTests
     public class Query5
     {
         [UseFiltering<FooFilterInput>]
-        public IEnumerable<Foo> Foos { get; } = new[]
-        {
+        public IEnumerable<Foo> Foos { get; } =
+        [
             new Foo { Bar = "aa", Baz = 1, Qux = 1 },
             new Foo { Bar = "ba", Baz = 1 },
             new Foo { Bar = "ca", Baz = 2 },
@@ -58,14 +58,14 @@ public class FilterAttributeTests
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
             new Foo { Bar = null!, Baz = 0 }
-        };
+        ];
     }
 
     public class Query1
     {
         [UseFiltering]
-        public IEnumerable<Foo> Foos { get; } = new[]
-        {
+        public IEnumerable<Foo> Foos { get; } =
+        [
             new Foo { Bar = "aa", Baz = 1, Qux = 1 },
             new Foo { Bar = "ba", Baz = 1 },
             new Foo { Bar = "ca", Baz = 2 },
@@ -73,14 +73,14 @@ public class FilterAttributeTests
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
             new Foo { Bar = null!, Baz = 0 }
-        };
+        ];
     }
 
     public class Query2
     {
         [UseFiltering(Type = typeof(FooFilterInput))]
-        public IEnumerable<Foo> Foos { get; } = new[]
-        {
+        public IEnumerable<Foo> Foos { get; } =
+        [
             new Foo { Bar = "aa", Baz = 1, Qux = 1 },
             new Foo { Bar = "ba", Baz = 1 },
             new Foo { Bar = "ca", Baz = 2 },
@@ -88,14 +88,14 @@ public class FilterAttributeTests
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
             new Foo { Bar = null!, Baz = 0 }
-        };
+        ];
     }
 
     public class Query3
     {
         [UseFiltering(typeof(FooFilterInput))]
-        public IEnumerable<Foo> Foos { get; } = new[]
-        {
+        public IEnumerable<Foo> Foos { get; } =
+        [
             new Foo { Bar = "aa", Baz = 1, Qux = 1 },
             new Foo { Bar = "ba", Baz = 1 },
             new Foo { Bar = "ca", Baz = 2 },
@@ -103,20 +103,20 @@ public class FilterAttributeTests
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
             new Foo { Bar = null!, Baz = 0 }
-        };
+        ];
     }
 
     public class Query4
     {
         [UseFiltering]
-        public IEnumerable<Bar> Bars { get; } = new[]
-        {
+        public IEnumerable<Bar> Bars { get; } =
+        [
             new Bar { Baz = 1 },
             new Bar { Baz = 2 },
             new Bar { Baz = 2 },
             new Bar { Baz = 2 },
             new Bar { Baz = 2 }
-        };
+        ];
     }
 
     public class FooFilterInput : FilterInputType<Foo>

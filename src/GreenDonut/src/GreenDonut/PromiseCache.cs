@@ -13,7 +13,7 @@ public sealed class PromiseCache : IPromiseCache
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<PromiseCacheKey, Entry> _map = new();
     private readonly ConcurrentDictionary<Type, ImmutableArray<Subscription>> _subscriptions = new();
-    private readonly List<IPromise> _promises = new();
+    private readonly List<IPromise> _promises = [];
     private readonly int _size;
     private readonly int _order;
     private List<(PromiseCacheKey? Key, IPromise Promise)>? _buffer;
@@ -233,7 +233,7 @@ public sealed class PromiseCache : IPromiseCache
 
         _subscriptions.AddOrUpdate(
             type,
-            _ => ImmutableArray.Create<Subscription>(subscription),
+            _ => [subscription],
             (_, list) => list.Add(subscription));
 
         lock (_promises)
@@ -463,7 +463,7 @@ public sealed class PromiseCache : IPromiseCache
             {
                 subscriptions.AddOrUpdate(
                     type,
-                    _ => ImmutableArray.Create(this),
+                    _ => [this],
                     (_, list) => list.Remove(this));
 
                 _disposed = true;

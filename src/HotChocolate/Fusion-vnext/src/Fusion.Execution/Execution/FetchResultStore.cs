@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Execution;
 // we must make this thread-safe
 public sealed class FetchResultStore
 {
-    private readonly Dictionary<SelectionPath, List<FetchResult>> _resultsBySelectionPath = new();
+    private readonly Dictionary<SelectionPath, List<FetchResult>> _resultsBySelectionPath = [];
     private readonly HashSet<SelectionPath> _selectionPaths = [];
 
     public void AddResult(FetchResult result)
@@ -18,7 +18,7 @@ public sealed class FetchResultStore
 
         if(!_resultsBySelectionPath.TryGetValue(result.Target, out var results))
         {
-            results = new List<FetchResult>();
+            results = [];
             _resultsBySelectionPath.Add(result.Target, results);
         }
 

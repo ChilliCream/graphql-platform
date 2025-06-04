@@ -6,7 +6,7 @@ public sealed class InterfaceTypeDefinitionCollection
     : IList<MutableInterfaceTypeDefinition>
     , IReadOnlyInterfaceTypeDefinitionCollection
 {
-    private readonly List<MutableInterfaceTypeDefinition> _interfaces = new();
+    private readonly List<MutableInterfaceTypeDefinition> _interfaces = [];
 
     public int Count => _interfaces.Count;
 

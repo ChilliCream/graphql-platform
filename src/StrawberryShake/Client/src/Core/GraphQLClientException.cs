@@ -32,7 +32,7 @@ public class GraphQLClientException : Exception
         ArgumentNullException.ThrowIfNull(error);
 
         Message = error.Message;
-        Errors = new[] { error };
+        Errors = [error];
     }
 
     /// <summary>

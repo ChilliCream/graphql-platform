@@ -14,48 +14,48 @@ public class MongoDbFilterVisitorListTests
     [
         new()
         {
-            FooNested = new[]
-            {
+            FooNested =
+            [
                 new FooNested { Bar = "a" },
                 new FooNested { Bar = "a" },
                 new FooNested { Bar = "a" }
-            }
+            ]
         },
         new()
         {
-            FooNested = new[]
-            {
+            FooNested =
+            [
                 new FooNested { Bar = "c" },
                 new FooNested { Bar = "a" },
                 new FooNested { Bar = "a" }
-            }
+            ]
         },
         new()
         {
-            FooNested = new[]
-            {
+            FooNested =
+            [
                 new FooNested { Bar = "a" },
                 new FooNested { Bar = "d" },
                 new FooNested { Bar = "b" }
-            }
+            ]
         },
         new()
         {
-            FooNested = new[]
-            {
+            FooNested =
+            [
                 new FooNested { Bar = "c" },
                 new FooNested { Bar = "d" },
                 new FooNested { Bar = "b" }
-            }
+            ]
         },
         new()
         {
-            FooNested = new[]
-            {
+            FooNested =
+            [
                 new FooNested { Bar = null },
                 new FooNested { Bar = "d" },
                 new FooNested { Bar = "b" }
-            }
+            ]
         },
         new() { FooNested = null },
         new() { FooNested = Array.Empty<FooNested>() }
@@ -65,48 +65,48 @@ public class MongoDbFilterVisitorListTests
     [
         new()
         {
-            Bar = new[]
-            {
+            Bar =
+            [
                 "a",
                 "a",
                 "a"
-            }
+            ]
         },
         new()
         {
-            Bar = new[]
-            {
+            Bar =
+            [
                 "c",
                 "a",
                 "a"
-            }
+            ]
         },
         new()
         {
-            Bar = new[]
-            {
+            Bar =
+            [
                 "a",
                 "d",
                 "b"
-            }
+            ]
         },
         new()
         {
-            Bar = new[]
-            {
+            Bar =
+            [
                 "c",
                 "d",
                 "b"
-            }
+            ]
         },
         new()
         {
-            Bar = new[]
-            {
+            Bar =
+            [
                 null,
                 "d",
                 "b"
-            }
+            ]
         },
         new() { Bar = null },
         new() { Bar = Array.Empty<string>() }

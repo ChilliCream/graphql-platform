@@ -39,7 +39,7 @@ internal static class HeaderUtilities
 
             if (count == 0)
             {
-                return new AcceptHeaderResult(Array.Empty<AcceptMediaType>());
+                return new AcceptHeaderResult([]);
             }
 
             string[] innerArray;
@@ -91,7 +91,7 @@ MULTI_VALUES:
             return new AcceptHeaderResult(parsedValues);
         }
 
-        return new AcceptHeaderResult(Array.Empty<AcceptMediaType>());
+        return new AcceptHeaderResult([]);
     }
 
     private static bool TryParseMediaType(string s, out AcceptMediaType value)

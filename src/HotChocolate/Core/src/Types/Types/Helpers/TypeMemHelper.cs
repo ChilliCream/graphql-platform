@@ -133,8 +133,7 @@ internal static class TypeMemHelper
     }
 
     public static Dictionary<ParameterInfo, string> RentArgumentNameMap()
-        => Interlocked.Exchange(ref s_argumentNameMap, null) ??
-            new Dictionary<ParameterInfo, string>();
+        => Interlocked.Exchange(ref s_argumentNameMap, null) ?? [];
 
     public static void Return(Dictionary<ParameterInfo, string> map)
     {

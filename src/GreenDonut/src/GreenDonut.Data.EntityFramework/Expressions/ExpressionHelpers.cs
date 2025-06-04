@@ -370,8 +370,8 @@ internal static class ExpressionHelpers
 
     private sealed class OrderByRemovalRewriter : ExpressionVisitor
     {
-        private readonly List<LambdaExpression> _orderExpressions = new();
-        private readonly List<string> _orderMethods = new();
+        private readonly List<LambdaExpression> _orderExpressions = [];
+        private readonly List<string> _orderMethods = [];
         private bool _insideSelectProjection;
 
         public (Expression, List<LambdaExpression>, List<string>) Rewrite(Expression expression)

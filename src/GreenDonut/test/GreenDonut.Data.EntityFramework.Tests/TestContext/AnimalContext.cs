@@ -37,7 +37,7 @@ public class Owner
     [MaxLength(100)]
     public required string Name { get; set; }
 
-    public List<Animal> Pets { get; set; } = new();
+    public List<Animal> Pets { get; set; } = [];
 }
 
 public abstract class Animal

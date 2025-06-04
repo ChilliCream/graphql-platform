@@ -90,7 +90,7 @@ public sealed class EntityResolverDescriptor<TEntity>
                 method,
                 sourceType: typeof(object),
                 resolverType: method.DeclaringType ?? typeof(object),
-                parameterExpressionBuilders: new IParameterExpressionBuilder[] { argumentBuilder });
+                parameterExpressionBuilders: [argumentBuilder]);
 
         return ResolveReference(resolver.Resolver!, argumentBuilder.Required);
     }

@@ -108,7 +108,7 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                             name,
                             property,
                             ResolverResultKind.Pure,
-                            ImmutableArray<ResolverParameter>.Empty,
+                            [],
                             ObjectTypeInspector.GetMemberBindings(member),
                             flags: flags));
                     break;

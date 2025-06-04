@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeReferenceResolver
 {
-    private readonly Dictionary<TypeId, IType> _typeCache = new();
+    private readonly Dictionary<TypeId, IType> _typeCache = [];
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
