@@ -127,7 +127,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 result = OperationResultBuilder.CreateError(error);
                 DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
@@ -241,7 +241,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         catch (Exception ex)
         {
             statusCode = HttpStatusCode.InternalServerError;
-            var error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = ErrorBuilder.FromException(ex).Build();
             result = OperationResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
         }

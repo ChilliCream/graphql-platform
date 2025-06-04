@@ -179,7 +179,7 @@ internal static class ErrorHelper
                 .Build(),
             new Dictionary<string, object?>
             {
-                { WellKnownContextData.ValidationErrors, null }
+                { ExecutionContextData.ValidationErrors, null }
             });
 
     public static IOperationResult RequestTimeout(TimeSpan timeout) =>
@@ -196,12 +196,5 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path)
             .AddLocation(selection)
-            .Build();
-
-    public static IError ReadPersistedOperationMiddleware_PersistedOperationNotFound()
-        => ErrorBuilder.New()
-            // this string is defined in the APQ spec!
-            .SetMessage("PersistedQueryNotFound")
-            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
             .Build();
 }

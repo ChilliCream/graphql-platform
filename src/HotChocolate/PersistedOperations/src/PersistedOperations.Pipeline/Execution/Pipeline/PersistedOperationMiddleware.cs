@@ -33,4 +33,10 @@ public static class PersistedOperationMiddleware
     /// </summary>
     public static RequestMiddlewareConfiguration OnlyPersistedOperationsAllowed
         => OnlyPersistedOperationsAllowedMiddleware.Create();
+
+    /// <summary>
+    /// Gets the middleware configuration for automatically handling persisted operation not found errors.
+    /// </summary>
+    public static RequestMiddlewareConfiguration AutomaticPersistedOperationNotFound
+        => AutomaticPersistedOperationNotFoundMiddleware.Create();
 }

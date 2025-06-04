@@ -81,8 +81,8 @@ internal sealed class TimeoutMiddleware
         }
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var optionsAccessor = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();

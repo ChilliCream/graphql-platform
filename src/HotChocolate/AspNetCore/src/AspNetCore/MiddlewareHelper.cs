@@ -75,7 +75,7 @@ internal static class MiddlewareHelper
             }
             catch (Exception ex)
             {
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 diagnosticEvents.HttpRequestError(context, error);
                 return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
             }
@@ -111,7 +111,7 @@ internal static class MiddlewareHelper
             }
             catch (Exception ex)
             {
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 diagnosticEvents.HttpRequestError(context, error);
                 return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
             }
@@ -149,7 +149,7 @@ internal static class MiddlewareHelper
             }
             catch (Exception ex)
             {
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 diagnosticEvents.HttpRequestError(context, error);
                 return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
             }
@@ -244,7 +244,7 @@ internal static class MiddlewareHelper
         }
         catch (Exception ex)
         {
-            var error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = ErrorBuilder.FromException(ex).Build();
             diagnosticEvents.HttpRequestError(context, error);
             return new ExecuteRequestResult(
                 OperationResultBuilder.CreateError(error),

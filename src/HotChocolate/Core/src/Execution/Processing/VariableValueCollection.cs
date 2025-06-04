@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
@@ -9,7 +10,7 @@ internal sealed class VariableValueCollection(
 {
     public static VariableValueCollection Empty { get; } = new([]);
 
-    public T? GetValue<T>(string name) where T : IValueNode
+    public T GetValue<T>(string name) where T : IValueNode
     {
         if (TryGetValue(name, out T? value))
         {
@@ -24,7 +25,7 @@ internal sealed class VariableValueCollection(
         throw ThrowHelper.VariableNotFound(name);
     }
 
-    public bool TryGetValue<T>(string name, out T? value) where T : IValueNode
+    public bool TryGetValue<T>(string name, [NotNullWhen(true)] out T? value) where T : IValueNode
     {
         if (coercedValues.TryGetValue(name, out var variableValue)
             && variableValue.ValueLiteral is T casted)

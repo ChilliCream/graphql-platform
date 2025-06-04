@@ -35,4 +35,10 @@ public static class CommonMiddleware
     /// </summary>
     public static RequestMiddlewareConfiguration DocumentValidation
         => DocumentValidationMiddleware.Create();
+
+    /// <summary>
+    /// Gets the middleware configuration for skipping the actual operation execution when executing a warmup request.
+    /// </summary>
+    public static RequestMiddlewareConfiguration SkipWarmupExecution
+        => SkipWarmupExecutionMiddleware.Create();
 }

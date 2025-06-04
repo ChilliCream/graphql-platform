@@ -13,8 +13,8 @@ internal sealed class SkipWarmupExecutionMiddleware(RequestDelegate next)
         await next(context).ConfigureAwait(false);
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (_, next) =>
             {
                 var middleware = new SkipWarmupExecutionMiddleware(next);

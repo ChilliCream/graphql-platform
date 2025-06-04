@@ -644,7 +644,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(SkipWarmupExecutionMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.SkipWarmupExecution);
     }
 
     /// <summary>
@@ -669,25 +669,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(next => context =>
-        {
-            if (context.Document is not null || context.Request.Document is not null)
-            {
-                return next(context);
-            }
-
-            var error = ReadPersistedOperationMiddleware_PersistedOperationNotFound();
-            var result = OperationResultBuilder.CreateError(
-                error,
-                new Dictionary<string, object?>
-                {
-                    { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
-                });
-
-            context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
-            context.Result = result;
-            return default;
-        });
+        return builder.UseRequest(PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
     }
 
     public static IRequestExecutorBuilder UseWritePersistedOperation(
@@ -778,7 +760,7 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(CommonMiddleware.DocumentValidation);
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
-        pipeline.Add(SkipWarmupExecutionMiddleware.Create());
+        pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(OperationExecutionMiddleware.Create());
     }
