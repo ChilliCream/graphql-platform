@@ -111,8 +111,6 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
     /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.Kind == TypeKind.InputObject)
         {
             return Equals(type, TypeComparison.Reference);
