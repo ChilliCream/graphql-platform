@@ -5,7 +5,7 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class PipelineTools
 {
-    private static readonly Dictionary<string, object?> s_empty = new();
+    private static readonly Dictionary<string, object?> s_empty = [];
 
     private static readonly IReadOnlyList<VariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 

@@ -1713,9 +1713,12 @@ public class AnnotationBasedMutations
         [Error<CustomException>]
         public DoSomething2Payload DoSomething2(int? userId)
         {
-            var errors = new List<Exception>();
-            errors.Add(new CustomException());
-            errors.Add(new Custom2Exception());
+            var errors = new List<Exception>
+            {
+                new CustomException(),
+                new Custom2Exception()
+            };
+
             throw new AggregateException(errors);
         }
     }

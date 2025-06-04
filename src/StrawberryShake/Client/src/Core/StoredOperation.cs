@@ -8,7 +8,7 @@ internal class StoredOperation<T>
     where T : class
 {
     private readonly object _sync = new();
-    private ImmutableList<Subscription> _subscriptions = ImmutableList<Subscription>.Empty;
+    private ImmutableList<Subscription> _subscriptions = [];
     private bool _disposed;
     private IOperationResult<T>? _lastResult;
 
@@ -93,7 +93,7 @@ internal class StoredOperation<T>
         }
 
         // clear subscribers
-        _subscriptions = ImmutableList<Subscription>.Empty;
+        _subscriptions = [];
     }
 
     public IDisposable Subscribe(

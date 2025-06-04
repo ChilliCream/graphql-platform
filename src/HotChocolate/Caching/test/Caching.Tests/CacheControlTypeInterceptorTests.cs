@@ -369,7 +369,7 @@ public class CacheControlTypeInterceptorTests
         [CacheControl(500, SharedMaxAge = 200)]
         public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAge() => default!;
 
-        [CacheControl(500, SharedMaxAge = 200, Vary = new [] {"accept-language", "x-timezoneoffset"})]
+        [CacheControl(500, SharedMaxAge = 200, Vary = ["accept-language", "x-timezoneoffset"])]
         public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary() => default!;
 
         [CacheControl(200)]

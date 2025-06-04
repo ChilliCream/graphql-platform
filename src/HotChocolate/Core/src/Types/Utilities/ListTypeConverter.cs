@@ -169,7 +169,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
             return null;
         }
 
-        var list = (ICollection<KeyValuePair<TKey, TValue>>)new Dictionary<TKey, TValue>();
+        ICollection<KeyValuePair<TKey, TValue>> list = new Dictionary<TKey, TValue>();
         ChangeListType(
             input,
             (item, _) => list.Add((KeyValuePair<TKey, TValue>)elementConverter(item)!));

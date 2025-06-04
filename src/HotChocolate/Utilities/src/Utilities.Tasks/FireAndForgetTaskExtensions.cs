@@ -4,8 +4,7 @@ namespace HotChocolate.Utilities;
 
 public static class FireAndForgetTaskExtensions
 {
-    private static ImmutableArray<BackgroundTaskErrorInterceptor> s_interceptors =
-        ImmutableArray<BackgroundTaskErrorInterceptor>.Empty;
+    private static ImmutableArray<BackgroundTaskErrorInterceptor> s_interceptors = [];
 
     public static void FireAndForget(
         this Task task,

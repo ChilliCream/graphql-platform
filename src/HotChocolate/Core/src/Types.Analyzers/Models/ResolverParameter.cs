@@ -170,6 +170,6 @@ public sealed class ResolverParameter
         }
 
         // Return null if it's not a generic type or index is out of bounds
-        return ImmutableArray<ITypeSymbol>.Empty;
+        return [];
     }
 }

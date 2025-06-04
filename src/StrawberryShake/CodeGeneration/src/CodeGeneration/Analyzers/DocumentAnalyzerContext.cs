@@ -11,9 +11,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 {
     private readonly HashSet<string> _takenNames = new(StringComparer.Ordinal);
-    private readonly Dictionary<ISyntaxNode, HashSet<string>> _syntaxNodeNames = new();
+    private readonly Dictionary<ISyntaxNode, HashSet<string>> _syntaxNodeNames = [];
     private readonly Dictionary<string, ITypeModel> _typeModels = new(StringComparer.Ordinal);
-    private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = new();
+    private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = [];
     private readonly FieldCollector _fieldCollector;
 
     public DocumentAnalyzerContext(

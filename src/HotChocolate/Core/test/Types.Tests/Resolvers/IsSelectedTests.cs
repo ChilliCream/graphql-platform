@@ -1050,7 +1050,7 @@ public class IsSelectedTests
             IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new List<Book>();
+            return [];
         }
     }
 

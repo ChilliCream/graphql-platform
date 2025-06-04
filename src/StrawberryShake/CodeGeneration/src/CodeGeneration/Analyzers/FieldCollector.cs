@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 internal sealed class FieldCollector
 {
-    private readonly Dictionary<string, Fragment> _fragments = new();
+    private readonly Dictionary<string, Fragment> _fragments = [];
     private readonly Cache _cache = new();
     private readonly ISchemaDefinition _schema;
     private readonly DocumentNode _document;

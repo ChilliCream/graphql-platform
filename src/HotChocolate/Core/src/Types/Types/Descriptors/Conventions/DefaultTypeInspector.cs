@@ -30,7 +30,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private const string CloneMethodName = "<Clone>$";
 
     private readonly TypeCache _typeCache = new();
-    private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
+    private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = [];
     private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _memberCache = new();
 
     /// <summary>

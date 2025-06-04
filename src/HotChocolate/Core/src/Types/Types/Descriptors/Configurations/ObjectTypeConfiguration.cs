@@ -58,7 +58,7 @@ public class ObjectTypeConfiguration
     /// <summary>
     /// Gets the type that can provide attributes to this type.
     /// </summary>
-    public ImmutableArray<Type> AttributeBindingTypes { get; set; } = ImmutableArray<Type>.Empty;
+    public ImmutableArray<Type> AttributeBindingTypes { get; set; } = [];
 
     /// <summary>
     /// Runtime types that also represent this GraphQL type.

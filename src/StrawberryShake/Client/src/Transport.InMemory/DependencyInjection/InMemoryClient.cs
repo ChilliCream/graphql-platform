@@ -35,8 +35,7 @@ public class InMemoryClient : IInMemoryClient
     public IRequestExecutor? Executor { get; set; }
 
     /// <inheritdoc />
-    public IList<IInMemoryRequestInterceptor> RequestInterceptors { get; } =
-        new List<IInMemoryRequestInterceptor>();
+    public IList<IInMemoryRequestInterceptor> RequestInterceptors { get; } = [];
 
     /// <inheritdoc />
     public string Name => _name;

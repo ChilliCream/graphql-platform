@@ -7,7 +7,7 @@ public abstract class SyntaxInfo : IEquatable<SyntaxInfo>
 {
     public abstract string OrderByKey { get; }
 
-    public ImmutableArray<Diagnostic> Diagnostics { get; private set; } = ImmutableArray<Diagnostic>.Empty;
+    public ImmutableArray<Diagnostic> Diagnostics { get; private set; } = [];
 
     public void AddDiagnostic(Diagnostic diagnostic)
         => Diagnostics = Diagnostics.Add(diagnostic);

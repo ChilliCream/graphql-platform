@@ -1258,7 +1258,7 @@ public class IntegrationTests
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
-                new[] { new Edge<string>("a", "b") },
+                [new Edge<string>("a", "b")],
                 new ConnectionPageInfo(false, false, null, null), 1));
     }
 
@@ -1279,7 +1279,7 @@ public class IntegrationTests
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
-                new[] { new Edge<string>("d", "e") },
+                [new Edge<string>("d", "e")],
                 new ConnectionPageInfo(false, false, null, null), 1));
     }
 
@@ -1288,7 +1288,7 @@ public class IntegrationTests
         [UsePaging(AllowBackwardPagination = false)]
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
-                new[] { new Edge<string>("abc", "def") },
+                [new Edge<string>("abc", "def")],
                 new ConnectionPageInfo(false, false, null, null), 1);
     }
 
@@ -1297,7 +1297,7 @@ public class IntegrationTests
         [UsePaging(IncludeTotalCount = true)]
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
-                new[] {new Edge<string>("abc", "def"), new Edge<string>("abc", "def") },
+                [new Edge<string>("abc", "def"), new Edge<string>("abc", "def")],
                 new ConnectionPageInfo(false, false, null, null), 2);
     }
 
@@ -1306,7 +1306,7 @@ public class IntegrationTests
         [UsePaging]
         public ImmutableArray<int> Test()
         {
-            return ImmutableArray<int>.Empty;
+            return [];
         }
     }
 }

@@ -80,7 +80,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         }
         else
         {
-            vary = ImmutableArray<string>.Empty;
+            vary = [];
         }
 
         return new ImmutableCacheConstraints(

@@ -216,7 +216,7 @@ public class ObjectTypeDescriptor
                         member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
                     {
                         subscribeResolver ??= [];
-                        subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
+                        subscribeResolverLookup ??= [];
                         subscribeResolver.Add(a.With);
                         subscribeResolverLookup.Add(member, a.With);
                     }

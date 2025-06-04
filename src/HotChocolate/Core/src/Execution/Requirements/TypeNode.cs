@@ -20,7 +20,7 @@ internal sealed class TypeNode(Type type, List<PropertyNode>? nodes = null)
             throw new InvalidOperationException("The property node container is sealed.");
         }
 
-        _nodes ??= new();
+        _nodes ??= [];
 
         foreach (var node in Nodes)
         {
@@ -42,7 +42,7 @@ internal sealed class TypeNode(Type type, List<PropertyNode>? nodes = null)
             throw new InvalidOperationException("The property node container is sealed.");
         }
 
-        _nodes ??= new();
+        _nodes ??= [];
 
         foreach (var node in _nodes)
         {

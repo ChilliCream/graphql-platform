@@ -86,7 +86,7 @@ public class SortingContext : ISortingContext
                 return sortingValue.Value;
 
             case ISortingInfo info:
-                Dictionary<string, object?> data = new();
+                Dictionary<string, object?> data = [];
 
                 foreach (var field in info.GetFields())
                 {
@@ -207,7 +207,7 @@ public class SortingContext : ISortingContext
 
             public Stack<Expression> Parents { get; } = new();
 
-            public List<(Expression, bool, Type)> Completed { get; } = new();
+            public List<(Expression, bool, Type)> Completed { get; } = [];
         }
     }
 }

@@ -788,7 +788,7 @@ public class GraphQLRequestParserTests
 
     private sealed class DocumentCache : IDocumentCache
     {
-        private readonly Dictionary<string, CachedDocument> _cache = new();
+        private readonly Dictionary<string, CachedDocument> _cache = [];
 
         public int Capacity => int.MaxValue;
 

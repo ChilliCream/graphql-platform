@@ -36,7 +36,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 BindingFlags.Static | BindingFlags.Public)!;
 
     private readonly List<ObjectType> _entityTypes = [];
-    private readonly Dictionary<Uri, HashSet<string>> _imports = new();
+    private readonly Dictionary<Uri, HashSet<string>> _imports = [];
     private IDescriptorContext _context = null!;
     private ITypeInspector _typeInspector = null!;
     private TypeRegistry _typeRegistry = null!;

@@ -51,7 +51,7 @@ internal static class TypeDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<TypeDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

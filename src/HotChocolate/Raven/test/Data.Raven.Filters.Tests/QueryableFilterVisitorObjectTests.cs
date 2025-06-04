@@ -18,10 +18,7 @@ public class QueryableFilterVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
-                }
+                ObjectArray = [new() { Foo = new Foo { BarShort = 12, BarString = "a" } }]
             }
         },
         new()
@@ -32,10 +29,7 @@ public class QueryableFilterVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } }
-                }
+                ObjectArray = [new() { Foo = new Foo { BarShort = 14, BarString = "d" } }]
             }
         },
         new()
@@ -61,10 +55,7 @@ public class QueryableFilterVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 12 } }
-                }
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 12 } }]
             }
         },
         new()
@@ -75,10 +66,7 @@ public class QueryableFilterVisitorObjectTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = null } }
-                }
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = null } }]
             }
         },
         new()
@@ -89,10 +77,7 @@ public class QueryableFilterVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 14 } }
-                }
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 14 } }]
             }
         },
         new()

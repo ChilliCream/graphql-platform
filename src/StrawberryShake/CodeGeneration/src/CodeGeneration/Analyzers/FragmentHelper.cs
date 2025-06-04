@@ -124,7 +124,7 @@ public static class FragmentHelper
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
-            new[] { @interface },
+            [@interface],
             AggregateDeferMap(@interface));
         context.RegisterModel(name, typeModel);
 
@@ -157,7 +157,7 @@ public static class FragmentHelper
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
-            new[] { @interface },
+            [@interface],
             AggregateDeferMap(@interface));
         context.RegisterModel(name, typeModel);
 
@@ -497,7 +497,7 @@ public static class FragmentHelper
             var @class = CreateClassFromInterface(context, child, @interface);
             var model = new DeferredFragmentModel(label, @interface, @class);
 
-            (deferred ??= new()).Add(label, model);
+            (deferred ??= []).Add(label, model);
         }
 
         return deferred;
@@ -522,7 +522,7 @@ public static class FragmentHelper
 
             if (current.Deferred.Count > 0)
             {
-                var map = deferMap ??= new();
+                var map = deferMap ??= [];
 
                 foreach ((var key, var value) in current.Deferred)
                 {

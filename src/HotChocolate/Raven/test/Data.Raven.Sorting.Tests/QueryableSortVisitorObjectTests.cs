@@ -15,10 +15,7 @@ public class QueryableSortVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
-                }
+                ObjectArray = [new() { Foo = new Foo { BarShort = 12, BarString = "a" } }]
             }
         },
         new()
@@ -30,8 +27,8 @@ public class QueryableSortVisitorObjectTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
@@ -40,7 +37,7 @@ public class QueryableSortVisitorObjectTests
                             BarShort = 14, BarString = "d"
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -68,8 +65,8 @@ public class QueryableSortVisitorObjectTests
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 //ScalarArray = new[] { "c", "d", "a" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -78,7 +75,7 @@ public class QueryableSortVisitorObjectTests
                             BarShort = 12
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -90,8 +87,8 @@ public class QueryableSortVisitorObjectTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -100,7 +97,7 @@ public class QueryableSortVisitorObjectTests
                             BarShort = null
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -112,8 +109,8 @@ public class QueryableSortVisitorObjectTests
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -122,7 +119,7 @@ public class QueryableSortVisitorObjectTests
                             BarShort = 14
                         }
                     }
-                }
+                ]
             }
         },
         new()

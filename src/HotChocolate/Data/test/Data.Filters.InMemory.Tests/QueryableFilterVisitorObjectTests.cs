@@ -14,8 +14,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
@@ -24,7 +24,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                             BarString = "a"
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -35,8 +35,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
@@ -45,7 +45,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                             BarString = "d"
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -71,8 +71,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -80,7 +80,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = 12
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -91,8 +91,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -100,7 +100,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = null
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -111,8 +111,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -120,7 +120,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = 14
                         }
                     }
-                }
+                ]
             }
         },
         new()

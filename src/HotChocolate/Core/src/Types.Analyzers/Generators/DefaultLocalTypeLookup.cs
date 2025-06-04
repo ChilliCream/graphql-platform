@@ -46,7 +46,7 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
     {
         if (_typeNameLookup is null)
         {
-            _typeNameLookup = new Dictionary<string, List<string>>();
+            _typeNameLookup = [];
             foreach (var syntaxInfo in syntaxInfos)
             {
                 if(syntaxInfo is not DataLoaderInfo dataLoaderInfo)

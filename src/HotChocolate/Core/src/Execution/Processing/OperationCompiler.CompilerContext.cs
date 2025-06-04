@@ -38,7 +38,7 @@ public sealed partial class OperationCompiler
             SelectionVariants = selectionVariants;
             SelectionInfos = selectionInfos;
             Path = path;
-            Optimizers = optimizers ?? ImmutableArray<ISelectionSetOptimizer>.Empty;
+            Optimizers = optimizers ?? [];
             Fields.Clear();
             Fragments.Clear();
         }
