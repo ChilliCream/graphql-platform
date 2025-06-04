@@ -8,7 +8,7 @@ internal sealed class ParseDocumentScope : RequestScopeBase
 {
     public ParseDocumentScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {

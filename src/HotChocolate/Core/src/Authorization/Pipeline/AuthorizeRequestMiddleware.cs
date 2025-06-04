@@ -7,7 +7,7 @@ internal sealed class AuthorizeRequestMiddleware(
     RequestDelegate next,
     IServiceProvider applicationServices)
 {
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         if (context.Document is null || context.DocumentId is null)
         {

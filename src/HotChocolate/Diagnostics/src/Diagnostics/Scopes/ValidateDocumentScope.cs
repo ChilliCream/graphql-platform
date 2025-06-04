@@ -8,7 +8,7 @@ internal sealed class ValidateDocumentScope : RequestScopeBase
 {
     public ValidateDocumentScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {

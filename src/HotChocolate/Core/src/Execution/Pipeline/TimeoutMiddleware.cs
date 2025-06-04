@@ -20,7 +20,7 @@ internal sealed class TimeoutMiddleware
         _timeout = options.ExecutionTimeout;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         // if the debugger is attached we will skip the current middleware.
         if (Debugger.IsAttached)

@@ -16,7 +16,7 @@ internal static class RequestClassMiddlewareFactory
 
     private static readonly PropertyInfo s_requestServices =
         typeof(RequestContext)
-            .GetProperty(nameof(IRequestContext.Services))!;
+            .GetProperty(nameof(RequestContext.Services))!;
 
     private static readonly PropertyInfo s_appServices =
         typeof(IRequestCoreMiddlewareContext)

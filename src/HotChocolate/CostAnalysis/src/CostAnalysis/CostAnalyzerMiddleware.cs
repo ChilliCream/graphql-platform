@@ -20,7 +20,7 @@ internal sealed class CostAnalyzerMiddleware(
     ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         if (context.Document is null || OperationDocumentId.IsNullOrEmpty(context.DocumentId))
         {
@@ -66,7 +66,7 @@ internal sealed class CostAnalyzerMiddleware(
     }
 
     private bool TryAnalyze(
-        IRequestContext context,
+        RequestContext context,
         RequestCostOptions requestOptions,
         CostAnalyzerMode mode,
         DocumentNode document,

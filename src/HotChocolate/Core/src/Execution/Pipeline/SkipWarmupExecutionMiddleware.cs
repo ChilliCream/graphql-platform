@@ -2,7 +2,7 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class SkipWarmupExecutionMiddleware(RequestDelegate next)
 {
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         if (context.IsWarmupRequest())
         {

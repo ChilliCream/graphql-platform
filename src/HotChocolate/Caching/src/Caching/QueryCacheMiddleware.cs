@@ -18,7 +18,7 @@ internal sealed class QueryCacheMiddleware
         _options = optionsAccessor.CacheControl;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         await _next(context).ConfigureAwait(false);
 

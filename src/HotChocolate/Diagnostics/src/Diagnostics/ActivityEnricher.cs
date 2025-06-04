@@ -8,6 +8,7 @@ using GreenDonut;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
@@ -93,16 +94,16 @@ public class ActivityEnricher
     {
         activity.SetTag("graphql.http.request.type", "single");
 
-        if (request.QueryId is not null &&
+        if (request.DocumentId is not null &&
             (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
         {
-            activity.SetTag("graphql.http.request.query.id", request.QueryId);
+            activity.SetTag("graphql.http.request.query.id", request.DocumentId.Value);
         }
 
-        if (request.QueryHash is not null &&
+        if (request.DocumentHash is not null &&
             (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
         {
-            activity.SetTag("graphql.http.request.query.hash", request.QueryHash);
+            activity.SetTag("graphql.http.request.query.hash", request.DocumentHash.Value);
         }
 
         if (request.Document is not null &&
@@ -148,16 +149,16 @@ public class ActivityEnricher
         {
             var request = batch[i];
 
-            if (request.QueryId is not null &&
+            if (request.DocumentId is not null &&
                 (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
             {
-                activity.SetTag($"graphql.http.request[{i}].query.id", request.QueryId);
+                activity.SetTag($"graphql.http.request[{i}].query.id", request.DocumentId.Value);
             }
 
-            if (request.QueryHash is not null &&
+            if (request.DocumentHash is not null &&
                 (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
             {
-                activity.SetTag($"graphql.http.request[{i}].query.hash", request.QueryHash);
+                activity.SetTag($"graphql.http.request[{i}].query.hash", request.DocumentHash.Value);
             }
 
             if (request.Document is not null &&
@@ -195,16 +196,16 @@ public class ActivityEnricher
     {
         activity.SetTag("graphql.http.request.type", "operationBatch");
 
-        if (request.QueryId is not null &&
+        if (request.DocumentId is not null &&
             (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
         {
-            activity.SetTag("graphql.http.request.query.id", request.QueryId);
+            activity.SetTag("graphql.http.request.query.id", request.DocumentId.Value);
         }
 
-        if (request.QueryHash is not null &&
+        if (request.DocumentHash is not null &&
             (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
         {
-            activity.SetTag("graphql.http.request.query.hash", request.QueryHash);
+            activity.SetTag("graphql.http.request.query.hash", request.DocumentHash.Value);
         }
 
         if (request.Document is not null &&
@@ -320,9 +321,11 @@ public class ActivityEnricher
         activity.DisplayName = "Format HTTP Response";
     }
 
-    public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
+    public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
-        var operationDisplayName = CreateOperationDisplayName(context);
+        var operationInfo = context.GetOperationInfo();
+        var documentInfo = context.GetOperationDocumentInfo();
+        var operationDisplayName = CreateOperationDisplayName(context, operationInfo);
 
         if (_options.RenameRootActivity && operationDisplayName is not null)
         {
@@ -330,16 +333,16 @@ public class ActivityEnricher
         }
 
         activity.DisplayName = operationDisplayName ?? "Execute Request";
-        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
-        activity.SetTag("graphql.document.hash", context.DocumentHash);
-        activity.SetTag("graphql.document.valid", context.IsValidDocument);
-        activity.SetTag("graphql.operation.id", context.OperationId);
-        activity.SetTag("graphql.operation.kind", context.Operation?.Type);
-        activity.SetTag("graphql.operation.name", context.Operation?.Name);
+        activity.SetTag("graphql.document.id", documentInfo.Id.Value);
+        activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
+        activity.SetTag("graphql.document.valid", documentInfo.IsValidated);
+        activity.SetTag("graphql.operation.id", operationInfo.Id);
+        activity.SetTag("graphql.operation.kind", operationInfo.Operation?.Type);
+        activity.SetTag("graphql.operation.name", operationInfo.Operation?.Name);
 
-        if (_options.IncludeDocument && context.Document is not null)
+        if (_options.IncludeDocument && documentInfo.Document is not null)
         {
-            activity.SetTag("graphql.document.body", context.Document.Print());
+            activity.SetTag("graphql.document.body", documentInfo.Document.Print());
         }
 
         if (context.Result is IOperationResult result)
@@ -349,9 +352,9 @@ public class ActivityEnricher
         }
     }
 
-    protected virtual string? CreateOperationDisplayName(IRequestContext context)
+    protected virtual string? CreateOperationDisplayName(RequestContext context, OperationInfo operationInfo)
     {
-        if (context.Operation is { } operation)
+        if (operationInfo.Operation is { } operation)
         {
             var displayName = StringBuilderPool.Get();
 
@@ -434,7 +437,7 @@ public class ActivityEnricher
         return $"{rootDisplayName}: {displayName}";
     }
 
-    public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
+    public virtual void EnrichParseDocument(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Parse Document";
 
@@ -445,12 +448,12 @@ public class ActivityEnricher
     }
 
     public virtual void EnrichSyntaxError(
-        IRequestContext context,
+        RequestContext context,
         Activity activity,
         IError error)
         => EnrichError(error, activity);
 
-    public virtual void EnrichValidateDocument(IRequestContext context, Activity activity)
+    public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Validate Document";
 
@@ -459,35 +462,37 @@ public class ActivityEnricher
             UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
         }
 
-        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
-        activity.SetTag("graphql.document.hash", context.DocumentHash);
+        var documentInfo = context.GetOperationDocumentInfo();
+        activity.SetTag("graphql.document.id", documentInfo.Id.Value);
+        activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
     }
 
     public virtual void EnrichValidationError(
-        IRequestContext context,
+        RequestContext context,
         Activity activity,
         IError error)
         => EnrichError(error, activity);
 
-    public virtual void EnrichAnalyzeOperationComplexity(IRequestContext context, Activity activity)
+    public virtual void EnrichAnalyzeOperationComplexity(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Analyze Operation Complexity";
     }
 
-    public virtual void EnrichCoerceVariables(IRequestContext context, Activity activity)
+    public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Coerce Variable";
     }
 
-    public virtual void EnrichCompileOperation(IRequestContext context, Activity activity)
+    public virtual void EnrichCompileOperation(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Compile Operation";
     }
 
-    public virtual void EnrichExecuteOperation(IRequestContext context, Activity activity)
+    public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
     {
+        var operationInfo = context.GetOperationInfo();
         activity.DisplayName =
-            context.Operation?.Name is { } op
+            operationInfo.Operation?.Name is { } op
                 ? $"Execute Operation {op}"
                 : "Execute Operation";
     }
@@ -563,7 +568,7 @@ public class ActivityEnricher
         => EnrichError(error, activity);
 
     public virtual void EnrichResolverError(
-        IRequestContext context,
+        RequestContext context,
         ISelection selection,
         IError error,
         Activity activity)

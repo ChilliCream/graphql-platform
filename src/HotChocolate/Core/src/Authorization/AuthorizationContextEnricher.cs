@@ -4,7 +4,7 @@ namespace HotChocolate.Authorization;
 
 internal sealed class AuthorizationContextEnricher : IRequestContextEnricher
 {
-    public void Enrich(IRequestContext context)
+    public void Enrich(RequestContext context)
     {
         context
             .EnsureAuthorizationRequestDataExists()

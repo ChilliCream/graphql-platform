@@ -8,7 +8,7 @@ internal sealed class CompileOperationScope : RequestScopeBase
 {
     public CompileOperationScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {
