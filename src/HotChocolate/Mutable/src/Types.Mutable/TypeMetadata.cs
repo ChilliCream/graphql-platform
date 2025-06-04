@@ -4,12 +4,11 @@ namespace HotChocolate.Types.Mutable;
 
 public sealed class TypeMetadata : ISealable
 {
-    private bool _isExtension;
     private bool _isReadOnly;
 
     public bool IsExtension
     {
-        get => _isExtension;
+        get;
         set
         {
             if (_isReadOnly)
@@ -18,7 +17,7 @@ public sealed class TypeMetadata : ISealable
                     "The metadata is sealed and cannot be modified.");
             }
 
-            _isExtension = value;
+            field = value;
         }
     }
 

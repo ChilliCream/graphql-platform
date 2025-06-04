@@ -29,7 +29,7 @@ public class MutableUnionTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Name" />
     public string Name
     {
-        get => field;
+        get;
         set => field = value.EnsureGraphQLName();
     }
 
