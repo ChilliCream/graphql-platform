@@ -163,7 +163,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
             }
 
-            var file = filename is { Length: > 0, }
+            var file = filename is { Length: > 0 }
                 ? files.GetFile(filename)
                 : null;
 
@@ -185,7 +185,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         GraphQLRequest request,
         IDictionary<string, IFile> fileMap)
     {
-        if (request.Variables is not [Dictionary<string, object?> mutableVariables,])
+        if (request.Variables is not [Dictionary<string, object?> mutableVariables])
         {
             throw new InvalidOperationException(
                 HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);

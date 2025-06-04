@@ -24,7 +24,7 @@ public static class GeneratorTestHelper
             new CSharpGeneratorSettings
             {
                 Namespace = "Foo.Bar",
-                ClientName = "FooClient",
+                ClientName = "FooClient"
             });
 
         Assert.True(
@@ -41,7 +41,7 @@ public static class GeneratorTestHelper
         bool strictValidation,
         params string[] sourceTexts) =>
         AssertResult(
-            new AssertSettings { StrictValidation = strictValidation, },
+            new AssertSettings { StrictValidation = strictValidation },
             sourceTexts);
 
     public static void AssertResult(
@@ -91,7 +91,7 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents,
+                RazorComponents = settings.RazorComponents
             });
 
         Assert.False(
@@ -169,7 +169,7 @@ public static class GeneratorTestHelper
 
     public static void AssertStarWarsResult(params string[] sourceTexts) =>
         AssertStarWarsResult(
-            new AssertSettings { StrictValidation = true, },
+            new AssertSettings { StrictValidation = true },
             sourceTexts);
 
     public static void AssertStarWarsResult(
@@ -224,8 +224,8 @@ public static class GeneratorTestHelper
             NoStore = noStore,
             Profiles = (profiles ??
             [
-                TransportProfile.Default,
-            ]).ToList(),
+                TransportProfile.Default
+            ]).ToList()
         };
     }
 

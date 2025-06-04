@@ -54,7 +54,7 @@ public ref partial struct Utf8GraphQLRequestParser
         if (_reader.Kind == TokenKind.LeftBrace)
         {
             var singleRequest = ParseRequest();
-            return [singleRequest,];
+            return [singleRequest];
         }
 
         if (_reader.Kind == TokenKind.LeftBracket)

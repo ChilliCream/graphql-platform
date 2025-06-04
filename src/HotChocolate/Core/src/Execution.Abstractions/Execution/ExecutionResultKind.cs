@@ -28,5 +28,5 @@ public enum ExecutionResultKind
     /// <summary>
     /// A no-op result for warmup requests.
     /// </summary>
-    WarmupResult,
+    WarmupResult
 }

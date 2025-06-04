@@ -173,11 +173,11 @@ public sealed class OperationResultBuilder
 
     public static OperationResultBuilder FromResult(IOperationResult result)
     {
-        var builder = new OperationResultBuilder { _data = result.Data, };
+        var builder = new OperationResultBuilder { _data = result.Data };
 
         if (result.Errors is not null)
         {
-            builder._errors = [..result.Errors,];
+            builder._errors = [..result.Errors];
         }
 
         if (result.Extensions is OrderedDictionary<string, object?> ext)
@@ -213,7 +213,7 @@ public sealed class OperationResultBuilder
         IReadOnlyDictionary<string, object?>? contextData = null)
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
-            : new OperationResult(null, new List<IError> { error, }, contextData: contextData);
+            : new OperationResult(null, new List<IError> { error }, contextData: contextData);
 
     public static IOperationResult CreateError(
         IReadOnlyList<IError> errors,

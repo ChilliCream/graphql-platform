@@ -41,7 +41,7 @@ internal static class IndexCursor
                 }
 
                 Base64.DecodeFromUtf8InPlace(buffer, out var written);
-                if (Utf8Parser.TryParse(buffer.Slice(0, written), out index, out _))
+                if (Utf8Parser.TryParse(buffer[..written], out index, out _))
                 {
                     return true;
                 }

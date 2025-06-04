@@ -74,7 +74,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar", })
+                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar" })
                 .Build();
 
         // assert
@@ -90,7 +90,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar", })
+                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar" })
                 .SetVariableValues(null)
                 .Build();
 
@@ -128,7 +128,7 @@ public class OperationRequestBuilderTests
                 .SetGlobalState(
                     new Dictionary<string, object?>
                     {
-                        { "three", "baz" },
+                        { "three", "baz" }
                     })
                 .Build();
 
@@ -196,7 +196,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123", })
+                .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123" })
                 .Build();
 
         // assert
@@ -239,7 +239,7 @@ public class OperationRequestBuilderTests
     public void BuildRequest_QueryAndServices_RequestIsCreated()
     {
         // arrange
-        var service = new { a = "123", };
+        var service = new { a = "123" };
 
         // act
         var request =
@@ -259,7 +259,7 @@ public class OperationRequestBuilderTests
     public void BuildRequest_SetAll_RequestIsCreated()
     {
         // arrange
-        var service = new { a = "123", };
+        var service = new { a = "123" };
 
         // act
         var request =
@@ -267,7 +267,7 @@ public class OperationRequestBuilderTests
                 .SetDocument("{ foo }")
                 .SetOperationName("bar")
                 .AddGlobalState("one", "foo")
-                .SetVariableValues(new Dictionary<string, object?> { { "two", "bar" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "two", "bar" } })
                 .SetServices(new DictionaryServiceProvider(service.GetType(), service))
                 .Build();
 

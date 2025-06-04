@@ -38,7 +38,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             SelectionSetIndex = index.ToImmutable(),
             Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
             PathCost = 1,
-            BacklogCost = 1,
+            BacklogCost = 1
         };
 
         foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(selectionSet))

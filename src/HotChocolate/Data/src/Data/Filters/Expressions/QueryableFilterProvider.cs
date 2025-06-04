@@ -142,7 +142,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        return input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, }
+        return input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory }
             ? inMemory
             : input is not IQueryable or EnumerableQuery;
     }
@@ -162,7 +162,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             IQueryable<TEntityType> q => q.Where(where),
             IEnumerable<TEntityType> q => q.AsQueryable().Where(where),
             IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
-            _ => input,
+            _ => input
         };
 
     private ApplyFiltering CreateApplicator<TEntityType>(string argumentName)

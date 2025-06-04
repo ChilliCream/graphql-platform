@@ -52,7 +52,7 @@ internal sealed class OperationSession : IOperationSession
             switch (result)
             {
                 case IOperationResult queryResult:
-                    if (queryResult.Data is null && queryResult.Errors is { Count: > 0, })
+                    if (queryResult.Data is null && queryResult.Errors is { Count: > 0 })
                     {
                         await _session.Protocol.SendErrorMessageAsync(
                             _session,
@@ -180,7 +180,7 @@ internal sealed class OperationSession : IOperationSession
                 var errors =
                     error is AggregateError aggregateError
                         ? aggregateError.Errors
-                        : new[] { error, };
+                        : new[] { error };
 
                 await _session.Protocol.SendErrorMessageAsync(_session, Id, errors, ct);
             }

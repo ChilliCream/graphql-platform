@@ -294,7 +294,7 @@ internal sealed class OperationExecutionMiddleware
             OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
             OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
             OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
-            _ => true,
+            _ => true
         };
 
         if (allowed && operation.HasIncrementalParts)
@@ -309,7 +309,7 @@ internal sealed class OperationExecutionMiddleware
         IOperation operation,
         IReadOnlyList<IVariableValueCollection>? variables)
     {
-        if (variables is { Count: > 1, })
+        if (variables is { Count: > 1 })
         {
             return operation.Definition.Operation is not OperationType.Subscription &&
                 !operation.HasIncrementalParts;

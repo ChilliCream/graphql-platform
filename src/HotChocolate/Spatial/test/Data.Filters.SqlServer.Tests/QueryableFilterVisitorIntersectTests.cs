@@ -16,7 +16,7 @@ public class QueryableFilterVisitorIntersectsTests
             new Coordinate(100, 0),
             new Coordinate(100, 100),
             new Coordinate(0, 100),
-            new Coordinate(0, 0),
+            new Coordinate(0, 0)
         ]));
 
     private static readonly Polygon s_falsePolygon =
@@ -26,13 +26,13 @@ public class QueryableFilterVisitorIntersectsTests
             new Coordinate(100000, 1000),
             new Coordinate(100000, 100000),
             new Coordinate(1000, 100000),
-            new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000)
         ]));
 
     private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = s_truePolygon, },
-        new() { Id = 2, Bar = s_falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon },
+        new() { Id = 2, Bar = s_falsePolygon }
     ];
 
     public QueryableFilterVisitorIntersectsTests(PostgreSqlResource<PostgisConfig> resource)

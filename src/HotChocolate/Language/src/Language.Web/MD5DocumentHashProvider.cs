@@ -31,7 +31,7 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
 
         if (written < 16)
         {
-            hashSpan = hashSpan.Slice(0, written);
+            hashSpan = hashSpan[..written];
         }
 
         return FormatHash(hashSpan, format);

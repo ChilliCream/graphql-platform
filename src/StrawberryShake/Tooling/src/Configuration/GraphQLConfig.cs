@@ -23,7 +23,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket,
+                    Subscription = TransportType.WebSocket
                 });
         }
 
@@ -47,7 +47,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket,
+                    Subscription = TransportType.WebSocket
                 });
         }
 
@@ -60,7 +60,7 @@ public class GraphQLConfig
         {
             Formatting = Formatting.Indented,
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
         };
 
         jsonSettings.Converters.Add(new StringEnumConverter());

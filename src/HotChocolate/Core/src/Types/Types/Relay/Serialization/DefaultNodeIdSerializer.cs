@@ -97,7 +97,7 @@ public sealed class DefaultNodeIdSerializer(
             {
                 capacity *= 2;
                 var newBuffer = ArrayPool<byte>.Shared.Rent(capacity);
-                span.Slice(0, dataLength).CopyTo(newBuffer);
+                span[..dataLength].CopyTo(newBuffer);
                 span = newBuffer;
                 capacity = newBuffer.Length;
 
@@ -109,7 +109,7 @@ public sealed class DefaultNodeIdSerializer(
                 rentedBuffer = newBuffer;
             }
 
-            span = span.Slice(0, written);
+            span = span[..written];
 
             // make urls safe base64
             if(urlSafeBase64)
@@ -146,17 +146,17 @@ public sealed class DefaultNodeIdSerializer(
     {
         typeName.CopyTo(span);
 
-        var valueSpan = span.Slice(typeName.Length);
+        var valueSpan = span[typeName.Length..];
 
         if (outputNewIdFormat)
         {
             valueSpan[0] = Delimiter;
-            return valueSpan.Slice(1);
+            return valueSpan[1..];
         }
 
         valueSpan[0] = LegacyDelimiter;
         valueSpan[1] = LegacyNodeIdSerializer.GetLegacyValueCode(value);
-        return valueSpan.Slice(2);
+        return valueSpan[2..];
     }
 
     public NodeId Parse(string formattedId, INodeIdRuntimeTypeLookup runtimeTypeLookup)
@@ -217,7 +217,7 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        span = span.Slice(0, written);
+        span = span[..written];
 
         var delimiterIndex = FindDelimiterIndex(span);
         if (delimiterIndex == -1)
@@ -232,7 +232,7 @@ public sealed class DefaultNodeIdSerializer(
             delimiterOffset = 2;
         }
 
-        var typeName = span.Slice(0, delimiterIndex);
+        var typeName = span[..delimiterIndex];
         var typeNameString = ToString(typeName);
         var runtimeType = runtimeTypeLookup.GetNodeIdRuntimeType(typeNameString) ?? typeof(string);
         var serializer = TryResolveSerializer(runtimeType);
@@ -243,7 +243,7 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        if (serializer.TryParse(span.Slice(delimiterIndex + delimiterOffset), out var value))
+        if (serializer.TryParse(span[(delimiterIndex + delimiterOffset)..], out var value))
         {
             return new NodeId(typeNameString, value);
         }
@@ -309,7 +309,7 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        span = span.Slice(0, written);
+        span = span[..written];
 
         var delimiterIndex = FindDelimiterIndex(span);
         if (delimiterIndex == -1)
@@ -324,7 +324,7 @@ public sealed class DefaultNodeIdSerializer(
             delimiterOffset = 2;
         }
 
-        var typeName = span.Slice(0, delimiterIndex);
+        var typeName = span[..delimiterIndex];
         var typeNameString = ToString(typeName);
         var serializer = TryResolveSerializer(runtimeType);
 
@@ -334,7 +334,7 @@ public sealed class DefaultNodeIdSerializer(
             throw new NodeIdInvalidFormatException(formattedId);
         }
 
-        if (serializer.TryParse(span.Slice(delimiterIndex + delimiterOffset), out var value))
+        if (serializer.TryParse(span[(delimiterIndex + delimiterOffset)..], out var value))
         {
             return new NodeId(typeNameString, value);
         }

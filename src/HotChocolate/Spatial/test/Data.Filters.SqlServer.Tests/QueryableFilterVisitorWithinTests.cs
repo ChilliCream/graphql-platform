@@ -15,7 +15,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
             new Coordinate(20, 100),
             new Coordinate(120, 100),
             new Coordinate(140, 20),
-            new Coordinate(20, 20),
+            new Coordinate(20, 20)
         ]));
 
     private static readonly Polygon s_falsePolygon =
@@ -25,13 +25,13 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
             new Coordinate(100000, 1000),
             new Coordinate(100000, 100000),
             new Coordinate(1000, 100000),
-            new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000)
         ]));
 
     private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = s_truePolygon, },
-        new() { Id = 2, Bar = s_falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon },
+        new() { Id = 2, Bar = s_falsePolygon }
     ];
 
     public QueryableFilterVisitorWithinTests(PostgreSqlResource<PostgisConfig> resource)

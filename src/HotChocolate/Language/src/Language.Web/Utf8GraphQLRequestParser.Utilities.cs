@@ -51,7 +51,7 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (_reader.Kind)
         {
             case TokenKind.LeftBrace:
-                return new[] { ParseVariablesObject(), };
+                return new[] { ParseVariablesObject() };
 
             case TokenKind.LeftBracket:
                 var list = new List<IReadOnlyDictionary<string, object?>>();

@@ -28,13 +28,13 @@ internal sealed class TopicFormatter
         {
             _prefix.AsSpan().CopyTo(topicSpan);
             topicSpan[_prefix.Length] = (byte)':';
-            var topicLength = s_utf8.GetBytes(topic, topicSpan.Slice(_prefix.Length + 1));
-            topicSpan = topicSpan.Slice(0, _prefix.Length + 1 + topicLength );
+            var topicLength = s_utf8.GetBytes(topic, topicSpan[(_prefix.Length + 1)..]);
+            topicSpan = topicSpan[..(_prefix.Length + 1 + topicLength)];
         }
         else
         {
             var topicLength = s_utf8.GetBytes(topic, topicSpan);
-            topicSpan = topicSpan.Slice(0, topicLength);
+            topicSpan = topicSpan[..topicLength];
         }
 
         var hashBytes = new byte[16];
@@ -44,7 +44,7 @@ internal sealed class TopicFormatter
         var hashSpan = hashBytes.AsSpan();
         if (bytesWritten < 16)
         {
-            hashSpan.Slice(0, bytesWritten);
+            hashSpan = hashSpan[..bytesWritten];
         }
 
         var topicString = Convert.ToHexString(hashSpan);

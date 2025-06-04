@@ -32,7 +32,7 @@ public sealed class RavenOffsetPagingProvider : OffsetPagingProvider
 
         return (OffsetPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source.GetGenericArguments()[0])
-            .Invoke(null, [options,])!;
+            .Invoke(null, [options])!;
     }
 
     private static RavenOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

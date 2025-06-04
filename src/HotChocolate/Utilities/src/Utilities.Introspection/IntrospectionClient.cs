@@ -16,7 +16,7 @@ public static class IntrospectionClient
     private static readonly JsonSerializerOptions s_serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter(), },
+        Converters = { new JsonStringEnumConverter() }
     };
 
     internal static JsonSerializerOptions SerializerOptions => s_serializerOptions;

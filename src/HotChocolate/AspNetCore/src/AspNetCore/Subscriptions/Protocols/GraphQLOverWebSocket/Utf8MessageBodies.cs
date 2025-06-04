@@ -18,7 +18,7 @@ internal static class Utf8MessageBodies
         (byte)'n',
         (byte)'g',
         (byte)'"',
-        (byte)'}',
+        (byte)'}'
     ];
 
     private static readonly byte[] s_defaultPing =
@@ -37,7 +37,7 @@ internal static class Utf8MessageBodies
         (byte)'n',
         (byte)'g',
         (byte)'"',
-        (byte)'}',
+        (byte)'}'
     ];
 
     public static ReadOnlyMemory<byte> DefaultPing => s_defaultPing;

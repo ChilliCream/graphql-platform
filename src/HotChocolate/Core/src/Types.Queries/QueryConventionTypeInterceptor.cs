@@ -160,7 +160,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     private static TypeReference GetFieldType(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef
             && typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return TypeReference.Create(extendedTypeRef.Type.TypeArguments[0], TypeContext.Output);

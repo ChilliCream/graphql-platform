@@ -106,7 +106,7 @@ public static class CursorKeySerializerHelperTests
         // assert
         Assert.True(success);
         Assert.Equal(9, written); // "testvalue" is 9 bytes
-        Assert.Equal("testvalue", Encoding.UTF8.GetString(buffer.Slice(0, written)));
+        Assert.Equal("testvalue", Encoding.UTF8.GetString(buffer[..written]));
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public static class CursorKeySerializerHelperTests
         // assert
         Assert.True(success);
         Assert.Equal(12, written); // "part1\\:part2" is 12 bytes
-        Assert.Equal("part1\\:part2", Encoding.UTF8.GetString(buffer.Slice(0, written)));
+        Assert.Equal("part1\\:part2", Encoding.UTF8.GetString(buffer[..written]));
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public static class CursorKeySerializerHelperTests
 
         // act
         CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
-        var parsedString =CursorKeySerializerHelper.Parse(buffer.Slice(0, written), s_serializer);
+        var parsedString =CursorKeySerializerHelper.Parse(buffer[..written], s_serializer);
 
 
         // assert

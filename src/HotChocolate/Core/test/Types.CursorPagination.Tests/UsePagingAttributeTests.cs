@@ -108,7 +108,7 @@ public class UsePagingAttributeTests
             new
             {
                 ex.Errors[0].Message,
-                ex.Errors[0].Code,
+                ex.Errors[0].Code
             }.MatchSnapshot();
         }
     }
@@ -139,7 +139,7 @@ public class UsePagingAttributeTests
             return new List<Foo>
             {
                 new(bar: "first"),
-                new(bar: "second"),
+                new(bar: "second")
             }.AsQueryable();
         }
     }
@@ -151,7 +151,7 @@ public class UsePagingAttributeTests
             return new List<Foo>
             {
                 new(bar: "first"),
-                new(bar: "second"),
+                new(bar: "second")
             }.AsQueryable();
         }
     }
@@ -167,7 +167,7 @@ public class UsePagingAttributeTests
             return new List<Foo>
             {
                 new(bar: "first"),
-                new(bar: "second"),
+                new(bar: "second")
             }.AsQueryable();
         }
 

@@ -122,7 +122,7 @@ internal sealed class JsonResultPatcher
                 "You must first set the initial response before you can apply patches.");
         }
 
-        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true, });
+        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true });
 
         _json.Remove("hasNext");
 
@@ -246,7 +246,7 @@ internal sealed class JsonResultPatcher
                 {
                     JsonValueKind.String => current[last.Value.GetString()!]!,
                     JsonValueKind.Number => current[last.Value.GetInt32()]!,
-                    _ => throw new NotSupportedException("Path segment must be int or string."),
+                    _ => throw new NotSupportedException("Path segment must be int or string.")
                 };
             }
 

@@ -18,7 +18,7 @@ public class GraphQLHttpClientConfigurationTests
         ))
         {
             DefaultRequestVersion = HttpVersion.Version20,
-            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
         };
 
         var client = GraphQLHttpClient.Create(httpClient, true);

@@ -86,7 +86,7 @@ public class DefaultOperationDocumentFileMap : IOperationDocumentFileMap
             encoded[i++] = 'q';
             encoded[i++] = 'l';
 
-            encoded = encoded.Slice(0, i);
+            encoded = encoded[..i];
 
             fixed (char* charPtr = encoded)
             {

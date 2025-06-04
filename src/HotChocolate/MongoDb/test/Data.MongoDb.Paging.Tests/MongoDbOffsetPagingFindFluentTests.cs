@@ -14,11 +14,11 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
 {
     private readonly List<Foo> _foos =
     [
-        new Foo { Bar = "a", },
-        new Foo { Bar = "b", },
-        new Foo { Bar = "d", },
-        new Foo { Bar = "e", },
-        new Foo { Bar = "f", },
+        new Foo { Bar = "a" },
+        new Foo { Bar = "b" },
+        new Foo { Bar = "d" },
+        new Foo { Bar = "e" },
+        new Foo { Bar = "f" }
     ];
 
     private readonly MongoResource _resource;
@@ -203,7 +203,7 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true, });
+                            options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
                 next => async context =>

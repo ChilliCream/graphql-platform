@@ -149,7 +149,7 @@ internal sealed partial class ExtendedType : IExtendedType
         {
             if (Definition is not null)
             {
-                typeName = Definition.Name.Substring(0, Definition.Name.Length - 2);
+                typeName = Definition.Name[..^2];
                 typeName = $"{typeName}<{string.Join(", ", TypeArguments)}>";
             }
             else

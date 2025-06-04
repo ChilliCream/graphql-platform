@@ -90,6 +90,6 @@ internal sealed class AuthorizeMiddleware(
                             : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
                     .AddLocation(context.Selection.SyntaxNode)
-                    .Build(),
+                    .Build()
         };
 }

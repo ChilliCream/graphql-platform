@@ -45,6 +45,6 @@ public sealed class ObjectFieldResult
     {
         Initialized = 1,
         Nullable = 2,
-        InitializedAndNullable = Initialized | Nullable,
+        InitializedAndNullable = Initialized | Nullable
     }
 }

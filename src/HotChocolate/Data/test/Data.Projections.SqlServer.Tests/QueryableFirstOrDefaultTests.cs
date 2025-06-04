@@ -16,12 +16,12 @@ public class QueryableFirstOrDefaultTests
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
-                },
-            },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
+                }
+            }
         },
         new()
         {
@@ -32,13 +32,13 @@ public class QueryableFirstOrDefaultTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d", }, },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
-                },
-            },
-        },
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
+                }
+            }
+        }
     ];
 
     private static readonly BarNullable[] s_barNullableEntities =
@@ -53,9 +53,9 @@ public class QueryableFirstOrDefaultTests
                 BarString = "testatest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, }, },
-                },
-            },
+                    new() { Foo = new FooDeep { BarShort = 12 } }
+                }
+            }
         },
         new()
         {
@@ -67,9 +67,9 @@ public class QueryableFirstOrDefaultTests
                 BarString = "testbtest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 9, }, },
-                },
-            },
+                    new() { Foo = new FooDeep { BarShort = 9 } }
+                }
+            }
         },
         new()
         {
@@ -81,9 +81,9 @@ public class QueryableFirstOrDefaultTests
                 BarString = "testctest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, }, },
-                },
-            },
+                    new() { Foo = new FooDeep { BarShort = 14 } }
+                }
+            }
         },
         new()
         {
@@ -93,9 +93,9 @@ public class QueryableFirstOrDefaultTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -342,6 +342,6 @@ public class QueryableFirstOrDefaultTests
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

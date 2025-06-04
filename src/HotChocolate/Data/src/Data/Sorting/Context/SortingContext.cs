@@ -39,7 +39,7 @@ public class SortingContext : ISortingContext
             ? listValueNode.Items
                 .Select(x => new SortingInfo(type, x, inputParser))
                 .ToArray()
-            : [new SortingInfo(type, valueNode, inputParser),];
+            : [new SortingInfo(type, valueNode, inputParser)];
         _context = context;
         _type = type;
         _valueNode = valueNode;
@@ -54,7 +54,7 @@ public class SortingContext : ISortingContext
     }
 
     /// <inheritdoc />
-    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue, },];
+    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue }];
 
     /// <inheritdoc />
     public IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields()

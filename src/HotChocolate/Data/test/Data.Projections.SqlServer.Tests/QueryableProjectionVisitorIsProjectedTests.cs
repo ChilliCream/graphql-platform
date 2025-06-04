@@ -6,19 +6,19 @@ public class QueryableProjectionVisitorIsProjectedTests
 {
     private static readonly Foo[] s_fooEntities =
     [
-        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
-        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false }
     ];
 
     private static readonly MultipleFoo[] s_fooMultipleEntities =
     [
-        new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
-        new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false },
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false }
     ];
 
     private static readonly Bar[] s_barEntities =
     [
-        new() { IsProjectedFalse = false, }, new() { IsProjectedFalse = false, },
+        new() { IsProjectedFalse = false }, new() { IsProjectedFalse = false }
     ];
 
     private readonly SchemaCache _cache = new();

@@ -35,7 +35,7 @@ public class PostalCodeType : StringType
         CreateRegexAt(),
         CreateRegexPt(),
         CreateRegexCh(),
-        CreateRegexLu(),
+        CreateRegexLu()
     ];
 
 #if DISABLED_DUE_TO_COMPILER_ISSUE

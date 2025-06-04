@@ -22,7 +22,7 @@ public class GraphQLException : Exception
     {
         Errors = error is null
             ? Array.Empty<IError>()
-            : [error,];
+            : [error];
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class GraphQLException : Exception
             ErrorBuilder.New()
                 .SetMessage(message)
                 .SetException(innerException)
-                .Build(),
+                .Build()
         ];
     }
 

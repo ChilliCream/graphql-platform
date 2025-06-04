@@ -681,9 +681,9 @@ public class DefaultNodeIdSerializerTests
         protected override NodeIdFormatterResult Format(Span<byte> buffer, CompositeId value, out int written)
         {
             if (TryFormatIdPart(buffer, value.A, out var a) &&
-                TryFormatIdPart(buffer.Slice(a), value.B, out var b) &&
-                TryFormatIdPart(buffer.Slice(a + b), value.C, out var c) &&
-                TryFormatIdPart(buffer.Slice(a + b + c), value.D, out var d))
+                TryFormatIdPart(buffer[a..], value.B, out var b) &&
+                TryFormatIdPart(buffer[(a + b)..], value.C, out var c) &&
+                TryFormatIdPart(buffer[(a + b + c)..], value.D, out var d))
             {
                 written = a + b + c + d;
                 return NodeIdFormatterResult.Success;
@@ -696,9 +696,9 @@ public class DefaultNodeIdSerializerTests
         protected override bool TryParse(ReadOnlySpan<byte> buffer, out CompositeId value)
         {
             if(TryParseIdPart(buffer, out string a, out var ac) &&
-                TryParseIdPart(buffer.Slice(ac), out int b, out var bc) &&
-                TryParseIdPart(buffer.Slice(ac + bc), out Guid c, out var cc) &&
-                TryParseIdPart(buffer.Slice(ac + bc + cc), out bool d, out _))
+                TryParseIdPart(buffer[ac..], out int b, out var bc) &&
+                TryParseIdPart(buffer[(ac + bc)..], out Guid c, out var cc) &&
+                TryParseIdPart(buffer[(ac + bc + cc)..], out bool d, out _))
             {
                 value = new CompositeId(a, b, c, d);
                 return true;

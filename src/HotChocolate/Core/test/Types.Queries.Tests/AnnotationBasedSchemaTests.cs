@@ -489,7 +489,7 @@ public class AnnotationBasedSchemaTests
             return new FieldResult<IQueryable<User>, UserNotFound>(
                 new[]
                 {
-                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
+                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"))
                 }.AsQueryable());
         }
 
@@ -506,7 +506,7 @@ public class AnnotationBasedSchemaTests
             return new FieldResult<IQueryable<User>, UserNotFound>(
                 new[]
                 {
-                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
+                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"))
                 }.AsQueryable());
         }
     }

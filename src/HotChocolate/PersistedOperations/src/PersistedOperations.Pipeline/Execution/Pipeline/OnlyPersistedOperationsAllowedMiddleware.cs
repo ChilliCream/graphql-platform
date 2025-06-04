@@ -12,7 +12,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
     private readonly IErrorHandler _errorHandler;
     private readonly IError _error;
     private readonly IOperationResult _errorResult;
-    private readonly Dictionary<string, object?> _statusCode = new() { { ExecutionContextData.HttpStatusCode, 400 }, };
+    private readonly Dictionary<string, object?> _statusCode = new() { { ExecutionContextData.HttpStatusCode, 400 } };
 
     private OnlyPersistedOperationsAllowedMiddleware(
         RequestDelegate next,

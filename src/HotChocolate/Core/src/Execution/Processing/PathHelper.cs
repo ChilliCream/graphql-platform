@@ -27,7 +27,7 @@ internal static class PathHelper
         {
             ObjectResult => CreatePath(parent, selection.ResponseName),
             ListResult => CreatePath(parent, index),
-            _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type."),
+            _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type.")
         };
 
     public static Path CombinePath(Path path, JsonElement errorSubPath, int skipSubElements)
@@ -36,9 +36,9 @@ internal static class PathHelper
         {
             path = errorSubPath[i] switch
             {
-                { ValueKind: JsonValueKind.String, } nameElement => path.Append(nameElement.GetString()!),
-                { ValueKind: JsonValueKind.Number, } indexElement => path.Append(indexElement.GetInt32()),
-                _ => throw new InvalidOperationException("The error path contains an unsupported element."),
+                { ValueKind: JsonValueKind.String } nameElement => path.Append(nameElement.GetString()!),
+                { ValueKind: JsonValueKind.Number } indexElement => path.Append(indexElement.GetInt32()),
+                _ => throw new InvalidOperationException("The error path contains an unsupported element.")
             };
         }
 
@@ -79,7 +79,7 @@ internal static class PathHelper
                 {
                     string s => path.Append(s),
                     int n => path.Append(n),
-                    _ => path,
+                    _ => path
                 };
             }
         }

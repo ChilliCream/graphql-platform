@@ -49,7 +49,7 @@ public class EnumTypeDescriptorAttributeTests
     {
         [RenameValue]
         Value1,
-        Value2,
+        Value2
     }
 
     public class RenameValueAttribute
@@ -68,14 +68,14 @@ public class EnumTypeDescriptorAttributeTests
     public enum Enum2
     {
         Value1,
-        Value2,
+        Value2
     }
 
     [EnumType(Name = "Foo")]
     public enum Enum3
     {
         Value1,
-        Value2,
+        Value2
     }
 
     public class RenameTypeAttribute

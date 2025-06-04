@@ -106,7 +106,7 @@ internal sealed class OperationResolverMiddleware
             OperationType.Query => schema.QueryType,
             OperationType.Mutation => schema.MutationType,
             OperationType.Subscription => schema.SubscriptionType,
-            _ => throw ThrowHelper.RootTypeNotSupported(operationType),
+            _ => throw ThrowHelper.RootTypeNotSupported(operationType)
         };
 
     public static RequestMiddlewareConfiguration Create()

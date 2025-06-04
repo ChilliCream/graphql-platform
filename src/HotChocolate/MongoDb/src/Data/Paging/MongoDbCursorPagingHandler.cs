@@ -44,7 +44,7 @@ internal class MongoDbCursorPagingHandler<TEntity>(PagingOptions options)
             MongoDbCollectionExecutable<TEntity> mce => CreatePagingContainer(mce.BuildPipeline()),
             MongoDbAggregateFluentExecutable<TEntity> mae => CreatePagingContainer(mae.BuildPipeline()),
             MongoDbFindFluentExecutable<TEntity> mfe => CreatePagingContainer(mfe.BuildPipeline()),
-            _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
+            _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
         };
     }
 

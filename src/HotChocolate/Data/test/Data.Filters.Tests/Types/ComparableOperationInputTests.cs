@@ -113,6 +113,6 @@ public class ComparableOperationInputTests
     public enum FooBar
     {
         Foo,
-        Bar,
+        Bar
     }
 }

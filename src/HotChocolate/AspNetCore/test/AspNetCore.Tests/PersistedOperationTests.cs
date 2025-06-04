@@ -30,7 +30,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key },
             path: "/starwars");
 
         // assert
@@ -57,7 +57,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key },
             path: "/starwars");
 
         // assert
@@ -84,7 +84,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key },
             path: "/starwars");
 
         // assert
@@ -111,7 +111,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key },
             path: "/starwars");
 
         // assert
@@ -272,7 +272,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -296,7 +296,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -323,7 +323,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -354,7 +354,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -385,7 +385,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -413,7 +413,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -472,9 +472,9 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 ["persistedQuery"] = new Dictionary<string, object?>
                 {
                     ["version"] = 1,
-                    [hashName] = key,
-                },
-            },
+                    [hashName] = key
+                }
+            }
         };
 
     private sealed class OperationStorage : IOperationDocumentStorage

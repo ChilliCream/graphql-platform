@@ -86,14 +86,14 @@ internal static class NameFormattingHelpers
         if (name.StartsWith(Get, StringComparison.Ordinal)
             && name.Length > Get.Length)
         {
-            name = name.Substring(Get.Length);
+            name = name[Get.Length..];
         }
 
         if (IsAsyncMethod(method.ReturnType)
             && name.Length > Async.Length
             && name.EndsWith(Async, StringComparison.Ordinal))
         {
-            name = name.Substring(0, name.Length - Async.Length);
+            name = name[..^Async.Length];
         }
 
         return FormatFieldName(name);
@@ -178,7 +178,7 @@ internal static class NameFormattingHelpers
 
                 if (index >= 0)
                 {
-                    nameSpan = nameSpan.Slice(0, index);
+                    nameSpan = nameSpan[..index];
                 }
 
                 typeName = nameSpan.ToString();

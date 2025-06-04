@@ -15,7 +15,7 @@ internal static class FederationVersionExtensions
         [new Uri(FederationVersionUrls.Federation24)] = FederationVersion.Federation24,
         [new Uri(FederationVersionUrls.Federation25)] = FederationVersion.Federation25,
         [new Uri(FederationVersionUrls.Federation26)] = FederationVersion.Federation26,
-        [new Uri(FederationVersionUrls.Federation27)] = FederationVersion.Federation27,
+        [new Uri(FederationVersionUrls.Federation27)] = FederationVersion.Federation27
     };
 
     private static readonly Dictionary<FederationVersion, Uri> s_versionToUri = new()
@@ -27,7 +27,7 @@ internal static class FederationVersionExtensions
         [FederationVersion.Federation24] = new(FederationVersionUrls.Federation24),
         [FederationVersion.Federation25] = new(FederationVersionUrls.Federation25),
         [FederationVersion.Federation26] = new(FederationVersionUrls.Federation26),
-        [FederationVersion.Federation27] = new(FederationVersionUrls.Federation27),
+        [FederationVersion.Federation27] = new(FederationVersionUrls.Federation27)
     };
 
     public static FederationVersion GetFederationVersion<T>(

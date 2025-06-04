@@ -37,7 +37,7 @@ public static class InternalSchemaServiceCollectionExtensions
             {
                 0 => new NoopExecutionDiagnosticEvents(),
                 1 => listeners[0],
-                _ => new AggregateExecutionDiagnosticEvents(listeners),
+                _ => new AggregateExecutionDiagnosticEvents(listeners)
             };
         });
         return services;

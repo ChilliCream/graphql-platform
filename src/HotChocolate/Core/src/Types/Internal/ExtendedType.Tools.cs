@@ -86,7 +86,7 @@ internal sealed partial class ExtendedType
             var length = 0;
             Span<bool> buffer = stackalloc bool[32];
             Helper.CollectNullability(type, buffer, ref length);
-            buffer = buffer.Slice(0, length);
+            buffer = buffer[..length];
 
             var nullability = new bool?[buffer.Length];
             for (var i = 0; i < nullability.Length; i++)
@@ -104,7 +104,7 @@ internal sealed partial class ExtendedType
             var length = 0;
             Span<bool> buffer = stackalloc bool[32];
             Helper.CollectNullability(type, buffer, ref length);
-            buffer = buffer.Slice(0, length);
+            buffer = buffer[..length];
 
             if (nullability.Length < buffer.Length)
             {

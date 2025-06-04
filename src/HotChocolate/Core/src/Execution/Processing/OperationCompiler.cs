@@ -450,7 +450,7 @@ public sealed partial class OperationCompiler
                     arguments: CoerceArgumentValues(field, selection, responseName),
                     includeConditions: includeCondition == 0
                         ? null
-                        : [includeCondition,]);
+                        : [includeCondition]);
 
                 context.Fields.Add(responseName, preparedSelection);
 
@@ -459,7 +459,7 @@ public sealed partial class OperationCompiler
                     var selectionSetInfo = new SelectionSetInfo(
                         selection.SelectionSet!,
                         includeCondition);
-                    _selectionLookup.Add(preparedSelection, [selectionSetInfo,]);
+                    _selectionLookup.Add(preparedSelection, [selectionSetInfo]);
                 }
             }
         }
@@ -530,7 +530,7 @@ public sealed partial class OperationCompiler
                 var typeName = typeCondition?.Name.Value ?? context.Type.Name;
                 var id = GetOrCreateSelectionSetRefId(selectionSet, typeName, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
-                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition), };
+                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
 
                 if (!variants.ContainsSelectionSet(context.Type))
                 {
@@ -575,7 +575,7 @@ public sealed partial class OperationCompiler
             TypeKind.Object => ReferenceEquals(typeCondition, current),
             TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
             TypeKind.Union => ((UnionType)typeCondition).Types.ContainsName(current.Name),
-            _ => false,
+            _ => false
         };
 
     private FragmentDefinitionNode GetFragmentDefinition(
@@ -745,7 +745,7 @@ public sealed partial class OperationCompiler
         if (newSelection.SyntaxNode.SelectionSet is not null)
         {
             var selectionSetInfo = new SelectionSetInfo(newSelection.SelectionSet!, 0);
-            _selectionLookup.Add(newSelection, [selectionSetInfo,]);
+            _selectionLookup.Add(newSelection, [selectionSetInfo]);
         }
     }
 

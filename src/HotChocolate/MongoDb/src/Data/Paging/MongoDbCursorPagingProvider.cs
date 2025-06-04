@@ -28,7 +28,7 @@ public class MongoDbCursorPagingProvider : CursorPagingProvider
 
         return (CursorPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, [options,])!;
+            .Invoke(null, [options])!;
     }
 
     private static MongoDbCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

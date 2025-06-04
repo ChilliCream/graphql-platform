@@ -24,7 +24,7 @@ internal class GeoJsonMultiPolygonSerializer
 
         Polygon[]? geometries;
 
-        if (coordinates is IList { Count: > 0, } list)
+        if (coordinates is IList { Count: > 0 } list)
         {
             if (list.Count != 0)
             {
@@ -116,7 +116,7 @@ Error:
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID)),
+                        new IntValueNode(geometry.SRID))
                 };
 
             return new ObjectValueNode(list);

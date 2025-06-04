@@ -48,7 +48,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // act
         var form = new MultipartFormDataContent
         {
-            { new StringContent(""), "operations" },
+            { new StringContent(""), "operations" }
         };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -69,7 +69,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var form = new MultipartFormDataContent
             {
                 { new StringContent("{}"), "operations" },
-                { new StringContent("{}"), "map" },
+                { new StringContent("{}"), "map" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -89,7 +89,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // act
         var form = new MultipartFormDataContent
             {
-                { new StringContent("{}"), "map" },
+                { new StringContent("{}"), "map" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -110,7 +110,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var form = new MultipartFormDataContent
             {
                 { new StringContent("{}"), "map" },
-                { new StringContent("{}"), "operations" },
+                { new StringContent("{}"), "operations" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -131,7 +131,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var form = new MultipartFormDataContent
             {
                 { new StringContent("{}"), "operations" },
-                { new StringContent(""), "map" },
+                { new StringContent(""), "map" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -152,7 +152,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var form = new MultipartFormDataContent
             {
                 { new StringContent("{}"), "operations" },
-                { new StringContent("data"), "map" },
+                { new StringContent("data"), "map" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -173,7 +173,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var form = new MultipartFormDataContent
             {
                 { new StringContent("{}"), "operations" },
-                { new StringContent("{ \"1\": [\"variables.file\"] }"), "map" },
+                { new StringContent("{ \"1\": [\"variables.file\"] }"), "map" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -194,7 +194,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var form = new MultipartFormDataContent
             {
                 { new StringContent("{}"), "operations" },
-                { new StringContent("{ \"\": [\"variables.file\"] }"), "map" },
+                { new StringContent("{ \"\": [\"variables.file\"] }"), "map" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -215,7 +215,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var form = new MultipartFormDataContent
             {
                 { new StringContent("{}"), "operations" },
-                { new StringContent("{ \"1\": [] }"), "map" },
+                { new StringContent("{ \"1\": [] }"), "map" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -243,8 +243,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null },
-                },
+                    { "upload", null }
+                }
             });
 
         // act
@@ -252,7 +252,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
-                { new StringContent("abc"), "1", "foo.bar" },
+                { new StringContent("abc"), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -280,8 +280,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null },
-                },
+                    { "upload", null }
+                }
             });
 
         // act
@@ -289,7 +289,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
-                { new StringContent("abc"), "1", "foo.bar" },
+                { new StringContent("abc"), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -317,8 +317,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "input", new Dictionary<string, object?> { { "file", null }, } },
-                },
+                    { "input", new Dictionary<string, object?> { { "file", null } } }
+                }
             });
 
         // act
@@ -326,7 +326,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
-                { new StringContent("abc"), "1", "foo.bar" },
+                { new StringContent("abc"), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -354,8 +354,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null },
-                },
+                    { "upload", null }
+                }
             });
 
         // act
@@ -363,7 +363,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
-                { new StringContent("abc"), "1", "foo.bar" },
+                { new StringContent("abc"), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -391,8 +391,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "input", new Dictionary<string, object?> { { "file", null }, } },
-                },
+                    { "input", new Dictionary<string, object?> { { "file", null } } }
+                }
             });
 
         // act
@@ -400,7 +400,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
-                { new StringContent("abc"), "1", "foo.bar" },
+                { new StringContent("abc"), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -428,8 +428,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null },
-                },
+                    { "upload", null }
+                }
             });
 
         // act
@@ -437,7 +437,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
-                { new StringContent("abc"), "1", "foo.bar" },
+                { new StringContent("abc"), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -471,11 +471,11 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                         {
                             new List<object>
                             {
-                                new Dictionary<string, object?> { { "file", null }, },
-                            },
+                                new Dictionary<string, object?> { { "file", null } }
+                            }
                         }
-                    },
-                },
+                    }
+                }
             });
 
         // act
@@ -483,7 +483,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.input.0.0.file\"] }"), "map" },
-                { new StringContent("abc"), "1", "foo.bar" },
+                { new StringContent("abc"), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");
@@ -511,8 +511,8 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "upload", null },
-                },
+                    { "upload", null }
+                }
             });
 
         var count = 1024 * 1024 * 129;
@@ -528,7 +528,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
-                { new ByteArrayContent(buffer), "1", "foo.bar" },
+                { new ByteArrayContent(buffer), "1", "foo.bar" }
             };
 
         form.Headers.Add(HttpHeaderKeys.Preflight, "1");

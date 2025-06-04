@@ -163,7 +163,7 @@ public class FilterConvention
 
         if (isInputObjectType && isEndingInputType)
         {
-            return name.Substring(0, name.Length - 4);
+            return name[..^4];
         }
 
         if (isInputObjectType && !isEndingInput && !isEndingInputType)
@@ -315,7 +315,7 @@ public class FilterConvention
             return true;
         }
 
-        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false, })
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false })
         {
             type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Type);
 

@@ -11,7 +11,7 @@ public sealed class SocketClient : ISocket
 {
     private static readonly IProtocolHandler[] s_protocolHandlers =
     [
-        new GraphQLOverWebSocketProtocolHandler(),
+        new GraphQLOverWebSocketProtocolHandler()
     ];
 
     private readonly CancellationTokenSource _cts = new();

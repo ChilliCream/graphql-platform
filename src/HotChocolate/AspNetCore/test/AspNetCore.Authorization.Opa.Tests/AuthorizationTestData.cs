@@ -42,8 +42,8 @@ public class AuthorizationTestData : IEnumerable<object[]>
                     ? AuthorizeResult.NotAllowed
                     : response.GetResult<HasAgeDefinedResponse>() switch
                     {
-                        { Allow: true, } => AuthorizeResult.Allowed,
-                        _ => AuthorizeResult.NotAllowed,
+                        { Allow: true } => AuthorizeResult.Allowed,
+                        _ => AuthorizeResult.NotAllowed
                     })
             .UseField(_schemaMiddleware);
 
@@ -62,15 +62,15 @@ public class AuthorizationTestData : IEnumerable<object[]>
                     ? AuthorizeResult.NotAllowed
                     : response.GetResult<HasAgeDefinedResponse>() switch
                     {
-                        { Allow: true, } => AuthorizeResult.Allowed,
-                        _ => AuthorizeResult.NotAllowed,
+                        { Allow: true } => AuthorizeResult.Allowed,
+                        _ => AuthorizeResult.NotAllowed
                     })
             .UseField(_schemaMiddleware);
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return [CreateSchema(),];
-        yield return [CreateSchemaWithBuilder(),];
+        yield return [CreateSchema()];
+        yield return [CreateSchemaWithBuilder()];
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

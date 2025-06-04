@@ -388,6 +388,6 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
 
         return string.Concat(
             char.ToUpper(collectionSegmentName[0]),
-            collectionSegmentName.Substring(1));
+            collectionSegmentName[1..]);
     }
 }

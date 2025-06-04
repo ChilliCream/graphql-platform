@@ -192,7 +192,7 @@ public static class ReflectionUtils
 
     private static string CreateGenericTypeName(Type type)
     {
-        var name = type.Name.Substring(0, type.Name.Length - 2);
+        var name = type.Name[..^2];
         var arguments = type.GetGenericArguments().Select(GetTypeName);
         return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
     }

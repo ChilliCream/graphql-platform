@@ -24,7 +24,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 },
+            { "field2", 123 }
         };
 
         // act
@@ -72,7 +72,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 },
+            { "field2", 123 }
         };
 
         // act
@@ -119,7 +119,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field2", 123 },
+            { "field2", 123 }
         };
 
         // act
@@ -166,7 +166,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field2", 123 },
-            { "field3", 123 },
+            { "field3", 123 }
         };
 
         // act
@@ -219,7 +219,7 @@ public class InputParserTests
         {
             { "field2", 123 },
             { "field3", 123 },
-            { "field4", 123 },
+            { "field4", 123 }
         };
 
         // act
@@ -279,7 +279,7 @@ public class InputParserTests
 
         var options = new InputParserOptions
         {
-            IgnoreAdditionalInputFields = true,
+            IgnoreAdditionalInputFields = true
         };
 
         // act
@@ -484,7 +484,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field1", "abc" },
+            { "field1", "abc" }
         };
 
         // act
@@ -547,7 +547,7 @@ public class InputParserTests
 
     public enum Bar
     {
-        Baz,
+        Baz
     }
 
     [OneOf]

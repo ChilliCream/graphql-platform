@@ -19,22 +19,22 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                 {
                     Foo = new FooDeep
                     {
-                        BarString = "Foo",
-                    },
-                },
+                        BarString = "Foo"
+                    }
+                }
             }),
         new BarNullable
         {
             Number = 2, Foo = new FooNullable
             {
                 BarEnum = BarEnum.FOO,
-                BarShort = 14,
-            },
+                BarShort = 14
+            }
         },
         new BarNullable
         {
-            Number = 2,
-        },
+            Number = 2
+        }
     ];
 
     private readonly SchemaCache _cache = new(resource);
@@ -228,6 +228,6 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

@@ -8,8 +8,7 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class PipelineTools
 {
-    private static readonly Dictionary<string, object?> s_empty = new();
-
+    private static readonly Dictionary<string, object?> s_empty = [];
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
     public static string CreateOperationId(string documentId, string? operationName)

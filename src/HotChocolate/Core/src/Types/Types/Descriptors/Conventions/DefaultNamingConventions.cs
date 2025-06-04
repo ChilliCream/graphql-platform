@@ -66,7 +66,7 @@ public class DefaultNamingConventions
             char.IsUpper(name[1]) &&
             name[0] == 'I')
         {
-            return name.Substring(1);
+            return name[1..];
         }
 
         if (kind == TypeKind.InputObject)
@@ -77,7 +77,7 @@ public class DefaultNamingConventions
 
             if (isInputObjectType && isEndingInputType)
             {
-                return name.Substring(0, name.Length - 4);
+                return name[..^4];
             }
 
             if (isInputObjectType && !isEndingInput && !isEndingInputType)
@@ -96,12 +96,12 @@ public class DefaultNamingConventions
             if (name.Length > DirectivePostfix.Length &&
                 name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - DirectivePostfix.Length);
+                name = name[..^DirectivePostfix.Length];
             }
             else if (name.Length > DirectiveTypePostfix.Length &&
                 name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - DirectiveTypePostfix.Length);
+                name = name[..^DirectiveTypePostfix.Length];
             }
 
             name = NameFormattingHelpers.FormatFieldName(name);

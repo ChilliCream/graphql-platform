@@ -17,7 +17,7 @@ public class JsonConsoleOutputCommand  : IDisposable
         var json = JsonSerializer.Serialize(_data, new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            IgnoreReadOnlyProperties = false,
+            IgnoreReadOnlyProperties = false
         });
         Console.WriteLine(json);
     }

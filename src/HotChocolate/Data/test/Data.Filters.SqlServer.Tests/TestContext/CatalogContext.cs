@@ -32,7 +32,7 @@ public class CatalogContext : DbContext
     {
         await Database.EnsureCreatedAsync();
 
-        var type = new ProductType { Name = "T-Shirt", };
+        var type = new ProductType { Name = "T-Shirt" };
         ProductTypes.Add(type);
 
         for (var i = 0; i < 100; i++)
@@ -51,7 +51,7 @@ public class CatalogContext : DbContext
                 {
                     Name = $"Product {i}-{j}",
                     Type = type,
-                    Brand = brand,
+                    Brand = brand
                 };
                 Products.Add(product);
             }

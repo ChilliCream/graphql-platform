@@ -44,7 +44,7 @@ public static class FusionDocumentNodeExtensions
         {
             for (var i = 0; i < document.Definitions.Count; i++)
             {
-                if (document.Definitions[i] is OperationDefinitionNode { Name: { }, } op &&
+                if (document.Definitions[i] is OperationDefinitionNode { Name: { } } op &&
                     op.Name!.Value.Equals(operationName, StringComparison.Ordinal))
                 {
                     return op;

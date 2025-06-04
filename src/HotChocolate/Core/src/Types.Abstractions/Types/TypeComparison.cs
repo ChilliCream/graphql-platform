@@ -13,5 +13,5 @@ public enum TypeComparison
     /// <summary>
     /// Compare types structurally.
     /// </summary>
-    Structural = 1,
+    Structural = 1
 }

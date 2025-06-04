@@ -19,7 +19,7 @@ internal static class Utf8Messages
             (byte)'i',
             (byte)'n',
             (byte)'i',
-            (byte)'t',
+            (byte)'t'
         ];
 
     public static ReadOnlySpan<byte> ConnectionAccept =>
@@ -37,7 +37,7 @@ internal static class Utf8Messages
             (byte)'_',
             (byte)'a',
             (byte)'c',
-            (byte)'k',
+            (byte)'k'
         ];
 
     public static ReadOnlySpan<byte> ConnectionError =>
@@ -57,7 +57,7 @@ internal static class Utf8Messages
             (byte)'r',
             (byte)'r',
             (byte)'o',
-            (byte)'r',
+            (byte)'r'
         ];
 
     public static ReadOnlySpan<byte> ConnectionTerminate =>
@@ -81,7 +81,7 @@ internal static class Utf8Messages
             (byte)'n',
             (byte)'a',
             (byte)'t',
-            (byte)'e',
+            (byte)'e'
         ];
 
     public static ReadOnlySpan<byte> Start =>
@@ -90,7 +90,7 @@ internal static class Utf8Messages
             (byte)'t',
             (byte)'a',
             (byte)'r',
-            (byte)'t',
+            (byte)'t'
         ];
 
     public static ReadOnlySpan<byte> Stop =>
@@ -98,7 +98,7 @@ internal static class Utf8Messages
             (byte)'s',
             (byte)'t',
             (byte)'o',
-            (byte)'p',
+            (byte)'p'
         ];
 
     public static ReadOnlySpan<byte> Data =>
@@ -106,7 +106,7 @@ internal static class Utf8Messages
             (byte)'d',
             (byte)'a',
             (byte)'t',
-            (byte)'a',
+            (byte)'a'
         ];
 
     public static ReadOnlySpan<byte> Error =>
@@ -115,7 +115,7 @@ internal static class Utf8Messages
             (byte)'r',
             (byte)'r',
             (byte)'o',
-            (byte)'r',
+            (byte)'r'
         ];
 
     public static ReadOnlySpan<byte> Complete =>
@@ -127,6 +127,6 @@ internal static class Utf8Messages
             (byte)'l',
             (byte)'e',
             (byte)'t',
-            (byte)'e',
+            (byte)'e'
         ];
 }
