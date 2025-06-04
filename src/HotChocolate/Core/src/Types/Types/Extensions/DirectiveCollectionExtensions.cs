@@ -92,20 +92,18 @@ public static class DirectiveCollectionExtensions
                     case DirectiveNames.Defer.Arguments.If:
                         @if = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<bool>(variable.Name.Value),
+                            VariableNode variable => !variables.GetBooleanValue(variable.Name.Value) ?? true,
                             BooleanValueNode b => b.Value,
-                            _ => @if
+                            _ => true
                         };
                         break;
 
                     case DirectiveNames.Defer.Arguments.Label:
                         label = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<string?>(variable.Name.Value),
+                            VariableNode variable => variables.GetStringValue(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label
+                            _ => null
                         };
                         break;
                 }
@@ -116,6 +114,15 @@ public static class DirectiveCollectionExtensions
 
         return null;
     }
+
+    private static bool? GetBooleanValue(this IVariableValueCollection variables, string variableName)
+        => variables.TryGetValue(variableName, out BooleanValueNode? value) ? value.Value : null;
+
+    private static string? GetStringValue(this IVariableValueCollection variables, string variableName)
+        => variables.TryGetValue(variableName, out StringValueNode? value) ? value.Value : null;
+
+    private static int? GetIntValue(this IVariableValueCollection variables, string variableName)
+        => variables.TryGetValue(variableName, out IntValueNode? value) ? value.ToInt32() : null;
 
     internal static StreamDirective? GetStreamDirective(
         this ISelection selection,
@@ -141,30 +148,27 @@ public static class DirectiveCollectionExtensions
                     case DirectiveNames.Stream.Arguments.If:
                         @if = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<bool>(variable.Name.Value),
+                            VariableNode variable => !variables.GetBooleanValue(variable.Name.Value) ?? true,
                             BooleanValueNode b => b.Value,
-                            _ => @if
+                            _ => true
                         };
                         break;
 
                     case DirectiveNames.Stream.Arguments.Label:
                         label = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<string?>(variable.Name.Value),
+                            VariableNode variable => variables.GetStringValue(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label
+                            _ => null
                         };
                         break;
 
                     case DirectiveNames.Stream.Arguments.InitialCount:
                         initialCount = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<int>(variable.Name.Value),
+                            VariableNode variable =>  variables.GetIntValue(variable.Name.Value) ?? 0,
                             IntValueNode b => b.ToInt32(),
-                            _ => initialCount
+                            _ => 0
                         };
                         break;
                 }

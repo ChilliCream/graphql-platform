@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution;
@@ -32,5 +33,5 @@ public interface IVariableValueCollection : IEnumerable<VariableValue>
     /// <c>true</c> if a coerced variable exists and can be converted
     /// to the requested type; otherwise, <c>false</c> will be returned.
     /// </returns>
-    bool TryGetValue<T>(string name, out T? value) where T : IValueNode;
+    bool TryGetValue<T>(string name, [NotNullWhen(true)] out T? value) where T : IValueNode;
 }
