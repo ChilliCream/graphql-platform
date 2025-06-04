@@ -34,21 +34,16 @@ public static partial class RequestExecutorBuilderExtensions
     /// Adds a delegate that will be used to create middleware for the execution pipeline.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="middleware">A delegate that is used to create middleware for the execution pipeline.</param>
-    /// <param name="key">A unique identifier for the middleware.</param>
+    /// <param name="configuration">The middleware configuration to use.</param>
     /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
-        RequestMiddleware middleware,
-        string? key = null)
+        RequestMiddlewareConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(middleware);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        return Configure(
-            builder,
-            options => options.Pipeline.Add(
-                new RequestCoreMiddlewareConfiguration((_, next) => middleware(next), key)));
+        return Configure(builder, options => options.Pipeline.Add(configuration));
     }
 
     /// <summary>
@@ -67,7 +62,7 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.Pipeline.Add(
-                new RequestCoreMiddlewareConfiguration(
+                new RequestMiddlewareConfiguration(
                     RequestClassMiddlewareFactory.Create<TMiddleware>(),
                     key)));
     }
@@ -96,7 +91,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AppendUseRequest(
         this IRequestExecutorBuilder builder,
         string after,
-        RequestCoreMiddleware middleware,
+        RequestMiddleware middleware,
         string? key = null,
         bool allowMultiple = false)
     {
@@ -115,7 +110,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(middleware, key);
+                var configuration = new RequestMiddlewareConfiguration(middleware, key);
 
                 options.PipelineModifiers.Add(
                     pipeline =>
@@ -147,11 +142,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="after">
     /// The key of the middleware after which the new middleware will be appended.
     /// </param>
-    /// <param name="middleware">
-    /// The middleware to append.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
+    /// <param name="configuration">
+    /// The middleware configuration to append.
     /// </param>
     /// <param name="allowMultiple">
     /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
@@ -162,30 +154,27 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AppendUseRequest(
         this IRequestExecutorBuilder builder,
         string after,
-        RequestMiddleware middleware,
-        string? key = null,
+        RequestMiddlewareConfiguration configuration,
         bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(after);
-        ArgumentNullException.ThrowIfNull(middleware);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        if (!allowMultiple && key is null)
+        if (!allowMultiple && configuration.Key is null)
         {
             throw new ArgumentException(
                 "The key must be set if allowMultiple is false.",
-                nameof(key));
+                nameof(configuration));
         }
 
         return Configure(
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration((_, next) => middleware(next), key);
-
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
                     {
                         return;
                     }
@@ -244,7 +233,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(
+                var configuration = new RequestMiddlewareConfiguration(
                     RequestClassMiddlewareFactory.Create<TMiddleware>(),
                     key);
 
@@ -291,7 +280,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder InsertUseRequest(
         this IRequestExecutorBuilder builder,
         string before,
-        RequestCoreMiddleware middleware,
+        RequestMiddleware middleware,
         string? key = null,
         bool allowMultiple = false)
     {
@@ -310,7 +299,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(middleware, key);
+                var configuration = new RequestMiddlewareConfiguration(middleware, key);
 
                 options.PipelineModifiers.Add(
                     pipeline =>
@@ -342,11 +331,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="before">
     /// The key of the middleware before which the new middleware will be inserted.
     /// </param>
-    /// <param name="middleware">
-    /// The middleware to insert.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
+    /// <param name="configuration">
+    /// The middleware configuration to insert.
     /// </param>
     /// <param name="allowMultiple">
     /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
@@ -357,30 +343,27 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder InsertUseRequest(
         this IRequestExecutorBuilder builder,
         string before,
-        RequestMiddleware middleware,
-        string? key = null,
+        RequestMiddlewareConfiguration configuration,
         bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(before);
-        ArgumentNullException.ThrowIfNull(middleware);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        if(!allowMultiple && key is null)
+        if(!allowMultiple && configuration.Key is null)
         {
             throw new ArgumentException(
                 "The key must be set if allowMultiple is false.",
-                nameof(key));
+                nameof(configuration));
         }
 
         return Configure(
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration((_, next) => middleware(next), key);
-
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
                     {
                         return;
                     }
@@ -439,7 +422,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(
+                var configuration = new RequestMiddlewareConfiguration(
                     RequestClassMiddlewareFactory.Create<TMiddleware>(),
                     key);
 
@@ -462,7 +445,7 @@ public static partial class RequestExecutorBuilderExtensions
             });
     }
 
-    private static int GetIndex(IList<RequestCoreMiddlewareConfiguration> pipeline, string key)
+    private static int GetIndex(IList<RequestMiddlewareConfiguration> pipeline, string key)
     {
         for (var i = 0; i < pipeline.Count; i++)
         {

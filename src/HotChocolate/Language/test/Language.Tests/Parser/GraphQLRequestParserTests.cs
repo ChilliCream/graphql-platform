@@ -27,7 +27,7 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
                 r.Document.MatchSnapshot();
@@ -123,7 +123,7 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
                 r.Document.MatchSnapshot();
@@ -151,7 +151,7 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
@@ -178,7 +178,7 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
@@ -213,7 +213,9 @@ public class GraphQLRequestParserTests
 
         var first = requestParser.Parse();
 
-        cache.TryAddDocument(first[0].QueryId!, new CachedDocument(first[0].Document!, null, false));
+        cache.TryAddDocument(
+            first[0].DocumentId?.Value!,
+            new CachedDocument(first[0].Document!, OperationDocumentHash.Empty, false));
 
         // act
         requestParser = new Utf8GraphQLRequestParser(
@@ -233,7 +235,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                Assert.Equal(expectedHash, r.QueryId);
+                Assert.Equal(expectedHash, r.DocumentId?.Value);
                 r.Document.MatchSnapshot();
             });
     }
@@ -276,7 +278,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                Assert.Equal(expectedHash, r.QueryId);
+                Assert.Equal(expectedHash, r.DocumentId?.Value);
                 r.Document.MatchSnapshot();
             });
     }
@@ -319,8 +321,8 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                Assert.Equal("FooBar", r.QueryId);
-                Assert.Equal(expectedHash, r.QueryHash);
+                Assert.Equal("FooBar", r.DocumentId?.Value);
+                Assert.Equal(expectedHash, r.DocumentHash?.Value);
                 r.Document.MatchSnapshot();
             });
     }
@@ -397,7 +399,7 @@ public class GraphQLRequestParserTests
         Assert.Collection(batch,
             r =>
             {
-                Assert.Equal("ABC", r.QueryId);
+                Assert.Equal("ABC", r.DocumentId?.Value);
                 Assert.Equal("DEF", r.OperationName);
 
                 snapshot.Add(r.Variables, "Variables:");
@@ -549,11 +551,11 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Equal("MyQuery", r.OperationName);
-                Assert.Equal("hashOfQuery", r.QueryId);
+                Assert.Equal("hashOfQuery", r.DocumentId?.Value);
                 Assert.Null(r.Variables);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                 Assert.Null(r.Document);
-                Assert.Null(r.QueryHash);
+                Assert.Null(r.DocumentHash);
             });
     }
 
@@ -579,11 +581,11 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Equal("hashOfQuery", r.QueryId);
+                Assert.Equal("hashOfQuery", r.DocumentId?.Value);
                 Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                 Assert.Null(r.Document);
-                Assert.Null(r.QueryHash);
+                Assert.Null(r.DocumentHash);
             });
     }
 
@@ -618,7 +620,7 @@ public class GraphQLRequestParserTests
                     && persistedQuery.TryGetValue("sha256Hash", out o)
                     && o is string hash)
                 {
-                    Assert.Equal(hash, r.QueryHash);
+                    Assert.Equal(hash, r.DocumentHash?.Value);
                 }
             });
     }
