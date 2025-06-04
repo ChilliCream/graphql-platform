@@ -20,10 +20,7 @@ public class ObjectTypeDescriptor
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
-        if (clrType is null)
-        {
-            throw new ArgumentNullException(nameof(clrType));
-        }
+        ArgumentNullException.ThrowIfNull(clrType);
 
         Configuration.RuntimeType = clrType;
         Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
@@ -266,10 +263,7 @@ public class ObjectTypeDescriptor
     public IObjectTypeDescriptor Implements<T>(T type)
         where T : InterfaceType
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Configuration.Interfaces.Add(new SchemaTypeReference(type));
 
@@ -278,10 +272,7 @@ public class ObjectTypeDescriptor
 
     public IObjectTypeDescriptor Implements(NamedTypeNode type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Configuration.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
         return this;
@@ -314,10 +305,7 @@ public class ObjectTypeDescriptor
     public IObjectFieldDescriptor Field(
         MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
         {
@@ -345,10 +333,7 @@ public class ObjectTypeDescriptor
     public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
         Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.TryExtractMember();
 

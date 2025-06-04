@@ -44,14 +44,14 @@ public class EdgeTests
     }
 
     [Fact]
-    public void CreateEdge_CursorIsEmpty_ArgumentNullException()
+    public void CreateEdge_CursorIsEmpty_ArgumentException()
     {
         // arrange
         // act
         void Action() => new Edge<string>("abc", string.Empty);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<ArgumentException>(Action);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class EdgeTests
     public class Query
     {
         [UsePaging]
-        public IEnumerable<User> GetUsers() => new[] { new User(name: "Hello"), };
+        public IEnumerable<User> GetUsers() => new[] { new User(name: "Hello") };
     }
 
     [ExtendObjectType("UsersEdge")]

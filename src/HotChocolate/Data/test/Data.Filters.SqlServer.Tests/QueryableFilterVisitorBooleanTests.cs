@@ -4,17 +4,17 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorBooleanTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = null, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -23,7 +23,7 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -38,7 +38,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();
@@ -48,7 +51,7 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -63,7 +66,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();
@@ -73,7 +79,7 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -93,7 +99,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")
@@ -105,7 +114,7 @@ public class QueryableFilterVisitorBooleanTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -125,7 +134,10 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")

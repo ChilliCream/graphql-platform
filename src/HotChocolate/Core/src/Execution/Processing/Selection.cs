@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public class Selection : ISelection
 {
-    private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
+    private static readonly ArgumentMap s_emptyArguments = ArgumentMap.Empty;
     private long[] _includeConditions;
     private long _streamIfCondition;
     private Flags _flags;
@@ -39,7 +39,7 @@ public class Selection : ISelection
         _syntaxNode = syntaxNode;
         _syntaxNodes = [syntaxNode];
         ResponseName = responseName;
-        Arguments = arguments ?? _emptyArguments;
+        Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
         Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
@@ -58,10 +58,7 @@ public class Selection : ISelection
 
     protected Selection(Selection selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         Id = selection.Id;
         Strategy = selection.Strategy;
@@ -402,7 +399,7 @@ public class Selection : ISelection
         Option4 = 8,
         Option5 = 16,
         Option6 = 32,
-        Option7 = 64,
+        Option7 = 64
     }
 
     internal sealed class Sealed : Selection

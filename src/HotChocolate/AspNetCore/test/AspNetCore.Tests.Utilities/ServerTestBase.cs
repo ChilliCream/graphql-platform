@@ -124,7 +124,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                             {
                                 EnableBatching = true,
                                 AllowedGetOperations =
-                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription,
+                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription
                             });
 
                         configureConventions?.Invoke(builder);

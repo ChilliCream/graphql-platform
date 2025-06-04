@@ -72,7 +72,7 @@ internal sealed class AuthorizeRequestMiddleware(
                     .SetCode(result == AuthorizeResult.NotAllowed
                         ? ErrorCodes.Authentication.NotAuthorized
                         : ErrorCodes.Authentication.NotAuthenticated)
-                    .Build(),
+                    .Build()
         };
     }
 

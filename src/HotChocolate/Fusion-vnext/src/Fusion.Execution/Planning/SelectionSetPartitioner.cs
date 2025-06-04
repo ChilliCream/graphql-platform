@@ -16,7 +16,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             SchemaName = input.SchemaName,
             AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
-            SelectionSetIndex = input.SelectionSetIndex,
+            SelectionSetIndex = input.SelectionSetIndex
         };
 
         var (resolvable, _) =

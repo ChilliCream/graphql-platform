@@ -6,7 +6,7 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorObjectTests(SchemaCache cache)
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new Bar
         {
@@ -18,9 +18,9 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarString = "testatest",
                 ObjectArray = new List<Bar>
                 {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a", }, },
-                },
-            },
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
+                }
+            }
         },
         new Bar
         {
@@ -38,11 +38,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                         Foo = new Foo
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = 14, BarString = "d",
-                        },
-                    },
-                },
-            },
+                            BarShort = 14, BarString = "d"
+                        }
+                    }
+                }
+            }
         },
         new Bar
         {
@@ -53,12 +53,12 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new BarNullable
         {
@@ -76,11 +76,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "a" }
-                            BarShort = 12,
-                        },
-                    },
-                },
-            },
+                            BarShort = 12
+                        }
+                    }
+                }
+            }
         },
         new BarNullable
         {
@@ -98,11 +98,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = null,
-                        },
-                    },
-                },
-            },
+                            BarShort = null
+                        }
+                    }
+                }
+            }
         },
         new BarNullable
         {
@@ -120,11 +120,11 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = 14,
-                        },
-                    },
-                },
-            },
+                            BarShort = 14
+                        }
+                    }
+                }
+            }
         },
         new BarNullable
         {
@@ -135,17 +135,17 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
+                ObjectArray = null
+            }
         },
-        new BarNullable { Foo = null, },
+        new BarNullable { Foo = null }
     ];
 
     [Fact]
     public async Task Create_ObjectShort_OrderBy()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(_barEntities);
+        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -175,7 +175,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     {
         // arrange
         var tester =
-            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(_barNullableEntities);
+            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -204,7 +204,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     public async Task Create_ObjectEnum_OrderBy()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(_barEntities);
+        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -234,7 +234,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     {
         // arrange
         var tester =
-            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(_barNullableEntities);
+            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -263,7 +263,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     public async Task Create_ObjectString_OrderBy()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(_barEntities);
+        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -293,7 +293,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     {
         // arrange
         var tester =
-            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(_barNullableEntities);
+            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -322,7 +322,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     public async Task Create_ObjectBool_OrderBy()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(_barEntities);
+        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -352,7 +352,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     {
         // arrange
         var tester =
-            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(_barNullableEntities);
+            await cache.CreateSchemaAsync<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -381,7 +381,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     public async Task Create_ObjectString_OrderBy_TwoProperties()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(_barEntities);
+        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -446,7 +446,7 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
     public async Task Create_ObjectString_OrderBy_TwoProperties_Variables()
     {
         // arrange
-        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(_barEntities);
+        var tester = await cache.CreateSchemaAsync<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -473,10 +473,10 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                                     "foo",
                                     new Dictionary<string, object>
                                     {
-                                        { "barShort", "ASC" }, { "barBool", "ASC" },
+                                        { "barShort", "ASC" }, { "barBool", "ASC" }
                                     }
-                                },
-                            },
+                                }
+                            }
                         }
                     })
                 .Build());
@@ -502,15 +502,15 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                             new()
                             {
                                 {
-                                    "foo", new Dictionary<string, object> { { "barShort", "ASC" }, }
-                                },
+                                    "foo", new Dictionary<string, object> { { "barShort", "ASC" } }
+                                }
                             },
                             new()
                             {
                                 {
-                                    "foo", new Dictionary<string, object> { { "barBool", "ASC" }, }
-                                },
-                            },
+                                    "foo", new Dictionary<string, object> { { "barBool", "ASC" } }
+                                }
+                            }
                         }
                     })
                 .Build());
@@ -540,10 +540,10 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                                         "foo",
                                         new Dictionary<string, object>
                                         {
-                                            { "barShort", "DESC" }, { "barBool", "DESC" },
+                                            { "barShort", "DESC" }, { "barBool", "DESC" }
                                         }
-                                    },
-                                },
+                                    }
+                                }
                             }
                     })
                 .Build());
@@ -569,15 +569,15 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
                             new()
                             {
                                 {
-                                    "foo", new Dictionary<string, object> { { "barShort", "DESC" }, }
-                                },
+                                    "foo", new Dictionary<string, object> { { "barShort", "DESC" } }
+                                }
                             },
                             new()
                             {
                                 {
-                                    "foo", new Dictionary<string, object> { { "barBool", "DESC" }, }
-                                },
-                            },
+                                    "foo", new Dictionary<string, object> { { "barBool", "DESC" } }
+                                }
+                            }
                         }
                     })
                 .Build());
@@ -651,6 +651,6 @@ public class QueryableSortVisitorObjectTests(SchemaCache cache)
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

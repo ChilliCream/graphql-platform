@@ -40,7 +40,7 @@ public class CustomCollectionSegmentHandlerTests
         public CollectionSegment<string> GetItems(int skip, int take)
         {
             return new CollectionSegment<string>(
-                new[] { "hello", "abc", },
+                new[] { "hello", "abc" },
                 new CollectionSegmentInfo(false, false),
                 1);
         }

@@ -4,19 +4,19 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorComparableTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { BarShort = 12, },
-        new() { BarShort = 14, },
-        new() { BarShort = 13, },
+        new() { BarShort = 12 },
+        new() { BarShort = 14 },
+        new() { BarShort = 13 }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { BarShort = 12, },
-        new() { BarShort = null, },
-        new() { BarShort = 14, },
-        new() { BarShort = 13, },
+        new() { BarShort = 12 },
+        new() { BarShort = null },
+        new() { BarShort = 14 },
+        new() { BarShort = 13 }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -25,7 +25,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -45,7 +45,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -56,7 +59,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -76,7 +79,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -87,7 +93,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortGreaterThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -112,7 +118,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -124,7 +133,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -149,7 +158,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -161,7 +173,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {
         // act
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // assert
         var res1 = await tester.ExecuteAsync(
@@ -186,7 +198,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -198,7 +213,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -223,7 +238,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -235,7 +253,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortLowerThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -260,7 +278,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -272,7 +293,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -297,7 +318,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -309,7 +333,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -334,7 +358,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -346,7 +373,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -371,7 +398,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -383,7 +413,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -403,7 +433,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "nullAnd14")
@@ -414,7 +447,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -434,7 +467,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12and13")
             .AddResult(res2, "13and14")
             .AddResult(res3, "nullAnd14")
@@ -445,7 +481,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -465,7 +501,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -476,7 +515,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -496,7 +535,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "null")
@@ -507,7 +549,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableGreaterThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -532,7 +574,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -544,7 +589,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotGreaterThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -581,7 +626,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -606,7 +651,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -618,7 +666,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -655,7 +703,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableLowerThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -680,7 +728,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -692,7 +743,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThan_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -729,7 +780,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -754,7 +805,10 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "12")
             .AddResult(res2, "13")
             .AddResult(res3, "14")
@@ -766,7 +820,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -803,7 +857,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -834,7 +888,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

@@ -18,8 +18,8 @@ public class SortConvention
     : Convention<SortConventionConfiguration>
         , ISortConvention
 {
-    private const string _inputPostFix = "SortInput";
-    private const string _inputTypePostFix = "SortInputType";
+    private const string InputPostFix = "SortInput";
+    private const string InputTypePostFix = "SortInputType";
 
     private Action<ISortConventionDescriptor>? _configure;
     private INamingConventions _namingConventions = default!;
@@ -125,8 +125,8 @@ public class SortConvention
         var name = _namingConventions.GetTypeName(runtimeType);
 
         var isInputObjectType = typeof(SortInputType).IsAssignableFrom(runtimeType);
-        var isEndingInput = name.EndsWith(_inputPostFix, StringComparison.Ordinal);
-        var isEndingInputType = name.EndsWith(_inputTypePostFix, StringComparison.Ordinal);
+        var isEndingInput = name.EndsWith(InputPostFix, StringComparison.Ordinal);
+        var isEndingInputType = name.EndsWith(InputTypePostFix, StringComparison.Ordinal);
 
         if (isInputObjectType && isEndingInputType)
         {
@@ -135,12 +135,12 @@ public class SortConvention
 
         if (isInputObjectType && !isEndingInput && !isEndingInputType)
         {
-            return name + _inputPostFix;
+            return name + InputPostFix;
         }
 
         if (!isInputObjectType && !isEndingInput)
         {
-            return name + _inputPostFix;
+            return name + InputPostFix;
         }
 
         return name;
@@ -161,10 +161,7 @@ public class SortConvention
     /// <inheritdoc />
     public virtual ExtendedTypeReference GetFieldType(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         if (TryCreateSortType(
             _typeInspector.GetReturnType(member, true),

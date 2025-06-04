@@ -6,17 +6,17 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorComparableTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { BarShort = 12, }, new() { BarShort = 14, }, new() { BarShort = 13, },
+        new() { BarShort = 12 }, new() { BarShort = 14 }, new() { BarShort = 13 }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { BarShort = 12, },
-        new() { BarShort = null, },
-        new() { BarShort = 14, },
-        new() { BarShort = 13, },
+        new() { BarShort = 12 },
+        new() { BarShort = null },
+        new() { BarShort = 14 },
+        new() { BarShort = 13 }
     ];
 
     private readonly SchemaCache _cache;
@@ -30,7 +30,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -64,7 +64,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -98,7 +98,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortGreaterThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -139,7 +139,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -180,7 +180,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {
         // act
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // assert
         var res1 = await tester.ExecuteAsync(
@@ -221,7 +221,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -262,7 +262,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortLowerThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -303,7 +303,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -344,7 +344,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -385,7 +385,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -426,7 +426,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -460,7 +460,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNotIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -494,7 +494,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -528,7 +528,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -562,7 +562,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableGreaterThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -603,7 +603,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotGreaterThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -644,7 +644,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -685,7 +685,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -726,7 +726,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableLowerThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -767,7 +767,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThan_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -808,7 +808,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -849,7 +849,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -890,7 +890,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -924,7 +924,7 @@ public class QueryableFilterVisitorComparableTests
     public async Task Create_ShortNullableNotIn_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = await _cache.CreateSchemaAsync<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

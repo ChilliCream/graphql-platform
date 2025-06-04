@@ -21,7 +21,7 @@ public class InputObjectTypeExtensionNodeTests
         var c = new InputObjectTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
 
         // act
@@ -54,7 +54,7 @@ public class InputObjectTypeExtensionNodeTests
         var c = new InputObjectTypeExtensionNode(
             new Location(3, 3, 3, 3),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
 
         // act
@@ -87,12 +87,12 @@ public class InputObjectTypeExtensionNodeTests
         var c = new InputObjectTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
         var d = new InputObjectTypeExtensionNode(
             new Location(2, 2, 2, 2),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
 
         // act

@@ -56,10 +56,7 @@ public sealed class Directive : IDirective
     /// </returns>
     public T GetArgumentValue<T>(string name)
     {
-        if (name is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(name);
 
         Arguments.TryGetValue(name, out var argumentValue);
         return Type.ParseArgument<T>(name, argumentValue);

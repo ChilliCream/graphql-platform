@@ -75,7 +75,7 @@ public class ErrorTests
 
         // act
         error = error.WithExtensions(
-            new Dictionary<string, object?> { { "a", "b" }, });
+            new Dictionary<string, object?> { { "a", "b" } });
 
         // assert
         Assert.Collection(
@@ -120,7 +120,7 @@ public class ErrorTests
             new Dictionary<string, object?>
             {
                 { "a", "b" },
-                { "c", "d" },
+                { "c", "d" }
             });
 
         // act
@@ -143,7 +143,7 @@ public class ErrorTests
         IError error = new Error { Message = "123" };
 
         // act
-        error = error.WithLocations(new List<Location> { new(1, 2), });
+        error = error.WithLocations(new List<Location> { new(1, 2) });
 
         // assert
         Assert.Collection(

@@ -302,9 +302,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
     <value>The given schema has to inherit from `Schema` in order to be initializable.</value>
   </data>
-  <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
-    <value>The error message mustn't be null or empty.</value>
-  </data>
   <data name="SchemaField_Description" xml:space="preserve">
     <value>Access the current type schema of this server.</value>
   </data>
@@ -400,9 +397,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="TypeNameHelper_OnlyTypeSystemObjectsAreAllowed" xml:space="preserve">
     <value>Only type system objects are allowed as dependency.</value>
-  </data>
-  <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
-    <value>The typeName mustn't be null or empty.</value>
   </data>
   <data name="Type_Description" xml:space="preserve">
     <value>The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.

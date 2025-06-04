@@ -14,7 +14,7 @@ public class GraphQLConfigTests
 
     [Fact]
     public void Load_Json_Is_Null() =>
-        Assert.Throws<ArgumentException>(
+        Assert.Throws<ArgumentNullException>(
             () => GraphQLConfig.FromJson(null!));
 
     [Fact]

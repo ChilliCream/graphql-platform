@@ -1156,6 +1156,6 @@ public class SchemaBuilderExtensionsTypeTests
     public enum MyEnum
     {
         A,
-        B,
+        B
     }
 }

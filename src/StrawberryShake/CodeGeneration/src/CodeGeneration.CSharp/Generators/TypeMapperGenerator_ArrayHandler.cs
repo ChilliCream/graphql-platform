@@ -7,8 +7,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class TypeMapperGenerator
 {
-    private const string _list = "list";
-    private const string _child = "child";
+    private const string List = "list";
+    private const string Child = "child";
 
     private static void AddArrayHandler(
         CSharpSyntaxGeneratorSettings settings,
@@ -20,19 +20,19 @@ public partial class TypeMapperGenerator
         bool isNonNullable)
     {
         methodBuilder
-            .AddParameter(_list)
+            .AddParameter(List)
             .SetType(listTypeDescriptor.ToStateTypeReference());
 
         if (settings.IsStoreEnabled())
         {
             methodBuilder
-                .AddParameter(_snapshot)
+                .AddParameter(Snapshot)
                 .SetType(TypeNames.IEntityStoreSnapshot);
         }
 
         var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
-        methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
+        methodBuilder.AddCode(EnsureProperNullability(List, isNonNullable));
 
         methodBuilder.AddCode(
             AssignmentBuilder
@@ -56,7 +56,7 @@ public partial class TypeMapperGenerator
                 CodeBlockBuilder
                     .New()
                     .AddCode(listTypeDescriptor.InnerType.ToStateTypeReference())
-                    .AddCode($"{_child} in {_list}"))
+                    .AddCode($"{Child} in {List}"))
             .AddCode(
                 MethodCallBuilder
                     .New()
@@ -64,8 +64,8 @@ public partial class TypeMapperGenerator
                     .AddArgument(MethodCallBuilder
                         .Inline()
                         .SetMethodName(MapMethodNameFromTypeName(listTypeDescriptor.InnerType))
-                        .AddArgument(_child)
-                        .If(settings.IsStoreEnabled(), x => x.AddArgument(_snapshot))));
+                        .AddArgument(Child)
+                        .If(settings.IsStoreEnabled(), x => x.AddArgument(Snapshot))));
 
         methodBuilder
             .AddCode(forEachBuilder)

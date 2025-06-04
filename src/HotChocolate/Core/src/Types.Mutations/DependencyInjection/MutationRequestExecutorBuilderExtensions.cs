@@ -35,7 +35,7 @@ public static class MutationRequestExecutorBuilderExtensions
             builder,
             new MutationConventionOptions
             {
-                ApplyToAllMutations = applyToAllMutations,
+                ApplyToAllMutations = applyToAllMutations
             });
     }
 

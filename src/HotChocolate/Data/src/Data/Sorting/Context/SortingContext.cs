@@ -17,10 +17,10 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 public class SortingContext : ISortingContext
 {
-    private static readonly MethodInfo _createSortByMethod =
+    private static readonly MethodInfo s_createSortByMethod =
         typeof(SortingContext).GetMethod(nameof(CreateSortBy), BindingFlags.NonPublic | BindingFlags.Static)!;
-    private static readonly ConcurrentDictionary<(Type, Type), MethodInfo> _sortByFactoryCache = new();
-    private static readonly SortDefinitionFormatter _formatter = new();
+    private static readonly ConcurrentDictionary<(Type, Type), MethodInfo> s_sortByFactoryCache = new();
+    private static readonly SortDefinitionFormatter s_formatter = new();
     private readonly IReadOnlyList<SortingInfo> _value;
     private readonly IResolverContext _context;
     private readonly IType _type;
@@ -39,7 +39,7 @@ public class SortingContext : ISortingContext
             ? listValueNode.Items
                 .Select(x => new SortingInfo(type, x, inputParser))
                 .ToArray()
-            : [new SortingInfo(type, valueNode, inputParser),];
+            : [new SortingInfo(type, valueNode, inputParser)];
         _context = context;
         _type = type;
         _valueNode = valueNode;
@@ -54,7 +54,7 @@ public class SortingContext : ISortingContext
     }
 
     /// <inheritdoc />
-    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue, },];
+    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue }];
 
     /// <inheritdoc />
     public IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields()
@@ -124,11 +124,11 @@ public class SortingContext : ISortingContext
         var builder = ImmutableArray.CreateBuilder<ISortBy<T>>();
         var parameter = Expression.Parameter(typeof(T), "t");
 
-        foreach (var (selector, ascending, type) in _formatter.Rewrite(_valueNode, _type, parameter))
+        foreach (var (selector, ascending, type) in s_formatter.Rewrite(_valueNode, _type, parameter))
         {
-            var factory = _sortByFactoryCache.GetOrAdd(
+            var factory = s_sortByFactoryCache.GetOrAdd(
                 (typeof(T), type),
-                static key => _createSortByMethod.MakeGenericMethod(key.Item1, key.Item2));
+                static key => s_createSortByMethod.MakeGenericMethod(key.Item1, key.Item2));
             var sortBy = (ISortBy<T>)factory.Invoke(null, [parameter, selector, ascending])!;
             builder.Add(sortBy);
         }

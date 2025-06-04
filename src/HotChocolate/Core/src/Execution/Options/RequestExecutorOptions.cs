@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
-    private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
     private PersistedOperationOptions _persistedOperations = new();
 
@@ -37,8 +37,8 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
         get => _executionTimeout;
         set
         {
-            _executionTimeout = value < _minExecutionTimeout
-                ? _minExecutionTimeout
+            _executionTimeout = value < s_minExecutionTimeout
+                ? s_minExecutionTimeout
                 : value;
         }
     }

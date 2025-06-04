@@ -101,12 +101,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         string filePath)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(filePath);
-
-        if (string.IsNullOrEmpty(filePath))
-        {
-            throw new ArgumentException(nameof(filePath));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(filePath);
 
         if (!File.Exists(filePath))
         {

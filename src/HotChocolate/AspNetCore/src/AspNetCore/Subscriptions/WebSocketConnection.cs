@@ -39,10 +39,7 @@ internal sealed class WebSocketConnection : ISocketConnection
 
     public async Task<IProtocolHandler?> TryAcceptConnection()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(WebSocketConnection));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var webSocketManager = HttpContext.WebSockets;
 
@@ -185,7 +182,7 @@ internal sealed class WebSocketConnection : ISocketConnection
             ConnectionCloseReason.NormalClosure => WebSocketCloseStatus.NormalClosure,
             ConnectionCloseReason.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
             ConnectionCloseReason.ProtocolError => WebSocketCloseStatus.ProtocolError,
-            _ => WebSocketCloseStatus.Empty,
+            _ => WebSocketCloseStatus.Empty
         };
 
     public void Dispose()

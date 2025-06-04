@@ -238,7 +238,7 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeDefinitionNode(
@@ -279,7 +279,7 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeDefinitionNode(
@@ -320,7 +320,7 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeDefinitionNode(

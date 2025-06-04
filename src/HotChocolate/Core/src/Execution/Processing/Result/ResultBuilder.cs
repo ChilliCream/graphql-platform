@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private static readonly Func<ValueTask>[] _emptyCleanupTasks = [];
+    private static readonly Func<ValueTask>[] s_emptyCleanupTasks = [];
     private readonly List<IError> _errors = [];
     private readonly HashSet<Path> _errorPaths = [];
     private readonly HashSet<ISelection> _fieldErrors = [];
@@ -265,7 +265,7 @@ internal sealed partial class ResultBuilder
             path: _path,
             hasNext: _hasNext,
             cleanupTasks: _cleanupTasks.Count == 0
-                ? _emptyCleanupTasks
+                ? s_emptyCleanupTasks
                 : _cleanupTasks.ToArray(),
             isDataSet: true,
             requestIndex: _requestIndex,

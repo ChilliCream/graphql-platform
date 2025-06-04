@@ -14,10 +14,7 @@ internal sealed class TimeoutMiddleware
         RequestDelegate next,
         [SchemaService] IRequestExecutorOptionsAccessor options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _next = next ?? throw new ArgumentNullException(nameof(next));
         _timeout = options.ExecutionTimeout;

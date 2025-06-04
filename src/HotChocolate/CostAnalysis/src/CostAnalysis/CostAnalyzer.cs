@@ -332,8 +332,8 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
 file sealed class CostContext : ValidatorFeature
 {
-    private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
-    private readonly List<FieldInfoListBuffer> _buffers = [new(),];
+    private static readonly FieldInfoListBufferPool s_fieldInfoPool = new();
+    private readonly List<FieldInfoListBuffer> _buffers = [new()];
 
     public IType NonNullString { get; private set; } = null!;
 
@@ -354,7 +354,7 @@ file sealed class CostContext : ValidatorFeature
 
         while (!buffer.TryPop(out list))
         {
-            buffer = _fieldInfoPool.Get();
+            buffer = s_fieldInfoPool.Get();
             _buffers.Push(buffer);
         }
 
@@ -376,7 +376,7 @@ file sealed class CostContext : ValidatorFeature
 
             for (var i = 0; i < _buffers.Count; i++)
             {
-                _fieldInfoPool.Return(_buffers[i]);
+                s_fieldInfoPool.Return(_buffers[i]);
             }
 
             _buffers.Push(buffer);

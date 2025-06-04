@@ -65,15 +65,8 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result == null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (outputStream == null)
-        {
-            throw new ArgumentNullException(nameof(outputStream));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(outputStream);
 
         if (result.Kind == SubscriptionResult)
         {

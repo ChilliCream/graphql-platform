@@ -56,7 +56,7 @@ public static class TestHelper
                     string s => new ObjectFieldNode(p.Name, s),
                     int i => new ObjectFieldNode(p.Name, i),
                     bool b => new ObjectFieldNode(p.Name, b),
-                    _ => throw new NotSupportedException($"Type {p.PropertyType} is not supported"),
+                    _ => throw new NotSupportedException($"Type {p.PropertyType} is not supported")
                 };
                 return result;
             })

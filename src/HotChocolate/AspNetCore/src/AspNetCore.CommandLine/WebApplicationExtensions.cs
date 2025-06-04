@@ -93,5 +93,5 @@ public static class HostBuilderExtensions
     }
 
     private static bool IsGraphQLCommand(this string[] args)
-        => args is ["schema", ..,];
+        => args is ["schema", ..];
 }

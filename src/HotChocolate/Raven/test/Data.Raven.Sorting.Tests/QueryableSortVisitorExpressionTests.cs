@@ -7,15 +7,15 @@ namespace HotChocolate.Data.Sorting;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorExpressionTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>(), },
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>() },
         new Foo
         {
             Name = "Foo",
             LastName = "Galoo",
-            Bars = new List<Bar>() { new() { Value = "A", }, },
-        },
+            Bars = new List<Bar>() { new() { Value = "A" } }
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -54,7 +54,7 @@ public class QueryableSortVisitorExpressionTests
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

@@ -44,7 +44,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         object result = await executable.ToListAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 
     [Fact]
@@ -57,7 +57,10 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -70,6 +73,6 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         var result = await executable.FirstOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 }

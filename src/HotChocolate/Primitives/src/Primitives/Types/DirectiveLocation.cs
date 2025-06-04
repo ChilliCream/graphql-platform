@@ -135,5 +135,5 @@ public enum DirectiveLocation
     Fragment =
         InlineFragment |
         FragmentSpread |
-        FragmentDefinition,
+        FragmentDefinition
 }

@@ -57,7 +57,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             {
                 0 => new NoopServerDiagnosticEventListener(),
                 1 => listeners[0],
-                _ => new AggregateServerDiagnosticEventListener(listeners),
+                _ => new AggregateServerDiagnosticEventListener(listeners)
             };
         });
 

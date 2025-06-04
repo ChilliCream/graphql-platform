@@ -46,10 +46,7 @@ public class InMemoryClient : IInMemoryClient
         OperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         if (Executor is null)
         {
@@ -149,7 +146,7 @@ public class InMemoryClient : IInMemoryClient
         {
             (Dictionary<string, object?> s, string prop) when s.ContainsKey(prop) => s[prop],
             (List<object> l, int i) when i < l.Count => l[i],
-            _ => null,
+            _ => null
         };
     }
 

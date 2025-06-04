@@ -9,30 +9,30 @@ namespace HotChocolate.Data.Spatial.Filters;
 public class QueryableFilterVisitorIntersectsTests
     : SchemaCache
 {
-    private static readonly Polygon _truePolygon =
+    private static readonly Polygon s_truePolygon =
         new(new LinearRing(
         [
             new Coordinate(0, 0),
             new Coordinate(100, 0),
             new Coordinate(100, 100),
             new Coordinate(0, 100),
-            new Coordinate(0, 0),
+            new Coordinate(0, 0)
         ]));
 
-    private static readonly Polygon _falsePolygon =
+    private static readonly Polygon s_falsePolygon =
         new(new LinearRing(
         [
             new Coordinate(1000, 1000),
             new Coordinate(100000, 1000),
             new Coordinate(100000, 100000),
             new Coordinate(1000, 100000),
-            new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000)
         ]));
 
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon, },
-        new() { Id = 2, Bar = _falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon },
+        new() { Id = 2, Bar = s_falsePolygon }
     ];
 
     public QueryableFilterVisitorIntersectsTests(PostgreSqlResource<PostgisConfig> resource)
@@ -44,7 +44,7 @@ public class QueryableFilterVisitorIntersectsTests
     public async Task Create_Intersects_Query()
     {
         // arrange
-        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -103,7 +103,10 @@ public class QueryableFilterVisitorIntersectsTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();

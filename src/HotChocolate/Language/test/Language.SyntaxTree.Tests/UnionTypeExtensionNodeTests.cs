@@ -21,7 +21,7 @@ public class UnionTypeExtensionNodeTests
         var c = new UnionTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0));
 
         // act
@@ -54,7 +54,7 @@ public class UnionTypeExtensionNodeTests
         var c = new UnionTypeExtensionNode(
             new Location(3, 3, 3, 3),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0));
 
         // act
@@ -77,22 +77,22 @@ public class UnionTypeExtensionNodeTests
         var a = new UnionTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0));
         var b = new UnionTypeExtensionNode(
             new Location(2, 2, 2, 2),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0));
         var c = new UnionTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("cc"), },
+            new List<DirectiveNode> { new("cc") },
             new List<NamedTypeNode>(0));
         var d = new UnionTypeExtensionNode(
             new Location(2, 2, 2, 2),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("cc"), },
+            new List<DirectiveNode> { new("cc") },
             new List<NamedTypeNode>(0));
 
         // act

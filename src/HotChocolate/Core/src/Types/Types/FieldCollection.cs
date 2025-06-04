@@ -38,20 +38,14 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
 
     public bool ContainsField(string fieldName)
     {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentNullException(fieldName);
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
         return _fieldsLookup.ContainsKey(fieldName);
     }
 
     public bool TryGetField(string fieldName, [NotNullWhen(true)] out T? field)
     {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentNullException(nameof(fieldName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
         if (_fieldsLookup.TryGetValue(fieldName, out var item))
         {
@@ -70,7 +64,7 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
 
     public IEnumerator<T> GetEnumerator()
         => _fields.Length == 0
-            ? EmptyFieldEnumerator.Instance
+            ? EmptyFieldEnumerator.s_instance
             : new FieldEnumerator(_fields);
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -151,7 +145,7 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
 
         public void Dispose() { }
 
-        internal static readonly EmptyFieldEnumerator Instance = new();
+        internal static readonly EmptyFieldEnumerator s_instance = new();
     }
 }
 

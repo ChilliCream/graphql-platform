@@ -6,7 +6,7 @@ namespace HotChocolate.Configuration.Validation;
 
 internal sealed class EnsureFieldResultsDeclareErrorsRule : ISchemaValidationRule
 {
-    private const string _errorKey = "HotChocolate.Types.ErrorFieldFeature";
+    private const string ErrorKey = "HotChocolate.Types.ErrorFieldFeature";
 
     public void Validate(
         IDescriptorContext context,
@@ -58,7 +58,7 @@ internal sealed class EnsureFieldResultsDeclareErrorsRule : ISchemaValidationRul
         ObjectField field,
         ICollection<ISchemaError> errors)
     {
-        if (!field.Features.Any(t => _errorKey.Equals(t.Key.FullName, StringComparison.Ordinal)))
+        if (!field.Features.Any(t => ErrorKey.Equals(t.Key.FullName, StringComparison.Ordinal)))
         {
             errors.Add(
                 SchemaErrorBuilder.New()

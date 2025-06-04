@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class TypeMapperGenerator
 {
-    private const string _dataParameterName = "data";
+    private const string DataParameterName = "data";
 
     private static void AddDataHandler(
         CSharpSyntaxGeneratorSettings settings,
@@ -18,7 +18,7 @@ public partial class TypeMapperGenerator
         bool isNonNullable)
     {
         method
-            .AddParameter(_dataParameterName)
+            .AddParameter(DataParameterName)
             .SetType(namedTypeDescriptor.ParentRuntimeType!
                 .ToString()
                 .MakeNullable(!isNonNullable));
@@ -26,13 +26,13 @@ public partial class TypeMapperGenerator
         if (settings.IsStoreEnabled())
         {
             method
-                .AddParameter(_snapshot)
+                .AddParameter(Snapshot)
                 .SetType(TypeNames.IEntityStoreSnapshot);
         }
 
         if (!isNonNullable)
         {
-            method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
+            method.AddCode(EnsureProperNullability(DataParameterName, isNonNullable));
         }
 
         const string returnValue = nameof(returnValue);
@@ -64,7 +64,7 @@ public partial class TypeMapperGenerator
         ICode ifCondition = MethodCallBuilder
             .Inline()
             .SetMethodName(
-                _dataParameterName.MakeNullable(!isNonNullable),
+                DataParameterName.MakeNullable(!isNonNullable),
                 WellKnownNames.TypeName,
                 nameof(string.Equals))
             .AddArgument(objectTypeDescriptor.Name.AsStringToken())
@@ -87,11 +87,11 @@ public partial class TypeMapperGenerator
 
         foreach (var prop in objectTypeDescriptor.Properties)
         {
-            var propAccess = $"{_dataParameterName}.{prop.Name}";
+            var propAccess = $"{DataParameterName}.{prop.Name}";
             if (prop.Type.IsEntity() || prop.Type.IsData())
             {
                 constructorCall.AddArgument(
-                    BuildMapMethodCall(settings, _dataParameterName, prop, true));
+                    BuildMapMethodCall(settings, DataParameterName, prop, true));
             }
             else if (prop.Type.IsNullable())
             {

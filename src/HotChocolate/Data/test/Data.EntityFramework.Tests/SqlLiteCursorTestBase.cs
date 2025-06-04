@@ -67,7 +67,7 @@ public class SqlLiteCursorTestBase
                                 }
                             })
                         .UsePaging<ObjectType<TEntity>>(
-                            options: new() { IncludeTotalCount = true, });
+                            options: new() { IncludeTotalCount = true });
 
                     c.Field("root1")
                         .Resolve(

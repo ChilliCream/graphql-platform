@@ -13,15 +13,8 @@ internal sealed partial class OperationContext : IExecutionTaskContext
 
     private void ReportError(IExecutionTask task, IError error)
     {
-        if (task is null)
-        {
-            throw new ArgumentNullException(nameof(task));
-        }
-
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(task);
+        ArgumentNullException.ThrowIfNull(error);
 
         AssertInitialized();
 

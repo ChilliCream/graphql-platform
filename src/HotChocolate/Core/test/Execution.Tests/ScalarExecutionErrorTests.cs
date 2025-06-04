@@ -75,7 +75,7 @@ public class ScalarExecutionErrorTests
             "query a($a: Foo) { fooToString(name: $a) }",
             new Dictionary<string, object?>
             {
-                {"a", " "},
+                {"a", " "}
             });
 
         // assert
@@ -126,17 +126,14 @@ public class ScalarExecutionErrorTests
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            ArgumentNullException.ThrowIfNull(literal);
 
             if (literal is NullValueNode)
             {
                 return true;
             }
 
-            return literal is StringValueNode { Value: "a", };
+            return literal is StringValueNode { Value: "a" };
         }
 
         public override bool IsInstanceOfType(object? value)
@@ -151,17 +148,14 @@ public class ScalarExecutionErrorTests
 
         public override object? ParseLiteral(IValueNode literal)
         {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            ArgumentNullException.ThrowIfNull(literal);
 
             if (literal is NullValueNode)
             {
                 return null;
             }
 
-            if (literal is StringValueNode { Value: "a", })
+            if (literal is StringValueNode { Value: "a" })
             {
                 return "a";
             }

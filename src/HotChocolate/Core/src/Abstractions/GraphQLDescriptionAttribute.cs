@@ -12,10 +12,7 @@ public sealed class GraphQLDescriptionAttribute : Attribute
 {
     public GraphQLDescriptionAttribute(string description)
     {
-        if (string.IsNullOrEmpty(description))
-        {
-            throw new ArgumentNullException(nameof(description));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(description);
 
         Description = description;
     }

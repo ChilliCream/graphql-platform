@@ -16,7 +16,7 @@ internal struct Iso8601Duration
         HasDays = 8,
         HasHours = 16,
         HasMinutes = 32,
-        HasSeconds = 64,
+        HasSeconds = 64
     }
 
     /// <summary>

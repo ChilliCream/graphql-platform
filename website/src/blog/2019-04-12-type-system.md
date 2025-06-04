@@ -19,7 +19,7 @@ We started with version 9.0.0-preview.9 to deliver more and more parts of the ne
 The most prominent API that we are introducing is the new `SchemaBuilder`. The `SchemaBuilder` provides us with a new way to define schemas. Do not worry the current `ISchemaConfiguration` API is still supported and will not go away. In fact, `ISchemaConfiguration` now is just an interface over `SchemaBuilder` and we will evolve both APIs over time so that you can pick the one that you like more.
 
 ```csharp
-Schema schema = SchemaBuilder.New()
+ISchema schema = SchemaBuilder.New()
     .AddQueryType<FooType>()
     .Create();
 ```
@@ -31,7 +31,7 @@ First, we wanted the builder API to be decoupled from the actual schema, we want
 With the schema builder we are now more flexible in scenarios like schema stitching.
 
 ```csharp
-Schema schema = SchemaBuilder.New()
+ISchema schema = SchemaBuilder.New()
     .AddQueryType<FooType>()
     .AddDirectiveType<BarType>()
     .AddSchemaFromFile("./Schema.graphql")
@@ -386,7 +386,7 @@ Also, you can define multiple type extensions for a single type.
 So, let us have a look of how we add type extensions to our schema:
 
 ```csharp
-Schema schema = SchemaBuilder.New()
+ISchema schema = SchemaBuilder.New()
   .AddQueryType<FooType>()
   .AddType<FooTypeExtension>();
   .Create()

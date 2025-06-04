@@ -5,14 +5,14 @@ namespace CookieCrumble;
 
 public static class WriterExtensions
 {
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
 
     public static void Append(this IBufferWriter<byte> snapshot, string value)
         => Append(snapshot, value.AsSpan());
 
     public static void Append(this IBufferWriter<byte> snapshot, ReadOnlySpan<char> value)
     {
-        _utf8.GetBytes(value, snapshot);
+        s_utf8.GetBytes(value, snapshot);
     }
 
     public static void AppendLine(this IBufferWriter<byte> snapshot)

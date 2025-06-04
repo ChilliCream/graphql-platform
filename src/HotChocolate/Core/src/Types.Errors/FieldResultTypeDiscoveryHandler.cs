@@ -11,7 +11,7 @@ internal sealed class FieldResultTypeDiscoveryHandler(ITypeInspector typeInspect
     {
         var runtimeType = typeInfo.RuntimeType;
 
-        if (runtimeType is { IsValueType: true, IsGenericType: true, } &&
+        if (runtimeType is { IsValueType: true, IsGenericType: true } &&
             typeof(IFieldResult).IsAssignableFrom(runtimeType) &&
             typeReference is ExtendedTypeReference typeRef)
         {

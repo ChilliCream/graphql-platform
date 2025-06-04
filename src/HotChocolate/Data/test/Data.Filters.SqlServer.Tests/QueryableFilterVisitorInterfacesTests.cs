@@ -7,10 +7,10 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 {
-    private static readonly BarInterface[] _barEntities =
+    private static readonly BarInterface[] s_barEntities =
     [
-        new() { Test = new InterfaceImpl1 { Prop = "a", }, },
-        new() { Test = new InterfaceImpl1 { Prop = "b", }, },
+        new() { Test = new InterfaceImpl1 { Prop = "a" } },
+        new() { Test = new InterfaceImpl1 { Prop = "b" } }
     ];
 
     private readonly SchemaCache _cache;
@@ -26,7 +26,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache
             .CreateSchema<BarInterface, FilterInputType<BarInterface>>(
-                _barEntities,
+                s_barEntities,
                 configure: Configure,
                 onModelCreating: OnModelCreating);
 
@@ -54,7 +54,10 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "ba")
             .AddResult(res3, "null")

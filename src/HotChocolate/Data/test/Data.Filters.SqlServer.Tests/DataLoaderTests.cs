@@ -37,7 +37,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -69,7 +73,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -101,7 +109,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -133,7 +145,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();

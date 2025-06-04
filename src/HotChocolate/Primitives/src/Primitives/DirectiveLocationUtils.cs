@@ -7,7 +7,7 @@ namespace HotChocolate;
 
 public static class DirectiveLocationUtils
 {
-    private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> _syntaxToLocation =
+    private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> s_syntaxToLocation =
         new()
         {
             { Language.DirectiveLocation.Query, DirectiveLocation.Query },
@@ -31,7 +31,7 @@ public static class DirectiveLocationUtils
             { Language.DirectiveLocation.VariableDefinition, DirectiveLocation.VariableDefinition }
         };
 
-    private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> _locationToSyntax =
+    private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> s_locationToSyntax =
         new()
         {
             { DirectiveLocation.Query, Language.DirectiveLocation.Query },
@@ -52,7 +52,7 @@ public static class DirectiveLocationUtils
             { DirectiveLocation.Enum, Language.DirectiveLocation.Enum },
             { DirectiveLocation.EnumValue, Language.DirectiveLocation.EnumValue },
             { DirectiveLocation.InputObject, Language.DirectiveLocation.InputObject },
-            { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition },
+            { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition }
         };
 
 
@@ -77,7 +77,7 @@ public static class DirectiveLocationUtils
     private static DirectiveLocation Parse(
         Language.DirectiveLocation location)
     {
-        if (!_syntaxToLocation.TryGetValue(location, out var loc))
+        if (!s_syntaxToLocation.TryGetValue(location, out var loc))
         {
             throw new NotSupportedException(string.Format(
                 CultureInfo.InvariantCulture,
@@ -91,7 +91,7 @@ public static class DirectiveLocationUtils
      public static Language.DirectiveLocation Format(
         this DirectiveLocation location)
     {
-        if (!_locationToSyntax.TryGetValue(location, out var l))
+        if (!s_locationToSyntax.TryGetValue(location, out var l))
         {
             throw new NotSupportedException(string.Format(
                 CultureInfo.InvariantCulture,

@@ -81,55 +81,55 @@ public class CharacterRepository
         yield return new Human(
             id: "1000",
             name: "Luke Skywalker",
-            friends: new[] { "1002", "1003", "2000", "2001", },
-            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi, },
+            friends: new[] { "1002", "1003", "2000", "2001" },
+            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             homePlanet: "Tatooine",
-            traits: JsonSerializer.SerializeToElement(new { lastJedi = true, }));
+            traits: JsonSerializer.SerializeToElement(new { lastJedi = true }));
 
         yield return new Human(
             id: "1001",
             name: "Darth Vader",
-            friends: new[] { "1004", },
-            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi, },
+            friends: new[] { "1004" },
+            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             homePlanet: "Tatooine",
-            traits: JsonSerializer.SerializeToElement(new { theChosenOne = true, }));
+            traits: JsonSerializer.SerializeToElement(new { theChosenOne = true }));
 
         yield return new Human(
             id: "1002",
             name: "Han Solo",
-            friends: new[] { "1000", "1003", "2001", },
-            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi, },
-            traits: JsonSerializer.SerializeToElement(new { hanShot = "first", }));
+            friends: new[] { "1000", "1003", "2001" },
+            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+            traits: JsonSerializer.SerializeToElement(new { hanShot = "first" }));
 
         yield return new Human(
             id: "1003",
             name: "Leia Organa",
-            friends: new[] { "1000", "1002", "2000", "2001", },
-            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi, },
+            friends: new[] { "1000", "1002", "2000", "2001" },
+            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             homePlanet: "Alderaan",
-            traits: JsonSerializer.SerializeToElement(new { brother = "luke", }));
+            traits: JsonSerializer.SerializeToElement(new { brother = "luke" }));
 
         yield return new Human(
             id: "1004",
             name: "Wilhuff Tarkin",
-            friends: new[] { "1001", },
-            appearsIn: new[] { Episode.NewHope, });
+            friends: new[] { "1001" },
+            appearsIn: new[] { Episode.NewHope });
 
         yield return new Droid(
             id: "2000",
             name: "C-3PO",
-            friends: new[] { "1000", "1002", "1003", "2001", },
-            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi, },
+            friends: new[] { "1000", "1002", "1003", "2001" },
+            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             primaryFunction: "Protocol",
-            traits: JsonSerializer.SerializeToElement(new { annoying = true, }));
+            traits: JsonSerializer.SerializeToElement(new { annoying = true }));
 
         yield return new Droid(
             id: "2001",
             name: "R2-D2",
-            friends: new[] { "1000", "1002", "1003", },
-            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi, },
+            friends: new[] { "1000", "1002", "1003" },
+            appearsIn: new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             primaryFunction: "Astromech",
-            traits: JsonSerializer.SerializeToElement(new { rockets = true, }));
+            traits: JsonSerializer.SerializeToElement(new { rockets = true }));
     }
 
     private static IEnumerable<Starship> CreateStarships()

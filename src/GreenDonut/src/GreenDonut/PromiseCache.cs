@@ -9,7 +9,7 @@ namespace GreenDonut;
 /// </summary>
 public sealed class PromiseCache : IPromiseCache
 {
-    private const int _minimumSize = 10;
+    private const int MinimumSize = 10;
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<PromiseCacheKey, Entry> _map = new();
     private readonly ConcurrentDictionary<Type, ImmutableArray<Subscription>> _subscriptions = new();
@@ -28,7 +28,7 @@ public sealed class PromiseCache : IPromiseCache
     /// </param>
     public PromiseCache(int size)
     {
-        _size = size < _minimumSize ? _minimumSize : size;
+        _size = size < MinimumSize ? MinimumSize : size;
         _order = Convert.ToInt32(size * 0.9);
     }
 
@@ -48,10 +48,7 @@ public sealed class PromiseCache : IPromiseCache
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (createPromise is null)
-        {
-            throw new ArgumentNullException(nameof(createPromise));
-        }
+        ArgumentNullException.ThrowIfNull(createPromise);
 
         var interceptor = Interceptor;
         var read = true;
@@ -121,10 +118,7 @@ public sealed class PromiseCache : IPromiseCache
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (createPromise is null)
-        {
-            throw new ArgumentNullException(nameof(createPromise));
-        }
+        ArgumentNullException.ThrowIfNull(createPromise);
 
         var read = true;
 
@@ -191,7 +185,7 @@ public sealed class PromiseCache : IPromiseCache
     public void PublishMany<T>(ReadOnlySpan<T> values)
     {
         var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Length);
-        var bufferedPromises = buffer.AsSpan().Slice(0, values.Length);
+        var bufferedPromises = buffer.AsSpan()[..values.Length];
 
         // first we add the promises tp the promise list, which we keep
         // for DataLoader that are not instantiated yet.

@@ -303,7 +303,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
             _floatValue = _floatValue,
             _doubleValue = _doubleValue,
             _decimalValue = _decimalValue,
-            _stringValue = Value,
+            _stringValue = Value
         };
 
     /// <summary>

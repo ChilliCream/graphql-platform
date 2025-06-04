@@ -8,7 +8,7 @@ namespace CookieCrumble.Formatters;
 
 internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter, IMarkdownSnapshotValueFormatter
 {
-    private static readonly JsonSerializerSettings _settings =
+    private static readonly JsonSerializerSettings s_settings =
         new()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -17,14 +17,14 @@ internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter, IMar
             DateFormatHandling = DateFormatHandling.IsoDateFormat,
             Culture = CultureInfo.InvariantCulture,
             ContractResolver = ChildFirstContractResolver.Instance,
-            Converters = new List<JsonConverter> { new StringEnumConverter(), },
+            Converters = new List<JsonConverter> { new StringEnumConverter() }
         };
 
     public bool CanHandle(object? value)
         => true;
 
     public void Format(IBufferWriter<byte> snapshot, object? value)
-        => snapshot.Append(JsonConvert.SerializeObject(value, _settings));
+        => snapshot.Append(JsonConvert.SerializeObject(value, s_settings));
 
     public void FormatMarkdown(IBufferWriter<byte> snapshot, object? value)
     {

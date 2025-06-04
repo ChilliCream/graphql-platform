@@ -12,11 +12,11 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class EmailAddressType : RegexType
 {
-    private const string _validationPattern =
+    private const string ValidationPattern =
         "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
         "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>

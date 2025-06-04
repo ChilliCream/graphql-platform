@@ -6,15 +6,8 @@ public static class ErrorHandlerExtensions
         this IErrorHandler errorHandler,
         IEnumerable<IError> errors)
     {
-        if (errorHandler is null)
-        {
-            throw new ArgumentNullException(nameof(errorHandler));
-        }
-
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errorHandler);
+        ArgumentNullException.ThrowIfNull(errors);
 
         var result = new List<IError>();
 

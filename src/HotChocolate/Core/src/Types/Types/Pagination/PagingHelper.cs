@@ -26,10 +26,7 @@ public static class PagingHelper
         GetPagingProvider resolvePagingProvider,
         PagingOptions? options)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
 

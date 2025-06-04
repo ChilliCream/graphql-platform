@@ -21,7 +21,7 @@ You are also able to inject parts from your field resolver context like the sche
 ```csharp
 public class Query
 {
-    public string Bar(Schema schema, [Service]MyCustomService service)
+    public string Bar(ISchema schema, [Service]MyCustomService service)
     {
         return "foo";
     }

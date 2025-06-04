@@ -12,9 +12,9 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class GraphQLHttpResponse : IDisposable
 {
-    private static readonly OperationResult _transportError = CreateTransportError();
+    private static readonly OperationResult s_transportError = CreateTransportError();
 
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private readonly HttpResponseMessage _message;
 
     /// <summary>
@@ -130,7 +130,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         var stream = contentStream;
 
         var sourceEncoding = GetEncoding(charSet);
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, s_utf8.EncodingName))
         {
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
@@ -183,7 +183,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
         }
 
-        return SingleResult(new ValueTask<OperationResult>(_transportError));
+        return SingleResult(new ValueTask<OperationResult>(s_transportError));
     }
 
     private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
@@ -195,7 +195,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         var stream = contentStream;
 
         var sourceEncoding = GetEncoding(charSet);
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, s_utf8.EncodingName))
         {
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
@@ -222,7 +222,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                 // Remove at most a single set of quotes.
                 if (charset.Length > 2 && charset[0] == '\"' && charset[^1] == '\"')
                 {
-                    encoding = Encoding.GetEncoding(charset.Substring(1, charset.Length - 2));
+                    encoding = Encoding.GetEncoding(charset[1..^1]);
                 }
                 else
                 {
@@ -244,7 +244,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         => Encoding.CreateTranscodingStream(
             contentStream,
             innerStreamEncoding: sourceEncoding,
-            outerStreamEncoding: _utf8);
+            outerStreamEncoding: s_utf8);
 
     private static OperationResult CreateTransportError()
         => new OperationResult(

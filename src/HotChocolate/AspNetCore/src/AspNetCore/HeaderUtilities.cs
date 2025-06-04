@@ -13,7 +13,7 @@ namespace HotChocolate.AspNetCore;
 /// </summary>
 internal static class HeaderUtilities
 {
-    private static readonly ConcurrentDictionary<string, CacheEntry> _cache =
+    private static readonly ConcurrentDictionary<string, CacheEntry> s_cache =
         new(StringComparer.Ordinal);
 
     public static readonly AcceptMediaType[] GraphQLResponseContentTypes =
@@ -22,7 +22,7 @@ internal static class HeaderUtilities
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
-            StringSegment.Empty),
+            StringSegment.Empty)
     ];
 
     /// <summary>
@@ -50,7 +50,7 @@ internal static class HeaderUtilities
 
                 if (TryParseMediaType(headerValue, out var parsedValue))
                 {
-                    return new AcceptHeaderResult([parsedValue,]);
+                    return new AcceptHeaderResult([parsedValue]);
                 }
 
                 // note: this is a workaround for now. we need to parse this properly.
@@ -101,7 +101,7 @@ MULTI_VALUES:
         // first we try to look up the parsed header in the cache.
         // if we find it the string was a valid header value and
         // we return it.
-        if (_cache.TryGetValue(s, out var entry))
+        if (s_cache.TryGetValue(s, out var entry))
         {
             value = entry.Value;
             return true;
@@ -110,7 +110,7 @@ MULTI_VALUES:
         // if not we will try to parse it.
         if (MediaTypeHeaderValue.TryParse(s, out var parsedValue))
         {
-            entry = _cache.GetOrAdd(s, k => new CacheEntry(k, parsedValue));
+            entry = s_cache.GetOrAdd(s, k => new CacheEntry(k, parsedValue));
             value = entry.Value;
             return true;
         }
@@ -122,11 +122,11 @@ MULTI_VALUES:
     private static void MakeSpace()
     {
         // if we reach the maximum available space we will remove around 20% of the cached items.
-        if (_cache.Count > 100)
+        if (s_cache.Count > 100)
         {
-            foreach (var entry in _cache.Values.OrderBy(t => t.CreatedAt).Take(20))
+            foreach (var entry in s_cache.Values.OrderBy(t => t.CreatedAt).Take(20))
             {
-                _cache.TryRemove(entry.Key, out _);
+                s_cache.TryRemove(entry.Key, out _);
             }
         }
     }

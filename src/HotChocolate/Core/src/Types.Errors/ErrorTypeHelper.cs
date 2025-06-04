@@ -110,7 +110,7 @@ internal sealed class ErrorTypeHelper
             }
         }
 
-        if (resultType is { IsValueType: true, IsGenericType: true, } &&
+        if (resultType is { IsValueType: true, IsGenericType: true } &&
             typeof(IFieldResult).IsAssignableFrom(resultType))
         {
             var types = resultType.GenericTypeArguments;

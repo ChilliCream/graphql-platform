@@ -13,10 +13,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         TypeReference nodeType,
         bool withTotalCount)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         Configuration = CreateConfiguration(withTotalCount);
 
@@ -77,7 +74,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         var definition = new ObjectTypeConfiguration
         {
             Description = CollectionSegmentType_Description,
-            RuntimeType = typeof(CollectionSegment),
+            RuntimeType = typeof(CollectionSegment)
         };
 
         definition.Fields.Add(new(

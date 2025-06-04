@@ -61,7 +61,7 @@ public class Issue_4811
         public Book GetBook() =>
             new Book
             {
-                Title = "C# in depth.",
+                Title = "C# in depth."
             };
     }
 

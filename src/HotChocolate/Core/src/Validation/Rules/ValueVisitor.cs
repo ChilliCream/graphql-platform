@@ -51,7 +51,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         : base(new SyntaxVisitorOptions
         {
             VisitDirectives = true,
-            VisitArguments = true,
+            VisitArguments = true
         })
     {
     }
@@ -374,7 +374,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             SyntaxKind.Argument =>
                 context.ArgumentValueIsNotCompatible(
                     (ArgumentNode)node, locationType, valueNode),
-            _ => null,
+            _ => null
         };
         return error != null;
     }
@@ -437,7 +437,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        if (internalType is ListType { ElementType: IInputType elementType, }
+        if (internalType is ListType { ElementType: IInputType elementType }
             && value is ListValueNode list)
         {
             for (var i = 0; i < list.Items.Count; i++)

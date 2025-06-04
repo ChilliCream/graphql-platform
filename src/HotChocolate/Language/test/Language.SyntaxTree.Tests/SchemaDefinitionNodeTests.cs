@@ -21,7 +21,7 @@ public class SchemaDefinitionNodeTests
         var c = new SchemaDefinitionNode(
             new Location(1, 1, 1, 1),
             new StringValueNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<OperationTypeDefinitionNode>(0));
 
         // act
@@ -54,7 +54,7 @@ public class SchemaDefinitionNodeTests
         var c = new SchemaDefinitionNode(
             new Location(3, 3, 3, 3),
             new StringValueNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<OperationTypeDefinitionNode>(0));
 
         // act

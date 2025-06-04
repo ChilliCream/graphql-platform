@@ -66,10 +66,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
             throw new ArgumentOutOfRangeException(nameof(on));
         }
 
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
@@ -86,10 +83,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
 
     public void AddDependency(TypeDependency dependency)
     {
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(dependency);
 
         _dependencies ??= [];
         _dependencies.Add(dependency);
@@ -100,10 +94,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
 
     public ITypeSystemConfigurationTask Copy(TypeSystemConfiguration newOwner)
     {
-        if (newOwner is null)
-        {
-            throw new ArgumentNullException(nameof(newOwner));
-        }
+        ArgumentNullException.ThrowIfNull(newOwner);
 
         return new OnCompleteTypeSystemConfigurationTask(_configure, newOwner, On, Dependencies);
     }

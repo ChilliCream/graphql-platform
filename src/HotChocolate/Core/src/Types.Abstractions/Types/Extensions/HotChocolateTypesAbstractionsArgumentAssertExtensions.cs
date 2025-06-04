@@ -11,10 +11,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsInputType())
         {
@@ -28,10 +25,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsOutputType())
         {
@@ -45,10 +39,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsComplexType())
         {
@@ -62,10 +53,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsInputObjectType())
         {
@@ -79,10 +67,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsObjectType())
         {
@@ -96,10 +81,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression("type")] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsInterfaceType())
         {
@@ -113,10 +95,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsUnionType())
         {
@@ -130,10 +109,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsEnumType())
         {
@@ -147,10 +123,7 @@ public static class HotChocolateTypesAbstractionsArgumentAssertExtensions
         this IType type,
         [CallerArgumentExpression(nameof(type))] string name = "type")
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsScalarType())
         {

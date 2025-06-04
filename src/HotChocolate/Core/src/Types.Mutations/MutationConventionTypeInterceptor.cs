@@ -94,7 +94,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // on the mutations.
         if (_mutationTypeDef is not null)
         {
-            HashSet<MutationContextData> unprocessed = [.. _mutations,];
+            HashSet<MutationContextData> unprocessed = [.. _mutations];
             var defLookup = _mutations.ToDictionary(t => t.Definition);
             var nameLookup = _mutations.ToDictionary(t => t.Name);
             var rootOptions = CreateOptions(_context);
@@ -233,7 +233,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 0 => null,
                 1 => formatters[0],
-                _ => new AggregateInputValueFormatter(formatters),
+                _ => new AggregateInputValueFormatter(formatters)
             };
 
             var defaultValue = argument.DefaultValue;
@@ -702,12 +702,12 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             NonNullType nnt => new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.NullableType)),
             ListType lt => new ListTypeNode(CreateTypeNode(lt.ElementType)),
             ITypeDefinition nt => new NamedTypeNode(nt.Name),
-            _ => throw new NotSupportedException("Type is not supported."),
+            _ => throw new NotSupportedException("Type is not supported.")
         };
 
     private static TypeReference NormalizeTypeRef(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef &&
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef &&
             typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return extendedTypeRef.WithType(extendedTypeRef.Type.TypeArguments[0]);
@@ -745,17 +745,17 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         public string FormatInputTypeName(string mutationName)
             => InputTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
 
         public string FormatPayloadTypeName(string mutationName)
             => PayloadTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
 
         public string FormatErrorTypeName(string mutationName)
             => PayloadErrorTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
     }
 
     private readonly struct FieldDef(string name, TypeReference type)

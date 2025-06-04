@@ -12,16 +12,16 @@ namespace HotChocolate.Data.MongoDb.Filters;
 
 public class MongoDbCollectionTests : IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
-        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
-        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
     ];
 
     private readonly MongoResource _resource;
@@ -39,7 +39,7 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
             () =>
             {
                 var col = _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
-                col.InsertMany(_fooEntities);
+                col.InsertMany(s_fooEntities);
                 return col.AsExecutable();
             });
 
@@ -75,7 +75,7 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
             () =>
             {
                 var col = _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
-                col.InsertMany(_barEntities);
+                col.InsertMany(s_barEntities);
                 return col.AsExecutable();
             });
 

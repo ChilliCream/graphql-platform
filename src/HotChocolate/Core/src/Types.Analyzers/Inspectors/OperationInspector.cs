@@ -18,7 +18,7 @@ public sealed class OperationInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0, } methodSyntax)
+        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0 } methodSyntax)
         {
             foreach (var attributeListSyntax in methodSyntax.AttributeLists)
             {

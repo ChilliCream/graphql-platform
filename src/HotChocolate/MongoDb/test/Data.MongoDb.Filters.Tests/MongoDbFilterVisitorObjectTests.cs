@@ -10,7 +10,7 @@ public class MongoDbFilterVisitorObjectTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -22,9 +22,9 @@ public class MongoDbFilterVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray = new List<Bar>
                 {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a", }, },
-                },
-            },
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
+                }
+            }
         },
         new()
         {
@@ -36,9 +36,9 @@ public class MongoDbFilterVisitorObjectTests
                 BarString = "testbtest",
                 ObjectArray = new List<Bar>
                 {
-                    new() { Foo = new Foo { BarShort = 14, BarString = "d", }, },
-                },
-            },
+                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } }
+                }
+            }
         },
         new()
         {
@@ -49,12 +49,12 @@ public class MongoDbFilterVisitorObjectTests
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -66,9 +66,9 @@ public class MongoDbFilterVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = 12, }, },
-                },
-            },
+                    new() { Foo = new FooNullable { BarShort = 12 } }
+                }
+            }
         },
         new()
         {
@@ -80,9 +80,9 @@ public class MongoDbFilterVisitorObjectTests
                 BarString = "testbtest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = null, }, },
-                },
-            },
+                    new() { Foo = new FooNullable { BarShort = null } }
+                }
+            }
         },
         new()
         {
@@ -94,9 +94,9 @@ public class MongoDbFilterVisitorObjectTests
                 BarString = "testctest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = 14, }, },
-                },
-            },
+                    new() { Foo = new FooNullable { BarShort = 14 } }
+                }
+            }
         },
         new()
         {
@@ -106,9 +106,9 @@ public class MongoDbFilterVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
     public MongoDbFilterVisitorObjectTests(MongoResource resource)
@@ -120,7 +120,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectShortEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -157,7 +157,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectShortIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -194,7 +194,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -231,7 +231,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -268,7 +268,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectBooleanEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -298,7 +298,7 @@ public class MongoDbFilterVisitorObjectTests
     {
         // arrange
         var tester = CreateSchema<BarNullable, BarNullableFilterType>(
-            _barNullableEntities);
+            s_barNullableEntities);
 
         // act
         // assert
@@ -336,7 +336,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectEnumEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -373,7 +373,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectEnumIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -410,7 +410,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableEnumEqual_Expression()
     {
         // assert
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -447,7 +447,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableEnumIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -484,7 +484,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectStringEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -520,7 +520,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectStringIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -558,7 +558,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -598,7 +598,7 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -698,6 +698,6 @@ public class MongoDbFilterVisitorObjectTests
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

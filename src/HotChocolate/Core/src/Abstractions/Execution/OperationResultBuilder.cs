@@ -38,10 +38,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddError(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         _errors ??= [];
         _errors.Add(error);
@@ -50,10 +47,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddErrors(IEnumerable<IError> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         _errors ??= [];
         _errors.AddRange(errors);
@@ -124,10 +118,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddPatch(IOperationResult patch)
     {
-        if (patch is null)
-        {
-            throw new ArgumentNullException(nameof(patch));
-        }
+        ArgumentNullException.ThrowIfNull(patch);
 
         _incremental ??= [];
         _incremental.Add(patch);
@@ -154,10 +145,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder RegisterForCleanup(Func<ValueTask> clean)
     {
-        if (clean is null)
-        {
-            throw new ArgumentNullException(nameof(clean));
-        }
+        ArgumentNullException.ThrowIfNull(clean);
 
         var index = _cleanupTasks.Length;
         Array.Resize(ref _cleanupTasks, index + 1);
@@ -185,11 +173,11 @@ public sealed class OperationResultBuilder
 
     public static OperationResultBuilder FromResult(IOperationResult result)
     {
-        var builder = new OperationResultBuilder { _data = result.Data, };
+        var builder = new OperationResultBuilder { _data = result.Data };
 
         if (result.Errors is not null)
         {
-            builder._errors = [..result.Errors,];
+            builder._errors = [..result.Errors];
         }
 
         if (result.Extensions is ExtensionData ext)
@@ -225,7 +213,7 @@ public sealed class OperationResultBuilder
         IReadOnlyDictionary<string, object?>? contextData = null)
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
-            : new OperationResult(null, new List<IError> { error, }, contextData: contextData);
+            : new OperationResult(null, new List<IError> { error }, contextData: contextData);
 
     public static IOperationResult CreateError(
         IReadOnlyList<IError> errors,

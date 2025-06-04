@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 
 public static class ProjectionObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(ProjectionObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -184,8 +184,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
             definition.Features.Set(feature with { HasProjectionMiddleware = true });
         }
 
-        var factory = _factoryTemplate.MakeGenericMethod(type);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        var factory = s_factoryTemplate.MakeGenericMethod(type);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Projection);
@@ -215,7 +215,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private sealed class ProjectionQueryBuilder(IQueryBuilder innerBuilder) : IQueryBuilder
     {
-        private const string _mockContext = "HotChocolate.Data.Projections.ProxyContext";
+        private const string MockContext = "HotChocolate.Data.Projections.ProxyContext";
 
         public void Prepare(IMiddlewareContext context)
         {
@@ -241,13 +241,13 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
             }
 
-            context.SetLocalState(_mockContext, context);
+            context.SetLocalState(MockContext, context);
             innerBuilder.Prepare(context);
         }
 
         public void Apply(IMiddlewareContext context)
         {
-            context = context.GetLocalStateOrDefault<MiddlewareContextProxy>(_mockContext) ?? context;
+            context = context.GetLocalStateOrDefault<MiddlewareContextProxy>(MockContext) ?? context;
             innerBuilder.Apply(context);
         }
     }

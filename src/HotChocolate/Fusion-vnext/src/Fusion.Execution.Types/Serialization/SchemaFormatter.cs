@@ -8,8 +8,8 @@ namespace HotChocolate.Serialization;
 
 public static class SchemaFormatter
 {
-    private static readonly SchemaFormatterVisitor _visitor = new();
-    private static readonly SyntaxSerializerOptions _options =
+    private static readonly SchemaFormatterVisitor s_visitor = new();
+    private static readonly SyntaxSerializerOptions s_options =
         new()
         {
             Indented = true,
@@ -27,14 +27,14 @@ public static class SchemaFormatter
             PrintSpecScalars = options.PrintSpecScalars ?? false,
             PrintSpecDirectives = options.PrintSpecDirectives ?? false
         };
-        _visitor.VisitSchema(schema, context);
+        s_visitor.VisitSchema(schema, context);
 
         if (!options.Indented ?? true)
         {
             ((DocumentNode)context.Result!).ToString(false);
         }
 
-        return ((DocumentNode)context.Result!).ToString(_options);
+        return ((DocumentNode)context.Result!).ToString(s_options);
     }
 
     public static DocumentNode FormatAsDocument(
@@ -48,7 +48,7 @@ public static class SchemaFormatter
             PrintSpecScalars = options.PrintSpecScalars ?? false,
             PrintSpecDirectives = options.PrintSpecDirectives ?? false
         };
-        _visitor.VisitSchema(schema, context);
+        s_visitor.VisitSchema(schema, context);
         return (DocumentNode)context.Result!;
     }
 
@@ -591,7 +591,7 @@ file static class Extensions
             ITypeDefinition namedType => new NamedTypeNode(namedType.Name),
             ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     public static IEnumerable<T> OrderBy<T, TKey>(

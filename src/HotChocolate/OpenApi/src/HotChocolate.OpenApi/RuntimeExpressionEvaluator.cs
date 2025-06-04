@@ -194,7 +194,7 @@ internal static class RuntimeExpressionEvaluator
             ("string", "uuid", true) => typeof(Guid?),
             ("string", "char", true) => typeof(char?),
             ("boolean", null, true) => typeof(bool?),
-            _ => typeof(string),
+            _ => typeof(string)
         };
 
         return type;

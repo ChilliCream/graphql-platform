@@ -607,8 +607,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             var directiveDef = Unsafe.Add(ref start, i);
 
-            if (directiveDef.Type is NameDirectiveReference { Name: Authorize, }
-                || (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, }
+            if (directiveDef.Type is NameDirectiveReference { Name: Authorize }
+                || (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type }
                     && type == typeof(AuthorizeDirective)))
             {
                 return true;

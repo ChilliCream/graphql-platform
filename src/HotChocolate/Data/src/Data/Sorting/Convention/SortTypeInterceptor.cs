@@ -124,7 +124,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             configuration);
 
         if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null, })
+            configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
@@ -153,7 +153,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             configuration);
 
         if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null, })
+            configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }

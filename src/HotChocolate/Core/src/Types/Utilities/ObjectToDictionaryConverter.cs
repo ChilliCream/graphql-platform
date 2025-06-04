@@ -17,10 +17,7 @@ internal class ObjectToDictionaryConverter
 
     public object Convert(object obj)
     {
-        if(obj is null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(obj);
 
         object value = null;
         void SetValue(object v) => value = v;

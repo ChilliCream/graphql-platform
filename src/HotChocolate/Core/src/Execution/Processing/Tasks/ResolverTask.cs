@@ -36,7 +36,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
             SelectionExecutionStrategy.Default => ExecutionTaskKind.Parallel,
             SelectionExecutionStrategy.Serial => ExecutionTaskKind.Serial,
             SelectionExecutionStrategy.Pure => ExecutionTaskKind.Pure,
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     /// <inheritdoc />
