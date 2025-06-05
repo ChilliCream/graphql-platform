@@ -435,7 +435,7 @@ public class SchemaFirstTests
         // assert
         Assert.Equal(
             "abc",
-            schema.Types.GetType<ObjectType>("Person")?.Fields["name"].Description);
+            schema.Types.GetType<ObjectType>("Person").Fields["name"].Description);
     }
 
     [Fact]

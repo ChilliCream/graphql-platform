@@ -161,7 +161,7 @@ public class FragmentHelperTests
 
         // assert
         Assert.NotNull(returnTypeFragment);
-        Assert.Equal("Hero", returnTypeFragment?.Fragment.Name);
+        Assert.Equal("Hero", returnTypeFragment.Fragment.Name);
     }
 
     [Fact]

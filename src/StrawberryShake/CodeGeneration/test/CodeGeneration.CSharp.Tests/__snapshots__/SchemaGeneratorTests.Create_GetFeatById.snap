@@ -826,7 +826,7 @@ namespace Foo.Bar.State
             }
 
             IGetFeatById_Feats returnValue = default !;
-            if (data?.__typename.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetFeatById_Feats_FeatCollectionSegment(MapIGetFeatById_Feats_ItemsArray(data.Items, snapshot));
             }

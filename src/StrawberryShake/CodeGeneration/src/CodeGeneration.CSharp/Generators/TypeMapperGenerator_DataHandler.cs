@@ -43,7 +43,7 @@ public partial class TypeMapperGenerator
         GenerateIfForEachImplementedBy(
             method,
             namedTypeDescriptor,
-            o => GenerateDataInterfaceIfClause(settings, o, isNonNullable, returnValue));
+            o => GenerateDataInterfaceIfClause(settings, o, returnValue));
 
         method.AddCode($"return {returnValue};");
 
@@ -58,27 +58,16 @@ public partial class TypeMapperGenerator
     private static IfBuilder GenerateDataInterfaceIfClause(
         CSharpSyntaxGeneratorSettings settings,
         ObjectTypeDescriptor objectTypeDescriptor,
-        bool isNonNullable,
         string variableName)
     {
         ICode ifCondition = MethodCallBuilder
             .Inline()
             .SetMethodName(
-                DataParameterName.MakeNullable(!isNonNullable),
+                DataParameterName,
                 WellKnownNames.TypeName,
                 nameof(string.Equals))
             .AddArgument(objectTypeDescriptor.Name.AsStringToken())
             .AddArgument(TypeNames.OrdinalStringComparison);
-
-        if (!isNonNullable)
-        {
-            ifCondition = NullCheckBuilder
-                .New()
-                .SetCondition(ifCondition)
-                .SetSingleLine()
-                .SetDetermineStatement(false)
-                .SetCode("false");
-        }
 
         var constructorCall = MethodCallBuilder
             .Inline()

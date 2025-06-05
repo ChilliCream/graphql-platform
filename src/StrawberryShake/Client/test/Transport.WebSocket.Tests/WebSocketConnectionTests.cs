@@ -133,7 +133,7 @@ public class WebSocketConnectionTests
 
         // assert
         var res = Assert.Single(results);
-        res?.Exception?.Message.MatchSnapshot();
+        res.Exception?.Message.MatchSnapshot();
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public class WebSocketConnectionTests
 
         // assert
         var res = Assert.Single(results);
-        res?.Exception?.Message.MatchSnapshot();
+        res.Exception?.Message.MatchSnapshot();
     }
 
     [Fact]

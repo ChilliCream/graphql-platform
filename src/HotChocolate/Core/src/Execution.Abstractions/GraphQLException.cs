@@ -18,11 +18,9 @@ public class GraphQLException : Exception
     /// </summary>
     /// <param name="error">The error.</param>
     public GraphQLException(IError error)
-        : base(error?.Message)
+        : base(error.Message)
     {
-        Errors = error is null
-            ? Array.Empty<IError>()
-            : [error];
+        Errors = [error];
     }
 
     /// <summary>

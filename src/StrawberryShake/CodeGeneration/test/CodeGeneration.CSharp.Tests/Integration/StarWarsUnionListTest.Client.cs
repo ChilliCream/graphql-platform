@@ -1561,7 +1561,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
 
             ISearchHero_Search_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new SearchHero_Search_Friends_FriendsConnection(MapISearchHero_Search_Friends_NodesArray(data.Nodes, snapshot));
             }

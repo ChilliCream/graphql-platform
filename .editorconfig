@@ -190,6 +190,8 @@ dotnet_diagnostic.RCS1251.severity = warning
 # Add/remove trailing comma.
 dotnet_diagnostic.RCS1260.severity = warning
 roslynator_trailing_comma_style = omit
+# Unnecessary conditional access.
+dotnet_diagnostic.RCS9003.severity = warning
 
 # netstandard2.0
 [src/HotChocolate/{Core/src/Types.Analyzers,Language}/**/*.cs]
