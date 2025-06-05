@@ -1554,7 +1554,7 @@ public class ResolverCompilerTests
 
             descriptor.Extend().Configuration.ParameterExpressionBuilders.Add(
                 new CustomParameterExpressionBuilder<SomeState>(
-                    t => t.GetLocalState<SomeState>("foo")!));
+                    t => t.GetLocalState<SomeState>("foo")));
         }
     }
 }

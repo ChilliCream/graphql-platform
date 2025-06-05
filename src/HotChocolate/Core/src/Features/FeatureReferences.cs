@@ -103,7 +103,7 @@ public struct FeatureReferences<TCache>
             flush = true;
         }
 
-        return cached ?? UpdateCached(ref cached!, state, factory, revision, flush);
+        return cached ?? UpdateCached(ref cached, state, factory, revision, flush);
     }
 
     // Update and cache clearing logic, when the fast-path in Fetch isn't applicable

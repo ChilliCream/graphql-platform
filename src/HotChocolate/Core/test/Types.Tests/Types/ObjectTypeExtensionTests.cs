@@ -365,7 +365,7 @@ public class ObjectTypeExtensionTests
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(new ObjectType<Foo>(t => t
-                .Field(f => f.GetName(default!))
+                .Field(f => f.GetName(default))
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Directive("dummy_rep", new ArgumentNode("a", "a")))))

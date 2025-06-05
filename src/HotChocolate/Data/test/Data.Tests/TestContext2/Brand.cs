@@ -11,7 +11,7 @@ public class Brand
     [Required]
     public string Name { get; set; } = default!;
 
-    public string? DisplayName { get; set; } = default!;
+    public string? DisplayName { get; set; }
 
     public string? AlwaysNull { get; set; }
 

@@ -23,7 +23,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         Document = document ?? throw new ArgumentNullException(nameof(document));
         OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
-        OperationType = schema.GetOperationType(OperationDefinition.Operation)!;
+        OperationType = schema.GetOperationType(OperationDefinition.Operation);
         OperationName = OperationDefinition.Name!.Value;
         RootPath = Path.Root.Append(OperationName);
 

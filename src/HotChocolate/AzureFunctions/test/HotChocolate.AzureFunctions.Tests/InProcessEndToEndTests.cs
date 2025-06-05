@@ -34,7 +34,7 @@ public class InProcessEndToEndTests
         var resultContent = await httpContext.ReadResponseContentAsync();
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
-        dynamic json = JObject.Parse(resultContent!);
+        dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
         Assert.Equal("Luke Skywalker",json.data.person.ToString());
     }
@@ -67,6 +67,6 @@ public class InProcessEndToEndTests
         var resultContent = await httpContext.ReadResponseContentAsync();
         Assert.NotNull(resultContent);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
-        Assert.True(resultContent!.Contains("<html") && resultContent.Contains("</html>"));
+        Assert.True(resultContent.Contains("<html") && resultContent.Contains("</html>"));
     }
 }

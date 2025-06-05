@@ -58,7 +58,7 @@ public class TypeInspectorTests
         Assert.True(extendedType.IsSchemaType);
         var typeArgument = Assert.Single(extendedType.TypeArguments);
         Assert.NotNull(typeArgument);
-        Assert.True(typeArgument!.IsSchemaType);
+        Assert.True(typeArgument.IsSchemaType);
     }
 
     private sealed class NonGenericType : FilterInputType

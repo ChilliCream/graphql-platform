@@ -103,7 +103,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Configuration!.Directives!,
+                Configuration!.Directives,
                 inputObjectType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeInputObjectFields(

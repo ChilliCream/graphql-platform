@@ -250,7 +250,7 @@ public class ObjectTypeConfiguration
             var targetField = field switch
             {
                 { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
-                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name!)),
+                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name)),
                 { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Name)),
                 _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name))

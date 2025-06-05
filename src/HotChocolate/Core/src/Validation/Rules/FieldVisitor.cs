@@ -507,7 +507,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 _buffers.Push(buffer);
             }
 
-            return list!;
+            return list;
         }
 
         protected internal override void OnInitialize(DocumentValidatorContext context)

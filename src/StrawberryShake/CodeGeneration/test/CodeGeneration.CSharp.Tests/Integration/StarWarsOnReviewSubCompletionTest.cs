@@ -163,7 +163,7 @@ public class SubscriptionSocketStateMonitor
 
     public void AbortSocket()
     {
-        var sessionInfos = (_sessionsField!.GetValue(_sessionPool)
+        var sessionInfos = (_sessionsField.GetValue(_sessionPool)
             as System.Collections.IDictionary)!.Values;
 
         foreach (var sessionInfo in sessionInfos)

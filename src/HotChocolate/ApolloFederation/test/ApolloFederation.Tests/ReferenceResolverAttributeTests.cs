@@ -236,9 +236,9 @@ public class ReferenceResolverAttributeTests
         var entity = await inClassResolverDelegate.Invoke(context);
 
         if (entity is not null &&
-            type!.Features.TryGet(out ExternalSetter? externalSetter))
+            type.Features.TryGet(out ExternalSetter? externalSetter))
         {
-            externalSetter.Invoke(type, representation!, entity);
+            externalSetter.Invoke(type, representation, entity);
         }
 
         return entity;

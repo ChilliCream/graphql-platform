@@ -127,7 +127,7 @@ public class TypeInitializerTests
             {
                 context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
-            null!,
+            null,
             t =>
             {
                 return t switch
