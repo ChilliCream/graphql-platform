@@ -29,7 +29,7 @@ public class GraphQLException : Exception
     /// <param name="errors">The errors.</param>
     public GraphQLException(params IError[] errors)
     {
-        Errors = errors ?? [];
+        Errors = errors;
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ public class GraphQLException : Exception
     /// <param name="errors">The errors.</param>
     public GraphQLException(IEnumerable<IError> errors)
     {
-        Errors = new List<IError>(errors ?? []).AsReadOnly();
+        Errors = new List<IError>(errors).AsReadOnly();
     }
 
     /// <summary>

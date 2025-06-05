@@ -58,7 +58,7 @@ public static class UploadSchemaHelpers
 
             if (objectSingle is not null)
             {
-                return objectSingle.Bar!.Baz!.File!.ReadContents() ?? "null";
+                return objectSingle.Bar!.Baz!.File!.ReadContents();
             }
 
             if (objectList is not null)
