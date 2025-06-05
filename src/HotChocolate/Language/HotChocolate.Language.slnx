@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
+    <Project Path="src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
+    <Project Path="src/Language.Visitors/HotChocolate.Language.Visitors.csproj" />
+    <Project Path="src/Language.Web/HotChocolate.Language.Web.csproj" />
+    <Project Path="src/Language/HotChocolate.Language.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Language.SyntaxTree.Tests/HotChocolate.Language.SyntaxTree.Tests.csproj" />
+    <Project Path="test/Language.Tests/HotChocolate.Language.Tests.csproj" />
+    <Project Path="test/Language.Web.Tests/HotChocolate.Language.Web.Tests.csproj" />
+  </Folder>
+</Solution>
