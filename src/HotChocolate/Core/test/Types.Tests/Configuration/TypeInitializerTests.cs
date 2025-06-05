@@ -216,9 +216,7 @@ public class TypeInitializerTests
             => descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
     }
 
-    public class BarType : ObjectType<Bar>
-    {
-    }
+    public class BarType : ObjectType<Bar>;
 
     public class Foo
     {

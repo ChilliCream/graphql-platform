@@ -158,7 +158,5 @@ public class QueryableFilterVisitorContainsTests : SchemaCache
     }
 
     public class FooFilterType
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 }

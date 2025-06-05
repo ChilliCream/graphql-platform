@@ -163,12 +163,8 @@ public class MongoDbFilterVisitorBooleanTests
     }
 
     public class FooFilterType
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 
     public class FooNullableFilterType
-        : FilterInputType<FooNullable>
-    {
-    }
+        : FilterInputType<FooNullable>;
 }

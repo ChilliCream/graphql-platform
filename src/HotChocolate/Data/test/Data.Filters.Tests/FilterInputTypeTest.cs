@@ -418,9 +418,7 @@ public class FilterInputTypeTest : FilterTestBase
         }
     }
 
-    public class FooDirective
-    {
-    }
+    public class FooDirective;
 
     public class Foo
     {

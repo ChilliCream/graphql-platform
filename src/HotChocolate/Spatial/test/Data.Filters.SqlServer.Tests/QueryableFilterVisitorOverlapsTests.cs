@@ -124,7 +124,5 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 }

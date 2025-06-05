@@ -1115,9 +1115,7 @@ public class SchemaBuilderExtensionsTypeTests
     }
 
     public class BarType
-        : ObjectType<Bar>
-    {
-    }
+        : ObjectType<Bar>;
 
     public class Foo
     {
@@ -1149,9 +1147,7 @@ public class SchemaBuilderExtensionsTypeTests
         }
     }
 
-    public interface IMyInterface
-    {
-    }
+    public interface IMyInterface;
 
     public enum MyEnum
     {

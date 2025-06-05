@@ -416,9 +416,7 @@ public class NodeFieldSupportTests
 
     [ObjectType("Bar")]
     [Node]
-    public class Bar6 : Bar6Base<Bar6>
-    {
-    }
+    public class Bar6 : Bar6Base<Bar6>;
 
     public class Foo7
     {
@@ -437,9 +435,7 @@ public class NodeFieldSupportTests
         public static Bar7 GetBar7(string id) => new() { Id = id };
     }
 
-    public class Bar7Resolver : Bar7ResolverBase
-    {
-    }
+    public class Bar7Resolver : Bar7ResolverBase;
 
     public class Foo8
     {
@@ -458,9 +454,7 @@ public class NodeFieldSupportTests
         public Bar8 GetBar8(string id) => new() { Id = id };
     }
 
-    public class Bar8Resolver : Bar8ResolverBase
-    {
-    }
+    public class Bar8Resolver : Bar8ResolverBase;
 
     public class Foo9
     {
@@ -489,7 +483,5 @@ public class NodeFieldSupportTests
         public string Id { get; set; }
     }
 
-    public class Child : Parent
-    {
-    }
+    public class Child : Parent;
 }

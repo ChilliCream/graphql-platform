@@ -538,14 +538,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
     }
 
     public class BarFilterInput
-        : FilterInputType<Bar>
-    {
-    }
+        : FilterInputType<Bar>;
 
     public class BarNullableFilterInput
-        : FilterInputType<BarNullable>
-    {
-    }
+        : FilterInputType<BarNullable>;
 
     public enum BarEnum
     {

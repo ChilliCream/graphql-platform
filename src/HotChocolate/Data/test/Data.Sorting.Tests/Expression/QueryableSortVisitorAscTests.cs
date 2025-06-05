@@ -153,9 +153,7 @@ public class QueryableSortVisitorAscTests
     }
 
     public class FooSortType<T>
-        : SortInputType<Foo<T>>
-    {
-    }
+        : SortInputType<Foo<T>>;
 
     public enum TestEnum
     {
@@ -166,7 +164,5 @@ public class QueryableSortVisitorAscTests
 
     public class FooNullableSortType<T>
         : SortInputType<FooNullable<T>>
-        where T : class
-    {
-    }
+        where T : class;
 }

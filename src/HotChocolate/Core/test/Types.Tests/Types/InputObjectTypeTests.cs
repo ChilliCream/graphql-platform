@@ -851,9 +851,7 @@ public class InputObjectTypeTests : TypeTestBase
         }
     }
 
-    public class BazInputType : InputObjectType<Baz>
-    {
-    }
+    public class BazInputType : InputObjectType<Baz>;
 
     public class Foo
     {

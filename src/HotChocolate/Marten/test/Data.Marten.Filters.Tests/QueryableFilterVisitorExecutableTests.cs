@@ -144,11 +144,7 @@ public class QueryableFilterVisitorExecutableTests
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo>;
 
-    public class FooNullableFilterInput : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

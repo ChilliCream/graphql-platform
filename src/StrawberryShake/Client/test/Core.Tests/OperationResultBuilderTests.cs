@@ -36,9 +36,7 @@ public class OperationResultBuilderTests
         Assert.Equal(3.14, result.Extensions["d"]);
     }
 
-    internal class Document
-    {
-    }
+    internal class Document;
 
     internal class DocumentDataInfo : IOperationResultDataInfo
     {

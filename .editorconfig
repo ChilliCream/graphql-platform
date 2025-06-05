@@ -185,6 +185,8 @@ dotnet_diagnostic.IDE0305.severity = silent # see https://github.com/dotnet/rosl
 # Use collection expression for new.
 dotnet_diagnostic.IDE0306.severity = warning
 dotnet_style_prefer_collection_expression = when_types_exactly_match
+# Remove unnecessary braces.
+dotnet_diagnostic.RCS1251.severity = warning
 # Add/remove trailing comma.
 dotnet_diagnostic.RCS1260.severity = warning
 roslynator_trailing_comma_style = omit

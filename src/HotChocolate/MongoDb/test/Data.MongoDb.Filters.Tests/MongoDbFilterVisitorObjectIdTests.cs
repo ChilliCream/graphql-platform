@@ -1016,11 +1016,7 @@ public class MongoDbFilterVisitorObjectIdTests
         public ObjectId? ObjectId { get; set; }
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 
-    public class FooNullableFilterType : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterType : FilterInputType<FooNullable>;
 }

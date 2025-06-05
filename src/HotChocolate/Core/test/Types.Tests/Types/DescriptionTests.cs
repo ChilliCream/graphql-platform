@@ -293,15 +293,11 @@ public class DescriptionTests
                         Multi line
                         comment
                         """)]
-    public interface ISomeUnion
-    {
-    }
+    public interface ISomeUnion;
 
     [UnionType("OtherUnion")]
     [GraphQLDescription("Single line comment")]
-    public interface IOtherUnion
-    {
-    }
+    public interface IOtherUnion;
 
     [InterfaceType("SomeInterface")]
     [GraphQLDescription("""

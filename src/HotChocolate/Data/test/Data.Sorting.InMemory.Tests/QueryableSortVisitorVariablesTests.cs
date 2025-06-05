@@ -188,5 +188,5 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         public bool Bar { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo> { }
+    public class FooSortType : SortInputType<Foo>;
 }

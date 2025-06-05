@@ -201,9 +201,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     }
 
     [GraphQLName("FooAttr")]
-    public class Foo2 : FooBase
-    {
-    }
+    public class Foo2 : FooBase;
 
     public class FooBase
     {

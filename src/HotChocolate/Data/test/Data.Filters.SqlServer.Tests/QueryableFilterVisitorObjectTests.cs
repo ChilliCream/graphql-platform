@@ -785,9 +785,7 @@ public class QueryableFilterVisitorObjectTests
         }
     }
 
-    public class BarNullableFilterInput : FilterInputType<BarNullable>
-    {
-    }
+    public class BarNullableFilterInput : FilterInputType<BarNullable>;
 
     public class BazFilterInput : FilterInputType<Baz>
     {

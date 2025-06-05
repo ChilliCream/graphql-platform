@@ -72,10 +72,6 @@ public class QueryableFilterVisitorDateOnlyTests
         public DateOnly? Value { get; set; }
     }
 
-    public class FooFilterInput : FilterInputType<Foo>
-    {
-    }
-    public class FooNullableFilterInput : FilterInputType<FooNullable>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo>;
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

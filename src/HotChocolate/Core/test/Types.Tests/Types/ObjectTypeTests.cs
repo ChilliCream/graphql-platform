@@ -2130,9 +2130,7 @@ public class ObjectTypeTests : TypeTestBase
         public int GetValue() => 1024;
     }
 
-    public class ResolverWithAbstractBase : ResolverBase
-    {
-    }
+    public class ResolverWithAbstractBase : ResolverBase;
 
     public class GenericFoo<T>
     {

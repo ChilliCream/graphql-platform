@@ -50,7 +50,5 @@ public class MongoDbFilterCombinatorTests
     }
 
     public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 }

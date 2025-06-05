@@ -561,13 +561,9 @@ public class TypeInfoTests
         Assert.IsType<StringType>(type);
     }
 
-    private sealed class CustomStringList : CustomStringListBase
-    {
-    }
+    private sealed class CustomStringList : CustomStringListBase;
 
-    private class CustomStringListBase : List<string>
-    {
-    }
+    private class CustomStringListBase : List<string>;
 
 #nullable enable
 

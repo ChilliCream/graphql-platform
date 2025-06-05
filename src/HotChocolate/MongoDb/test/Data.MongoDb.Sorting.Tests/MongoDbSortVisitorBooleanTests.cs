@@ -97,11 +97,7 @@ public class MongoDbSortVisitorBooleanTests
         public bool? Bar { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo>
-    {
-    }
+    public class FooSortType : SortInputType<Foo>;
 
-    public class FooNullableSortType : SortInputType<FooNullable>
-    {
-    }
+    public class FooNullableSortType : SortInputType<FooNullable>;
 }

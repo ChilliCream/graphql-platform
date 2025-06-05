@@ -401,13 +401,9 @@ public class MongoDbSortVisitorObjectTests
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarSortType : SortInputType<Bar>
-    {
-    }
+    public class BarSortType : SortInputType<Bar>;
 
-    public class BarNullableSortType : SortInputType<BarNullable>
-    {
-    }
+    public class BarNullableSortType : SortInputType<BarNullable>;
 
     public enum BarEnum
     {
