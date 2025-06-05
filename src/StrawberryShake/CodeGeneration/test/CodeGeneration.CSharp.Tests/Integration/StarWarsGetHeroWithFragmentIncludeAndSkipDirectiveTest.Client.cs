@@ -1855,7 +1855,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
@@ -1875,7 +1875,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1895,7 +1895,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1936,7 +1936,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
@@ -1956,7 +1956,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1976,7 +1976,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }

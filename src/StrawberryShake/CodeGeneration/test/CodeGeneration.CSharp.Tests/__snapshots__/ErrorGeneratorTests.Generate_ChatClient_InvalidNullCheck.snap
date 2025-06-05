@@ -1060,7 +1060,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_Me_Friends returnValue = default !;
-            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_Me_Friends_PersonConnection(MapIGetPeople_Me_Friends_NodesArray(data.Nodes, snapshot));
             }

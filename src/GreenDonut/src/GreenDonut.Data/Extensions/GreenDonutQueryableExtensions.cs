@@ -314,7 +314,7 @@ public static class GreenDonutQueryableExtensions
         if(modifySortDefinition is not null)
         {
             sorting ??= SortDefinition<T>.Empty;
-            sorting = modifySortDefinition?.Invoke(sorting);
+            sorting = modifySortDefinition(sorting);
         }
 
         if (queryContext.Predicate is not null)

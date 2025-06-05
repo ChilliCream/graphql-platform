@@ -997,7 +997,7 @@ namespace Foo.Bar.State
             }
 
             IUpdateMembers_Project_UpdateMembers returnValue = default !;
-            if (data?.__typename.Equals("MutationResult", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MutationResult", global::System.StringComparison.Ordinal))
             {
                 returnValue = new UpdateMembers_Project_UpdateMembers_MutationResult(data.CorrelationId ?? throw new global::System.ArgumentNullException());
             }

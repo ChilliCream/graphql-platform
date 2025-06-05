@@ -800,7 +800,7 @@ namespace Foo.Bar.State
             }
 
             IReadonly_Readonly returnValue = default !;
-            if (data?.__typename.Equals("readonly", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("readonly", global::System.StringComparison.Ordinal))
             {
                 returnValue = new Readonly_Readonly_readonly(data.Abstract);
             }

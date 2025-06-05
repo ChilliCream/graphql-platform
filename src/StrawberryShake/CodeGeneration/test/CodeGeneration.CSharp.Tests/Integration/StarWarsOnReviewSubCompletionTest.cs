@@ -97,7 +97,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
 
         var sub = client.OnReviewSub.Watch();
         var session = sub.Subscribe(
-            result => commentary = result.Data?.OnReview?.Commentary,
+            result => commentary = result.Data?.OnReview.Commentary,
             () => completionTriggered = true);
 
         var topic = Episode.NewHope;

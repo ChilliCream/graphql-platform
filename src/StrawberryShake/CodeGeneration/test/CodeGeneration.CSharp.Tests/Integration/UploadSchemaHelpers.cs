@@ -42,7 +42,7 @@ public static class UploadSchemaHelpers
         {
             if (single is not null)
             {
-                return single?.ReadContents() ?? "null";
+                return single.ReadContents();
             }
 
             if (list is not null)

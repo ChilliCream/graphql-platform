@@ -82,10 +82,7 @@ public class GraphQLClientException : Exception
     /// <exception cref="ArgumentNullException">
     /// <paramref name="errors"/> is <c>null</c>.
     /// </exception>
-    public GraphQLClientException(IEnumerable<IClientError> errors)
-        // We pass this null safe to the constructor using arrays and let it throw there
-        // with a proper ArgumentNullException.
-        : this(errors?.ToArray()!)
+    public GraphQLClientException(IEnumerable<IClientError> errors) : this(errors.ToArray())
     {
     }
 

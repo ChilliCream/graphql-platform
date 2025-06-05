@@ -1589,7 +1589,7 @@ namespace Foo.Bar.State
             }
 
             IPeopleSearch_People returnValue = default !;
-            if (data?.__typename.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal))
             {
                 returnValue = new PeopleSearch_People_PersonCollectionSegment(data.TotalCount ?? throw new global::System.ArgumentNullException(), MapNonNullableIPeopleSearch_People_PageInfo(data.PageInfo ?? throw new global::System.ArgumentNullException(), snapshot), MapIPeopleSearch_People_ItemsNonNullableArray(data.Items, snapshot));
             }

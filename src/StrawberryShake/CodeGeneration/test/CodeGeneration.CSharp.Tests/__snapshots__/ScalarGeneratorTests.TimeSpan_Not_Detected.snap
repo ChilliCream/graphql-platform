@@ -612,7 +612,7 @@ namespace Foo.Bar.State
             }
 
             IGetSessions_Sessions returnValue = default !;
-            if (data?.__typename.Equals("SessionConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("SessionConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetSessions_Sessions_SessionConnection(MapIGetSessions_Sessions_NodesNonNullableArray(data.Nodes, snapshot));
             }

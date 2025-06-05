@@ -1095,7 +1095,7 @@ namespace Foo.Bar.State
             }
 
             IGetStore2_SearchableStore_Books returnValue = default !;
-            if (data?.__typename.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Book", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetStore2_SearchableStore_Books_Book(data.Isbn ?? throw new global::System.ArgumentNullException(), data.Title ?? throw new global::System.ArgumentNullException());
             }

@@ -17,7 +17,7 @@ public class TestServerFactory : IDisposable
             .Configure(configureApplication)
             .ConfigureServices(services =>
             {
-                configureServices?.Invoke(services);
+                configureServices(services);
             });
 
         var server = new TestServer(builder);

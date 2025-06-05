@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 
 public static class DirectiveCollectionExtensions
 {
-    public static T SingleOrDefault<T>(this DirectiveCollection directives) where T : notnull
+    public static T? SingleOrDefault<T>(this DirectiveCollection directives) where T : notnull
     {
         foreach (var directive in directives)
         {
@@ -21,7 +21,7 @@ public static class DirectiveCollectionExtensions
             }
         }
 
-        return default!;
+        return default;
     }
 
     internal static IValueNode? SkipValue(this IReadOnlyList<DirectiveNode> directives)

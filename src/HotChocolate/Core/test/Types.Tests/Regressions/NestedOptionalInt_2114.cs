@@ -93,17 +93,17 @@ public class NestedOptionalInt_2114
     private static void Verify(ToppingInput? input)
     {
         Assert.NotNull(input);
-        var pickle = input?.Pickles!.First()?.ButterPickle;
+        var pickle = input.Pickles!.First().ButterPickle;
         Assert.NotNull(pickle);
-        Assert.Equal(5, pickle?.Size);
-        Assert.False(pickle?.Width.HasValue);
-        Assert.False(pickle?.ComplexUnassigned.HasValue);
-        Assert.True(pickle?.ComplexAssigned.HasValue);
-        Assert.Equal(3, pickle?.ComplexAssigned.Value?.Value);
-        Assert.True(pickle?.ComplexAssignedNull.HasValue);
-        Assert.Null(pickle?.ComplexAssignedNull.Value);
-        Assert.True(pickle?.ComplexList.HasValue);
-        Assert.Equal(2, pickle?.ComplexList.Value?.First().Value);
+        Assert.Equal(5, pickle.Size.Value);
+        Assert.False(pickle.Width.HasValue);
+        Assert.False(pickle.ComplexUnassigned.HasValue);
+        Assert.True(pickle.ComplexAssigned.HasValue);
+        Assert.Equal(3, pickle.ComplexAssigned.Value?.Value);
+        Assert.True(pickle.ComplexAssignedNull.HasValue);
+        Assert.Null(pickle.ComplexAssignedNull.Value);
+        Assert.True(pickle.ComplexList.HasValue);
+        Assert.Equal(2, pickle.ComplexList.Value?.First().Value);
     }
 
     private static IRequestExecutor CreateExecutor(Func<ToppingInput, bool>? onEat = null)
