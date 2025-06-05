@@ -734,13 +734,9 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarFilterInput : FilterInputType<Bar>
-    {
-    }
+    public class BarFilterInput : FilterInputType<Bar>;
 
-    public class BarNullableFilterInput : FilterInputType<BarNullable>
-    {
-    }
+    public class BarNullableFilterInput : FilterInputType<BarNullable>;
 
     public enum BarEnum
     {

@@ -334,13 +334,9 @@ public class SortConventionExtensionsTests
         public string? Foo { get; }
     }
 
-    private sealed class MockSortEnumType : DefaultSortEnumType
-    {
-    }
+    private sealed class MockSortEnumType : DefaultSortEnumType;
 
-    private sealed class MockProviderExtensions : SortProviderExtensions<QueryableSortContext>
-    {
-    }
+    private sealed class MockProviderExtensions : SortProviderExtensions<QueryableSortContext>;
 
     private sealed class MockProvider : ISortProvider
     {

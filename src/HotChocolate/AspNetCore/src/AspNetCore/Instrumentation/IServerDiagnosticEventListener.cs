@@ -6,6 +6,4 @@ namespace HotChocolate.AspNetCore.Instrumentation;
 /// and they will all be called in the registration order.
 /// </summary>
 /// <seealso cref="ServerDiagnosticEventListener"/>
-public interface IServerDiagnosticEventListener : IServerDiagnosticEvents
-{
-}
+public interface IServerDiagnosticEventListener : IServerDiagnosticEvents;

@@ -641,10 +641,10 @@ public class QueryableSortVisitorObjectTests
     }
 
     public class BarSortType
-        : SortInputType<Bar> { }
+        : SortInputType<Bar>;
 
     public class BarNullableSortType
-        : SortInputType<BarNullable> { }
+        : SortInputType<BarNullable>;
 
     public enum BarEnum
     {

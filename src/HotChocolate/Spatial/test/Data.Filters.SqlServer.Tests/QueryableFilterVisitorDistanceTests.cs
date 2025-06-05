@@ -106,7 +106,5 @@ public class QueryableFilterVisitorDistanceTests
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 }

@@ -28,7 +28,5 @@ public class RavenOffsetPagingProviderTests
 
     public IAsyncDocumentQuery<Foo> AsyncDocumentQuery() => throw new InvalidOperationException();
 
-    public class Foo
-    {
-    }
+    public class Foo;
 }

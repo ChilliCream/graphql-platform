@@ -119,7 +119,5 @@ public class QueryableFilterVisitorTouchesTests : SchemaCache
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 }

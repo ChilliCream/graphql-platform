@@ -69,9 +69,7 @@ public class TypeInspectorTests
         }
     }
 
-    private sealed class GenericType : FilterInputType<Foo>
-    {
-    }
+    private sealed class GenericType : FilterInputType<Foo>;
 
     private sealed class Foo
     {

@@ -48,9 +48,7 @@ public class EntityIdOrDataTest : ServerTestBase
     }
 
     [UnionType("Bar")]
-    public interface IBar
-    {
-    }
+    public interface IBar;
 
     public class Baz : IBar
     {

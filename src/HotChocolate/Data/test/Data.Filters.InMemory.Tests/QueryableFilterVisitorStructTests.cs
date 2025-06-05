@@ -239,11 +239,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
         public FooNullable[]? FooList { get; set; }
     }
 
-    public class BarFilterInput : FilterInputType<Bar>
-    {
-    }
+    public class BarFilterInput : FilterInputType<Bar>;
 
-    public class BarNullableFilterInput : FilterInputType<BarNullable>
-    {
-    }
+    public class BarNullableFilterInput : FilterInputType<BarNullable>;
 }

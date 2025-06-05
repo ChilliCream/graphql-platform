@@ -308,13 +308,9 @@ internal sealed class FieldCollector
     private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
         $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-    private sealed class Cache : Dictionary<IOutputTypeDefinition, SelectionCache>
-    {
-    }
+    private sealed class Cache : Dictionary<IOutputTypeDefinition, SelectionCache>;
 
-    private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
-    {
-    }
+    private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>;
 
     private sealed class TypeNameField : IOutputFieldDefinition
     {

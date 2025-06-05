@@ -177,9 +177,7 @@ public class DependencyInjectionTests
         public string SayHello() => "Hello_" + _i++;
     }
 
-    public class Query1
-    {
-    }
+    public class Query1;
 
     [ExtendObjectType(typeof(Query1))]
     public class ExtendQuery1

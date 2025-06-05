@@ -1476,9 +1476,7 @@ public class AnnotationBasedMutations
         }
     }
 
-    public class Foo
-    {
-    }
+    public class Foo;
 
     public class MutationWithInputObject
     {

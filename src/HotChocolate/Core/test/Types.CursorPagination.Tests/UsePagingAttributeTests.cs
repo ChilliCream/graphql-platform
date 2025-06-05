@@ -177,9 +177,7 @@ public class UsePagingAttributeTests
     }
 
     [ExtendObjectType("Query")]
-    public class QueryExtension : Query
-    {
-    }
+    public class QueryExtension : Query;
 
     public class Foo(string bar)
     {

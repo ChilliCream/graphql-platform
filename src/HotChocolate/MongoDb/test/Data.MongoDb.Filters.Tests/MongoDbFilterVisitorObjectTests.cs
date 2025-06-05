@@ -669,14 +669,10 @@ public class MongoDbFilterVisitorObjectTests
     }
 
     public class BarFilterType
-        : FilterInputType<Bar>
-    {
-    }
+        : FilterInputType<Bar>;
 
     public class BarNullableFilterType
-        : FilterInputType<BarNullable>
-    {
-    }
+        : FilterInputType<BarNullable>;
 
     public enum BarEnum
     {
