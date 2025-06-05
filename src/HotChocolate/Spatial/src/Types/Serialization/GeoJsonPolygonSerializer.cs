@@ -126,7 +126,7 @@ internal class GeoJsonPolygonSerializer
     {
         if (runtimeValue is Polygon p)
         {
-            var geometryCoords = new IValueNode[p!.NumInteriorRings + 1];
+            var geometryCoords = new IValueNode[p.NumInteriorRings + 1];
             geometryCoords[0] = base.ParseCoordinateValue(type, p.ExteriorRing);
             for (var i = 0; i < p.InteriorRings.Length; i++)
             {

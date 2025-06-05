@@ -121,7 +121,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             Expression nestedProperty = Expression.Call(context.GetInstance(), s_method);
 
             context.PushInstance(nestedProperty);
-            context.RuntimeTypes.Push(_extendedType!);
+            context.RuntimeTypes.Push(_extendedType);
             action = SyntaxVisitor.Continue;
             return true;
         }
@@ -197,7 +197,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                     Expression.Constant(value));
 
                 context.PushInstance(nestedProperty);
-                context.RuntimeTypes.Push(_extendedType!);
+                context.RuntimeTypes.Push(_extendedType);
                 action = SyntaxVisitor.Continue;
                 return true;
             }

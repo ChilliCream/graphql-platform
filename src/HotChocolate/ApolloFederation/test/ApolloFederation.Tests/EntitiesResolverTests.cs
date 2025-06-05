@@ -384,7 +384,7 @@ public class EntitiesResolverTests
     {
         public string Id { get; set; } = default!;
 
-        public FederatedTypeDetail? Detail { get; set; } = default!;
+        public FederatedTypeDetail? Detail { get; set; }
 
         [ReferenceResolver]
         public static FederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId)

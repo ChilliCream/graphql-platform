@@ -54,7 +54,7 @@ internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter, IMar
                 return 1000 - d.Count;
             }).ToList();
 
-            return properties!;
+            return properties;
         }
     }
 }

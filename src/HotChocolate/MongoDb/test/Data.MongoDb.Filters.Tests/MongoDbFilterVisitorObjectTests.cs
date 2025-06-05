@@ -630,7 +630,7 @@ public class MongoDbFilterVisitorObjectTests
 
         public bool BarBool { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = null!;
+        public List<Bar>? ObjectArray { get; set; }
     }
 
     public class FooNullable

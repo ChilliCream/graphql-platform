@@ -599,7 +599,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                 .AddParameter("path", p => p.SetType(TypeNames.String))
                 .AddParameter("value", p => p.SetType(argument.Type.ToTypeReference()))
                 .AddParameter(Files, p => p.SetType(s_filesType))
-                .AddCode(BuildUploadFileMapper(argument.Type, "path", "value")!);
+                .AddCode(BuildUploadFileMapper(argument.Type, "path", "value"));
         }
     }
 

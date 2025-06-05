@@ -99,7 +99,7 @@ public class WebSocketConnectionTests
         }
 
         // assert
-        Assert.Single(results)!.Body!.RootElement.MatchSnapshot();
+        Assert.Single(results).Body!.RootElement.MatchSnapshot();
     }
 
     [Fact]

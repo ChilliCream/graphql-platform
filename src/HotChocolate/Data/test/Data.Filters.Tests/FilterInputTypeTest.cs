@@ -313,7 +313,7 @@ public class FilterInputTypeTest : FilterTestBase
 
         // assert
         Assert.NotNull(type);
-        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type!.Fields["id"]).Handler);
+        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["id"]).Handler);
     }
 
     [Fact]
@@ -333,7 +333,7 @@ public class FilterInputTypeTest : FilterTestBase
         // assert
         Assert.NotNull(type);
         Assert.IsType<CustomHandler>(
-            Assert.IsType<FilterField>(type!.Fields["friends"]).Handler);
+            Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
         Assert.IsType<QueryableDefaultFieldHandler>(
             Assert.IsType<FilterField>(type.Fields["name"]).Handler);
     }

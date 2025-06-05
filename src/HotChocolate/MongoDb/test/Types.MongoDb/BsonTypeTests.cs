@@ -1233,7 +1233,7 @@ public class BsonTypeTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<BsonArray>(value)!,
+            Assert.IsType<BsonArray>(value),
             x => Assert.Equal("Foo", x),
             x => Assert.Equal("Bar", x));
     }

@@ -194,7 +194,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         var configuration =
-            Assert.Single(convention.DefinitionAccessor!.Configurations.Values)!;
+            Assert.Single(convention.DefinitionAccessor!.Configurations.Values);
         Assert.Equal(2, configuration.Count);
     }
 
@@ -244,7 +244,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         var configuration =
-            Assert.Single(convention.DefinitionAccessor!.EnumConfigurations.Values)!;
+            Assert.Single(convention.DefinitionAccessor!.EnumConfigurations.Values);
         Assert.Equal(2, configuration.Count);
     }
 

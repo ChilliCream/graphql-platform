@@ -85,7 +85,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
                     d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
                         subscribeResolver,
-                        d.SourceType!,
+                        d.SourceType,
                         d.ResolverType,
                         map,
                         d.GetParameterExpressionBuilders());
