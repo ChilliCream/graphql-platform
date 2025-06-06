@@ -97,7 +97,7 @@ public sealed class Session : ISession
     }
 
     private void ReceiveFinishHandler(object? sender, EventArgs e)
-        => _ = CompleteOperation(default);
+        => _ = CompleteOperation(CancellationToken.None);
 
     /// <summary>
     /// Opens a session over the socket

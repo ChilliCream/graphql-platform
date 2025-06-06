@@ -61,7 +61,7 @@ public class IsolatedProcessEndToEndTests
                             nameof(HttpContext),
                             out var httpContext)
                             ? (httpContext as HttpContext)?.Items[DarkSideLeaderKey] as string
-                            : default;
+                            : null;
 
                         return darkSideLeader;
                     }));

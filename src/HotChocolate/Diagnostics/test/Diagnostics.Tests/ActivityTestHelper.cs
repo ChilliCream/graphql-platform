@@ -14,7 +14,7 @@ public static class ActivityTestHelper
         var listener = new ActivityListener();
         var root = new OrderedDictionary<string, object?>();
         var lookup = new Dictionary<Activity, OrderedDictionary<string, object?>>();
-        Activity rootActivity = default!;
+        Activity rootActivity = null!;
 
         listener.ShouldListenTo = source => source.Name.EqualsOrdinal("HotChocolate.Diagnostics");
         listener.ActivityStarted = a =>

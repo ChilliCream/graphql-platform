@@ -12,26 +12,26 @@ public class VariableDefinitionNodeTests
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -48,26 +48,26 @@ public class VariableDefinitionNodeTests
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(3, 3, 3, 3),
             new VariableNode("aa"),
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -84,25 +84,25 @@ public class VariableDefinitionNodeTests
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var d = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
 
         // act

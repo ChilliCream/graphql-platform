@@ -60,6 +60,6 @@ public sealed class DataLoaderScopeHolder
 
     private sealed class InstanceHolder
     {
-        public IDataLoaderScope Scope = default!;
+        public IDataLoaderScope Scope = null!;
     }
 }

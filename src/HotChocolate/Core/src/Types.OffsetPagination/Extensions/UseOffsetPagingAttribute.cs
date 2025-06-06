@@ -109,7 +109,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
             odf.UseOffsetPaging(
                 Type,
                 collectionSegmentName: string.IsNullOrEmpty(_collectionSegmentName)
-                    ? default
+                    ? null
                     : _collectionSegmentName,
                 options: new PagingOptions
                 {
@@ -127,7 +127,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
             idf.UseOffsetPaging(
                 Type,
                 collectionSegmentName: string.IsNullOrEmpty(_collectionSegmentName)
-                    ? default
+                    ? null
                     : _collectionSegmentName,
                 options: new PagingOptions
                 {

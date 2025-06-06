@@ -402,14 +402,14 @@ public class QueryableProjectionFilterTests
     {
         public string? Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
     }
 
     public class BarDeep
     {
         public string? Id { get; set; }
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullableDeep

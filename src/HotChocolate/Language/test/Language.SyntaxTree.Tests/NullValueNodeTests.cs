@@ -15,7 +15,7 @@ public class NullValueNodeTests
         // act
         var abResult = a.Equals(b);
         var aaResult = a.Equals(a);
-        var aNullResult = a.Equals(default);
+        var aNullResult = a.Equals(null);
 
         // assert
         Assert.True(abResult);
@@ -35,7 +35,7 @@ public class NullValueNodeTests
         // act
         var abResult = a.Equals(b);
         var aaResult = a.Equals(a);
-        var aNullResult = a.Equals(default);
+        var aNullResult = a.Equals(null);
 
         // assert
         Assert.True(abResult);

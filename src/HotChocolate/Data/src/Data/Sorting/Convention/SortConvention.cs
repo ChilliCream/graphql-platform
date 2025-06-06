@@ -22,14 +22,14 @@ public class SortConvention
     private const string InputTypePostFix = "SortInputType";
 
     private Action<ISortConventionDescriptor>? _configure;
-    private INamingConventions _namingConventions = default!;
-    private IReadOnlyDictionary<int, SortOperation> _operations = default!;
-    private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<TypeReference, List<ConfigureSortInputType>> _inputTypeConfigs = default!;
-    private IDictionary<TypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs = default!;
-    private string _argumentName = default!;
-    private ISortProvider _provider = default!;
-    private ITypeInspector _typeInspector = default!;
+    private INamingConventions _namingConventions = null!;
+    private IReadOnlyDictionary<int, SortOperation> _operations = null!;
+    private IDictionary<Type, Type> _bindings = null!;
+    private IDictionary<TypeReference, List<ConfigureSortInputType>> _inputTypeConfigs = null!;
+    private IDictionary<TypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs = null!;
+    private string _argumentName = null!;
+    private ISortProvider _provider = null!;
+    private ITypeInspector _typeInspector = null!;
     private Type? _defaultBinding;
 
     protected SortConvention()

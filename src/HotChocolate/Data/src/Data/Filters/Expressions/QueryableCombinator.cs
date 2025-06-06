@@ -14,7 +14,7 @@ public class QueryableCombinator
     {
         if (operations.Count == 0)
         {
-            combined = default;
+            combined = null;
             return false;
         }
 

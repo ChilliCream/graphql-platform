@@ -20,14 +20,14 @@ public class FilterConvention
     private const string InputTypePostFix = "FilterInputType";
 
     private Action<IFilterConventionDescriptor>? _configure;
-    private INamingConventions _namingConventions = default!;
-    private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
-    private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private INamingConventions _namingConventions = null!;
+    private IReadOnlyDictionary<int, FilterOperation> _operations = null!;
+    private IDictionary<Type, Type> _bindings = null!;
+    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = null!;
 
-    private string _argumentName = default!;
-    private IFilterProvider _provider = default!;
-    private ITypeInspector _typeInspector = default!;
+    private string _argumentName = null!;
+    private IFilterProvider _provider = null!;
+    private ITypeInspector _typeInspector = null!;
     private bool _useAnd;
     private bool _useOr;
 

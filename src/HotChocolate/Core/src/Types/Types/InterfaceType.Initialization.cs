@@ -15,7 +15,7 @@ public partial class InterfaceType
     private InterfaceTypeCollection _implements = InterfaceTypeCollection.Empty;
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
-    private Schema _schema = default!;
+    private Schema _schema = null!;
 
     protected override InterfaceTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)

@@ -11,8 +11,8 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 {
-    private FusionDirectiveCollection _directives = default!;
-    private FusionInterfaceTypeDefinitionCollection _implements = default!;
+    private FusionDirectiveCollection _directives = null!;
+    private FusionInterfaceTypeDefinitionCollection _implements = null!;
     private bool _completed;
 
     protected FusionComplexTypeDefinition(
@@ -92,7 +92,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 
             field = value;
         }
-    } = default!;
+    } = null!;
 
     public IFeatureCollection Features
     {

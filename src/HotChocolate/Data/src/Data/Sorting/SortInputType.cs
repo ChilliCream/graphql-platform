@@ -22,7 +22,7 @@ public class SortInputType
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    public IExtendedType EntityType { get; private set; } = default!;
+    public IExtendedType EntityType { get; private set; } = null!;
 
     protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {

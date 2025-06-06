@@ -91,7 +91,7 @@ public class QueryableSortVisitorDescTests
     public void Sort_NullableDateTimeDesc(params string?[] dataObject)
     {
         Test_Desc(
-            dataObject.Select(x => x is null ? default : (DateTime?)DateTime.Parse(x))
+            dataObject.Select(x => x is null ? null : (DateTime?)DateTime.Parse(x))
                 .ToArray());
     }
 

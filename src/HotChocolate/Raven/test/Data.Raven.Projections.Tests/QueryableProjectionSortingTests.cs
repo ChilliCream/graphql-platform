@@ -282,9 +282,9 @@ public class QueryableProjectionSortingTests
 
         [UseFiltering]
         [UseSorting]
-        public List<BarDeep> ObjectArray { get; set; } = default!;
+        public List<BarDeep> ObjectArray { get; set; } = null!;
 
-        public BarDeep NestedObject { get; set; } = default!;
+        public BarDeep NestedObject { get; set; } = null!;
     }
 
     public class FooDeep
@@ -308,7 +308,7 @@ public class QueryableProjectionSortingTests
 
         public bool? BarBool { get; set; }
 
-        public List<BarDeepNullable?> ObjectArray { get; set; } = default!;
+        public List<BarDeepNullable?> ObjectArray { get; set; } = null!;
 
         public BarDeepNullable? NestedObject { get; set; }
     }
@@ -317,21 +317,21 @@ public class QueryableProjectionSortingTests
     {
         public string? Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
     }
 
     public class BarDeep
     {
         public string? Id { get; set; }
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarDeepNullable
     {
         public string? Id { get; set; }
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullable

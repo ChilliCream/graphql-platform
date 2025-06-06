@@ -244,23 +244,23 @@ public class EntitiesResolverTests
 
     public class Query
     {
-        public ForeignType ForeignType { get; set; } = default!;
-        public TypeWithReferenceResolver TypeWithReferenceResolver { get; set; } = default!;
-        public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; } = default!;
-        public MixedFieldTypes MixedFieldTypes { get; set; } = default!;
-        public FederatedType TypeWithReferenceResolverMany { get; set; } = default!;
+        public ForeignType ForeignType { get; set; } = null!;
+        public TypeWithReferenceResolver TypeWithReferenceResolver { get; set; } = null!;
+        public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; } = null!;
+        public MixedFieldTypes MixedFieldTypes { get; set; } = null!;
+        public FederatedType TypeWithReferenceResolverMany { get; set; } = null!;
     }
 
     public class TypeWithoutRefResolver
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(Get))]
     public class TypeWithReferenceResolver
     {
-        public string Id { get; set; } = default!;
-        public string SomeField { get; set; } = default!;
+        public string Id { get; set; } = null!;
+        public string SomeField { get; set; } = null!;
 
         public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
@@ -318,9 +318,9 @@ public class EntitiesResolverTests
     {
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
-        public string SomeField { get; set; } = default!;
+        public string SomeField { get; set; } = null!;
 
         [ReferenceResolver]
         public static async Task<FederatedType?> GetById(
@@ -364,9 +364,9 @@ public class EntitiesResolverTests
 
     public class FederatedTypeWithRequiredDetail
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
-        public FederatedTypeDetail Detail { get; set; } = default!;
+        public FederatedTypeDetail Detail { get; set; } = null!;
 
         [ReferenceResolver]
         public static FederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId)
@@ -382,7 +382,7 @@ public class EntitiesResolverTests
 
     public class FederatedTypeWithOptionalDetail
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
         public FederatedTypeDetail? Detail { get; set; }
 
@@ -400,6 +400,6 @@ public class EntitiesResolverTests
 
     public class FederatedTypeDetail
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 }

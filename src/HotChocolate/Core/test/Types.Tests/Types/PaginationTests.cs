@@ -85,16 +85,16 @@ public class PaginationTests
     {
         public string? FirstName { get; set; }
 
-        public List<User> Parents { get; set; } = default!;
+        public List<User> Parents { get; set; } = null!;
 
-        public List<Group> Groups { get; set; } = default!;
+        public List<Group> Groups { get; set; } = null!;
     }
 
     public class Group
     {
         public string? FirstName { get; set; }
 
-        public List<User> Members { get; set; } = default!;
+        public List<User> Members { get; set; } = null!;
     }
 
     public class UserType : ObjectType<User>

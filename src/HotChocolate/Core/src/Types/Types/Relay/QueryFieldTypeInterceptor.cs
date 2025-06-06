@@ -14,9 +14,9 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
     private const string DefaultFieldName = "query";
     private readonly HashSet<string> _payloads = [];
 
-    private ITypeCompletionContext _context = default!;
+    private ITypeCompletionContext _context = null!;
     private ObjectType? _queryType;
-    private ObjectFieldConfiguration _queryField = default!;
+    private ObjectFieldConfiguration _queryField = null!;
     private ObjectTypeConfiguration? _mutationConfig;
 
     public override void OnAfterResolveRootType(

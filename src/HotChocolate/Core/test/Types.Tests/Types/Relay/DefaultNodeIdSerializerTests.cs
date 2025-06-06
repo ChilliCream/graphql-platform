@@ -248,7 +248,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Small_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -262,7 +262,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_480_Byte_Long_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -411,7 +411,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Empty_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -447,7 +447,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Small_Legacy_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -549,7 +549,7 @@ public class DefaultNodeIdSerializerTests
     public void ParseOnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
         Assert.Throws<NodeIdInvalidFormatException>(
@@ -633,7 +633,7 @@ public class DefaultNodeIdSerializerTests
             "UUID,Upload";
 
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var names = new HashSet<string>(namesString.Split(','));
         var stringValueSerializer = new StringNodeIdValueSerializer();

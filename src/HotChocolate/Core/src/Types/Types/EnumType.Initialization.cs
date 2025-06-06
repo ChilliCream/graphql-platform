@@ -13,9 +13,9 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private FrozenDictionary<object, EnumValue> _valueLookup = default!;
-    private EnumValueCollection _values = default!;
-    private INamingConventions _naming = default!;
+    private FrozenDictionary<object, EnumValue> _valueLookup = null!;
+    private EnumValueCollection _values = null!;
+    private INamingConventions _naming = null!;
     private Action<IEnumTypeDescriptor>? _configure;
 
     /// <summary>

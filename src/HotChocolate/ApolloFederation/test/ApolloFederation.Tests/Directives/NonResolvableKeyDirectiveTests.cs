@@ -297,7 +297,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
         [Key(null!, resolvable: false)]
         public int Id { get; set; }
         [Key(null!, resolvable: false)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class TestTypeInconsistentResolvablePropertyDirectives
@@ -305,6 +305,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
         [Key(null!, resolvable: false)]
         public int Id { get; set; }
         [Key]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

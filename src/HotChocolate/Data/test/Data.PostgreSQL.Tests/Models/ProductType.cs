@@ -8,7 +8,7 @@ public sealed class ProductType
 {
     public int Id { get; set; }
 
-    [Required] public string Name { get; set; } = default!;
+    [Required] public string Name { get; set; } = null!;
 
     public ICollection<Product> Products { get; set; } = [];
 }

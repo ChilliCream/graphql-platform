@@ -190,7 +190,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             throw new InvalidMessageTypeException(value.MessageType, typeof(TMessage));
         }
 
-        topic = default;
+        topic = null;
         return false;
     }
 
@@ -204,7 +204,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             return true;
         }
 
-        topic = default;
+        topic = null;
         return false;
     }
 

@@ -91,7 +91,7 @@ public class SessionPoolTests
         await pool.CreateAsync("Foo");
 
         // assert
-        Assert.Equal(1, socket.GetCallCount(x => x.OpenAsync(default!)));
+        Assert.Equal(1, socket.GetCallCount(x => x.OpenAsync(CancellationToken.None)));
     }
 
     [Fact]
@@ -157,7 +157,9 @@ public class SessionPoolTests
         await rented.DisposeAsync();
 
         // assert
-        Assert.Equal(1, socket.GetCallCount(x => x.CloseAsync(default!, default!, default!)));
+        Assert.Equal(
+            1,
+            socket.GetCallCount(x => x.CloseAsync(null!, default!, CancellationToken.None)));
     }
 
     [Fact]

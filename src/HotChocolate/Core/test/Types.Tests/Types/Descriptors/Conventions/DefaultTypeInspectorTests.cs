@@ -435,7 +435,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        void Action() => typeInspector.GetType(typeof(Foo), default!);
+        void Action() => typeInspector.GetType(typeof(Foo), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

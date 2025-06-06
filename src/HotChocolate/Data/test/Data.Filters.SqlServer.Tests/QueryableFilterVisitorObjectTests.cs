@@ -760,7 +760,7 @@ public class QueryableFilterVisitorObjectTests
     {
         public int Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
     }
 
     public class BarNullable
@@ -773,7 +773,7 @@ public class QueryableFilterVisitorObjectTests
     public class Baz
     {
         public int Id { get; set; }
-        public Bar Bar { get; set; } = default!;
+        public Bar Bar { get; set; } = null!;
     }
 
     public class BarFilterInput : FilterInputType<Bar>

@@ -42,7 +42,7 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLEndpointConventionBuilder MapGraphQL(
         this IEndpointRouteBuilder endpointRouteBuilder,
         string path = GraphQLHttpPath,
-        string? schemaName = default)
+        string? schemaName = null)
         => MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
     /// <summary>
@@ -67,7 +67,7 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLEndpointConventionBuilder MapGraphQL(
         this IEndpointRouteBuilder endpointRouteBuilder,
         PathString path,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
 
@@ -151,7 +151,7 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
         string pattern = GraphQLHttpPath,
-        string? schemaName = default)
+        string? schemaName = null)
         => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaName);
 
     /// <summary>
@@ -176,7 +176,7 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
         ArgumentNullException.ThrowIfNull(pattern);
@@ -224,7 +224,7 @@ public static class EndpointRouteBuilderExtensions
     public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
         string pattern = GraphQLWebSocketPath,
-        string? schemaName = default)
+        string? schemaName = null)
         => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaName);
 
     /// <summary>
@@ -249,7 +249,7 @@ public static class EndpointRouteBuilderExtensions
     public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
         ArgumentNullException.ThrowIfNull(pattern);
@@ -297,7 +297,7 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
         string pattern = GraphQLSchemaPath,
-        string? schemaName = default)
+        string? schemaName = null)
         => MapGraphQLSchema(endpointRouteBuilder, Parse(pattern), schemaName);
 
     /// <summary>
@@ -322,7 +322,7 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
         ArgumentNullException.ThrowIfNull(pattern);
@@ -435,7 +435,7 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
         this IEndpointRouteBuilder endpointRouteBuilder,
         [StringSyntax("Route")] string path = GraphQLPersistedOperationPath,
-        string? schemaName = default,
+        string? schemaName = null,
         bool requireOperationName = false)
         => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName, requireOperationName);
 
@@ -460,7 +460,7 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern path,
-        string? schemaName = default,
+        string? schemaName = null,
         bool requireOperationName = false)
     {
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;

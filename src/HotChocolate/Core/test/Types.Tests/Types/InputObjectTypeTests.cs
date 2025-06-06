@@ -760,7 +760,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         public string? YourFieldName { get; set; }
 
-        public string YourFieldname { get; set; } = default!;
+        public string YourFieldname { get; set; } = null!;
     }
 
     public class DeprecatedInputFields

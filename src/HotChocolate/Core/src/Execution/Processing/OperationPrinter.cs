@@ -76,7 +76,7 @@ internal static class OperationPrinter
                 if (context.GetOrCreateFragmentName(fragment.SelectionSet.Id, out var fragmentName))
                 {
                     var index = context.Definitions.Count;
-                    context.Definitions.Add(default!);
+                    context.Definitions.Add(null!);
 
                     context.Definitions[index] =
                         new FragmentDefinitionNode(

@@ -1431,7 +1431,7 @@ public class ResolverCompilerTests
 
         public string? GetGlobalStateWithDefault(
             [GlobalState]
-            string? foo = default) => foo;
+            string? foo = null) => foo;
 
         public string GetGlobalStateNullable(
             [GlobalState]
@@ -1467,7 +1467,7 @@ public class ResolverCompilerTests
 
         public string? GetScopedStateWithDefault(
             [ScopedState]
-            string? foo = default) => foo;
+            string? foo = null) => foo;
 
         public string GetScopedStateNullable(
             [ScopedState]
@@ -1503,7 +1503,7 @@ public class ResolverCompilerTests
 
         public string? GetLocalStateWithDefault(
             [LocalState]
-            string? foo = default) => foo;
+            string? foo = null) => foo;
 
         public string SetLocalStateGeneric(
             [LocalState]

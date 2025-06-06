@@ -9,8 +9,8 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     private readonly MiddlewareContext _context = new();
     private readonly List<ResolverTask> _taskBuffer = [];
     private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
-    private OperationContext _operationContext = default!;
-    private ISelection _selection = default!;
+    private OperationContext _operationContext = null!;
+    private ISelection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
     private Task? _task;
 
@@ -51,7 +51,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// <summary>
     /// Gets access to the internal result map into which the task will write the result.
     /// </summary>
-    public ObjectResult ParentResult { get; private set; } = default!;
+    public ObjectResult ParentResult { get; private set; } = null!;
 
     /// <inheritdoc />
     public object? State { get; set; }

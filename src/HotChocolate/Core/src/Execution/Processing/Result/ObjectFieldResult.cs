@@ -3,7 +3,7 @@ namespace HotChocolate.Execution.Processing;
 public sealed class ObjectFieldResult
 {
     private Flags _flags = Flags.Nullable;
-    private string _name = default!;
+    private string _name = null!;
     private object? _value;
 
     public string Name => _name;
@@ -35,7 +35,7 @@ public sealed class ObjectFieldResult
 
     internal void Reset()
     {
-        _name = default!;
+        _name = null!;
         _value = null;
         _flags = Flags.Nullable;
     }

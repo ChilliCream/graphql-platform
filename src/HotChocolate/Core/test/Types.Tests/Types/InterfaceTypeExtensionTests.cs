@@ -273,7 +273,7 @@ public class InterfaceTypeExtensionTests
             .AddQueryType<DummyQuery>()
             .AddType(new InterfaceType<IFoo>(t => t
                 .Name("Foo")
-                .Field(f => f.GetName(default!))
+                .Field(f => f.GetName(null!))
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Directive("dummy_arg", new ArgumentNode("a", "a")))))
@@ -372,7 +372,7 @@ public class InterfaceTypeExtensionTests
             .AddQueryType<DummyQuery>()
             .AddType(new InterfaceType<IFoo>(t => t
                 .Name("Foo")
-                .Field(f => f.GetName(default!))
+                .Field(f => f.GetName(null!))
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Directive("dummy_rep", new ArgumentNode("a", "a")))))
@@ -393,7 +393,7 @@ public class InterfaceTypeExtensionTests
 
     public class DummyQuery
     {
-        public string Foo { get; set; } = default!;
+        public string Foo { get; set; } = null!;
     }
 
     public class FooType : InterfaceType<IFoo>

@@ -14,7 +14,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 {
     private IServiceProvider? _services;
     private HashSet<Type>? _dataLoaderValueTypes;
-    private ObjectType _queryType = default!;
+    private ObjectType _queryType = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,

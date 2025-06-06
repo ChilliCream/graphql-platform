@@ -21,8 +21,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
 
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
-        Action<IServiceCollection>? configureServices = default,
-        Action<GraphQLEndpointConventionBuilder>? configureConventions = default,
+        Action<IServiceCollection>? configureServices = null,
+        Action<GraphQLEndpointConventionBuilder>? configureConventions = null,
         ITestOutputHelper? output = null,
         bool requireOperationName = false,
         string? environment = null)
@@ -143,7 +143,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
     }
 
     protected virtual TestServer CreateServer(
-        Action<IEndpointRouteBuilder>? configureConventions = default)
+        Action<IEndpointRouteBuilder>? configureConventions = null)
     {
         return ServerFactory.Create(
             services => services

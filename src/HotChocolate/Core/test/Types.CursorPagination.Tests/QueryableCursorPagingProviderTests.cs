@@ -552,7 +552,7 @@ public class QueryableCursorPagingProviderTests
         public IImmutableDictionary<string, object?> LocalContextData { get; set; } =
             ImmutableDictionary<string, object?>.Empty;
 
-        public CancellationToken RequestAborted => default;
+        public CancellationToken RequestAborted => CancellationToken.None;
 
         public object Service(Type service)
         {

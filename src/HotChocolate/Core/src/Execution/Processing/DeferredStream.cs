@@ -117,7 +117,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
     private sealed class StreamExecutionTask : ExecutionTask
     {
         private readonly DeferredStream _deferredStream;
-        private OperationContext _operationContext = default!;
+        private OperationContext _operationContext = null!;
         private IImmutableDictionary<string, object?> _scopedContextData;
 
         public StreamExecutionTask(DeferredStream deferredStream)

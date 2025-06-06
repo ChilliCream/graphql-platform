@@ -154,7 +154,7 @@ public static class QueryableProjectionScopeExtensions
             }
         }
 
-        setType = default;
+        setType = null;
         return false;
     }
 }

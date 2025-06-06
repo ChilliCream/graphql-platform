@@ -11,7 +11,7 @@ public class FilterField
     , IFilterField
 {
     internal FilterField(FilterFieldConfiguration configuration)
-        : this(configuration, default)
+        : this(configuration, 0)
     {
     }
 

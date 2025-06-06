@@ -640,10 +640,10 @@ public class CodeFirstTests
 
     public class QueryFieldCasing
     {
-        public string YourFieldName { get; set; } = default!;
+        public string YourFieldName { get; set; } = null!;
 
         [GraphQLDeprecated("This is deprecated")]
-        public string YourFieldname { get; set; } = default!;
+        public string YourFieldname { get; set; } = null!;
     }
 
     public class QueryWithDefaultValue

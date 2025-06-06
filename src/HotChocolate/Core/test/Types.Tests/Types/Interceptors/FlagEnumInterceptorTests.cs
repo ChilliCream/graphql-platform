@@ -484,9 +484,9 @@ public class FlagEnumInterceptorTests
     {
         public FlagsEnum Single { get; set; }
 
-        public FlagsEnum[] List { get; set; } = default!;
+        public FlagsEnum[] List { get; set; } = null!;
 
-        public FlagsEnum[][] NestedList { get; set; } = default!;
+        public FlagsEnum[][] NestedList { get; set; } = null!;
 
         public FlagsEnum? NullableSingle { get; set; }
 

@@ -178,9 +178,9 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
 
     private sealed class Result
     {
-        public string Content { get; set; } = default!;
+        public string Content { get; set; } = null!;
 
-        public MediaTypeHeaderValue ContentType { get; set; } = default!;
+        public MediaTypeHeaderValue ContentType { get; set; } = null!;
 
         public HttpStatusCode StatusCode { get; set; }
     }

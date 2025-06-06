@@ -48,7 +48,9 @@ public class MessagePipelineTests
         await socketClient.WaitTillFinished();
 
         // assert
-        Assert.Equal(1, socketClient.GetCallCount(x => x.ReceiveAsync(default!, default!)));
+        Assert.Equal(
+            1,
+            socketClient.GetCallCount(x => x.ReceiveAsync(null!, CancellationToken.None)));
     }
 
     [Fact]
@@ -68,7 +70,9 @@ public class MessagePipelineTests
         await socketClient.WaitTillFinished();
 
         // assert
-        Assert.Equal(1, socketClient.GetCallCount(x => x.ReceiveAsync(default!, default!)));
+        Assert.Equal(
+            1,
+            socketClient.GetCallCount(x => x.ReceiveAsync(null!, CancellationToken.None)));
     }
 
     [Fact]
@@ -149,7 +153,9 @@ public class MessagePipelineTests
         }
 
         // assert
-        Assert.Equal(2, socketClient.GetCallCount(x => x.ReceiveAsync(default!, default!)));
+        Assert.Equal(
+            2,
+            socketClient.GetCallCount(x => x.ReceiveAsync(null!, CancellationToken.None)));
         Assert.True(socketClient.LatestCancellationToken.IsCancellationRequested);
     }
 }
