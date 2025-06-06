@@ -41,19 +41,3 @@ public class RequestMiddlewareFactoryContext : IFeatureProvider
     /// </summary>
     public IFeatureCollection Features { get; } = new FeatureCollection();
 }
-
-
-public record RequestMiddlewareConfiguration(
-    RequestMiddleware Middleware,
-    string? Key = null);
-
-public sealed class SchemaServicesProviderAccessor
-{
-    public SchemaServicesProviderAccessor(IServiceProvider services)
-    {
-        ArgumentNullException.ThrowIfNull(services);
-        Services = services;
-    }
-
-    public IServiceProvider Services { get; }
-}

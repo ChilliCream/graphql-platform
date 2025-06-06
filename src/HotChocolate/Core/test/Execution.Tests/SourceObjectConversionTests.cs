@@ -21,7 +21,7 @@ public class SourceObjectConversionTests
             })
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync();
 
         // act

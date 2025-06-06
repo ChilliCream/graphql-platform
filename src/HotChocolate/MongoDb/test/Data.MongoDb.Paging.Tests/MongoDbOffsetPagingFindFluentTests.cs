@@ -222,7 +222,7 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync();
     }
 }

@@ -135,7 +135,7 @@ public class SortVisitorTestBase : IAsyncLifetime
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync();
     }
 

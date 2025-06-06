@@ -134,12 +134,12 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual void ExecutorCreated(string name, IGraphQLExecutor executor)
+    public virtual void ExecutorCreated(string name, IRequestExecutor executor)
     {
     }
 
     /// <inheritdoc />
-    public virtual void ExecutorEvicted(string name, IGraphQLExecutor executor)
+    public virtual void ExecutorEvicted(string name, IRequestExecutor executor)
     {
     }
 

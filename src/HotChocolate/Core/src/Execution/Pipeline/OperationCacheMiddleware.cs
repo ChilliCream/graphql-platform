@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
@@ -29,35 +30,29 @@ internal sealed class OperationCacheMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var documentInfo = context.GetOperationDocumentInfo();
+        var documentId = context.GetOperationDocumentId();
 
-        if (documentInfo.Id.IsEmpty)
+        if (documentId.IsEmpty)
         {
             await _next(context).ConfigureAwait(false);
         }
         else
         {
             var addToCache = true;
-            var operationInfo = context.GetOperationInfo();
+            var operationId = context.GetOperationId() ?? context.CreateCacheId();
 
-            operationInfo.Id ??= context.CreateCacheId();
-
-            if (_operationCache.TryGetOperation(operationInfo.Id, out var operation))
+            if (_operationCache.TryGetOperation(operationId, out var operation))
             {
-                operationInfo.Operation = operation;
+                context.SetOperation(operation);
                 addToCache = false;
                 _diagnosticEvents.RetrievedOperationFromCache(context);
             }
 
             await _next(context).ConfigureAwait(false);
 
-            if (addToCache
-                && !documentInfo.Id.IsEmpty
-                && documentInfo.Document is not null
-                && documentInfo.IsValidated
-                && operationInfo.Operation is not null)
+            if (addToCache && context.TryGetOperation(out operation))
             {
-                _operationCache.TryAddOperation(operationInfo.Id, operationInfo.Operation);
+                _operationCache.TryAddOperation(operation.Id, operation);
                 _diagnosticEvents.AddedOperationToCache(context);
             }
         }
@@ -75,7 +70,7 @@ internal sealed class OperationCacheMiddleware
             nameof(OperationCacheMiddleware));
 }
 
-public sealed class OperationInfo : RequestContextFeature
+public sealed class OperationInfo : RequestFeature
 {
     public string? Id { get; set; }
 
@@ -83,7 +78,7 @@ public sealed class OperationInfo : RequestContextFeature
 
     public OperationDefinitionNode? Definition { get; set; }
 
-    public override void Reset()
+    protected internal override void Reset()
     {
         Id = null;
         Definition = null;
@@ -93,7 +88,55 @@ public sealed class OperationInfo : RequestContextFeature
 
 public static class HotChocolateExecutionRequestContextExtensions
 {
-    public static OperationInfo GetOperationInfo(
-        this RequestContext context)
-        => context.Features.GetOrSet<OperationInfo>();
+    public static bool TryGetOperation(
+        this RequestContext context,
+        [NotNullWhen(true)] out IOperation? operation)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var operationInfo = context.Features.GetOrSet<OperationInfo>();
+        operation = operationInfo.Operation;
+        return operation is not null;
+    }
+
+    public static bool TryGetOperation(
+        this RequestContext context,
+        [NotNullWhen(true)] out IOperation? operation,
+        [NotNullWhen(true)] out string? operationId)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var operationInfo = context.Features.GetOrSet<OperationInfo>();
+        operation = operationInfo.Operation;
+        operationId = operationInfo.Id;
+        return operation is not null;
+    }
+
+    public static IOperation GetOperation(this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        return context.Features.GetRequired<OperationInfo>().Operation
+            ?? throw new InvalidOperationException("The operation is not initialized.");
+    }
+
+    public static void SetOperation(
+        this RequestContext context,
+        IOperation operation)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(operation);
+
+        var operationInfo = context.Features.GetOrSet<OperationInfo>();
+        operationInfo.Operation = operation;
+        operationInfo.Id = operation.Id;
+        operationInfo.Definition = operation.Definition;
+    }
+
+    public static string? GetOperationId(this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        return context.Features.GetOrSet<OperationInfo>().Id;
+    }
 }

@@ -444,7 +444,7 @@ public class RavenAsyncDocumentQueryTests
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync();
     }
 }

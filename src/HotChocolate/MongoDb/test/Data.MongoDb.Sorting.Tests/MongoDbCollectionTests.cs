@@ -161,7 +161,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync()
             .GetAwaiter()
             .GetResult();

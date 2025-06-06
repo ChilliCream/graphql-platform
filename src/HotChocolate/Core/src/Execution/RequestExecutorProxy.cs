@@ -7,7 +7,7 @@ namespace HotChocolate.Execution;
 public sealed class RequestExecutorProxy : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly IRequestExecutorResolver _executorResolver;
+    private readonly IRequestExecutorProvider _executorResolver;
     private readonly string _schemaName;
     private IRequestExecutor? _executor;
     private readonly IDisposable? _eventSubscription;
@@ -17,7 +17,7 @@ public sealed class RequestExecutorProxy : IDisposable
 
     public event EventHandler? ExecutorEvicted;
 
-    public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
+    public RequestExecutorProxy(IRequestExecutorProvider executorResolver, string schemaName)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 

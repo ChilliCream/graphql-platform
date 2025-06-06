@@ -99,7 +99,7 @@ public class SqlLiteCursorTestBase
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync()
             .Result;
     }

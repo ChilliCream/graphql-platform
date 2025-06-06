@@ -77,7 +77,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         return await services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync();
     }
 

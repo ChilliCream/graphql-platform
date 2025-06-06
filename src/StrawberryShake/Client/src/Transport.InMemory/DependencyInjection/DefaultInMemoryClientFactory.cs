@@ -6,7 +6,7 @@ namespace StrawberryShake.Transport.InMemory;
 /// <inheritdoc />
 public class DefaultInMemoryClientFactory : IInMemoryClientFactory
 {
-    private readonly IRequestExecutorResolver _executorProvider;
+    private readonly IRequestExecutorProvider _executorProvider;
     private readonly IOptionsMonitor<InMemoryClientFactoryOptions> _optionsMonitor;
 
     /// <summary>
@@ -19,7 +19,7 @@ public class DefaultInMemoryClientFactory : IInMemoryClientFactory
     /// The options monitor for the factory options
     /// </param>
     public DefaultInMemoryClientFactory(
-        IRequestExecutorResolver executorProvider,
+        IRequestExecutorProvider executorProvider,
         IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor)
     {
         ArgumentNullException.ThrowIfNull(executorProvider);

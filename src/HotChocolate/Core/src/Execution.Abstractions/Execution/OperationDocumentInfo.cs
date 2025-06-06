@@ -2,7 +2,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution;
 
-public sealed class OperationDocumentInfo : RequestContextFeature
+/// <summary>
+/// Provides information about the GraphQL operation document.
+/// </summary>
+public sealed class OperationDocumentInfo : RequestFeature
 {
     /// <summary>
     /// Gets or sets the parsed query document.
@@ -35,7 +38,7 @@ public sealed class OperationDocumentInfo : RequestContextFeature
     public bool IsValidated { get; set; }
 
     /// <inheritdoc />
-    public override void Reset()
+    protected internal override void Reset()
     {
         Document = null!;
         Id = default;

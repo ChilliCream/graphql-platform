@@ -16,7 +16,7 @@ public class AutoUpdateRequestExecutorProxyTests
                 .AddStarWarsTypes()
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>();
+                .GetRequiredService<IRequestExecutorProvider>();
 
         var innerProxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
 
@@ -42,7 +42,7 @@ public class AutoUpdateRequestExecutorProxyTests
                 .AddStarWarsTypes()
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>();
+                .GetRequiredService<IRequestExecutorProvider>();
         var evicted = false;
         var updated = false;
 

@@ -92,11 +92,11 @@ internal sealed class NoopExecutionDiagnosticEvents
 
     public IDisposable DispatchBatch(RequestContext context) => this;
 
-    public void ExecutorCreated(string name, IGraphQLExecutor executor)
+    public void ExecutorCreated(string name, IRequestExecutor executor)
     {
     }
 
-    public void ExecutorEvicted(string name, IGraphQLExecutor executor)
+    public void ExecutorEvicted(string name, IRequestExecutor executor)
     {
     }
 

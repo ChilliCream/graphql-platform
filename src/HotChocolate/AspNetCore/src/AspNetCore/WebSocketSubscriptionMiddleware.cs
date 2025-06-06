@@ -12,7 +12,7 @@ public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
 
     public WebSocketSubscriptionMiddleware(
         RequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
         IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)

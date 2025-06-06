@@ -12,7 +12,7 @@ public class DefaultInMemoryClientBuilderTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        var executorResolver = new Mock<IRequestExecutorResolver>().Object;
+        var executorResolver = new Mock<IRequestExecutorProvider>().Object;
         var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>(_ => { })
             .BuildServiceProvider()
@@ -30,7 +30,7 @@ public class DefaultInMemoryClientBuilderTests
     public void Constructor_NoExecutor_ThrowException()
     {
         // arrange
-        IRequestExecutorResolver executorResolver = default!;
+        IRequestExecutorProvider executorResolver = default!;
         var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>(_ => { })
             .BuildServiceProvider()
@@ -49,7 +49,7 @@ public class DefaultInMemoryClientBuilderTests
     {
         // arrange
         var executorResolver =
-            new Mock<IRequestExecutorResolver>().Object;
+            new Mock<IRequestExecutorProvider>().Object;
         IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor = default!;
 
         // act
@@ -66,7 +66,7 @@ public class DefaultInMemoryClientBuilderTests
         // arrange
         var wasCalled = false;
         var executorResolver =
-            new Mock<IRequestExecutorResolver>().Object;
+            new Mock<IRequestExecutorProvider>().Object;
         var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>("Foo", _ => { wasCalled = true; })
             .BuildServiceProvider()
@@ -85,7 +85,7 @@ public class DefaultInMemoryClientBuilderTests
     {
         // arrange
         var executorResolver =
-            new Mock<IRequestExecutorResolver>().Object;
+            new Mock<IRequestExecutorProvider>().Object;
         var optionsMonitor =
             new ServiceCollection()
                 .AddOptions()
@@ -106,7 +106,7 @@ public class DefaultInMemoryClientBuilderTests
         // arrange
         var nameString = "FooBar";
         var executor = new Mock<IRequestExecutor>().Object;
-        Mock<IRequestExecutorResolver> executorResolverMock = new();
+        Mock<IRequestExecutorProvider> executorResolverMock = new();
         var executorResolver = executorResolverMock.Object;
         var optionsMonitor =
             new ServiceCollection()
@@ -161,7 +161,7 @@ public class DefaultInMemoryClientBuilderTests
         Assert.Equal(nameString, client.SchemaName);
     }
 
-    private static IRequestExecutorResolver CreateExecutorProvider(string schemaName)
+    private static IRequestExecutorProvider CreateExecutorProvider(string schemaName)
     {
         return new ServiceCollection()
             .AddGraphQLServer(schemaName)
@@ -169,6 +169,6 @@ public class DefaultInMemoryClientBuilderTests
             .UseField(next => next)
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<IRequestExecutorProvider>();
     }
 }

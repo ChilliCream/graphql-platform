@@ -53,17 +53,15 @@ internal sealed class OperationExecutionMiddleware
             throw OperationExecutionMiddleware_NoBatchDispatcher();
         }
 
-        var operationInfo = context.GetOperationInfo();
-
-        if (operationInfo.Operation is not null && context.VariableValues.Length > 0)
+        if (context.TryGetOperation(out var operation) && context.VariableValues.Length > 0)
         {
-            if (!IsOperationAllowed(operationInfo.Operation, context.Request))
+            if (!IsOperationAllowed(operation, context.Request))
             {
                 context.Result = ErrorHelper.OperationKindNotAllowed();
                 return;
             }
 
-            if (!IsRequestTypeAllowed(operationInfo.Operation, context.VariableValues))
+            if (!IsRequestTypeAllowed(operation, context.VariableValues))
             {
                 context.Result = ErrorHelper.RequestTypeNotAllowed();
                 return;
@@ -73,13 +71,11 @@ internal sealed class OperationExecutionMiddleware
             {
                 if (context.VariableValues.Length is 0 or 1)
                 {
-                    await ExecuteOperationRequestAsync(context, batchDispatcher, operationInfo.Operation)
-                        .ConfigureAwait(false);
+                    await ExecuteOperationRequestAsync(context, batchDispatcher, operation).ConfigureAwait(false);
                 }
                 else
                 {
-                    await ExecuteVariableBatchRequestAsync(context, batchDispatcher, operationInfo.Operation)
-                        .ConfigureAwait(false);
+                    await ExecuteVariableBatchRequestAsync(context, batchDispatcher, operation).ConfigureAwait(false);
                 }
             }
 

@@ -27,7 +27,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
         IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName,

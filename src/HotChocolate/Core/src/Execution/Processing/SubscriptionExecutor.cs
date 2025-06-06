@@ -30,13 +30,13 @@ internal sealed partial class SubscriptionExecutor
     {
         ArgumentNullException.ThrowIfNull(requestContext);
 
-        var operationInfo = requestContext.GetOperationInfo();
-        if (operationInfo.Operation is null || requestContext.VariableValues.Length == 0)
+        if (requestContext.VariableValues.Length == 0)
         {
             throw SubscriptionExecutor_ContextInvalidState();
         }
 
-        var selectionSet = operationInfo.Operation.RootSelectionSet;
+        var operation = requestContext.GetOperation();
+        var selectionSet = operation.RootSelectionSet;
         if (selectionSet.Selections.Count != 1)
         {
             throw SubscriptionExecutor_SubscriptionsMustHaveOneField();
@@ -55,7 +55,7 @@ internal sealed partial class SubscriptionExecutor
                 _operationContextPool,
                 _queryExecutor,
                 requestContext,
-                operationInfo.Operation.RootType,
+                operation.RootType,
                 selectionSet,
                 resolveQueryValue,
                 _diagnosticEvents)

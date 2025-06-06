@@ -17,7 +17,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,

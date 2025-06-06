@@ -22,7 +22,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,

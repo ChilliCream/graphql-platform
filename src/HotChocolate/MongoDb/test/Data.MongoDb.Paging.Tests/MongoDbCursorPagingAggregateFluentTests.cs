@@ -279,7 +279,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync();
     }
 }

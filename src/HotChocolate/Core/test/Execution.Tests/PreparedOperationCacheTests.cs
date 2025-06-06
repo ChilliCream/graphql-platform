@@ -17,7 +17,7 @@ public class PreparedOperationCacheTests
             .AddGraphQL()
             .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+        var resolver = provider.GetRequiredService<IRequestExecutorProvider>();
 
         // act
         var executor = await resolver.GetRequestExecutorAsync();

@@ -14,7 +14,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,

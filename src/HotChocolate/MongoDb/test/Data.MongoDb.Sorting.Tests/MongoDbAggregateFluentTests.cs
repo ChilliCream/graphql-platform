@@ -152,7 +152,7 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequiredService<IRequestExecutorProvider>()
             .GetRequestExecutorAsync()
             .GetAwaiter()
             .GetResult();

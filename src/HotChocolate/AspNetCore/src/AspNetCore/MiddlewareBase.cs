@@ -22,7 +22,7 @@ public class MiddlewareBase : IDisposable
 
     protected MiddlewareBase(
         RequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
         IHttpResponseFormatter responseFormatter,
         string schemaName)
     {

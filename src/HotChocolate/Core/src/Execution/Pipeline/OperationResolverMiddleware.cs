@@ -35,8 +35,7 @@ internal sealed class OperationResolverMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var operationInfo = context.GetOperationInfo();
-        if (operationInfo.Operation is not null)
+        if (context.TryGetOperation(out var operation, out var operationId))
         {
             await _next(context).ConfigureAwait(false);
             return;
@@ -56,16 +55,14 @@ internal sealed class OperationResolverMiddleware
                     return;
                 }
 
-                var operation = CompileOperation(
+                operation = CompileOperation(
                     documentInfo.Document,
                     operationDef,
                     operationType,
-                    operationInfo.Id ?? Guid.NewGuid().ToString("N"),
+                    operationId ?? Guid.NewGuid().ToString("N"),
                     context.Schema);
 
-                operationInfo.Operation = operation;
-                operationInfo.Id = operation.Id;
-                operationInfo.Definition = operationDef;
+                context.SetOperation(operation);
             }
 
             await _next(context).ConfigureAwait(false);

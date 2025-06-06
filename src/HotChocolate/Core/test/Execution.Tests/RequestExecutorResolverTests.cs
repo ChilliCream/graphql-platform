@@ -17,7 +17,7 @@ public class RequestExecutorResolverTests
             .AddGraphQL()
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<IRequestExecutorProvider>();
 
         resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
@@ -63,7 +63,7 @@ public class RequestExecutorResolverTests
                 })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<IRequestExecutorProvider>();
 
         resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
@@ -115,7 +115,7 @@ public class RequestExecutorResolverTests
                 })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<IRequestExecutorProvider>();
 
         resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
@@ -149,7 +149,7 @@ public class RequestExecutorResolverTests
                 d.Field("foo").Resolve("");
             })
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<IRequestExecutorProvider>();
 
         // act
         var executor1Task = Task.Run(async () => await resolver.GetRequestExecutorAsync());
@@ -184,7 +184,7 @@ public class RequestExecutorResolverTests
                 d.Field("foo").Resolve("");
             });
         var provider = services.BuildServiceProvider();
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+        var resolver = provider.GetRequiredService<IRequestExecutorProvider>();
 
         // act
         var executor1Task = Task.Run(async () => await resolver.GetRequestExecutorAsync("schema1"), cts.Token);

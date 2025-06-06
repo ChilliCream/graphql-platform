@@ -18,18 +18,17 @@ internal static class PipelineTools
 
     public static string CreateCacheId(this RequestContext context)
     {
-        var documentInfo = context.GetOperationDocumentInfo();
-        var documentId = documentInfo.Id.Value;
+        var documentId = context.GetOperationDocumentId();
         var operationName = context.Request.OperationName;
 
-        if (string.IsNullOrEmpty(documentId))
+        if (documentId.IsEmpty)
         {
             throw new ArgumentException(
                 "The request context must have a valid document ID "
                 + "in order to create a cache ID.");
         }
 
-        var operationId = CreateOperationId(documentId, operationName);
+        var operationId = CreateOperationId(documentId.Value, operationName);
 
         return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
     }

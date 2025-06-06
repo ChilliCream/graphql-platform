@@ -16,7 +16,7 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
 
         var time1 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
 
-        var resolver = server.Services.GetRequiredService<IRequestExecutorResolver>();
+        var resolver = server.Services.GetRequiredService<IRequestExecutorProvider>();
         resolver.Events.Subscribe(
             new RequestExecutorEventObserver(
                 @event =>
@@ -48,7 +48,7 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
             new ClientQueryRequest { Query = "{ time }" },
             "/evict");
 
-        var resolver = server.Services.GetRequiredService<IRequestExecutorResolver>();
+        var resolver = server.Services.GetRequiredService<IRequestExecutorProvider>();
         resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Created)

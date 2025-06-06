@@ -27,13 +27,12 @@ internal sealed class OperationVariableCoercionMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var operationInfo = context.GetOperationInfo();
-        if (operationInfo.Operation is not null)
+        if (context.TryGetOperation(out var operation))
         {
             CoerceVariables(
                 context,
                 _coercionHelper,
-                operationInfo.Operation.Definition.VariableDefinitions,
+                operation.Definition.VariableDefinitions,
                 _diagnosticEvents);
 
             await _next(context).ConfigureAwait(false);

@@ -16,7 +16,7 @@ public class RequestExecutorProxyTests
                 .AddStarWarsTypes()
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>();
+                .GetRequiredService<IRequestExecutorProvider>();
 
         // act
         var proxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
@@ -40,7 +40,7 @@ public class RequestExecutorProxyTests
                 .AddStarWarsTypes()
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>();
+                .GetRequiredService<IRequestExecutorProvider>();
         var evicted = false;
         var updated = false;
 

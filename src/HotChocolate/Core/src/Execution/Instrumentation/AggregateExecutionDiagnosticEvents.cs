@@ -275,7 +275,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void ExecutorCreated(string name, IGraphQLExecutor executor)
+    public void ExecutorCreated(string name, IRequestExecutor executor)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
@@ -283,7 +283,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void ExecutorEvicted(string name, IGraphQLExecutor executor)
+    public void ExecutorEvicted(string name, IRequestExecutor executor)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {

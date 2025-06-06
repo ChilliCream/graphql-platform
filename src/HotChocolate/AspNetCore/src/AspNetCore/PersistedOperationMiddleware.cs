@@ -205,14 +205,14 @@ internal static class PersistedOperationMiddleware
 
     private sealed class Services(
         HttpContext context,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents)
     {
         public HttpContext Context { get; } = context;
 
-        public IRequestExecutorResolver ExecutorResolver { get; } = executorResolver;
+        public IRequestExecutorProvider ExecutorResolver { get; } = executorResolver;
 
         public IHttpResponseFormatter ResponseFormatter { get; } = responseFormatter;
 
@@ -231,7 +231,7 @@ internal static class PersistedOperationMiddleware
         public IRequestExecutor? CurrentExecutor => _proxy?.CurrentExecutor;
 
         public ValueTask<IRequestExecutor> GetExecutorAsync(
-            IRequestExecutorResolver resolver,
+            IRequestExecutorProvider resolver,
             CancellationToken cancellationToken)
         {
             _proxy ??= new RequestExecutorProxy(resolver, schemaName);

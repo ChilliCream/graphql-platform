@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Instrumentation;
 public interface ICoreExecutionDiagnosticEvents
 {
     /// <summary>
-    /// Called when starting to execute a GraphQL request with the <see cref="IGraphQLExecutor"/>.
+    /// Called when starting to execute a GraphQL request with the <see cref="IRequestExecutor"/>.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an
@@ -135,12 +135,12 @@ public interface ICoreExecutionDiagnosticEvents
     /// </summary>
     /// <param name="name">The name of the GraphQL schema.</param>
     /// <param name="executor">The GraphQL request executor.</param>
-    void ExecutorCreated(string name, IGraphQLExecutor executor);
+    void ExecutorCreated(string name, IRequestExecutor executor);
 
     /// <summary>
     /// A GraphQL request executor was evicted and will be removed from memory.
     /// </summary>
     /// <param name="name">The name of the GraphQL schema.</param>
     /// <param name="executor">The GraphQL request executor.</param>
-    void ExecutorEvicted(string name, IGraphQLExecutor executor);
+    void ExecutorEvicted(string name, IRequestExecutor executor);
 }

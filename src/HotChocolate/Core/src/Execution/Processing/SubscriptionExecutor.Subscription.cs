@@ -119,7 +119,7 @@ internal sealed partial class SubscriptionExecutor
         public ulong Id => _id;
 
         /// <inheritdoc />
-        public IOperation Operation => _requestContext.GetOperationInfo().Operation!;
+        public IOperation Operation => _requestContext.GetOperation();
 
         public async ValueTask DisposeAsync()
         {
@@ -172,7 +172,7 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext,
                     eventServices,
                     dispatcher,
-                    _requestContext.GetOperationInfo().Operation!,
+                    _requestContext.GetOperation(),
                     _requestContext.VariableValues[0],
                     rootValue,
                     _resolveQueryRootValue);
@@ -185,7 +185,8 @@ internal sealed partial class SubscriptionExecutor
                     .ExecuteAsync(operationContext, scopedContextData)
                     .ConfigureAwait(false);
 
-                _diagnosticEvents.SubscriptionEventResult(new SubscriptionEventContext(this, payload), result);
+                // TODO : We want to redo subscription for V16 and then we should revisit also the diagnostic events.
+                // _diagnosticEvents.SubscriptionEventResult(new SubscriptionEventContext(this, payload), result);
 
                 return result;
             }
@@ -238,7 +239,7 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext,
                     _requestContext.RequestServices,
                     NoopBatchDispatcher.Default,
-                    _requestContext.Operation!,
+                    _requestContext.GetOperation(),
                     _requestContext.VariableValues[0],
                     rootValue,
                     _resolveQueryRootValue);
