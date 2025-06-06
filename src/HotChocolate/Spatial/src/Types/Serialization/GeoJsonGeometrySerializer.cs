@@ -120,7 +120,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             return ParseResult(type, runtimeValue);
         }
 
-        if (!(runtimeValue is Geometry geometry))
+        if (runtimeValue is not Geometry geometry)
         {
             throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
         }

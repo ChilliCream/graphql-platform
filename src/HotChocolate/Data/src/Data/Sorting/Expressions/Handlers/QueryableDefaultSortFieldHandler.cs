@@ -37,7 +37,7 @@ public class QueryableDefaultSortFieldHandler
             return false;
         }
 
-        if (!(context.GetInstance() is QueryableFieldSelector lastFieldSelector))
+        if (context.GetInstance() is not QueryableFieldSelector lastFieldSelector)
         {
             throw ThrowHelper.Sorting_InvalidState_ParentIsNoFieldSelector(field);
         }

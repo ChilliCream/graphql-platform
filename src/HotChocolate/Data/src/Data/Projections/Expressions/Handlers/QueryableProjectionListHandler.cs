@@ -72,7 +72,7 @@ public class QueryableProjectionListHandler
 
         var scope = context.PopScope();
 
-        if (!(scope is QueryableProjectionScope queryableScope) ||
+        if (scope is not QueryableProjectionScope queryableScope ||
             !context.TryGetQueryableScope(out var parentScope))
         {
             action = null;
