@@ -172,6 +172,8 @@ dotnet_diagnostic.IDE0028.severity = warning
 dotnet_diagnostic.IDE0036.severity = warning
 # Use range operator.
 dotnet_diagnostic.IDE0057.severity = warning
+# Use pattern matching (not operator).
+dotnet_diagnostic.IDE0083.severity = warning
 # Use collection expression for array.
 dotnet_diagnostic.IDE0300.severity = warning
 # Use collection expression for empty.

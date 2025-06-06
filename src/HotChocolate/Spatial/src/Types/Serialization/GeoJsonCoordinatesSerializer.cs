@@ -179,7 +179,7 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
             return true;
         }
 
-        if (!(serialized is IList list))
+        if (serialized is not IList list)
         {
             value = null;
             return false;
