@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -15,7 +14,7 @@ namespace HotChocolate.Validation;
 public sealed class DocumentValidatorContext : IFeatureProvider
 {
     private readonly List<IError> _errors = [];
-    private readonly RequestFeatureCollection _features;
+    private readonly PooledFeatureCollection _features;
     private ISchemaDefinition? _schema;
     private int _maxAllowedErrors;
 
@@ -24,16 +23,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     /// </summary>
     public DocumentValidatorContext()
     {
-        _features = new RequestFeatureCollection(
-            static (features, _, feature) =>
-            {
-                if (feature is ValidatorFeature validatorFeature
-                    && features.TryGetValue(typeof(DocumentValidatorContext), out var value)
-                    && value is DocumentValidatorContext context)
-                {
-                    validatorFeature.OnInitialize(context);
-                }
-            });
+        _features = new PooledFeatureCollection(this);
         _features.Set(this);
     }
 
@@ -151,16 +141,9 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         _schema = schema;
         DocumentId = documentId;
         Document = document;
-        _features.Parent = features;
         _maxAllowedErrors = maxAllowedErrors;
 
-        foreach (var feature in Features)
-        {
-            if (feature.Value is ValidatorFeature validatorFeature)
-            {
-                validatorFeature.OnInitialize(this);
-            }
-        }
+        _features.Initialize(features);
 
         foreach (var definitionNode in document.Definitions)
         {
@@ -205,6 +188,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Fields.Clear();
         InputFields.Clear();
 
+        // we just make sure that all features are reset but we do not want
+        // to fully reset the feature collection.
         foreach (var feature in Features)
         {
             if (feature.Value is ValidatorFeature validatorFeature)
@@ -224,7 +209,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Document = null!;
         UnexpectedErrorsDetected = false;
         FatalErrorDetected = false;
-        _features.Parent = null;
+        _features.Reset();
 
         Path.Clear();
         SelectionSets.Clear();
@@ -237,14 +222,6 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         InputFields.Clear();
         ContextData.Clear();
         _errors.Clear();
-
-        foreach (var feature in Features)
-        {
-            if (feature.Value is ValidatorFeature validatorFeature)
-            {
-                validatorFeature.Reset();
-            }
-        }
     }
 
     /// <summary>

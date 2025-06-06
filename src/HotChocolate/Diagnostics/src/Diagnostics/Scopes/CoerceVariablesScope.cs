@@ -8,7 +8,7 @@ internal sealed class CoerceVariablesScope : RequestScopeBase
 {
     public CoerceVariablesScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {

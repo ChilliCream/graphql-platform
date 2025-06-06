@@ -24,8 +24,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using var scope = services.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
@@ -57,8 +57,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -92,8 +92,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -127,8 +127,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -177,8 +177,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -225,8 +225,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -273,8 +273,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -323,8 +323,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -370,8 +370,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -417,8 +417,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -466,8 +466,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -592,8 +592,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -640,8 +640,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -688,8 +688,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -738,8 +738,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -786,8 +786,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -833,8 +833,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
@@ -880,8 +880,8 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {

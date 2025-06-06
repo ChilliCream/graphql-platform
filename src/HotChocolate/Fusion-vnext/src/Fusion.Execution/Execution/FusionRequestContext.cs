@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Execution;
 /// <summary>
 /// Represents a Fusion GraphQL request context.
 /// </summary>
-public sealed class FusionRequestContext : GraphQLRequestContext
+public sealed class FusionRequestContext : RequestContext
 {
     /// <summary>
     /// Initializes a new instance of <see cref="FusionRequestContext"/> with the specified
@@ -20,6 +20,9 @@ public sealed class FusionRequestContext : GraphQLRequestContext
     /// <param name="requestServices">
     /// The GraphQL request service provider.
     /// </param>
+    /// <param name="executorVersion">
+    /// The executor version.
+    /// </param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="schema"/>, <paramref name="request"/> or
     /// <paramref name="requestServices"/> is <c>null</c>.
@@ -27,8 +30,9 @@ public sealed class FusionRequestContext : GraphQLRequestContext
     public FusionRequestContext(
         FusionSchemaDefinition schema,
         IOperationRequest request,
-        IServiceProvider requestServices)
-        : base(schema, request, requestServices)
+        IServiceProvider requestServices,
+        ulong executorVersion)
+        : base(schema, request, requestServices, executorVersion)
     {
         Schema = schema;
     }

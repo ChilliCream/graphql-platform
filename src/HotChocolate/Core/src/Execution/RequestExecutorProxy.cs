@@ -7,7 +7,7 @@ namespace HotChocolate.Execution;
 public sealed class RequestExecutorProxy : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly IRequestExecutorResolver _executorResolver;
+    private readonly IRequestExecutorProvider _executorProvider;
     private readonly string _schemaName;
     private IRequestExecutor? _executor;
     private readonly IDisposable? _eventSubscription;
@@ -17,16 +17,20 @@ public sealed class RequestExecutorProxy : IDisposable
 
     public event EventHandler? ExecutorEvicted;
 
-    public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
+    public RequestExecutorProxy(
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
+        string schemaName)
     {
+        ArgumentNullException.ThrowIfNull(executorProvider);
+        ArgumentNullException.ThrowIfNull(executorEvents);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
-        _executorResolver = executorResolver ??
-            throw new ArgumentNullException(nameof(executorResolver));
+        _executorProvider = executorProvider;
         _schemaName = schemaName;
-        _eventSubscription =
-            _executorResolver.Events.Subscribe(
-                new RequestExecutorEventObserver(OnRequestExecutorEvent));
+
+        var observer = new RequestExecutorEventObserver(OnRequestExecutorEvent);
+        _eventSubscription = executorEvents.Subscribe(observer);
     }
 
     public IRequestExecutor? CurrentExecutor => _executor;
@@ -62,7 +66,7 @@ public sealed class RequestExecutorProxy : IDisposable
         ArgumentNullException.ThrowIfNull(request);
 
         var executor =
-            await GetRequestExecutorAsync(cancellationToken)
+            await GetExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
         var result =
@@ -92,7 +96,7 @@ public sealed class RequestExecutorProxy : IDisposable
         ArgumentNullException.ThrowIfNull(requestBatch);
 
         var executor =
-            await GetRequestExecutorAsync(cancellationToken)
+            await GetExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
         var result =
@@ -112,11 +116,11 @@ public sealed class RequestExecutorProxy : IDisposable
     /// <returns>
     /// Returns the resolved schema.
     /// </returns>
-    public async ValueTask<Schema> GetSchemaAsync(
+    public async ValueTask<ISchemaDefinition> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
         var executor =
-            await GetRequestExecutorAsync(cancellationToken)
+            await GetExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
         return executor.Schema;
     }
@@ -130,7 +134,7 @@ public sealed class RequestExecutorProxy : IDisposable
     /// <returns>
     /// Returns the resolved schema.
     /// </returns>
-    public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
+    public async ValueTask<IRequestExecutor> GetExecutorAsync(
         CancellationToken cancellationToken)
     {
         var executor = _executor;
@@ -146,8 +150,8 @@ public sealed class RequestExecutorProxy : IDisposable
         {
             if (_executor is null)
             {
-                executor = await _executorResolver
-                    .GetRequestExecutorAsync(_schemaName, cancellationToken)
+                executor = await _executorProvider
+                    .GetExecutorAsync(_schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
                 _executor = executor;

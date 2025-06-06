@@ -48,7 +48,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
         ArgumentNullException.ThrowIfNull(requestExecutorProxy);
 
         var executor = await requestExecutorProxy
-            .GetRequestExecutorAsync(cancellationToken)
+            .GetExecutorAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return new AutoUpdateRequestExecutorProxy(requestExecutorProxy, executor);
@@ -78,12 +78,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     /// <summary>
     /// Gets the schema to which this executor is bound to.
     /// </summary>
-    public Schema Schema => _executor.Schema;
-
-    /// <summary>
-    /// Gets the services that are bound to this executor.
-    /// </summary>
-    public IServiceProvider Services => _executor.Services;
+    public ISchemaDefinition Schema => _executor.Schema;
 
     /// <summary>
     /// Gets the version of the executor.

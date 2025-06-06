@@ -40,11 +40,7 @@ internal static partial class ValueCompletion
         catch (Exception ex)
         {
             var errorPath = CreatePathFromContext(selection, parent, index);
-            var error = UnexpectedLeafValueSerializationError(
-                ex,
-                operationContext.ErrorHandler,
-                selection.SyntaxNode,
-                errorPath);
+            var error = UnexpectedLeafValueSerializationError(ex, selection.SyntaxNode, errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
 

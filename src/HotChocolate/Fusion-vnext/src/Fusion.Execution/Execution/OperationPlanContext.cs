@@ -19,7 +19,7 @@ public sealed class OperationPlanContext
     public OperationPlanContext(
         OperationPlan operationPlan,
         IReadOnlyDictionary<string, IValueNode>? variables,
-        GraphQLRequestContext requestContext)
+        RequestContext requestContext)
     {
         OperationPlan = operationPlan;
         RequestContext = requestContext;
@@ -33,7 +33,7 @@ public sealed class OperationPlanContext
 
     public ISchemaDefinition Schema => RequestContext.Schema;
 
-    public GraphQLRequestContext RequestContext { get; }
+    public RequestContext RequestContext { get; }
 
     public FetchResultStore ResultStore { get; } = new();
 

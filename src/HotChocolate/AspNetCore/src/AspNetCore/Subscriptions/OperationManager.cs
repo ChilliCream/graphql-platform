@@ -1,7 +1,6 @@
 using System.Collections;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -32,7 +31,7 @@ public sealed class OperationManager : IOperationManager
         _interceptor = interceptor ?? throw new ArgumentNullException(nameof(interceptor));
         _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         _createSession = CreateSession;
-        _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
+        _errorHandler = executor.Schema.Services.GetRequiredService<IErrorHandler>();
         _cts = new CancellationTokenSource();
         _cancellationToken = _cts.Token;
     }
@@ -47,7 +46,7 @@ public sealed class OperationManager : IOperationManager
         _interceptor = interceptor ?? throw new ArgumentNullException(nameof(interceptor));
         _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         _createSession = createSession ?? throw new ArgumentNullException(nameof(createSession));
-        _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
+        _errorHandler = executor.Schema.Services.GetRequiredService<IErrorHandler>();
         _cts = new CancellationTokenSource();
         _cancellationToken = _cts.Token;
     }

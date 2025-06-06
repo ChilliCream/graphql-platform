@@ -5,6 +5,7 @@
     <Project Path="src/Core/HotChocolate.Core.csproj" />
     <Project Path="src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj" />
     <Project Path="src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <Project Path="src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj" />
     <Project Path="src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
     <Project Path="src/Execution/HotChocolate.Execution.csproj" />
     <Project Path="src/Features/HotChocolate.Features.csproj" />

@@ -34,7 +34,7 @@ internal static class MiddlewareHelper
 
         // if the request defines accept header values of which we cannot handle any provided
         // media type then we will fail the request with 406 Not Acceptable.
-        if (requestFlags is GraphQLRequestFlags.None)
+        if (requestFlags is RequestFlags.None)
         {
             var error = ErrorHelper.NoSupportedAcceptMediaType();
             diagnosticEvents.HttpRequestError(context, error);
@@ -75,7 +75,7 @@ internal static class MiddlewareHelper
             }
             catch (Exception ex)
             {
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 diagnosticEvents.HttpRequestError(context, error);
                 return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
             }
@@ -111,7 +111,7 @@ internal static class MiddlewareHelper
             }
             catch (Exception ex)
             {
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 diagnosticEvents.HttpRequestError(context, error);
                 return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
             }
@@ -149,7 +149,7 @@ internal static class MiddlewareHelper
             }
             catch (Exception ex)
             {
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 diagnosticEvents.HttpRequestError(context, error);
                 return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
             }
@@ -158,40 +158,40 @@ internal static class MiddlewareHelper
         return new ParseRequestResult(request);
     }
 
-    public static GraphQLRequestFlags DetermineHttpGetRequestFlags(
-        GraphQLRequestFlags requestFlags,
+    public static RequestFlags DetermineHttpGetRequestFlags(
+        RequestFlags requestFlags,
         GraphQLServerOptions options)
     {
         if (options is null or { AllowedGetOperations: AllowedGetOperations.Query })
         {
-            requestFlags = (requestFlags & GraphQLRequestFlags.AllowStreams) == GraphQLRequestFlags.AllowStreams
-                ? GraphQLRequestFlags.AllowQuery | GraphQLRequestFlags.AllowStreams
-                : GraphQLRequestFlags.AllowQuery;
+            requestFlags = (requestFlags & RequestFlags.AllowStreams) == RequestFlags.AllowStreams
+                ? RequestFlags.AllowQuery | RequestFlags.AllowStreams
+                : RequestFlags.AllowQuery;
         }
         else
         {
             var flags = options.AllowedGetOperations;
-            var newRequestFlags = GraphQLRequestFlags.None;
+            var newRequestFlags = RequestFlags.None;
 
             if ((flags & AllowedGetOperations.Query) == AllowedGetOperations.Query)
             {
-                newRequestFlags |= GraphQLRequestFlags.AllowQuery;
+                newRequestFlags |= RequestFlags.AllowQuery;
             }
 
             if ((flags & AllowedGetOperations.Mutation) == AllowedGetOperations.Mutation)
             {
-                newRequestFlags |= GraphQLRequestFlags.AllowMutation;
+                newRequestFlags |= RequestFlags.AllowMutation;
             }
 
             if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription &&
-                (requestFlags & GraphQLRequestFlags.AllowSubscription) == GraphQLRequestFlags.AllowSubscription)
+                (requestFlags & RequestFlags.AllowSubscription) == RequestFlags.AllowSubscription)
             {
-                newRequestFlags |= GraphQLRequestFlags.AllowSubscription;
+                newRequestFlags |= RequestFlags.AllowSubscription;
             }
 
-            if ((requestFlags & GraphQLRequestFlags.AllowStreams) == GraphQLRequestFlags.AllowStreams)
+            if ((requestFlags & RequestFlags.AllowStreams) == RequestFlags.AllowStreams)
             {
-                newRequestFlags |= GraphQLRequestFlags.AllowStreams;
+                newRequestFlags |= RequestFlags.AllowStreams;
             }
 
             requestFlags = newRequestFlags;
@@ -202,7 +202,7 @@ internal static class MiddlewareHelper
 
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
-        GraphQLRequestFlags flags,
+        RequestFlags flags,
         HttpContext context,
         IRequestExecutor requestExecutor,
         IErrorHandler errorHandler,
@@ -244,7 +244,7 @@ internal static class MiddlewareHelper
         }
         catch (Exception ex)
         {
-            var error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = ErrorBuilder.FromException(ex).Build();
             diagnosticEvents.HttpRequestError(context, error);
             return new ExecuteRequestResult(
                 OperationResultBuilder.CreateError(error),
@@ -300,7 +300,7 @@ internal static class MiddlewareHelper
     public readonly record struct ValidateAcceptContentTypeResult
     {
         public ValidateAcceptContentTypeResult(
-            GraphQLRequestFlags requestFlags,
+            RequestFlags requestFlags,
             AcceptMediaType[] acceptMediaTypes)
         {
             IsValid = true;
@@ -317,7 +317,7 @@ internal static class MiddlewareHelper
             IsValid = false;
             Error = errorResult;
             StatusCode = statusCode;
-            RequestFlags = GraphQLRequestFlags.None;
+            RequestFlags = RequestFlags.None;
             AcceptMediaTypes = [];
         }
 
@@ -329,7 +329,7 @@ internal static class MiddlewareHelper
             IsValid = false;
             Error = OperationResultBuilder.CreateError(error);
             StatusCode = statusCode;
-            RequestFlags = GraphQLRequestFlags.None;
+            RequestFlags = RequestFlags.None;
             AcceptMediaTypes = acceptMediaTypes;
         }
 
@@ -341,7 +341,7 @@ internal static class MiddlewareHelper
 
         public HttpStatusCode? StatusCode { get; }
 
-        public GraphQLRequestFlags RequestFlags { get; }
+        public RequestFlags RequestFlags { get; }
 
         public AcceptMediaType[] AcceptMediaTypes { get; }
     }

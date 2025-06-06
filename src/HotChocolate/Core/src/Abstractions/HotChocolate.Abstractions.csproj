@@ -15,7 +15,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Abstractions.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Core.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
 
     <!-- Legacy -->

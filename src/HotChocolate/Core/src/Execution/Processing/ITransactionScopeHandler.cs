@@ -7,7 +7,7 @@ public interface ITransactionScopeHandler
 {
     /// <summary>
     /// Creates a new transaction scope for the current
-    /// request represented by the <see cref="IRequestContext"/>.
+    /// request represented by the <see cref="RequestContext"/>.
     /// </summary>
     /// <param name="context">
     /// The GraphQL request context.
@@ -15,5 +15,5 @@ public interface ITransactionScopeHandler
     /// <returns>
     /// Returns a new <see cref="ITransactionScope"/>.
     /// </returns>
-    ITransactionScope Create(IRequestContext context);
+    ITransactionScope Create(RequestContext context);
 }

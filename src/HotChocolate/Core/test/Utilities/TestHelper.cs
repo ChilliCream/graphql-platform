@@ -132,7 +132,7 @@ public static class TestHelper
         return schema.Types.OfType<T>().Single();
     }
 
-    public static Task<Schema> CreateSchemaAsync(
+    public static Task<ISchemaDefinition> CreateSchemaAsync(
         ITypeDefinition type)
     {
         return CreateSchemaAsync(
@@ -142,7 +142,7 @@ public static class TestHelper
                 .ModifyOptions(o => o.StrictValidation = false));
     }
 
-    public static async Task<Schema> CreateSchemaAsync(
+    public static async Task<ISchemaDefinition> CreateSchemaAsync(
         Action<IRequestExecutorBuilder> configure,
         bool strict = false)
     {
@@ -181,8 +181,8 @@ public static class TestHelper
 
         return await builder.Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 
     public static IOperationRequest CreateRequest(

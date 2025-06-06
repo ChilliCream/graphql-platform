@@ -14,6 +14,7 @@
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />
     <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
     <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
@@ -29,10 +30,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
+    <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Pipeline\HotChocolate.Execution.Pipeline.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />

@@ -2,17 +2,17 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLRequestParser
 {
-    private ref struct Request
+    internal ref struct Request
     {
         public string? OperationName { get; set; }
 
-        public string? QueryId { get; set; }
+        public OperationDocumentId? DocumentId { get; set; }
 
-        public string? QueryHash { get; set; }
+        public OperationDocumentHash? DocumentHash { get; set; }
 
-        public ReadOnlySpan<byte> Query { get; set; }
+        public ReadOnlySpan<byte> DocumentBody { get; set; }
 
-        public bool HasQuery { get; set; }
+        public bool ContainsDocument { get; set; }
 
         public IReadOnlyList<IReadOnlyDictionary<string, object?>>? Variables { get; set; }
 

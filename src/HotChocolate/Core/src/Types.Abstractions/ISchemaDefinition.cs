@@ -18,6 +18,11 @@ public interface ISchemaDefinition
     , ISyntaxNodeProvider
 {
     /// <summary>
+    /// Gets the schema services.
+    /// </summary>
+    IServiceProvider Services { get; }
+
+    /// <summary>
     /// Gets the GraphQL object type that represents the query root.
     /// </summary>
     IObjectTypeDefinition QueryType { get; }

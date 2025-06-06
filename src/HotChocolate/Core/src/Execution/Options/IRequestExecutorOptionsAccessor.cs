@@ -1,3 +1,5 @@
+using HotChocolate.PersistedOperations;
+
 namespace HotChocolate.Execution.Options;
 
 /// <summary>

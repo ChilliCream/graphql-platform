@@ -14,12 +14,13 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, responseFormatter, schemaName)
+        : base(next, executorResolver, executorEvents, responseFormatter, schemaName)
     {
         _requestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
@@ -93,7 +94,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         // next we parse the GraphQL request.
         var executor = ExecutorProxy.CurrentExecutor ??
-            await ExecutorProxy.GetRequestExecutorAsync(context.RequestAborted);
+            await ExecutorProxy.GetExecutorAsync(context.RequestAborted);
         var errorHandler = executor.GetErrorHandler();
 
         var parserResult =

@@ -26,7 +26,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.True);
         var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
         // act
@@ -55,7 +55,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.False);
         var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
         // act
@@ -84,7 +84,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.True);
         var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
         // act
@@ -113,7 +113,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.False);
         var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
         // act

@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Cost Analyzer extensions for the <see cref="IRequestContext"/>.
+/// Cost Analyzer extensions for the <see cref="RequestContext"/>.
 /// </summary>
 public static class CostAnalyzerRequestContextExtensions
 {
-    internal static IRequestContext SetCostMetrics(
-        this IRequestContext context,
+    internal static RequestContext SetCostMetrics(
+        this RequestContext context,
         CostMetrics costMetrics)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -34,7 +34,7 @@ public static class CostAnalyzerRequestContextExtensions
     /// <paramref name="context"/> is <c>null</c>.
     /// </exception>
     public static CostMetrics GetCostMetrics(
-        this IRequestContext context)
+        this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -47,7 +47,7 @@ public static class CostAnalyzerRequestContextExtensions
     }
 
     internal static CostAnalyzerMode GetCostAnalyzerMode(
-        this IRequestContext context,
+        this RequestContext context,
         RequestCostOptions options)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -89,7 +89,7 @@ public static class CostAnalyzerRequestContextExtensions
     /// <returns>
     /// Returns the cost options.
     /// </returns>
-    public static RequestCostOptions GetCostOptions(this IRequestContext context)
+    public static RequestCostOptions GetCostOptions(this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -117,7 +117,7 @@ public static class CostAnalyzerRequestContextExtensions
         return executor.Schema.Services.GetRequiredService<RequestCostOptions>();
     }
 
-    internal static RequestCostOptions? TryGetCostOptions(this IRequestContext context)
+    internal static RequestCostOptions? TryGetCostOptions(this RequestContext context)
     {
         if (context.Features.TryGet<RequestCostOptions>(out var options))
         {
@@ -136,7 +136,7 @@ public static class CostAnalyzerRequestContextExtensions
     /// <param name="options">
     /// The cost options.
     /// </param>
-    public static void SetCostOptions(this IRequestContext context, RequestCostOptions options)
+    public static void SetCostOptions(this RequestContext context, RequestCostOptions options)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(options);

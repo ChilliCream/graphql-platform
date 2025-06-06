@@ -13,13 +13,13 @@ public class RequestExecutorResolverTests
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-        var resolver = new ServiceCollection()
+        var manager = new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<RequestExecutorManager>();
 
-        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
+        manager.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Evicted)
             {
@@ -28,15 +28,15 @@ public class RequestExecutorResolverTests
         }));
 
         // act
-        var firstExecutor = await resolver.GetRequestExecutorAsync();
-        var firstOperationCache = firstExecutor.Services.GetCombinedServices()
+        var firstExecutor = await manager.GetExecutorAsync();
+        var firstOperationCache = firstExecutor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
-        resolver.EvictRequestExecutor();
+        manager.EvictRequestExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
-        var secondExecutor = await resolver.GetRequestExecutorAsync();
-        var secondOperationCache = secondExecutor.Services.GetCombinedServices()
+        var secondExecutor = await manager.GetExecutorAsync();
+        var secondOperationCache = secondExecutor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
         // assert
@@ -51,7 +51,7 @@ public class RequestExecutorResolverTests
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-        var resolver = new ServiceCollection()
+        var manager = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
                 keepWarm: true,
@@ -63,9 +63,9 @@ public class RequestExecutorResolverTests
                 })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<RequestExecutorManager>();
 
-        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
+        manager.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Evicted)
             {
@@ -75,18 +75,18 @@ public class RequestExecutorResolverTests
 
         // act
         // assert
-        var initialExecutor = await resolver.GetRequestExecutorAsync();
+        var initialExecutor = await manager.GetExecutorAsync();
         warmupResetEvent.Reset();
 
-        resolver.EvictRequestExecutor();
+        manager.EvictRequestExecutor();
 
-        var executorAfterEviction = await resolver.GetRequestExecutorAsync();
+        var executorAfterEviction = await manager.GetExecutorAsync();
 
         Assert.Same(initialExecutor, executorAfterEviction);
 
         warmupResetEvent.Set();
         executorEvictedResetEvent.Wait(cts.Token);
-        var executorAfterWarmup = await resolver.GetRequestExecutorAsync();
+        var executorAfterWarmup = await manager.GetExecutorAsync();
 
         Assert.NotSame(initialExecutor, executorAfterWarmup);
 
@@ -104,7 +104,7 @@ public class RequestExecutorResolverTests
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-        var resolver = new ServiceCollection()
+        var manager = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
                 keepWarm: keepWarm,
@@ -115,9 +115,9 @@ public class RequestExecutorResolverTests
                 })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<RequestExecutorManager>();
 
-        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
+        manager.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Evicted)
             {
@@ -127,12 +127,12 @@ public class RequestExecutorResolverTests
 
         // act
         // assert
-        var initialExecutor = await resolver.GetRequestExecutorAsync();
+        var initialExecutor = await manager.GetExecutorAsync();
 
-        resolver.EvictRequestExecutor();
+        manager.EvictRequestExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
-        var executorAfterEviction = await resolver.GetRequestExecutorAsync();
+        var executorAfterEviction = await manager.GetExecutorAsync();
 
         Assert.NotSame(initialExecutor, executorAfterEviction);
         Assert.Equal(expectedWarmups, warmups);
@@ -142,18 +142,18 @@ public class RequestExecutorResolverTests
     public async Task Calling_GetExecutorAsync_Multiple_Times_Only_Creates_One_Executor()
     {
         // arrange
-        var resolver = new ServiceCollection()
+        var manager = new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d =>
             {
                 d.Field("foo").Resolve("");
             })
             .Services.BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>();
+            .GetRequiredService<RequestExecutorManager>();
 
         // act
-        var executor1Task = Task.Run(async () => await resolver.GetRequestExecutorAsync());
-        var executor2Task = Task.Run(async () => await resolver.GetRequestExecutorAsync());
+        var executor1Task = Task.Run(async () => await manager.GetExecutorAsync());
+        var executor2Task = Task.Run(async () => await manager.GetExecutorAsync());
 
         var executor1 = await executor1Task;
         var executor2 = await executor2Task;
@@ -184,11 +184,11 @@ public class RequestExecutorResolverTests
                 d.Field("foo").Resolve("");
             });
         var provider = services.BuildServiceProvider();
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+        var manager = provider.GetRequiredService<RequestExecutorManager>();
 
         // act
-        var executor1Task = Task.Run(async () => await resolver.GetRequestExecutorAsync("schema1"), cts.Token);
-        var executor2Task = Task.Run(async () => await resolver.GetRequestExecutorAsync("schema2"), cts.Token);
+        var executor1Task = Task.Run(async () => await manager.GetExecutorAsync("schema1"), cts.Token);
+        var executor2Task = Task.Run(async () => await manager.GetExecutorAsync("schema2"), cts.Token);
 
         // assert
         await executor2Task;

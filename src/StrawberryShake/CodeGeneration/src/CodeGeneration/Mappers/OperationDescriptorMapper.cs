@@ -54,7 +54,7 @@ public static class OperationDescriptorMapper
                             body,
                             bodyString,
                             context.HashProvider.Name,
-                            hash,
+                            hash.Value,
                             hasUpload,
                             context.RequestStrategy));
                     break;
@@ -70,7 +70,7 @@ public static class OperationDescriptorMapper
                             body,
                             bodyString,
                             context.HashProvider.Name,
-                            hash,
+                            hash.Value,
                             hasUpload,
                             context.RequestStrategy));
                     break;
@@ -86,7 +86,7 @@ public static class OperationDescriptorMapper
                             body,
                             bodyString,
                             context.HashProvider.Name,
-                            hash,
+                            hash.Value,
                             context.RequestStrategy));
                     break;
 

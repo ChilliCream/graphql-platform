@@ -9,7 +9,7 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
 {
     /// <summary>
     /// Creates a new transaction scope for the current
-    /// request represented by the <see cref="IRequestContext"/>.
+    /// request represented by the <see cref="RequestContext"/>.
     /// </summary>
     /// <param name="context">
     /// The GraphQL request context.
@@ -17,7 +17,7 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
     /// <returns>
     /// Returns a new <see cref="ITransactionScope"/>.
     /// </returns>
-    public virtual ITransactionScope Create(IRequestContext context)
+    public virtual ITransactionScope Create(RequestContext context)
     {
         return new DefaultTransactionScope(
             context,

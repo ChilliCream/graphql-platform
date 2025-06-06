@@ -25,7 +25,7 @@ public class OperationManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Enqueue(null!, new GraphQLRequest(null, queryId: "123"));
+        void Action() => subscriptions.Enqueue(null!, new GraphQLRequest(null, documentId: "123"));
 
         // assert
         Assert.Equal(
@@ -48,7 +48,7 @@ public class OperationManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Enqueue("", new GraphQLRequest(null, queryId: "123"));
+        void Action() => subscriptions.Enqueue("", new GraphQLRequest(null, documentId: "123"));
 
         // assert
         Assert.Equal(

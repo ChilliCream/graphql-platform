@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -13,12 +15,12 @@ public interface IOperationRequest : IExecutionRequest
     /// <summary>
     /// Gets the GraphQL request document ID.
     /// </summary>
-    OperationDocumentId? DocumentId { get; }
+    OperationDocumentId DocumentId { get; }
 
     /// <summary>
     /// Gets GraphQL request document hash.
     /// </summary>
-    string? DocumentHash { get; }
+    OperationDocumentHash DocumentHash { get; }
 
     /// <summary>
     /// A name of an operation in the GraphQL request document that shall be executed;
@@ -34,5 +36,5 @@ public interface IOperationRequest : IExecutionRequest
     /// <summary>
     /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
-    GraphQLRequestFlags Flags { get; }
+    RequestFlags Flags { get; }
 }

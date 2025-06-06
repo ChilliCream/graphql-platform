@@ -129,12 +129,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ErrorHelper_StateInvalidForDocumentValidation_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForDocumentValidation_Message", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_VariableIsNotAnInputType_Message {
             get {
                 return ResourceManager.GetString("ThrowHelper_VariableIsNotAnInputType_Message", resourceCulture);
@@ -150,12 +144,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string ThrowHelper_VariableValueInvalidType_Message {
             get {
                 return ResourceManager.GetString("ThrowHelper_VariableValueInvalidType_Message", resourceCulture);
-            }
-        }
-        
-        internal static string ThrowHelper_QueryTypeNotSupported_Message {
-            get {
-                return ResourceManager.GetString("ThrowHelper_QueryTypeNotSupported_Message", resourceCulture);
             }
         }
         
@@ -327,12 +315,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ErrorHelper_OperationCanceled_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_ResolverContext_CannotCastParent {
             get {
                 return ResourceManager.GetString("ThrowHelper_ResolverContext_CannotCastParent", resourceCulture);
@@ -402,18 +384,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string ResultBuilder_DataAndItemsNotAllowed {
             get {
                 return ResourceManager.GetString("ResultBuilder_DataAndItemsNotAllowed", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_PersistedOperationNotFound {
-            get {
-                return ResourceManager.GetString("ErrorHelper_PersistedOperationNotFound", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_OnlyPersistedOperationsAreAllowed {
-            get {
-                return ResourceManager.GetString("ErrorHelper_OnlyPersistedOperationsAreAllowed", resourceCulture);
             }
         }
         

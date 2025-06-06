@@ -1,9 +1,6 @@
-using System.Net;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
-using static HotChocolate.Execution.ErrorHelper;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -11,15 +8,23 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class RequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// Adds a delegate that will be used to create middleware for the execution pipeline.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="middleware">A delegate that is used to create a middleware for the execution pipeline.</param>
-    /// <param name="key">A unique identifier for the middleware.</param>
-    /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <param name="key">
+    /// A unique identifier for the middleware.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
-        RequestCoreMiddleware middleware,
+        Func<RequestDelegate, RequestDelegate> middleware,
         string? key = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -27,16 +32,28 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.Pipeline.Add(new RequestCoreMiddlewareConfiguration(middleware, key)));
+            options => options.Pipeline.Add(
+                new RequestMiddlewareConfiguration(
+                    new RequestMiddleware(
+                        (_, n) => middleware(n)),
+                    key)));
     }
 
     /// <summary>
     /// Adds a delegate that will be used to create a middleware for the execution pipeline.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="middleware">A delegate that is used to create a middleware for the execution pipeline.</param>
-    /// <param name="key">A unique identifier for the middleware.</param>
-    /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <param name="key">
+    /// A unique identifier for the middleware.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
         RequestMiddleware middleware,
@@ -47,16 +64,43 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.Pipeline.Add(
-                new RequestCoreMiddlewareConfiguration((_, next) => middleware(next), key)));
+            options => options.Pipeline.Add(new RequestMiddlewareConfiguration(middleware, key)));
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to create middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="configuration">
+    /// The middleware configuration to use.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder UseRequest(
+        this IRequestExecutorBuilder builder,
+        RequestMiddlewareConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        return Configure(builder, options => options.Pipeline.Add(configuration));
     }
 
     /// <summary>
     /// Adds a type that will be used to create a middleware for the execution pipeline.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="key">A unique identifier for the middleware.</param>
-    /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="key">
+    /// A unique identifier for the middleware.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseRequest<TMiddleware>(
         this IRequestExecutorBuilder builder,
         string? key = null)
@@ -67,13 +111,13 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.Pipeline.Add(
-                new RequestCoreMiddlewareConfiguration(
+                new RequestMiddlewareConfiguration(
                     RequestClassMiddlewareFactory.Create<TMiddleware>(),
                     key)));
     }
 
     /// <summary>
-    /// Appends a middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
+    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -96,7 +140,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AppendUseRequest(
         this IRequestExecutorBuilder builder,
         string after,
-        RequestCoreMiddleware middleware,
+        RequestMiddleware middleware,
         string? key = null,
         bool allowMultiple = false)
     {
@@ -115,7 +159,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(middleware, key);
+                var configuration = new RequestMiddlewareConfiguration(middleware, key);
 
                 options.PipelineModifiers.Add(
                     pipeline =>
@@ -139,7 +183,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Appends a middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
+    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -147,11 +191,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="after">
     /// The key of the middleware after which the new middleware will be appended.
     /// </param>
-    /// <param name="middleware">
-    /// The middleware to append.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
+    /// <param name="configuration">
+    /// The middleware configuration to append.
     /// </param>
     /// <param name="allowMultiple">
     /// If set to <c>true</c>, multiple instances of the same middleware can be appended.
@@ -162,30 +203,27 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AppendUseRequest(
         this IRequestExecutorBuilder builder,
         string after,
-        RequestMiddleware middleware,
-        string? key = null,
+        RequestMiddlewareConfiguration configuration,
         bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(after);
-        ArgumentNullException.ThrowIfNull(middleware);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        if (!allowMultiple && key is null)
+        if (!allowMultiple && configuration.Key is null)
         {
             throw new ArgumentException(
                 "The key must be set if allowMultiple is false.",
-                nameof(key));
+                nameof(configuration));
         }
 
         return Configure(
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration((_, next) => middleware(next), key);
-
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
                     {
                         return;
                     }
@@ -203,7 +241,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Appends a middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
+    /// Appends middleware to the execution pipeline <paramref name="after"/> the middleware with the specified key.
     /// </summary>
     /// <typeparam name="TMiddleware">
     /// The type of the middleware to append.
@@ -244,7 +282,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(
+                var configuration = new RequestMiddlewareConfiguration(
                     RequestClassMiddlewareFactory.Create<TMiddleware>(),
                     key);
 
@@ -268,7 +306,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Inserts a middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
+    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -291,7 +329,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder InsertUseRequest(
         this IRequestExecutorBuilder builder,
         string before,
-        RequestCoreMiddleware middleware,
+        RequestMiddleware middleware,
         string? key = null,
         bool allowMultiple = false)
     {
@@ -310,7 +348,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(middleware, key);
+                var configuration = new RequestMiddlewareConfiguration(middleware, key);
 
                 options.PipelineModifiers.Add(
                     pipeline =>
@@ -342,11 +380,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="before">
     /// The key of the middleware before which the new middleware will be inserted.
     /// </param>
-    /// <param name="middleware">
-    /// The middleware to insert.
-    /// </param>
-    /// <param name="key">
-    /// A unique identifier for the middleware.
+    /// <param name="configuration">
+    /// The middleware configuration to insert.
     /// </param>
     /// <param name="allowMultiple">
     /// If set to <c>true</c>, multiple instances of the same middleware can be inserted.
@@ -357,30 +392,27 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder InsertUseRequest(
         this IRequestExecutorBuilder builder,
         string before,
-        RequestMiddleware middleware,
-        string? key = null,
+        RequestMiddlewareConfiguration configuration,
         bool allowMultiple = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(before);
-        ArgumentNullException.ThrowIfNull(middleware);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        if(!allowMultiple && key is null)
+        if(!allowMultiple && configuration.Key is null)
         {
             throw new ArgumentException(
                 "The key must be set if allowMultiple is false.",
-                nameof(key));
+                nameof(configuration));
         }
 
         return Configure(
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration((_, next) => middleware(next), key);
-
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
+                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
                     {
                         return;
                     }
@@ -398,7 +430,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Inserts a middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
+    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
     /// </summary>
     /// <typeparam name="TMiddleware">
     /// The type of the middleware to insert.
@@ -439,7 +471,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options =>
             {
-                var configuration = new RequestCoreMiddlewareConfiguration(
+                var configuration = new RequestMiddlewareConfiguration(
                     RequestClassMiddlewareFactory.Create<TMiddleware>(),
                     key);
 
@@ -462,7 +494,7 @@ public static partial class RequestExecutorBuilderExtensions
             });
     }
 
-    private static int GetIndex(IList<RequestCoreMiddlewareConfiguration> pipeline, string key)
+    private static int GetIndex(IList<RequestMiddlewareConfiguration> pipeline, string key)
     {
         for (var i = 0; i < pipeline.Count; i++)
         {
@@ -478,7 +510,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to cache the GraphQL operation document.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -489,13 +521,13 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(DocumentCacheMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.DocumentCache);
     }
 
     /// <summary>
     /// Adds a middleware that will be used to parse the GraphQL operation document.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -506,13 +538,13 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(DocumentParserMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.DocumentParser);
     }
 
     /// <summary>
     /// Adds a middleware that will be used to validate the GraphQL operation document.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -523,13 +555,13 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(DocumentValidationMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.DocumentValidation);
     }
 
     /// <summary>
     /// Adds a middleware that will be used to handle exceptions.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -540,13 +572,13 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(ExceptionMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.UnhandledExceptions);
     }
 
     /// <summary>
     /// Adds a middleware that will be used to handle timeouts.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -563,7 +595,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to instrument the request.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -574,14 +606,14 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(InstrumentationMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.Instrumentation);
     }
 
     /// <summary>
     /// Adds a middleware that will be used to cache the compiled
     /// operation object that is used during the request execution.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -598,7 +630,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to execute the operation.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -616,7 +648,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// Adds a middleware that will be used to resolve the correct operation from the GraphQL operation document
     /// and that compiles this operation definition into an executable operation.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -633,7 +665,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to coerces the operation variables into the correct types.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -650,7 +682,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to skip the actual execution of warmup requests.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -661,13 +693,13 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(SkipWarmupExecutionMiddleware.Create());
+        return builder.UseRequest(CommonMiddleware.SkipWarmupExecution);
     }
 
     /// <summary>
     /// Adds a middleware that will be used to resolve a persisted operation from the persisted operation store.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -678,7 +710,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(ReadPersistedOperationMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.ReadPersistedOperation);
     }
 
     public static IRequestExecutorBuilder UseAutomaticPersistedOperationNotFound(
@@ -686,25 +718,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(next => context =>
-        {
-            if (context.Document is not null || context.Request.Document is not null)
-            {
-                return next(context);
-            }
-
-            var error = ReadPersistedOperationMiddleware_PersistedOperationNotFound();
-            var result = OperationResultBuilder.CreateError(
-                error,
-                new Dictionary<string, object?>
-                {
-                    { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
-                });
-
-            context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
-            context.Result = result;
-            return default;
-        });
+        return builder.UseRequest(PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
     }
 
     public static IRequestExecutorBuilder UseWritePersistedOperation(
@@ -712,7 +726,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(WritePersistedOperationMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.WritePersistedOperation);
     }
 
     public static IRequestExecutorBuilder UsePersistedOperationNotFound(
@@ -720,7 +734,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(PersistedOperationNotFoundMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.PersistedOperationNotFound);
     }
 
     public static IRequestExecutorBuilder UseOnlyPersistedOperationAllowed(
@@ -728,7 +742,7 @@ public static partial class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OnlyPersistedOperationsAllowedMiddleware.Create());
+        return builder.UseRequest(PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
     }
 
     public static IRequestExecutorBuilder UseDefaultPipeline(
@@ -785,30 +799,18 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
-    internal static void AddDefaultPipeline(this IList<RequestCoreMiddlewareConfiguration> pipeline)
+    internal static void AddDefaultPipeline(this IList<RequestMiddlewareConfiguration> pipeline)
     {
-        pipeline.Add(InstrumentationMiddleware.Create());
-        pipeline.Add(ExceptionMiddleware.Create());
+        pipeline.Add(CommonMiddleware.Instrumentation);
+        pipeline.Add(CommonMiddleware.UnhandledExceptions);
         pipeline.Add(TimeoutMiddleware.Create());
-        pipeline.Add(DocumentCacheMiddleware.Create());
-        pipeline.Add(DocumentParserMiddleware.Create());
-        pipeline.Add(DocumentValidationMiddleware.Create());
+        pipeline.Add(CommonMiddleware.DocumentCache);
+        pipeline.Add(CommonMiddleware.DocumentParser);
+        pipeline.Add(CommonMiddleware.DocumentValidation);
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
-        pipeline.Add(SkipWarmupExecutionMiddleware.Create());
+        pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(OperationExecutionMiddleware.Create());
-    }
-
-    internal static IRequestExecutorBuilder UseRequest(
-        this IRequestExecutorBuilder builder,
-        RequestCoreMiddlewareConfiguration configuration)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        return Configure(
-            builder,
-            options => options.Pipeline.Add(configuration));
     }
 }

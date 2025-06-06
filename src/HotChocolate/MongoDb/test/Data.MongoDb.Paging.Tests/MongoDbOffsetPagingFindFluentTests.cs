@@ -206,7 +206,7 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                             options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -222,7 +222,7 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 }

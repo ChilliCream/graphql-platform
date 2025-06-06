@@ -1,5 +1,5 @@
 using Azure.Storage.Blobs;
-using HotChocolate.Execution;
+using HotChocolate.PersistedOperations;
 using HotChocolate.PersistedOperations.AzureBlobStorage;
 using Microsoft.Extensions.DependencyInjection;
 

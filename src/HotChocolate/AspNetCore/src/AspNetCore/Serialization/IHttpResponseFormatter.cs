@@ -19,7 +19,7 @@ public interface IHttpResponseFormatter
     /// Returns GraphQL request flags which specifies the allow
     /// execution engine capabilities.
     /// </returns>
-    GraphQLRequestFlags CreateRequestFlags(
+    RequestFlags CreateRequestFlags(
         AcceptMediaType[] acceptMediaTypes);
 
     /// <summary>

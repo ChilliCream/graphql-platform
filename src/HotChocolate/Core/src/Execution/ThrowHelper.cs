@@ -77,9 +77,6 @@ internal static class ThrowHelper
                 .Build());
     }
 
-    public static NotSupportedException QueryTypeNotSupported() =>
-        new(ThrowHelper_QueryTypeNotSupported_Message);
-
     public static GraphQLException VariableNotFound(
         string variableName) =>
         new(ErrorBuilder.New()

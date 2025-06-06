@@ -337,7 +337,6 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
             return false;
         }
 
-        DefaultHttpRequestParser.EnsureValidQueryId(request);
         message = new SubscribeMessage(id, request[0]);
         return true;
     }

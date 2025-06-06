@@ -116,13 +116,13 @@ public static class WebSocketExtensions
     {
         if (message is DataStartMessage dataStart)
         {
-            var query = dataStart.Payload.Query!.Print();
+            var query = dataStart.Payload.Document!.Print();
 
             var payload = new Dictionary<string, object> { { "query", query } };
 
-            if (dataStart.Payload.QueryId != null)
+            if (dataStart.Payload.DocumentId != null)
             {
-                payload["namedQuery"] = dataStart.Payload.QueryId;
+                payload["namedQuery"] = dataStart.Payload.DocumentId.Value;
             }
 
             if (dataStart.Payload.OperationName != null)
@@ -144,6 +144,7 @@ public static class WebSocketExtensions
         {
             json += new string(' ', 1024 * 16);
         }
+
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 

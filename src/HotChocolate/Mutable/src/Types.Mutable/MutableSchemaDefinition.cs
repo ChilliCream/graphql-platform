@@ -21,6 +21,9 @@ public class MutableSchemaDefinition
     /// <inheritdoc cref="IDescriptionProvider.Description" />
     public string? Description { get; set; }
 
+    /// <inheritdoc cref="ISchemaDefinition.Services" />
+    public IServiceProvider Services => EmptyServiceProvider.Instance;
+
     /// <summary>
     /// Gets or sets the query type.
     /// </summary>
@@ -388,4 +391,11 @@ public class MutableSchemaDefinition
     /// Returns a new schema definition.
     /// </returns>
     public static MutableSchemaDefinition Create(string name) => new() { Name = name };
+
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+
+        public static EmptyServiceProvider Instance { get; } = new();
+    }
 }

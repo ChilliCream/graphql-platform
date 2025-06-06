@@ -1,5 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -15,54 +19,47 @@ internal sealed class OperationCacheMiddleware
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IPreparedOperationCache operationCache)
     {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _diagnosticEvents = diagnosticEvents ??
-            throw new ArgumentNullException(nameof(diagnosticEvents));
-        _operationCache = operationCache ??
-            throw new ArgumentNullException(nameof(operationCache));
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+        ArgumentNullException.ThrowIfNull(operationCache);
+
+        _next = next;
+        _diagnosticEvents = diagnosticEvents;
+        _operationCache = operationCache;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (OperationDocumentId.IsNullOrEmpty(context.DocumentId))
+        var documentId = context.GetOperationDocumentId();
+
+        if (documentId.IsEmpty)
         {
             await _next(context).ConfigureAwait(false);
         }
         else
         {
             var addToCache = true;
-            var operationId = context.OperationId;
-
-            if (operationId is null)
-            {
-                operationId = context.CreateCacheId();
-                context.OperationId = operationId;
-            }
+            var operationId = context.GetOperationId() ?? context.CreateCacheId();
 
             if (_operationCache.TryGetOperation(operationId, out var operation))
             {
-                context.Operation = operation;
+                context.SetOperation(operation);
                 addToCache = false;
                 _diagnosticEvents.RetrievedOperationFromCache(context);
             }
 
             await _next(context).ConfigureAwait(false);
 
-            if (addToCache &&
-                context.Operation is not null &&
-                !OperationDocumentId.IsNullOrEmpty(context.DocumentId) &&
-                context.Document is not null &&
-                context.IsValidDocument)
+            if (addToCache && context.TryGetOperation(out operation))
             {
-                _operationCache.TryAddOperation(operationId, context.Operation);
+                _operationCache.TryAddOperation(operation.Id, operation);
                 _diagnosticEvents.AddedOperationToCache(context);
             }
         }
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();

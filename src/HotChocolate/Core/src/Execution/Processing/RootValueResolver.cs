@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Processing;
 internal static class RootValueResolver
 {
     public static object? Resolve(
-        IRequestContext context,
+        RequestContext context,
         IServiceProvider services,
         ObjectType rootType,
         ref object? cachedValue)

@@ -27,7 +27,7 @@ public interface IHttpRequestParser
     /// <summary>
     /// Parses a JSON GraphQL request from the request body.
     /// </summary>
-    /// <param name="operationId">
+    /// <param name="documentId">
     /// The operation id.
     /// </param>
     /// <param name="operationName">
@@ -43,7 +43,7 @@ public interface IHttpRequestParser
     /// Returns the parsed GraphQL request.
     /// </returns>
     ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
-        string operationId,
+        string documentId,
         string? operationName,
         Stream requestBody,
         CancellationToken cancellationToken);
@@ -51,13 +51,13 @@ public interface IHttpRequestParser
     /// <summary>
     /// Parses the operations string from an GraphQL HTTP MultiPart request.
     /// </summary>
-    /// <param name="operations">
+    /// <param name="sourceText">
     /// The operations string.
     /// </param>
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    IReadOnlyList<GraphQLRequest> ParseRequest(string operations);
+    IReadOnlyList<GraphQLRequest> ParseRequest(string sourceText);
 
     /// <summary>
     /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
@@ -73,10 +73,10 @@ public interface IHttpRequestParser
     /// <summary>
     /// Parses the variables and extensions from the HTTP query parameters.
     /// </summary>
-    /// <param name="operationId">
+    /// <param name="documentId">
     /// The operation id.
     /// </param>
-    /// <param name="perationName">
+    /// <param name="operationName">
     /// The operation name.
     /// </param>
     /// <param name="parameters">
@@ -86,7 +86,7 @@ public interface IHttpRequestParser
     /// Returns the parsed variables and extensions.
     /// </returns>
     GraphQLRequest ParsePersistedOperationRequestFromParams(
-        string operationId,
-        string? perationName,
+        string documentId,
+        string? operationName,
         IQueryCollection parameters);
 }

@@ -8,5 +8,5 @@ internal sealed class NoOpTransactionScopeHandler : ITransactionScopeHandler
 {
     private readonly NoOpTransactionScope _noOpTransaction = new();
 
-    public ITransactionScope Create(IRequestContext context) => _noOpTransaction;
+    public ITransactionScope Create(RequestContext context) => _noOpTransaction;
 }

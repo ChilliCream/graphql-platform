@@ -8,7 +8,7 @@ internal sealed class ExecuteOperationScope : RequestScopeBase
 {
     public ExecuteOperationScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {

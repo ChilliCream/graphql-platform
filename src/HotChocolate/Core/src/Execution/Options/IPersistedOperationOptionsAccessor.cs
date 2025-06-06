@@ -1,3 +1,5 @@
+using HotChocolate.PersistedOperations;
+
 namespace HotChocolate.Execution.Options;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace HotChocolate.Execution.Options;
 public interface IPersistedOperationOptionsAccessor
 {
     /// <summary>
-    /// Specifies the behavior of the persisted operation pipeline.
+    /// Gets the persisted operation options.
     /// </summary>
     PersistedOperationOptions PersistedOperations { get; }
 }

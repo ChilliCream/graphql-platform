@@ -349,7 +349,6 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             return false;
         }
 
-        DefaultHttpRequestParser.EnsureValidQueryId(request);
         message = new DataStartMessage(id, request[0]);
         return true;
     }

@@ -1,4 +1,4 @@
-using HotChocolate.Execution;
+using HotChocolate.PersistedOperations;
 using HotChocolate.PersistedOperations.Redis;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;

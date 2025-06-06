@@ -10,9 +10,9 @@ public class QueryExtension
     public long Time(Schema schema)
         => schema.CreatedAt.Ticks;
 
-    public bool Evict([FromServices] IRequestExecutorResolver executorResolver, ISchemaDefinition schema)
+    public bool Evict([FromServices] IRequestExecutorProvider executorResolver, ISchemaDefinition schema)
     {
-        executorResolver.EvictRequestExecutor(schema.Name);
+        ((RequestExecutorManager)executorResolver).EvictRequestExecutor(schema.Name);
         return true;
     }
 

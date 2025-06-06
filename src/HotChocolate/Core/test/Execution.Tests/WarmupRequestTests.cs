@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Caching;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -34,9 +35,8 @@ public class WarmupRequestTests
         // assert 1
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var documentCache = executor.Services.GetCombinedServices()
-            .GetRequiredService<IDocumentCache>();
-        var operationCache = executor.Services.GetRequiredService<IPreparedOperationCache>();
+        var documentCache = executor.Schema.Services.GetCombinedServices().GetRequiredService<IDocumentCache>();
+        var operationCache = executor.Schema.Services.GetRequiredService<IPreparedOperationCache>();
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);
@@ -62,7 +62,7 @@ public class WarmupRequestTests
             .AddGraphQL()
             .ConfigureSchemaServices(services =>
             {
-                services.AddSingleton<IOperationDocumentStorage>(_ => new Mock<IOperationDocumentStorage>().Object);
+                services.AddSingleton(_ => new Mock<IOperationDocumentStorage>().Object);
             })
             .AddQueryType<Query>()
             .ModifyRequestOptions(options =>
@@ -85,7 +85,7 @@ public class WarmupRequestTests
         // assert
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var provider = executor.Services.GetCombinedServices();
+        var provider = executor.Schema.Services.GetCombinedServices();
         var documentCache = provider.GetRequiredService<IDocumentCache>();
         var operationCache = provider.GetRequiredService<IPreparedOperationCache>();
 

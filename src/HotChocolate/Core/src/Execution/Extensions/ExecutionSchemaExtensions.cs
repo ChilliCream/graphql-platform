@@ -54,8 +54,8 @@ public static class ExecutionSchemaExtensions
             .ModifyRequestOptions(configure)
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 }

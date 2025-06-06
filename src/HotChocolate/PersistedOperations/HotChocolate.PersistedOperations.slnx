@@ -5,6 +5,12 @@
     <Project Path="src/PersistedOperations.InMemory/HotChocolate.PersistedOperations.InMemory.csproj" />
     <Project Path="src/PersistedOperations.Redis/HotChocolate.PersistedOperations.Redis.csproj" />
   </Folder>
+  <Folder Name="/src/PersistedOperations.Abstractions/">
+    <Project Path="src/PersistedOperations.Abstractions/HotChocolate.PersistedOperations.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/src/PersistedOperations.Pipeline/">
+    <Project Path="src/PersistedOperations.Pipeline/HotChocolate.PersistedOperations.Pipeline.csproj" />
+  </Folder>
   <Folder Name="/test/">
     <Project Path="test/PersistedOperations.AzureBlobStorage.Tests/HotChocolate.PersistedOperations.AzureBlobStorage.Tests.csproj" />
     <Project Path="test/PersistedOperations.FileSystem.Tests/HotChocolate.PersistedOperations.FileSystem.Tests.csproj" />

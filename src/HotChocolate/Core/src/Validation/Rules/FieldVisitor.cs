@@ -510,7 +510,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return list;
         }
 
-        protected internal override void OnInitialize(DocumentValidatorContext context)
+        protected internal override void Initialize(DocumentValidatorContext context)
             => NonNullString = new NonNullType(context.Schema.Types.GetType<IScalarTypeDefinition>("String"));
 
         protected internal override void Reset()

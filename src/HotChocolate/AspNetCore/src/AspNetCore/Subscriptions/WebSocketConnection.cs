@@ -21,7 +21,7 @@ internal sealed class WebSocketConnection : ISocketConnection
     {
         HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
         var executor = (IRequestExecutor)httpContext.Items[WellKnownContextData.RequestExecutor]!;
-        _protocolHandlers = executor.Services.GetServices<IProtocolHandler>().ToArray();
+        _protocolHandlers = executor.Schema.Services.GetServices<IProtocolHandler>().ToArray();
     }
 
     public bool IsClosed => _webSocket.IsClosed();

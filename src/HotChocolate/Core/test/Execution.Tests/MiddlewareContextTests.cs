@@ -19,8 +19,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
@@ -45,8 +44,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
