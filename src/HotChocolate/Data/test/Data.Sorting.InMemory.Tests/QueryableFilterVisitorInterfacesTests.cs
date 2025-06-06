@@ -63,20 +63,20 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
     public class InterfaceImpl1 : ITest
     {
-        public string Prop { get; set; } = default!;
+        public string Prop { get; set; } = null!;
 
-        public string Specific1 { get; set; } = default!;
+        public string Specific1 { get; set; } = null!;
     }
 
     public class InterfaceImpl2 : ITest
     {
-        public string Prop { get; set; } = default!;
+        public string Prop { get; set; } = null!;
 
-        public string Specific2 { get; set; } = default!;
+        public string Specific2 { get; set; } = null!;
     }
 
     public class BarInterface
     {
-        public ITest Test { get; set; } = default!;
+        public ITest Test { get; set; } = null!;
     }
 }

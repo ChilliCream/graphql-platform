@@ -208,20 +208,20 @@ internal sealed class DatabaseHelper
 
 internal class EntityDto
 {
-    public string Id { get; set; } = default!;
+    public string Id { get; set; } = null!;
 
-    public string Value { get; set; } = default!;
+    public string Value { get; set; } = null!;
 
-    public string Type { get; set; } = default!;
+    public string Type { get; set; } = null!;
 }
 
 internal class OperationDto
 {
-    public string Id { get; set; } = default!;
+    public string Id { get; set; } = null!;
 
     public string? Variables { get; set; }
 
-    public string ResultType { get; set; } = default!;
+    public string ResultType { get; set; } = null!;
 
-    public string DataInfo { get; set; } = default!;
+    public string DataInfo { get; set; } = null!;
 }

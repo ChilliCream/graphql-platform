@@ -994,7 +994,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
 
     public class Bar
     {
-        public string Qux { get; set; } = default!;
+        public string Qux { get; set; } = null!;
 
         public static Bar Create(string qux) => new()
         {

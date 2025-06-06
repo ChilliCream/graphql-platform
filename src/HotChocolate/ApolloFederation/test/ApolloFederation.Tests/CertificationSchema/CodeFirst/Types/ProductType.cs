@@ -10,7 +10,7 @@ public class ProductType : ObjectType<Product>
     {
         descriptor
             .Key("id")
-            .ResolveReferenceWith(t => GetProductById(default!, default!));
+            .ResolveReferenceWith(t => GetProductById(null!, null!));
 
         descriptor
             .Field(t => t.Id)
@@ -18,11 +18,11 @@ public class ProductType : ObjectType<Product>
 
         descriptor
             .Key("sku package")
-            .ResolveReferenceWith(t => GetProductByPackage(default!, default!, default!));
+            .ResolveReferenceWith(t => GetProductByPackage(null!, null!, null!));
 
         descriptor
             .Key("sku variation { id }")
-            .ResolveReferenceWith(t => GetProductByVariation(default!, default!, default!));
+            .ResolveReferenceWith(t => GetProductByVariation(null!, null!, null!));
 
         ProvidesDescriptorExtensions.Provides(
                 descriptor

@@ -103,7 +103,7 @@ public partial class InterfaceType
     /// <summary>
     /// Gets the fields of this interface type.
     /// </summary>
-    public InterfaceFieldCollection Fields { get; private set; } = default!;
+    public InterfaceFieldCollection Fields { get; private set; } = null!;
 
     IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> IComplexTypeDefinition.Fields
         => Fields.AsReadOnlyFieldDefinitionCollection();

@@ -31,7 +31,7 @@ public static class ResolveInterfaceFieldDescriptorExtensions
 
             if (resolverTask is null)
             {
-                return default;
+                return null;
             }
 
             return await resolverTask.ConfigureAwait(false);
@@ -64,7 +64,7 @@ public static class ResolveInterfaceFieldDescriptorExtensions
 
                 if (resolverTask is null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return await resolverTask.ConfigureAwait(false);
@@ -120,7 +120,7 @@ public static class ResolveInterfaceFieldDescriptorExtensions
 
                 if (resolverTask is null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return await resolverTask.ConfigureAwait(false);
@@ -166,7 +166,7 @@ public static class ResolveInterfaceFieldDescriptorExtensions
                 var resolverTask = resolver(ctx, ctx.RequestAborted);
                 if (resolverTask is null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return await resolverTask.ConfigureAwait(false);

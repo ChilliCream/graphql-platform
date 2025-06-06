@@ -394,7 +394,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
 
             if (valueSpan.Length != 16)
             {
-                value = default;
+                value = Guid.Empty;
                 consumed = 0;
                 return false;
             }
@@ -411,7 +411,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = Guid.Empty;
         consumed = 0;
         return false;
     }
@@ -446,7 +446,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = 0;
         consumed = 0;
         return false;
     }
@@ -481,7 +481,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = 0;
         consumed = 0;
         return false;
     }
@@ -516,7 +516,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = 0;
         consumed = 0;
         return false;
     }
@@ -551,7 +551,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = false;
         consumed = 0;
         return false;
     }

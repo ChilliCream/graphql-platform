@@ -36,7 +36,7 @@ public class ResolverTaskNullTests
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
         {
-            descriptor.Field<QueryResolver>(t => t.Case2(default));
+            descriptor.Field<QueryResolver>(t => t.Case2(null));
             descriptor.Field("case3")
                 .Argument("name", a => a.Type<StringType>())
                 .Type<StringType>()

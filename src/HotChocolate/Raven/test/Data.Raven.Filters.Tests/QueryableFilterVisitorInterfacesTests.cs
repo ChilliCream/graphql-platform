@@ -72,17 +72,17 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public string? Id { get; set; }
 
-        public string Prop { get; set; } = default!;
+        public string Prop { get; set; } = null!;
     }
 
     public class InterfaceImpl1 : Test
     {
-        public string Specific1 { get; set; } = default!;
+        public string Specific1 { get; set; } = null!;
     }
 
     public class InterfaceImpl2 : Test
     {
-        public string Specific2 { get; set; } = default!;
+        public string Specific2 { get; set; } = null!;
     }
 
     public class BarInterface
@@ -90,6 +90,6 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public string? Id { get; set; }
 
-        public Test Test { get; set; } = default!;
+        public Test Test { get; set; } = null!;
     }
 }

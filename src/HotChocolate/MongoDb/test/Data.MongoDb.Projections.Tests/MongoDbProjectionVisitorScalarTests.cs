@@ -96,6 +96,6 @@ public class MongoDbProjectionVisitorScalarTests : IClassFixture<MongoResource>
 
         public bool Bar { get; set; }
 
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
     }
 }

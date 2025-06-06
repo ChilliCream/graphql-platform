@@ -69,7 +69,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
 
 public class Query
 {
-    public User GetEntity(int id) => default!;
+    public User GetEntity(int id) => null!;
 }
 
 public class User
@@ -77,5 +77,5 @@ public class User
     [Key]
     public int Id { get; set; }
     [External]
-    public string IdCode { get; set; } = default!;
+    public string IdCode { get; set; } = null!;
 }

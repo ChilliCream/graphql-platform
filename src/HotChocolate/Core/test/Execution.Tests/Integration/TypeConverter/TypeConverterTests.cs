@@ -209,7 +209,7 @@ public class TypeConverterTests
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
         {
-            descriptor.Field(t => t.GetTime(default))
+            descriptor.Field(t => t.GetTime(null))
                 .Argument("time", a => a.Type<DateTimeType>())
                 .Type<DateTimeType>();
         }

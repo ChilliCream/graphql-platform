@@ -37,12 +37,12 @@ public sealed class OperationResult : IDisposable
     /// The variable index of this result. This is only set if the result is part of a variable batch operation.
     /// </param>
     public OperationResult(
-        IDisposable? memoryOwner = default,
+        IDisposable? memoryOwner = null,
         JsonElement data = default,
         JsonElement errors = default,
         JsonElement extensions = default,
-        int? requestIndex = default,
-        int? variableIndex = default)
+        int? requestIndex = null,
+        int? variableIndex = null)
     {
         _memoryOwner = memoryOwner;
         Data = data;

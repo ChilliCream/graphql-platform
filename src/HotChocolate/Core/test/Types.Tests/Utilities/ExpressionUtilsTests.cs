@@ -41,7 +41,7 @@ public class ExpressionUtilsTests
     public void IndexerExpression_ShouldThrow()
     {
         // act
-        void Action() => GetMember(t => t[default]);
+        void Action() => GetMember(t => t[0]);
 
         // assert
         Assert.Throws<ArgumentException>(Action);

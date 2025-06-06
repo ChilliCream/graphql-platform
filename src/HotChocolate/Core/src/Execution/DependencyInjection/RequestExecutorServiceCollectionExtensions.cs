@@ -116,7 +116,7 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IServiceCollection services,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -140,7 +140,7 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
 

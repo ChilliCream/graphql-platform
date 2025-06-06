@@ -9,7 +9,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     public void AddInMemoryClient_NoServices_ThrowException()
     {
         // arrange
-        IServiceCollection serviceCollection = default!;
+        IServiceCollection serviceCollection = null!;
         var name = "Foo";
 
         // act
@@ -49,7 +49,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         var stubClient = new InMemoryClient("bar");
 
         // act
-        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
+        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, CancellationToken.None);
 
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);
@@ -59,7 +59,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     public void AddInMemoryClientAction_NoServices_ThrowException()
     {
         // arrange
-        IServiceCollection serviceCollection = default!;
+        IServiceCollection serviceCollection = null!;
         var name = "Foo";
         Action<IInMemoryClient> action = x => x.SchemaName = "Bar";
 
@@ -116,7 +116,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         var stubClient = new InMemoryClient("bar");
 
         // act
-        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
+        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, CancellationToken.None);
 
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);
@@ -126,7 +126,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     public void AddInMemoryClientActionServiceProvider_NoServices_ThrowException()
     {
         // arrange
-        IServiceCollection serviceCollection = default!;
+        IServiceCollection serviceCollection = null!;
         var name = "Foo";
         Action<IServiceProvider, IInMemoryClient> action = (_, x) => x.SchemaName = "Bar";
 
@@ -183,7 +183,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         var stubClient = new InMemoryClient("bar");
 
         // act
-        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
+        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, CancellationToken.None);
 
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);
@@ -193,7 +193,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     public void AddInMemoryClientAsyncAction_NoServices_ThrowException()
     {
         // arrange
-        IServiceCollection serviceCollection = default!;
+        IServiceCollection serviceCollection = null!;
         var name = "Foo";
         Func<IInMemoryClient, CancellationToken, ValueTask> action = (x, _) =>
         {
@@ -263,7 +263,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         var stubClient = new InMemoryClient("bar");
 
         // act
-        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
+        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, CancellationToken.None);
 
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);
@@ -273,7 +273,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     public void AddInMemoryClientAsyncActionServiceProvider_NoServices_ThrowException()
     {
         // arrange
-        IServiceCollection serviceCollection = default!;
+        IServiceCollection serviceCollection = null!;
         var name = "Foo";
         Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> action =
             (_, x, _) =>
@@ -345,7 +345,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         var stubClient = new InMemoryClient("bar");
 
         // act
-        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
+        await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, CancellationToken.None);
 
         // assert
         Assert.Equal("Bar", stubClient.SchemaName);

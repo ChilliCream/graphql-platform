@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing;
 internal partial class MiddlewareContext
 {
     private readonly PureResolverContext _childContext;
-    private ISelection _selection = default!;
+    private ISelection _selection = null!;
 
     public ObjectType ObjectType => _selection.DeclaringType;
 

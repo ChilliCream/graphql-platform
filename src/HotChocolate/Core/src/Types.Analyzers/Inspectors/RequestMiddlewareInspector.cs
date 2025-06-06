@@ -34,7 +34,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 
             if (middlewareType is null)
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -57,7 +57,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     DeclaredAccessibility: Accessibility.Public
                 })
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -134,7 +134,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = default;
+        syntaxInfo = null;
         return false;
     }
 

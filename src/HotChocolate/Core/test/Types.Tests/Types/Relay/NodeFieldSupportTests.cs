@@ -17,7 +17,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -40,7 +40,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -63,7 +63,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
                 .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1)
                 .BuildRequestExecutorAsync();
 
@@ -87,7 +87,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -134,7 +134,7 @@ public class NodeFieldSupportTests
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
                 .BuildRequestExecutorAsync();
 
         // act

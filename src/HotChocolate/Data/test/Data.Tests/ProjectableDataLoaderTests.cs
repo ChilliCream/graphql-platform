@@ -941,7 +941,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             await Task.Run(() => new InvalidOperationException(), cancellationToken);
-            return default!;
+            return null!;
         }
     }
 
@@ -985,7 +985,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
         public class ProductProjection
         {
-            public string Name { get; set; } = default!;
+            public string Name { get; set; } = null!;
 
             public ProductType? Type { get; set; }
         }

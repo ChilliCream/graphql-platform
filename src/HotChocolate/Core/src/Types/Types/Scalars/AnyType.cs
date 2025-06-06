@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 public class AnyType : ScalarType
 {
     private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
-    private ObjectToDictionaryConverter _objectToDictConverter = default!;
+    private ObjectToDictionaryConverter _objectToDictConverter = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.

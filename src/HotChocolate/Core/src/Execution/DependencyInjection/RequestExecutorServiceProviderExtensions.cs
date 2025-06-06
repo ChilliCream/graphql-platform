@@ -27,7 +27,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async ValueTask<ISchemaDefinition> GetSchemaAsync(
         this IServiceProvider services,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         var executor =
@@ -54,7 +54,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async ValueTask<Schema> BuildSchemaAsync(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         IServiceProvider services = builder.Services.BuildServiceProvider();
@@ -82,7 +82,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         this IServiceProvider services,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default) =>
         services
             .GetRequiredService<IRequestExecutorResolver>()
@@ -106,7 +106,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static ValueTask<IRequestExecutor> BuildRequestExecutorAsync(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default) =>
         builder
             .Services
@@ -147,7 +147,7 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
         IOperationRequest request,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         var executor =
@@ -192,7 +192,7 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
         IOperationRequest request,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         var executor =
@@ -238,7 +238,7 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
         string query,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         var executor =
@@ -287,7 +287,7 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
         string query,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         var executor =
@@ -320,7 +320,7 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IResponseStream> ExecuteBatchRequestAsync(
         this IServiceProvider services,
         OperationRequestBatch requestBatch,
-        string? schemaName = default,
+        string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         var executor =

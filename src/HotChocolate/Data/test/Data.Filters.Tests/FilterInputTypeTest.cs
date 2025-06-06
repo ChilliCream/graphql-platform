@@ -422,14 +422,14 @@ public class FilterInputTypeTest : FilterTestBase
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class Bar
     {
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
 
-        public string Qux { get; set; } = default!;
+        public string Qux { get; set; } = null!;
     }
 
     public class Query
@@ -488,9 +488,9 @@ public class FilterInputTypeTest : FilterTestBase
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
-        public List<User> Friends { get; set; } = default!;
+        public List<User> Friends { get; set; } = null!;
     }
 
     public interface ITest
@@ -516,7 +516,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class IgnoreTestFilterInputType

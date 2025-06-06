@@ -514,7 +514,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         loader.SetCacheEntry("Foo", Task.FromResult<string?>("Bar"));
 
         // act
-        void Verify() => loader.RemoveCacheEntry(default!);
+        void Verify() => loader.RemoveCacheEntry(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>("key", Verify);
@@ -582,7 +582,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         const string key = "Foo";
 
         // act
-        void Verify() => loader.SetCacheEntry(key, default!);
+        void Verify() => loader.SetCacheEntry(key, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>("value", Verify);
@@ -692,7 +692,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
 
         // act
-        Task<IReadOnlyList<object?>> Verify() => loader.LoadAsync(default(object[])!);
+        Task<IReadOnlyList<object?>> Verify() => loader.LoadAsync(null!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
@@ -742,7 +742,7 @@ public class DataLoaderTests(ITestOutputHelper output)
 
         // act
         Task<IReadOnlyList<object?>> Verify()
-            => loader.LoadAsync(default(List<object>)!);
+            => loader.LoadAsync(null!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
@@ -861,7 +861,7 @@ public class DataLoaderTests(ITestOutputHelper output)
         object key = "Foo";
 
         // act
-        void Verify() => loader.SetCacheEntry(key, default!);
+        void Verify() => loader.SetCacheEntry(key, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>("value", Verify);

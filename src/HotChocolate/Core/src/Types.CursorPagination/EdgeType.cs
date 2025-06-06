@@ -32,7 +32,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         ArgumentNullException.ThrowIfNull(nodeType);
 
         // the property is set later in the configuration.
-        ConnectionName = default!;
+        ConnectionName = null!;
         Configuration = CreateConfiguration(nodeType);
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
@@ -59,7 +59,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     public string ConnectionName { get; private set; }
 
     /// <inheritdoc />
-    public IOutputType NodeType { get; private set; } = default!;
+    public IOutputType NodeType { get; private set; } = null!;
 
     /// <inheritdoc />
     public override bool IsInstanceOfType(IResolverContext context, object resolverResult)

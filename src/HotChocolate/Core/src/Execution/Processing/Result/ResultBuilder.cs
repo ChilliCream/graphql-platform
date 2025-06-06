@@ -18,7 +18,7 @@ internal sealed partial class ResultBuilder
     private readonly Dictionary<string, object?> _contextData = [];
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
 
-    private ResultMemoryOwner _resultOwner = default!;
+    private ResultMemoryOwner _resultOwner = null!;
     private ObjectResult? _data;
     private IReadOnlyList<object?>? _items;
     private Path? _path;

@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public abstract partial class ScalarType
 {
-    private ITypeConverter _converter = default!;
+    private ITypeConverter _converter = null!;
 
     /// <summary>
     /// Initializes a new instance of the
@@ -32,7 +32,7 @@ public abstract partial class ScalarType
         Name = name.EnsureGraphQLName();
         Bind = bind;
 
-        Directives = default!;
+        Directives = null!;
     }
 
     protected override ScalarTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)

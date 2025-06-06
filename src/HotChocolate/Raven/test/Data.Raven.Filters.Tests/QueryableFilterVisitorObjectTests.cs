@@ -662,7 +662,7 @@ public class QueryableFilterVisitorObjectTests
     {
         public string? Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
     }
 
     public class BarNullable

@@ -150,7 +150,7 @@ public class TypeDiscoveryTests
 
     public class QueryTypeWithInputStruct
     {
-        public int Foo(InputStructWithCtor arg) => default;
+        public int Foo(InputStructWithCtor arg) => 0;
     }
 
     public class InputTypeWithReadOnlyProperties(int property2)

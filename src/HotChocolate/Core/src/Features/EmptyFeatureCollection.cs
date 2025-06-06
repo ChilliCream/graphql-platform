@@ -17,7 +17,7 @@ internal sealed class EmptyFeatureCollection : IFeatureCollection
 
     public object? this[Type key]
     {
-        get => default;
+        get => null;
         set => ThrowReadOnly();
     }
 

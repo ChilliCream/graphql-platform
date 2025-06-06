@@ -138,9 +138,9 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
 
         public bool BarBool { get; set; }
 
-        public List<BarDeep> ObjectArray { get; set; } = default!;
+        public List<BarDeep> ObjectArray { get; set; } = null!;
 
-        public BarDeep NestedObject { get; set; } = default!;
+        public BarDeep NestedObject { get; set; } = null!;
     }
 
     public class FooDeep
@@ -179,7 +179,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
 
         public int Number { get; set; }
     }
@@ -190,7 +190,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullableDeep

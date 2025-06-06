@@ -1153,7 +1153,7 @@ public class IntegrationTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class QueryAttr

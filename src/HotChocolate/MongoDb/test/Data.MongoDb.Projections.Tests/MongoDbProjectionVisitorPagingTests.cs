@@ -420,7 +420,7 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 
         public bool Bar { get; set; }
 
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
 
         public string? Qux { get; set; }
 

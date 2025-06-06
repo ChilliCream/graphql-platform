@@ -2,7 +2,7 @@ namespace StrawberryShake.Tools.Configuration;
 
 public class StrawberryShakeSettingsTransportProfile
 {
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
     public TransportType Default { get; set; } = TransportType.Http;
 

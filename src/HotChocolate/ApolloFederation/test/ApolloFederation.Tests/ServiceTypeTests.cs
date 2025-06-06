@@ -126,7 +126,7 @@ public class ServiceTypeTests
 
     public class Query
     {
-        public Address GetAddress(int id) => default!;
+        public Address GetAddress(int id) => null!;
     }
 
     public class Address

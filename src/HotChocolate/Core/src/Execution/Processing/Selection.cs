@@ -91,9 +91,9 @@ public class Selection : ISelection
     public ObjectType DeclaringType { get; }
 
     /// <inheritdoc />
-    public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
+    public ISelectionSet DeclaringSelectionSet { get; private set; } = null!;
 
-    public IOperation DeclaringOperation { get; private set; } = default!;
+    public IOperation DeclaringOperation { get; private set; } = null!;
 
     /// <inheritdoc />
     public ObjectField Field { get; }

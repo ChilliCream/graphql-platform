@@ -19,7 +19,9 @@ public class GraphQlWsProtocolTests
         await protocol.DisposeAsync();
 
         // assert
-        Assert.Equal(1, socketClient.GetCallCount(x => x.ReceiveAsync(default!, default!)));
+        Assert.Equal(
+            1,
+            socketClient.GetCallCount(x => x.ReceiveAsync(null!, CancellationToken.None)));
     }
 
     [Fact]

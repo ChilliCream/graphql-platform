@@ -124,9 +124,9 @@ public class QueryableProjectionISetTests
         public bool BarBool { get; set; }
 
         [UseFiltering]
-        public ISet<BarDeep> ObjectSet { get; set; } = default!;
+        public ISet<BarDeep> ObjectSet { get; set; } = null!;
 
-        public BarDeep NestedObject { get; set; } = default!;
+        public BarDeep NestedObject { get; set; } = null!;
     }
 
     public class FooDeep
@@ -160,21 +160,21 @@ public class QueryableProjectionISetTests
     {
         public string? Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
     }
 
     public class BarDeep
     {
         public string? Id { get; set; }
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullableDeep
     {
         public string? Id { get; set; }
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullable

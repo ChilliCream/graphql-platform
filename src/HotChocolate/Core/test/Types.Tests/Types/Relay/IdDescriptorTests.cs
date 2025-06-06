@@ -106,19 +106,19 @@ public class IdDescriptorTests
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
             descriptor
-                .Field(t => t.IntId(default))
+                .Field(t => t.IntId(0))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.StringId(default))
+                .Field(t => t.StringId(null))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.GuidId(default))
+                .Field(t => t.GuidId(Guid.Empty))
                 .Argument("id", a => a.ID<Another>());
 
             descriptor
-                .Field(t => t.Foo(default))
+                .Field(t => t.Foo(null))
                 .Argument("input", a => a.Type<FooInputType>())
                 .Type<FooPayloadInterfaceType>();
         }

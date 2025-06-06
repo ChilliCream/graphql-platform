@@ -58,7 +58,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
     /// <summary>
     /// Gets the item type of this collection segment.
     /// </summary>
-    public IOutputType ItemType { get; private set; } = default!;
+    public IOutputType ItemType { get; private set; } = null!;
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,

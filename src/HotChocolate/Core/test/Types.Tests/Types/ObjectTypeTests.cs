@@ -315,7 +315,7 @@ public class ObjectTypeTests : TypeTestBase
         var fooType = CreateType(
             new ObjectType<Foo>(
                 d => d
-                    .Field<FooResolver>(t => t.GetBar(default))));
+                    .Field<FooResolver>(t => t.GetBar(null))));
 
         // assert
         Assert.Equal("foo", fooType.Fields["bar"].Arguments.First().Name);
@@ -1153,7 +1153,7 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         var objectType = new ObjectType(
             t => t.Name("Bar")
-                .Field<FooResolver>(f => f.GetDescription(default))
+                .Field<FooResolver>(f => f.GetDescription(null))
                 .Name("desc")
                 .Type<StringType>());
 
@@ -1327,7 +1327,7 @@ public class ObjectTypeTests : TypeTestBase
             .AddQueryType<QueryWithIntArg>(
                 t => t
                     .Field(f => f.GetBar(1))
-                    .Argument("foo", a => a.DefaultValue(default)))
+                    .Argument("foo", a => a.DefaultValue(null)))
             .Create();
 
         // assert
@@ -1343,7 +1343,7 @@ public class ObjectTypeTests : TypeTestBase
             SchemaBuilder.New()
                 .AddQueryType<QueryWithIntArg>(
                     t => t.Field(f => f.GetBar(1))
-                        .Argument("bar", a => a.DefaultValue(default)))
+                        .Argument("bar", a => a.DefaultValue(null)))
                 .Create();
 
         // assert
@@ -2170,7 +2170,7 @@ public class ObjectTypeTests : TypeTestBase
 #nullable enable
     public class Bar
     {
-        [GraphQLNonNullType] public string Baz { get; set; } = default!;
+        [GraphQLNonNullType] public string Baz { get; set; } = null!;
     }
 #nullable disable
 
@@ -2347,7 +2347,7 @@ public class ObjectTypeTests : TypeTestBase
                 .ResolveWith<ResolveWithQueryResolver, string>(t => t.FooAsync());
 
             descriptor.Field("quuz")
-                .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(default));
+                .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(null));
         }
     }
 
@@ -2437,9 +2437,9 @@ public class ObjectTypeTests : TypeTestBase
 
     public class Book
     {
-        public int Id => default;
+        public int Id => 0;
 
-        public string Title { get; set; } = default!;
+        public string Title { get; set; } = null!;
 
         public static bool IsComic => true;
     }

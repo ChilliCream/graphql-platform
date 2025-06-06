@@ -16,7 +16,7 @@ public class MongoDbFilterCombinator
     {
         if (operations.Count == 0)
         {
-            combined = default;
+            combined = null;
             return false;
         }
 

@@ -14,12 +14,12 @@ namespace HotChocolate.Types;
 internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
-    private TypeInitializer _typeInitializer = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private TypeLookup _typeLookup = default!;
-    private IDescriptorContext _context = default!;
-    private List<MutationContextData> _mutations = default!;
-    private ITypeCompletionContext _completionContext = default!;
+    private TypeInitializer _typeInitializer = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private TypeLookup _typeLookup = null!;
+    private IDescriptorContext _context = null!;
+    private List<MutationContextData> _mutations = null!;
+    private ITypeCompletionContext _completionContext = null!;
     private ObjectTypeConfiguration? _mutationTypeDef;
     private FieldMiddlewareConfiguration? _errorNullMiddleware;
     private TypeInterceptor[] _siblings = [];

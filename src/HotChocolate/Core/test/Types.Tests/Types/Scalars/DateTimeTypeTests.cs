@@ -436,17 +436,17 @@ public class DateTimeTypeTests
             {
                 // A DateTime with UTC offset (+00:00).
                 "2011-08-30T13:22:53.108Z",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
             },
             {
                 // A DateTime with +00:00 which is the same as UTC.
                 "2011-08-30T13:22:53.108+00:00",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
             },
             {
                 // The z and t may be lower case.
                 "2011-08-30t13:22:53.108z",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
             },
             {
                 // A DateTime with -3h offset.

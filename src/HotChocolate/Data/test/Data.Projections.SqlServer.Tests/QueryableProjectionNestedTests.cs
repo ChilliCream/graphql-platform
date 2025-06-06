@@ -166,7 +166,7 @@ public class QueryableProjectionNestedTests
     {
         public int Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
 
         public Foo NotSettable { get; } = new() { BarString = "Worked" };
 

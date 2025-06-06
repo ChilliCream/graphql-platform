@@ -78,7 +78,7 @@ public class NamingConventionTests
     {
         public ObjectNamingConvention QueryField(
             int queryArgument,
-            InputObjectNamingConvention complexArgument) => default!;
+            InputObjectNamingConvention complexArgument) => null!;
     }
 
     public class InputObjectNamingConvention
@@ -95,6 +95,6 @@ public class NamingConventionTests
     {
         public ObjectNamingConvention MutationField(
             int mutationArgument,
-            InputObjectNamingConvention complexArgumentMutation) => default!;
+            InputObjectNamingConvention complexArgumentMutation) => null!;
     }
 }

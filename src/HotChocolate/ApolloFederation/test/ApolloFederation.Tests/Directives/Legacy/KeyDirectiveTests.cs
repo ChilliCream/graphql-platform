@@ -136,6 +136,6 @@ public class KeyDirectiveTests : FederationTypesTestBase
         [Key]
         public int Id { get; set; }
         [Key]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

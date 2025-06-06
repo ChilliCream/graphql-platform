@@ -81,8 +81,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        Uri? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
@@ -115,8 +115,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        string? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
@@ -146,7 +146,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        Uri? uri = default,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -176,7 +176,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        string? uri = default,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -358,7 +358,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        Uri? uri = default,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -388,7 +388,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        string? uri = default,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -421,8 +421,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        Uri? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
@@ -455,8 +455,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        string? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);

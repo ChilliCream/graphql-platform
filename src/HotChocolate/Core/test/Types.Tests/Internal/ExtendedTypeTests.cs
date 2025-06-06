@@ -232,7 +232,7 @@ public class ExtendedTypeTests
         var a = ExtendedType.FromType(typeof(byte), _cache);
 
         // act
-        var result = a.Equals(default(ExtendedType));
+        var result = a.Equals(null);
 
         // assert
         Assert.False(result);

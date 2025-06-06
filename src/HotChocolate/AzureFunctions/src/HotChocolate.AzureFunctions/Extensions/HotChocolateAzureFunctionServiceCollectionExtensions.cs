@@ -40,7 +40,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         this IServiceCollection services,
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -72,7 +72,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutor(
         this IServiceCollection services,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
-        string? schemaName = default)
+        string? schemaName = null)
     {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {

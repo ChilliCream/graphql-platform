@@ -353,7 +353,7 @@ internal static class ExpressionHelpers
     {
         public TKey Key { get; set; } = default!;
 
-        public List<TValue> Items { get; set; } = default!;
+        public List<TValue> Items { get; set; } = null!;
     }
 
     public readonly struct OrderRewriterResult(

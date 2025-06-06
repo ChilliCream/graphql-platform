@@ -22,7 +22,7 @@ public class GraphQLHttpClientConfigurationTests
         };
 
         var client = GraphQLHttpClient.Create(httpClient, true);
-        await client.SendAsync(new("{ __typename }", new(CreateUrl(default))), default);
+        await client.SendAsync(new("{ __typename }", new(CreateUrl(null))), CancellationToken.None);
     }
 
     internal class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> sender) : HttpMessageHandler

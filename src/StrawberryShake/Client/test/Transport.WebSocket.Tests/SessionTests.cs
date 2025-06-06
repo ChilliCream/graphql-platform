@@ -88,7 +88,7 @@ public class SessionTests
                     await manager.OpenSessionAsync(ct).ConfigureAwait(false);
 
                     // assert
-                    Assert.Equal(1, client.GetCallCount(x => x.OpenAsync(default!)));
+                    Assert.Equal(1, client.GetCallCount(x => x.OpenAsync(CancellationToken.None)));
                 })
             .RunAsync();
 
@@ -110,7 +110,7 @@ public class SessionTests
                     Assert.Equal(
                         1,
                         client.GetCallCount(
-                            x => x.CloseAsync(default!, default!, default!)));
+                            x => x.CloseAsync(null!, default!, CancellationToken.None)));
                 })
             .RunAsync();
 
