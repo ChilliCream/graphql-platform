@@ -440,6 +440,6 @@ public class RavenQueryableTests
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync();
+            .GetExecutorAsync();
     }
 }

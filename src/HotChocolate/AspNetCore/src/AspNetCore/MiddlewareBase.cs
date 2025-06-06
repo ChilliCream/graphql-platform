@@ -22,11 +22,12 @@ public class MiddlewareBase : IDisposable
 
     protected MiddlewareBase(
         RequestDelegate next,
-        IRequestExecutorProvider executorResolver,
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         string schemaName)
     {
-        ArgumentNullException.ThrowIfNull(executorResolver);
+        ArgumentNullException.ThrowIfNull(executorProvider);
 
         _next = next ??
             throw new ArgumentNullException(nameof(next));
@@ -34,7 +35,7 @@ public class MiddlewareBase : IDisposable
             throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
         IsDefaultSchema = SchemaName.EqualsOrdinal(ISchemaDefinition.DefaultName);
-        _executorProxy = new RequestExecutorProxy(executorResolver, schemaName);
+        _executorProxy = new RequestExecutorProxy(executorProvider, executorEvents, schemaName);
     }
 
     /// <summary>
@@ -75,7 +76,7 @@ public class MiddlewareBase : IDisposable
     /// Returns the request executor for this middleware.
     /// </returns>
     protected ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken cancellationToken)
-        => _executorProxy.GetRequestExecutorAsync(cancellationToken);
+        => _executorProxy.GetExecutorAsync(cancellationToken);
 
     /// <summary>
     /// Gets the schema for this middleware.

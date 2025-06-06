@@ -21,7 +21,7 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution;
 
-internal sealed partial class RequestExecutorProvider
+internal sealed partial class RequestExecutorManager
     : IRequestExecutorProvider
     , IRequestExecutorEvents
     , IRequestExecutorWarmup
@@ -38,7 +38,7 @@ internal sealed partial class RequestExecutorProvider
     private ulong _version;
     private bool _disposed;
 
-    public RequestExecutorProvider(
+    public RequestExecutorManager(
         IRequestExecutorOptionsMonitor optionsMonitor,
         IEnumerable<WarmupSchemaTask> warmupSchemaTasks,
         IServiceProvider serviceProvider)
@@ -581,7 +581,7 @@ internal sealed partial class RequestExecutorProvider
         }
     }
 
-    private sealed class TypeModuleChangeMonitor(RequestExecutorProvider resolver, string schemaName) : IDisposable
+    private sealed class TypeModuleChangeMonitor(RequestExecutorManager resolver, string schemaName) : IDisposable
     {
         private readonly List<ITypeModule> _typeModules = [];
         private bool _disposed;

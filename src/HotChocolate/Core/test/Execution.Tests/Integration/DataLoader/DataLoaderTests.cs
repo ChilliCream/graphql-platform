@@ -216,12 +216,12 @@ public class DataLoaderTests
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(
-                    next => async context =>
+                    (_, next) => async context =>
                     {
                         await next(context);
 
                         var dataLoader =
-                            context.Services
+                            context.RequestServices
                                 .GetRequiredService<IDataLoaderScope>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -277,12 +277,12 @@ public class DataLoaderTests
             .AddDataLoader<ITestDataLoader, TestDataLoader>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
 
                     var dataLoader =
-                        context.Services
+                        context.RequestServices
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -312,12 +312,12 @@ public class DataLoaderTests
             .AddDataLoader<ITestDataLoader, TestDataLoader>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
 
                     var dataLoader =
-                        context.Services
+                        context.RequestServices
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -350,12 +350,12 @@ public class DataLoaderTests
             .AddDataLoader<ITestDataLoader, TestDataLoader>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
 
                     var dataLoader =
-                        context.Services
+                        context.RequestServices
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -432,11 +432,11 @@ public class DataLoaderTests
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(
-                    next => async context =>
+                    (_, next) => async context =>
                     {
                         await next(context);
 
-                        var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+                        var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
                         context.Result = OperationResultBuilder
                             .FromResult(((IOperationResult)context.Result!))
@@ -493,14 +493,14 @@ public class DataLoaderTests
                         new DataLoaderOptions()))
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(
-                    next => async context =>
+                    (_, next) => async context =>
                     {
                         await next(context);
 
-                        var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+                        var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
                         context.Result = OperationResultBuilder
-                            .FromResult(((IOperationResult)context.Result!))
+                            .FromResult((IOperationResult)context.Result!)
                             .AddExtension("loads", dataLoader.Loads)
                             .Build();
                     })

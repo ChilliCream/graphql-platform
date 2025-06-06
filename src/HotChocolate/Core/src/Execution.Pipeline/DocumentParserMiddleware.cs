@@ -44,7 +44,7 @@ internal sealed class DocumentParserMiddleware
             // a parsed document was passed into the request.
             if (query is OperationDocument parsed)
             {
-                documentInfo.Hash = CreateDocumentId(documentInfo, context.Request);
+                documentInfo.Hash = CreateDocumentHash(documentInfo, context.Request);
                 documentInfo.Document = parsed.Document;
                 success = true;
             }
@@ -54,7 +54,7 @@ internal sealed class DocumentParserMiddleware
                 {
                     try
                     {
-                        documentInfo.Hash = CreateDocumentId(documentInfo, context.Request);
+                        documentInfo.Hash = CreateDocumentHash(documentInfo, context.Request);
                         documentInfo.Document = Utf8GraphQLParser.Parse(source.SourceText, _parserOptions);
                         success = true;
                     }
@@ -90,7 +90,7 @@ internal sealed class DocumentParserMiddleware
         }
     }
 
-    private OperationDocumentHash CreateDocumentId(
+    private OperationDocumentHash CreateDocumentHash(
         OperationDocumentInfo documentInfo,
         IOperationRequest request)
     {
@@ -104,8 +104,7 @@ internal sealed class DocumentParserMiddleware
             return request.DocumentHash;
         }
 
-        var hash = _documentHashProvider.ComputeHash(request.Document!.AsSpan());
-        return new OperationDocumentHash(hash, _documentHashProvider.Name, _documentHashProvider.Format);
+        return _documentHashProvider.ComputeHash(request.Document!.AsSpan());
     }
 
     public static RequestMiddlewareConfiguration Create()

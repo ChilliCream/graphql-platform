@@ -18,11 +18,12 @@ public class HttpPostMiddlewareBase : MiddlewareBase
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
         IRequestExecutorProvider executorResolver,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, responseFormatter, schemaName)
+        : base(next, executorResolver, executorEvents, responseFormatter, schemaName)
     {
         RequestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));

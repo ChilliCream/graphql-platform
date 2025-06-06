@@ -110,7 +110,7 @@ public class ProjectionVisitorTestBase
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .Result;
     }
 

@@ -77,7 +77,7 @@ public class SqlLiteOffsetTestBase
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .Result;
     }
 }

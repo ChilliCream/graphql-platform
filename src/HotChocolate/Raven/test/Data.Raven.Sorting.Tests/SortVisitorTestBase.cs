@@ -92,7 +92,7 @@ public class SortVisitorTestBase : IAsyncLifetime
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .Result;
     }
 

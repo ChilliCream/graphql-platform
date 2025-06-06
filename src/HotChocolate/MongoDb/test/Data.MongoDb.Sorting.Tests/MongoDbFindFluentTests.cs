@@ -218,7 +218,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .GetAwaiter()
             .GetResult();
     }

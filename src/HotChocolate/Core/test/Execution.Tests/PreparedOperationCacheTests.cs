@@ -20,8 +20,8 @@ public class PreparedOperationCacheTests
         var resolver = provider.GetRequiredService<IRequestExecutorProvider>();
 
         // act
-        var executor = await resolver.GetRequestExecutorAsync();
-        var operationCache = executor.Services.GetCombinedServices()
+        var executor = await resolver.GetExecutorAsync();
+        var operationCache = executor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
         // assert

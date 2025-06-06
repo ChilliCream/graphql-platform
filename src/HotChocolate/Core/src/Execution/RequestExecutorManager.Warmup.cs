@@ -1,6 +1,6 @@
 namespace HotChocolate.Execution;
 
-internal sealed partial class RequestExecutorProvider
+internal sealed partial class RequestExecutorManager
 {
     private bool _initialWarmupDone;
 

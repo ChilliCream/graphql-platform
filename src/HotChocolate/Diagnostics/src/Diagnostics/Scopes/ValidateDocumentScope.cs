@@ -19,7 +19,7 @@ internal sealed class ValidateDocumentScope : RequestScopeBase
 
     protected override void SetStatus()
     {
-        if (Context.IsValidDocument)
+        if (Context.IsOperationDocumentValid())
         {
             Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);

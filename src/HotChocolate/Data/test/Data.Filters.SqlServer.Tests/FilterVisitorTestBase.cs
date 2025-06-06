@@ -96,7 +96,7 @@ public class FilterVisitorTestBase
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .Result;
     }
 

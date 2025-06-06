@@ -289,9 +289,8 @@ public ref partial struct Utf8GraphQLRequestParser
                 else
                 {
                     var hash = _hashProvider!.ComputeHash(unescapedSpan);
-                    request.DocumentHash = new OperationDocumentHash(hash, _hashProvider.Name, _hashProvider.Format);
-
-                    if (_cache!.TryGetDocument(hash, out cachedDocument))
+                    request.DocumentHash = hash;
+                    if (_cache!.TryGetDocument(hash.Value, out cachedDocument))
                     {
                         document = cachedDocument.Body;
                     }
@@ -302,7 +301,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
                     if (!request.DocumentId.HasValue)
                     {
-                        request.DocumentId = hash;
+                        request.DocumentId = hash.Value;
                     }
                 }
             }

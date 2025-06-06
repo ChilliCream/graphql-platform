@@ -353,7 +353,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 // next we check if the validation of the request failed.
                 // if that is the case we will return a BadRequest status code (400).
-                if (contextData.ContainsKey(ValidationErrors))
+                if (contextData.ContainsKey(ExecutionContextData.ValidationErrors))
                 {
                     return HttpStatusCode.BadRequest;
                 }

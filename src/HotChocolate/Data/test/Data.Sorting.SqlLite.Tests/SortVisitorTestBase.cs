@@ -85,7 +85,7 @@ public class SortVisitorTestBase
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .Result;
     }
 

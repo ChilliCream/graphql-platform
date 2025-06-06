@@ -26,6 +26,6 @@ public static class CommonTestExtensions
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync();
+            .GetExecutorAsync();
     }
 }

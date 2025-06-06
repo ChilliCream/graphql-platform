@@ -43,7 +43,7 @@ internal sealed class ExportCommand : Command
 
         var schema = await host.Services
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync(schemaName, cancellationToken);
+            .GetExecutorAsync(schemaName, cancellationToken);
 
         var sdl = schema.Schema.ToString();
 

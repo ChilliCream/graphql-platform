@@ -12,7 +12,7 @@ public class QueryExtension
 
     public bool Evict([FromServices] IRequestExecutorProvider executorResolver, ISchemaDefinition schema)
     {
-        executorResolver.EvictRequestExecutor(schema.Name);
+        ((RequestExecutorManager)executorResolver).EvictRequestExecutor(schema.Name);
         return true;
     }
 

@@ -62,11 +62,10 @@ internal sealed class DocumentCacheMiddleware
             }
             else if (!request.DocumentHash.IsEmpty && request.Document is not null)
             {
-                var hash = _hashProvider.ComputeHash(request.Document.AsSpan());
-                documentInfo.Hash = new OperationDocumentHash(hash, _hashProvider.Name, _hashProvider.Format);
-                if (_documentCache.TryGetDocument(hash, out document))
+                documentInfo.Hash = _hashProvider.ComputeHash(request.Document.AsSpan());
+                if (_documentCache.TryGetDocument(documentInfo.Hash.Value, out document))
                 {
-                    documentInfo.Id = new OperationDocumentId(hash);
+                    documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
                     documentInfo.Hash = document.Hash;
                     documentInfo.Document = document.Body;
                     documentInfo.IsValidated = true;

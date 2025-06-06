@@ -22,7 +22,7 @@ public class SourceObjectConversionTests
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync();
+            .GetExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo { qux } }");

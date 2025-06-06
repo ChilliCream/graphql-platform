@@ -225,6 +225,6 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync();
+            .GetExecutorAsync();
     }
 }

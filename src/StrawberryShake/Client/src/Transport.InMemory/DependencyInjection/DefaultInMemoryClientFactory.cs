@@ -50,7 +50,7 @@ public class DefaultInMemoryClientFactory : IInMemoryClientFactory
         }
         else
         {
-            client.Executor = await _executorProvider.GetRequestExecutorAsync(client.SchemaName, cancellationToken);
+            client.Executor = await _executorProvider.GetExecutorAsync(client.SchemaName, cancellationToken);
         }
 
         return client;

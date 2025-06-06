@@ -66,9 +66,8 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .TryAddTypeInterceptor<CostTypeInterceptor>()
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
             .AppendUseRequest(
-                after: nameof(DocumentValidationMiddleware),
-                middleware: CostAnalyzerMiddleware.Create(),
-                key: nameof(CostAnalyzerMiddleware),
+                after: CommonMiddleware.DocumentValidationKey,
+                configuration: CostAnalyzerMiddleware.Create(),
                 allowMultiple: false);
     }
 

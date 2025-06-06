@@ -10,8 +10,8 @@ internal sealed class PrepareAuthorizationMiddleware(RequestDelegate next)
         return next(context);
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             static (_, next) =>
             {
                 var middleware = new PrepareAuthorizationMiddleware(next);

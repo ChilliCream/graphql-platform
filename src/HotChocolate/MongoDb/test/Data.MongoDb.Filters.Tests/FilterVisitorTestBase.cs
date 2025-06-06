@@ -54,7 +54,7 @@ public class FilterVisitorTestBase
                     .UseFiltering<T>())
             .AddType(new TimeSpanType(TimeSpanFormat.DotNet))
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -70,7 +70,7 @@ public class FilterVisitorTestBase
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .GetAwaiter()
             .GetResult();
     }

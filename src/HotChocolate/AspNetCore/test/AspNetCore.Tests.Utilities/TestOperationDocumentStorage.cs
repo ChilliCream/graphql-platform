@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 

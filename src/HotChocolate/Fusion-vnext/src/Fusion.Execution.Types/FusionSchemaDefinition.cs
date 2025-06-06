@@ -16,6 +16,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     public FusionSchemaDefinition(
         string name,
         string? description,
+        IServiceProvider services,
         FusionObjectTypeDefinition queryType,
         FusionObjectTypeDefinition? mutationType,
         FusionObjectTypeDefinition? subscriptionType,
@@ -25,6 +26,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     {
         Name = name;
         Description = description;
+        Services = services;
         QueryType = queryType;
         MutationType = mutationType;
         SubscriptionType = subscriptionType;
@@ -33,9 +35,20 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         DirectiveDefinitions = directiveDefinitions;
     }
 
+    /// <summary>
+    /// Gets the schema name.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Gets the schema description.
+    /// </summary>
     public string? Description { get; }
+
+    /// <summary>
+    /// Gets the schema services.
+    /// </summary>
+    public IServiceProvider Services { get; }
 
     /// <summary>
     /// The type that query operations will be rooted at.

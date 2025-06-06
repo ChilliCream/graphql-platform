@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-internal sealed partial class RequestExecutorProvider
+internal sealed partial class RequestExecutorManager
 {
     private static async ValueTask<RequestExecutorOptions> OnConfigureRequestExecutorOptionsAsync(
         ConfigurationContext context,

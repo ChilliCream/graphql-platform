@@ -323,9 +323,9 @@ public class ActivityEnricher
 
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
-        var operationInfo = context.GetOperationInfo();
+        context.TryGetOperation(out var operation);
         var documentInfo = context.GetOperationDocumentInfo();
-        var operationDisplayName = CreateOperationDisplayName(context, operationInfo);
+        var operationDisplayName = CreateOperationDisplayName(context, operation);
 
         if (_options.RenameRootActivity && operationDisplayName is not null)
         {
@@ -336,9 +336,9 @@ public class ActivityEnricher
         activity.SetTag("graphql.document.id", documentInfo.Id.Value);
         activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
         activity.SetTag("graphql.document.valid", documentInfo.IsValidated);
-        activity.SetTag("graphql.operation.id", operationInfo.Id);
-        activity.SetTag("graphql.operation.kind", operationInfo.Operation?.Type);
-        activity.SetTag("graphql.operation.name", operationInfo.Operation?.Name);
+        activity.SetTag("graphql.operation.id", operation?.Id);
+        activity.SetTag("graphql.operation.kind", operation?.Type);
+        activity.SetTag("graphql.operation.name", operation?.Name);
 
         if (_options.IncludeDocument && documentInfo.Document is not null)
         {
@@ -352,58 +352,58 @@ public class ActivityEnricher
         }
     }
 
-    protected virtual string? CreateOperationDisplayName(RequestContext context, OperationInfo operationInfo)
+    protected virtual string? CreateOperationDisplayName(RequestContext context, IOperation? operation)
     {
-        if (operationInfo.Operation is { } operation)
+        if (operation is null)
         {
-            var displayName = StringBuilderPool.Get();
-
-            try
-            {
-                var rootSelectionSet = operation.RootSelectionSet;
-
-                displayName.Append('{');
-                displayName.Append(' ');
-
-                foreach (var selection in rootSelectionSet.Selections.Take(3))
-                {
-                    if (displayName.Length > 2)
-                    {
-                        displayName.Append(' ');
-                    }
-
-                    displayName.Append(selection.ResponseName);
-                }
-
-                if (rootSelectionSet.Selections.Count > 3)
-                {
-                    displayName.Append(' ');
-                    displayName.Append('.');
-                    displayName.Append('.');
-                    displayName.Append('.');
-                }
-
-                displayName.Append(' ');
-                displayName.Append('}');
-
-                if (operation.Name is { } name)
-                {
-                    displayName.Insert(0, ' ');
-                    displayName.Insert(0, name);
-                }
-
-                displayName.Insert(0, ' ');
-                displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
-
-                return displayName.ToString();
-            }
-            finally
-            {
-                StringBuilderPool.Return(displayName);
-            }
+            return null;
         }
 
-        return null;
+        var displayName = StringBuilderPool.Get();
+
+        try
+        {
+            var rootSelectionSet = operation.RootSelectionSet;
+
+            displayName.Append('{');
+            displayName.Append(' ');
+
+            foreach (var selection in rootSelectionSet.Selections.Take(3))
+            {
+                if (displayName.Length > 2)
+                {
+                    displayName.Append(' ');
+                }
+
+                displayName.Append(selection.ResponseName);
+            }
+
+            if (rootSelectionSet.Selections.Count > 3)
+            {
+                displayName.Append(' ');
+                displayName.Append('.');
+                displayName.Append('.');
+                displayName.Append('.');
+            }
+
+            displayName.Append(' ');
+            displayName.Append('}');
+
+            if (operation.Name is { } name)
+            {
+                displayName.Insert(0, ' ');
+                displayName.Insert(0, name);
+            }
+
+            displayName.Insert(0, ' ');
+            displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
+
+            return displayName.ToString();
+        }
+        finally
+        {
+            StringBuilderPool.Return(displayName);
+        }
     }
 
     private void UpdateRootActivityName(Activity activity, string displayName)
@@ -490,9 +490,9 @@ public class ActivityEnricher
 
     public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
     {
-        var operationInfo = context.GetOperationInfo();
+        context.TryGetOperation(out var operation);
         activity.DisplayName =
-            operationInfo.Operation?.Name is { } op
+            operation?.Name is { } op
                 ? $"Execute Operation {op}"
                 : "Execute Operation";
     }

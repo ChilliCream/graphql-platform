@@ -6,14 +6,16 @@ namespace HotChocolate.AspNetCore;
 
 public sealed class HttpPostMiddleware(
     HttpRequestDelegate next,
-    IRequestExecutorProvider executorResolver,
+    IRequestExecutorProvider executorProvider,
+    IRequestExecutorEvents executorEvents,
     IHttpResponseFormatter responseFormatter,
     IHttpRequestParser requestParser,
     IServerDiagnosticEvents diagnosticEvents,
     string schemaName)
     : HttpPostMiddlewareBase(
         next,
-        executorResolver,
+        executorProvider,
+        executorEvents,
         responseFormatter,
         requestParser,
         diagnosticEvents,

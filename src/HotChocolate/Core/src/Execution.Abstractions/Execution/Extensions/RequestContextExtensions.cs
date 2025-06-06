@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
 
@@ -34,5 +35,32 @@ public static class RequestContextExtensions
         ArgumentNullException.ThrowIfNull(context);
 
         return context.Features.GetOrSet<OperationDocumentInfo>().IsValidated;
+    }
+
+    public static bool IsPersistedOperationDocument(this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        return context.Features.GetOrSet<OperationDocumentInfo>().IsPersisted;
+    }
+
+    public static bool TryGetOperationDocument(
+        this RequestContext context,
+        [NotNullWhen(true)] out DocumentNode? document,
+        out OperationDocumentId documentId)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        document = context.Features.GetOrSet<OperationDocumentInfo>().Document;
+        documentId = context.Features.GetOrSet<OperationDocumentInfo>().Id;
+
+        return document is not null;
+    }
+
+    public static void SetOperationDocumentId(this RequestContext context, OperationDocumentId documentId)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        context.Features.GetOrSet<OperationDocumentInfo>().Id = documentId;
     }
 }

@@ -162,7 +162,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .GetAwaiter()
             .GetResult();
     }

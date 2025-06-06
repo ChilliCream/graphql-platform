@@ -6,6 +6,15 @@ namespace HotChocolate.Execution;
 /// </summary>
 public interface IRequestExecutor
 {
+    /// <summary>
+    /// Gets an <see cref="ulong"/> representing the version of the executor.
+    /// When a schema is updated and a new executor is created, the version is incremented.
+    /// </summary>
+    ulong Version { get; }
+
+    /// <summary>
+    /// Gets the schema definition that this executor operates on.
+    /// </summary>
     ISchemaDefinition Schema { get; }
 
     /// <summary>

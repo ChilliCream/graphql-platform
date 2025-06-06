@@ -188,7 +188,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                     })
                     .UseFiltering<FilterInputType<TEntity>>())
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -204,7 +204,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetRequestExecutorAsync()
+            .GetExecutorAsync()
             .GetAwaiter()
             .GetResult();
 }

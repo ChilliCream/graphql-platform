@@ -122,7 +122,7 @@ public class DefaultInMemoryClientBuilderTests
 
         executorResolverMock
             .Setup(
-                x => x.GetRequestExecutorAsync(nameString, It.IsAny<CancellationToken>()))
+                x => x.GetExecutorAsync(nameString, It.IsAny<CancellationToken>()))
             .ReturnsAsync(executor);
 
         // act
@@ -138,7 +138,7 @@ public class DefaultInMemoryClientBuilderTests
         // arrange
         const string nameString = "FooBar";
         var executorProvider = CreateExecutorProvider(nameString);
-        var executor = await executorProvider.GetRequestExecutorAsync(nameString);
+        var executor = await executorProvider.GetExecutorAsync(nameString);
 
         var optionsMonitor =
             new ServiceCollection()
