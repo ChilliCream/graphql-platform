@@ -48,7 +48,6 @@ public sealed class ObjectField : OutputField
         Flags = original.Flags;
     }
 
-
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>

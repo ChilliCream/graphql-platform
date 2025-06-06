@@ -1524,5 +1524,4 @@ public class OperationCompilerTests
     {
         public string Name => "Name";
     }
-
 }

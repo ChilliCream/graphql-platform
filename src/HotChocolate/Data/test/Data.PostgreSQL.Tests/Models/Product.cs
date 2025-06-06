@@ -30,7 +30,6 @@ public sealed class Product
     // Available stock at which we should reorder
     public int RestockThreshold { get; set; }
 
-
     // Maximum number of units that can be in-stock at any time (due to physicial/logistical constraints in warehouses)
     public int MaxStockThreshold { get; set; }
 

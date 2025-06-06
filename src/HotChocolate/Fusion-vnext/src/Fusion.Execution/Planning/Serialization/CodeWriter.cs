@@ -24,5 +24,4 @@ internal sealed class CodeWriter(StringBuilder sb)
     {
         sb.Append(s);
     }
-
 }

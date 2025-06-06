@@ -42,7 +42,6 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         return this;
     }
 
-
     public T CreateConfiguration()
     {
         OnCreateConfiguration(Configuration);

@@ -156,5 +156,4 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
         return null;
     }
-
 }

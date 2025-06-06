@@ -32,7 +32,6 @@ public sealed class InterfaceTypeDefinitionCollection
     IInterfaceTypeDefinition IReadOnlyList<IInterfaceTypeDefinition>.this[int index]
         => this[index];
 
-
     public void Add(MutableInterfaceTypeDefinition item)
     {
         ArgumentNullException.ThrowIfNull(item);

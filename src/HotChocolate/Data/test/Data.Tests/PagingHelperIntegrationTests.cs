@@ -1323,7 +1323,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
         public Brand Brand { get; }
     }
 
-
     public class BrandDto
     {
         public BrandDto(int id, string name)

@@ -34,7 +34,6 @@ public static class SchemaPrinter
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(stream);
 
-
         var document = PrintSchema(schema);
         await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
     }

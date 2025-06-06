@@ -149,5 +149,3 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
 
     public sealed record Segment(string Name, SelectionPathSegmentKind Kind);
 }
-
-

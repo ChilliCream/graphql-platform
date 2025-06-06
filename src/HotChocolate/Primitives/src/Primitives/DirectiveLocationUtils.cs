@@ -55,7 +55,6 @@ public static class DirectiveLocationUtils
             { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition }
         };
 
-
     public static DirectiveLocation Parse(
         IReadOnlyList<NameNode> locations)
     {

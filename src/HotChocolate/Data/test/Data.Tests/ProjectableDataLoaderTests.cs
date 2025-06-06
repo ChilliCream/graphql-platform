@@ -660,7 +660,6 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
-
     [Fact]
     public async Task Brand_With_Id_And_Name_Over_Node()
     {

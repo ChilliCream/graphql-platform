@@ -79,5 +79,4 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
     }
-
 }
