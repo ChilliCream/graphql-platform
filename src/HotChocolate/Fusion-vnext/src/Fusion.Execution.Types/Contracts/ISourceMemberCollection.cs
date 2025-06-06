@@ -14,4 +14,3 @@ public interface ISourceMemberCollection<out TMember>
 
     ImmutableArray<string> Schemas { get; }
 }
-

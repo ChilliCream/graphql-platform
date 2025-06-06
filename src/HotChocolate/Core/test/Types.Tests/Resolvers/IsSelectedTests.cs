@@ -829,7 +829,6 @@ public class IsSelectedTests
                     }
                     """);
 
-
         result.MatchMarkdownSnapshot();
     }
 
@@ -848,7 +847,6 @@ public class IsSelectedTests
                         }
                     }
                     """);
-
 
         result.MatchMarkdownSnapshot();
     }

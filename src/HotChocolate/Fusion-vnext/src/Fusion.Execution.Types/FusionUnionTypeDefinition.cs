@@ -57,7 +57,6 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => Directives;
 
-
     public IFeatureCollection Features
     {
         get;

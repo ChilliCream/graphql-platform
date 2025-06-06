@@ -463,7 +463,6 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         }
 
         return updated;
-
     }
 
     private Type? Unwrap(Type resultType, IType type)

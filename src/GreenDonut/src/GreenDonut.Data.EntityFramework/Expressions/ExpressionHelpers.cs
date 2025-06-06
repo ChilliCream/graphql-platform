@@ -104,7 +104,6 @@ internal static class ExpressionHelpers
         return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
     }
 
-
     /// <summary>
     /// Build the select expression for a batch paging expression that uses grouping.
     /// </summary>

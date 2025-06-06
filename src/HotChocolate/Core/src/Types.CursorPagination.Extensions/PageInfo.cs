@@ -9,7 +9,6 @@ namespace HotChocolate.Types.Pagination;
     "Information about pagination in a connection.")]
 public abstract class PageInfo : IPageInfo
 {
-
     /// <summary>
     /// Indicates whether more edges exist following
     /// the set defined by the clients arguments.

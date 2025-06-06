@@ -8,7 +8,6 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation;
 
-
 /// <summary>
 /// The <see cref="DocumentValidator"/> is used to validate if a GraphQL operation document
 /// is valid and can be executed.

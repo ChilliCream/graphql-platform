@@ -1086,7 +1086,6 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
     }
 
-
     public class SubscriptionWithDirective
     {
         [Subscribe(With = nameof(GetStream))]

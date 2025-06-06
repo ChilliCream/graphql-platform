@@ -32,7 +32,6 @@ namespace HotChocolate.Validation.Rules;
 internal sealed class ArgumentVisitor()
     : TypeDocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true })
 {
-
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
         DocumentValidatorContext context)

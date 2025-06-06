@@ -32,7 +32,6 @@ internal class MongoDbCursorPagingHandler<TEntity>(PagingOptions options)
                 context.RequestAborted)
             .ConfigureAwait(false);
 
-
     private static IMongoPagingContainer<TEntity> CreatePagingContainer(object source)
     {
         return source switch
