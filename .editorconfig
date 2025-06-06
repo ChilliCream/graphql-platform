@@ -168,6 +168,8 @@ dotnet_diagnostic.CA1512.severity = warning
 dotnet_diagnostic.CA1513.severity = warning
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
+# Order modifiers.
+dotnet_diagnostic.IDE0036.severity = warning
 # Use range operator.
 dotnet_diagnostic.IDE0057.severity = warning
 # Use collection expression for array.
