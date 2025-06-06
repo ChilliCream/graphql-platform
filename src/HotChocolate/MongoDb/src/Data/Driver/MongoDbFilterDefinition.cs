@@ -11,7 +11,7 @@ public abstract class MongoDbFilterDefinition : FilterDefinition<BsonDocument>
     /// <summary>
     /// Gets an empty filter. An empty filter matches everything.
     /// </summary>
-    public new static MongoDbFilterDefinition Empty => s_empty;
+    public static new MongoDbFilterDefinition Empty => s_empty;
 
     public abstract BsonDocument Render(
         IBsonSerializer documentSerializer,

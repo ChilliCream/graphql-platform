@@ -179,7 +179,7 @@ public class QueryableDefaultFieldHandler
     }
 }
 
-static file class LocalExtensions
+file static class LocalExtensions
 {
     public static bool TryGetPreviousRuntimeType(
         this QueryableFilterContext context,
