@@ -38,7 +38,7 @@ public class TypeInitializerTests
         Assert.True(exists);
         var fooType =
             Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
         exists = typeRegistry.TryGetType(
@@ -48,7 +48,7 @@ public class TypeInitializerTests
         Assert.True(exists);
         var barType =
             Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
         new { fooType, barType }.MatchSnapshot();
@@ -93,7 +93,7 @@ public class TypeInitializerTests
         Assert.True(exists);
         var fooType =
             Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
         exists = typeRegistry.TryGetType(
@@ -103,7 +103,7 @@ public class TypeInitializerTests
         Assert.True(exists);
         var barType =
             Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
         new { fooType, barType }.MatchSnapshot();

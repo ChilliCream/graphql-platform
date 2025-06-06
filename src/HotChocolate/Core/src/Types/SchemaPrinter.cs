@@ -93,7 +93,7 @@ public static class SchemaPrinter
         var directiveTypeDefinitions =
             schema.DirectiveTypes
                 .Where(directive => !builtInDirectives.Contains(directive.Name))
-                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+                .OrderBy(t => t.Name, StringComparer.Ordinal)
                 .Select(PrintDirectiveTypeDefinition);
 
         typeDefinitions.AddRange(directiveTypeDefinitions);
@@ -102,7 +102,7 @@ public static class SchemaPrinter
             schema.Types
             .OfType<ScalarType>()
             .Where(t => includeSpecScalars || !BuiltInTypes.IsBuiltInType(t.Name))
-            .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
             .Select(PrintScalarType);
 
         typeDefinitions.AddRange(scalarTypeDefinitions);
@@ -115,7 +115,7 @@ public static class SchemaPrinter
     {
         return schema.Types
            .Where(IsPublicAndNoScalar)
-           .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+           .OrderBy(t => t.Name, StringComparer.Ordinal)
            .GroupBy(t => (int)t.Kind)
            .OrderBy(t => t.Key)
            .SelectMany(t => t);
