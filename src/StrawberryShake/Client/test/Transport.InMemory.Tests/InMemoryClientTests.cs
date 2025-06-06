@@ -120,6 +120,8 @@ public class InMemoryClientTests
 
     private sealed class StubExecutor : IRequestExecutor
     {
+        public ISchemaDefinition Schema => null!;
+
         public IOperationRequest? Request { get; private set; }
 
         public ulong Version { get; }
@@ -136,8 +138,6 @@ public class InMemoryClientTests
             OperationRequestBatch requestBatch,
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
-
-        public Schema Schema => null!;
 
         public IServiceProvider Services { get; } =
             new ServiceCollection()

@@ -296,7 +296,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                             options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))

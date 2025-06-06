@@ -52,7 +52,7 @@ public class SortVisitorTestBase
                         })
                     .UseSorting<T>())
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))

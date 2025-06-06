@@ -85,7 +85,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // ... write document to cache
-        var cache = executor.Services.GetRequiredService<IOperationDocumentStorage>();
+        var cache = executor.Schema.Services.GetRequiredService<IOperationDocumentStorage>();
         await cache.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         // ... wait for document to expire

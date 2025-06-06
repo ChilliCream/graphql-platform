@@ -1,9 +1,6 @@
-using System.Net;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
-using static HotChocolate.Execution.ErrorHelper;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -11,12 +8,52 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class RequestExecutorBuilderExtensions
 {
     /// <summary>
+    /// Adds a delegate that will be used to create middleware for the execution pipeline.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <param name="key">
+    /// A unique identifier for the middleware.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder UseRequest(
+        this IRequestExecutorBuilder builder,
+        Func<RequestDelegate, RequestDelegate> middleware,
+        string? key = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(middleware);
+
+        return Configure(
+            builder,
+            options => options.Pipeline.Add(
+                new RequestMiddlewareConfiguration(
+                    new RequestMiddleware(
+                        (_, n) => middleware(n)),
+                    key)));
+    }
+
+    /// <summary>
     /// Adds a delegate that will be used to create a middleware for the execution pipeline.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="middleware">A delegate that is used to create a middleware for the execution pipeline.</param>
-    /// <param name="key">A unique identifier for the middleware.</param>
-    /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="middleware">
+    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// </param>
+    /// <param name="key">
+    /// A unique identifier for the middleware.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
         RequestMiddleware middleware,
@@ -33,9 +70,15 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a delegate that will be used to create middleware for the execution pipeline.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="configuration">The middleware configuration to use.</param>
-    /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="configuration">
+    /// The middleware configuration to use.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseRequest(
         this IRequestExecutorBuilder builder,
         RequestMiddlewareConfiguration configuration)
@@ -49,9 +92,15 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a type that will be used to create a middleware for the execution pipeline.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="key">A unique identifier for the middleware.</param>
-    /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <param name="key">
+    /// A unique identifier for the middleware.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseRequest<TMiddleware>(
         this IRequestExecutorBuilder builder,
         string? key = null)
@@ -461,7 +510,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to cache the GraphQL operation document.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -478,7 +527,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to parse the GraphQL operation document.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -495,7 +544,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to validate the GraphQL operation document.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -512,7 +561,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to handle exceptions.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -529,7 +578,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to handle timeouts.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -546,7 +595,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to instrument the request.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -564,7 +613,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// Adds a middleware that will be used to cache the compiled
     /// operation object that is used during the request execution.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -581,7 +630,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to execute the operation.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -599,7 +648,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// Adds a middleware that will be used to resolve the correct operation from the GraphQL operation document
     /// and that compiles this operation definition into an executable operation.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -616,7 +665,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to coerces the operation variables into the correct types.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -633,7 +682,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to skip the actual execution of warmup requests.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>
@@ -650,7 +699,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a middleware that will be used to resolve a persisted operation from the persisted operation store.
     /// </summary>
-    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>
+    /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <returns>

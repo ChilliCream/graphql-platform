@@ -202,7 +202,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                         })
                     .UseSorting<SortInputType<TEntity>>())
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))

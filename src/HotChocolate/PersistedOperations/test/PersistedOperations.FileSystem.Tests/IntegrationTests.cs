@@ -23,11 +23,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -61,11 +61,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -97,11 +97,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -117,7 +117,7 @@ public class IntegrationTests
             OperationRequest
                 .FromId(documentId)
                 .WithDocument(new OperationDocument(Utf8GraphQLParser.Parse("{ __typename }")))
-                .WithDocumentHash(documentHash)
+                .WithDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
                 .WithExtensions(new Dictionary<string, object?>
                 {
                     {

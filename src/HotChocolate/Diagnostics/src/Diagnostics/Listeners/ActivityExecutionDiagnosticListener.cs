@@ -271,9 +271,6 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return activity;
     }
 
-    // Note: we removed public override IDisposable ExecuteSubscription(ISubscription subscription)
-    // for now.
-
     public override IDisposable OnSubscriptionEvent(RequestContext context)
     {
         var activity = Source.StartActivity();

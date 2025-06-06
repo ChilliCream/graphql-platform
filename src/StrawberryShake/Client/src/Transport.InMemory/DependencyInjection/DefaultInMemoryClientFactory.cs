@@ -13,7 +13,7 @@ public class DefaultInMemoryClientFactory : IInMemoryClientFactory
     /// Initializes a new instance of <see cref="DefaultInMemoryClientFactory"/>
     /// </summary>
     /// <param name="executorProvider">
-    /// The <see cref="RequestExecutorResolver"/> that should be used to resolve the schemas
+    /// The <see cref="IRequestExecutorProvider"/> that should be used to resolve the schemas
     /// </param>
     /// <param name="optionsMonitor">
     /// The options monitor for the factory options
