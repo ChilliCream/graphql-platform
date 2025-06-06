@@ -365,7 +365,7 @@ public class ObjectTypeExtensionTests
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(new ObjectType<Foo>(t => t
-                .Field(f => f.GetName(default!))
+                .Field(f => f.GetName(default))
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Directive("dummy_rep", new ArgumentNode("a", "a")))))
@@ -905,9 +905,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public interface IMarker
-    {
-    }
+    public interface IMarker;
 
     public class BindResolver_With_Property_PersonDto
     {
@@ -938,9 +936,7 @@ public class ObjectTypeExtensionTests
     [ExtendObjectType(
         typeof(Remove_Properties_Globally_PersonDto),
         IgnoreProperties = [nameof(Remove_Properties_Globally_PersonDto.InternalId)])]
-    public class Remove_Properties_Globally_PersonResolvers
-    {
-    }
+    public class Remove_Properties_Globally_PersonResolvers;
 
     public class Remove_Fields_Globally_PersonDto
     {
@@ -952,9 +948,7 @@ public class ObjectTypeExtensionTests
     [ExtendObjectType(
         typeof(Remove_Fields_Globally_PersonDto),
         IgnoreProperties = ["internalId"])]
-    public class Remove_Fields_Globally_PersonResolvers
-    {
-    }
+    public class Remove_Fields_Globally_PersonResolvers;
 
     public class Remove_Fields_PersonDto
     {

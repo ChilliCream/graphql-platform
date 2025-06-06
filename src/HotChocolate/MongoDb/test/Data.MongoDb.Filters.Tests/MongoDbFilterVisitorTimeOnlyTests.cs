@@ -161,12 +161,8 @@ public class MongoDbFilterVisitorTimeOnlyTests
     }
 
     public class FooFilterType
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 
     public class FooNullableFilterType
-        : FilterInputType<FooNullable>
-    {
-    }
+        : FilterInputType<FooNullable>;
 }

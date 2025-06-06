@@ -32,8 +32,7 @@ public class EnumTypeDescriptor
 
     protected internal override EnumTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<EnumValueDescriptor> Values { get; } =
-        new List<EnumValueDescriptor>();
+    protected ICollection<EnumValueDescriptor> Values { get; } = [];
 
     protected override void OnCreateConfiguration(
         EnumTypeConfiguration configuration)

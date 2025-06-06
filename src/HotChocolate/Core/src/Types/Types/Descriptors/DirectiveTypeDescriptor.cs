@@ -44,8 +44,7 @@ public class DirectiveTypeDescriptor
 
     protected internal override DirectiveTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
-        new List<DirectiveArgumentDescriptor>();
+    protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } = [];
 
     protected override void OnCreateConfiguration(
         DirectiveTypeConfiguration definition)

@@ -379,7 +379,7 @@ public class HttpCachingTests : ServerTestBase
                     d.Name("Query")
                         .Field("field")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge: 2000, vary: new[] { "X-foo", "X-BaR" }));
+                        .CacheControl(sharedMaxAge: 2000, vary: ["X-foo", "X-BaR"]));
         });
 
         var client = server.CreateClient();
@@ -402,10 +402,10 @@ public class HttpCachingTests : ServerTestBase
                     var o = d.Name("Query");
                     o.Field("field1")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge: 2000, vary: new[] {"X-foo", "X-BaR"});
+                        .CacheControl(sharedMaxAge: 2000, vary: ["X-foo", "X-BaR"]);
                     o.Field("field2")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge: 1000, vary: new[] {"X-FAR", "X-BaR"});
+                        .CacheControl(sharedMaxAge: 1000, vary: ["X-FAR", "X-BaR"]);
                 });
         });
 

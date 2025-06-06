@@ -42,7 +42,7 @@ public partial class DocumentAnalyzer
         List<OperationModel> operations = [];
         Dictionary<string, LeafTypeModel> leafTypes = new(StringComparer.Ordinal);
         Dictionary<string, InputObjectTypeModel> inputObjectType = new(StringComparer.Ordinal);
-        Dictionary<SelectionSetInfo, SelectionSetNode> selectionSets = new();
+        Dictionary<SelectionSetInfo, SelectionSetNode> selectionSets = [];
 
         foreach (var operation in operationDocuments.Operations.Values)
         {

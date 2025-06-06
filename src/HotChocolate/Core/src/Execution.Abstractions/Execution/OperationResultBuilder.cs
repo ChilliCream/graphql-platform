@@ -56,14 +56,14 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddExtension(string key, object? data)
     {
-        _extensionData ??= new OrderedDictionary<string, object?>();
+        _extensionData ??= [];
         _extensionData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetExtension(string key, object? data)
     {
-        _extensionData ??= new OrderedDictionary<string, object?>();
+        _extensionData ??= [];
         _extensionData[key] = data;
         return this;
     }
@@ -87,14 +87,14 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddContextData(string key, object? data)
     {
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetContextData(string key, object? data)
     {
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData[key] = data;
         return this;
     }

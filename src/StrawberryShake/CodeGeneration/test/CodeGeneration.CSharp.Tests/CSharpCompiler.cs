@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 internal static class CSharpCompiler
 {
     // we pin these types so that they are added to this assembly
-#pragma warning disable 414
+#pragma warning disable CS0414, RCS1213, RCS1249
     private static readonly EntityId? s_entityId = null!;
     private static readonly JsonDocument? s_jsonDocument = null!;
     private static readonly HttpConnection? s_httpConnection = null!;
@@ -21,7 +21,7 @@ internal static class CSharpCompiler
     private static readonly IHttpClientFactory? s_httpClientFactory = null!;
     private static readonly HttpClient? s_httpClient = null!;
     private static readonly InMemoryClient s_memoryClient = null!;
-#pragma warning restore 414
+#pragma warning restore CS0414, RCS1213, RCS1249
 
     private static readonly CSharpCompilationOptions s_options =
         new(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug);

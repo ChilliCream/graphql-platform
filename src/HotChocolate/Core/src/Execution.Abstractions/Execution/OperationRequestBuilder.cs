@@ -258,7 +258,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             _readOnlyContextData = null;
         }
 
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData.Add(name, value);
         return this;
     }
@@ -283,7 +283,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             _readOnlyContextData = null;
         }
 
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData.TryAdd(name, value);
         return this;
     }

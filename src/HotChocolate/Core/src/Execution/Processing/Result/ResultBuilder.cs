@@ -14,8 +14,8 @@ internal sealed partial class ResultBuilder
     private readonly HashSet<uint> _removedResults = [];
     private readonly HashSet<uint> _patchIds = [];
 
-    private readonly Dictionary<string, object?> _extensions = new();
-    private readonly Dictionary<string, object?> _contextData = new();
+    private readonly Dictionary<string, object?> _extensions = [];
+    private readonly Dictionary<string, object?> _contextData = [];
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
 
     private ResultMemoryOwner _resultOwner = default!;

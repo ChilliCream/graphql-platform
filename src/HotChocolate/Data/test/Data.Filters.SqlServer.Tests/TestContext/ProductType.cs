@@ -10,5 +10,5 @@ public class ProductType
 
     [Required] public string Name { get; set; } = default!;
 
-    public ICollection<Product> Products { get; } = new List<Product>();
+    public ICollection<Product> Products { get; } = [];
 }

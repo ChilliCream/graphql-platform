@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CodeGeneration.CSharp/StrawberryShake.CodeGeneration.CSharp.csproj" />
+    <Project Path="src/CodeGeneration/StrawberryShake.CodeGeneration.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/CodeGeneration.CSharp.Tests/StrawberryShake.CodeGeneration.CSharp.Tests.csproj" />
+    <Project Path="test/CodeGeneration.Tests/StrawberryShake.CodeGeneration.Tests.csproj" />
+  </Folder>
+</Solution>

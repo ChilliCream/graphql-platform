@@ -493,10 +493,10 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private sealed class CompletionContext(List<ITypeConfiguration> typeDefs)
     {
-        public readonly Dictionary<string, FieldResolverConfiguration> Resolvers = new();
-        public readonly Dictionary<string, MemberInfo> Members = new();
-        public readonly Dictionary<string, (object, MemberInfo)> Values = new();
-        public readonly Dictionary<string, (object, MemberInfo)> ValuesToName = new();
+        public readonly Dictionary<string, FieldResolverConfiguration> Resolvers = [];
+        public readonly Dictionary<string, MemberInfo> Members = [];
+        public readonly Dictionary<string, (object, MemberInfo)> Values = [];
+        public readonly Dictionary<string, (object, MemberInfo)> ValuesToName = [];
         public readonly Queue<ITypeConfiguration> TypesToAnalyze = new();
         public readonly ILookup<string, ITypeConfiguration> TypeDefs = typeDefs.ToLookup(t => t.Name);
     }

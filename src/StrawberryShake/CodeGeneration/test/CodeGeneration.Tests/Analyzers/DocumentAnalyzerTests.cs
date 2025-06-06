@@ -84,14 +84,13 @@ public class DocumentAnalyzerTests
 
         schema =
             SchemaHelper.Load(
-                new GraphQLFile[]
-                {
+                [
                     new(schema.ToSyntaxNode()),
                     new(Utf8GraphQLParser.Parse(
                         @"extend scalar String @runtimeType(name: ""Abc"")")),
                     new(Utf8GraphQLParser.Parse(
                         "extend schema @key(fields: \"id\")"))
-                });
+                ]);
 
         var document =
             Utf8GraphQLParser.Parse(@"

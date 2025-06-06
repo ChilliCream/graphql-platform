@@ -35,6 +35,6 @@ public abstract class MongoDbFilterDefinition : FilterDefinition<BsonDocument>
         public override BsonDocument Render(
             IBsonSerializer documentSerializer,
             IBsonSerializerRegistry serializerRegistry)
-            => new();
+            => [];
     }
 }

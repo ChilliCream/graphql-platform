@@ -66,7 +66,7 @@ public static class TestHelper
         var document = Utf8GraphQLParser.Parse(sourceText);
         var context = ValidationUtils.CreateContext(document, schema);
 
-        configureContext?.Invoke(context);
+        configureContext(context);
 
         // act
         rule.Validate(context, document);
@@ -143,7 +143,7 @@ public static class TestHelper
 
         var document = Utf8GraphQLParser.Parse(sourceText);
         var context = ValidationUtils.CreateContext(document, schema);
-        configureContext?.Invoke(context);
+        configureContext(context);
 
         // act
         rule.Validate(context, document);

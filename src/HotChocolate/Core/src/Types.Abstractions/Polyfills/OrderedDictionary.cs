@@ -17,7 +17,7 @@ public class OrderedDictionary<TKey, TValue>
     where TKey : IEquatable<TKey>
 {
     private readonly List<TKey> _keys = [];
-    private readonly Dictionary<TKey, TValue> _map = new();
+    private readonly Dictionary<TKey, TValue> _map = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderedDictionary{TKey, TValue}"/> class that is empty.

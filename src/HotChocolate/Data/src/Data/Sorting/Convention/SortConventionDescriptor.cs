@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Sorting;
 
 public class SortConventionDescriptor : ISortConventionDescriptor
 {
-    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations = new();
+    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations = [];
 
     protected SortConventionDescriptor(IDescriptorContext context, string? scope)
     {

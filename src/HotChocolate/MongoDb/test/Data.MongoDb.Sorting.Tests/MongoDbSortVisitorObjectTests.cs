@@ -63,10 +63,7 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 12 } }
-                }
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 12 } }]
             }
         },
         new()
@@ -77,10 +74,7 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = null } }
-                }
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = null } }]
             }
         },
         new()
@@ -91,10 +85,7 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 14 } }
-                }
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 14 } }]
             }
         },
         new()
@@ -410,13 +401,9 @@ public class MongoDbSortVisitorObjectTests
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarSortType : SortInputType<Bar>
-    {
-    }
+    public class BarSortType : SortInputType<Bar>;
 
-    public class BarNullableSortType : SortInputType<BarNullable>
-    {
-    }
+    public class BarNullableSortType : SortInputType<BarNullable>;
 
     public enum BarEnum
     {

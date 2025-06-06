@@ -32,7 +32,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     private static readonly MethodInfo s_resolver =
         typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
 
-    private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
+    private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = [];
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
     private readonly List<IParameterExpressionBuilder> _defaultParameterExpressionBuilders;
     private readonly List<IParameterFieldConfiguration> _parameterFieldConfigurations;

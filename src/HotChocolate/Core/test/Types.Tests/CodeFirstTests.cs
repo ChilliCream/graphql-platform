@@ -305,9 +305,7 @@ public class CodeFirstTests
             throw new NotImplementedException();
     }
 
-    public class Cat : Dog
-    {
-    }
+    public class Cat : Dog;
 
     public class QueryWithDateTimeType : ObjectType<QueryWithDateTime>
     {

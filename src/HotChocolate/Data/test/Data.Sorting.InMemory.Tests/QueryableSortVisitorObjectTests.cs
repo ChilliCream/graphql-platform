@@ -22,8 +22,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 //ScalarArray = new[] { "c", "d", "a" },
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
@@ -32,7 +32,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = 12, BarString = "a"
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -44,8 +44,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
@@ -54,7 +54,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = 14, BarString = "d"
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -82,8 +82,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 //ScalarArray = new[] { "c", "d", "a" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -92,7 +92,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = 12
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -104,8 +104,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -114,7 +114,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = null
                         }
                     }
-                }
+                ]
             }
         },
         new()
@@ -126,8 +126,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
@@ -136,7 +136,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             BarShort = 14
                         }
                     }
-                }
+                ]
             }
         },
         new()

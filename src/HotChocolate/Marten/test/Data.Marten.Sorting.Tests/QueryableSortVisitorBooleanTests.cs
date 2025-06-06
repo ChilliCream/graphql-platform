@@ -111,12 +111,8 @@ public class QueryableSortVisitorBooleanTests
     }
 
     public class FooSortType
-        : SortInputType<Foo>
-    {
-    }
+        : SortInputType<Foo>;
 
     public class FooNullableSortType
-        : SortInputType<FooNullable>
-    {
-    }
+        : SortInputType<FooNullable>;
 }

@@ -53,8 +53,11 @@ internal static class InputObjectCompiler
 
         var variable = Expression.Variable(inputType.RuntimeType, "obj");
 
-        var expressions = new List<Expression>();
-        expressions.Add(Expression.Assign(variable, instance));
+        var expressions = new List<Expression>
+        {
+            Expression.Assign(variable, instance)
+        };
+
         CompileSetProperties(variable, fields.Values, s_fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
         Expression body = Expression.Block(new[] { variable }, expressions);
@@ -103,8 +106,11 @@ internal static class InputObjectCompiler
 
         var variable = Expression.Variable(directiveType.RuntimeType, "obj");
 
-        var expressions = new List<Expression>();
-        expressions.Add(Expression.Assign(variable, instance));
+        var expressions = new List<Expression>
+        {
+            Expression.Assign(variable, instance)
+        };
+
         CompileSetProperties(variable, arguments.Values, s_fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
         Expression body = Expression.Block([variable], expressions);

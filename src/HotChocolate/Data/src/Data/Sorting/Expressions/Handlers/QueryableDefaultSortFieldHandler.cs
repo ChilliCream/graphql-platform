@@ -47,7 +47,7 @@ public class QueryableDefaultSortFieldHandler
         if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
         {
             if (expression.Parameters.Count != 1 ||
-                expression.Parameters[0].Type != context.RuntimeTypes.Peek()!.Source)
+                expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
             {
                 throw ThrowHelper.QueryableSorting_ExpressionParameterInvalid(
                     field.RuntimeType.Source,

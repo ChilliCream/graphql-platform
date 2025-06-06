@@ -6,7 +6,7 @@ namespace StrawberryShake.Serialization;
 /// </summary>
 public class SerializerResolver : ISerializerResolver
 {
-    private readonly Dictionary<string, ISerializer> _serializers = new();
+    private readonly Dictionary<string, ISerializer> _serializers = [];
 
     /// <summary>
     /// Initializes a new <see cref="SerializerResolver"/>

@@ -29,8 +29,7 @@ public partial class SchemaErrorBuilder
 
         public IReadOnlyCollection<object>? Path { get; set; }
 
-        public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } =
-            ImmutableList<ISyntaxNode>.Empty;
+        public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } = [];
 
         IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
 

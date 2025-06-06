@@ -108,7 +108,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             }
         }
 
-        return ImmutableList<PlanStep>.Empty;
+        return [];
     }
 
     private void PlanRootSelections(

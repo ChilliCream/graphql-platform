@@ -526,7 +526,5 @@ public class FilterConventionTests
         }
     }
 
-    public class CustomFooFilterInput : FilterInputType<Foo>
-    {
-    }
+    public class CustomFooFilterInput : FilterInputType<Foo>;
 }

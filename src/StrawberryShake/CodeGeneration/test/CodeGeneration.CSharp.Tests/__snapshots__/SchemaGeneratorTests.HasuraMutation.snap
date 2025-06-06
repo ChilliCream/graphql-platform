@@ -3886,7 +3886,7 @@ namespace Foo.Bar.State
             }
 
             IInsertPeople_Insert_people returnValue = default !;
-            if (data?.__typename.Equals("people_mutation_response", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("people_mutation_response", global::System.StringComparison.Ordinal))
             {
                 returnValue = new InsertPeople_Insert_people_people_mutation_response(data.Affected_rows ?? throw new global::System.ArgumentNullException());
             }

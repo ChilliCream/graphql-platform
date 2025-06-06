@@ -1144,7 +1144,7 @@ namespace Foo.Bar.State
             }
 
             IAllExpenses_Expense_Tags returnValue = default !;
-            if (data?.__typename.Equals("Tag", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Tag", global::System.StringComparison.Ordinal))
             {
                 returnValue = new AllExpenses_Expense_Tags_Tag(data.Name);
             }

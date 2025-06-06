@@ -260,9 +260,7 @@ public class TypeDiscovererTests
         }
     }
 
-    public class BarType : ObjectType<Bar>
-    {
-    }
+    public class BarType : ObjectType<Bar>;
 
     public class Foo
     {

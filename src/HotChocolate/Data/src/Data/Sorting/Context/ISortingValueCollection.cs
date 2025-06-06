@@ -5,6 +5,4 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 public interface ISortingValueCollection
     : IEnumerable<ISortingValueNode>
-    , ISortingValueNode
-{
-}
+    , ISortingValueNode;

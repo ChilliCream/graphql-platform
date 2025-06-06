@@ -17,7 +17,7 @@ internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter, IMar
             DateFormatHandling = DateFormatHandling.IsoDateFormat,
             Culture = CultureInfo.InvariantCulture,
             ContractResolver = ChildFirstContractResolver.Instance,
-            Converters = new List<JsonConverter> { new StringEnumConverter() }
+            Converters = [new StringEnumConverter()]
         };
 
     public bool CanHandle(object? value)
@@ -54,7 +54,7 @@ internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter, IMar
                 return 1000 - d.Count;
             }).ToList();
 
-            return properties!;
+            return properties;
         }
     }
 }

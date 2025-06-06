@@ -191,16 +191,12 @@ public class RelaySchemaTests
         public FooPayload Foo() => new();
     }
 
-    public class FooPayload
-    {
-    }
+    public class FooPayload;
 
     public class BazPayload
     {
         public string Some { get; set; }
     }
 
-    public class BarResult
-    {
-    }
+    public class BarResult;
 }

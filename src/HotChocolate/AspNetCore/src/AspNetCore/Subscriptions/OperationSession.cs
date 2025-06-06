@@ -180,7 +180,7 @@ internal sealed class OperationSession : IOperationSession
                 var errors =
                     error is AggregateError aggregateError
                         ? aggregateError.Errors
-                        : new[] { error };
+                        : [error];
 
                 await _session.Protocol.SendErrorMessageAsync(_session, Id, errors, ct);
             }

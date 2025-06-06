@@ -38,8 +38,11 @@ internal static class MiddlewareCompiler<[DynamicallyAccessedMembers(PublicConst
         var context = Expression.Parameter(typeof(TContext), "context");
         var next = Expression.Parameter(typeof(TNext), "next");
 
-        var handlers = new List<IParameterHandler>();
-        handlers.Add(new TypeParameterHandler(typeof(TNext), next));
+        var handlers = new List<IParameterHandler>
+        {
+            new TypeParameterHandler(typeof(TNext), next)
+        };
+
         if (createParameters is not null)
         {
             handlers.AddRange(createParameters(context, next));
@@ -68,8 +71,11 @@ internal static class MiddlewareCompiler<[DynamicallyAccessedMembers(PublicConst
         var context = Expression.Parameter(typeof(TContext));
         var middleware = Expression.Parameter(middlewareType);
 
-        var handlers = new List<IParameterHandler>();
-        handlers.Add(new TypeParameterHandler(typeof(TContext), context));
+        var handlers = new List<IParameterHandler>
+        {
+            new TypeParameterHandler(typeof(TContext), context)
+        };
+
         if (createParameters is { })
         {
             handlers.AddRange(createParameters(context, middleware));

@@ -27,7 +27,7 @@ namespace HotChocolate.Diagnostics;
 public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
-    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = new();
+    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = [];
 
     /// <summary>
     /// Initializes a new instance of <see cref="ActivityEnricher"/>.

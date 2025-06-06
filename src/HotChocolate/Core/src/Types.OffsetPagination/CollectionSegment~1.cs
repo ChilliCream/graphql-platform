@@ -41,7 +41,7 @@ public class CollectionSegment<T> : CollectionSegment
     {
         if(Items.Count == 0)
         {
-            ReadOnlySpan<T> empty = Array.Empty<T>();
+            ReadOnlySpan<T> empty = [];
             observer.OnAfterSliced(empty, Info);
             return;
         }

@@ -1101,10 +1101,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Publishers = new List<Publisher>
-                    {
-                        publisher
-                    }
+                    Publishers = [publisher]
                 }
             }.AsQueryable();
     }
@@ -1119,10 +1116,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book>
-                    {
-                        book
-                    }
+                    Books = [book]
                 }
             }.AsQueryable();
     }
@@ -1137,10 +1131,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book>
-                    {
-                        book
-                    }
+                    Books = [book]
                 }
             }.AsQueryable();
     }
@@ -1154,12 +1145,12 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     new Author
                     {
                         Name = "Author1",
-                        Books = new List<Book>()
+                        Books = []
                     },
                     new Author
                     {
                         Name = "Author2",
-                        Books = new List<Book>()
+                        Books = []
                     }
                 }.AsQueryable()
                 .Where(filter);
@@ -1171,12 +1162,12 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     new Author
                     {
                         Name = "Author1",
-                        Books = new List<Book>()
+                        Books = []
                     },
                     new Author
                     {
                         Name = "Author2",
-                        Books = new List<Book>()
+                        Books = []
                     }
                 }.AsQueryable()
                 .Order(sorting);
@@ -1188,12 +1179,12 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     new Author
                     {
                         Name = "Author1",
-                        Books = new List<Book>()
+                        Books = []
                     },
                     new Author
                     {
                         Name = "Author2",
-                        Books = new List<Book>()
+                        Books = []
                     }
                 }.AsQueryable()
                 .With(context);
@@ -1206,19 +1197,19 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     {
                         Id = 1,
                         Name = "Author1",
-                        Books = new List<Book>()
+                        Books = []
                     },
                     new Author
                     {
                         Id = 8,
                         Name = "Author2",
-                        Books = new List<Book>()
+                        Books = []
                     },
                     new Author
                     {
                         Id = 5,
                         Name = "Author2",
-                        Books = new List<Book>()
+                        Books = []
                     }
                 }.AsQueryable()
                 .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });

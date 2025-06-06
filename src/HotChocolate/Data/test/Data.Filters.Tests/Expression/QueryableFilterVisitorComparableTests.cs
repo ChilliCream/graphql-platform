@@ -565,14 +565,10 @@ public class QueryableFilterVisitorComparableTests
     }
 
     public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 
     public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
-    {
-    }
+        : FilterInputType<FooNullable>;
 
     public class EntityWithTypeAttribute
     {

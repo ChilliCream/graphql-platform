@@ -192,11 +192,11 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("FederatedTypeWithRequiredDetail",
-                new ObjectValueNode(new[]
-                {
+                new ObjectValueNode(
+                [
                     new ObjectFieldNode("detail",
-                        new ObjectValueNode(new[] { new ObjectFieldNode("id", "testId") }))
-                }))
+                        new ObjectValueNode([new ObjectFieldNode("id", "testId")]))
+                ]))
         };
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
@@ -223,14 +223,14 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("FederatedTypeWithOptionalDetail",
-                new ObjectValueNode(new[]
-                {
+                new ObjectValueNode(
+                [
                     new ObjectFieldNode("detail",
-                        new ObjectValueNode(new[]
-                        {
+                        new ObjectValueNode(
+                        [
                             new ObjectFieldNode("id", "testId")
-                        }))
-                }))
+                        ]))
+                ]))
         };
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
@@ -384,7 +384,7 @@ public class EntitiesResolverTests
     {
         public string Id { get; set; } = default!;
 
-        public FederatedTypeDetail? Detail { get; set; } = default!;
+        public FederatedTypeDetail? Detail { get; set; }
 
         [ReferenceResolver]
         public static FederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId)

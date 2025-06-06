@@ -191,7 +191,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .SetPath(Path.FromList(new[] { "foo" }))
+            .SetPath(Path.FromList(["foo"]))
             .Build();
 
         // assert
@@ -205,7 +205,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .SetPath(Path.FromList(new[] { "foo" }))
+            .SetPath(Path.FromList(["foo"]))
             .Build();
 
         // assert

@@ -122,7 +122,7 @@ public sealed partial class OperationCompiler
             _pipelineComponents.Clear();
             _enqueuedSelectionSets.Clear();
 
-            _operationOptimizers = ImmutableArray<IOperationOptimizer>.Empty;
+            _operationOptimizers = [];
 
             _includeConditions = [];
             _deferContext = null;

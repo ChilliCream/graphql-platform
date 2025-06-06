@@ -474,8 +474,8 @@ public class DateTimeTypeTests
 
     public static TheoryData<string> InvalidDateTimeScalarStrings()
     {
-        return new TheoryData<string>
-        {
+        return
+        [
             // https://www.graphql-scalars.com/date-time/#test-cases (invalid strings)
             // The minutes of the offset are missing.
             "2011-08-30T13:22:53.108-03",
@@ -501,6 +501,6 @@ public class DateTimeTypeTests
             // Additional test cases.
             // A DateTime with 8 fractional digits.
             "2011-08-30T13:22:53.12345678+03:30"
-        };
+        ];
     }
 }

@@ -397,15 +397,11 @@ public class ExtendedTypeTests
     }
 
     private sealed class CustomStringList1
-        : List<string>
-    {
-    }
+        : List<string>;
 
     private sealed class CustomStringList2<T>
         : List<T>
-        where T : notnull
-    {
-    }
+        where T : notnull;
 
     private sealed class CustomStringList3<T, TK>
         : List<T>

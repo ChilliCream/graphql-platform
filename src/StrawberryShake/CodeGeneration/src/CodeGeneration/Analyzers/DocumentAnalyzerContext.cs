@@ -11,9 +11,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 {
     private readonly HashSet<string> _takenNames = new(StringComparer.Ordinal);
-    private readonly Dictionary<ISyntaxNode, HashSet<string>> _syntaxNodeNames = new();
+    private readonly Dictionary<ISyntaxNode, HashSet<string>> _syntaxNodeNames = [];
     private readonly Dictionary<string, ITypeModel> _typeModels = new(StringComparer.Ordinal);
-    private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = new();
+    private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = [];
     private readonly FieldCollector _fieldCollector;
 
     public DocumentAnalyzerContext(
@@ -23,7 +23,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         Document = document ?? throw new ArgumentNullException(nameof(document));
         OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
-        OperationType = schema.GetOperationType(OperationDefinition.Operation)!;
+        OperationType = schema.GetOperationType(OperationDefinition.Operation);
         OperationName = OperationDefinition.Name!.Value;
         RootPath = Path.Root.Append(OperationName);
 

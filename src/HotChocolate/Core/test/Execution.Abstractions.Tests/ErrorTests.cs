@@ -201,7 +201,7 @@ public class ErrorTests
         IError error = new Error { Message = "123" };
 
         // act
-        error = error.WithPath(Path.FromList(new[] { "foo" }));
+        error = error.WithPath(Path.FromList(["foo"]));
 
         // assert
         Assert.Equal("/foo", error.Path!.Print());

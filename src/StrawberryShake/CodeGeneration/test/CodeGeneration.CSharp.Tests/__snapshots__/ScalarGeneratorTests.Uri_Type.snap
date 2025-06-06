@@ -430,7 +430,7 @@ namespace Foo.Bar.State
             }
 
             IGetPerson_Person returnValue = default !;
-            if (data?.__typename.Equals("Person", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Person", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPerson_Person_Person(data.Uri, data.URI);
             }

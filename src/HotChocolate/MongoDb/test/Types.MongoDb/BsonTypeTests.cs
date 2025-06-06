@@ -1233,7 +1233,7 @@ public class BsonTypeTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<BsonArray>(value)!,
+            Assert.IsType<BsonArray>(value),
             x => Assert.Equal("Foo", x),
             x => Assert.Equal("Bar", x));
     }
@@ -1283,12 +1283,7 @@ public class BsonTypeTests
 
         public BsonBoolean Boolean => new(true);
 
-        public BsonArray BsonArray => new(
-            new[]
-            {
-                BsonBoolean.False,
-                BsonBoolean.True
-            });
+        public BsonArray BsonArray => [BsonBoolean.False, BsonBoolean.True];
 
         public BsonString String => new("String");
 
@@ -1316,11 +1311,10 @@ public class BsonTypeTests
             ["Double"] = new BsonDouble(42.23),
             ["Boolean"] = new BsonBoolean(true),
             ["BsonArray"] = new BsonArray(
-                new[]
-                {
+                [
                     BsonBoolean.False,
                     BsonBoolean.True
-                }),
+                ]),
             ["String"] = new BsonString("String"),
             ["Null"] = BsonNull.Value,
             ["Nested"] = new BsonDocument()

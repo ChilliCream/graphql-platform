@@ -127,7 +127,7 @@ public class TypeInitializerTests
             {
                 context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
-            null!,
+            null,
             t =>
             {
                 return t switch
@@ -216,9 +216,7 @@ public class TypeInitializerTests
             => descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
     }
 
-    public class BarType : ObjectType<Bar>
-    {
-    }
+    public class BarType : ObjectType<Bar>;
 
     public class Foo
     {

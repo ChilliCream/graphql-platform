@@ -174,7 +174,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
                 return false;
             }
 
-            start = ref Unsafe.Add(ref start, 1)!;
+            start = ref Unsafe.Add(ref start, 1);
         }
 
         return true;

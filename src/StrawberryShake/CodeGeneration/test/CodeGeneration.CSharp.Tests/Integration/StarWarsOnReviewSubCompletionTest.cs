@@ -97,7 +97,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
 
         var sub = client.OnReviewSub.Watch();
         var session = sub.Subscribe(
-            result => commentary = result.Data?.OnReview?.Commentary,
+            result => commentary = result.Data?.OnReview.Commentary,
             () => completionTriggered = true);
 
         var topic = Episode.NewHope;
@@ -163,7 +163,7 @@ public class SubscriptionSocketStateMonitor
 
     public void AbortSocket()
     {
-        var sessionInfos = (_sessionsField!.GetValue(_sessionPool)
+        var sessionInfos = (_sessionsField.GetValue(_sessionPool)
             as System.Collections.IDictionary)!.Values;
 
         foreach (var sessionInfo in sessionInfos)

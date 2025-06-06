@@ -20,10 +20,7 @@ public class QueryableFirstOrDefaultTests
                     {
                         Foo = new FooDeep { BarShort = 12, BarString = "a" }
                     },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }]
             }
         },
         new()
@@ -39,10 +36,7 @@ public class QueryableFirstOrDefaultTests
                     {
                         Foo = new FooDeep { BarShort = 12, BarString = "d" }
                     },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }]
             }
         }
     ];
@@ -57,10 +51,7 @@ public class QueryableFirstOrDefaultTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12 } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12 } }]
             }
         },
         new()
@@ -71,10 +62,7 @@ public class QueryableFirstOrDefaultTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 9 } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 9 } }]
             }
         },
         new()
@@ -85,10 +73,7 @@ public class QueryableFirstOrDefaultTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14 } }
-                }
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 14 } }]
             }
         },
         new()

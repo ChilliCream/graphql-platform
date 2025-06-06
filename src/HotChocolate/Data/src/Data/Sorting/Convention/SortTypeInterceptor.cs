@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Sorting;
 
 public sealed class SortTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, ISortConvention> _conventions = new();
+    private readonly Dictionary<string, ISortConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,

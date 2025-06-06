@@ -164,11 +164,7 @@ public class MongoDbFilterVisitorDateOnlyTests
         public DateOnly? Bar { get; set; }
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 
-    public class FooNullableFilterType : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterType : FilterInputType<FooNullable>;
 }

@@ -15,12 +15,8 @@ public class QueryableProjectionSortedSetTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                ObjectSet = new SortedSet<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectSet = [new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }]
             }
         },
         new()
@@ -31,12 +27,8 @@ public class QueryableProjectionSortedSetTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
-                ObjectSet = new SortedSet<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                ObjectSet = [new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }]
             }
         }
     ];

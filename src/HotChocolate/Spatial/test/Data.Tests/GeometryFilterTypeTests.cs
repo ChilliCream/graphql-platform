@@ -84,9 +84,7 @@ public class GeometryFilterInputTypeTest
         schema.MatchSnapshot();
     }
 
-    public class FooDirective
-    {
-    }
+    public class FooDirective;
 
     public class Foo
     {
