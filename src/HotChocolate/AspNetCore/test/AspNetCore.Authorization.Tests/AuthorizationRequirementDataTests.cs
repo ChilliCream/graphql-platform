@@ -37,7 +37,7 @@ public class AuthorizationRequirementDataTests(TestServerFactory serverFactory) 
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ foo }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ foo }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -66,7 +66,7 @@ public class AuthorizationRequirementDataTests(TestServerFactory serverFactory) 
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ foo }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ foo }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -98,7 +98,7 @@ public class AuthorizationRequirementDataTests(TestServerFactory serverFactory) 
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ fooMultiple }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ fooMultiple }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -130,7 +130,7 @@ public class AuthorizationRequirementDataTests(TestServerFactory serverFactory) 
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ fooMultiple }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ fooMultiple }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
