@@ -558,7 +558,7 @@ public class IntegrationTests
                 .AddInterfaceType<ISome>(d => d
                     .Field(t => t.ExplicitType())
                     .UseOffsetPaging(
-                        options: new PagingOptions { InferCollectionSegmentNameFromField = false, }))
+                        options: new PagingOptions { InferCollectionSegmentNameFromField = false }))
                 .ModifyOptions(o =>
                 {
                     o.RemoveUnreachableTypes = false;
@@ -679,7 +679,7 @@ public class IntegrationTests
                 .Field(t => t.Foos())
                 .Name("nestedObjectList")
                 .UseOffsetPaging(
-                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true, });
+                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
 
             descriptor
                 .Field("extendedTypeRef")
@@ -701,7 +701,7 @@ public class IntegrationTests
                 .Field(t => t.FoosExecutable())
                 .Name("fooExecutable")
                 .UseOffsetPaging(
-                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true, });
+                    options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
         }
     }
 
@@ -709,16 +709,16 @@ public class IntegrationTests
     {
         public string[] Letters =>
         [
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
         ];
 
         public List<List<Foo>> Foos() =>
         [
-            [new Foo { Bar = "a", },],
-            [new Foo { Bar = "b", }, new Foo { Bar = "c", },],
-            [new Foo { Bar = "d", },],
-            [new Foo { Bar = "e", },],
-            [new Foo { Bar = "f", },],
+            [new Foo { Bar = "a" }],
+            [new Foo { Bar = "b" }, new Foo { Bar = "c" }],
+            [new Foo { Bar = "d" }],
+            [new Foo { Bar = "e" }],
+            [new Foo { Bar = "f" }]
         ];
     }
 
@@ -727,18 +727,18 @@ public class IntegrationTests
         public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
             new List<Foo>
             {
-                new Foo { Bar = "a", },
-                new Foo { Bar = "b", },
-                new Foo { Bar = "c", },
-                new Foo { Bar = "d", },
-                new Foo { Bar = "e", },
-                new Foo { Bar = "f", },
+                new Foo { Bar = "a" },
+                new Foo { Bar = "b" },
+                new Foo { Bar = "c" },
+                new Foo { Bar = "d" },
+                new Foo { Bar = "e" },
+                new Foo { Bar = "f" }
             }.AsQueryable());
     }
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class FluentPaging
@@ -748,7 +748,7 @@ public class IntegrationTests
             int? skip,
             int? take,
             CancellationToken cancellationToken)
-            => await new[] { "a", "b", "c", "d", }
+            => await new[] { "a", "b", "c", "d" }
                 .AsQueryable()
                 .ApplyOffsetPaginationAsync(skip, take, cancellationToken);
     }
@@ -758,7 +758,7 @@ public class IntegrationTests
         [UseOffsetPaging]
         public string[] Letters =>
         [
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
         ];
 
         [UseOffsetPaging(typeof(NonNullType<StringType>))]
@@ -770,11 +770,11 @@ public class IntegrationTests
             IncludeTotalCount = true)]
         public List<List<Foo>> Foos() =>
         [
-            [new Foo { Bar = "a", },],
-            [new Foo { Bar = "b", }, new Foo { Bar = "c", },],
-            [new Foo { Bar = "d", },],
-            [new Foo { Bar = "e", },],
-            [new Foo { Bar = "f", },],
+            [new Foo { Bar = "a" }],
+            [new Foo { Bar = "b" }, new Foo { Bar = "c" }],
+            [new Foo { Bar = "d" }],
+            [new Foo { Bar = "e" }],
+            [new Foo { Bar = "f" }]
         ];
     }
 
@@ -794,7 +794,7 @@ public class IntegrationTests
         [UseOffsetPaging]
         public ImmutableArray<int> Test()
         {
-            return ImmutableArray<int>.Empty;
+            return [];
         }
     }
 }
@@ -854,5 +854,5 @@ public class CustomCollectionSegmentQuery
 {
     [UseOffsetPaging(IncludeTotalCount = true)]
     public CollectionSegment<string> GetFoos(int? first, string? after)
-        => new(new[] { "asd", "asd2", }, new CollectionSegmentInfo(false, false), 2);
+        => new(["asd", "asd2"], new CollectionSegmentInfo(false, false), 2);
 }

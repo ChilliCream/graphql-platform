@@ -10,10 +10,7 @@ public abstract class FilterVisitorContext<T>
         IFilterInputType initialType,
         FilterScope<T>? filterScope = null)
     {
-        if (initialType is null)
-        {
-            throw new ArgumentNullException(nameof(initialType));
-        }
+        ArgumentNullException.ThrowIfNull(initialType);
 
         Types.Push(initialType);
         Scopes = new Stack<FilterScope<T>>();
@@ -30,7 +27,7 @@ public abstract class FilterVisitorContext<T>
     public Stack<IInputValueDefinition> Operations { get; } = new Stack<IInputValueDefinition>();
 
     /// <inheritdoc />
-    public IList<IError> Errors { get; } = new List<IError>();
+    public IList<IError> Errors { get; } = [];
 
     /// <inheritdoc />
     public virtual FilterScope<T> CreateScope()

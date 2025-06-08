@@ -123,7 +123,7 @@ internal sealed class __Type : ObjectType
                     : ct.Fields.Where(t => !t.IsIntrospectionField);
             }
 
-            return default;
+            return null;
         }
 
         public static object? Interfaces(IResolverContext context)

@@ -16,7 +16,7 @@ public ref partial struct Utf8GraphQLRequestParser
             TokenKind.Integer => ParseScalar(),
             TokenKind.Float => ParseScalar(),
             TokenKind.Name => ParseScalar(),
-            _ => throw ThrowHelper.UnexpectedToken(_reader),
+            _ => throw ThrowHelper.UnexpectedToken(_reader)
         };
     }
 
@@ -30,7 +30,7 @@ public ref partial struct Utf8GraphQLRequestParser
             TokenKind.Integer => SkipScalar(),
             TokenKind.Float => SkipScalar(),
             TokenKind.Name => SkipScalar(),
-            _ => throw ThrowHelper.UnexpectedToken(_reader),
+            _ => throw ThrowHelper.UnexpectedToken(_reader)
         };
     }
 

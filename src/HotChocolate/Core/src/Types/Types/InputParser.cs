@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 
 public sealed class InputParser
 {
-    private static readonly Path _root = Path.Root.Append("root");
+    private static readonly Path s_root = Path.Root.Append("root");
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
     private readonly bool _ignoreAdditionalInputFields;
@@ -33,15 +33,8 @@ public sealed class InputParser
 
     public object? ParseLiteral(IValueNode value, IInputValueInfo field, Type? targetType = null)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        if (field is null)
-        {
-            throw new ArgumentNullException(nameof(field));
-        }
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(field);
 
         var path = Path.Root.Append(field.Name);
         var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
@@ -60,17 +53,10 @@ public sealed class InputParser
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(type);
 
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        return ParseLiteralInternal(value, type, path ?? _root, 0, true, null);
+        return ParseLiteralInternal(value, type, path ?? s_root, 0, true, null);
     }
 
     private object? ParseLiteralInternal(
@@ -341,15 +327,8 @@ public sealed class InputParser
         DirectiveType type,
         Path? path = null)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(type);
 
         return ParseDirective(node, type, path ?? Path.Root, 0, true);
     }
@@ -456,12 +435,9 @@ public sealed class InputParser
 
     public object? ParseResult(object? resultValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
-        return Deserialize(resultValue, type, path ?? _root, null);
+        return Deserialize(resultValue, type, path ?? s_root, null);
     }
 
     private object? Deserialize(object? resultValue, IType type, Path path, InputField? field)

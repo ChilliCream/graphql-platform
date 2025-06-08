@@ -563,12 +563,8 @@ public static partial class SchemaBuilderExtensions
         Type runtimeType)
     {
         ArgumentNullException.ThrowIfNull(context);
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         ArgumentNullException.ThrowIfNull(runtimeType);
-
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
 
         var binding = new RuntimeTypeNameBinding(runtimeType, typeName);
         var feature = context.Features.GetOrSet<TypeSystemFeature>();

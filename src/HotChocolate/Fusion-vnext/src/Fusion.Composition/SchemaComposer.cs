@@ -64,7 +64,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema).Validate();
+        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema, _log).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {

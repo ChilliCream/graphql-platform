@@ -2,23 +2,23 @@ namespace HotChocolate.Execution;
 
 internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
 {
-    private static readonly AsyncLocal<RequestContextHolder> _requestContextCurrent = new();
+    private static readonly AsyncLocal<RequestContextHolder> s_requestContextCurrent = new();
 
     public IRequestContext RequestContext
     {
         get
         {
-            return _requestContextCurrent.Value?.Context ??
+            return s_requestContextCurrent.Value?.Context ??
                 throw new InvalidCastException("Can only be accessed in a request context.");
         }
         set
         {
-            var holder = _requestContextCurrent.Value;
+            var holder = s_requestContextCurrent.Value;
 
             if (holder is null)
             {
                 holder = new RequestContextHolder();
-                _requestContextCurrent.Value = holder;
+                s_requestContextCurrent.Value = holder;
             }
 
             holder.Context = value;
@@ -27,6 +27,6 @@ internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
 
     private class RequestContextHolder
     {
-        public IRequestContext Context = default!;
+        public IRequestContext Context = null!;
     }
 }

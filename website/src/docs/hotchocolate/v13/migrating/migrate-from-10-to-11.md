@@ -720,7 +720,7 @@ We have added a couple of test helpers to make the transition to the new configu
 **New:**
 
 ```csharp
-    Schema schema =
+    ISchema schema =
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()

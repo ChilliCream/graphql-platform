@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -4184,7 +4185,7 @@ namespace Foo.Bar.State
             }
 
             IGetBwr_TimeSeries_Bwr_TimeSeries returnValue = default !;
-            if (data?.__typename.Equals("Bwr_TimeSeriesConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Bwr_TimeSeriesConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetBwr_TimeSeries_Bwr_TimeSeries_Bwr_TimeSeriesConnection(MapIGetBwr_TimeSeries_Bwr_TimeSeries_NodesArray(data.Nodes, snapshot));
             }
@@ -4235,7 +4236,7 @@ namespace Foo.Bar.State
             }
 
             IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution returnValue = default !;
-            if (data?.__typename.Equals("Resolution", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Resolution", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution(data.TimeUnit ?? throw new global::System.ArgumentNullException(), data.Factor ?? throw new global::System.ArgumentNullException());
             }
@@ -4896,7 +4897,7 @@ namespace Foo.Bar.State
             }
 
             IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution returnValue = default !;
-            if (data?.__typename.Equals("Resolution", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Resolution", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution(data.TimeUnit ?? throw new global::System.ArgumentNullException(), data.Factor ?? throw new global::System.ArgumentNullException());
             }

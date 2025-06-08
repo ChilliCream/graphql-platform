@@ -81,7 +81,7 @@ public class FilterContext : IFilterContext
                 return filterValue.Value;
 
             case IFilterInfo info:
-                Dictionary<string, object?> data = new();
+                Dictionary<string, object?> data = [];
 
                 foreach (var field in info.GetFields())
                 {

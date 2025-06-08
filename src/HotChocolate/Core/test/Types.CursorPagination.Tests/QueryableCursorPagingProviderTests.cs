@@ -30,7 +30,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(2);
@@ -72,7 +72,7 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "f", "g", };
+        var list = new List<string> { "f", "g" };
 
         var pagingDetails = new CursorPagingArguments(last: 1);
         var context = await MockContext.CreateContextAsync(pagingDetails);
@@ -116,7 +116,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(last: 2);
@@ -166,7 +166,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments();
@@ -221,7 +221,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 5);
@@ -276,7 +276,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 5);
@@ -308,7 +308,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 7);
@@ -340,7 +340,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 1);
@@ -378,7 +378,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 1);
@@ -403,7 +403,7 @@ public class QueryableCursorPagingProviderTests
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = HotChocolate.Executable.From(
-            new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
+            new[] { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
         var context = await MockContext.CreateContextAsync(pagingDetails);
@@ -445,7 +445,7 @@ public class QueryableCursorPagingProviderTests
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = HotChocolate.Executable.From(
-            new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
+            new[] { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
         var context = await MockContext.CreateContextAsync(pagingDetails);
@@ -481,7 +481,7 @@ public class QueryableCursorPagingProviderTests
         [UsePaging(IncludeTotalCount = true)]
         public IExecutable<string> DemoList() =>
             HotChocolate.Executable.From(
-                new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
+                new[] { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable());
     }
 
     private static int GetPositionFromCursor(string cursor)
@@ -552,7 +552,7 @@ public class QueryableCursorPagingProviderTests
         public IImmutableDictionary<string, object?> LocalContextData { get; set; } =
             ImmutableDictionary<string, object?>.Empty;
 
-        public CancellationToken RequestAborted => default;
+        public CancellationToken RequestAborted => CancellationToken.None;
 
         public object Service(Type service)
         {

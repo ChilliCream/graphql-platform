@@ -10,7 +10,7 @@ namespace HotChocolate.Execution;
 /// </summary>
 internal sealed class RequestFeatureCollection : IFeatureCollection
 {
-    private static readonly KeyComparer _featureKeyComparer = new();
+    private static readonly KeyComparer s_featureKeyComparer = new();
     private readonly Action<Dictionary<Type, object>, Type, object>? _onSetFeature;
     private Dictionary<Type, object>? _features;
     private volatile int _containerRevision;
@@ -156,7 +156,7 @@ internal sealed class RequestFeatureCollection : IFeatureCollection
         if (Parent != null)
         {
             // Don't return features masked by the wrapper.
-            foreach (var pair in _features == null ? Parent : Parent.Except(_features, _featureKeyComparer))
+            foreach (var pair in _features == null ? Parent : Parent.Except(_features, s_featureKeyComparer))
             {
                 yield return pair;
             }

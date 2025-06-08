@@ -10,7 +10,7 @@ public class ProjectionConvention
     , IProjectionConvention
 {
     private Action<IProjectionConventionDescriptor>? _configure;
-    private IProjectionProvider _provider = default!;
+    private IProjectionProvider _provider = null!;
 
     protected ProjectionConvention()
     {

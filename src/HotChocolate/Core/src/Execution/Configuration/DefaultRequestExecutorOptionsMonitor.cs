@@ -10,7 +10,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor(
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorOptionsProvider[] _optionsProviders = optionsProviders.ToArray();
-    private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs = new();
+    private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs = [];
     private readonly List<IDisposable> _disposables = [];
     private readonly List<Action<string>> _listeners = [];
     private bool _initialized;

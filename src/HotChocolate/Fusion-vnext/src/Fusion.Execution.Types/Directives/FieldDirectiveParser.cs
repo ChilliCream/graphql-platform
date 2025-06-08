@@ -71,7 +71,7 @@ internal static class FieldDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<FieldDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

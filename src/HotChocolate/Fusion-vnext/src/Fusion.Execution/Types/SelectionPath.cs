@@ -25,8 +25,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     public SelectionPath AppendFragment(string typeName) =>
         new(_segments.Add(new Segment(typeName, SelectionPathSegmentKind.InlineFragment)));
 
-    public static SelectionPath Root { get; } =
-        new(ImmutableArray<Segment>.Empty);
+    public static SelectionPath Root { get; } = new([]);
 
     public static SelectionPath Parse(string s)
     {
@@ -150,5 +149,3 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
 
     public sealed record Segment(string Name, SelectionPathSegmentKind Kind);
 }
-
-

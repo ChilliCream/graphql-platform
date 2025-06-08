@@ -25,7 +25,7 @@ public sealed class OperationResultBatch : ExecutionResult
     public OperationResultBatch(
         IReadOnlyList<IExecutionResult> results,
         IReadOnlyDictionary<string, object?>? contextData = null)
-        : base(cleanupTasks: [() => RunCleanUp(results),])
+        : base(cleanupTasks: [() => RunCleanUp(results)])
     {
         foreach (var result in results)
         {

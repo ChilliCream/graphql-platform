@@ -238,7 +238,7 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeDefinitionNode(
@@ -264,7 +264,7 @@ public class EnumTypeDefinitionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -279,7 +279,7 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeDefinitionNode(
@@ -305,7 +305,7 @@ public class EnumTypeDefinitionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -320,7 +320,7 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeDefinitionNode(

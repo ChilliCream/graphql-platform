@@ -30,7 +30,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             context => context.User = new ClaimsPrincipal());
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -52,7 +52,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             context => context.User = new ClaimsPrincipal(new ClaimsIdentity("abc")));
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -78,7 +78,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             context => context.User = new ClaimsPrincipal());
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -104,7 +104,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             context => context.User = new ClaimsPrincipal());
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -130,7 +130,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // ac
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         result.MatchInlineSnapshot(
@@ -189,7 +189,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // ac
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -222,7 +222,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -254,7 +254,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -290,7 +290,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -323,7 +323,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -361,7 +361,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -396,7 +396,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -433,7 +433,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -477,7 +477,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ rolesAndPolicy }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -504,7 +504,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -533,7 +533,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -562,7 +562,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -594,7 +594,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -625,7 +625,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -652,7 +652,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -696,7 +696,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
             });
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ piped }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ piped }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -738,7 +738,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ piped }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ piped }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -781,7 +781,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -824,7 +824,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);

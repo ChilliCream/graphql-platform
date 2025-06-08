@@ -17,10 +17,7 @@ public static class SchemaHelper
         bool strictValidation = true,
         bool noStore = false)
     {
-        if (schemaFiles is null)
-        {
-            throw new ArgumentNullException(nameof(schemaFiles));
-        }
+        ArgumentNullException.ThrowIfNull(schemaFiles);
 
         var typeInfos = new TypeInfos();
         var lookup = new Dictionary<ISyntaxNode, string>();
@@ -178,14 +175,14 @@ public static class SchemaHelper
         var directive = hasDirectives.Directives.FirstOrDefault(
             t => directiveName.EqualsOrdinal(t.Name.Value));
 
-        if (directive is { Arguments.Count: > 0, })
+        if (directive is { Arguments.Count: > 0 })
         {
             var name = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("name"));
             var valueType = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("valueType"));
 
-            if (name is { Value: StringValueNode stringValue, })
+            if (name is { Value: StringValueNode stringValue })
             {
                 var valueTypeValue = valueType?.Value as BooleanValueNode;
                 return new(stringValue.Value, valueTypeValue?.Value);
@@ -305,8 +302,8 @@ public static class SchemaHelper
         DirectiveNode directive,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
-        if (directive is { Arguments: { Count: 1, }, } &&
-            directive.Arguments[0] is { Name: { Value: "fields", }, Value: StringValueNode sv, })
+        if (directive is { Arguments: { Count: 1 } } &&
+            directive.Arguments[0] is { Name: { Value: "fields" }, Value: StringValueNode sv })
         {
             selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{sv.Value}}}");
             return true;

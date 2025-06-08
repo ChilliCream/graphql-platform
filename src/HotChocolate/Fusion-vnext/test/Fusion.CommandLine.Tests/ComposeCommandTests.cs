@@ -7,10 +7,10 @@ namespace HotChocolate.Fusion;
 
 public sealed class ComposeCommandTests
 {
-    private static readonly string _validExample1CompositeSchema =
+    private static readonly string s_validExample1CompositeSchema =
         File.ReadAllText("__resources__/valid-example-1/result/composite-schema.graphqls");
 
-    private static readonly string _invalidExample1CompositeSchema =
+    private static readonly string s_invalidExample1CompositeSchema =
         File.ReadAllText("__resources__/invalid-example-1/result/composite-schema.graphqls");
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.Equal(
-            _validExample1CompositeSchema,
+            s_validExample1CompositeSchema,
             testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
     }
 
@@ -57,7 +57,7 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.Equal(
-            _validExample1CompositeSchema,
+            s_validExample1CompositeSchema,
             testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
     }
 
@@ -87,7 +87,7 @@ public sealed class ComposeCommandTests
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
         Assert.Equal(
-            _validExample1CompositeSchema,
+            s_validExample1CompositeSchema,
             (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
 
         // cleanup
@@ -120,7 +120,7 @@ public sealed class ComposeCommandTests
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
         Assert.Equal(
-            _validExample1CompositeSchema,
+            s_validExample1CompositeSchema,
             (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
 
         // cleanup
@@ -151,7 +151,7 @@ public sealed class ComposeCommandTests
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
         Assert.Equal(
-            _validExample1CompositeSchema,
+            s_validExample1CompositeSchema,
             (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
 
         // cleanup
@@ -182,7 +182,7 @@ public sealed class ComposeCommandTests
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
         Assert.Equal(
-            _validExample1CompositeSchema,
+            s_validExample1CompositeSchema,
             (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
 
         // cleanup
@@ -212,7 +212,7 @@ public sealed class ComposeCommandTests
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
         Assert.Equal(
-            _validExample1CompositeSchema,
+            s_validExample1CompositeSchema,
             (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
 
         // cleanup
@@ -323,7 +323,7 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.Equal(
-            _invalidExample1CompositeSchema,
+            s_invalidExample1CompositeSchema,
             testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
     }
 

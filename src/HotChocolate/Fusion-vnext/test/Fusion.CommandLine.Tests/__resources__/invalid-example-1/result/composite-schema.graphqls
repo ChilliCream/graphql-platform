@@ -1,5 +1,5 @@
 # ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema1' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
-# ⚠️ [WRN] The lookup field 'Query.userByUsername' in schema 'Schema2' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
+# ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema2' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
 
 schema {
   query: Query
@@ -9,10 +9,9 @@ type Query
   @fusion__type(schema: SCHEMA1)
   @fusion__type(schema: SCHEMA2) {
   userById(id: ID!
-    @fusion__inputField(schema: SCHEMA1)): User!
-    @fusion__field(schema: SCHEMA1)
-  userByUsername(username: String!
+    @fusion__inputField(schema: SCHEMA1)
     @fusion__inputField(schema: SCHEMA2)): User!
+    @fusion__field(schema: SCHEMA1)
     @fusion__field(schema: SCHEMA2)
 }
 
@@ -20,9 +19,10 @@ type User
   @fusion__type(schema: SCHEMA1)
   @fusion__type(schema: SCHEMA2)
   @fusion__lookup(schema: SCHEMA1, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null)
-  @fusion__lookup(schema: SCHEMA2, key: "username", field: "userByUsername(username: String!): User!", map: [ "username" ], path: null) {
+  @fusion__lookup(schema: SCHEMA2, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null) {
   id: ID!
     @fusion__field(schema: SCHEMA1)
+    @fusion__field(schema: SCHEMA2)
   username: String!
     @fusion__field(schema: SCHEMA2)
 }

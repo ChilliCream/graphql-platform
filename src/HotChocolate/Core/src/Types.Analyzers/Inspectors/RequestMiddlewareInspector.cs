@@ -24,9 +24,9 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     Name: GenericNameSyntax
                     {
                         Identifier.ValueText: "UseRequest",
-                        TypeArgumentList: { Arguments.Count: 1, } args,
-                    },
-                },
+                        TypeArgumentList: { Arguments.Count: 1 } args
+                    }
+                }
             } node)
         {
             var semanticModel = context.SemanticModel;
@@ -34,7 +34,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 
             if (middlewareType is null)
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -47,17 +47,17 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     Kind: SymbolKind.Method,
                     IsStatic: false,
                     IsAbstract: false,
-                    DeclaredAccessibility: Accessibility.Public,
+                    DeclaredAccessibility: Accessibility.Public
                 } ||
                 ctor is not
                 {
                     Kind: SymbolKind.Method,
                     IsStatic: false,
                     IsAbstract: false,
-                    DeclaredAccessibility: Accessibility.Public,
+                    DeclaredAccessibility: Accessibility.Public
                 })
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -134,7 +134,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = default;
+        syntaxInfo = null;
         return false;
     }
 

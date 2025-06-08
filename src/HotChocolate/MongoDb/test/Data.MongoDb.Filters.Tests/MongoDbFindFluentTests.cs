@@ -13,23 +13,23 @@ namespace HotChocolate.Data.MongoDb.Filters;
 
 public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
-        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
-        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
     ];
 
-    private static readonly Baz[] _bazEntities =
+    private static readonly Baz[] s_bazEntities =
     [
-        new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
-        new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
-        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+        new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) },
+        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero) }
     ];
 
     private readonly MongoResource _resource;
@@ -47,7 +47,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             () =>
             {
                 var col = _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
-                col.InsertMany(_fooEntities);
+                col.InsertMany(s_fooEntities);
                 return col.Find(FilterDefinition<Foo>.Empty).AsExecutable();
             });
 
@@ -83,7 +83,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             () =>
             {
                 var col = _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
-                col.InsertMany(_barEntities);
+                col.InsertMany(s_barEntities);
                 return col.Find(FilterDefinition<Bar>.Empty).AsExecutable();
             });
 
@@ -114,7 +114,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             () =>
             {
                 var col = _resource.CreateCollection<Baz>("data_" + Guid.NewGuid().ToString("N"));
-                col.InsertMany(_bazEntities);
+                col.InsertMany(s_bazEntities);
                 return col
                     .Find(x => x.Bar > new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero))
                     .AsExecutable();

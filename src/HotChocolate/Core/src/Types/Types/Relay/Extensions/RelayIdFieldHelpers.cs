@@ -27,10 +27,7 @@ internal static class RelayIdFieldHelpers
         IDescriptor<ArgumentConfiguration> descriptor,
         string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var extend = descriptor.Extend();
 

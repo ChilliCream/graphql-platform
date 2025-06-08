@@ -10,10 +10,7 @@ public static class SchemaPrinter
 {
     public static string Print(Schema schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var document = PrintSchema(schema);
         return document.Print();
@@ -21,15 +18,8 @@ public static class SchemaPrinter
 
     public static void Serialize(Schema schema, TextWriter textWriter)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (textWriter is null)
-        {
-            throw new ArgumentNullException(nameof(textWriter));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(textWriter);
 
         var document = PrintSchema(schema);
         textWriter.Write(document.Print());
@@ -43,7 +33,6 @@ public static class SchemaPrinter
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(stream);
-
 
         var document = PrintSchema(schema);
         await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
@@ -104,7 +93,7 @@ public static class SchemaPrinter
         var directiveTypeDefinitions =
             schema.DirectiveTypes
                 .Where(directive => !builtInDirectives.Contains(directive.Name))
-                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+                .OrderBy(t => t.Name, StringComparer.Ordinal)
                 .Select(PrintDirectiveTypeDefinition);
 
         typeDefinitions.AddRange(directiveTypeDefinitions);
@@ -113,7 +102,7 @@ public static class SchemaPrinter
             schema.Types
             .OfType<ScalarType>()
             .Where(t => includeSpecScalars || !BuiltInTypes.IsBuiltInType(t.Name))
-            .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
             .Select(PrintScalarType);
 
         typeDefinitions.AddRange(scalarTypeDefinitions);
@@ -126,7 +115,7 @@ public static class SchemaPrinter
     {
         return schema.Types
            .Where(IsPublicAndNoScalar)
-           .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+           .OrderBy(t => t.Name, StringComparer.Ordinal)
            .GroupBy(t => (int)t.Kind)
            .OrderBy(t => t.Key)
            .SelectMany(t => t);

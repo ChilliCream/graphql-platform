@@ -30,9 +30,8 @@ namespace HotChocolate.Validation.Rules;
 /// http://facebook.github.io/graphql/June2018/#sec-Required-Arguments
 /// </summary>
 internal sealed class ArgumentVisitor()
-    : TypeDocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true, })
+    : TypeDocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true })
 {
-
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
         DocumentValidatorContext context)

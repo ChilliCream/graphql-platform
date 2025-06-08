@@ -234,7 +234,7 @@ public static partial class TypeDescriptorMapper
                     outputType.Implements.Single(),
                     kind);
 
-            return new[] { runtimeType.Name, };
+            return new[] { runtimeType.Name };
         }
 
         return outputType.Implements

@@ -194,7 +194,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         if (type.ValueEquals(Utf8Messages.Complete)
             && root.TryGetProperty(Id, out idProp)
             && idProp.ValueKind is JsonValueKind.String
-            && idProp.GetString() is { Length: > 0, } id)
+            && idProp.GetString() is { Length: > 0 } id)
         {
             session.Operations.Complete(id);
             return;

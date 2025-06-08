@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public static class HotChocolateExecutionSelectionExtensions
 {
-    private static readonly SelectionExpressionBuilder _builder = new();
+    private static readonly SelectionExpressionBuilder s_builder = new();
 
     /// <summary>
     /// Creates a selector expression from a GraphQL selection.
@@ -87,7 +87,7 @@ public static class HotChocolateExecutionSelectionExtensions
         => selection.DeclaringOperation.GetOrAddState(
             CreateExpressionKey(selection.Id),
             static (_, ctx) => ctx._builder.BuildExpression<TValue>(ctx.selection),
-            (_builder, selection));
+            (_builder: s_builder, selection));
 
     private static Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(
         ISelection selection,
@@ -102,7 +102,7 @@ public static class HotChocolateExecutionSelectionExtensions
         => selection.DeclaringOperation.GetOrAddState(
             CreateNodeExpressionKey<TValue>(selection.Id),
             static (_, ctx) => ctx._builder.BuildNodeExpression<TValue>(ctx.selection),
-            (_builder, selection));
+            (_builder: s_builder, selection));
 
     private static bool TryGetExpression<TValue>(
         ISelection selection,
@@ -177,8 +177,8 @@ public static class HotChocolateExecutionSelectionExtensions
         var requiredBufferSize = EstimateIntLength(key) + keyPrefix.Length;
         Span<byte> span = stackalloc byte[requiredBufferSize];
         keyPrefix.CopyTo(span);
-        Utf8Formatter.TryFormat(key, span.Slice(keyPrefix.Length), out var written, 'D');
-        return Encoding.UTF8.GetString(span.Slice(0, written + keyPrefix.Length));
+        Utf8Formatter.TryFormat(key, span[keyPrefix.Length..], out var written, 'D');
+        return Encoding.UTF8.GetString(span[..(written + keyPrefix.Length)]);
     }
 
     private static string CreateNodeExpressionKey<TValue>(int key)
@@ -193,9 +193,9 @@ public static class HotChocolateExecutionSelectionExtensions
             : (rented = ArrayPool<byte>.Shared.Rent(requiredBufferSize));
 
         keyPrefix.CopyTo(span);
-        Utf8Formatter.TryFormat(key, span.Slice(keyPrefix.Length), out var written, 'D');
-        var typeNameWritten = Encoding.UTF8.GetBytes(typeName, span.Slice(written + keyPrefix.Length));
-        var keyString = Encoding.UTF8.GetString(span.Slice(0, written + keyPrefix.Length + typeNameWritten));
+        Utf8Formatter.TryFormat(key, span[keyPrefix.Length..], out var written, 'D');
+        var typeNameWritten = Encoding.UTF8.GetBytes(typeName, span[(written + keyPrefix.Length)..]);
+        var keyString = Encoding.UTF8.GetString(span[..(written + keyPrefix.Length + typeNameWritten)]);
 
         if (rented is not null)
         {

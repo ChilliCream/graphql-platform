@@ -158,6 +158,15 @@ internal static class TypeValidationHelper
                 {
                     errors.Add(InvalidFieldType(type, field, implementedField));
                 }
+
+                if (field.IsDeprecated && !implementedField.IsDeprecated)
+                {
+                    errors.Add(InvalidFieldDeprecation(
+                        implementedType.Name,
+                        implementedField,
+                        type,
+                        field));
+                }
             }
             else
             {

@@ -55,8 +55,7 @@ internal static class GraphQLHttpEventStreamProcessor
                 break;
             }
 
-            // ReSharper disable once RedundantArgumentDefaultValue
-            var result = await writer.FlushAsync(default).ConfigureAwait(false);
+            var result = await writer.FlushAsync(CancellationToken.None).ConfigureAwait(false);
             if (result.IsCompleted || result.IsCanceled)
             {
                 break;
@@ -251,9 +250,9 @@ internal static class GraphQLHttpEventStreamProcessor
 
     private static bool ExpectEvent(ref ReadOnlySpan<byte> span)
     {
-        if (span.Slice(0, 6).SequenceEqual(Event))
+        if (span[..6].SequenceEqual(Event))
         {
-            span = span.Slice(6);
+            span = span[6..];
             return true;
         }
 
@@ -264,12 +263,12 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         SkipWhitespaces(ref span);
 
-        if (!span.Slice(0, 5).SequenceEqual(Next))
+        if (!span[..5].SequenceEqual(Next))
         {
             return false;
         }
 
-        span = span.Slice(5);
+        span = span[5..];
 
         return true;
     }
@@ -278,21 +277,21 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         SkipWhitespaces(ref span);
 
-        if (!span.Slice(0, 9).SequenceEqual(Complete))
+        if (!span[..9].SequenceEqual(Complete))
         {
             return false;
         }
 
-        span = span.Slice(9);
+        span = span[9..];
 
         return true;
     }
 
     private static bool ExpectData(ref ReadOnlySpan<byte> span)
     {
-        if (span.Slice(0, 5).SequenceEqual(Data))
+        if (span[..5].SequenceEqual(Data))
         {
-            span = span.Slice(5);
+            span = span[5..];
             return true;
         }
 
@@ -308,8 +307,8 @@ internal static class GraphQLHttpEventStreamProcessor
             throw new InvalidOperationException("Invalid Message Format.");
         }
 
-        var data = span.Slice(0, linebreak);
-        span = span.Slice(linebreak + 1);
+        var data = span[..linebreak];
+        span = span[(linebreak + 1)..];
         return data;
     }
 
@@ -317,13 +316,13 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         while (span.Length > 0 && span[0] == (byte)' ')
         {
-            span = span.Slice(1);
+            span = span[1..];
         }
     }
 
     private enum EventType
     {
         Next,
-        Complete,
+        Complete
     }
 }

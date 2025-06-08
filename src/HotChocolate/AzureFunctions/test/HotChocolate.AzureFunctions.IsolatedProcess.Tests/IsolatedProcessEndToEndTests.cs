@@ -41,7 +41,7 @@ public class IsolatedProcessEndToEndTests
         var resultContent = await ReadResponseAsStringAsync(response);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
-        dynamic json = JObject.Parse(resultContent!);
+        dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
         Assert.Equal("Luke Skywalker",json.data.person.ToString());
     }
@@ -61,7 +61,7 @@ public class IsolatedProcessEndToEndTests
                             nameof(HttpContext),
                             out var httpContext)
                             ? (httpContext as HttpContext)?.Items[DarkSideLeaderKey] as string
-                            : default;
+                            : null;
 
                         return darkSideLeader;
                     }));
@@ -90,7 +90,7 @@ public class IsolatedProcessEndToEndTests
         var resultContent = await ReadResponseAsStringAsync(response);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
-        dynamic json = JObject.Parse(resultContent!);
+        dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
         Assert.Equal("Darth Vader", json.data.person.ToString());
     }
@@ -119,7 +119,7 @@ public class IsolatedProcessEndToEndTests
         var resultContent = await ReadResponseAsStringAsync(httpResponseData);
         Assert.NotNull(resultContent);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
-        Assert.True(resultContent!.Contains("<html") && resultContent.Contains("</html>"));
+        Assert.True(resultContent.Contains("<html") && resultContent.Contains("</html>"));
     }
 
     private static Task<string> ReadResponseAsStringAsync(HttpResponseData responseData)

@@ -2036,9 +2036,7 @@ public class SchemaBuilderTests
         schema.MatchSnapshot();
     }
 
-    public interface IMockConvention : IConvention
-    {
-    }
+    public interface IMockConvention : IConvention;
 
     public class MockConventionDefinition
     {
@@ -2093,15 +2091,9 @@ public class SchemaBuilderTests
         }
     }
 
-    public interface IInvalidTestConvention
-    {
-    }
-    public interface ITestConvention : IConvention
-    {
-    }
-    public class TestConvention2 : Convention, ITestConvention
-    {
-    }
+    public interface IInvalidTestConvention;
+    public interface ITestConvention : IConvention;
+    public class TestConvention2 : Convention, ITestConvention;
     public class TestConvention : Convention, ITestConvention
     {
         public static TestConvention New() => new();
@@ -2174,9 +2166,7 @@ public class SchemaBuilderTests
         }
     }
 
-    public class BarType : ObjectType<Bar>
-    {
-    }
+    public class BarType : ObjectType<Bar>;
 
     public class Foo
     {

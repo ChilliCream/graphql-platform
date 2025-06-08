@@ -35,7 +35,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     : null,
                 SharedMaxAge = constraints.SharedMaxAge is not null
                     ? TimeSpan.FromSeconds(constraints.SharedMaxAge.Value)
-                    : null,
+                    : null
             };
 
             context.ContextData.Add(
@@ -80,7 +80,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         }
         else
         {
-            vary = ImmutableArray<string>.Empty;
+            vary = [];
         }
 
         return new ImmutableCacheConstraints(

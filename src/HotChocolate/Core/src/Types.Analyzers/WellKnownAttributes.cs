@@ -33,7 +33,7 @@ public static class WellKnownAttributes
     public static HashSet<string> BindAttributes { get; } =
     [
         BindMemberAttribute,
-        BindFieldAttribute,
+        BindFieldAttribute
     ];
 
     public static HashSet<string> TypeAttributes { get; } =
@@ -46,6 +46,6 @@ public static class WellKnownAttributes
         InputObjectTypeAttribute,
         QueryTypeAttribute,
         MutationTypeAttribute,
-        SubscriptionTypeAttribute,
+        SubscriptionTypeAttribute
     ];
 }

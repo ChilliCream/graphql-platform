@@ -56,7 +56,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: { a: $var, b: 123 }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -71,7 +71,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -88,7 +88,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) }, })
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -121,7 +121,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: $var) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -189,7 +189,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) }, })
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -216,7 +216,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: Int) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -427,7 +427,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
 
         public int? B { get; set; }
     }
-
 
     [DirectiveType(DirectiveLocation.FieldDefinition)]
     public class DefaultValue

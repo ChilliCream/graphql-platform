@@ -78,6 +78,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Satisfiability validation failed..
+        /// </summary>
+        internal static string ErrorHelper_SatisfiabilityValidationFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SatisfiabilityValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source schema parsing failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaParsingFailed {
@@ -987,6 +996,78 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cycle detected in requirement: {0} -&gt; {1}..
+        /// </summary>
+        internal static string RequirementsValidator_CycleDetected {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_CycleDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_NoLookupsFoundForType {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoLookupsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No other schemas contain the field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_NoOtherSchemasContainField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoOtherSchemasContainField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToAccessFieldOnPath {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToAccessFieldOnPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToSatisfyRequirement {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToSatisfyRequirementForLookup {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirementForLookup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to transition between schemas &apos;{0}&apos; and &apos;{1}&apos; for access to required field &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToTransitionBetweenSchemas {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToTransitionBetweenSchemas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Represents a selection path map syntax..
         /// </summary>
         internal static string RequireMutableDirectiveDefinition_Argument_Field_Description {
@@ -1001,6 +1082,60 @@ namespace HotChocolate.Fusion.Properties {
         internal static string RequireMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("RequireMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cycle detected: {0} -&gt; {1}..
+        /// </summary>
+        internal static string SatisfiabilityValidator_CycleDetected {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_CycleDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_NoLookupsFoundForType {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_NoLookupsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToAccessFieldOnPath {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessFieldOnPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; on field &apos;{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToSatisfyRequirement {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToSatisfyRequirement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToSatisfyRequirementForLookup {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToSatisfyRequirementForLookup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to transition between schemas &apos;{0}&apos; and &apos;{1}&apos; for access to field &apos;{2}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToTransitionBetweenSchemas {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToTransitionBetweenSchemas", resourceCulture);
             }
         }
         

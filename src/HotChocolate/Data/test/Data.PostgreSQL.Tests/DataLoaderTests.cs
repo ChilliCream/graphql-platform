@@ -127,11 +127,7 @@ file static class Extensions
     public static void MatchSnapshot(
         this TestQueryInterceptor queryInterceptor)
     {
-#if NET9_0_OR_GREATER
-        var snapshot = Snapshot.Create();
-#else
-        var snapshot = Snapshot.Create(postFix: "_net_8_0");
-#endif
+        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
 
         for (var i = 0; i < queryInterceptor.Queries.Count; i++)
         {

@@ -15,11 +15,11 @@ namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
 public static class WebSocketExtensions
 {
-    private static readonly JsonSerializerSettings _settings =
+    private static readonly JsonSerializerSettings s_settings =
         new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
         };
 
     public static Task SendConnectionInitializeAsync(
@@ -118,7 +118,7 @@ public static class WebSocketExtensions
         {
             var query = dataStart.Payload.Query!.Print();
 
-            var payload = new Dictionary<string, object> { { "query", query }, };
+            var payload = new Dictionary<string, object> { { "query", query } };
 
             if (dataStart.Payload.QueryId != null)
             {
@@ -139,7 +139,7 @@ public static class WebSocketExtensions
                 dataStart.Type, dataStart.Id, payload);
         }
 
-        var json = JsonConvert.SerializeObject(message, _settings);
+        var json = JsonConvert.SerializeObject(message, s_settings);
         if (largeMessage)
         {
             json += new string(' ', 1024 * 16);

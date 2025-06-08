@@ -416,7 +416,7 @@ public class CodeFirstTests
 
         public IExecutable<string> GetQuery()
         {
-            return new MockExecutable<string>(new[] { "foo", "bar", }.AsQueryable());
+            return new MockExecutable<string>(new[] { "foo", "bar" }.AsQueryable());
         }
 
         public string TestProp => "Hello World!";
@@ -456,7 +456,7 @@ public class CodeFirstTests
                 .Resolve(c => "bar");
             descriptor.Field("fooOrBar")
                 .Type<NonNullType<ListType<NonNullType<FooBarUnionType>>>>()
-                .Resolve(() => new object[] { "foo", "bar", });
+                .Resolve(() => new object[] { "foo", "bar" });
             descriptor.Field("tea")
                 .Type<TeaType>()
                 .Resolve(() => "tea");
@@ -530,7 +530,7 @@ public class CodeFirstTests
     public enum DrinkKind
     {
         BlackTea,
-        Water,
+        Water
     }
 
     public class FooBarUnionType : UnionType
@@ -562,7 +562,7 @@ public class CodeFirstTests
 
         public Task<IEnumerable<string>> GetNames()
         {
-            return Task.FromResult<IEnumerable<string>>(new[] { "a", "b", });
+            return Task.FromResult<IEnumerable<string>>(["a", "b"]);
         }
     }
 
@@ -640,10 +640,10 @@ public class CodeFirstTests
 
     public class QueryFieldCasing
     {
-        public string YourFieldName { get; set; } = default!;
+        public string YourFieldName { get; set; } = null!;
 
         [GraphQLDeprecated("This is deprecated")]
-        public string YourFieldname { get; set; } = default!;
+        public string YourFieldname { get; set; } = null!;
     }
 
     public class QueryWithDefaultValue

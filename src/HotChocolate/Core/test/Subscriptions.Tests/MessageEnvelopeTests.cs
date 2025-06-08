@@ -36,6 +36,6 @@ public class MessageEnvelopeTests
     public void CreateCompletedMessage_Body_Not_Null_ValueType()
     {
         var envelope = new MessageEnvelope<int>(5, MessageKind.Completed);
-        Assert.Equal(default, envelope.Body);
+        Assert.Equal(0, envelope.Body);
     }
 }

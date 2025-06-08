@@ -7,7 +7,7 @@ namespace HotChocolate.Caching;
 
 internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 {
-    private ITypeCompletionContext _queryContext = default!;
+    private ITypeCompletionContext _queryContext = null!;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,

@@ -103,7 +103,7 @@ public static class WellKnownTypes
         UnionType,
         InputObjectType,
         EnumType,
-        ScalarType,
+        ScalarType
     ];
 
     public static HashSet<string> TypeExtensionClass { get; } =
@@ -112,12 +112,11 @@ public static class WellKnownTypes
         InterfaceTypeExtension,
         UnionTypeExtension,
         InputObjectTypeExtension,
-        EnumTypeExtension,
+        EnumTypeExtension
     ];
 
     public static HashSet<string> SupportedListInterfaces { get; } =
-        new()
-        {
+        [
             "System.Collections.Generic.IReadOnlyCollection<>",
             "System.Collections.Generic.IReadOnlyList<>",
             "System.Collections.Generic.ICollection<>",
@@ -139,7 +138,7 @@ public static class WellKnownTypes
             "System.Collections.Immutable.ImmutableHashSet<>",
             "HotChocolate.Execution.ISourceStream<>",
             "HotChocolate.IExecutable<>"
-        };
+        ];
 
     public static HashSet<string> TaskWrapper { get; } =
         [

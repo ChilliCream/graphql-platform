@@ -12,9 +12,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        var authorizeDirective = new AuthorizeDirective(
-            null,
-            new[] { "a", "b", });
+        var authorizeDirective = new AuthorizeDirective(null, ["a", "b"]);
 
         // assert
         Assert.Null(authorizeDirective.Policy);
@@ -69,8 +67,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        var authorizeDirective = new AuthorizeDirective(
-            new[] { "a", "b", });
+        var authorizeDirective = new AuthorizeDirective(["a", "b"]);
 
         // assert
         Assert.Null(authorizeDirective.Policy);
@@ -152,7 +149,7 @@ public class AuthorizeDirectiveTests
             .AddQueryType(
                 c => c
                     .Name("Query")
-                    .Authorize(["MyRole",])
+                    .Authorize(["MyRole"])
                     .Field("foo")
                     .Resolve("bar"))
             .AddAuthorizeDirectiveType()
@@ -168,7 +165,7 @@ public class AuthorizeDirectiveTests
         // arrange
         // act
         void Action()
-            => AuthorizeObjectTypeDescriptorExtensions.Authorize(null!, ["MyRole",]);
+            => AuthorizeObjectTypeDescriptorExtensions.Authorize(null!, ["MyRole"]);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -398,7 +395,7 @@ public class AuthorizeDirectiveTests
                     c => c
                         .Name("Query")
                         .Field("foo")
-                        .Authorize(["MyRole",])
+                        .Authorize(["MyRole"])
                         .Resolve("bar"))
                 .AddAuthorization()
                 .BuildSchemaAsync();
@@ -414,7 +411,7 @@ public class AuthorizeDirectiveTests
         // act
         Action action = () =>
             AuthorizeObjectFieldDescriptorExtensions
-                .Authorize(null!, ["MyRole",]);
+                .Authorize(null!, ["MyRole"]);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

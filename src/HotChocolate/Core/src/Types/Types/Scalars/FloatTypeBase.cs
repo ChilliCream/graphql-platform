@@ -26,10 +26,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -85,10 +82,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     public override object? ParseLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {

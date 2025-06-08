@@ -302,9 +302,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
     <value>The given schema has to inherit from `Schema` in order to be initializable.</value>
   </data>
-  <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
-    <value>The error message mustn't be null or empty.</value>
-  </data>
   <data name="SchemaField_Description" xml:space="preserve">
     <value>Access the current type schema of this server.</value>
   </data>
@@ -400,9 +397,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="TypeNameHelper_OnlyTypeSystemObjectsAreAllowed" xml:space="preserve">
     <value>Only type system objects are allowed as dependency.</value>
-  </data>
-  <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
-    <value>The typeName mustn't be null or empty.</value>
   </data>
   <data name="Type_Description" xml:space="preserve">
     <value>The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
@@ -868,6 +862,9 @@ Type: `{0}`</value>
   <data name="ErrorHelper_NotTransitivelyImplemented" xml:space="preserve">
     <value>The {0} type must also declare all interfaces declared by implemented interfaces.</value>
   </data>
+  <data name="ErrorHelper_InvalidFieldDeprecation" xml:space="preserve">
+    <value>Interface field {0}.{1} is not deprecated, so implementation field {2}.{3} must not be deprecated.</value>
+  </data>
   <data name="ErrorHelper_InvalidFieldType" xml:space="preserve">
     <value>Field `{0}` must return a type which is equal to or a subtype of (covariant) the return type `{1}` of the interface field.</value>
   </data>
@@ -962,7 +959,7 @@ Type: `{0}`</value>
     <value>The specified type `{0}` is expected to be an output type.</value>
   </data>
   <data name="TagDirective_Name_NotValid" xml:space="preserve">
-    <value>The tag name must follow the GraphQL type name rules.</value>
+    <value>Tag names may only include alphanumeric characters (a-z, A-Z, 0-9), hyphens, and underscores.</value>
   </data>
   <data name="TagDirective_Descriptor_NotSupported" xml:space="preserve">
     <value>Tag is not supported on the specified descriptor.</value>

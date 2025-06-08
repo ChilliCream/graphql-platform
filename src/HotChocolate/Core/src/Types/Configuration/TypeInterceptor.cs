@@ -14,12 +14,12 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public abstract class TypeInterceptor
 {
-    private const uint _defaultPosition = uint.MaxValue / 2;
+    private const uint DefaultPosition = uint.MaxValue / 2;
 
     /// <summary>
     /// A weight to order interceptors.
     /// </summary>
-    internal virtual uint Position => _defaultPosition;
+    internal virtual uint Position => DefaultPosition;
 
     public virtual bool IsEnabled(IDescriptorContext context) => true;
 
@@ -417,7 +417,6 @@ public abstract class TypeInterceptor
     /// </param>
     internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, Schema schema)
     {
-
     }
 
     /// <summary>

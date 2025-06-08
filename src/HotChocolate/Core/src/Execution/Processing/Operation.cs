@@ -47,7 +47,7 @@ internal sealed class Operation : IOperation
 
     public OperationType Type { get; }
 
-    public ISelectionSet RootSelectionSet { get; private set; } = default!;
+    public ISelectionSet RootSelectionSet { get; private set; } = null!;
 
     public IReadOnlyList<ISelectionVariants> SelectionVariants
         => _selectionVariants;
@@ -63,15 +63,8 @@ internal sealed class Operation : IOperation
 
     public ISelectionSet GetSelectionSet(ISelection selection, ObjectType typeContext)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 
@@ -85,10 +78,7 @@ internal sealed class Operation : IOperation
 
     public IEnumerable<ObjectType> GetPossibleTypes(ISelection selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 

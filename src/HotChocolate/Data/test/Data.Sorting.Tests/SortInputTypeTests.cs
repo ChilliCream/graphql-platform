@@ -241,7 +241,7 @@ public class SortInputTypeTest : SortTestBase
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class ShouldNotBeVisible : SortInputType;
@@ -266,7 +266,7 @@ public class SortInputTypeTest : SortTestBase
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class Query
@@ -277,17 +277,17 @@ public class SortInputTypeTest : SortTestBase
 
     public class Book
     {
-        public int Id { get; set; } = default!;
+        public int Id { get; set; } = 0;
 
         [GraphQLNonNullType]
-        public string Title { get; set; } = default!;
+        public string Title { get; set; } = null!;
 
-        public int Pages { get; set; } = default!;
+        public int Pages { get; set; } = 0;
 
-        public int Chapters { get; set; } = default!;
+        public int Chapters { get; set; } = 0;
 
         [GraphQLNonNullType]
-        public Author Author { get; set; } = default!;
+        public Author Author { get; set; } = null!;
     }
 
     public class Author
@@ -296,7 +296,7 @@ public class SortInputTypeTest : SortTestBase
         public int Id { get; set; }
 
         [GraphQLNonNullType]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
         public User? Account { get; set; }
     }
@@ -305,9 +305,9 @@ public class SortInputTypeTest : SortTestBase
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
-        public List<User> Friends { get; set; } = default!;
+        public List<User> Friends { get; set; } = null!;
     }
 
     public interface ITest

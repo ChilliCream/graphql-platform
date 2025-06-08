@@ -36,10 +36,7 @@ public static class GreenDonutPredicateDataLoaderExtensions
         Expression<Func<TValue, bool>>? predicate)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (predicate is null)
         {
@@ -77,10 +74,7 @@ public static class GreenDonutPredicateDataLoaderExtensions
         Expression<Func<TValue, bool>>? predicate)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (predicate is null)
         {
@@ -118,10 +112,7 @@ public static class GreenDonutPredicateDataLoaderExtensions
         Expression<Func<TValue, bool>>? predicate)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (predicate is null)
         {

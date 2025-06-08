@@ -8,21 +8,21 @@ internal static class StreamHelper
 {
     private delegate IAsyncEnumerable<object?> Factory(object result);
 
-    private static readonly MethodInfo _createStreamFromAsyncEnumerable =
+    private static readonly MethodInfo s_createStreamFromAsyncEnumerable =
         typeof(StreamHelper).GetMethod(
             nameof(CreateStreamFromAsyncEnumerable),
             BindingFlags.Static | BindingFlags.NonPublic)!;
-    private static readonly MethodInfo _createStreamFromEnumerable =
+    private static readonly MethodInfo s_createStreamFromEnumerable =
         typeof(StreamHelper).GetMethod(
             nameof(CreateStreamFromEnumerable),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
-    private static readonly ConcurrentDictionary<Type, Factory> _streamFactories = new();
+    private static readonly ConcurrentDictionary<Type, Factory> s_streamFactories = new();
 
     public static IAsyncEnumerable<object?> CreateStream(object result)
     {
         var resultType = result.GetType();
-        var factory = _streamFactories.GetOrAdd(resultType, t => CreateFactory(t));
+        var factory = s_streamFactories.GetOrAdd(resultType, t => CreateFactory(t));
         return factory.Invoke(result);
     }
 
@@ -31,8 +31,8 @@ internal static class StreamHelper
         var resultTypeInfo = CreateResultTypeInfo(resultType);
         var resultParameter = Expression.Parameter(typeof(object), "result");
         var method = resultTypeInfo.IsAsyncEnumerable
-            ? _createStreamFromAsyncEnumerable.MakeGenericMethod(resultTypeInfo.ElementType)
-            : _createStreamFromEnumerable.MakeGenericMethod(resultTypeInfo.ElementType);
+            ? s_createStreamFromAsyncEnumerable.MakeGenericMethod(resultTypeInfo.ElementType)
+            : s_createStreamFromEnumerable.MakeGenericMethod(resultTypeInfo.ElementType);
         var castResult = Expression.Convert(resultParameter, resultType);
         var callMethod = Expression.Call(method, castResult);
         return Expression.Lambda<Factory>(callMethod, resultParameter).Compile();

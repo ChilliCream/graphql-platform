@@ -71,10 +71,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         GraphQLHttpRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         if (request.Uri is null && _http.BaseAddress is null)
         {
@@ -137,9 +134,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
                 {
                     new MediaTypeWithQualityHeaderValue(ContentType.GraphQL),
                     new MediaTypeWithQualityHeaderValue(ContentType.Json),
-                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream),
-                },
-            },
+                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream)
+                }
+            }
         };
 
         if (method == GraphQLHttpMethod.Post)

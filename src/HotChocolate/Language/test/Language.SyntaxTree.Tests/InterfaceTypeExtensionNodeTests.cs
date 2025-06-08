@@ -23,7 +23,7 @@ public class InterfaceTypeExtensionNodeTests
         var c = new InterfaceTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
 
@@ -31,7 +31,7 @@ public class InterfaceTypeExtensionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -59,7 +59,7 @@ public class InterfaceTypeExtensionNodeTests
         var c = new InterfaceTypeExtensionNode(
             new Location(3, 3, 3, 3),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
 
@@ -67,7 +67,7 @@ public class InterfaceTypeExtensionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -95,13 +95,13 @@ public class InterfaceTypeExtensionNodeTests
         var c = new InterfaceTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
         var d = new InterfaceTypeExtensionNode(
             new Location(2, 2, 2, 2),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
 

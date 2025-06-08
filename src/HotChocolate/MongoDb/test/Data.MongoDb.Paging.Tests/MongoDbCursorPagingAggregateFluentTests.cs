@@ -15,11 +15,11 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
 {
     private readonly List<Foo> foos =
     [
-        new Foo { Bar = "a", },
-        new Foo { Bar = "b", },
-        new Foo { Bar = "d", },
-        new Foo { Bar = "e", },
-        new Foo { Bar = "f", },
+        new Foo { Bar = "a" },
+        new Foo { Bar = "b" },
+        new Foo { Bar = "d" },
+        new Foo { Bar = "e" },
+        new Foo { Bar = "f" }
     ];
 
     private readonly MongoResource _resource;
@@ -220,7 +220,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, MongoDbAggregateFluentExecutable<TResult>>
@@ -260,7 +260,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                                 }
                             })
                         .UsePaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true, });
+                            options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
                 next => async context =>

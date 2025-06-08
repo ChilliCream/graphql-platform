@@ -4,18 +4,14 @@ namespace HotChocolate.Utilities;
 
 public static class FireAndForgetTaskExtensions
 {
-    private static ImmutableArray<BackgroundTaskErrorInterceptor> _interceptors =
-        ImmutableArray<BackgroundTaskErrorInterceptor>.Empty;
+    private static ImmutableArray<BackgroundTaskErrorInterceptor> s_interceptors = [];
 
     public static void FireAndForget(
         this Task task,
         Action? onComplete = null,
         Action<Exception>? onError = null)
     {
-        if (task is null)
-        {
-            throw new ArgumentNullException(nameof(task));
-        }
+        ArgumentNullException.ThrowIfNull(task);
 
         _ = FireAndForgetInternal(task, onComplete, onError);
 
@@ -31,7 +27,7 @@ public static class FireAndForgetTaskExtensions
             }
             catch (Exception ex)
             {
-                var interceptors = _interceptors;
+                var interceptors = s_interceptors;
                 foreach (var interceptor in interceptors)
                 {
                     interceptor.OnError(ex);
@@ -61,7 +57,7 @@ public static class FireAndForgetTaskExtensions
             }
             catch (Exception ex)
             {
-                var interceptors = _interceptors;
+                var interceptors = s_interceptors;
                 foreach (var interceptor in interceptors)
                 {
                     interceptor.OnError(ex);
@@ -94,7 +90,7 @@ public static class FireAndForgetTaskExtensions
             }
             catch (Exception ex)
             {
-                var interceptors = _interceptors;
+                var interceptors = s_interceptors;
                 foreach (var interceptor in interceptors)
                 {
                     interceptor.OnError(ex);
@@ -107,21 +103,15 @@ public static class FireAndForgetTaskExtensions
 
     internal static void SubscribeToErrors(BackgroundTaskErrorInterceptor interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
-        ImmutableInterlocked.Update(ref _interceptors, x => x.Add(interceptor));
+        ImmutableInterlocked.Update(ref s_interceptors, x => x.Add(interceptor));
     }
 
     internal static void UnsubscribeFromErrors(BackgroundTaskErrorInterceptor interceptor)
     {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(interceptor);
 
-        ImmutableInterlocked.Update(ref _interceptors, x => x.Remove(interceptor));
+        ImmutableInterlocked.Update(ref s_interceptors, x => x.Remove(interceptor));
     }
 }

@@ -15,13 +15,13 @@ public partial class SchemaErrorBuilder
 {
     private sealed class Error : ISchemaError
     {
-        private static readonly JsonWriterOptions _serializationOptions = new()
+        private static readonly JsonWriterOptions s_serializationOptions = new()
         {
             Indented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        public string Message { get; set; } = default!;
+        public string Message { get; set; } = null!;
 
         public string? Code { get; set; }
 
@@ -29,8 +29,7 @@ public partial class SchemaErrorBuilder
 
         public IReadOnlyCollection<object>? Path { get; set; }
 
-        public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } =
-            ImmutableList<ISyntaxNode>.Empty;
+        public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } = [];
 
         IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
 
@@ -45,7 +44,7 @@ public partial class SchemaErrorBuilder
         {
             using var buffer = new PooledArrayWriter();
 
-            using var writer = new Utf8JsonWriter(buffer, _serializationOptions);
+            using var writer = new Utf8JsonWriter(buffer, s_serializationOptions);
 
             writer.WriteStartObject();
             Serialize(writer);

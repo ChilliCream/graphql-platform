@@ -25,10 +25,7 @@ public static class RelayIdFilterFieldExtensions
     public static IFilterOperationFieldDescriptor ID(
         this IFilterOperationFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()

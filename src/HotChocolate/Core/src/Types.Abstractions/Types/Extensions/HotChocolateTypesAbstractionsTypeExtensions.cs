@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 
 public static class HotChocolateTypesAbstractionsTypeExtensions
 {
-    private const int _maxDepth = 16;
+    private const int MaxDepth = 16;
 
     /// <summary>
     /// Calculates the depth of a type. The depth is defined as the
@@ -93,7 +93,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
         {
             TypeKind.List => true,
             TypeKind.NonNull when ((NonNullType)type).NullableType.Kind == TypeKind.List => true,
-            _ => false,
+            _ => false
         };
     }
 
@@ -334,7 +334,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
         {
             ListType listType => listType.ElementType,
             NonNullType nonNullType => nonNullType.NullableType,
-            _ => type,
+            _ => type
         };
     }
 
@@ -381,7 +381,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             NamedTypeNode => new NamedTypeNode(typeDefinition.Name),
             ListTypeNode t => new ListTypeNode(ToType(t.Type, typeDefinition)),
             NonNullTypeNode t => new NonNullTypeNode((INullableTypeNode)ToType(t.Type, typeDefinition)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 
@@ -394,7 +394,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             ITypeDefinition namedType => new NamedTypeNode(namedType.Name),
             ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 
@@ -434,7 +434,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             ITypeDefinition namedType => newNamedType(namedType.Name),
             ListType listType => new ListType(ReplaceNamedType(listType.ElementType, newNamedType)),
             NonNullType nonNullType => new NonNullType(ReplaceNamedType(nonNullType.NullableType, newNamedType)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 
@@ -448,7 +448,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
             NamedTypeNode => typeDefinition,
             ListTypeNode listTypeNode => new ListType(RewriteToType(listTypeNode.Type, typeDefinition)),
             NonNullTypeNode nonNullTypeNode => new NonNullType(RewriteToType(nonNullTypeNode.Type, typeDefinition)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 
@@ -493,7 +493,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
     private static bool FullTypeName(IType type, int currentDepth, Span<char> buffer, out int written)
     {
-        if (currentDepth > _maxDepth)
+        if (currentDepth > MaxDepth)
         {
             throw new InvalidOperationException(
                 "The type resolution depth limit was exceeded.");
@@ -610,7 +610,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        var depthRemaining = _maxDepth;
+        var depthRemaining = MaxDepth;
 
         if (type is ITypeDefinition typeDefinition)
         {
@@ -621,7 +621,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
         {
             if (depthRemaining-- <= 0)
             {
-                throw new InvalidOperationException($"The type resolution depth limit of {_maxDepth} was exceeded.");
+                throw new InvalidOperationException($"The type resolution depth limit of {MaxDepth} was exceeded.");
             }
 
             switch (type.Kind)
@@ -671,13 +671,13 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
     public static bool IsStructurallyEqual(this IType thisType, IType otherType)
     {
-        var depthRemaining = _maxDepth;
+        var depthRemaining = MaxDepth;
 
         while (true)
         {
             if (depthRemaining-- <= 0)
             {
-                throw new InvalidOperationException($"The type comparison depth limit of {_maxDepth} was reached.");
+                throw new InvalidOperationException($"The type comparison depth limit of {MaxDepth} was reached.");
             }
 
             if (thisType.Kind != otherType.Kind)

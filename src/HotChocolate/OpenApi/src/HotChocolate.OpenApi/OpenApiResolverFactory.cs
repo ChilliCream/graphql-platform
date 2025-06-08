@@ -16,7 +16,7 @@ namespace HotChocolate.OpenApi;
 
 internal static class OpenApiResolverFactory
 {
-    private static readonly JsonElement NullJsonElement = JsonDocument.Parse("null").RootElement;
+    private static readonly JsonElement s_nullJsonElement = JsonDocument.Parse("null").RootElement;
 
     public static Func<IResolverContext, Task<JsonElement>> CreateResolver(
         string httpClientName,
@@ -70,7 +70,7 @@ internal static class OpenApiResolverFactory
         var responseBuffer = await response.Content.ReadAsByteArrayAsync(cancellationToken);
 
         return responseBuffer.Length is 0
-            ? NullJsonElement
+            ? s_nullJsonElement
             : GetJsonElement(responseBuffer);
 
         static JsonElement GetJsonElement(byte[] buffer)
@@ -165,7 +165,7 @@ internal static class OpenApiResolverFactory
 
         return new HttpRequestMessage(new HttpMethod(operationWrapper.Type.ToString()), requestUri)
         {
-            Content = content,
+            Content = content
         };
     }
 
@@ -233,7 +233,7 @@ internal static class OpenApiResolverFactory
             OpenApiObject o => GetOpenApiAnyObjectValue(o),
             OpenApiPassword p => p.Value,
             OpenApiString s => s.Value,
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
     }
 

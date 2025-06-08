@@ -24,7 +24,7 @@ public class TimeSpanType
 
     public TimeSpanType(
         string name,
-        string? description = default,
+        string? description = null,
         TimeSpanFormat format = TimeSpanFormat.Iso8601,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

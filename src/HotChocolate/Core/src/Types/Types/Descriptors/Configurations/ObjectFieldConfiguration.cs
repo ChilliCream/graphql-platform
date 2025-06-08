@@ -434,7 +434,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
                     var keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
 
                     // we clear the section of the array we need before we are using it.
-                    keys.AsSpan().Slice(0, nonRepeatable).Clear();
+                    keys.AsSpan()[..nonRepeatable].Clear();
                     int i = 0, ki = 0;
 
                     do

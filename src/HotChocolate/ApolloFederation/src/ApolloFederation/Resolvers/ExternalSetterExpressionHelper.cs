@@ -13,16 +13,16 @@ namespace HotChocolate.ApolloFederation.Resolvers;
 /// </summary>
 internal static class ExternalSetterExpressionHelper
 {
-    private static readonly MethodInfo _createSetValueExpression =
+    private static readonly MethodInfo s_createSetValueExpression =
         typeof(ExternalSetterExpressionHelper)
             .GetMethod(nameof(CreateSetValueExpression), Static | NonPublic)!;
-    private static readonly MethodInfo _trySetExternal =
+    private static readonly MethodInfo s_trySetExternal =
         typeof(ReferenceResolverHelper)
             .GetMethod(nameof(ReferenceResolverHelper.TrySetExternal), Static | Public)!;
 
-    private static readonly ParameterExpression _type = Parameter(typeof(ObjectType), "type");
-    private static readonly ParameterExpression _data = Parameter(typeof(IValueNode), "data");
-    private static readonly ParameterExpression _entity = Parameter(typeof(object), "entity");
+    private static readonly ParameterExpression s_type = Parameter(typeof(ObjectType), "type");
+    private static readonly ParameterExpression s_data = Parameter(typeof(IValueNode), "data");
+    private static readonly ParameterExpression s_entity = Parameter(typeof(object), "entity");
 
     public static void TryAddExternalSetter(ObjectType type, ObjectTypeConfiguration typeDef)
     {
@@ -31,7 +31,7 @@ internal static class ExternalSetterExpressionHelper
         foreach (var field in type.Fields)
         {
             if (field.Directives.ContainsDirective<ExternalDirective>() &&
-                field.Member is PropertyInfo { SetMethod: not null, } property)
+                field.Member is PropertyInfo { SetMethod: not null } property)
             {
                 var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
                 (block ??= []).Add(expression);
@@ -42,7 +42,7 @@ internal static class ExternalSetterExpressionHelper
         {
             typeDef.Features.Set(new ExternalSetter(
                 Lambda<Action<ObjectType, IValueNode, object>>(
-                    Block(block), _type, _data, _entity)
+                    Block(block), s_type, s_data, s_entity)
                         .Compile()));
         }
     }
@@ -52,18 +52,18 @@ internal static class ExternalSetterExpressionHelper
         PropertyInfo property,
         string fieldName)
     {
-        var trySetValue = _trySetExternal.MakeGenericMethod(property.PropertyType);
-        var path = Constant(new[] { fieldName, });
+        var trySetValue = s_trySetExternal.MakeGenericMethod(property.PropertyType);
+        var path = Constant(new[] { fieldName });
         var setter = CreateSetValue(runtimeType, property);
-        return Call(trySetValue, _type, _data, _entity, path, setter);
+        return Call(trySetValue, s_type, s_data, s_entity, path, setter);
     }
 
     private static Expression CreateSetValue(
         Type runtimeType,
         PropertyInfo property)
-        => (Expression)_createSetValueExpression
+        => (Expression)s_createSetValueExpression
             .MakeGenericMethod(property.PropertyType)
-            .Invoke(null, [runtimeType, property,])!;
+            .Invoke(null, [runtimeType, property])!;
 
     private static Expression CreateSetValueExpression<TValue>(
         Type runtimeType,

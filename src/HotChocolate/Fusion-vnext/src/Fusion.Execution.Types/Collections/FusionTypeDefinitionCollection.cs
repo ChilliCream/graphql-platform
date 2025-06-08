@@ -53,7 +53,7 @@ public sealed class FusionTypeDefinitionCollection
             return true;
         }
 
-        definition = default;
+        definition = null;
         return false;
     }
 

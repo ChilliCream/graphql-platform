@@ -35,7 +35,6 @@ public class ClientModel
         ArgumentNullException.ThrowIfNull(leafTypes);
         ArgumentNullException.ThrowIfNull(inputObjectTypes);
 
-
         Schema = schema;
         Operations = operations;
         LeafTypes = leafTypes;

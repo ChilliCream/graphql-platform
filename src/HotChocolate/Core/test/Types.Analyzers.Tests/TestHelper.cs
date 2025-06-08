@@ -21,7 +21,7 @@ namespace HotChocolate.Types;
 
 internal static partial class TestHelper
 {
-    private static HashSet<string> _ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
+    private static HashSet<string> s_ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
@@ -36,6 +36,8 @@ internal static partial class TestHelper
             .. Net80.References.All,
 #elif NET9_0
             .. Net90.References.All,
+#elif NET10_0
+            .. Net100.References.All,
 #endif
             // HotChocolate.Execution
             MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
@@ -152,7 +154,7 @@ internal static partial class TestHelper
 
         foreach (var diagnostic in diagnostics)
         {
-            if(_ignoreCodes.Contains(diagnostic.Id))
+            if(s_ignoreCodes.Contains(diagnostic.Id))
             {
                 continue;
             }

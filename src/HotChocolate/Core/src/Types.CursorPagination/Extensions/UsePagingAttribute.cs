@@ -122,7 +122,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
 
         var connectionName =
             string.IsNullOrEmpty(_connectionName)
-                ? default!
+                ? null!
                 : _connectionName;
 
         var options =new PagingOptions

@@ -61,10 +61,7 @@ public class OperationModel
 
     public IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputType)
     {
-        if (outputType is null)
-        {
-            throw new ArgumentNullException(nameof(outputType));
-        }
+        ArgumentNullException.ThrowIfNull(outputType);
 
         foreach (var model in OutputTypes)
         {
@@ -77,10 +74,7 @@ public class OperationModel
 
     public OutputTypeModel GetFieldResultType(FieldNode fieldSyntax)
     {
-        if (fieldSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(fieldSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(fieldSyntax);
 
         return OutputTypes.First(
             t => t.IsInterface && t.SelectionSet == fieldSyntax.SelectionSet);
@@ -91,12 +85,9 @@ public class OperationModel
         ITypeDefinition fieldNamedType,
         [NotNullWhen(true)] out OutputTypeModel? fieldType)
     {
-        if (fieldSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(fieldSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(fieldSyntax);
 
-        if(!_selectionSets.TryGetValue(
+        if (!_selectionSets.TryGetValue(
            new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
            out var selectionSetNode))
         {

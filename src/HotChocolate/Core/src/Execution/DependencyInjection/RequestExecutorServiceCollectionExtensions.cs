@@ -28,10 +28,7 @@ public static class RequestExecutorServiceCollectionExtensions
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddGraphQLCore(this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddOptions();
 
@@ -119,12 +116,9 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IServiceCollection services,
-        string? schemaName = default)
+        string? schemaName = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddGraphQLCore();
         schemaName ??= ISchemaDefinition.DefaultName;
@@ -146,12 +140,9 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default)
+        string? schemaName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(builder.Services, schemaName);

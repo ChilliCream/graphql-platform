@@ -20,13 +20,13 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
                 new Dictionary<string, object?>
                 {
                     ["abc"] = "def",
-                    ["hij"] = null,
+                    ["hij"] = null
                 },
                 new Dictionary<string, object?>
                 {
                     ["abc"] = "xyz",
-                    ["hij"] = null,
-                },
+                    ["hij"] = null
+                }
             ]);
 
         using var memory = new MemoryStream();
@@ -77,12 +77,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -137,12 +137,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -222,12 +222,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));

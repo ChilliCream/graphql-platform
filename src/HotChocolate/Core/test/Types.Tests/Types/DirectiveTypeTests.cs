@@ -909,13 +909,13 @@ public class DirectiveTypeTests : TypeTestBase
     public class DirectiveMiddleware1
     {
         private readonly FieldDelegate _next;
-        private static int _instances;
+        private static int s_instances;
         private readonly int _count;
 
         public DirectiveMiddleware1(FieldDelegate next)
         {
             _next = next;
-            _count = Interlocked.Increment(ref _instances);
+            _count = Interlocked.Increment(ref s_instances);
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)

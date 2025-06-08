@@ -379,7 +379,7 @@ public class HttpCachingTests : ServerTestBase
                     d.Name("Query")
                         .Field("field")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge: 2000, vary: new[] { "X-foo", "X-BaR" }));
+                        .CacheControl(sharedMaxAge: 2000, vary: ["X-foo", "X-BaR"]));
         });
 
         var client = server.CreateClient();
@@ -402,10 +402,10 @@ public class HttpCachingTests : ServerTestBase
                     var o = d.Name("Query");
                     o.Field("field1")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge: 2000, vary: new[] {"X-foo", "X-BaR"});
+                        .CacheControl(sharedMaxAge: 2000, vary: ["X-foo", "X-BaR"]);
                     o.Field("field2")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge: 1000, vary: new[] {"X-FAR", "X-BaR"});
+                        .CacheControl(sharedMaxAge: 1000, vary: ["X-FAR", "X-BaR"]);
                 });
         });
 
@@ -418,11 +418,11 @@ public class HttpCachingTests : ServerTestBase
 
 public class GraphQLResult
 {
-    public HttpResponseHeaders Headers { get; set; } = default!;
+    public HttpResponseHeaders Headers { get; set; } = null!;
 
-    public HttpContentHeaders ContentHeaders { get; set; } = default!;
+    public HttpContentHeaders ContentHeaders { get; set; } = null!;
 
-    public string Body { get; set; } = default!;
+    public string Body { get; set; } = null!;
 }
 
 internal static class TestServerExtensions
@@ -439,7 +439,7 @@ internal static class TestServerExtensions
         {
             Headers = response.Headers,
             ContentHeaders = response.Content.Headers,
-            Body = await response.Content.ReadAsStringAsync(),
+            Body = await response.Content.ReadAsStringAsync()
         };
 
         return result;

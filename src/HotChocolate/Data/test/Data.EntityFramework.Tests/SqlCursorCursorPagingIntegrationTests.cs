@@ -9,7 +9,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
         new TestData(Guid.NewGuid(), "A"),
         new TestData(Guid.NewGuid(), "B"),
         new TestData(Guid.NewGuid(), "C"),
-        new TestData(Guid.NewGuid(), "D"),
+        new TestData(Guid.NewGuid(), "D")
     ];
 
     public TestData[] EmptyData => [];

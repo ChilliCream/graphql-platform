@@ -22,7 +22,7 @@ internal sealed partial class SubscriptionExecutor
         private readonly ObjectType _subscriptionType;
         private readonly ISelectionSet _rootSelections;
         private readonly Func<object?> _resolveQueryRootValue;
-        private ISourceStream _sourceStream = default!;
+        private ISourceStream _sourceStream = null!;
         private object? _cachedRootValue;
         private IImmutableDictionary<string, object?> _scopedContextData =
             ImmutableDictionary<string, object?>.Empty;
@@ -391,7 +391,7 @@ internal sealed partial class SubscriptionExecutor
             _requestAborted = requestAborted;
         }
 
-        public IOperationResult Current { get; private set; } = default!;
+        public IOperationResult Current { get; private set; } = null!;
 
         public async ValueTask<bool> MoveNextAsync()
         {
@@ -410,7 +410,7 @@ internal sealed partial class SubscriptionExecutor
             }
             catch (OperationCanceledException)
             {
-                Current = default!;
+                Current = null!;
                 return false;
             }
             catch (Exception ex)
@@ -439,7 +439,7 @@ internal sealed partial class SubscriptionExecutor
 
     private sealed class ErrorSubscriptionEnumerator : IAsyncEnumerator<IOperationResult>
     {
-        public IOperationResult Current => default!;
+        public IOperationResult Current => null!;
 
         public ValueTask<bool> MoveNextAsync() => new(false);
 

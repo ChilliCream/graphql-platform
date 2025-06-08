@@ -50,10 +50,7 @@ public partial class EnumType
 
     public bool TryGetValue(string name, [NotNullWhen(true)] out EnumValue? value)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return Values.TryGetValue(name, out value);
     }
@@ -61,10 +58,7 @@ public partial class EnumType
     /// <inheritdoc />
     public bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out object? runtimeValue)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (Values.TryGetValue(name, out var value))
         {

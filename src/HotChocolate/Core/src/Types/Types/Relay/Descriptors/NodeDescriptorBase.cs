@@ -46,10 +46,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     public IObjectFieldDescriptor ResolveNode<TId>(
         NodeResolverDelegate<object, TId> fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         return ResolveNode(async ctx =>
         {
@@ -76,10 +73,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
         Expression<Func<TResolver, object?>> method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var member = method.TryExtractMember();
 
@@ -104,10 +98,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     /// </param>
     public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         Configuration.ResolverField ??= new ObjectFieldConfiguration();
         Configuration.ResolverField.Member = method;

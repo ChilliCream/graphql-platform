@@ -20,7 +20,7 @@ internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object
 
     protected override ISyntaxVisitorAction Enter(OperationDefinitionNode node, object? context)
     {
-        var operationType = schema.GetOperationType(node.Operation)!;
+        var operationType = schema.GetOperationType(node.Operation);
 
         _typeContext.Push(operationType);
 

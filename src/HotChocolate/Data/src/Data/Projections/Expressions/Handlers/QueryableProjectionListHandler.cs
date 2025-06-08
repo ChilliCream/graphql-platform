@@ -18,7 +18,7 @@ public class QueryableProjectionListHandler
         ISelection selection)
     {
         var field = selection.Field;
-        if (field.Member is PropertyInfo { CanWrite: true, })
+        if (field.Member is PropertyInfo { CanWrite: true })
         {
             var next = context.GetInstance().Append(field.Member);
 
@@ -35,7 +35,7 @@ public class QueryableProjectionListHandler
     {
         var field = selection.Field;
 
-        if (field.Member is not PropertyInfo { CanWrite: true, })
+        if (field.Member is not PropertyInfo { CanWrite: true })
         {
             action = SelectionVisitor.Skip;
 
@@ -72,7 +72,7 @@ public class QueryableProjectionListHandler
 
         var scope = context.PopScope();
 
-        if (!(scope is QueryableProjectionScope queryableScope) ||
+        if (scope is not QueryableProjectionScope queryableScope ||
             !context.TryGetQueryableScope(out var parentScope))
         {
             action = null;

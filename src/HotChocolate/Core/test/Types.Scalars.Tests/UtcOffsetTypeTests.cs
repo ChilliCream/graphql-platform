@@ -329,7 +329,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
 
     public class DefaultUtcOffset
     {
-        public TimeSpan Test => new();
+        public TimeSpan Test => TimeSpan.Zero;
     }
 
     public class DefaultUtcOffsetType : ObjectType<DefaultUtcOffset>

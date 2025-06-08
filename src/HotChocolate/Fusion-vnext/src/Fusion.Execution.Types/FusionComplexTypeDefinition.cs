@@ -11,10 +11,8 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 {
-    private FusionDirectiveCollection _directives = default!;
-    private FusionInterfaceTypeDefinitionCollection _implements = default!;
-    private ISourceComplexTypeCollection<ISourceComplexType> _sources = default!;
-    private IFeatureCollection _features = FeatureCollection.Empty;
+    private FusionDirectiveCollection _directives = null!;
+    private FusionInterfaceTypeDefinitionCollection _implements = null!;
     private bool _completed;
 
     protected FusionComplexTypeDefinition(
@@ -42,11 +40,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         get => _directives;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
             _directives = value;
         }
@@ -63,11 +57,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         get => _implements;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
             _implements = value;
         }
@@ -95,22 +85,18 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
     /// </value>
     public ISourceComplexTypeCollection<ISourceComplexType> Sources
     {
-        get => _sources;
+        get;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
-            _sources = value;
+            field = value;
         }
-    }
+    } = null!;
 
     public IFeatureCollection Features
     {
-        get => _features;
+        get;
         private protected set
         {
             if (_completed)
@@ -119,17 +105,13 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
                     "The type definition is sealed and cannot be modified.");
             }
 
-            _features = value;
+            field = value;
         }
-    }
+    } = FeatureCollection.Empty;
 
     private protected void Complete()
     {
-        if (_completed)
-        {
-            throw new NotSupportedException(
-                "The type definition is sealed and cannot be modified.");
-        }
+        ThrowHelper.EnsureNotSealed(_completed);
 
         _completed = true;
     }

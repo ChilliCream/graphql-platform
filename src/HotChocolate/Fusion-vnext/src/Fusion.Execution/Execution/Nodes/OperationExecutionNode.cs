@@ -104,7 +104,7 @@ public record OperationExecutionNode : ExecutionNode
         {
             OperationId = OperationId,
             Operation = Operation,
-            Variables = variables.Value,
+            Variables = variables.Value
         };
 
         var client = context.GetClient(SchemaName);

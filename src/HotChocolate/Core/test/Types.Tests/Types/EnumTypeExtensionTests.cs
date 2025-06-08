@@ -173,7 +173,7 @@ public class EnumTypeExtensionTests
     {
         Bar,
         Baz,
-        Quox,
+        Quox
     }
 
     public class DummyDirective

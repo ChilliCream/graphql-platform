@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeReferenceResolver
 {
-    private readonly Dictionary<TypeId, IType> _typeCache = new();
+    private readonly Dictionary<TypeId, IType> _typeCache = [];
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
@@ -36,10 +36,7 @@ internal sealed class TypeReferenceResolver
 
     public TypeReference GetNamedTypeReference(TypeReference typeRef)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
@@ -51,10 +48,7 @@ internal sealed class TypeReferenceResolver
 
     public bool TryGetType(TypeReference typeRef, [NotNullWhen(true)] out IType? type)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (typeRef is SchemaTypeReference { Type: IType schemaType })
         {
@@ -106,10 +100,7 @@ internal sealed class TypeReferenceResolver
         TypeReference typeRef,
         [NotNullWhen(true)] out DirectiveType? directiveType)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {

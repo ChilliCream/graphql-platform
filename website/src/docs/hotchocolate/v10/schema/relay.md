@@ -37,7 +37,7 @@ This allows now the client APIs to automatically refetch objects from the server
 Hot Chocolate makes implementing this very easy. First, we have to declare on our schema that we want to be relay compliant:
 
 ```csharp
-Schema schema = SchemaBuilder.New()
+ISchema schema = SchemaBuilder.New()
     .EnableRelaySupport()
     ...
     .Create();

@@ -87,7 +87,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -132,7 +132,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZM(10, 30, 12, 15),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -178,7 +178,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateM(10, 30, 12),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -224,7 +224,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZ(10, 30, 12),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -403,7 +403,7 @@ public class TransformationIntegrationTests
             new Coordinate(30, 10),
                 new Coordinate(10, 30),
                 new CoordinateZ(10, 30, 12),
-                new Coordinate(40, 40),
+                new Coordinate(40, 40)
         ]);
 
         var schema = SchemaBuilder.New()
@@ -518,7 +518,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -563,7 +563,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()

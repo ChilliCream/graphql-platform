@@ -4,20 +4,20 @@ namespace GreenDonut.Data.Expressions;
 
 internal sealed class ExtractOrderPropertiesVisitor : ExpressionVisitor
 {
-    private const string _orderByMethod = "OrderBy";
-    private const string _thenByMethod = "ThenBy";
-    private const string _orderByDescendingMethod = "OrderByDescending";
-    private const string _thenByDescendingMethod = "ThenByDescending";
+    private const string OrderByMethod = "OrderBy";
+    private const string ThenByMethod = "ThenBy";
+    private const string OrderByDescendingMethod = "OrderByDescending";
+    private const string ThenByDescendingMethod = "ThenByDescending";
     private bool _isOrderScope;
 
     public List<MemberExpression> OrderProperties { get; } = [];
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
-        if (node.Method.Name == _orderByMethod ||
-            node.Method.Name == _thenByMethod ||
-            node.Method.Name == _orderByDescendingMethod ||
-            node.Method.Name == _thenByDescendingMethod)
+        if (node.Method.Name == OrderByMethod ||
+            node.Method.Name == ThenByMethod ||
+            node.Method.Name == OrderByDescendingMethod ||
+            node.Method.Name == ThenByDescendingMethod)
         {
             _isOrderScope = true;
 

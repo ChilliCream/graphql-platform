@@ -84,7 +84,6 @@ public class QueryExecutor
 
                     // JsonMarshal.GetRawUtf8Value()
 
-
                     jsonWriter.WriteEndObject();
                 }
             }

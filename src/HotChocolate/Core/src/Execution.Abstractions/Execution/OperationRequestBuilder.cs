@@ -42,12 +42,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// </exception>
     public OperationRequestBuilder SetDocument([StringSyntax("graphql")] string sourceText)
     {
-        if (string.IsNullOrEmpty(sourceText))
-        {
-            throw new ArgumentException(
-                OperationRequestBuilder_OperationIsNullOrEmpty,
-                nameof(sourceText));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sourceText);
 
         _document = new OperationDocumentSourceText(sourceText);
         return this;
@@ -263,7 +258,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             _readOnlyContextData = null;
         }
 
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData.Add(name, value);
         return this;
     }
@@ -288,7 +283,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             _readOnlyContextData = null;
         }
 
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData.TryAdd(name, value);
         return this;
     }
@@ -405,7 +400,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             features = FeatureCollection.Empty;
         }
 
-        if (variableSet is { Count: > 1, })
+        if (variableSet is { Count: > 1 })
         {
             request = new VariableBatchRequest(
                 document: _document,
@@ -427,7 +422,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             documentId: _documentId,
             documentHash: _documentHash,
             operationName: _operationName,
-            variableValues: variableSet is { Count: 1, }
+            variableValues: variableSet is { Count: 1 }
                 ? variableSet[0]
                 : null,
             extensions: _readOnlyExtensions,
@@ -473,7 +468,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _readOnlyContextData = batch.ContextData,
                     _readOnlyExtensions = batch.Extensions,
                     _services = batch.Services,
-                    _flags = batch.Flags,
+                    _flags = batch.Flags
                 },
             OperationRequest operation
                 => new OperationRequestBuilder
@@ -483,12 +478,12 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _documentHash = operation.DocumentHash,
                     _operationName = operation.OperationName,
                     _readOnlyVariableValues = operation.VariableValues is not null
-                        ? new List<IReadOnlyDictionary<string, object?>>(1) { operation.VariableValues, }
+                        ? new List<IReadOnlyDictionary<string, object?>>(1) { operation.VariableValues }
                         : null,
                     _readOnlyContextData = operation.ContextData,
                     _readOnlyExtensions = operation.Extensions,
                     _services = operation.Services,
-                    _flags = operation.Flags,
+                    _flags = operation.Flags
                 },
             _ => throw new NotSupportedException("The request type is not supported.")
         };

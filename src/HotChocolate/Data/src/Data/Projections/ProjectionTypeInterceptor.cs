@@ -27,7 +27,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
         TypeSystemConfiguration configuration)
     {
         if (ReferenceEquals(completionContext, _queryContext) &&
-            completionContext.Type is ObjectType { Fields: var fields, })
+            completionContext.Type is ObjectType { Fields: var fields })
         {
             var foundNode = false;
             var foundNodes = false;

@@ -32,5 +32,4 @@ internal sealed class EmptyInputFieldDefinitionCollection : IReadOnlyFieldDefini
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public static EmptyInputFieldDefinitionCollection Instance { get; } = new();
-
 }

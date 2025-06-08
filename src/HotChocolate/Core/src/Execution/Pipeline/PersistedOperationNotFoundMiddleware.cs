@@ -8,7 +8,7 @@ internal sealed class PersistedOperationNotFoundMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly Dictionary<string, object?> _statusCode = new() { { HttpStatusCode, 400 }, };
+    private readonly Dictionary<string, object?> _statusCode = new() { { HttpStatusCode, 400 } };
 
     private PersistedOperationNotFoundMiddleware(
         RequestDelegate next,

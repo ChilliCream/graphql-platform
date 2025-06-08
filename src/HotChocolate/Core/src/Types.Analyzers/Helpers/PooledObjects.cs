@@ -4,23 +4,23 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class PooledObjects
 {
-    private static readonly HashSet<string>?[] _stringSets = new HashSet<string>[8];
-    private static int _nextStringSetIndex = -1;
+    private static readonly HashSet<string>?[] s_stringSets = new HashSet<string>[8];
+    private static int s_nextStringSetIndex = -1;
 
-    private static readonly StringBuilder?[] _stringBuilders = new StringBuilder[8];
-    private static int _nextStringBuilderIndex = -1;
+    private static readonly StringBuilder?[] s_stringBuilders = new StringBuilder[8];
+    private static int s_nextStringBuilderIndex = -1;
 
-    private static readonly object _lock = new();
+    private static readonly object s_lock = new();
 
     public static StringBuilder GetStringBuilder()
     {
-        lock (_lock)
+        lock (s_lock)
         {
-            if (_nextStringBuilderIndex >= 0)
+            if (s_nextStringBuilderIndex >= 0)
             {
-                var sb = _stringBuilders[_nextStringBuilderIndex];
-                _stringBuilders[_nextStringBuilderIndex] = null;
-                _nextStringBuilderIndex--;
+                var sb = s_stringBuilders[s_nextStringBuilderIndex];
+                s_stringBuilders[s_nextStringBuilderIndex] = null;
+                s_nextStringBuilderIndex--;
                 return sb ?? new StringBuilder();
             }
         }
@@ -30,13 +30,13 @@ public static class PooledObjects
 
     public static HashSet<string> GetStringSet()
     {
-        lock (_lock)
+        lock (s_lock)
         {
-            if (_nextStringSetIndex >= 0)
+            if (s_nextStringSetIndex >= 0)
             {
-                var set = _stringSets[_nextStringSetIndex];
-                _stringSets[_nextStringSetIndex] = null;
-                _nextStringSetIndex--;
+                var set = s_stringSets[s_nextStringSetIndex];
+                s_stringSets[s_nextStringSetIndex] = null;
+                s_nextStringSetIndex--;
                 return set ?? [];
             }
         }
@@ -48,12 +48,12 @@ public static class PooledObjects
     {
         stringBuilder.Clear();
 
-        lock (_lock)
+        lock (s_lock)
         {
-            if (_nextStringBuilderIndex + 1 < _stringBuilders.Length)
+            if (s_nextStringBuilderIndex + 1 < s_stringBuilders.Length)
             {
-                _nextStringBuilderIndex++;
-                _stringBuilders[_nextStringBuilderIndex] = stringBuilder;
+                s_nextStringBuilderIndex++;
+                s_stringBuilders[s_nextStringBuilderIndex] = stringBuilder;
             }
         }
     }
@@ -62,12 +62,12 @@ public static class PooledObjects
     {
         stringSet.Clear();
 
-        lock (_lock)
+        lock (s_lock)
         {
-            if (_nextStringSetIndex + 1 < _stringSets.Length)
+            if (s_nextStringSetIndex + 1 < s_stringSets.Length)
             {
-                _nextStringSetIndex++;
-                _stringSets[_nextStringSetIndex] = stringSet;
+                s_nextStringSetIndex++;
+                s_stringSets[s_nextStringSetIndex] = stringSet;
             }
         }
     }

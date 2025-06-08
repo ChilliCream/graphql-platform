@@ -122,7 +122,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is { Kind: TypeKind.Union, } &&
+            type.NamedType() is { Kind: TypeKind.Union } &&
             HasFields(node))
         {
             return Skip;

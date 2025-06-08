@@ -444,9 +444,7 @@ public class CacheControlDirectiveTypeTests
 
     [UnionType("UnionType")]
     [CacheControl(500, Scope = CacheControlScope.Private, InheritMaxAge = true)]
-    public interface IUnionType
-    {
-    }
+    public interface IUnionType;
 
     public class UnionObjectType : IUnionType
     {

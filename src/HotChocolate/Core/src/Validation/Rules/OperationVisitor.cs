@@ -128,6 +128,12 @@ public class OperationVisitor : DocumentValidatorVisitor
 
         feature.ResponseNames.Add((node.Alias ?? node.Name).Value);
 
+        if (feature.OperationType is OperationType.Subscription &&
+            node.Directives.HasSkipOrIncludeDirective())
+        {
+            context.ReportError(SkipAndIncludeNotAllowedOnSubscriptionRootField(node));
+        }
+
         if (feature.OperationType is OperationType.Mutation or OperationType.Subscription
             && node.Directives.HasStreamOrDeferDirective())
         {
@@ -186,6 +192,27 @@ public class OperationVisitor : DocumentValidatorVisitor
 
 file static class DirectiveExtensions
 {
+    internal static bool HasSkipOrIncludeDirective(this IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+
+            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal) ||
+                directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     internal static bool HasStreamOrDeferDirective(this IReadOnlyList<DirectiveNode> directives)
     {
         if (directives.Count == 0)

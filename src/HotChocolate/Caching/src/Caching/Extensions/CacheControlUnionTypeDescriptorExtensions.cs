@@ -32,10 +32,7 @@ public static class CacheControlUnionTypeDescriptorExtensions
         int? sharedMaxAge = null,
         string[]? vary = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(
             new CacheControlDirective(

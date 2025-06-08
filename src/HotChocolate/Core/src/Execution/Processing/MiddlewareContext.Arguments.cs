@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = default!;
+    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = null!;
 
     public T ArgumentValue<T>(string name)
     {

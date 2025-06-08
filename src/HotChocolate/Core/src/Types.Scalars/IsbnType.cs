@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class IsbnType : RegexType
 {
-    private const string _validationPattern =
+    private const string ValidationPattern =
         "^(?:ISBN(-1(?:(0)|3))?:?\\ )?(?(1)(?(2)(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0" +
         "-9X]{13}$)[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]|(?=[0-9]{13}$|(?=(?:[0-9]" +
         "+[- ]){4})[- 0-9]{17}$)97[89][- ]?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9])|(" +
@@ -17,7 +17,7 @@ public partial class IsbnType : RegexType
         "- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X" +
         "])$";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>

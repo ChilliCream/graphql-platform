@@ -66,6 +66,6 @@ public class DefaultOperationDocumentFileMapTests
         void Action() => map.MapToFilePath(queryId!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action) Action);
+        Assert.ThrowsAny<ArgumentException>((Action) Action);
     }
 }

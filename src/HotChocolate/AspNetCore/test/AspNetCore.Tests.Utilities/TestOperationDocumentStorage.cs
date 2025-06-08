@@ -5,7 +5,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
 {
-    private readonly Dictionary<string, DocumentNode> _cache = new();
+    private readonly Dictionary<string, DocumentNode> _cache = [];
 
     public TestOperationDocumentStorage()
     {

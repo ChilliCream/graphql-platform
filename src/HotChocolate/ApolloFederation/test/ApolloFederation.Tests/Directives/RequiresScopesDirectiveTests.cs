@@ -123,7 +123,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
     public class Query
     {
         [RequiresScopes(["s1, s1_1", "s2"])]
-        public Review SomeField(int id) => default!;
+        public Review SomeField(int id) => null!;
     }
 
     [Key("id")]

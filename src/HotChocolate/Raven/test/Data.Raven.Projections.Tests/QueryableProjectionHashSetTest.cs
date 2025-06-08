@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionHashSetTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -18,13 +18,10 @@ public class QueryableProjectionHashSetTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "a", },
+                        Foo = new FooDeep { BarShort = 12, BarString = "a" }
                     },
-                ObjectSet = new HashSet<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
-                },
-            },
+                ObjectSet = [new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }]
+            }
         },
         new()
         {
@@ -37,14 +34,11 @@ public class QueryableProjectionHashSetTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "d", },
+                        Foo = new FooDeep { BarShort = 12, BarString = "d" }
                     },
-                ObjectSet = new HashSet<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
-                },
-            },
-        },
+                ObjectSet = [new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }]
+            }
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -58,7 +52,7 @@ public class QueryableProjectionHashSetTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -89,7 +83,7 @@ public class QueryableProjectionHashSetTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -166,14 +160,14 @@ public class QueryableProjectionHashSetTests
     {
         public string? Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
     }
 
     public class BarDeep
     {
         public string? Id { get; set; }
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullableDeep
@@ -195,6 +189,6 @@ public class QueryableProjectionHashSetTests
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

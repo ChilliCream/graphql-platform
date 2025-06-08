@@ -6,7 +6,7 @@ public sealed class InterfaceTypeDefinitionCollection
     : IList<MutableInterfaceTypeDefinition>
     , IReadOnlyInterfaceTypeDefinitionCollection
 {
-    private readonly List<MutableInterfaceTypeDefinition> _interfaces = new();
+    private readonly List<MutableInterfaceTypeDefinition> _interfaces = [];
 
     public int Count => _interfaces.Count;
 
@@ -31,7 +31,6 @@ public sealed class InterfaceTypeDefinitionCollection
 
     IInterfaceTypeDefinition IReadOnlyList<IInterfaceTypeDefinition>.this[int index]
         => this[index];
-
 
     public void Add(MutableInterfaceTypeDefinition item)
     {

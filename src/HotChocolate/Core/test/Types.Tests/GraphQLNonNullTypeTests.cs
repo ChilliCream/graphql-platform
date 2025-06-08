@@ -126,27 +126,27 @@ public class GraphQLNonNullTypeTests
     {
         [Required]
         [GraphQLType(typeof(IdType))]
-        public string Scalar { get; } = default!;
+        public string Scalar { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<IdType>))]
-        public string[] ScalarArray { get; } = default!;
+        public string[] ScalarArray { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<ListType<IdType>>))]
-        public string[][] ScalarNestedArray { get; } = default!;
+        public string[][] ScalarNestedArray { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(FooType))]
-        public Foo Object { get; } = default!;
+        public Foo Object { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<FooType>))]
-        public Foo[] ObjectArray { get; } = default!;
+        public Foo[] ObjectArray { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<ListType<FooType>>))]
-        public Foo[][] ObjectNestedArray { get; } = default!;
+        public Foo[][] ObjectNestedArray { get; } = null!;
     }
 
     public class QueryDeepWithType
@@ -178,7 +178,7 @@ public class GraphQLNonNullTypeTests
 
     public class Foo
     {
-        public string Bar { get; } = default!;
+        public string Bar { get; } = null!;
     }
 
     public class FooType : ObjectType

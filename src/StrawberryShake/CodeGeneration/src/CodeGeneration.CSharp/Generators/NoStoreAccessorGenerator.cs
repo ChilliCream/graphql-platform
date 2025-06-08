@@ -5,11 +5,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class NoStoreAccessorGenerator : CodeGenerator<StoreAccessorDescriptor>
 {
-    private const string _operationStore = "operationStore";
-    private const string _entityStore = "entityStore";
-    private const string _entityIdSerializer = "entityIdSerializer";
-    private const string _requestFactories = "requestFactories";
-    private const string _resultDataFactories = "resultDataFactories";
+    private const string OperationStore = "operationStore";
+    private const string EntityStore = "entityStore";
+    private const string EntityIdSerializer = "entityIdSerializer";
+    private const string RequestFactories = "requestFactories";
+    private const string ResultDataFactories = "resultDataFactories";
 
     protected override bool CanHandle(
         StoreAccessorDescriptor descriptor,
