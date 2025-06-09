@@ -8,7 +8,6 @@ using GreenDonut;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
@@ -562,14 +561,8 @@ public class ActivityEnricher
     }
 
     public virtual void EnrichResolverError(
-        IMiddlewareContext context,
-        IError error,
-        Activity activity)
-        => EnrichError(error, activity);
-
-    public virtual void EnrichResolverError(
         RequestContext context,
-        ISelection selection,
+        IMiddlewareContext? middlewareContext,
         IError error,
         Activity activity)
         => EnrichError(error, activity);

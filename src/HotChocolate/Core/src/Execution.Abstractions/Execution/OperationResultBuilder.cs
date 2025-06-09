@@ -76,12 +76,13 @@ public sealed class OperationResultBuilder
         }
         else if (extensions is not null)
         {
-            _extensionData = [.. extensions];
+            _extensionData = new OrderedDictionary<string, object?>(extensions);
         }
         else
         {
             _extensionData = null;
         }
+
         return this;
     }
 
@@ -113,6 +114,7 @@ public sealed class OperationResultBuilder
         {
             _contextData = null;
         }
+
         return this;
     }
 
@@ -186,7 +188,7 @@ public sealed class OperationResultBuilder
         }
         else if (result.Extensions is not null)
         {
-            builder._extensionData = [.. result.Extensions];
+            builder._extensionData = new OrderedDictionary<string, object?>(result.Extensions);
         }
 
         if (result.ContextData is Dictionary<string, object?> cd)

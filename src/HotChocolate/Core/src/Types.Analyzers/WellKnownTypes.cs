@@ -29,7 +29,7 @@ public static class WellKnownTypes
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
     public const string ValueTask = "System.Threading.Tasks.ValueTask";
-    public const string RequestCoreMiddleware = $"HotChocolate.Execution.{nameof(RequestCoreMiddleware)}";
+    public const string RequestMiddleware = $"HotChocolate.Execution.{nameof(RequestMiddleware)}";
     public const string Schema = $"HotChocolate.{nameof(Schema)}";
     public const string RequestExecutorBuilder = "HotChocolate.Execution.Configuration.IRequestExecutorBuilder";
     public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";

@@ -1,12 +1,12 @@
 using static HotChocolate.Execution.ExecutionResultKind;
-using static HotChocolate.Properties.AbstractionResources;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
 /// <summary>
 /// Helper methods for <see cref="IExecutionResult"/>.
 /// </summary>
-public static class CleanupExecutionResultExtensions
+public static class CoreExecutionResultExtensions
 {
     /// <summary>
     /// Registers a cleanup task for execution resources bound to this execution result.
@@ -85,8 +85,7 @@ public static class CleanupExecutionResultExtensions
             return qr;
         }
 
-        throw new ArgumentException(
-            ExecutionResultExtensions_ExpectOperationResult_NotOperationResult);
+        throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResult_NotOperationResult);
     }
 
     /// <summary>
@@ -99,8 +98,7 @@ public static class CleanupExecutionResultExtensions
             return qr;
         }
 
-        throw new ArgumentException(
-            ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch);
+        throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch);
     }
 
     /// <summary>
@@ -113,7 +111,6 @@ public static class CleanupExecutionResultExtensions
             return rs;
         }
 
-        throw new ArgumentException(
-            ExecutionResultExtensions_ExpectResponseStream_NotResponseStream);
+        throw new ArgumentException(ExecutionResultExtensions_ExpectResponseStream_NotResponseStream);
     }
 }

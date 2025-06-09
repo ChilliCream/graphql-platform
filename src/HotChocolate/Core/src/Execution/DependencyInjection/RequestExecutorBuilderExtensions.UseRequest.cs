@@ -90,7 +90,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a type that will be used to create a middleware for the execution pipeline.
+    /// Adds a type that will be used to create middleware for the execution pipeline.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.

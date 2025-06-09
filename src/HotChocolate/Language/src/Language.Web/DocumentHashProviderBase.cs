@@ -34,7 +34,8 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
             ArrayPool<byte>.Shared.Return(rented);
         }
 #else
-        return ComputeHash(document, Format);
+        var hash = ComputeHash(document, Format);
+        return new OperationDocumentHash(hash, Name, Format);
 #endif
     }
 

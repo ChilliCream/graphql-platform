@@ -113,7 +113,11 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new ParseDocumentScope(_enricher, context, activity);
     }
 
-    public override void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors)
+    public override void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state)
     {
         switch (kind)
         {
@@ -149,6 +153,40 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
                         activity.SetStatus(Status.Error);
                         activity.SetStatus(ActivityStatusCode.Error);
+                    }
+                }
+                break;
+
+            case ErrorKind.FieldError:
+                {
+                    if (!_options.SkipResolveFieldValue)
+                    {
+                        if (state is IMiddlewareContext middlewareContext
+                            && middlewareContext.LocalContextData.TryGetValue(ResolverActivity, out var localValue)
+                            && localValue is Activity activity)
+                        {
+                            foreach (var error in errors)
+                            {
+                                _enricher.EnrichResolverError(context, middlewareContext, error, activity);
+                            }
+
+                            activity.SetStatus(Status.Error);
+                            activity.SetStatus(ActivityStatusCode.Error);
+                        }
+                        else if (context.ContextData.TryGetValue(RequestActivity, out var value))
+                        {
+                            Debug.Assert(value is not null, "The activity mustn't be null!");
+
+                            activity = (Activity)value;
+
+                            foreach (var error in errors)
+                            {
+                                _enricher.EnrichResolverError(context, null, error, activity);
+                            }
+
+                            activity.SetStatus(Status.Error);
+                            activity.SetStatus(ActivityStatusCode.Error);
+                        }
                     }
                 }
                 break;
@@ -304,33 +342,5 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         context.SetLocalState(ResolverActivity, activity);
 
         return activity;
-    }
-
-    public override void ResolverError(IMiddlewareContext context, IError error)
-    {
-        if (!_options.SkipResolveFieldValue &&
-            context.LocalContextData.TryGetValue(ResolverActivity, out var value))
-        {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-            _enricher.EnrichResolverError(context, error, activity);
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
-    }
-
-    public override void ResolverError(RequestContext context, ISelection selection, IError error)
-    {
-        if (!_options.SkipResolveFieldValue &&
-            context.ContextData.TryGetValue(RequestActivity, out var value))
-        {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-            _enricher.EnrichResolverError(context, selection, error, activity);
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
     }
 }

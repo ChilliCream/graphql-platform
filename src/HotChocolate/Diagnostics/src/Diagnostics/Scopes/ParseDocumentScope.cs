@@ -19,7 +19,7 @@ internal sealed class ParseDocumentScope : RequestScopeBase
 
     protected override void SetStatus()
     {
-        if (Context.Document is not null)
+        if (Context.TryGetOperationDocument(out _, out _))
         {
             Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);

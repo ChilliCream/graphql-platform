@@ -93,7 +93,11 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors)
+    public virtual void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state)
     {
     }
 

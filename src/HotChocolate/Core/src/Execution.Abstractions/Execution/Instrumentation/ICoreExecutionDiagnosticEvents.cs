@@ -1,3 +1,4 @@
+using System.Data;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Instrumentation;
@@ -91,7 +92,28 @@ public interface ICoreExecutionDiagnosticEvents
     /// </returns>
     IDisposable OnSubscriptionEvent(RequestContext context);
 
-    void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors);
+    /// <summary>
+    /// Called when an error occurs during the execution of a GraphQL request.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <param name="kind">
+    /// The kind of error that occurred.
+    /// </param>
+    /// <param name="errors">
+    /// The errors that occurred.
+    /// </param>
+    /// <param name="state">
+    /// An additional state object that can be used to pass additional information
+    /// to the error diagnostic listener.
+    /// </param>
+    void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state = null);
 
     /// <summary>
     /// A GraphQL request document was added to the document cache.
@@ -114,7 +136,10 @@ public interface ICoreExecutionDiagnosticEvents
     /// <summary>
     /// Called when the document for a persisted operation has been read from storage.
     /// </summary>
-    /// <param name="context"></param>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
     void RetrievedDocumentFromStorage(RequestContext context);
 
     /// <summary>

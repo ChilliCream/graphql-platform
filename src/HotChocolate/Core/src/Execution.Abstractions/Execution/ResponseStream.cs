@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
-using HotChocolate.Properties;
 using static HotChocolate.Execution.ExecutionResultKind;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
@@ -20,8 +20,7 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
 
         if (kind is not BatchResult and not DeferredResult and not SubscriptionResult)
         {
-            throw new ArgumentException(
-                AbstractionResources.ResponseStream_InvalidResultKind);
+            throw new ArgumentException(ResponseStream_InvalidResultKind);
         }
 
         Kind = kind;
@@ -39,14 +38,12 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
     {
         if (_resultStreamFactory is null)
         {
-            throw new InvalidOperationException(
-                AbstractionResources.SubscriptionResult_ResultHasErrors);
+            throw new InvalidOperationException(SubscriptionResult_ResultHasErrors);
         }
 
         if (_isRead)
         {
-            throw new InvalidOperationException(
-                AbstractionResources.SubscriptionResult_ReadOnlyOnce);
+            throw new InvalidOperationException(SubscriptionResult_ReadOnlyOnce);
         }
 
         EnsureNotDisposed();

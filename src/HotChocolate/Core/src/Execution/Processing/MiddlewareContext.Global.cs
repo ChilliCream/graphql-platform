@@ -111,14 +111,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 {
                     var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNode, Path);
                     _operationContext.Result.AddError(errorWithPath, _selection);
-                    _operationContext.FieldError([errorWithPath]);
+                    _operationContext.FieldError([errorWithPath], this);
                 }
             }
             else
             {
                 var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNode, Path);
                 _operationContext.Result.AddError(errorWithPath, _selection);
-                _operationContext.FieldError([errorWithPath]);
+                _operationContext.FieldError([errorWithPath], this);
             }
 
             HasErrors = true;

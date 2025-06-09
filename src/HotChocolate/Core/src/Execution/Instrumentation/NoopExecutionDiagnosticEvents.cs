@@ -62,7 +62,11 @@ internal sealed class NoopExecutionDiagnosticEvents
 
     public IDisposable OnSubscriptionEvent(RequestContext context) => this;
 
-    public void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors)
+    public void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state)
     {
     }
 

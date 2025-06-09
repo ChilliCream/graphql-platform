@@ -67,7 +67,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         _writer.WriteIndentedLine("// {0}", middleware.TypeName);
         _writer.WriteIndentedLine(
             "private static global::{0} CreateMiddleware{1}()",
-            RequestCoreMiddleware,
+            RequestMiddleware,
             middlewareIndex);
 
         using (_writer.IncreaseIndent())
@@ -185,14 +185,14 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
             {
                 case RequestMiddlewareParameterKind.Service when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var ip{0} = context.Services.GetRequiredService<{1}>();",
+                        "var ip{0} = context.RequestServices.GetRequiredService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
 
                 case RequestMiddlewareParameterKind.Service when parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var ip{0} = context.Services.GetService<{1}>();",
+                        "var ip{0} = context.RequestServices.GetService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;

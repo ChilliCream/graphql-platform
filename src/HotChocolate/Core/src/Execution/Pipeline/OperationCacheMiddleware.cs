@@ -1,9 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Features;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;

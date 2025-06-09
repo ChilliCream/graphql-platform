@@ -205,11 +205,15 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors)
+    public void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
-            _listeners[i].ExecutionError(context, kind, errors);
+            _listeners[i].ExecutionError(context, kind, errors, state);
         }
     }
 

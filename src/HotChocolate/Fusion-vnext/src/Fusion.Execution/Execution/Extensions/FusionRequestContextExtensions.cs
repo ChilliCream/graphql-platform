@@ -1,10 +1,9 @@
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Planning;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
-public static class FusionGraphQLRequestContextExtensions
+public static class FusionRequestContextExtensions
 {
     public static OperationPlan? GetExecutionPlan(
         this RequestContext context)
