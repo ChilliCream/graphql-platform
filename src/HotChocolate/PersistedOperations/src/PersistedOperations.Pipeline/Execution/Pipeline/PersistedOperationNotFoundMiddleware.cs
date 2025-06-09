@@ -23,13 +23,12 @@ internal sealed class PersistedOperationNotFoundMiddleware
 
     public ValueTask InvokeAsync(RequestContext context)
     {
-        var documentInfo = context.OperationDocumentInfo;
-        if (documentInfo.Document is not null)
+        if (context.Request.Document is not null)
         {
             return _next(context);
         }
 
-        // we know that the key is not null since otherwise the request would have
+        // we know that the key is not null from otherwise the request would have
         // failed already since no operation is specified.
         _diagnosticEvents.DocumentNotFoundInStorage(context, context.Request.DocumentId);
         var error = PersistedOperationNotFound(context.Request.DocumentId);

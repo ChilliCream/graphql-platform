@@ -37,7 +37,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
     public ValueTask InvokeAsync(RequestContext context)
     {
         // if all operations are allowed.
-        if (!_options.OnlyAllowPersistedDocuments)
+        if (!_options.OnlyAllowPersistedDocuments || context.IsWarmupRequest())
         {
             return _next(context);
         }
