@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Threading.Channels;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
@@ -9,6 +10,7 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
+using HotChocolate.PersistedOperations;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -23,9 +25,9 @@ namespace HotChocolate.Execution;
 
 internal sealed partial class RequestExecutorManager
     : IRequestExecutorProvider
-    , IRequestExecutorEvents
-    , IRequestExecutorWarmup
-    , IDisposable
+        , IRequestExecutorEvents
+        , IRequestExecutorWarmup
+        , IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
@@ -291,10 +293,11 @@ internal sealed partial class RequestExecutorManager
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
+        serviceCollection.AddSingleton<PersistedOperationOptions>(
+            static s => s.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
 
-        serviceCollection.AddSingleton<IPreparedOperationCache>(
-            static sp => new DefaultPreparedOperationCache(
-                sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
+        serviceCollection.AddSingleton<IPreparedOperationCache>(static sp => new DefaultPreparedOperationCache(
+            sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
 
@@ -317,57 +320,57 @@ internal sealed partial class RequestExecutorManager
         serviceCollection.AddSingleton(static sp => sp.GetRequiredService<RequestPipelineHolder>().Pipeline);
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
-        serviceCollection.TryAddSingleton(
-            static sp =>
+        serviceCollection.TryAddSingleton(static sp =>
+        {
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var policy = new RequestContextPooledObjectPolicy();
+            return provider.Create(policy);
+        });
+
+        serviceCollection.AddSingleton<IRequestExecutor>(static sp => new DefaultRequestExecutor(
+            sp.GetRequiredService<Schema>(),
+            sp.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider,
+            sp.GetRequiredService<RequestDelegate>(),
+            sp.GetRequiredService<ObjectPool<DefaultRequestContext>>(),
+            sp.GetRootServiceProvider().GetRequiredService<DefaultRequestContextAccessor>(),
+            sp.GetRequiredService<SchemaVersionInfo>().Version));
+
+        serviceCollection.AddSingleton(static sp =>
+        {
+            var optimizers = sp.GetServices<IOperationCompilerOptimizer>();
+            var selectionSetOptimizers = ImmutableArray.CreateBuilder<ISelectionSetOptimizer>();
+            var operationOptimizers = ImmutableArray.CreateBuilder<IOperationOptimizer>();
+
+            foreach (var optimizer in optimizers)
             {
-                var version = sp.GetRequiredService<SchemaVersionInfo>().Version;
-                var provider = sp.GetRequiredService<ObjectPoolProvider>();
-                var policy = new RequestContextPooledObjectPolicy();
-                return provider.Create(policy);
-            });
-
-        serviceCollection.AddSingleton<IRequestExecutor>(
-            static sp => new DefaultRequestExecutor(
-                sp.GetRequiredService<Schema>(),
-                sp.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider,
-                sp,
-                sp.GetRequiredService<RequestDelegate>(),
-                sp.GetRequiredService<ObjectPool<DefaultRequestContext>>(),
-                sp.GetRootServiceProvider().GetRequiredService<DefaultRequestContextAccessor>(),
-                sp.GetRequiredService<SchemaVersionInfo>().Version));
-
-        serviceCollection.AddSingleton(
-            static sp =>
-            {
-                var optimizers = sp.GetServices<IOperationCompilerOptimizer>();
-                var selectionSetOptimizers = ImmutableArray.CreateBuilder<ISelectionSetOptimizer>();
-                var operationOptimizers = ImmutableArray.CreateBuilder<IOperationOptimizer>();
-
-                foreach (var optimizer in optimizers)
+                if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
                 {
-                    if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
-                    {
-                        selectionSetOptimizers.Add(selectionSetOptimizer);
-                    }
-
-                    if (optimizer is IOperationOptimizer operationOptimizer)
-                    {
-                        operationOptimizers.Add(operationOptimizer);
-                    }
+                    selectionSetOptimizers.Add(selectionSetOptimizer);
                 }
 
-                return new OperationCompilerOptimizers
+                if (optimizer is IOperationOptimizer operationOptimizer)
                 {
-                    SelectionSetOptimizers = selectionSetOptimizers.ToImmutable(),
-                    OperationOptimizers = operationOptimizers.ToImmutable()
-                };
-            });
+                    operationOptimizers.Add(operationOptimizer);
+                }
+            }
+
+            return new OperationCompilerOptimizers
+            {
+                SelectionSetOptimizers = selectionSetOptimizers.ToImmutable(),
+                OperationOptimizers = operationOptimizers.ToImmutable()
+            };
+        });
 
         OnConfigureSchemaServices(context, serviceCollection, setup);
 
         BuildDocumentValidator(serviceCollection, setup.OnBuildDocumentValidatorHooks);
 
         SchemaBuilder.AddCoreSchemaServices(serviceCollection, lazy);
+
+        if (executorOptions.IncludeExceptionDetails)
+        {
+            serviceCollection.AddErrorFilter<AddDebugInformationErrorFilter>();
+        }
 
         var schemaServices = serviceCollection.BuildServiceProvider();
 
@@ -376,7 +379,7 @@ internal sealed partial class RequestExecutorManager
                     context,
                     setup,
                     executorOptions,
-                    new CombinedServiceProvider(schemaServices, _applicationServices),
+                    schemaServices,
                     typeModuleChangeMonitor,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -427,6 +430,7 @@ internal sealed partial class RequestExecutorManager
         if (setup.Schema is not null)
         {
             AssertSchemaNameValid(setup.Schema, context.SchemaName);
+            setup.Schema.Services = schemaServices;
             return setup.Schema;
         }
 
@@ -438,9 +442,9 @@ internal sealed partial class RequestExecutorManager
         var descriptorContext = context.DescriptorContext;
 
         await foreach (var member in
-           typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
-               .WithCancellation(cancellationToken)
-               .ConfigureAwait(false))
+            typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
         {
             if (member is ITypeDefinition typeDefinition)
             {
@@ -489,11 +493,7 @@ internal sealed partial class RequestExecutorManager
             modifier(pipeline);
         }
 
-        var factoryContext = new RequestMiddlewareFactoryContext
-        {
-            Schema = schema,
-            Services = applicationServices
-        };
+        var factoryContext = new RequestMiddlewareFactoryContext { Schema = schema, Services = applicationServices };
 
         factoryContext.Features.Set(new SchemaServicesProviderAccessor(schemaServices));
         factoryContext.Features.Set(options);
@@ -752,6 +752,53 @@ internal sealed partial class RequestExecutorManager
         {
             get => _pipeline ?? throw new InvalidOperationException("The request pipeline is not ready yet.");
             set => _pipeline = value;
+        }
+    }
+
+    private sealed class AddDebugInformationErrorFilter : IErrorFilter
+    {
+        private const string ExceptionProperty = "exception";
+        private const string MessageProperty = "message";
+        private const string StackTraceProperty = "stackTrace";
+
+        public IError OnError(IError error)
+        {
+            if (error.Exception is not null)
+            {
+                switch (error.Extensions)
+                {
+                    case ImmutableOrderedDictionary<string, object?> d when !d.ContainsKey(ExceptionProperty):
+                    {
+                        var extensions = d.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(extensions);
+                    }
+
+                    case { } d when !d.ContainsKey("exception"):
+                    {
+                        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
+                        builder.AddRange(d);
+                        builder.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(builder.ToImmutable());
+                    }
+
+                    default:
+                    {
+                        var extensions =
+                            ImmutableOrderedDictionary<string, object?>.Empty
+                                .Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(extensions);
+                    }
+                }
+            }
+
+            return error;
+
+            static ImmutableOrderedDictionary<string, object?> CreateExceptionInfo(Exception exception)
+            {
+                return ImmutableOrderedDictionary<string, object?>.Empty
+                    .Add(MessageProperty, exception.Message)
+                    .Add(StackTraceProperty, exception.StackTrace);
+            }
         }
     }
 }

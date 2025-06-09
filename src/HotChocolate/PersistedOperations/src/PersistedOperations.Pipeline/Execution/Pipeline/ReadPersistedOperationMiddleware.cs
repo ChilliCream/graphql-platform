@@ -35,8 +35,7 @@ internal sealed class ReadPersistedOperationMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var documentInfo = context.GetOperationDocumentInfo();
-
+        var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is null)
         {
             await TryLoadQueryAsync(context, documentInfo, context.RequestAborted).ConfigureAwait(false);

@@ -18,7 +18,7 @@ internal sealed partial class ResultBuilder
             return;
         }
 
-        var errorHandler = Unsafe.As<Schema>(_context.Schema).Services.GetRequiredService<IErrorHandler>();
+        var errorHandler = _context.Schema.Services.GetRequiredService<IErrorHandler>();
 
         while (violations.TryPop(out var violation))
         {

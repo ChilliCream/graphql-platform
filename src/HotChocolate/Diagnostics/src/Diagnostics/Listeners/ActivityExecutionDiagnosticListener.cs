@@ -239,7 +239,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
 
-            var documentInfo = context.GetOperationDocumentInfo();
+            var documentInfo = context.OperationDocumentInfo;
             activity.SetTag("graphql.operation.id", documentInfo.Id.Value);
             activity.SetTag("graphql.operation.fieldCost", fieldCost);
             activity.SetTag("graphql.operation.typeCost", typeCost);

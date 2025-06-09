@@ -29,8 +29,7 @@ internal sealed class AutomaticPersistedOperationNotFoundMiddleware
 
     public ValueTask InvokeAsync(RequestContext context)
     {
-        var documentInfo = context.GetOperationDocumentInfo();
-
+        var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is not null || context.Request.Document is not null)
         {
             return _next(context);

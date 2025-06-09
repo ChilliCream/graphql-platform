@@ -34,8 +34,7 @@ internal sealed class DocumentParserMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var documentInfo = context.GetOperationDocumentInfo();
-
+        var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is null && context.Request.Document is not null)
         {
             var success = false;
@@ -81,6 +80,11 @@ internal sealed class DocumentParserMiddleware
 
             if (success)
             {
+                if (documentInfo.Id.IsEmpty)
+                {
+                    documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
+                }
+
                 await _next(context).ConfigureAwait(false);
             }
         }
@@ -113,7 +117,7 @@ internal sealed class DocumentParserMiddleware
             {
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-                var errorHandler = core.Services.GetRequiredService<IErrorHandler>();
+                var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
                 var parserOptions = core.Services.GetRequiredService<ParserOptions>();
                 var middleware = Create(next, diagnosticEvents, documentHashProvider, errorHandler, parserOptions);
                 return context => middleware.InvokeAsync(context);

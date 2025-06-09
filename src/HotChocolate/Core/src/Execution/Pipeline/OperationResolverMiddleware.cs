@@ -41,7 +41,7 @@ internal sealed class OperationResolverMiddleware
             return;
         }
 
-        var documentInfo = context.GetOperationDocumentInfo();
+        var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is not null && documentInfo.IsValidated)
         {
             using (_diagnosticEvents.CompileOperation(context))

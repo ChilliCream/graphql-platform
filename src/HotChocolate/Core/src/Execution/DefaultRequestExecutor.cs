@@ -17,7 +17,6 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
     public DefaultRequestExecutor(
         ISchemaDefinition schema,
-        IServiceProvider schemaServices,
         IServiceProvider applicationServices,
         RequestDelegate requestDelegate,
         ObjectPool<DefaultRequestContext> requestContextPool,
@@ -25,7 +24,6 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
         ulong version)
     {
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(schemaServices);
         ArgumentNullException.ThrowIfNull(applicationServices);
         ArgumentNullException.ThrowIfNull(requestContextPool);
         ArgumentNullException.ThrowIfNull(contextAccessor);
@@ -40,7 +38,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
         var list = new List<IRequestContextEnricher>();
         CollectEnricher(applicationServices, list);
-        CollectEnricher(schemaServices, list);
+        CollectEnricher(schema.Services, list);
         _enricher = [.. list];
 
         static void CollectEnricher(IServiceProvider services, List<IRequestContextEnricher> list)
@@ -74,27 +72,20 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
         CancellationToken cancellationToken)
     {
         IServiceScope? scope = null;
+        var requestServices = request.Services;
 
-        if (request.Services is null)
+        if (requestServices is null)
         {
-            if (request.Features.TryGet(out IServiceScopeFactory? serviceScopeFactory))
-            {
-                scope = serviceScopeFactory.CreateScope();
-            }
-            else
-            {
-                scope = _applicationServices.CreateScope();
-            }
+            scope = request.Features.TryGet(out IServiceScopeFactory? serviceScopeFactory)
+                ? serviceScopeFactory.CreateScope()
+                : _applicationServices.CreateScope();
+            requestServices = scope.ServiceProvider;
         }
-
-        var services = scope is null
-            ? request.Services!
-            : scope.ServiceProvider;
 
         if (scopeDataLoader)
         {
             // we ensure that at the beginning of each execution there is a fresh batching scope.
-            services.InitializeDataLoaderScope();
+            requestServices.InitializeDataLoaderScope();
         }
 
         var context = _contextPool.Get();
@@ -106,7 +97,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
                 Version,
                 request,
                 requestIndex ?? -1,
-                services,
+                requestServices,
                 cancellationToken);
 
             EnrichContext(context);
@@ -197,7 +188,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
             ? requestBatch.Services!
             : scope.ServiceProvider;
 
-        // we ensure that at the start of each execution there is a fresh batching scope.
+        // we ensure that at the start of each execution, there is a fresh batching scope.
         services.InitializeDataLoaderScope();
 
         try

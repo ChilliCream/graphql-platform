@@ -44,7 +44,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
 
         // if the document is a persisted operation document, then in general we can
         // skip this middleware.
-        var documentInfo = context.GetOperationDocumentInfo();
+        var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.IsPersisted)
         {
             // however, this could still be a standard GraphQL request that contains a document

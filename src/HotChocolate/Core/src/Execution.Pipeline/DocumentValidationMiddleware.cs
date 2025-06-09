@@ -26,15 +26,14 @@ internal sealed class DocumentValidationMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var documentInfo = context.GetOperationDocumentInfo();
-
+        var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is null || documentInfo.Id.IsEmpty)
         {
             context.Result = ErrorHelper.StateInvalidForDocumentValidation();
         }
         else
         {
-            if (documentInfo.IsValidated || _documentValidator.HasNonCacheableRules)
+            if (!documentInfo.IsValidated || _documentValidator.HasNonCacheableRules)
             {
                 using (_diagnosticEvents.ValidateDocument(context))
                 {
@@ -45,6 +44,8 @@ internal sealed class DocumentValidationMiddleware
                             documentInfo.Document,
                             context.Features,
                             documentInfo.IsValidated);
+
+                    documentInfo.IsValidated = !result.HasErrors;
 
                     if (result.HasErrors)
                     {

@@ -38,7 +38,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    var documentInfo = c.GetOperationDocumentInfo();
+                    var documentInfo = c.OperationDocumentInfo;
                     if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
@@ -72,7 +72,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    var documentInfo = c.GetOperationDocumentInfo();
+                    var documentInfo = c.OperationDocumentInfo;
                     if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
@@ -121,7 +121,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    var documentInfo = c.GetOperationDocumentInfo();
+                    var documentInfo = c.OperationDocumentInfo;
                     if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
@@ -161,7 +161,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    var documentInfo = c.GetOperationDocumentInfo();
+                    var documentInfo = c.OperationDocumentInfo;
                     if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
@@ -201,7 +201,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    var documentInfo = c.GetOperationDocumentInfo();
+                    var documentInfo = c.OperationDocumentInfo;
                     if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
@@ -238,7 +238,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    var documentInfo = c.GetOperationDocumentInfo();
+                    var documentInfo = c.OperationDocumentInfo;
                     if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder

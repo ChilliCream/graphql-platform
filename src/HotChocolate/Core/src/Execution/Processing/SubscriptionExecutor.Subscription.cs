@@ -51,7 +51,7 @@ internal sealed partial class SubscriptionExecutor
             _rootSelections = rootSelections;
             _resolveQueryRootValue = resolveQueryRootValue;
             _diagnosticEvents = diagnosticEvents;
-            _errorHandler = Unsafe.As<Schema>(_requestContext.Schema).Services.GetRequiredService<IErrorHandler>();
+            _errorHandler = _requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
         }
 
         /// <summary>

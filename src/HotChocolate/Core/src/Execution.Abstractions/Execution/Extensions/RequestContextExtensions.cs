@@ -9,24 +9,11 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class RequestContextExtensions
 {
-    /// <summary>
-    /// Gets the operation document info from the request context.
-    /// </summary>
-    /// <param name="context">The request context.</param>
-    /// <returns>The operation document info.</returns>
-    public static OperationDocumentInfo GetOperationDocumentInfo(
-        this RequestContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        return context.Features.GetOrSet<OperationDocumentInfo>();
-    }
-
     public static OperationDocumentId GetOperationDocumentId(this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        return context.Features.GetOrSet<OperationDocumentInfo>().Id;
+        return context.OperationDocumentInfo.Id;
     }
 
 
@@ -34,14 +21,14 @@ public static class RequestContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        return context.Features.GetOrSet<OperationDocumentInfo>().IsValidated;
+        return context.OperationDocumentInfo.IsValidated;
     }
 
     public static bool IsPersistedOperationDocument(this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        return context.Features.GetOrSet<OperationDocumentInfo>().IsPersisted;
+        return context.OperationDocumentInfo.IsPersisted;
     }
 
     public static bool TryGetOperationDocument(
@@ -51,16 +38,9 @@ public static class RequestContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        document = context.Features.GetOrSet<OperationDocumentInfo>().Document;
-        documentId = context.Features.GetOrSet<OperationDocumentInfo>().Id;
+        document = context.OperationDocumentInfo.Document;
+        documentId = context.OperationDocumentInfo.Id;
 
         return document is not null;
-    }
-
-    public static void SetOperationDocumentId(this RequestContext context, OperationDocumentId documentId)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        context.Features.GetOrSet<OperationDocumentInfo>().Id = documentId;
     }
 }

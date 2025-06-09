@@ -28,6 +28,8 @@ public class RequestMiddlewareFactoryContext : IFeatureProvider
         {
             if (_schemaServices is null)
             {
+                // this looks complicated as there is a service property on the schema.
+                // But in the case that the schema has no services, we will use the application level service provider.
                 var schemaServiceAccessor = Features.Get<SchemaServicesProviderAccessor>();
                 _schemaServices = schemaServiceAccessor is not null ? schemaServiceAccessor.Services : Services;
             }

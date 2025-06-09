@@ -21,6 +21,7 @@ public sealed class FusionRequestContext : RequestContext
     public FusionRequestContext()
     {
         _features = new PooledFeatureCollection(this);
+        OperationDocumentInfo = _features.GetOrSet<OperationDocumentInfo>();
     }
 
     public override ISchemaDefinition Schema => _schema;
@@ -33,9 +34,9 @@ public sealed class FusionRequestContext : RequestContext
 
     public override IServiceProvider RequestServices { get; set; } = default!;
 
-    public override OperationDocumentInfo OperationDocumentInfo => throw new NotImplementedException();
+    public override OperationDocumentInfo OperationDocumentInfo { get; }
 
-    public override IFeatureCollection Features => throw new NotImplementedException();
+    public override IFeatureCollection Features => _features;
 
     public override IDictionary<string, object?> ContextData { get; } = new ConcurrentDictionary<string, object?>();
 

@@ -17,9 +17,9 @@ public sealed class ExecutionPlanMiddleware
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
-        var operationDocumentInfo = context.GetOperationDocumentInfo();
+        var operationDocumentInfo = context.OperationDocumentInfo;
 
-        if (operationDocumentInfo is null || operationDocumentInfo.Document is null)
+        if (operationDocumentInfo.Document is null)
         {
             throw new InvalidOperationException(
                 "The operation document info is not available in the context.");

@@ -70,6 +70,11 @@ public sealed class PooledFeatureCollection : IFeatureCollection
                 return;
             }
 
+            if (value is IPooledFeature pooledFeature)
+            {
+                pooledFeature.Initialize(_state);
+            }
+
             _features[key] = value;
             _containerRevision++;
         }

@@ -34,7 +34,7 @@ internal sealed class WritePersistedOperationMiddleware
     {
         await _next(context).ConfigureAwait(false);
 
-        var documentInfo = context.GetOperationDocumentInfo();
+        var documentInfo = context.OperationDocumentInfo;
 
         if (!documentInfo.IsCached
             && documentInfo.IsValidated

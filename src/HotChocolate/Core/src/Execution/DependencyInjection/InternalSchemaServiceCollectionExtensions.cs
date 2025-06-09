@@ -40,6 +40,10 @@ public static class InternalSchemaServiceCollectionExtensions
                 _ => new AggregateExecutionDiagnosticEvents(listeners)
             };
         });
+
+        services.TryAddSingleton<ICoreExecutionDiagnosticEvents>(
+            sp => sp.GetRequiredService<IExecutionDiagnosticEvents>());
+
         return services;
     }
 

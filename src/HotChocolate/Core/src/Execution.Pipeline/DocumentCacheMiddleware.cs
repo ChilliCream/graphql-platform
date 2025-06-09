@@ -30,7 +30,7 @@ internal sealed class DocumentCacheMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var documentInfo = context.GetOperationDocumentInfo();
+        var documentInfo = context.OperationDocumentInfo;
         var request = context.Request;
         var addToCache = true;
 

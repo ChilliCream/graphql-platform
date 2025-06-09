@@ -19,7 +19,7 @@ public sealed class RequestExecutorSetup
     private readonly List<Action<IServiceProvider, DocumentValidatorBuilder>> _onBuildDocumentValidatorHooks = [];
 
     /// <summary>
-    /// This allows to specify a schema and short-circuit the schema creation.
+    /// This allows specifying a schema and short-circuit the schema creation.
     /// </summary>
     public Schema? Schema { get; set; }
 

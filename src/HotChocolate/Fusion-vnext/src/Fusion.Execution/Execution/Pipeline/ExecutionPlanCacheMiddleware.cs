@@ -11,15 +11,8 @@ public class ExecutionPlanCacheMiddleware(Cache<OperationPlan> cache)
 
     public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
-        var operationDocumentInfo = context.GetOperationDocumentInfo();
-
-        if (operationDocumentInfo is null)
-        {
-            throw new InvalidOperationException(
-                "The operation document info is not available in the context.");
-        }
-
-        var planKey = $"{operationDocumentInfo.Hash}.{context.Request.OperationName ?? "Default"}";
+        var documentInfo = context.OperationDocumentInfo;
+        var planKey = $"{documentInfo.Hash}.{context.Request.OperationName ?? "Default"}";
         var isPlanCached = false;
 
         if(_cache.TryGet(planKey, out var plan))

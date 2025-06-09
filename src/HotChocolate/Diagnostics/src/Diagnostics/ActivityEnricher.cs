@@ -323,7 +323,7 @@ public class ActivityEnricher
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
         context.TryGetOperation(out var operation);
-        var documentInfo = context.GetOperationDocumentInfo();
+        var documentInfo = context.OperationDocumentInfo;
         var operationDisplayName = CreateOperationDisplayName(context, operation);
 
         if (_options.RenameRootActivity && operationDisplayName is not null)
@@ -461,7 +461,7 @@ public class ActivityEnricher
             UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
         }
 
-        var documentInfo = context.GetOperationDocumentInfo();
+        var documentInfo = context.OperationDocumentInfo;
         activity.SetTag("graphql.document.id", documentInfo.Id.Value);
         activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
     }

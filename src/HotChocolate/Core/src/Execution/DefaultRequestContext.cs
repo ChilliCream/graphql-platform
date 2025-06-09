@@ -15,6 +15,7 @@ internal sealed class DefaultRequestContext : RequestContext
     public DefaultRequestContext()
     {
         _features = new PooledFeatureCollection(this);
+        OperationDocumentInfo = _features.GetOrSet<OperationDocumentInfo>();
     }
 
     public override ISchemaDefinition Schema => _schema;
@@ -25,11 +26,11 @@ internal sealed class DefaultRequestContext : RequestContext
 
     public override int RequestIndex => _requestIndex;
 
-    public override IServiceProvider RequestServices { get; set; } = default!;
+    public override IServiceProvider RequestServices { get; set; } = null!;
 
-    public override OperationDocumentInfo OperationDocumentInfo => throw new NotImplementedException();
+    public override OperationDocumentInfo OperationDocumentInfo { get; }
 
-    public override IFeatureCollection Features => throw new NotImplementedException();
+    public override IFeatureCollection Features => _features;
 
     public override IDictionary<string, object?> ContextData { get; } = new ConcurrentDictionary<string, object?>();
 
@@ -66,7 +67,7 @@ internal sealed class DefaultRequestContext : RequestContext
         _executorVersion = 0;
         _request = null!;
         RequestServices = null!;
-        RequestAborted = default;
+        RequestAborted = CancellationToken.None;
         _features.Reset();
         ContextData.Clear();
     }
