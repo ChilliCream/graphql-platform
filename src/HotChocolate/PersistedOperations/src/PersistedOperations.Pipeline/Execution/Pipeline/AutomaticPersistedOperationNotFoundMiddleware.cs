@@ -54,7 +54,7 @@ internal sealed class AutomaticPersistedOperationNotFoundMiddleware
         => new RequestMiddlewareConfiguration(
             static (factoryContext, next) =>
             {
-                var diagnosticEvents = factoryContext.Services.GetRequiredService<ICoreExecutionDiagnosticEvents>();
+                var diagnosticEvents = factoryContext.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var middleware = new AutomaticPersistedOperationNotFoundMiddleware(next, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },

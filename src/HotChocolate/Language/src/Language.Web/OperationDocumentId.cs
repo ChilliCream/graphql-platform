@@ -124,7 +124,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// <returns>
     /// A new instance of <see cref="OperationDocumentId"/> representing the specified <paramref name="value"/>.
     /// </returns>
-    public static implicit operator  OperationDocumentId?(string? value)
+    public static implicit operator OperationDocumentId?(string? value)
         => value is null ? null : new OperationDocumentId(value);
 
     /// <summary>

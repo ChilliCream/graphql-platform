@@ -176,15 +176,15 @@ public ref partial struct Utf8GraphQLRequestParser
 
         switch (fieldName[0])
         {
-            case O:
-                if (fieldName.SequenceEqual(OperationName))
+            case I:
+                if (fieldName.SequenceEqual(Id))
                 {
-                    request.OperationName = ParseStringOrNull();
+                    request.DocumentId = ParseStringOrNull();
                 }
                 break;
 
-            case I:
-                if (fieldName.SequenceEqual(Id))
+            case D:
+                if (fieldName.SequenceEqual(DocumentId))
                 {
                     request.DocumentId = ParseStringOrNull();
                 }
@@ -202,6 +202,13 @@ public ref partial struct Utf8GraphQLRequestParser
 
                     request.DocumentBody = _reader.Value;
                     _reader.MoveNext();
+                }
+                break;
+
+            case O:
+                if (fieldName.SequenceEqual(OperationName))
+                {
+                    request.OperationName = ParseStringOrNull();
                 }
                 break;
 
@@ -276,7 +283,7 @@ public ref partial struct Utf8GraphQLRequestParser
         try
         {
             Utf8Helper.Unescape(request.DocumentBody, ref unescapedSpan, false);
-            DocumentNode? document = null;
+            DocumentNode? document;
 
             if (_useCache)
             {
