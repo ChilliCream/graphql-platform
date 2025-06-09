@@ -283,12 +283,14 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
     {
         var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
         var variableDefinitions = RewriteList(node.VariableDefinitions, context);
         var typeCondition = RewriteNode(node.TypeCondition, context);
         var directives = RewriteList(node.Directives, context);
         var selectionSet = RewriteNode(node.SelectionSet, context);
 
         if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(description, node.Description) ||
             !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
             !ReferenceEquals(typeCondition, node.TypeCondition) ||
             !ReferenceEquals(directives, node.Directives) ||
@@ -297,6 +299,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             return new FragmentDefinitionNode(
                 node.Location,
                 name,
+                description,
                 variableDefinitions,
                 typeCondition,
                 directives,
@@ -634,11 +637,13 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
     {
         var name = RewriteNodeOrDefault(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
         var variableDefinitions = RewriteList(node.VariableDefinitions, context);
         var directives = RewriteList(node.Directives, context);
         var selectionSet = RewriteNode(node.SelectionSet, context);
 
         if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(description, node.Description) ||
             !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
             !ReferenceEquals(directives, node.Directives) ||
             !ReferenceEquals(selectionSet, node.SelectionSet))
@@ -646,6 +651,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             return new OperationDefinitionNode(
                 node.Location,
                 name,
+                description,
                 node.Operation,
                 variableDefinitions,
                 directives,
@@ -855,11 +861,13 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         TContext context)
     {
         var variable = RewriteNode(node.Variable, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
         var type = RewriteNode(node.Type, context);
         var defaultValue = RewriteNodeOrDefault(node.DefaultValue, context);
         var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(variable, node.Variable) ||
+            !ReferenceEquals(description, node.Description) ||
             !ReferenceEquals(type, node.Type) ||
             !ReferenceEquals(defaultValue, node.DefaultValue) ||
             !ReferenceEquals(directives, node.Directives))
@@ -867,6 +875,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             return new VariableDefinitionNode(
                 node.Location,
                 variable,
+                description,
                 type,
                 defaultValue,
                 directives);
