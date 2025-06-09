@@ -43,6 +43,11 @@ public readonly struct OperationDocumentHash
     }
 
     /// <summary>
+    /// Gets an empty operation document hash.
+    /// </summary>
+    public static OperationDocumentHash Empty => default;
+
+    /// <summary>
     /// Gets the hash of the operation document.
     /// </summary>
     public string Value { get; }
@@ -63,7 +68,8 @@ public readonly struct OperationDocumentHash
     public bool IsEmpty => string.IsNullOrEmpty(Value);
 
     /// <summary>
-    /// Gets an empty operation document hash.
+    /// Returns a string representation of the operation document hash.
     /// </summary>
-    public static OperationDocumentHash Empty => default;
+    public override string ToString()
+        => IsEmpty ? "(empty)" : $"{AlgorithmName}:{Value} ({Format})";
 }

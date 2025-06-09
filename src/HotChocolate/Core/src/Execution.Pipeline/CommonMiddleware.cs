@@ -17,6 +17,9 @@ public static class CommonMiddleware
     public static RequestMiddlewareConfiguration Instrumentation
         => InstrumentationMiddleware.Create();
 
+    /// <summary>
+    /// Gets the key for the exception middleware.
+    /// </summary>
     public static string UnhandledExceptionsKey => nameof(ExceptionMiddleware);
 
     /// <summary>
@@ -25,7 +28,22 @@ public static class CommonMiddleware
     public static RequestMiddlewareConfiguration UnhandledExceptions
         => ExceptionMiddleware.Create();
 
+    /// <summary>
+    /// Gets the key for the document cache middleware.
+    /// </summary>
     public static string DocumentCacheKey => nameof(DocumentCacheMiddleware);
+
+    /// <summary>
+    /// Gets the middleware configuration for reading request properties
+    /// and stores them on the context.
+    /// </summary>
+    public static RequestMiddlewareConfiguration ReadRequestProperties
+        => ReadRequestPropertiesMiddleware.Create();
+
+    /// <summary>
+    /// Gets the key for the read request properties middleware.
+    /// </summary>
+    public static string ReadRequestPropertiesKey => nameof(ReadRequestPropertiesMiddleware);
 
     /// <summary>
     /// Gets the middleware configuration for caching GraphQL operation documents.

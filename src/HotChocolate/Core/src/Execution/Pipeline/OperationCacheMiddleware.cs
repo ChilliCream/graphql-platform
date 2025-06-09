@@ -35,7 +35,11 @@ internal sealed class OperationCacheMiddleware
         else
         {
             var addToCache = true;
-            var operationId = context.GetOperationId() ?? context.CreateCacheId();
+            if (!context.TryGetOperationId(out var operationId))
+            {
+                operationId = context.CreateCacheId();
+                context.SetOperationId(operationId);
+            }
 
             if (_operationCache.TryGetOperation(operationId, out var operation))
             {

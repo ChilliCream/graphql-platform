@@ -1,9 +1,15 @@
 {
   "ContentType": "application/graphql-response+json; charset=utf-8",
-  "StatusCode": "OK",
-  "Data": {
-    "__typename": "Query"
-  },
-  "Errors": null,
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The specified persisted operation key is invalid.",
+      "extensions": {
+        "code": "HC0020",
+        "requestedKey": "7f56e67dd21ab3f30d1ff8b7bed08893f0a0db86449836189b361dd1e56ddb4b"
+      }
+    }
+  ],
   "Extensions": null
 }

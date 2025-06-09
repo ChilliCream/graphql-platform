@@ -14,7 +14,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <param name="middleware">
-    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// A delegate that is used to create middleware for the execution pipeline.
     /// </param>
     /// <param name="key">
     /// A unique identifier for the middleware.
@@ -34,19 +34,18 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             options => options.Pipeline.Add(
                 new RequestMiddlewareConfiguration(
-                    new RequestMiddleware(
-                        (_, n) => middleware(n)),
+                    (_, n) => middleware(n),
                     key)));
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+    /// Adds a delegate that will be used to create middleware for the execution pipeline.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </param>
     /// <param name="middleware">
-    /// A delegate that is used to create a middleware for the execution pipeline.
+    /// A delegate that is used to create middleware for the execution pipeline.
     /// </param>
     /// <param name="key">
     /// A unique identifier for the middleware.
@@ -372,7 +371,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Inserts a middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
+    /// Inserts middleware to the execution pipeline <paramref name="before"/> the middleware with the specified key.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -593,6 +592,24 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a middleware that will be used to read request properties
+    /// and stores them on the request context.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder UseReadRequestProperties(
+        this IRequestExecutorBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(CommonMiddleware.ReadRequestProperties);
+    }
+
+    /// <summary>
     /// Adds a middleware that will be used to instrument the request.
     /// </summary>
     /// <param name="builder">
@@ -663,7 +680,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a middleware that will be used to coerces the operation variables into the correct types.
+    /// Adds a middleware that will be used to coerce the operation variables into the correct types.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
@@ -764,6 +781,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
+            .UseReadRequestProperties()
             .UseDocumentCache()
             .UseReadPersistedOperation()
             .UsePersistedOperationNotFound()
@@ -786,6 +804,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
+            .UseReadRequestProperties()
             .UseDocumentCache()
             .UseReadPersistedOperation()
             .UseAutomaticPersistedOperationNotFound()
@@ -804,6 +823,7 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(CommonMiddleware.Instrumentation);
         pipeline.Add(CommonMiddleware.UnhandledExceptions);
         pipeline.Add(TimeoutMiddleware.Create());
+        pipeline.Add(CommonMiddleware.ReadRequestProperties);
         pipeline.Add(CommonMiddleware.DocumentCache);
         pipeline.Add(CommonMiddleware.DocumentParser);
         pipeline.Add(CommonMiddleware.DocumentValidation);

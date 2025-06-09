@@ -106,7 +106,7 @@ internal static class AuthorizationFeatureExtensions
         this RequestContext context)
     {
         var data = context.Features.GetOrSet<AuthorizationRequestContext>();
-        data.Handler = context.Schema.Services.GetRequiredService<IAuthorizationHandler>();
+        data.Handler = context.RequestServices.GetRequiredService<IAuthorizationHandler>();
         return context;
     }
 

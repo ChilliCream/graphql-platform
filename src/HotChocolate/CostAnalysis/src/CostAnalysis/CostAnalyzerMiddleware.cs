@@ -29,9 +29,8 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        // we check if the operation id is already set and if not we create one.
-        var operationId = context.GetOperationId();
-        if (operationId is null)
+        // we check if the operation id is already set and if not, we create one.
+        if (!context.TryGetOperationId(out var operationId))
         {
             operationId = context.CreateCacheId();
             context.SetOperationId(operationId);
@@ -48,7 +47,7 @@ internal sealed class CostAnalyzerMiddleware(
 
         if (!TryAnalyze(context, requestOptions, mode, document, documentId, operationId, out var costMetrics))
         {
-            // a error happened during the analysis and the error is already set.
+            // an error happened during the analysis and the error is already set.
             return;
         }
 

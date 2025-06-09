@@ -95,11 +95,12 @@ public static class HotChocolateExecutionRequestContextExtensions
         operationInfo.Definition = operation.Definition;
     }
 
-    public static string? GetOperationId(this RequestContext context)
+    public static bool TryGetOperationId(this RequestContext context, [NotNullWhen(true)] out string? operationId)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        return context.Features.GetOrSet<OperationInfo>().Id;
+        operationId = context.Features.GetOrSet<OperationInfo>().Id;
+        return operationId is not null;
     }
 
     public static void SetOperationId(this RequestContext context, string operationId)

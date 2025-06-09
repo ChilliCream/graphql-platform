@@ -49,14 +49,12 @@ internal sealed class ReadPersistedOperationMiddleware
         OperationDocumentInfo documentInfo,
         CancellationToken ct)
     {
-        var documentId = context.Request.DocumentId;
-
-        if (documentId.IsEmpty)
+        if (documentInfo.Id.IsEmpty)
         {
             return;
         }
 
-        var operationDocument = await _operationDocumentStorage.TryReadAsync(documentId, ct).ConfigureAwait(false);
+        var operationDocument = await _operationDocumentStorage.TryReadAsync(documentInfo.Id, ct).ConfigureAwait(false);
 
         if (operationDocument is not null)
         {

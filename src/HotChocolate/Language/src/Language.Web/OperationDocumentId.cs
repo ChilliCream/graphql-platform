@@ -80,7 +80,8 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// <summary>
     /// Returns a string that represents the current <see cref="OperationDocumentId"/>.
     /// </summary>
-    public override string? ToString() => Value;
+    public override string? ToString()
+        => IsEmpty ? "(empty)" : Value;
 
     /// <summary>
     /// Determines whether the specified <paramref name="left"/> is equal to the specified <paramref name="right"/>.

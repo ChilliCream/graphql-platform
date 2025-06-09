@@ -23,7 +23,7 @@ internal sealed class PersistedOperationNotFoundMiddleware
 
     public ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.Request.Document is not null)
+        if (context.OperationDocumentInfo.Document is not null)
         {
             return _next(context);
         }
