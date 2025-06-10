@@ -293,4 +293,34 @@ public class SchemaFormatterTests
             }
             """);
     }
+
+    [Fact]
+    public void Format_Schema_With_Description_Schema_Keyword_Not_Omitted()
+    {
+        // arrange
+        var sdl =
+            """
+            "Example schema"
+            schema {
+                query: Query
+                mutation: Mutation
+            }
+
+            type Query {
+                someField: String
+            }
+
+            type Mutation {
+                someMutation: String
+            }
+            """;
+
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(sdl);
+    }
 }
