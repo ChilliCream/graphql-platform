@@ -35,6 +35,18 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     }
 
     [Fact]
+    public async Task A_is_null_Error()
+    {
+        // Error: Value for member field {a} must be non-null
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .ExecuteRequestAsync("{ example(input: { a: null }) }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task B_is_set_Valid()
     {
         await new ServiceCollection()
