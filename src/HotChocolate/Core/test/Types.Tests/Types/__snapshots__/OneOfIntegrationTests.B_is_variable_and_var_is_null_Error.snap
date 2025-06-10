@@ -1,11 +1,11 @@
-﻿{
+{
   "errors": [
     {
-      "message": "The variable `$var` assigned to the field `b` of the OneOf Input Object `ExampleInput` must be non-null.",
+      "message": "The variable `$b` assigned to the field `b` of the OneOf Input Object `ExampleInput` must be non-null.",
       "locations": [
         {
           "line": 1,
-          "column": 35
+          "column": 33
         }
       ],
       "path": [
