@@ -1,13 +1,13 @@
-﻿{
+{
   "data": {
     "oneOf_input": {
-      "oneOf": true
+      "isOneOf": true
     },
     "input": {
-      "oneOf": false
+      "isOneOf": false
     },
     "object": {
-      "oneOf": null
+      "isOneOf": null
     }
   }
 }

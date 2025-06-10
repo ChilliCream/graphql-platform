@@ -318,17 +318,17 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 @"{
                     oneOf_input: __type(name: ""ExampleInput"") {
                         # should be true
-                        oneOf
+                        isOneOf
                     }
 
                     input: __type(name: ""StandardInput"") {
                         # should be false
-                        oneOf
+                        isOneOf
                     }
 
                     object: __type(name: ""Query"") {
                         # should be null
-                        oneOf
+                        isOneOf
                     }
                 }")
             .MatchSnapshotAsync();

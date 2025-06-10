@@ -913,7 +913,7 @@
               "deprecationReason": null
             },
             {
-              "name": "oneOf",
+              "name": "isOneOf",
               "description": null,
               "args": [],
               "type": {
