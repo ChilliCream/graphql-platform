@@ -1,6 +1,6 @@
 [
   {
-    "Message": "The Oneof Input Object `PetInput` requires that exactly one field must be supplied and that field must not be `null`.",
+    "Message": "The OneOf Input Object `PetInput` requires that exactly one field must be supplied and that field must not be `null`.",
     "Code": null,
     "Path": {
       "Name": "addPet",

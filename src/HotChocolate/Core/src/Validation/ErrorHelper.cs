@@ -666,7 +666,7 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetFieldCoordinate(fieldCoordinate)
-            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-OneOf–Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 
     public static IError SkipAndIncludeNotAllowedOnSubscriptionRootField(

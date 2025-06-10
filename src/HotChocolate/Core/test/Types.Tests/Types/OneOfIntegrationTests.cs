@@ -234,7 +234,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     }
 
     [Fact]
-    public void Oneof_Input_Objects_that_is_Valid()
+    public void OneOf_Input_Objects_that_is_Valid()
         => ExpectValid(
             @"type Query {
                 foo(f: FooInput): String
@@ -246,7 +246,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields()
+    public void OneOf_Input_Objects_must_have_nullable_fields()
         => ExpectError(
             @"type Query {
                 foo(f: FooInput): String
@@ -258,7 +258,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields_with_two_fields_non_null()
+    public void OneOf_Input_Objects_must_have_nullable_fields_with_two_fields_non_null()
         => ExpectError(
             @"type Query {
                 foo(f: FooInput): String
@@ -270,7 +270,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields_with_one_field_has_default()
+    public void OneOf_Input_Objects_must_have_nullable_fields_with_one_field_has_default()
         => ExpectError(
             @"type Query {
                 foo(f: FooInput): String
@@ -282,7 +282,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_Input_Objects_must_have_nullable_fields_with_two_fields_that_have_default()
+    public void OneOf_Input_Objects_must_have_nullable_fields_with_two_fields_that_have_default()
         => ExpectError(
             @"type Query {
                 foo(f: FooInput): String
@@ -294,7 +294,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             }");
 
     [Fact]
-    public void Oneof_generic_code_first_schema()
+    public void OneOf_generic_code_first_schema()
         => SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .ModifyOptions(o => o.EnableOneOf = true)
@@ -303,7 +303,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .MatchSnapshot();
 
     [Fact]
-    public async Task Oneof_introspection()
+    public async Task OneOf_introspection()
     {
         await new ServiceCollection()
             .AddGraphQL()
@@ -316,7 +316,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 })
             .ExecuteRequestAsync(
                 @"{
-                    oneof_input: __type(name: ""ExampleInput"") {
+                    oneOf_input: __type(name: ""ExampleInput"") {
                         # should be true
                         oneOf
                     }

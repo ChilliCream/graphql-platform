@@ -183,7 +183,7 @@ internal static class ErrorHelper
         string[] fieldNames)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults,
+                ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults,
                 type.Name,
                 fieldNames.Length is 1 ? string.Empty : "s",
                 string.Join(", ", fieldNames))

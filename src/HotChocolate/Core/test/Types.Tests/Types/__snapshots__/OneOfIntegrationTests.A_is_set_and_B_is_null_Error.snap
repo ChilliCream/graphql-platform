@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "The Oneof Input Object `ExampleInput` requires that exactly one field must be supplied and that field must not be `null`.",
+      "message": "The OneOf Input Object `ExampleInput` requires that exactly one field must be supplied and that field must not be `null`.",
       "locations": [
         {
           "line": 1,

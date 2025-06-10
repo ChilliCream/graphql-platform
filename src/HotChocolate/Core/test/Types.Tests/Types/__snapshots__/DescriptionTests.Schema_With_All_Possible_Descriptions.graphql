@@ -113,7 +113,7 @@ enum SomeEnum {
   VALUE2
 }
 
-"The `@oneOf` directive is used within the type system definition language to indicate an Input Object is a Oneof Input Object."
+"The `@oneOf` directive is used within the type system definition language to indicate an Input Object is a OneOf Input Object."
 directive @oneOf on INPUT_OBJECT
 
 "Single line comment"

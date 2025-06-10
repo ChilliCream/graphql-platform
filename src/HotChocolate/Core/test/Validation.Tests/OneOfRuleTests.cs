@@ -66,7 +66,7 @@ public class OneOfRuleTests : DocumentValidatorVisitorTestBase
     }
 
     [Fact]
-    public void VariablesUsedForOneofInputObjectFieldsMustBeNonNullable_Valid()
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable_Valid()
     {
         ExpectValid(
             """
@@ -80,7 +80,7 @@ public class OneOfRuleTests : DocumentValidatorVisitorTestBase
     }
 
     [Fact]
-    public void VariablesUsedForOneofInputObjectFieldsMustBeNonNullable_Error()
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable_Error()
     {
         ExpectErrors(
             """

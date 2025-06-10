@@ -1,6 +1,6 @@
 [
   {
-    "Message": "The variable `$cat` assigned to the field `cat` of the Oneof Input Object `PetInput` must be non-null.",
+    "Message": "The variable `$cat` assigned to the field `cat` of the OneOf Input Object `PetInput` must be non-null.",
     "Code": null,
     "Path": {
       "Name": "addPet",
@@ -20,7 +20,7 @@
     ],
     "Extensions": {
       "fieldCoordinate": "PetInput.cat",
-      "specifiedBy": "https://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
+      "specifiedBy": "https://spec.graphql.org/draft/#sec-OneOf–Input-Objects-Have-Exactly-One-Field",
       "rfc": "https://github.com/graphql/graphql-spec/pull/825"
     },
     "Exception": null

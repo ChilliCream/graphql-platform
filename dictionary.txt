@@ -109,7 +109,6 @@ NSwag
 ntouches
 nwithin
 oncall
-oneof
 OpenIddict
 opensgid
 OPTOUT

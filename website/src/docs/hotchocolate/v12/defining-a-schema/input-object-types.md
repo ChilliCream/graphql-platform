@@ -220,11 +220,11 @@ public record BookInput([property:DefaultValue("")]Optional<string> Title, strin
 
 ```
 
-## `Oneof` Input Objects
+## `OneOf` Input Objects
 
-`Oneof` Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the \_\_Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
+`OneOf` Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the \_\_Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
 
-> Warning: `Oneof` Input Objects is currently a draft feature to the GraphQL spec. <https://github.com/graphql/graphql-spec/pull/825>
+> Warning: `OneOf` Input Objects is currently a draft feature to the GraphQL spec. <https://github.com/graphql/graphql-spec/pull/825>
 
 <Video videoId="tztXm15grU0" />
 
@@ -246,7 +246,7 @@ type Mutation {
 }
 ```
 
-Since the `Oneof` Input Objects RFC is not yet in the draft stage it is still an opt-in feature. In order to activate it set the schema options to enable it.
+Since the `OneOf` Input Objects RFC is not yet in the draft stage it is still an opt-in feature. In order to activate it set the schema options to enable it.
 
 ```csharp
 builder.Services
@@ -255,7 +255,7 @@ builder.Services
     .ModifyOptions(o => o.EnableOneOf = true);
 ```
 
-Once activate you can create `Oneof` Input Objects like the following:
+Once activate you can create `OneOf` Input Objects like the following:
 
 <ExampleTabs>
 <Implementation>
