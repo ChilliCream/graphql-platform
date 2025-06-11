@@ -6,7 +6,7 @@ public class ResponseStreamTests
     public async Task Register_One_Disposables()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
         var disposable = new TestDisposable();
 
         // act
@@ -34,7 +34,7 @@ public class ResponseStreamTests
     public void Register_Disposable_Disposable_Is_Null()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
 
         // act
         void Fail() => result.RegisterForCleanup(default(IDisposable)!);
@@ -47,7 +47,7 @@ public class ResponseStreamTests
     public async Task Register_One_Async_Cleanup_Func()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
         var disposed = false;
 
         // act
@@ -67,10 +67,10 @@ public class ResponseStreamTests
     public void Register_One_Async_Cleanup_Func_Func_is_Null()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
 
         // act
-        void Fail() => result.RegisterForCleanup(default!);
+        void Fail() => result.RegisterForCleanup(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -80,7 +80,7 @@ public class ResponseStreamTests
     public async Task Register_One_Cleanup_Func()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
         var disposed = false;
 
         // act
@@ -95,7 +95,7 @@ public class ResponseStreamTests
     public void Register_One_Cleanup_Func_Func_is_Null()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
 
         // act
         void Fail() => result.RegisterForCleanup(default(Action)!);
@@ -108,7 +108,7 @@ public class ResponseStreamTests
     public async Task Register_Two_Disposables()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
         var asyncDisposable = new TestAsyncDisposable();
         var disposable = new TestDisposable();
 
@@ -126,7 +126,7 @@ public class ResponseStreamTests
     public void Register_One_Async_Disposable_Disposable_Is_Null()
     {
         // arrange
-        var result = new ResponseStream(() => default!);
+        var result = new ResponseStream(() => null!);
 
         // act
         void Fail() => result.RegisterForCleanup(default(IAsyncDisposable)!);
@@ -139,7 +139,7 @@ public class ResponseStreamTests
     public void ExpectOperationResult()
     {
         // arrange
-        IExecutionResult result = new ResponseStream(() => default!);
+        IExecutionResult result = new ResponseStream(() => null!);
 
         // act
         var responseStream = result.ExpectResponseStream();
@@ -152,7 +152,7 @@ public class ResponseStreamTests
     public void ExpectResponseStream()
     {
         // arrange
-        IExecutionResult result = new ResponseStream(() => default!);
+        IExecutionResult result = new ResponseStream(() => null!);
 
         // act
         void Fail() => result.ExpectOperationResult();

@@ -52,21 +52,21 @@ public class EntityIdOrDataTest : ServerTestBase
 
     public class Baz : IBar
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     public class Baz2 : IBar
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     public class Quox : IBar
     {
-        public string Foo { get; set; } = default!;
+        public string Foo { get; set; } = null!;
     }
 
     public class Quox2 : IBar
     {
-        public string Foo { get; set; } = default!;
+        public string Foo { get; set; } = null!;
     }
 }

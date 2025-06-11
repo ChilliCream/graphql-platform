@@ -13,9 +13,9 @@ public sealed partial class OperationCompiler
 
         public DocumentNode Document { get; } = document;
 
-        public ObjectType Type { get; private set; } = default!;
+        public ObjectType Type { get; private set; } = null!;
 
-        public SelectionSetInfo[] SelectionInfos { get; private set; } = default!;
+        public SelectionSetInfo[] SelectionInfos { get; private set; } = null!;
 
         public SelectionPath Path { get; private set; } = SelectionPath.Root;
 
@@ -23,7 +23,7 @@ public sealed partial class OperationCompiler
 
         public List<Fragment> Fragments { get; } = [];
 
-        public SelectionVariants SelectionVariants { get; private set; } = default!;
+        public SelectionVariants SelectionVariants { get; private set; } = null!;
 
         public ImmutableArray<ISelectionSetOptimizer> Optimizers { get; private set; }
 

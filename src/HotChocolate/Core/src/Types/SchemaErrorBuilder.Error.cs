@@ -21,7 +21,7 @@ public partial class SchemaErrorBuilder
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        public string Message { get; set; } = default!;
+        public string Message { get; set; } = null!;
 
         public string? Code { get; set; }
 

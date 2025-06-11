@@ -20,19 +20,19 @@ public class GenericTypesNamingTests
 
     public class Query
     {
-        public Tuple<int> OneGenericType => default!;
-        public Tuple<int, int> TwoGenericsType => default!;
-        public Tuple<int, int, int> ThreeGenericsType => default!;
-        public Tuple<int, int, int, int> FourGenericsType => default!;
-        public Tuple<int, int, int, int, int> FiveGenericTypes => default!;
-        public Tuple<int, int, int, int, int, int> SixGenericTypes => default!;
-        public Tuple<int, int, int, int, int, int, int> SevenGenericTypes => default!;
-        public EightElementsTuple<int, int, int, int, int, int, int, int> EightGenericTypes => default!;
-        public NineElementsTuple<int, int, int, int, int, int, int, int, int> NineGenericTypes => default!;
-        public TenElementsTuple<int, int, int, int, int, int, int, int, int, int> TenGenericTypes => default!;
-        public Foo<int> IntBar => default!;
-        public Foo<string> StringBar => default!;
-        public Foo<Bar> CustomNameBar => default!;
+        public Tuple<int> OneGenericType => null!;
+        public Tuple<int, int> TwoGenericsType => null!;
+        public Tuple<int, int, int> ThreeGenericsType => null!;
+        public Tuple<int, int, int, int> FourGenericsType => null!;
+        public Tuple<int, int, int, int, int> FiveGenericTypes => null!;
+        public Tuple<int, int, int, int, int, int> SixGenericTypes => null!;
+        public Tuple<int, int, int, int, int, int, int> SevenGenericTypes => null!;
+        public EightElementsTuple<int, int, int, int, int, int, int, int> EightGenericTypes => null!;
+        public NineElementsTuple<int, int, int, int, int, int, int, int, int> NineGenericTypes => null!;
+        public TenElementsTuple<int, int, int, int, int, int, int, int, int, int> TenGenericTypes => null!;
+        public Foo<int> IntBar => null!;
+        public Foo<string> StringBar => null!;
+        public Foo<Bar> CustomNameBar => null!;
     }
 
     public class EightElementsTuple<T1, T2, T3, T4, T5, T6, T7, T8> : Tuple<T1, T2, T3, T4, T5, T6, T7>

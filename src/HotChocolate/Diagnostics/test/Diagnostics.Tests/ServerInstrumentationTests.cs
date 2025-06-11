@@ -375,7 +375,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     private TestServer CreateInstrumentedServer(
-        Action<InstrumentationOptions>? options = default)
+        Action<InstrumentationOptions>? options = null)
         => CreateStarWarsServer(
                 configureServices: services =>
                     services

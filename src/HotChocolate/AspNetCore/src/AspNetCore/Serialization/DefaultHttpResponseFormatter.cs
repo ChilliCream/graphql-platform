@@ -294,7 +294,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             => new(schema, version, _timeProvider.UtcNow);
     }
 
-
     /// <summary>
     /// Determines which status code shall be returned for this result.
     /// </summary>

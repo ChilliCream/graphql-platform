@@ -29,7 +29,6 @@ public abstract class CacheDataLoader<TKey, TValue>
             {
                 var value = await LoadSingleAsync(keys[i], cancellationToken).ConfigureAwait(false);
                 results.Span[i] = value;
-
             }
             catch (Exception ex)
             {
@@ -79,7 +78,6 @@ public abstract class StatefulCacheDataLoader<TKey, TValue>
             {
                 var value = await LoadSingleAsync(keys[i], context, cancellationToken).ConfigureAwait(false);
                 results.Span[i] = value;
-
             }
             catch (Exception ex)
             {

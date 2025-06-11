@@ -540,7 +540,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                 entry = ref Unsafe.Add(ref entry, 1);
             }
 
-            serializer = default;
+            serializer = null;
             return false;
         }
 

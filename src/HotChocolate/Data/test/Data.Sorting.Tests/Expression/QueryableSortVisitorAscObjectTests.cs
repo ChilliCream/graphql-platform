@@ -91,7 +91,7 @@ public class QueryableSortVisitorAscObjectTests
     public void Sort_NullableDateTimeAsc(params string?[] dataObject)
     {
         Test_Asc(
-            dataObject.Select(x => x is null ? default : (DateTime?)DateTime.Parse(x))
+            dataObject.Select(x => x is null ? null : (DateTime?)DateTime.Parse(x))
                 .ToArray());
     }
 
@@ -219,7 +219,7 @@ public class QueryableSortVisitorAscObjectTests
 
     public class Foo<T>
     {
-        public Bar<T> Bar { get; set; } = default!;
+        public Bar<T> Bar { get; set; } = null!;
     }
 
     public class FooNullable<T>

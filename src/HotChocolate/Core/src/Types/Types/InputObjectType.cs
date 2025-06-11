@@ -70,7 +70,7 @@ public partial class InputObjectType
     /// <summary>
     /// Gets the fields of this type.
     /// </summary>
-    public InputFieldCollection Fields { get; private set; } = default!;
+    public InputFieldCollection Fields { get; private set; } = null!;
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields
         => Fields.AsReadOnlyFieldDefinitionCollection();

@@ -49,7 +49,7 @@ public class ResolverContextStateExtensionTests
 
         var state = context.GetGlobalStateOrDefault<int>("key");
 
-        Assert.Equal(default, state);
+        Assert.Equal(0, state);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class ResolverContextStateExtensionTests
 
         var state = context.GetGlobalStateOrDefault<int>("key");
 
-        Assert.Equal(default, state);
+        Assert.Equal(0, state);
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class ResolverContextStateExtensionTests
 
         var state = context.GetScopedStateOrDefault<int>("key");
 
-        Assert.Equal(default, state);
+        Assert.Equal(0, state);
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class ResolverContextStateExtensionTests
 
         var state = context.GetScopedStateOrDefault<int>("key");
 
-        Assert.Equal(default, state);
+        Assert.Equal(0, state);
     }
 
     [Fact]
@@ -396,7 +396,7 @@ public class ResolverContextStateExtensionTests
 
         var state = context.GetLocalStateOrDefault<int>("key");
 
-        Assert.Equal(default, state);
+        Assert.Equal(0, state);
     }
 
     [Fact]
@@ -426,7 +426,7 @@ public class ResolverContextStateExtensionTests
 
         var state = context.GetLocalStateOrDefault<int>("key");
 
-        Assert.Equal(default, state);
+        Assert.Equal(0, state);
     }
 
     [Fact]

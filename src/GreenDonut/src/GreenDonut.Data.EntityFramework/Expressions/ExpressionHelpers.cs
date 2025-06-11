@@ -104,7 +104,6 @@ internal static class ExpressionHelpers
         return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
     }
 
-
     /// <summary>
     /// Build the select expression for a batch paging expression that uses grouping.
     /// </summary>
@@ -353,7 +352,7 @@ internal static class ExpressionHelpers
     {
         public TKey Key { get; set; } = default!;
 
-        public List<TValue> Items { get; set; } = default!;
+        public List<TValue> Items { get; set; } = null!;
     }
 
     public readonly struct OrderRewriterResult(

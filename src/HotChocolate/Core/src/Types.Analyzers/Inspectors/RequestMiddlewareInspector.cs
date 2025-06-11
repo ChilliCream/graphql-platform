@@ -132,7 +132,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = default;
+        syntaxInfo = null;
         return false;
     }
 

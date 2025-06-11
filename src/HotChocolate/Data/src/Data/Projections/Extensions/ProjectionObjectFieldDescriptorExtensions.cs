@@ -371,7 +371,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
             => _context.ReplaceArgument(argumentName, newArgumentValue);
 
         IResolverContext IResolverContext.Clone() => _context.Clone();
-
     }
 
     private static Selection.Sealed CreateProxySelection(ISelection selection, ObjectField field)

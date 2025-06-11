@@ -17,8 +17,8 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
     private readonly Dictionary<Type, string> _outputTypeCache = [];
     private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = [];
-    private INamingConventions _namingConventions = default!;
-    private TypeInitializer _typeInitializer = default!;
+    private INamingConventions _namingConventions = null!;
+    private TypeInitializer _typeInitializer = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,

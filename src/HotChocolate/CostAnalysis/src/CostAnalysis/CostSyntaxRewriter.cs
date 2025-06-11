@@ -55,7 +55,6 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         return node;
     }
 
-
     protected override InputValueDefinitionNode RewriteInputValueDefinition(
         InputValueDefinitionNode node,
         Context context)

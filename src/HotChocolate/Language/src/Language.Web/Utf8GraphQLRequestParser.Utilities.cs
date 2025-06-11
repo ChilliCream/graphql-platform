@@ -80,7 +80,6 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader.MoveNext();
                 return value;
 
-
             case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
                 _reader.MoveNext();
                 return null;

@@ -249,7 +249,7 @@ public class OptimizedNodeIdSerializerTests
     public void Parse_Small_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
@@ -263,7 +263,7 @@ public class OptimizedNodeIdSerializerTests
     public void Parse_Empty_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
@@ -288,7 +288,7 @@ public class OptimizedNodeIdSerializerTests
     public void Parse_Small_Legacy_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
@@ -302,7 +302,7 @@ public class OptimizedNodeIdSerializerTests
     public void Parse_480_Byte_Long_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
@@ -429,7 +429,7 @@ public class OptimizedNodeIdSerializerTests
     public void Parse_CompositeId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var compositeId = new CompositeId("foo", 42, Guid.Empty, true);
         var serializer = CreateSerializer("Foo", new CompositeIdNodeIdValueSerializer());
@@ -453,7 +453,7 @@ public class OptimizedNodeIdSerializerTests
     public void ParseOnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
@@ -471,7 +471,7 @@ public class OptimizedNodeIdSerializerTests
     public void Parse_Ensures_Correct_Padding(string id)
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
         var serializer = CreateSerializer("Entity", new Int32NodeIdValueSerializer());
 
         void Act1() => serializer.Parse(id, typeof(int));
@@ -538,7 +538,7 @@ public class OptimizedNodeIdSerializerTests
             "UUID,Upload";
 
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var names = new HashSet<string>(namesString.Split(','));
         var stringValueSerializer = new StringNodeIdValueSerializer();

@@ -135,7 +135,6 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         await outStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-
     private static string CreateFileName(OperationDocumentId documentId)
     {
         var length = documentId.Value.Length + s_fileExtension.Length;

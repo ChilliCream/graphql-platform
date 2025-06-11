@@ -254,7 +254,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, MongoDbCollectionExecutable<TResult>> BuildResolver<TResult>(

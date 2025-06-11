@@ -30,7 +30,6 @@ public delegate QueryableFilterContext VisitFilterArgument(
 /// </summary>
 public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 {
-
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the filtering to input

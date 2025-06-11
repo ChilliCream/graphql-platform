@@ -35,8 +35,8 @@ internal sealed partial class ResultBuilder
 
         InitializeResult();
 
-        _context = default!;
-        _diagnosticEvents = default!;
+        _context = null!;
+        _diagnosticEvents = null!;
         _data = null;
         _items = null;
         _path = null;

@@ -26,7 +26,7 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddInstrumentation(
         this IRequestExecutorBuilder builder,
-        Action<InstrumentationOptions>? options = default)
+        Action<InstrumentationOptions>? options = null)
         => AddInstrumentation(builder, (_, opt) => options?.Invoke(opt));
 
     /// <summary>

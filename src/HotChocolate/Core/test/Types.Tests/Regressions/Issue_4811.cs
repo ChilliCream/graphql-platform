@@ -53,7 +53,7 @@ public class Issue_4811
 
     public class Book
     {
-        public string Title { get; set; } = default!;
+        public string Title { get; set; } = null!;
     }
 
     public class Query

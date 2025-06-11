@@ -62,16 +62,17 @@ public static class GeneratorTestHelper
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();
 
-        documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
-        documents.AppendLine("// ReSharper disable RedundantNameQualifier");
         documents.AppendLine("// ReSharper disable ArrangeObjectCreationWhenTypeEvident");
-        documents.AppendLine("// ReSharper disable UnusedType.Global");
-        documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
-        documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+        documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
         documents.AppendLine("// ReSharper disable ConvertToAutoProperty");
-        documents.AppendLine("// ReSharper disable UnusedMember.Global");
-        documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
         documents.AppendLine("// ReSharper disable InconsistentNaming");
+        documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
+        documents.AppendLine("// ReSharper disable PreferConcreteValueOverDefault");
+        documents.AppendLine("// ReSharper disable RedundantNameQualifier");
+        documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
+        documents.AppendLine("// ReSharper disable UnusedMember.Global");
+        documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+        documents.AppendLine("// ReSharper disable UnusedType.Global");
         documents.AppendLine();
 
         if (settings.Profiles.Count == 0)

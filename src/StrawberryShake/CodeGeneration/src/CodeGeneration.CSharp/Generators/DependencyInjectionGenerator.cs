@@ -524,7 +524,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         foreach (var operation in descriptor.Operations)
         {
-            if (!(operation.ResultTypeReference is InterfaceTypeDescriptor typeDescriptor))
+            if (operation.ResultTypeReference is not InterfaceTypeDescriptor typeDescriptor)
             {
                 continue;
             }

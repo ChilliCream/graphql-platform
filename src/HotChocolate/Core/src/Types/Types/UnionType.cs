@@ -56,7 +56,7 @@ public class UnionType
 {
     private const string TypeReference = "typeReference";
 
-    private ObjectTypeCollection _typeMap = default!;
+    private ObjectTypeCollection _typeMap = null!;
     private Action<IUnionTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
 

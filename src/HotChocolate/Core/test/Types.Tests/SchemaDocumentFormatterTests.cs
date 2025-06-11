@@ -27,7 +27,6 @@ public static class SchemaDocumentFormatterTests
             """);
     }
 
-
     [Fact]
     public static async Task Add_Single_Schema_Formatter()
     {

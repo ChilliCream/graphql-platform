@@ -9,10 +9,10 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
     private readonly List<ObjectTypeConfiguration> _typeDefs = [];
-    private TypeInitializer _typeInitializer = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private IDescriptorContext _context = default!;
-    private ObjectTypeConfiguration _mutationDef = default!;
+    private TypeInitializer _typeInitializer = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private IDescriptorContext _context = null!;
+    private ObjectTypeConfiguration _mutationDef = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,

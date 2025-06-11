@@ -55,8 +55,7 @@ internal static class GraphQLHttpEventStreamProcessor
                 break;
             }
 
-            // ReSharper disable once RedundantArgumentDefaultValue
-            var result = await writer.FlushAsync(default).ConfigureAwait(false);
+            var result = await writer.FlushAsync(CancellationToken.None).ConfigureAwait(false);
             if (result.IsCompleted || result.IsCanceled)
             {
                 break;

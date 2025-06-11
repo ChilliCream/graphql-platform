@@ -339,7 +339,7 @@ public class RavenQueryableTests
     {
         public string? Id { get; set; }
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, IRavenQueryable<TResult>> BuildResolver<TResult>(

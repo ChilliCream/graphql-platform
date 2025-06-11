@@ -37,12 +37,10 @@ public abstract partial class ScalarType
     /// </summary>
     public abstract Type RuntimeType { get; }
 
-
     /// <summary>
     /// Gets the schema coordinate of this scalar type.
     /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
-
 
     /// <summary>
     /// Gets the optional description of this scalar type.
@@ -86,7 +84,6 @@ public abstract partial class ScalarType
     /// </returns>
     public bool IsAssignableFrom(ITypeDefinition type)
         => ReferenceEquals(type, this);
-
 
     public bool Equals(IType? other) => ReferenceEquals(other, this);
 

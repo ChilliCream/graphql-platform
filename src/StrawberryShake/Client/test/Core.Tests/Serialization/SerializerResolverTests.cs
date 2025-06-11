@@ -22,7 +22,7 @@ public class SerializerResolverTests
     public void Constructor_NoSerializer_ThrowException()
     {
         // arrange
-        IEnumerable<ISerializer> serializers = default!;
+        IEnumerable<ISerializer> serializers = null!;
 
         // act
         var exception = Record.Exception(() => new SerializerResolver(serializers));

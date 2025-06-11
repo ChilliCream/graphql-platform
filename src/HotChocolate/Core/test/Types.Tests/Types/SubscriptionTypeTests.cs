@@ -1046,7 +1046,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public ISourceStream SubscribeToOnExplicitNonGenericSync(
             [Service] ITopicEventReceiver eventReceiver) =>
-            default!;
+            null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitNonGenericSync))]
         public string OnExplicitNonGenericSync(
@@ -1055,7 +1055,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public ISourceStream<string> SubscribeToOnExplicitSync(
             [Service] ITopicEventReceiver eventReceiver) =>
-            default!;
+            null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
         public string OnExplicitSync(
@@ -1085,7 +1085,6 @@ public class SubscriptionTypeTests : TypeTestBase
             [EventMessage] string message) =>
             message;
     }
-
 
     public class SubscriptionWithDirective
     {

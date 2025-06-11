@@ -117,7 +117,7 @@ public sealed class ObjectResult
         }
 
         index = -1;
-        return default;
+        return null;
     }
 
     /// <summary>

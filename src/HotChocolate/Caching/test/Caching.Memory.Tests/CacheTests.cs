@@ -102,7 +102,6 @@ public class CacheTests
         Assert.True(cache.TryGet("d", out _));
         cache.GetOrCreate("z", _ => "z");
 
-
         // assert
         Assert.Collection(
             cache.GetKeys(),

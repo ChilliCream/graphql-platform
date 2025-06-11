@@ -98,19 +98,19 @@ public class ScalarExecutionErrorTests
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
         {
-            descriptor.Field(t => t.StringToName(default!))
+            descriptor.Field(t => t.StringToName(null!))
                 .Argument("name", a => a.Type<StringType>())
                 .Type<NameType>();
 
-            descriptor.Field(t => t.NameToString(default!))
+            descriptor.Field(t => t.NameToString(null!))
                 .Argument("name", a => a.Type<NameType>())
                 .Type<StringType>();
 
-            descriptor.Field(t => t.StringToFoo(default!))
+            descriptor.Field(t => t.StringToFoo(null!))
                 .Argument("name", a => a.Type<StringType>())
                 .Type<FooType>();
 
-            descriptor.Field(t => t.FooToString(default!))
+            descriptor.Field(t => t.FooToString(null!))
                 .Argument("name", a => a.Type<FooType>())
                 .Type<StringType>();
         }

@@ -9,7 +9,7 @@ public class Brand
     public int Id { get; set; }
 
     [Required]
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
     public string? DisplayName { get; set; }
 
@@ -17,15 +17,15 @@ public class Brand
 
     public ICollection<Product> Products { get; } = [];
 
-    public BrandDetails BrandDetails { get; set; } = default!;
+    public BrandDetails BrandDetails { get; set; } = null!;
 }
 
 public class BrandDetails
 {
-    public Country Country { get; set; } = default!;
+    public Country Country { get; set; } = null!;
 }
 
 public class Country
 {
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 }

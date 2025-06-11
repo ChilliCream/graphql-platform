@@ -246,12 +246,12 @@ public class ReferenceResolverAttributeTests
 
     public sealed class Query_InClass_Invalid
     {
-        public InvalidInClassRefResolver InvalidInClassRefResolver { get; set; } = default!;
+        public InvalidInClassRefResolver InvalidInClassRefResolver { get; set; } = null!;
     }
 
     public sealed class Query_ExternalClass_Invalid
     {
-        public ExternalRefResolver_Invalid ExternalRefResolver_Invalid { get; set; } = default!;
+        public ExternalRefResolver_Invalid ExternalRefResolver_Invalid { get; set; } = null!;
     }
 
     [ReferenceResolver(EntityResolver = "non-existing-method")]
@@ -278,25 +278,25 @@ public class ReferenceResolverAttributeTests
 
     public sealed class Query
     {
-        public InClassRefResolver InClassRefResolver { get; set; } = default!;
-        public ExternalRefResolver ExternalRefResolver { get; set; } = default!;
+        public InClassRefResolver InClassRefResolver { get; set; } = null!;
+        public ExternalRefResolver ExternalRefResolver { get; set; } = null!;
         public ExternalRefResolverRenamedMethod ExternalRefResolverRenamedMethod { get; set; } =
-            default!;
+            null!;
     }
 
     public sealed class QueryWithSingleKeyResolver
     {
-        public ExternalSingleKeyResolver ExternalRefResolver { get; set; } = default!;
+        public ExternalSingleKeyResolver ExternalRefResolver { get; set; } = null!;
     }
 
     public sealed class QueryWithMultiKeyResolver
     {
-        public ExternalMultiKeyResolver ExternalRefResolver { get; set; } = default!;
+        public ExternalMultiKeyResolver ExternalRefResolver { get; set; } = null!;
     }
 
     public sealed class QueryWithExternalField
     {
-        public ExternalFields ExternalRefResolver { get; set; } = default!;
+        public ExternalFields ExternalRefResolver { get; set; } = null!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
@@ -319,14 +319,14 @@ public class ReferenceResolverAttributeTests
     public sealed class ExternalRefResolver
     {
         [Key]
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
     public sealed class ExternalSingleKeyResolver
     {
         [Key]
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
         public static Task<ExternalSingleKeyResolver> GetAsync(string id)
             => Task.FromResult(new ExternalSingleKeyResolver { Id = id });
@@ -336,10 +336,10 @@ public class ReferenceResolverAttributeTests
     public sealed class ExternalFields
     {
         [Key]
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
         [External]
-        public string Foo { get; private set; } = default!;
+        public string Foo { get; private set; } = null!;
 
         public static Task<ExternalFields> GetAsync(string id)
             => Task.FromResult(new ExternalFields { Id = id });
@@ -349,9 +349,9 @@ public class ReferenceResolverAttributeTests
     [Key("sku")]
     public sealed class ExternalMultiKeyResolver
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
-        public string Sku { get; set; } = default!;
+        public string Sku { get; set; } = null!;
 
         [ReferenceResolver]
         public static Task<ExternalMultiKeyResolver> GetByIdAsync(string id)
@@ -368,7 +368,7 @@ public class ReferenceResolverAttributeTests
     public sealed class ExternalRefResolverRenamedMethod
     {
         [Key]
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     public static class ExternalReferenceResolverRenamedMethod

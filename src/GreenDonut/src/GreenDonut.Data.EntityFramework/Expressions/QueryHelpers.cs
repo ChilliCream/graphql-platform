@@ -53,7 +53,6 @@ internal static class QueryHelpers
 
             return body as MemberExpression;
         }
-
     }
 
     private static Expression<Func<T, T>>? ExtractCurrentSelector<T>(

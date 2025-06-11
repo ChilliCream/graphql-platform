@@ -189,7 +189,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             return true;
         }
 
-        if (!(serialized is IList list))
+        if (serialized is not IList list)
         {
             value = null;
             return false;
@@ -259,7 +259,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             return true;
         }
 
-        if (!(value is Coordinate coordinate))
+        if (value is not Coordinate coordinate)
         {
             serialized = null;
             return false;

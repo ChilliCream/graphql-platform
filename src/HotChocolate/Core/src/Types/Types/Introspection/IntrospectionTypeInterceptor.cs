@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Introspection;
 internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
     private readonly List<ObjectTypeConfiguration> _objectTypeConfigurations = [];
-    private IDescriptorContext _context = default!;
+    private IDescriptorContext _context = null!;
     private ObjectTypeConfiguration? _queryTypeConfiguration;
 
     internal override uint Position => uint.MaxValue - 200;

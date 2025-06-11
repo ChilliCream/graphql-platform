@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 {
-    private FusionDirectiveCollection _directives = default!;
+    private FusionDirectiveCollection _directives = null!;
     private bool _completed;
 
     public FusionScalarTypeDefinition(

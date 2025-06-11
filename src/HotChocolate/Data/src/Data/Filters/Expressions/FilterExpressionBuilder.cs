@@ -19,13 +19,13 @@ public static class FilterExpressionBuilder
             m.GetParameters().Length is 2);
 
     private static readonly MethodInfo s_startsWith =
-        ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(default(string)!));
+        ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(null!));
 
     private static readonly MethodInfo s_endsWith =
-        ReflectionUtils.ExtractMethod<string>(x => x.EndsWith(default(string)!));
+        ReflectionUtils.ExtractMethod<string>(x => x.EndsWith(null!));
 
     private static readonly MethodInfo s_contains =
-        ReflectionUtils.ExtractMethod<string>(x => x.Contains(default(string)!));
+        ReflectionUtils.ExtractMethod<string>(x => x.Contains(null!));
 
     private static readonly MethodInfo s_createAndConvert =
         typeof(FilterExpressionBuilder)

@@ -57,7 +57,7 @@ internal sealed class SelectionSet : ISelectionSet
     public IReadOnlyList<IFragment> Fragments => _fragments;
 
     /// <inheritdoc />
-    public IOperation DeclaringOperation { get; private set; } = default!;
+    public IOperation DeclaringOperation { get; private set; } = null!;
 
     /// <summary>
     /// Completes the selection set without sealing it.

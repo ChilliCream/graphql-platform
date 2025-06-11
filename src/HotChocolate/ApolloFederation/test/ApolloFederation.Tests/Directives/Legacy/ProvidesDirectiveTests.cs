@@ -90,7 +90,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
 
     public class Query
     {
-        public Review SomeField(int id) => default!;
+        public Review SomeField(int id) => null!;
     }
 
     public class Review
@@ -99,11 +99,11 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         public int Id { get; set; }
 
         [Provides("name")]
-        public Product Product { get; set; } = default!;
+        public Product Product { get; set; } = null!;
     }
 
     public class Product
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

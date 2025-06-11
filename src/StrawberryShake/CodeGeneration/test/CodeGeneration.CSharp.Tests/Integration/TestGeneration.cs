@@ -16,7 +16,6 @@ public class TestGeneration
                 }
             }");
 
-
     [Fact]
     public void StarWarsGetHeroWithFragmentIncludeAndSkipDirective() =>
         AssertStarWarsResult(

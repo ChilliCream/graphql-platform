@@ -417,7 +417,6 @@ public abstract class TypeInterceptor
     /// </param>
     internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, Schema schema)
     {
-
     }
 
     /// <summary>

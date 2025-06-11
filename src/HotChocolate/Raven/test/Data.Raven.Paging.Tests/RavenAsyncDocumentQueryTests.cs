@@ -341,7 +341,7 @@ public class RavenAsyncDocumentQueryTests
     {
         public string? Id { get; set; }
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, IAsyncDocumentQuery<TResult>> BuildResolver<TResult>(

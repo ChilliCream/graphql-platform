@@ -47,7 +47,7 @@ internal sealed class Operation : IOperation
 
     public OperationType Type { get; }
 
-    public ISelectionSet RootSelectionSet { get; private set; } = default!;
+    public ISelectionSet RootSelectionSet { get; private set; } = null!;
 
     public IReadOnlyList<ISelectionVariants> SelectionVariants
         => _selectionVariants;

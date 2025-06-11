@@ -79,9 +79,9 @@ public class ComparableOperationInputTests
 
         public decimal BarDecimal { get; set; }
 
-        public Uri BarUri { get; set; } = default!;
+        public Uri BarUri { get; set; } = null!;
 
-        public byte BarByte { get; set; } = default!;
+        public byte BarByte { get; set; } = 0;
 
         public Uri? BarUriNullable { get; set; }
 
@@ -97,7 +97,7 @@ public class ComparableOperationInputTests
 
         public decimal? BarDecimalNullable { get; set; }
 
-        public byte? BarByteNullable { get; set; } = default!;
+        public byte? BarByteNullable { get; set; } = null!;
 
         public FooBar FooBar { get; set; }
 

@@ -17,7 +17,7 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
     public int Id { get; } = id;
 
     /// <inheritdoc />
-    public IOperation DeclaringOperation { get; private set; } = default!;
+    public IOperation DeclaringOperation { get; private set; } = null!;
 
     public IEnumerable<ObjectType> GetPossibleTypes()
         => _map?.Keys ?? GetPossibleTypesLazy();

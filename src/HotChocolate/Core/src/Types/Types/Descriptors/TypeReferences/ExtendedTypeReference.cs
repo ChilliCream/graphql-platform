@@ -200,7 +200,7 @@ public sealed class ExtendedTypeReference
     /// Returns a new <see cref="ExtendedTypeReference"/>.
     /// </returns>
     public ExtendedTypeReference With(
-        IExtendedType? type = default,
+        IExtendedType? type = null,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default)
         => Create(

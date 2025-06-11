@@ -1,7 +1,6 @@
 using HotChocolate.Data.TestContext.EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace HotChocolate.Data.TestContext;
 
 public class CatalogContext : DbContext
@@ -12,11 +11,11 @@ public class CatalogContext : DbContext
         optionsBuilder.UseSqlite($"Data Source={randomDbName}.db");
     }
 
-    public DbSet<Product> Products { get; set; } = default!;
+    public DbSet<Product> Products { get; set; } = null!;
 
-    public DbSet<ProductType> ProductTypes { get; set; } = default!;
+    public DbSet<ProductType> ProductTypes { get; set; } = null!;
 
-    public DbSet<Brand> Brands { get; set; } = default!;
+    public DbSet<Brand> Brands { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -241,20 +241,20 @@ public class DescriptionTests
     public class Query
     {
         [GraphQLDescription("Single line comment")]
-        public string OutputFieldSingle() => default;
+        public string OutputFieldSingle() => null;
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        public string OutputFieldMulti() => default;
+        public string OutputFieldMulti() => null;
 
         public string OutputFieldWithArgs(
             [GraphQLDescription("Single line comment")] SomeInput arg1,
             [GraphQLDescription("""
                                 Multi line
                                 comment
-                                """)] OtherInput arg2) => default;
+                                """)] OtherInput arg2) => null;
     }
 
     [InputObjectType]
@@ -336,10 +336,10 @@ public class DescriptionTests
                         """)]
     public class OtherObjectType : ISomeUnion, IOtherUnion, ISomeInterface, IOtherInterface
     {
-        public string Field() => default;
+        public string Field() => null;
 
-        public string FieldMulti() => default;
-        public string FieldWithArgs(string arg1, string arg2) => default;
+        public string FieldMulti() => null;
+        public string FieldWithArgs(string arg1, string arg2) => null;
     }
 
     public class SomeDirective : DirectiveType

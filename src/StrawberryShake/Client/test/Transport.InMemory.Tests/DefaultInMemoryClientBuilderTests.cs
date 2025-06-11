@@ -30,7 +30,7 @@ public class DefaultInMemoryClientBuilderTests
     public void Constructor_NoExecutor_ThrowException()
     {
         // arrange
-        IRequestExecutorProvider executorResolver = default!;
+        IRequestExecutorProvider executorResolver = null!;
         var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>(_ => { })
             .BuildServiceProvider()
@@ -48,9 +48,8 @@ public class DefaultInMemoryClientBuilderTests
     public void Constructor_NoOptions_ThrowException()
     {
         // arrange
-        var executorResolver =
-            new Mock<IRequestExecutorProvider>().Object;
-        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor = default!;
+        var executorResolver = new Mock<IRequestExecutorProvider>().Object;
+        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor = null!;
 
         // act
         var ex = Record.Exception(() =>
@@ -65,8 +64,7 @@ public class DefaultInMemoryClientBuilderTests
     {
         // arrange
         var wasCalled = false;
-        var executorResolver =
-            new Mock<IRequestExecutorProvider>().Object;
+        var executorResolver = new Mock<IRequestExecutorProvider>().Object;
         var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>("Foo", _ => { wasCalled = true; })
             .BuildServiceProvider()

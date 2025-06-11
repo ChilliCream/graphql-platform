@@ -332,60 +332,58 @@ public class CacheControlTypeInterceptorTests
 
     public class NestedType
     {
-        public string PureField { get; } = default!;
+        public string PureField { get; } = null!;
 
-        public Task<string> TaskField() => default!;
+        public Task<string> TaskField() => null!;
 
         public ValueTask<string> ValueTaskField() => default!;
 
-        public IExecutable<string> ExecutableField() => default!;
+        public IExecutable<string> ExecutableField() => null!;
 
-        public IQueryable<string> QueryableField() => default!;
+        public IQueryable<string> QueryableField() => null!;
 
         [UsePaging]
-        public IQueryable<string> QueryableFieldWithConnection() => default!;
+        public IQueryable<string> QueryableFieldWithConnection() => null!;
 
         [UseOffsetPaging]
-        public IQueryable<string> QueryableFieldWithCollectionSegment() => default!;
+        public IQueryable<string> QueryableFieldWithCollectionSegment() => null!;
 
         [CacheControl(200)]
-        public string PureFieldWithCacheControl { get; } = default!;
+        public string PureFieldWithCacheControl { get; } = null!;
 
         [CacheControl(200)]
-        public Task<string> TaskFieldWithCacheControl() => default!;
+        public Task<string> TaskFieldWithCacheControl() => null!;
 
         [CacheControl(200)]
         public ValueTask<string> ValueTaskFieldWithCacheControl() => default!;
 
         [CacheControl(200)]
-        public IExecutable<string> ExecutableFieldWithCacheControl() => default!;
+        public IExecutable<string> ExecutableFieldWithCacheControl() => null!;
 
         [CacheControl(MaxAge = 200)]
-        public IQueryable<string> QueryableFieldWithCacheControl() => default!;
+        public IQueryable<string> QueryableFieldWithCacheControl() => null!;
 
         [CacheControl(SharedMaxAge=200)]
-        public IQueryable<string> QueryableFieldWithCacheControlSharedMaxAge() => default!;
+        public IQueryable<string> QueryableFieldWithCacheControlSharedMaxAge() => null!;
 
         [CacheControl(500, SharedMaxAge = 200)]
-        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAge() => default!;
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAge() => null!;
 
         [CacheControl(500, SharedMaxAge = 200, Vary = ["accept-language", "x-timezoneoffset"])]
-        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary() => default!;
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary() => null!;
 
         [CacheControl(200)]
         [UsePaging]
-        public IQueryable<string>
-            QueryableFieldWithConnectionWithCacheControl() => default!;
+        public IQueryable<string> QueryableFieldWithConnectionWithCacheControl() => null!;
 
         [CacheControl(200)]
         [UseOffsetPaging]
-        public IQueryable<string>
-            QueryableFieldWithCollectionSegmentWithCacheControl() => default!;
+        public IQueryable<string> QueryableFieldWithCollectionSegmentWithCacheControl() => null!;
     }
 
     public class NestedType2
     {
         [CacheControl(InheritMaxAge = true)]
-        public Task<string> TaskFieldWithInheritMaxAge() => default!;
+        public Task<string> TaskFieldWithInheritMaxAge() => null!;
     }
 }

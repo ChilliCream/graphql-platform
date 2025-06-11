@@ -124,7 +124,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // act
         IObjectTypeDescriptor<Foo> desc = descriptor;
-        desc.Field(t => t.Equals(default)).Ignore();
+        desc.Field(t => t.Equals(null)).Ignore();
 
         // assert
         Assert.Collection(
@@ -144,8 +144,8 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // act
         IObjectTypeDescriptor<Foo> desc = descriptor;
-        desc.Field(t => t.Equals(default)).Ignore();
-        desc.Field(t => t.Equals(default)).Ignore(false);
+        desc.Field(t => t.Equals(null)).Ignore();
+        desc.Field(t => t.Equals(null)).Ignore(false);
 
         // assert
         Assert.Collection(
