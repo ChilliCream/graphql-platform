@@ -177,21 +177,21 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (fieldName[0])
         {
             case I:
-                if (fieldName.SequenceEqual(Id))
+                if (fieldName.SequenceEqual(IdProperty))
                 {
-                    request.DocumentId = ParseStringOrNull();
+                    request.DocumentId = ParseOperationId(_reader);
                 }
                 break;
 
             case D:
-                if (fieldName.SequenceEqual(DocumentId))
+                if (fieldName.SequenceEqual(DocumentIdProperty))
                 {
-                    request.DocumentId = ParseStringOrNull();
+                    request.DocumentId = ParseOperationId(_reader);
                 }
                 break;
 
             case Q:
-                if (fieldName.SequenceEqual(Query))
+                if (fieldName.SequenceEqual(QueryProperty))
                 {
                     request.ContainsDocument = !IsNullToken();
 
@@ -206,21 +206,21 @@ public ref partial struct Utf8GraphQLRequestParser
                 break;
 
             case O:
-                if (fieldName.SequenceEqual(OperationName))
+                if (fieldName.SequenceEqual(OperationNameProperty))
                 {
                     request.OperationName = ParseStringOrNull();
                 }
                 break;
 
             case V:
-                if (fieldName.SequenceEqual(Variables))
+                if (fieldName.SequenceEqual(VariablesProperty))
                 {
                     request.Variables = ParseVariables();
                 }
                 break;
 
             case E:
-                if (fieldName.SequenceEqual(Extensions))
+                if (fieldName.SequenceEqual(ExtensionsProperty))
                 {
                     request.Extensions = ParseObjectOrNull();
                 }
@@ -240,21 +240,21 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (fieldName[0])
         {
             case T:
-                if (fieldName.SequenceEqual(Type))
+                if (fieldName.SequenceEqual(TypeProperty))
                 {
                     message.Type = ParseStringOrNull();
                 }
                 break;
 
             case I:
-                if (fieldName.SequenceEqual(Id))
+                if (fieldName.SequenceEqual(IdProperty))
                 {
                     message.Id = ParseStringOrNull();
                 }
                 break;
 
             case P:
-                if (fieldName.SequenceEqual(Payload))
+                if (fieldName.SequenceEqual(PayloadProperty))
                 {
                     var start = _reader.Start;
                     var hasPayload = !IsNullToken();

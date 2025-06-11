@@ -6,7 +6,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLReader
 {
-    public string GetString()
+    public readonly string GetString()
         => _value.Length == 0
             ? string.Empty
             : GetString(_value, _kind == TokenKind.BlockString);
@@ -42,6 +42,49 @@ public ref partial struct Utf8GraphQLReader
         }
     }
 
+    internal static bool TryGetRawString(
+        ReadOnlySpan<byte> escapedValue,
+        bool isBlockString,
+        Span<byte> rawStringValue,
+        out int written)
+    {
+        if (escapedValue.Length == 0)
+        {
+            written = 0;
+            return true;
+        }
+
+        var length = escapedValue.Length;
+        byte[]? unescapedArray = null;
+
+        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+            ? stackalloc byte[length]
+            : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
+
+            if (unescapedSpan.Length > rawStringValue.Length)
+            {
+                written = 0;
+                return false;
+            }
+
+            unescapedSpan.CopyTo(rawStringValue);
+            written = unescapedSpan.Length;
+            return true;
+        }
+        finally
+        {
+            if (unescapedArray != null)
+            {
+                unescapedSpan.Clear();
+                ArrayPool<byte>.Shared.Return(unescapedArray);
+            }
+        }
+    }
+
     public static unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
     {
         if (unescapedValue.Length == 0)
@@ -65,8 +108,9 @@ public ref partial struct Utf8GraphQLReader
         return GetString(_value);
     }
 
-    public string GetName() => GetString(_value);
-    public string GetScalarValue() => GetString(_value);
+    public readonly string GetName() => GetString(_value);
+
+    public readonly string GetScalarValue() => GetString(_value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void UnescapeValue(
@@ -86,7 +130,7 @@ public ref partial struct Utf8GraphQLReader
         }
     }
 
-    public void UnescapeValue(ref Span<byte> unescapedValue)
+    public readonly void UnescapeValue(ref Span<byte> unescapedValue)
     {
         if (_value.Length == 0)
         {

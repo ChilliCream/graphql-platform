@@ -181,6 +181,29 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         return true;
     }
 
+    internal static bool IsValidId(ReadOnlySpan<byte> operationId)
+    {
+        if(operationId.Length == 0)
+        {
+            return false;
+        }
+
+        ref var start = ref MemoryMarshal.GetReference(operationId);
+        ref var end = ref Unsafe.Add(ref start, operationId.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if (!IsAllowedCharacter(start))
+            {
+                return false;
+            }
+
+            start = ref Unsafe.Add(ref start, 1);
+        }
+
+        return true;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsAllowedCharacter(byte c)
     {

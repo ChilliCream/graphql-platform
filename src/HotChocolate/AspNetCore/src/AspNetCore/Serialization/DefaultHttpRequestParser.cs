@@ -89,32 +89,32 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
     public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
     {
-        // next we deserialize the GET request with the query request builder ...
+        // next, we deserialize the GET request with the query request builder ...
         string? query = parameters[QueryKey];
         string? queryId = parameters[QueryIdKey];
         string? operationName = parameters[OperationNameKey];
         IReadOnlyDictionary<string, object?>? extensions = null;
 
-        // if we have no query or query id we cannot execute anything.
+        // if we have no query or query id, we cannot execute anything.
         if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(queryId))
         {
-            // so, if we do not find a top-level query or top-level id we will try to parse
-            // the extensions and look in the extensions for Apollo`s active persisted
+            // so, if we do not find a top-level query or top-level id, we will try to parse
+            // the extensions and look in the extensions for Apollo's active persisted
             // query extensions.
             if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
 
-            // we will use the request parser utils to extract the has from the extensions.
+            // we will use the request parser utils to extract the hash from the extensions.
             if (!TryExtractHash(extensions, _documentHashProvider, out var hash))
             {
-                // if we cannot find any query hash in the extensions or if the extensions are
-                // null we are unable to execute and will throw a request error.
+                // if we cannot find any query hash in the extensions, or if the extensions are
+                // null, we are unable to execute and will throw a request error.
                 throw DefaultHttpRequestParser_QueryAndIdMissing();
             }
 
-            // if we however found a query hash we will use it as a query id and move on
+            // if we however found a query hash, we will use it as a query id and move on
             // to execute the query.
             queryId = hash;
         }
@@ -231,7 +231,16 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
     public IReadOnlyList<GraphQLRequest> ParseRequest(
         string sourceText)
-        => Parse(sourceText, _parserOptions, _documentCache, _documentHashProvider);
+    {
+        try
+        {
+            return Parse(sourceText, _parserOptions, _documentCache, _documentHashProvider);
+        }
+        catch (OperationIdFormatException)
+        {
+            throw ErrorHelper.InvalidOperationIdFormat();
+        }
+    }
 
     private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
         Stream stream,
@@ -309,7 +318,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     {
         if (!OperationDocumentId.IsValidId(documentId))
         {
-            throw ErrorHelper.InvalidQueryIdFormat();
+            throw ErrorHelper.InvalidOperationIdFormat();
         }
     }
 }
