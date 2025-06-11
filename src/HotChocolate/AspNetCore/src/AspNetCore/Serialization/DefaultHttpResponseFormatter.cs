@@ -27,8 +27,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly ITimeProvider _timeProvider;
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
+    private readonly FormatInfo _graphqlResponseStreamFormat;
     private readonly FormatInfo _multiPartFormat;
     private readonly FormatInfo _eventStreamFormat;
+    private readonly FormatInfo _jsonLinesFormat;
     private readonly FormatInfo _legacyFormat;
 
     /// <summary>
@@ -76,11 +78,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         var jsonFormatter = new JsonResultFormatter(options.Json);
         var multiPartFormatter = new MultiPartResultFormatter(jsonFormatter);
         var eventStreamResultFormatter = new EventStreamResultFormatter(options.Json);
+        var jsonLinesResultFormatter = new JsonLinesResultFormatter(options.Json);
 
         _graphqlResponseFormat = new FormatInfo(
             ContentType.GraphQLResponse,
             ResponseContentType.GraphQLResponse,
             jsonFormatter);
+        _graphqlResponseStreamFormat = new FormatInfo(
+            ContentType.GraphQLResponseStream,
+            ResponseContentType.GraphQLResponseStream,
+            jsonLinesResultFormatter);
         _legacyFormat = new FormatInfo(
             ContentType.Json,
             ResponseContentType.Json,
@@ -93,6 +100,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ContentType.EventStream,
             ResponseContentType.EventStream,
             eventStreamResultFormatter);
+        _jsonLinesFormat = new FormatInfo(
+            ContentType.JsonLines,
+            ResponseContentType.JsonLines,
+            jsonLinesResultFormatter);
         _defaultFormat = options.HttpTransportVersion is HttpTransportVersion.Legacy
             ? _legacyFormat
             : _graphqlResponseFormat;
@@ -162,7 +173,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         if (format is null)
         {
-            // we should not hit this point except if a middleware did not validate the
+            // we should not hit this point except if middleware did not validate the
             // GraphQL request flags which would indicate that there is no way to execute
             // the GraphQL request with the specified accept-header content types.
             throw ThrowHelper.Formatter_InvalidAcceptMediaType();
@@ -174,7 +185,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // if the request is aborted we will fail gracefully.
+            // if the request is aborted, we will fail gracefully.
         }
     }
 
@@ -304,7 +315,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
-        // the current spec proposal strongly recommend to always return OK
+        // the current spec proposal strongly recommends to always return OK
         // when using the legacy application/json response content-type.
         if (format.Kind is ResponseContentType.Json)
         {
@@ -312,32 +323,32 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         }
 
         // if we are sending a single result with the multipart/mixed header or
-        // with a text/event-stream response content-type we as well will just
+        // with a text/event-stream response content-type, we as well will just
         // respond with an OK status code.
         if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
         {
             return HttpStatusCode.OK;
         }
 
-        // in the case of the application/graphql-response+json we will
+        // in the case of the application/graphql-response+json, we will
         // use status code to indicate certain kinds of error categories.
         if (format.Kind is ResponseContentType.GraphQLResponse)
         {
-            // if a status code was proposed by the middleware we will in general accept it.
-            // the middleware are implement in a way that they will propose status code for
+            // if a status code was proposed by the middleware, we will in general accept it.
+            // the middleware is implemented in a way that they will propose status code for
             // the application/graphql-response+json response content-type.
             if (proposedStatusCode.HasValue)
             {
                 return proposedStatusCode.Value;
             }
 
-            // if the GraphQL result has context data we will check if some middleware provided
+            // if the GraphQL result has context data, we will check if some middleware provided
             // a status code or indicated an error that should be interpreted as a status code.
             if (result.ContextData is not null)
             {
                 var contextData = result.ContextData;
 
-                // first we check if there is an explicit HTTP status code override by the user.
+                // First, we check if there is an explicit HTTP status code override by the user.
                 if (contextData.TryGetValue(WellKnownContextData.HttpStatusCode, out var value))
                 {
                     if (value is HttpStatusCode statusCode)
@@ -351,8 +362,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     }
                 }
 
-                // next we check if the validation of the request failed.
-                // if that is the case we will return a BadRequest status code (400).
+                // Next, we check if the validation of the request failed.
+                // If that is the case, we will return a BadRequest status code (400).
                 if (contextData.ContainsKey(ExecutionContextData.ValidationErrors))
                 {
                     return HttpStatusCode.BadRequest;
@@ -364,7 +375,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            // if data is set then the execution as begun and has produced a result.
+            // If data is set, then the execution as begun and has produced a result.
             // The result of executing GraphQL operation may contain partial data as
             // well as encountered errors. Errors that happen during execution of the
             // GraphQL operation typically become part of the result, as long as the
@@ -382,7 +393,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         }
 
         // we allow for users to implement alternative protocols or response content-type.
-        // if we end up here the user did not fully implement all necessary parts to add support
+        // if we end up here, the user did not fully implement all necessary parts to add support
         // for an alternative protocols or response content-type.
         throw ThrowHelper.Formatter_ResponseContentTypeNotSupported(format.ContentType);
     }
@@ -530,9 +541,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return null;
         }
 
-        // if the request specifies at least one accept media-type we will
+        // If the request specifies at least one accept media-type, we will
         // determine which is best to use.
-        // For this we first determine which characteristics our GraphQL result has.
+        // For this, we first determine which characteristics our GraphQL result has.
         var resultKind = result.Kind switch
         {
             SingleResult => ResultKind.Single,
@@ -542,7 +553,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
 
-        // If we just have one Accept header value we will try to determine which formatter to take.
+        // If we just have one Accept header value, we will try to determine which formatter to take.
         // We should only be unable to find a match if there was a previous validation skipped.
         if (length == 1)
         {
@@ -551,6 +562,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationGraphQL)
             {
                 return _graphqlResponseFormat;
+            }
+
+            if (mediaType.Kind is ApplicationGraphQLStream)
+            {
+                return _graphqlResponseStreamFormat;
             }
 
             if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationJson)
@@ -569,6 +585,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return _multiPartFormat;
             }
 
+            if (resultKind is ResultKind.Stream or ResultKind.Subscription
+                && mediaType.Kind is ApplicationJsonLines)
+            {
+                return _jsonLinesFormat;
+            }
+
             if (mediaType.Kind is EventStream or All)
             {
                 return _eventStreamFormat;
@@ -577,7 +599,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return null;
         }
 
-        // If we have more than one specified accept-header value we will try to find the best for
+        // If we have more than one specified accept-header value, we will try to find the best for
         // our GraphQL result.
         ref var end = ref Unsafe.Add(ref start, length);
         FormatInfo? possibleFormat = null;
@@ -600,6 +622,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             if (resultKind is ResultKind.Single && start.Kind is ApplicationGraphQL)
             {
                 return _graphqlResponseFormat;
+            }
+
+            if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationGraphQLStream)
+            {
+                return _graphqlResponseStreamFormat;
+            }
+
+            if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationJsonLines)
+            {
+                return _jsonLinesFormat;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single

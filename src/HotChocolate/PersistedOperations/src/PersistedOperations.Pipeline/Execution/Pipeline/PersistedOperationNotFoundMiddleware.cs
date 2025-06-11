@@ -23,13 +23,22 @@ internal sealed class PersistedOperationNotFoundMiddleware
 
     public ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.OperationDocumentInfo.Document is not null)
+        // checks if an operation document is present in the request.
+        // we will accept either user supplied documents or documents
+        // that are already present in the context.
+        var documentExists =
+            context.OperationDocumentInfo.Document is not null
+                || context.Request.Document is not null;
+
+        // if a document exists we simply continue with the next middleware.
+        if (documentExists)
         {
             return _next(context);
         }
 
-        // we know that the key is not null from otherwise the request would have
-        // failed already since no operation is specified.
+        // since no document exists we will throw a persisted operation not found error.
+        // we can throw it as if there is no document present we know that a document id
+        // must be present, otherwise the request would not have been routed to this middleware.
         _diagnosticEvents.DocumentNotFoundInStorage(context, context.Request.DocumentId);
         var error = PersistedOperationNotFound(context.Request.DocumentId);
         _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError,  [error]);

@@ -435,7 +435,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    // we only allow persisted operations but we also allow standard requests
+                    // we only allow persisted operations, but we also allow standard requests
                     // as long as they match a persisted operation.
                     o.PersistedOperations.OnlyAllowPersistedDocuments = true;
                     o.PersistedOperations.AllowDocumentBody = true;
