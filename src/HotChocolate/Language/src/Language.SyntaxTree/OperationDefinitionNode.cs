@@ -6,7 +6,8 @@ public sealed class OperationDefinitionNode
     : IExecutableDefinitionNode
     , IHasDirectives
 {
-    public OperationDefinitionNode(Location? location,
+    public OperationDefinitionNode(
+        Location? location,
         NameNode? name,
         StringValueNode? description,
         OperationType operation,
