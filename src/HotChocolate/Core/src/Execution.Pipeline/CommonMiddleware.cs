@@ -34,18 +34,6 @@ public static class CommonMiddleware
     public static string DocumentCacheKey => nameof(DocumentCacheMiddleware);
 
     /// <summary>
-    /// Gets the middleware configuration for reading request properties
-    /// and stores them on the context.
-    /// </summary>
-    public static RequestMiddlewareConfiguration ReadRequestProperties
-        => ReadRequestPropertiesMiddleware.Create();
-
-    /// <summary>
-    /// Gets the key for the read request properties middleware.
-    /// </summary>
-    public static string ReadRequestPropertiesKey => nameof(ReadRequestPropertiesMiddleware);
-
-    /// <summary>
     /// Gets the middleware configuration for caching GraphQL operation documents.
     /// </summary>
     public static RequestMiddlewareConfiguration DocumentCache

@@ -25,9 +25,9 @@ namespace HotChocolate.Execution;
 
 internal sealed partial class RequestExecutorManager
     : IRequestExecutorProvider
-        , IRequestExecutorEvents
-        , IRequestExecutorWarmup
-        , IDisposable
+    , IRequestExecutorEvents
+    , IRequestExecutorWarmup
+    , IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
@@ -331,7 +331,7 @@ internal sealed partial class RequestExecutorManager
             sp.GetRequiredService<Schema>(),
             sp.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider,
             sp.GetRequiredService<RequestDelegate>(),
-            sp.GetRequiredService<ObjectPool<DefaultRequestContext>>(),
+            sp.GetRequiredService<ObjectPool<PooledRequestContext>>(),
             sp.GetRootServiceProvider().GetRequiredService<DefaultRequestContextAccessor>(),
             sp.GetRequiredService<SchemaVersionInfo>().Version));
 
@@ -646,19 +646,6 @@ internal sealed partial class RequestExecutorManager
                     }
                 }
             }
-        }
-    }
-
-    private sealed class RequestContextPooledObjectPolicy
-        : PooledObjectPolicy<DefaultRequestContext>
-    {
-        public override DefaultRequestContext Create()
-            => new();
-
-        public override bool Return(DefaultRequestContext obj)
-        {
-            obj.Reset();
-            return true;
         }
     }
 

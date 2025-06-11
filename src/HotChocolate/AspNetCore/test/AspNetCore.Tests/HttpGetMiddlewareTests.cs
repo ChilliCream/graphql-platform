@@ -674,8 +674,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result =
-            await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
+        var result = await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
 
         // assert
         result.MatchSnapshot();

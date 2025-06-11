@@ -1,95 +1,21 @@
-using System.Collections.Concurrent;
 using HotChocolate.Execution;
-using HotChocolate.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
-/// <summary>
-/// Represents a Fusion GraphQL request context.
-/// </summary>
-public sealed class FusionRequestContext : RequestContext
-{
-    private readonly PooledFeatureCollection _features;
-
-    private ISchemaDefinition _schema = null!;
-    private ulong _executorVersion;
-    private IOperationRequest _request = null!;
-    private int _requestIndex;
-
-    public FusionRequestContext()
-    {
-        _features = new PooledFeatureCollection(this);
-        OperationDocumentInfo = _features.GetOrSet<OperationDocumentInfo>();
-    }
-
-    public override ISchemaDefinition Schema => _schema;
-
-    public override ulong ExecutorVersion => _executorVersion;
-
-    public override IOperationRequest Request => _request;
-
-    public override int RequestIndex => _requestIndex;
-
-    public override IServiceProvider RequestServices { get; set; } = default!;
-
-    public override OperationDocumentInfo OperationDocumentInfo { get; }
-
-    public override IFeatureCollection Features => _features;
-
-    public override IDictionary<string, object?> ContextData { get; } = new ConcurrentDictionary<string, object?>();
-
-    public void Initialize(
-        ISchemaDefinition schema,
-        ulong executorVersion,
-        IOperationRequest request,
-        int requestIndex,
-        IServiceProvider requestServices,
-        CancellationToken requestAborted)
-    {
-        _schema = schema;
-        _executorVersion = executorVersion;
-        _request = request;
-        _requestIndex = requestIndex;
-        RequestServices = requestServices;
-        RequestAborted = requestAborted;
-
-        _features.Initialize(request.Features);
-
-        if (request.ContextData is not null)
-        {
-            foreach (var (key, value) in request.ContextData)
-            {
-                ContextData.Add(key, value);
-            }
-        }
-    }
-
-    public void Reset()
-    {
-        _schema = null!;
-        _executorVersion = 0;
-        _request = null!;
-        RequestServices = null!;
-        RequestAborted = CancellationToken.None;
-        _features.Reset();
-        ContextData.Clear();
-    }
-}
-
 public sealed class FusionRequestExecutor : IRequestExecutor
 {
     private readonly IServiceProvider _applicationServices;
     private readonly RequestDelegate _requestDelegate;
-    private readonly ObjectPool<FusionRequestContext> _contextPool;
+    private readonly ObjectPool<PooledRequestContext> _contextPool;
 
 
     public FusionRequestExecutor(
         ISchemaDefinition schema,
         IServiceProvider applicationServices,
         RequestDelegate requestDelegate,
-        ObjectPool<FusionRequestContext> contextPool,
+        ObjectPool<PooledRequestContext> contextPool,
         ulong version)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -200,17 +126,5 @@ public sealed class FusionRequestExecutor : IRequestExecutor
         CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
-    }
-}
-
-internal sealed class RequestContextPooledObjectPolicy : PooledObjectPolicy<FusionRequestContext>
-{
-    public override FusionRequestContext Create()
-        => new();
-
-    public override bool Return(FusionRequestContext obj)
-    {
-        obj.Reset();
-        return true;
     }
 }

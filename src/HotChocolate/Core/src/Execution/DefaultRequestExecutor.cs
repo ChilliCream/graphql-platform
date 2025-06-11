@@ -11,7 +11,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 {
     private readonly IServiceProvider _applicationServices;
     private readonly RequestDelegate _requestDelegate;
-    private readonly ObjectPool<DefaultRequestContext> _contextPool;
+    private readonly ObjectPool<PooledRequestContext> _contextPool;
     private readonly DefaultRequestContextAccessor _contextAccessor;
     private readonly IRequestContextEnricher[] _enricher;
 
@@ -19,7 +19,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
         ISchemaDefinition schema,
         IServiceProvider applicationServices,
         RequestDelegate requestDelegate,
-        ObjectPool<DefaultRequestContext> requestContextPool,
+        ObjectPool<PooledRequestContext> requestContextPool,
         DefaultRequestContextAccessor contextAccessor,
         ulong version)
     {

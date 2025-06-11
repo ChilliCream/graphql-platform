@@ -160,24 +160,23 @@ public static partial class RequestExecutorBuilderExtensions
             {
                 var configuration = new RequestMiddlewareConfiguration(middleware, key);
 
-                options.PipelineModifiers.Add(
-                    pipeline =>
+                options.PipelineModifiers.Add(pipeline =>
+                {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
                     {
-                        if (!allowMultiple && GetIndex(pipeline, key!) != -1)
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        var index = GetIndex(pipeline, after);
+                    var index = GetIndex(pipeline, after);
 
-                        if (index == -1)
-                        {
-                            throw new InvalidOperationException(
-                                $"The middleware with the key `{after}` was not found.");
-                        }
+                    if (index == -1)
+                    {
+                        throw new InvalidOperationException(
+                            $"The middleware with the key `{after}` was not found.");
+                    }
 
-                        pipeline.Insert(index + 1, configuration);
-                    });
+                    pipeline.Insert(index + 1, configuration);
+                });
             });
     }
 
@@ -349,24 +348,23 @@ public static partial class RequestExecutorBuilderExtensions
             {
                 var configuration = new RequestMiddlewareConfiguration(middleware, key);
 
-                options.PipelineModifiers.Add(
-                    pipeline =>
+                options.PipelineModifiers.Add(pipeline =>
+                {
+                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
                     {
-                        if (!allowMultiple && GetIndex(pipeline, key!) != -1)
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        var index = GetIndex(pipeline, before);
+                    var index = GetIndex(pipeline, before);
 
-                        if (index == -1)
-                        {
-                            throw new InvalidOperationException(
-                                $"The middleware with the key `{before}` was not found.");
-                        }
+                    if (index == -1)
+                    {
+                        throw new InvalidOperationException(
+                            $"The middleware with the key `{before}` was not found.");
+                    }
 
-                        pipeline.Insert(index, configuration);
-                    });
+                    pipeline.Insert(index, configuration);
+                });
             });
     }
 
@@ -398,7 +396,7 @@ public static partial class RequestExecutorBuilderExtensions
         ArgumentException.ThrowIfNullOrEmpty(before);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        if(!allowMultiple && configuration.Key is null)
+        if (!allowMultiple && configuration.Key is null)
         {
             throw new ArgumentException(
                 "The key must be set if allowMultiple is false.",
@@ -592,24 +590,6 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a middleware that will be used to read request properties
-    /// and stores them on the request context.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseReadRequestProperties(
-        this IRequestExecutorBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        return builder.UseRequest(CommonMiddleware.ReadRequestProperties);
-    }
-
-    /// <summary>
     /// Adds a middleware that will be used to instrument the request.
     /// </summary>
     /// <param name="builder">
@@ -781,7 +761,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
-            .UseReadRequestProperties()
             .UseDocumentCache()
             .UseReadPersistedOperation()
             .UsePersistedOperationNotFound()
@@ -804,7 +783,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
-            .UseReadRequestProperties()
             .UseDocumentCache()
             .UseReadPersistedOperation()
             .UseAutomaticPersistedOperationNotFound()
@@ -823,7 +801,6 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(CommonMiddleware.Instrumentation);
         pipeline.Add(CommonMiddleware.UnhandledExceptions);
         pipeline.Add(TimeoutMiddleware.Create());
-        pipeline.Add(CommonMiddleware.ReadRequestProperties);
         pipeline.Add(CommonMiddleware.DocumentCache);
         pipeline.Add(CommonMiddleware.DocumentParser);
         pipeline.Add(CommonMiddleware.DocumentValidation);
