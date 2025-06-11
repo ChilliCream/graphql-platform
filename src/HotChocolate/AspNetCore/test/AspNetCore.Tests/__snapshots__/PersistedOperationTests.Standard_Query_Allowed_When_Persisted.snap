@@ -1,14 +1,11 @@
 {
   "ContentType": "application/graphql-response+json; charset=utf-8",
-  "StatusCode": "BadRequest",
-  "Data": null,
-  "Errors": [
-    {
-      "message": "The query request contains no document or no document id.",
-      "extensions": {
-        "code": "HC0015"
-      }
+  "StatusCode": "OK",
+  "Data": {
+    "hero": {
+      "name": "R2-D2"
     }
-  ],
+  },
+  "Errors": null,
   "Extensions": null
 }

@@ -5,17 +5,13 @@
 ```json
 {
   "ContentType": "application/graphql-response+json; charset=utf-8",
-  "StatusCode": "BadRequest",
-  "Data": null,
-  "Errors": [
-    {
-      "message": "The specified persisted operation key is invalid.",
-      "extensions": {
-        "code": "HC0020",
-        "requestedKey": "a73defcdf38e5891e91b9ba532cf4c36"
-      }
+  "StatusCode": "OK",
+  "Data": {
+    "hero": {
+      "name": "R2-D2"
     }
-  ],
+  },
+  "Errors": null,
   "Extensions": null
 }
 ```
@@ -25,16 +21,13 @@
 ```json
 {
   "ContentType": "application/graphql-response+json; charset=utf-8",
-  "StatusCode": "BadRequest",
-  "Data": null,
-  "Errors": [
-    {
-      "message": "The query request contains no document or no document id.",
-      "extensions": {
-        "code": "HC0015"
-      }
+  "StatusCode": "OK",
+  "Data": {
+    "hero": {
+      "name": "R2-D2"
     }
-  ],
+  },
+  "Errors": null,
   "Extensions": null
 }
 ```
@@ -48,9 +41,10 @@
   "Data": null,
   "Errors": [
     {
-      "message": "Only persisted operations are allowed.",
+      "message": "The specified persisted operation key is invalid.",
       "extensions": {
-        "code": "HC0067"
+        "code": "HC0020",
+        "requestedKey": "ef5c9e7b1e24de261642083d4e294322"
       }
     }
   ],
