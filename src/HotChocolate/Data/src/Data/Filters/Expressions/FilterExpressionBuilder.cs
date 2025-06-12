@@ -8,57 +8,57 @@ namespace HotChocolate.Data.Filters.Expressions;
 
 public static class FilterExpressionBuilder
 {
-    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates = new();
-    private static readonly ConcurrentDictionary<Type, Expression> _cachedNullExpressions = new();
-    private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)> _cachedEnumerableDelegates = new();
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> s_cachedDelegates = new();
+    private static readonly ConcurrentDictionary<Type, Expression> s_cachedNullExpressions = new();
+    private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)> s_cachedEnumerableDelegates = new();
 
-    private static readonly MethodInfo _enumerableContains = typeof(Enumerable)
+    private static readonly MethodInfo s_enumerableContains = typeof(Enumerable)
         .GetMethods(Public | Static)
         .Single(m => m.Name.Equals(nameof(Enumerable.Contains)) &&
             m.GetGenericArguments().Length == 1 &&
             m.GetParameters().Length is 2);
 
-    private static readonly MethodInfo _startsWith =
-        ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(default(string)!));
+    private static readonly MethodInfo s_startsWith =
+        ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(null!));
 
-    private static readonly MethodInfo _endsWith =
-        ReflectionUtils.ExtractMethod<string>(x => x.EndsWith(default(string)!));
+    private static readonly MethodInfo s_endsWith =
+        ReflectionUtils.ExtractMethod<string>(x => x.EndsWith(null!));
 
-    private static readonly MethodInfo _contains =
-        ReflectionUtils.ExtractMethod<string>(x => x.Contains(default(string)!));
+    private static readonly MethodInfo s_contains =
+        ReflectionUtils.ExtractMethod<string>(x => x.Contains(null!));
 
-    private static readonly MethodInfo _createAndConvert =
+    private static readonly MethodInfo s_createAndConvert =
         typeof(FilterExpressionBuilder)
             .GetMethod(nameof(CreateAndConvertParameter), NonPublic | Static)!;
 
-    private static readonly MethodInfo _anyMethod =
+    private static readonly MethodInfo s_anyMethod =
         typeof(Enumerable)
             .GetMethods()
             .Single(x => x.Name == nameof(Enumerable.Any) && x.GetParameters().Length == 1);
 
-    private static readonly MethodInfo _anyWithParameter =
+    private static readonly MethodInfo s_anyWithParameter =
         typeof(Enumerable)
             .GetMethods()
             .Single(x => x.Name == nameof(Enumerable.Any) && x.GetParameters().Length == 2);
 
-    private static readonly MethodInfo _allMethod =
+    private static readonly MethodInfo s_allMethod =
         typeof(Enumerable)
             .GetMethods()
             .Single(x => x.Name == nameof(Enumerable.All) && x.GetParameters().Length == 2);
 
-    private static readonly ConstantExpression _null =
+    private static readonly ConstantExpression s_null =
         Expression.Constant(null, typeof(object));
 
-    private static readonly Expression _true =
+    private static readonly Expression s_true =
         CreateAndConvertParameter<bool>(true);
 
-    private static readonly Expression _false =
+    private static readonly Expression s_false =
         CreateAndConvertParameter<bool>(false);
 
-    private static readonly Expression _nullableTrue =
+    private static readonly Expression s_nullableTrue =
         CreateAndConvertParameter<bool?>(true);
 
-    private static readonly Expression _nullableFalse =
+    private static readonly Expression s_nullableFalse =
         CreateAndConvertParameter<bool?>(false);
 
     public static Expression Not(Expression expression)
@@ -107,34 +107,34 @@ public static class FilterExpressionBuilder
         Expression property,
         object value)
         => Expression.AndAlso(
-            Expression.NotEqual(property, _null),
+            Expression.NotEqual(property, s_null),
             Expression.Call(
                 property,
-                _startsWith,
+                s_startsWith,
                 CreateParameter(value, property.Type)));
 
     public static Expression EndsWith(
         Expression property,
         object value)
         => Expression.AndAlso(
-            Expression.NotEqual(property, _null),
+            Expression.NotEqual(property, s_null),
             Expression.Call(
                 property,
-                _endsWith,
+                s_endsWith,
                 CreateParameter(value, property.Type)));
 
     public static Expression Contains(
         Expression property,
         object value)
         => Expression.AndAlso(
-            Expression.NotEqual(property, _null),
+            Expression.NotEqual(property, s_null),
             Expression.Call(
                 property,
-                _contains,
+                s_contains,
                 CreateParameter(value, property.Type)));
 
     public static Expression NotNull(Expression expression)
-        => Expression.NotEqual(expression, _null);
+        => Expression.NotEqual(expression, s_null);
 
     public static Expression HasValue(Expression expression)
         => Expression.IsTrue(
@@ -164,7 +164,7 @@ public static class FilterExpressionBuilder
         Expression property,
         LambdaExpression lambda)
         => Expression.Call(
-            _anyWithParameter.MakeGenericMethod(type),
+            s_anyWithParameter.MakeGenericMethod(type),
             property,
             lambda);
 
@@ -173,7 +173,7 @@ public static class FilterExpressionBuilder
         Expression property)
     {
         return Expression.Call(
-            _anyMethod.MakeGenericMethod(type),
+            s_anyMethod.MakeGenericMethod(type),
             property);
     }
 
@@ -182,7 +182,7 @@ public static class FilterExpressionBuilder
         Expression property,
         LambdaExpression lambda)
         => Expression.Call(
-            _allMethod.MakeGenericMethod(type),
+            s_allMethod.MakeGenericMethod(type),
             property,
             lambda);
 
@@ -192,10 +192,10 @@ public static class FilterExpressionBuilder
         => Expression.OrElse(
             Expression.Equal(
                 property,
-                _null),
+                s_null),
             Expression.Not(Expression.Call(
                 property,
-                _contains,
+                s_contains,
                 CreateParameter(value, property.Type))));
 
     private static Expression CreateAndConvertParameter<T>(object value)
@@ -216,15 +216,15 @@ public static class FilterExpressionBuilder
         {
             if (type == typeof(bool))
             {
-                return boolean ? _true : _false;
+                return boolean ? s_true : s_false;
             }
 
-            return boolean ? _nullableTrue : _nullableFalse;
+            return boolean ? s_nullableTrue : s_nullableFalse;
         }
 
-        var expressionDelegate = _cachedDelegates.GetOrAdd(type, static type =>
+        var expressionDelegate = s_cachedDelegates.GetOrAdd(type, static type =>
         {
-            var methodInfo = _createAndConvert.MakeGenericMethod(type);
+            var methodInfo = s_createAndConvert.MakeGenericMethod(type);
             return methodInfo.CreateDelegate<Func<object?, Expression>>();
         });
 
@@ -233,19 +233,19 @@ public static class FilterExpressionBuilder
 
     private static Expression CreateNullParameter(Type type)
     {
-        return _cachedNullExpressions.GetOrAdd(type, static type =>
+        return s_cachedNullExpressions.GetOrAdd(type, static type =>
         {
-            var methodInfo = _createAndConvert.MakeGenericMethod(type);
+            var methodInfo = s_createAndConvert.MakeGenericMethod(type);
             return (Expression)methodInfo.Invoke(null, [null])!;
         });
     }
 
     private static (MethodInfo, Func<object?, Expression>) GetEnumerableDelegates(Type type)
     {
-        return _cachedEnumerableDelegates.GetOrAdd(type, static type =>
+        return s_cachedEnumerableDelegates.GetOrAdd(type, static type =>
         {
-            var methodInfo = _enumerableContains.MakeGenericMethod(type);
-            var expressionDelegate = _createAndConvert
+            var methodInfo = s_enumerableContains.MakeGenericMethod(type);
+            var expressionDelegate = s_createAndConvert
                 .MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(type))
                 .CreateDelegate<Func<object?, Expression>>();
 

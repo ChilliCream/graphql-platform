@@ -70,7 +70,7 @@ public static partial class TypeDescriptorMapper
     }
 
     private static INamedTypeDescriptor GetInputTypeDescriptor(
-        INamedType fieldNamedType,
+        ITypeDefinition fieldNamedType,
         Dictionary<string, InputTypeDescriptorModel> typeDescriptors)
     {
         return typeDescriptors.Values

@@ -16,15 +16,8 @@ public static class BufferHelper
         Func<byte[], int, TState, T> deserialize,
         CancellationToken cancellationToken)
     {
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
-
-        if (deserialize is null)
-        {
-            throw new ArgumentNullException(nameof(deserialize));
-        }
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(deserialize);
 
         return ReadAsync(stream, state, int.MaxValue, deserialize, () => { }, cancellationToken);
     }

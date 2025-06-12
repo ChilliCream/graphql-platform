@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
@@ -22,6 +23,9 @@ public sealed class FusionInterfaceTypeDefinitionCollection
     public FusionInterfaceTypeDefinition this[int index]
         => _types[index];
 
+    IInterfaceTypeDefinition IReadOnlyList<IInterfaceTypeDefinition>.this[int index]
+        => _types[index];
+
     public int Count => _types.Length;
 
     public bool ContainsName(string name)
@@ -31,7 +35,7 @@ public sealed class FusionInterfaceTypeDefinitionCollection
         => _types.Contains(item);
 
     public IEnumerable<FusionInterfaceTypeDefinition> AsEnumerable()
-        => _types;
+        => Unsafe.As<IEnumerable<FusionInterfaceTypeDefinition>>(_types);
 
     public IEnumerator<FusionInterfaceTypeDefinition> GetEnumerator()
         => AsEnumerable().GetEnumerator();

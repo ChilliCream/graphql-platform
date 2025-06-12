@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Analyzers.Generators;
 
 public sealed class MiddlewareGenerator : ISyntaxGenerator
 {
-    private const string _namespace = "HotChocolate.Execution.Generated";
+    private const string Namespace = "HotChocolate.Execution.Generated";
 
     public void Generate(
         SourceProductionContext context,
@@ -41,7 +41,7 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
             return;
         }
 
-        using var generator = new RequestMiddlewareFileBuilder(module.ModuleName, _namespace);
+        using var generator = new RequestMiddlewareFileBuilder(module.ModuleName, Namespace);
 
         generator.WriteHeader();
         generator.WriteBeginNamespace();

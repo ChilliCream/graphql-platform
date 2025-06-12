@@ -23,7 +23,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
 
         Assert.True(await helper.SaveOperationAsync(
@@ -33,7 +33,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
     }
 
@@ -55,7 +55,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
 
         // assert
@@ -92,7 +92,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
 
         // act
@@ -102,7 +102,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def1",
-                Value = "ghi1",
+                Value = "ghi1"
             }));
 
         // assert
@@ -139,7 +139,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
 
         // act
@@ -174,7 +174,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
 
         // assert
@@ -213,7 +213,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
 
         // act
@@ -224,7 +224,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def1",
                 ResultType = "ghi1",
-                DataInfo = "jkl1",
+                DataInfo = "jkl1"
             }));
 
         // assert
@@ -263,7 +263,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
 
         // act

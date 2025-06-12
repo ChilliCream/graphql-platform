@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
 
@@ -13,9 +12,9 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class GraphQLHttpResponse : IDisposable
 {
-    private static readonly OperationResult _transportError = CreateTransportError();
+    private static readonly OperationResult s_transportError = CreateTransportError();
 
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private readonly HttpResponseMessage _message;
 
     /// <summary>
@@ -103,16 +102,16 @@ public sealed class GraphQLHttpResponse : IDisposable
     {
         var contentType = _message.Content.Headers.ContentType;
 
-        // The server supports the newer graphql-response+json media type and users are free
+        // The server supports the newer graphql-response+json media type, and users are free
         // to use status codes.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.GraphQL, StringComparison.Ordinal) ?? false)
         {
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
         }
 
-        // The server supports the older application/json media type and the status code
+        // The server supports the older application/json media type, and the status code
         // is expected to be a 2xx for a valid GraphQL response.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.Json, StringComparison.Ordinal) ?? false)
         {
             _message.EnsureSuccessStatusCode();
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
@@ -131,7 +130,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         var stream = contentStream;
 
         var sourceEncoding = GetEncoding(charSet);
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, s_utf8.EncodingName))
         {
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
@@ -164,40 +163,39 @@ public sealed class GraphQLHttpResponse : IDisposable
     {
         var contentType = _message.Content.Headers.ContentType;
 
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.EventStream) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.EventStream, StringComparison.Ordinal) ?? false)
         {
             return ReadAsResultStreamInternalAsync(contentType.CharSet, cancellationToken);
         }
 
-        // The server supports the newer graphql-response+json media type and users are free
+        // The server supports the newer graphql-response+json media type, and users are free
         // to use status codes.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.GraphQL, StringComparison.Ordinal) ?? false)
         {
             return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
         }
 
-        // The server supports the older application/json media type and the status code
+        // The server supports the older application/json media type, and the status code
         // is expected to be a 2xx for a valid GraphQL response.
-        if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
+        if (contentType?.MediaType?.Equals(ContentType.Json, StringComparison.Ordinal) ?? false)
         {
             _message.EnsureSuccessStatusCode();
             return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
         }
 
-        return SingleResult(new ValueTask<OperationResult>(_transportError));
+        return SingleResult(new ValueTask<OperationResult>(s_transportError));
     }
 
     private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
         string? charSet,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
-            .ConfigureAwait(false);
+        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 
         var stream = contentStream;
 
         var sourceEncoding = GetEncoding(charSet);
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, s_utf8.EncodingName))
         {
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
@@ -224,7 +222,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                 // Remove at most a single set of quotes.
                 if (charset.Length > 2 && charset[0] == '\"' && charset[^1] == '\"')
                 {
-                    encoding = Encoding.GetEncoding(charset.Substring(1, charset.Length - 2));
+                    encoding = Encoding.GetEncoding(charset[1..^1]);
                 }
                 else
                 {
@@ -246,7 +244,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         => Encoding.CreateTranscodingStream(
             contentStream,
             innerStreamEncoding: sourceEncoding,
-            outerStreamEncoding: _utf8);
+            outerStreamEncoding: s_utf8);
 
     private static OperationResult CreateTransportError()
         => new OperationResult(

@@ -8,19 +8,19 @@ namespace HotChocolate.AzureFunctions;
 
 internal sealed class PipelineBuilder
 {
-    private static readonly ParameterExpression _context =
+    private static readonly ParameterExpression s_context =
         Expression.Parameter(typeof(HttpContext), "context");
-    private static readonly ParameterExpression _services =
+    private static readonly ParameterExpression s_services =
         Expression.Parameter(typeof(IServiceProvider), "services");
-    private static readonly ParameterExpression _next =
+    private static readonly ParameterExpression s_next =
         Expression.Parameter(typeof(RequestDelegate), "next");
-    private static readonly ConstantExpression _schemaName =
-        Expression.Constant(Schema.DefaultName, typeof(string));
-    private static readonly ConstantExpression _routing =
+    private static readonly ConstantExpression s_schemaName =
+        Expression.Constant(ISchemaDefinition.DefaultName, typeof(string));
+    private static readonly ConstantExpression s_routing =
         Expression.Constant(MiddlewareRoutingType.Integrated, typeof(MiddlewareRoutingType));
-    private static readonly MethodInfo _getService =
+    private static readonly MethodInfo s_getService =
         typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService))!;
-    private static readonly MethodInfo _compileInvoke =
+    private static readonly MethodInfo s_compileInvoke =
         typeof(PipelineBuilder).GetMethod(
             nameof(CompileInvoke),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -35,10 +35,7 @@ internal sealed class PipelineBuilder
 
     public RequestDelegate Compile(IServiceProvider services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         if (_components.Count == 0)
         {
@@ -90,20 +87,20 @@ internal sealed class PipelineBuilder
         {
             if (parameter.ParameterType == typeof(RequestDelegate))
             {
-                list.Add(_next);
+                list.Add(s_next);
             }
             else if (parameter.ParameterType == typeof(IServiceProvider))
             {
-                list.Add(_services);
+                list.Add(s_services);
             }
             else if (parameter.Name.EqualsOrdinal("schemaName") &&
                 parameter.ParameterType == typeof(string))
             {
-                list.Add(_schemaName);
+                list.Add(s_schemaName);
             }
             else if (parameter.ParameterType == typeof(MiddlewareRoutingType))
             {
-                list.Add(_routing);
+                list.Add(s_routing);
             }
             else
             {
@@ -128,7 +125,7 @@ internal sealed class PipelineBuilder
                 {
                     Expression parameterType = Expression.Constant(parameter.ParameterType);
                     list.Add(Expression.Convert(
-                        Expression.Call(_services, _getService, parameterType),
+                        Expression.Call(s_services, s_getService, parameterType),
                         parameter.ParameterType));
                 }
             }
@@ -136,18 +133,18 @@ internal sealed class PipelineBuilder
 
         Expression instance = Expression.New(constructor, list);
         Expression invoke = Expression.Constant(invokeMethod);
-        Expression requestDelegate = Expression.Call(_compileInvoke, instance, invoke);
+        Expression requestDelegate = Expression.Call(s_compileInvoke, instance, invoke);
 
         return Expression.Lambda<Func<IServiceProvider, RequestDelegate, RequestDelegate>>(
-            requestDelegate, _services, _next)
+            requestDelegate, s_services, s_next)
             .Compile();
     }
 
     private static RequestDelegate CompileInvoke(object obj, MethodInfo invokeMethod)
     {
         Expression instance = Expression.Constant(obj);
-        var invoke = Expression.Call(instance, invokeMethod, _context);
-        var lambda = Expression.Lambda<RequestDelegate>(invoke, _context);
+        var invoke = Expression.Call(instance, invokeMethod, s_context);
+        var lambda = Expression.Lambda<RequestDelegate>(invoke, s_context);
         return lambda.Compile();
     }
 

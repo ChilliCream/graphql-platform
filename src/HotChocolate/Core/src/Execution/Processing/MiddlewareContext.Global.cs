@@ -1,5 +1,5 @@
-using HotChocolate.Execution.Properties;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -11,9 +11,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
 {
     private readonly OperationResultBuilderFacade _operationResultBuilder = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
-    private OperationContext _operationContext = default!;
-    private IServiceProvider _services = default!;
-    private InputParser _parser = default!;
+    private OperationContext _operationContext = null!;
+    private IServiceProvider _services = null!;
+    private InputParser _parser = null!;
     private object? _resolverResult;
     private bool _hasResolverResult;
 
@@ -25,7 +25,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IServiceProvider RequestServices => _operationContext.Services;
 
-    public ISchema Schema => _operationContext.Schema;
+    public Schema Schema => _operationContext.Schema;
 
     public IOperation Operation => _operationContext.Operation;
 
@@ -39,29 +39,23 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;
 
+    public IFeatureCollection Features => _operationContext.Features;
+
     public void ReportError(string errorMessage)
     {
-        if (string.IsNullOrEmpty(errorMessage))
-        {
-            throw new ArgumentException(
-                Resources.MiddlewareContext_ReportErrorCannotBeNull,
-                nameof(errorMessage));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(errorMessage);
 
         ReportError(
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .SetLocations([_selection.SyntaxNode])
+                .AddLocation(_selection.SyntaxNode)
                 .Build());
     }
 
-    public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+    public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
         if (exception is GraphQLException ex)
         {
@@ -82,7 +76,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
-                .SetLocations([_selection.SyntaxNode]);
+                .AddLocation(_selection.SyntaxNode);
 
             configure?.Invoke(errorBuilder);
 
@@ -92,10 +86,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public void ReportError(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         if (error is AggregateError aggregateError)
         {
@@ -108,8 +99,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
         {
             ReportSingle(error);
         }
-
-        return;
 
         void ReportSingle(IError singleError)
         {
@@ -154,9 +143,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
     {
         if (!_hasResolverResult)
         {
-            _resolverResult = Field.Resolver is null
+            _resolverResult = _selection.Field.Resolver is null
                 ? null
-                : await Field.Resolver(this).ConfigureAwait(false);
+                : await _selection.Field.Resolver(this).ConfigureAwait(false);
             _hasResolverResult = true;
         }
 
@@ -174,10 +163,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public object Service(Type service)
     {
-        if (service is null)
-        {
-            throw new ArgumentNullException(nameof(service));
-        }
+        ArgumentNullException.ThrowIfNull(service);
 
         return Services.GetRequiredService(service);
     }
@@ -186,10 +172,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         Func<ValueTask> action,
         CleanAfter cleanAfter = CleanAfter.Resolver)
     {
-        if (action is null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
+        ArgumentNullException.ThrowIfNull(action);
 
         if (cleanAfter is CleanAfter.Request)
         {
@@ -254,7 +237,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         // Since resolver tasks are pooled and returned to the pool after they are executed
         // we need to complete the task manually when the resolver task of the current context
         // is completed.
-        RegisterForCleanup(() => resolverTask.CompleteUnsafeAsync());
+        RegisterForCleanup(resolverTask.CompleteUnsafeAsync);
 
         return resolverTask.Context;
     }
@@ -264,7 +247,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     private sealed class OperationResultBuilderFacade : IOperationResultBuilder
     {
-        public OperationContext Context { get; set; } = default!;
+        public OperationContext Context { get; set; } = null!;
 
         public void SetResultState(string key, object? value)
             => Context.Result.SetContextData(key, value);

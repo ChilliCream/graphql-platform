@@ -27,15 +27,8 @@ public sealed class MessagePipeline
     /// </exception>
     public MessagePipeline(ISocket socket, IMessageHandler messageHandler)
     {
-        if (socket is null)
-        {
-            throw new ArgumentNullException(nameof(socket));
-        }
-
-        if (messageHandler is null)
-        {
-            throw new ArgumentNullException(nameof(messageHandler));
-        }
+        ArgumentNullException.ThrowIfNull(socket);
+        ArgumentNullException.ThrowIfNull(messageHandler);
 
         var pipe = new Pipe();
         _messageReceiver = new MessageReceiver(socket, pipe.Writer);

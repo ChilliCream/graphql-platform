@@ -26,17 +26,14 @@ public class MiddlewareBase : IDisposable
         IHttpResponseFormatter responseFormatter,
         string schemaName)
     {
-        if (executorResolver is null)
-        {
-            throw new ArgumentNullException(nameof(executorResolver));
-        }
+        ArgumentNullException.ThrowIfNull(executorResolver);
 
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _responseFormatter = responseFormatter ??
             throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
-        IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
+        IsDefaultSchema = SchemaName.EqualsOrdinal(ISchemaDefinition.DefaultName);
         _executorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 
@@ -89,8 +86,8 @@ public class MiddlewareBase : IDisposable
     /// <returns>
     /// Returns the schema for this middleware.
     /// </returns>
-    protected ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
-        => _executorProxy.GetSchemaAsync(cancellationToken);
+    protected async ValueTask<ISchemaDefinition> GetSchemaAsync(CancellationToken cancellationToken)
+        => await _executorProxy.GetSchemaAsync(cancellationToken);
 
     protected ValueTask WriteResultAsync(
         HttpContext context,

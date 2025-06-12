@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Reactive.Disposables;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -13,7 +14,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
     private readonly MergeSelectionSetRewriter _mergeRewriter = new(schema);
     private readonly SelectionSetPartitioner _partitioner = new(schema);
 
-    public ExecutionPlan CreatePlan(OperationDefinitionNode operationDefinition)
+    public OperationPlan CreatePlan(OperationDefinitionNode operationDefinition)
     {
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
@@ -38,7 +39,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             SelectionSetIndex = index.ToImmutable(),
             Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
             PathCost = 1,
-            BacklogCost = 1,
+            BacklogCost = 1
         };
 
         foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(selectionSet))
@@ -60,7 +61,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         }
 
         return BuildExecutionPlan(
-            // this is not ideal and we gonna rework this once we figured out
+            // this is not ideal and are we going to rework this once we figured out
             // introspection and defer and stream.
             planSteps.OfType<OperationPlanStep>().ToImmutableList(),
             operationDefinition);
@@ -108,7 +109,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             }
         }
 
-        return ImmutableList<PlanStep>.Empty;
+        return [];
     }
 
     private void PlanRootSelections(

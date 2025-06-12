@@ -18,8 +18,8 @@ public class UseCultureAttribute : BeforeAfterTestAttribute
 {
     private readonly Lazy<CultureInfo> _culture;
     private readonly Lazy<CultureInfo> _uiCulture;
-private CultureInfo _originalCulture = default!;
-    private CultureInfo _originalUiCulture = default!;
+private CultureInfo _originalCulture = null!;
+    private CultureInfo _originalUiCulture = null!;
 
     /// <summary>
     /// Replaces the culture and UI culture of the current thread with

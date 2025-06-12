@@ -7,23 +7,15 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public sealed class InputFormatter
+public sealed class InputFormatter(ITypeConverter converter)
 {
-    private readonly ITypeConverter _converter;
+    private readonly ITypeConverter _converter = converter ?? throw new ArgumentNullException(nameof(converter));
 
     public InputFormatter() : this(new DefaultTypeConverter()) { }
 
-    public InputFormatter(ITypeConverter converter)
-    {
-        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-    }
-
     public IValueNode FormatValue(object? runtimeValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return FormatValueInternal(runtimeValue, type, path ?? Path.Root);
     }
@@ -131,8 +123,10 @@ public sealed class InputFormatter
     {
         try
         {
-            if (runtimeValue.GetType() != type.ToRuntimeType() &&
-                _converter.TryConvert(type.ToRuntimeType(), runtimeValue, out var converted))
+            var runtimeType = type.ToRuntimeType();
+
+            if (runtimeValue.GetType() != runtimeType
+                && _converter.TryConvert(runtimeType, runtimeValue, out var converted))
             {
                 runtimeValue = converted;
             }
@@ -147,15 +141,8 @@ public sealed class InputFormatter
 
     public DirectiveNode FormatDirective(object runtimeValue, DirectiveType type, Path? path = null)
     {
-        if (runtimeValue is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeValue));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeValue);
+        ArgumentNullException.ThrowIfNull(type);
 
         path ??= Path.Root.Append(type.Name);
 
@@ -194,10 +181,7 @@ public sealed class InputFormatter
 
     public IValueNode FormatResult(object? resultValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return FormatResultInternal(resultValue, type, path ?? Path.Root);
     }

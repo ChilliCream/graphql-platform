@@ -3,8 +3,8 @@ using System.Security.Claims;
 namespace HotChocolate;
 
 /// <summary>
-/// The Hot Chocolate user state can be provided by GraphQL server implementations
-/// and authorization implementations are depending on this state being added to
+/// The Hot Chocolate user state can be provided by GraphQL server implementations,
+/// and authorization implementations depend on this state being added to
 /// the global state.
 /// </summary>
 public sealed class UserState : IEquatable<UserState>
@@ -13,10 +13,10 @@ public sealed class UserState : IEquatable<UserState>
     /// Initializes a new instance of <see cref="UserState"/>.
     /// </summary>
     /// <param name="user">
-    /// The currently signed in user.
+    /// The current signed-in user.
     /// </param>
     /// <param name="isAuthenticated">
-    /// Specifies if the currently signed in user is authenticated.
+    /// Specifies if the currently signed-in user is authenticated.
     /// </param>
     public UserState(ClaimsPrincipal user, bool? isAuthenticated = null)
     {
@@ -25,13 +25,13 @@ public sealed class UserState : IEquatable<UserState>
     }
 
     /// <summary>
-    /// The currently signed in user.
+    /// The current signed-in user.
     /// </summary>
     public ClaimsPrincipal User { get; }
 
     /// <summary>
-    /// Specifies if the currently signed in user is authenticated.
-    /// If this property is null it means that this state has not yet been determined.
+    /// Specifies if the currently signed-in user is authenticated.
+    /// If this property is null, it means that this state has not yet been determined.
     /// </summary>
     public bool? IsAuthenticated { get; }
 
@@ -55,7 +55,7 @@ public sealed class UserState : IEquatable<UserState>
     /// <param name="other">A user state to compare with this user state.</param>
     /// <returns>
     /// <c>true</c> if the current user state is equal to the
-    /// <paramref name="other">other user state</paramref> user state parameter;
+    /// <paramref name="other">other user state</paramref> parameter;
     /// otherwise, <c>false</c>.
     /// </returns>
     public bool Equals(UserState? other)

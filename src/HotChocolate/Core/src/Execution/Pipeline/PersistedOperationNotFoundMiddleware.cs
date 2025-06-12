@@ -8,7 +8,7 @@ internal sealed class PersistedOperationNotFoundMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly Dictionary<string, object?> _statusCode = new() { { HttpStatusCode, 400 }, };
+    private readonly Dictionary<string, object?> _statusCode = new() { { HttpStatusCode, 400 } };
 
     private PersistedOperationNotFoundMiddleware(
         RequestDelegate next,
@@ -43,11 +43,13 @@ internal sealed class PersistedOperationNotFoundMiddleware
         return default;
     }
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var middleware = new PersistedOperationNotFoundMiddleware(next, diagnosticEvents);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var middleware = new PersistedOperationNotFoundMiddleware(next, diagnosticEvents);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(PersistedOperationNotFoundMiddleware));
 }

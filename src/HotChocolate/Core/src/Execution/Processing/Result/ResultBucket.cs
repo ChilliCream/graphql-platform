@@ -70,7 +70,7 @@ internal sealed class ResultBucket<T> where T : class
         {
             if (mem is not null && !_policy.Return(mem))
             {
-                mem = default;
+                mem = null;
             }
 
             mem = ref Unsafe.Add(ref mem, 1);

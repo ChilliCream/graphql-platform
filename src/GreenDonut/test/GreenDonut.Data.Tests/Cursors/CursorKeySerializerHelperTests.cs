@@ -5,7 +5,7 @@ namespace GreenDonut.Data.Cursors;
 
 public static class CursorKeySerializerHelperTests
 {
-    private static readonly ICursorKeySerializer _serializer = new StringCursorKeySerializer();
+    private static readonly ICursorKeySerializer s_serializer = new StringCursorKeySerializer();
 
     [Fact]
     public static void Parse_Null_ReturnsNull()
@@ -14,7 +14,7 @@ public static class CursorKeySerializerHelperTests
         var formattedKey = CursorKeySerializerHelper.Null;
 
         // act
-        var result = CursorKeySerializerHelper.Parse(formattedKey, _serializer);
+        var result = CursorKeySerializerHelper.Parse(formattedKey, s_serializer);
 
         // assert
         Assert.Null(result);
@@ -27,7 +27,7 @@ public static class CursorKeySerializerHelperTests
         var formattedKey = CursorKeySerializerHelper.EscapedNull;
 
         // act
-        var result = CursorKeySerializerHelper.Parse(formattedKey, _serializer);
+        var result = CursorKeySerializerHelper.Parse(formattedKey, s_serializer);
 
         // assert
         Assert.Equal("\\null", result);
@@ -41,7 +41,7 @@ public static class CursorKeySerializerHelperTests
         var expectedValue = "testvalue";
 
         // act
-        var result = CursorKeySerializerHelper.Parse(formattedKey, _serializer);
+        var result = CursorKeySerializerHelper.Parse(formattedKey, s_serializer);
 
         // assert
         Assert.Equal(expectedValue, result);
@@ -55,7 +55,7 @@ public static class CursorKeySerializerHelperTests
         var expectedValue = "part1:part2";
 
         // act
-        var result = CursorKeySerializerHelper.Parse(formattedKey, _serializer);
+        var result = CursorKeySerializerHelper.Parse(formattedKey, s_serializer);
 
         // assert
         Assert.Equal(expectedValue, result);
@@ -69,7 +69,7 @@ public static class CursorKeySerializerHelperTests
         var buffer = new byte[CursorKeySerializerHelper.Null.Length];
 
         // act
-        var success = CursorKeySerializerHelper.TryFormat(key, _serializer, buffer, out var written);
+        var success = CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
 
         // assert
         Assert.True(success);
@@ -85,7 +85,7 @@ public static class CursorKeySerializerHelperTests
         var buffer = new byte[CursorKeySerializerHelper.EscapedNull.Length];
 
         // act
-        var success = CursorKeySerializerHelper.TryFormat(key, _serializer, buffer, out var written);
+        var success = CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
 
         // assert
         Assert.True(success);
@@ -101,12 +101,12 @@ public static class CursorKeySerializerHelperTests
         Span<byte> buffer = new byte[10];
 
         // act
-        var success = CursorKeySerializerHelper.TryFormat(key, _serializer, buffer, out var written);
+        var success = CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
 
         // assert
         Assert.True(success);
         Assert.Equal(9, written); // "testvalue" is 9 bytes
-        Assert.Equal("testvalue", Encoding.UTF8.GetString(buffer.Slice(0, written)));
+        Assert.Equal("testvalue", Encoding.UTF8.GetString(buffer[..written]));
     }
 
     [Fact]
@@ -117,12 +117,12 @@ public static class CursorKeySerializerHelperTests
         Span<byte> buffer = new byte[12]; // "part1\\:part2" is 12 bytes
 
         // act
-        var success = CursorKeySerializerHelper.TryFormat(key, _serializer, buffer, out var written);
+        var success = CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
 
         // assert
         Assert.True(success);
         Assert.Equal(12, written); // "part1\\:part2" is 12 bytes
-        Assert.Equal("part1\\:part2", Encoding.UTF8.GetString(buffer.Slice(0, written)));
+        Assert.Equal("part1\\:part2", Encoding.UTF8.GetString(buffer[..written]));
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public static class CursorKeySerializerHelperTests
         var buffer = new byte[10]; // Too small for "part1\\:part2"
 
         // act
-        var success = CursorKeySerializerHelper.TryFormat(key, _serializer, buffer, out var written);
+        var success = CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
 
         // assert
         Assert.False(success);
@@ -148,9 +148,8 @@ public static class CursorKeySerializerHelperTests
         Span<byte> buffer = new byte[1024];
 
         // act
-        CursorKeySerializerHelper.TryFormat(key, _serializer, buffer, out var written);
-        var parsedString =CursorKeySerializerHelper.Parse(buffer.Slice(0, written), _serializer);
-
+        CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
+        var parsedString =CursorKeySerializerHelper.Parse(buffer[..written], s_serializer);
 
         // assert
         Assert.Equal(key, parsedString);

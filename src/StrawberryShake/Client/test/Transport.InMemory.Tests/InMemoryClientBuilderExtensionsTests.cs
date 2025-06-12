@@ -10,7 +10,7 @@ public class InMemoryClientBuilderExtensionsTests
     public void ConfigureInMemoryClient_NoServices_ThrowException()
     {
         // arrange
-        IInMemoryClientBuilder builder = default!;
+        IInMemoryClientBuilder builder = null!;
         Action<IInMemoryClient> action = x => x.SchemaName = "Bar";
 
         // act
@@ -54,7 +54,7 @@ public class InMemoryClientBuilderExtensionsTests
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>()
             .Get("foo")
             .InMemoryClientActions
-            .Single()(stubClient, default);
+            .Single()(stubClient, CancellationToken.None);
 
         Assert.Equal("Bar", stubClient.SchemaName);
     }
@@ -63,7 +63,7 @@ public class InMemoryClientBuilderExtensionsTests
     public void ConfigureInMemoryClientAsync_NoServices_ThrowException()
     {
         // arrange
-        IInMemoryClientBuilder builder = default!;
+        IInMemoryClientBuilder builder = null!;
         Func<IInMemoryClient, CancellationToken, ValueTask> action = (x, _) =>
         {
             x.SchemaName = "Bar";
@@ -115,7 +115,7 @@ public class InMemoryClientBuilderExtensionsTests
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>()
             .Get("foo")
             .InMemoryClientActions
-            .Single()(stubClient, default);
+            .Single()(stubClient, CancellationToken.None);
 
         Assert.Equal("Bar", stubClient.SchemaName);
     }
@@ -124,7 +124,7 @@ public class InMemoryClientBuilderExtensionsTests
     public void ConfigureInMemoryClientService_NoServices_ThrowException()
     {
         // arrange
-        IInMemoryClientBuilder builder = default!;
+        IInMemoryClientBuilder builder = null!;
         Action<IServiceProvider, IInMemoryClient> action = (_, x) => x.SchemaName = "Bar";
 
         // act
@@ -170,7 +170,7 @@ public class InMemoryClientBuilderExtensionsTests
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>()
             .Get("foo")
             .InMemoryClientActions
-            .Single()(stubClient, default);
+            .Single()(stubClient, CancellationToken.None);
 
         Assert.Equal("Bar", stubClient.SchemaName);
     }
@@ -179,7 +179,7 @@ public class InMemoryClientBuilderExtensionsTests
     public void ConfigureInMemoryClientAsyncServiceProvider_NoServices_ThrowException()
     {
         // arrange
-        IInMemoryClientBuilder builder = default!;
+        IInMemoryClientBuilder builder = null!;
         Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> action =
             (_, x, _) =>
             {
@@ -236,7 +236,7 @@ public class InMemoryClientBuilderExtensionsTests
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>()
             .Get("foo")
             .InMemoryClientActions
-            .Single()(stubClient, default);
+            .Single()(stubClient, CancellationToken.None);
 
         Assert.Equal("Bar", stubClient.SchemaName);
     }
@@ -245,7 +245,7 @@ public class InMemoryClientBuilderExtensionsTests
     public void ConfigureRequestInterceptorInstance_NoServices_ThrowException()
     {
         // arrange
-        IInMemoryClientBuilder builder = default!;
+        IInMemoryClientBuilder builder = null!;
         IInMemoryRequestInterceptor interceptor = new StubInterceptor();
 
         // act
@@ -293,7 +293,7 @@ public class InMemoryClientBuilderExtensionsTests
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>()
             .Get("foo")
             .InMemoryClientActions
-            .Single()(stubClient, default);
+            .Single()(stubClient, CancellationToken.None);
 
         Assert.Equal(interceptor, stubClient.RequestInterceptors.FirstOrDefault());
     }
@@ -302,7 +302,7 @@ public class InMemoryClientBuilderExtensionsTests
     public void ConfigureRequestInterceptorGeneric_NoServices_ThrowException()
     {
         // arrange
-        IInMemoryClientBuilder builder = default!;
+        IInMemoryClientBuilder builder = null!;
 
         // act
         var ex =
@@ -333,7 +333,7 @@ public class InMemoryClientBuilderExtensionsTests
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>()
             .Get("foo")
             .InMemoryClientActions
-            .Single()(stubClient, default);
+            .Single()(stubClient, CancellationToken.None);
 
         Assert.Equal(interceptor, stubClient.RequestInterceptors.FirstOrDefault());
     }
@@ -343,7 +343,7 @@ public class InMemoryClientBuilderExtensionsTests
     {
         // arrange
         IInMemoryRequestInterceptor interceptor = new StubInterceptor();
-        IInMemoryClientBuilder builder = default!;
+        IInMemoryClientBuilder builder = null!;
         Func<IServiceProvider, IInMemoryRequestInterceptor> factory = provider => interceptor;
 
         // act
@@ -391,7 +391,7 @@ public class InMemoryClientBuilderExtensionsTests
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>()
             .Get("foo")
             .InMemoryClientActions
-            .Single()(stubClient, default);
+            .Single()(stubClient, CancellationToken.None);
 
         Assert.Equal(interceptor, stubClient.RequestInterceptors.FirstOrDefault());
     }

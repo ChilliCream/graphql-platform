@@ -10,17 +10,10 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableSchemaDefinition
     : INamedTypeSystemMemberDefinition<MutableSchemaDefinition>
-        , ISchemaDefinition
-        , IFeatureProvider
+    , ISchemaDefinition
+    , IFeatureProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
-    private MutableObjectTypeDefinition? _queryType;
-    private MutableObjectTypeDefinition? _mutationType;
-    private MutableObjectTypeDefinition? _subscriptionType;
-    private TypeDefinitionCollection? _typeDefinitions;
-    private DirectiveDefinitionCollection? _directiveDefinitions;
-    private DirectiveCollection? _directives;
-    private IFeatureCollection? _features;
 
     /// <inheritdoc />
     public string Name { get; set; } = "default";
@@ -33,10 +26,10 @@ public class MutableSchemaDefinition
     /// </summary>
     public MutableObjectTypeDefinition? QueryType
     {
-        get => _queryType;
+        get;
         set
         {
-            _queryType = value;
+            field = value;
 
             if (value is not null && !Types.Contains(value))
             {
@@ -53,10 +46,10 @@ public class MutableSchemaDefinition
     /// </summary>
     public MutableObjectTypeDefinition? MutationType
     {
-        get => _mutationType;
+        get;
         set
         {
-            _mutationType = value;
+            field = value;
 
             if (value is not null && !Types.Contains(value))
             {
@@ -72,10 +65,10 @@ public class MutableSchemaDefinition
     /// </summary>
     public MutableObjectTypeDefinition? SubscriptionType
     {
-        get => _subscriptionType;
+        get;
         set
         {
-            _subscriptionType = value;
+            field = value;
 
             if (value is not null && !Types.Contains(value))
             {
@@ -89,30 +82,34 @@ public class MutableSchemaDefinition
     /// <summary>
     /// Gets the types that are defined in this schema.
     /// </summary>
+    [field: AllowNull, MaybeNull]
     public TypeDefinitionCollection Types
-        => _typeDefinitions ??= new TypeDefinitionCollection(_allDefinitionCoordinates);
+        => field ??= new TypeDefinitionCollection(_allDefinitionCoordinates);
 
     IReadOnlyTypeDefinitionCollection ISchemaDefinition.Types => Types;
 
     /// <summary>
     /// Gets the directives that are defined in this schema.
     /// </summary>
+    [field: AllowNull, MaybeNull]
     public DirectiveDefinitionCollection DirectiveDefinitions
-        => _directiveDefinitions ??= new DirectiveDefinitionCollection(_allDefinitionCoordinates);
+        => field ??= new DirectiveDefinitionCollection(_allDefinitionCoordinates);
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions => DirectiveDefinitions;
 
     /// <summary>
     /// Gets the directives that are annotated to this schema.
     /// </summary>
+    [field: AllowNull, MaybeNull]
     public DirectiveCollection Directives
-        => _directives ??= [];
+        => field ??= [];
 
-    IReadOnlyDirectiveCollection ISchemaDefinition.Directives => Directives;
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <inheritdoc />
+    [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
-        => _features ??= new FeatureCollection();
+        => field ??= new FeatureCollection();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
@@ -238,9 +235,9 @@ public class MutableSchemaDefinition
         return false;
     }
 
-    public MutableObjectTypeDefinition GetOperationType(OperationType operationType)
+    public MutableObjectTypeDefinition GetOperationType(OperationType operation)
     {
-        return operationType switch
+        return operation switch
         {
             OperationType.Query => QueryType ?? throw new InvalidOperationException(),
             OperationType.Mutation => MutationType ?? throw new InvalidOperationException(),
@@ -249,8 +246,36 @@ public class MutableSchemaDefinition
         };
     }
 
-    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operationType)
-        => GetOperationType(operationType);
+    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operation)
+        => GetOperationType(operation);
+
+    public bool TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out MutableObjectTypeDefinition? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
+
+    bool ISchemaDefinition.TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out IObjectTypeDefinition? type)
+    {
+        type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
+    }
 
     public IEnumerable<MutableObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType)
     {
@@ -362,5 +387,5 @@ public class MutableSchemaDefinition
     /// <returns>
     /// Returns a new schema definition.
     /// </returns>
-    public static MutableSchemaDefinition Create(string name) => new() { Name = name, };
+    public static MutableSchemaDefinition Create(string name) => new() { Name = name };
 }

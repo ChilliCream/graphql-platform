@@ -512,7 +512,7 @@ public class CodeFirstAuthorizationTests
                 .Type<PersonType>();
 
             descriptor
-                .Field(t => t.GetCityOrStreet(default))
+                .Field(t => t.GetCityOrStreet(false))
                 .Type<CityOrStreetType>();
 
             descriptor

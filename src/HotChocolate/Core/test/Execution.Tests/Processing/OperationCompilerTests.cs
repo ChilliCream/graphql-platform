@@ -712,16 +712,17 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"{
+            """
+            {
                 root {
                     bar {
                         text
                     }
                 }
-            }");
+            }
+            """);
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
         var compiler = new OperationCompiler(new InputParser());
@@ -1475,7 +1476,7 @@ public class OperationCompilerTests
     {
         public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
         {
-            if (context.Path is { Name: "bar", })
+            if (context.Path is { Name: "bar" })
             {
                 var baz = context.Type.Fields["baz"];
                 var bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");
@@ -1523,5 +1524,4 @@ public class OperationCompilerTests
     {
         public string Name => "Name";
     }
-
 }

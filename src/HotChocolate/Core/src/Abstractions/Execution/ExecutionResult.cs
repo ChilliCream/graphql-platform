@@ -28,10 +28,7 @@ public abstract class ExecutionResult : IExecutionResult
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)
     {
-        if (clean is null)
-        {
-            throw new ArgumentNullException(nameof(clean));
-        }
+        ArgumentNullException.ThrowIfNull(clean);
 
         var length = _cleanupTasks.Length;
         Array.Resize(ref _cleanupTasks, length + 1);
@@ -43,10 +40,7 @@ public abstract class ExecutionResult : IExecutionResult
     /// </summary>
     protected void EnsureNotDisposed()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(ResponseStream));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 
     /// <inheritdoc cref="IAsyncDisposable"/>

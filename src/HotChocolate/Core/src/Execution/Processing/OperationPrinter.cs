@@ -22,7 +22,7 @@ internal static class OperationPrinter
                 var includeCondition = operation.IncludeConditions[i];
                 long flag = 2 ^ i;
 
-                var arguments = new List<ArgumentNode> { new("flag", new IntValueNode(flag)), };
+                var arguments = new List<ArgumentNode> { new("flag", new IntValueNode(flag)) };
 
                 if (includeCondition.Skip is BooleanValueNode)
                 {
@@ -76,7 +76,7 @@ internal static class OperationPrinter
                 if (context.GetOrCreateFragmentName(fragment.SelectionSet.Id, out var fragmentName))
                 {
                     var index = context.Definitions.Count;
-                    context.Definitions.Add(default!);
+                    context.Definitions.Add(null!);
 
                     context.Definitions[index] =
                         new FragmentDefinitionNode(
@@ -92,7 +92,7 @@ internal static class OperationPrinter
                     new FragmentSpreadNode(
                         null,
                         new(fragmentName),
-                        new[] { new DirectiveNode("defer"), }));
+                        new[] { new DirectiveNode("defer") }));
             }
         }
 
@@ -230,7 +230,7 @@ internal static class OperationPrinter
         private sealed class GlobalState
         {
             public int FragmentId;
-            public readonly Dictionary<int, string> FragmentNames = new();
+            public readonly Dictionary<int, string> FragmentNames = [];
         }
     }
 }

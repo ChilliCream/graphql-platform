@@ -26,7 +26,7 @@ namespace HotChocolate.Diagnostics;
 public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
-    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = new();
+    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = [];
 
     /// <summary>
     /// Initializes a new instance of <see cref="ActivityEnricher"/>.
@@ -78,7 +78,7 @@ public class ActivityEnricher
         if (!(context.Items.TryGetValue(SchemaName, out var value) &&
             value is string schemaName))
         {
-            schemaName = Schema.DefaultName;
+            schemaName = ISchemaDefinition.DefaultName;
             isDefault = true;
         }
 
@@ -595,7 +595,7 @@ public class ActivityEnricher
         var tags = new ActivityTagsCollection
         {
             new(AttributeExceptionMessage, error.Message),
-            new(AttributeExceptionType, error.Code ?? "GRAPHQL_ERROR"),
+            new(AttributeExceptionType, error.Code ?? "GRAPHQL_ERROR")
         };
 
         if (error.Path is not null)
@@ -615,7 +615,7 @@ public class ActivityEnricher
     private static ISyntaxNode CreateVariablesNode(
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
     {
-        if (variableSet is null or { Count: 0, })
+        if (variableSet is null or { Count: 0 })
         {
             return NullValueNode.Default;
         }

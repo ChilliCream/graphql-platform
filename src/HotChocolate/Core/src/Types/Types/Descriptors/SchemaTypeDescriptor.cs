@@ -1,5 +1,5 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors;
@@ -11,10 +11,7 @@ public class SchemaTypeDescriptor
     protected SchemaTypeDescriptor(IDescriptorContext context, Type type)
         : base(context)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
         Configuration.Name = context.Naming.GetTypeName(type);
     }
 

@@ -11,6 +11,7 @@ using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
@@ -27,10 +28,7 @@ public static class RequestExecutorServiceCollectionExtensions
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddGraphQLCore(this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddOptions();
 
@@ -67,7 +65,8 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddDeferredWorkStatePool()
-            .TryAddOperationCompilerPool();
+            .TryAddOperationCompilerPool()
+            .TryAddSingleton<ObjectPool<DocumentValidatorContext>>(new DocumentValidatorContextPool());
 
         // global executor services
         services
@@ -110,22 +109,19 @@ public static class RequestExecutorServiceCollectionExtensions
     /// The <see cref="IServiceCollection"/>.
     /// </param>
     /// <param name="schemaName">
-    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// The logical name of the <see cref="ISchemaDefinition"/> to configure.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IServiceCollection services,
-        string? schemaName = default)
+        string? schemaName = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddGraphQLCore();
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(services, schemaName);
     }
 
@@ -137,31 +133,26 @@ public static class RequestExecutorServiceCollectionExtensions
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="schemaName">
-    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// The logical name of the <see cref="ISchemaDefinition"/> to configure.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default)
+        string? schemaName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(builder.Services, schemaName);
     }
 
-    private static IRequestExecutorBuilder CreateBuilder(
+    private static DefaultRequestExecutorBuilder CreateBuilder(
         IServiceCollection services,
         string schemaName)
     {
         var builder = new DefaultRequestExecutorBuilder(services, schemaName);
-
-        builder.Services.AddValidation(schemaName);
 
         builder.TryAddNoOpTransactionScopeHandler();
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();

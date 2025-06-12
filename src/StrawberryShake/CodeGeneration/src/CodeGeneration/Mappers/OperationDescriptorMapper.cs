@@ -105,7 +105,7 @@ public static class OperationDescriptorMapper
                 Rewrite(nnt.InnerType(), namedTypeDescriptor)),
             ListType lt => new ListTypeDescriptor(
                 Rewrite(lt.InnerType(), namedTypeDescriptor)),
-            INamedType => namedTypeDescriptor,
-            _ => throw new InvalidOperationException(),
+            ITypeDefinition => namedTypeDescriptor,
+            _ => throw new InvalidOperationException()
         };
 }

@@ -44,7 +44,7 @@ internal sealed class QueryCacheMiddleware
             var contextData =
                 operationResult.ContextData is not null
                     ? new ExtensionData(operationResult.ContextData)
-                    : new ExtensionData();
+                    : [];
 
             contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
 

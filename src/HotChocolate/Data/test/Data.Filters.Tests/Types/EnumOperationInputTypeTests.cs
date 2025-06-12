@@ -62,6 +62,6 @@ public class EnumOperationInputTests
     public enum FooBar
     {
         Foo,
-        Bar,
+        Bar
     }
 }

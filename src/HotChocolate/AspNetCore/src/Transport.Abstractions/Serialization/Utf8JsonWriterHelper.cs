@@ -505,7 +505,7 @@ internal static class Utf8JsonWriterHelper
         FilePath path,
         ref Dictionary<FileReference, FilePath[]>? files)
     {
-        files ??= new Dictionary<FileReference, FilePath[]>();
+        files ??= [];
 
         if (files.TryGetValue(file, out var list))
         {
@@ -514,7 +514,7 @@ internal static class Utf8JsonWriterHelper
         }
         else
         {
-            list = [path,];
+            list = [path];
             files.Add(file, list);
         }
     }

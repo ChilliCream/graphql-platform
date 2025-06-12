@@ -23,15 +23,8 @@ public static class HotChocolateAzureBlobStoragePersistedOperationsRequestExecut
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, BlobContainerClient> containerClientFactory)
     {
-        if(builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if(containerClientFactory is null)
-        {
-            throw new ArgumentNullException(nameof(containerClientFactory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(containerClientFactory);
 
         return builder.ConfigureSchemaServices(
             s => s.AddAzureBlobStorageOperationDocumentStorage(

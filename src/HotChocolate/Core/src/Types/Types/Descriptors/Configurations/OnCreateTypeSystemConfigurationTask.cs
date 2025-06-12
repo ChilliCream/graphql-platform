@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class OnCreateTypeSystemConfigurationTask : ITypeSystemConfigurationTask
 {
@@ -29,10 +29,7 @@ public sealed class OnCreateTypeSystemConfigurationTask : ITypeSystemConfigurati
 
     public ITypeSystemConfigurationTask Copy(TypeSystemConfiguration newOwner)
     {
-        if (newOwner is null)
-        {
-            throw new ArgumentNullException(nameof(newOwner));
-        }
+        ArgumentNullException.ThrowIfNull(newOwner);
 
         return new OnCreateTypeSystemConfigurationTask(_configure, newOwner);
     }

@@ -29,19 +29,6 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
 {
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that defines the name of the argument for sorting
-    /// </summary>
-    public const string ContextArgumentNameKey = "SortArgumentName";
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that holds the delegate which does the visitation of the sorting argument.
-    /// <see cref="VisitSortArgument"/>
-    /// </summary>
-    public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the sorting to input
     /// <see cref="ApplySorting"/>
     /// </summary>
@@ -98,7 +85,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, })
+        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory })
         {
             return inMemory;
         }
@@ -124,10 +111,9 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             return visitorContext;
         }
 
-        var contextData = descriptor.Extend().Configuration.ContextData;
-        var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
-        contextData[ContextVisitSortArgumentKey] = argumentKey;
-        contextData[ContextArgumentNameKey] = argumentName;
+        var configuration = descriptor.Extend().Configuration;
+        var feature = new SortingFeature(argumentName, VisitSortArgumentExecutor);
+        configuration.Features.Set(feature);
     }
 
     /// <inheritdoc />
@@ -169,7 +155,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             IQueryable<TEntityType> q => sort(q),
             IEnumerable<TEntityType> q => sort(q.AsQueryable()),
             IQueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
-            _ => input,
+            _ => input
         };
 
     private object? ApplyPostActionToResult<TEntityType>(
@@ -181,7 +167,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             IQueryable<TEntityType> q => postAction(sortingApplied, q),
             IEnumerable<TEntityType> q => postAction(sortingApplied, q.AsQueryable()),
             IQueryableExecutable<TEntityType> q => q.WithSource(postAction(sortingApplied, q.Source)),
-            _ => input,
+            _ => input
         };
 
     private ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)
@@ -206,15 +192,14 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             }
 
             var sortingIsDefined = false;
-            if (argument.Type is ListType lt &&
-                lt.ElementType is NonNullType nn &&
-                nn.NamedType() is ISortInputType sortInput &&
-                context.Selection.Field.ContextData.TryGetValue(ContextVisitSortArgumentKey, out var executorObj) &&
-                executorObj is VisitSortArgument executor)
+            if (argument.Type is ListType lt
+                && lt.ElementType is NonNullType nn
+                && nn.NamedType() is ISortInputType sortInput
+                && context.Selection.Field.Features.TryGet(out SortingFeature? feature))
             {
                 var inMemory = IsInMemoryQuery<TEntityType>(input);
 
-                var visitorContext = executor(sort, sortInput, inMemory);
+                var visitorContext = feature.ArgumentVisitor.Invoke(sort, sortInput, inMemory);
 
                 // compile expression tree
                 if (visitorContext.Errors.Count == 0)

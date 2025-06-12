@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
@@ -11,7 +11,7 @@ public class FilterField
     , IFilterField
 {
     internal FilterField(FilterFieldConfiguration configuration)
-        : this(configuration, default)
+        : this(configuration, 0)
     {
     }
 

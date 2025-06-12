@@ -56,7 +56,7 @@ public sealed partial class OperationCompiler
 
     private ArgumentValue CreateArgumentValue(
         string responseName,
-        IInputField argument,
+        Argument argument,
         ArgumentNode? argumentValue,
         IValueNode value,
         bool isDefaultValue)
@@ -70,7 +70,7 @@ public sealed partial class OperationCompiler
         if (argumentValue is not null && validationResult.HasErrors)
         {
             return new ArgumentValue(
-                argument,
+                (IInputValueInfo)argument,
                 ErrorHelper.ArgumentNonNullError(
                     argumentValue,
                     responseName,
@@ -82,7 +82,7 @@ public sealed partial class OperationCompiler
             try
             {
                 return new ArgumentValue(
-                    argument,
+                    (IInputValueInfo)argument,
                     value.GetValueKind(),
                     true,
                     isDefaultValue,
@@ -94,18 +94,18 @@ public sealed partial class OperationCompiler
                 if (argumentValue is not null)
                 {
                     return new ArgumentValue(
-                        argument,
+                        (IInputValueInfo)argument,
                         ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
                 }
 
                 return new ArgumentValue(
-                    argument,
+                    (IInputValueInfo)argument,
                     ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
             }
         }
 
         return new ArgumentValue(
-            argument,
+            (IInputValueInfo)argument,
             value.GetValueKind(),
             false,
             isDefaultValue,
@@ -137,13 +137,13 @@ public sealed partial class OperationCompiler
     }
 
     internal static FieldDelegate CreateFieldPipeline(
-        ISchema schema,
-        IObjectField field,
+        Schema schema,
+        ObjectField field,
         FieldNode selection,
         HashSet<string> processed,
         List<FieldMiddleware> pipelineComponents)
     {
-        var pipeline = field.Middleware;
+        var pipeline = ((ObjectField)field).Middleware;
 
         if (selection.Directives.Count == 0)
         {
@@ -176,8 +176,8 @@ public sealed partial class OperationCompiler
     }
 
     private static PureFieldDelegate? TryCreatePureField(
-        ISchema schema,
-        IObjectField field,
+        Schema schema,
+        ObjectField field,
         FieldNode selection)
     {
         if (field.PureResolver is not null && selection.Directives.Count == 0)
@@ -187,7 +187,7 @@ public sealed partial class OperationCompiler
 
         for (var i = 0; i < selection.Directives.Count; i++)
         {
-            if (schema.TryGetDirectiveType(selection.Directives[i].Name.Value, out var type) &&
+            if (schema.DirectiveTypes.TryGetDirective(selection.Directives[i].Name.Value, out var type) &&
                 type.Middleware is not null)
             {
                 return null;
@@ -198,7 +198,7 @@ public sealed partial class OperationCompiler
     }
 
     private static void BuildDirectivePipeline(
-        ISchema schema,
+        Schema schema,
         FieldNode selection,
         HashSet<string> processed,
         List<FieldMiddleware> pipelineComponents)
@@ -206,7 +206,7 @@ public sealed partial class OperationCompiler
         for (var i = 0; i < selection.Directives.Count; i++)
         {
             var directiveNode = selection.Directives[i];
-            if (schema.TryGetDirectiveType(directiveNode.Name.Value, out var directiveType)
+            if (schema.DirectiveTypes.TryGetDirective(directiveNode.Name.Value, out var directiveType)
                 && directiveType.Middleware is not null
                 && (directiveType.IsRepeatable || processed.Add(directiveType.Name)))
             {
@@ -221,4 +221,7 @@ public sealed partial class OperationCompiler
     }
 }
 
-internal delegate FieldDelegate CreateFieldPipeline(ISchema schema, IObjectField field, FieldNode selection);
+internal delegate FieldDelegate CreateFieldPipeline(
+    Schema schema,
+    ObjectField field,
+    FieldNode selection);

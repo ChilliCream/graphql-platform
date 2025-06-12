@@ -6,7 +6,7 @@ namespace StrawberryShake.Serialization;
 /// </summary>
 public class SerializerResolver : ISerializerResolver
 {
-    private readonly Dictionary<string, ISerializer> _serializers = new();
+    private readonly Dictionary<string, ISerializer> _serializers = [];
 
     /// <summary>
     /// Initializes a new <see cref="SerializerResolver"/>
@@ -19,10 +19,7 @@ public class SerializerResolver : ISerializerResolver
     /// </exception>
     public SerializerResolver(IEnumerable<ISerializer> serializers)
     {
-        if (serializers is null)
-        {
-            throw new ArgumentNullException(nameof(serializers));
-        }
+        ArgumentNullException.ThrowIfNull(serializers);
 
         foreach (var serializer in serializers)
         {
@@ -53,10 +50,7 @@ public class SerializerResolver : ISerializerResolver
     public ILeafValueParser<TSerialized, TRuntime> GetLeafValueParser<TSerialized, TRuntime>(
         string typeName)
     {
-        if (typeName is null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentNullException.ThrowIfNull(typeName);
 
         if (_serializers.TryGetValue(typeName, out var serializer) &&
             serializer is ILeafValueParser<TSerialized, TRuntime> parser)
@@ -80,10 +74,7 @@ public class SerializerResolver : ISerializerResolver
     /// </exception>
     public IInputValueFormatter GetInputValueFormatter(string typeName)
     {
-        if (typeName is null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentNullException.ThrowIfNull(typeName);
 
         if (_serializers.TryGetValue(typeName, out var serializer) &&
             serializer is IInputValueFormatter formatter)

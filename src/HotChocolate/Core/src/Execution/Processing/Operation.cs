@@ -20,7 +20,7 @@ internal sealed class Operation : IOperation
         DocumentNode document,
         OperationDefinitionNode definition,
         ObjectType rootType,
-        ISchema schema)
+        ISchemaDefinition schema)
     {
         Id = id;
         Document = document;
@@ -47,7 +47,7 @@ internal sealed class Operation : IOperation
 
     public OperationType Type { get; }
 
-    public ISelectionSet RootSelectionSet { get; private set; } = default!;
+    public ISelectionSet RootSelectionSet { get; private set; } = null!;
 
     public IReadOnlyList<ISelectionVariants> SelectionVariants
         => _selectionVariants;
@@ -59,19 +59,12 @@ internal sealed class Operation : IOperation
 
     public IReadOnlyDictionary<string, object?> ContextData => _contextData;
 
-    public ISchema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
-    public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
+    public ISelectionSet GetSelectionSet(ISelection selection, ObjectType typeContext)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 
@@ -83,12 +76,9 @@ internal sealed class Operation : IOperation
         return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);
     }
 
-    public IEnumerable<IObjectType> GetPossibleTypes(ISelection selection)
+    public IEnumerable<ObjectType> GetPossibleTypes(ISelection selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 

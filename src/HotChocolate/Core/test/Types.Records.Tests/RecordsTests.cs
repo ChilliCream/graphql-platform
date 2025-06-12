@@ -80,7 +80,7 @@ public class RecordsTests
 
     public record DefaultValueTest([property: ID] int Id, string Name = "ShouldBeDefaultValue");
 
-    public record Foo(int Bar, int? Baz = 84, DateTimeOffset Qux = default, int[]? Quux = default) {
+    public record Foo(int Bar, int? Baz = 84, DateTimeOffset Qux = default, int[]? Quux = null) {
         public int[] Quux { get; init; } = Quux ?? [1];
     }
 }

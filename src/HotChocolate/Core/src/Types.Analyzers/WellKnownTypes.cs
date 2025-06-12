@@ -90,7 +90,7 @@ public static class WellKnownTypes
     public const string IInterfaceTypeDescriptor = "HotChocolate.Types.IInterfaceTypeDescriptor";
     public const string TypeReference = "HotChocolate.Types.Descriptors.TypeReference";
     public const string IDescriptorContext = "HotChocolate.Types.Descriptors.IDescriptorContext";
-    public const string ObjectTypeDefinition = "HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition";
+    public const string ObjectTypeDefinition = "HotChocolate.Types.Descriptors.Configurations.ObjectTypeDefinition";
     public const string NonNullType = "HotChocolate.Types.NonNullType";
     public const string ListType = "HotChocolate.Types.ListType";
     public const string ConnectionFlags = "HotChocolate.Types.Pagination.ConnectionFlags";
@@ -103,7 +103,7 @@ public static class WellKnownTypes
         UnionType,
         InputObjectType,
         EnumType,
-        ScalarType,
+        ScalarType
     ];
 
     public static HashSet<string> TypeExtensionClass { get; } =
@@ -112,12 +112,11 @@ public static class WellKnownTypes
         InterfaceTypeExtension,
         UnionTypeExtension,
         InputObjectTypeExtension,
-        EnumTypeExtension,
+        EnumTypeExtension
     ];
 
     public static HashSet<string> SupportedListInterfaces { get; } =
-        new()
-        {
+        [
             "System.Collections.Generic.IReadOnlyCollection<>",
             "System.Collections.Generic.IReadOnlyList<>",
             "System.Collections.Generic.ICollection<>",
@@ -139,7 +138,7 @@ public static class WellKnownTypes
             "System.Collections.Immutable.ImmutableHashSet<>",
             "HotChocolate.Execution.ISourceStream<>",
             "HotChocolate.IExecutable<>"
-        };
+        ];
 
     public static HashSet<string> TaskWrapper { get; } =
         [

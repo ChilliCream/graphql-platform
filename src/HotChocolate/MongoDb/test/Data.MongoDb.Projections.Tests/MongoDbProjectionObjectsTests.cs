@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb.Projections;
 
 public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixture<MongoResource>
 {
-    private static readonly BarNullable[] _barWithoutRelation =
+    private static readonly BarNullable[] s_barWithoutRelation =
     [
         new BarNullable(
             number: 2,
@@ -19,22 +19,22 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                 {
                     Foo = new FooDeep
                     {
-                        BarString = "Foo",
-                    },
-                },
+                        BarString = "Foo"
+                    }
+                }
             }),
         new BarNullable
         {
             Number = 2, Foo = new FooNullable
             {
                 BarEnum = BarEnum.FOO,
-                BarShort = 14,
-            },
+                BarShort = 14
+            }
         },
         new BarNullable
         {
-            Number = 2,
-        },
+            Number = 2
+        }
     ];
 
     private readonly SchemaCache _cache = new(resource);
@@ -43,7 +43,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -69,7 +69,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -96,7 +96,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -138,9 +138,9 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
 
         public bool BarBool { get; set; }
 
-        public List<BarDeep> ObjectArray { get; set; } = default!;
+        public List<BarDeep> ObjectArray { get; set; } = null!;
 
-        public BarDeep NestedObject { get; set; } = default!;
+        public BarDeep NestedObject { get; set; } = null!;
     }
 
     public class FooDeep
@@ -179,7 +179,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
 
         public int Number { get; set; }
     }
@@ -190,7 +190,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullableDeep
@@ -228,6 +228,6 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

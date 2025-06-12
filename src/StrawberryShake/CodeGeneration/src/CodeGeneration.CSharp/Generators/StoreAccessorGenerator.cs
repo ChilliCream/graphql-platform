@@ -5,11 +5,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class StoreAccessorGenerator : CodeGenerator<StoreAccessorDescriptor>
 {
-    private const string _operationStore = "operationStore";
-    private const string _entityStore = "entityStore";
-    private const string _entityIdSerializer = "entityIdSerializer";
-    private const string _requestFactories = "requestFactories";
-    private const string _resultDataFactories = "resultDataFactories";
+    private const string OperationStore = "operationStore";
+    private const string EntityStore = "entityStore";
+    private const string EntityIdSerializer = "entityIdSerializer";
+    private const string RequestFactories = "requestFactories";
+    private const string ResultDataFactories = "resultDataFactories";
 
     protected override bool CanHandle(
         StoreAccessorDescriptor descriptor,
@@ -39,22 +39,22 @@ public class StoreAccessorGenerator : CodeGenerator<StoreAccessorDescriptor>
             .AddConstructor()
             .SetTypeName(fileName)
             .SetPublic()
-            .AddParameter(_operationStore, x => x.SetType(TypeNames.IOperationStore))
-            .AddParameter(_entityStore, x => x.SetType(TypeNames.IEntityStore))
-            .AddParameter(_entityIdSerializer, x => x.SetType(TypeNames.IEntityIdSerializer))
+            .AddParameter(OperationStore, x => x.SetType(TypeNames.IOperationStore))
+            .AddParameter(EntityStore, x => x.SetType(TypeNames.IEntityStore))
+            .AddParameter(EntityIdSerializer, x => x.SetType(TypeNames.IEntityIdSerializer))
             .AddParameter(
-                _requestFactories,
+                RequestFactories,
                 x => x.SetType(
                     TypeNames.IEnumerable.WithGeneric(TypeNames.IOperationRequestFactory)))
             .AddParameter(
-                _resultDataFactories,
+                ResultDataFactories,
                 x => x.SetType(
                     TypeNames.IEnumerable.WithGeneric(TypeNames.IOperationResultDataFactory)))
-            .AddBase(_operationStore)
-            .AddBase(_entityStore)
-            .AddBase(_entityIdSerializer)
-            .AddBase(_requestFactories)
-            .AddBase(_resultDataFactories);
+            .AddBase(OperationStore)
+            .AddBase(EntityStore)
+            .AddBase(EntityIdSerializer)
+            .AddBase(RequestFactories)
+            .AddBase(ResultDataFactories);
 
         factory.Build(writer);
     }

@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
@@ -34,8 +34,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
 
                         if (namedType is ScalarType scalarType)
                         {
-                            JsonObjectTypeExtensions.InferResolver(
-                                ctx.Type, def, scalarType, propertyName);
+                            JsonObjectTypeExtensions.InferResolver(ctx.Type, def, scalarType, propertyName);
                             return;
                         }
 
@@ -57,7 +56,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
         {
             var argument = directive.Arguments[0];
             if (argument.Name.Value.EqualsOrdinal("name") &&
-                argument.Value is StringValueNode { Value: { Length: > 0, } name, })
+                argument.Value is StringValueNode { Value: { Length: > 0 } name })
             {
                 return name;
             }

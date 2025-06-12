@@ -164,7 +164,7 @@ public class FilterContextTests
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("in", operation.Field.Name);
-        var value = Assert.IsType<FilterValue>(operation.Value!).Value as IEnumerable<string>;
+        var value = Assert.IsType<FilterValue>(operation.Value).Value as IEnumerable<string>;
         Assert.Equal("a", value!.FirstOrDefault());
         Assert.Equal("b", value!.LastOrDefault());
     }

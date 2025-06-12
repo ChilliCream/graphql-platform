@@ -29,7 +29,7 @@ public class UseDbContextTests
 
         await using var scope = services.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-        await context.Authors.AddAsync(new Author { Name = "foo", });
+        await context.Authors.AddAsync(new Author { Name = "foo" });
         await context.SaveChangesAsync();
 
         // act
@@ -63,7 +63,7 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -98,7 +98,7 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -133,8 +133,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -183,8 +183,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -231,8 +231,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -279,8 +279,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -329,8 +329,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -376,8 +376,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -423,8 +423,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -472,7 +472,7 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -501,7 +501,7 @@ public class UseDbContextTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -522,7 +522,7 @@ public class UseDbContextTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -543,7 +543,7 @@ public class UseDbContextTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -598,8 +598,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -646,8 +646,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -694,8 +694,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -744,8 +744,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -792,8 +792,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -839,8 +839,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -886,8 +886,8 @@ public class UseDbContextTests
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 

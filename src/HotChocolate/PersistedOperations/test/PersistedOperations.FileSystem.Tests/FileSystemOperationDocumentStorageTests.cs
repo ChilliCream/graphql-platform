@@ -119,7 +119,7 @@ public class FileSystemOperationDocumentStorageTests
 
             // assert
             Assert.NotNull(document);
-            Assert.IsType<OperationDocument>(document).Document!.ToString().MatchSnapshot();
+            Assert.IsType<OperationDocument>(document).Document.ToString().MatchSnapshot();
         }
         finally
         {

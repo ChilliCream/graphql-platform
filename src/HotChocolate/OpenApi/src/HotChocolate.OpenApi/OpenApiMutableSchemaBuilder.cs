@@ -22,7 +22,7 @@ internal sealed class OpenApiMutableSchemaBuilder
     private const string DateFormat = "yyyy-MM-dd";
     private const string DateTimeFormat = @"yyyy-MM-ddTHH\:mm\:ss.fffzzz";
 
-    private static readonly MutableScalarTypeDefinition _jsonType = new(ScalarNames.JSON);
+    private static readonly MutableScalarTypeDefinition s_jsonType = new(ScalarNames.JSON);
 
     private readonly MutableSchemaDefinition _skimmedSchema = new();
     private readonly Dictionary<string, OpenApiOperationWrapper> _wrappedOperations = [];
@@ -97,7 +97,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             {
                 Description = operation.Description ?? operation.Summary,
                 IsDeprecated = operation.Deprecated,
-                Type = CreateGraphQLTypeFromOpenApiOperation(operationWrapper, operationName),
+                Type = CreateGraphQLTypeFromOpenApiOperation(operationWrapper, operationName)
             };
 
             AddArguments(queryField, operationWrapper);
@@ -143,7 +143,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             {
                 Description = operation.Description ?? operation.Summary,
                 IsDeprecated = operation.Deprecated,
-                Type = CreateMutationFieldType(operationWrapper, operationName),
+                Type = CreateMutationFieldType(operationWrapper, operationName)
             };
 
             AddArguments(mutationField, operationWrapper);
@@ -206,7 +206,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                 {
                     Type = new ListType(
                         new NonNullType(
-                            GetUnionType(nonSuccessTypes, name: errorTypeName))),
+                            GetUnionType(nonSuccessTypes, name: errorTypeName)))
                 };
             payloadErrorsField.Features.Set(new OpenApiFieldMetadata { IsErrorsField = true });
 
@@ -305,7 +305,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                         parameter.Schema.Title ??
                             $"{operationWrapper.OperationId} parameter {parameterName}",
                         isInput: true,
-                        required: parameter.Required),
+                        required: parameter.Required)
                 });
             }
         }
@@ -344,7 +344,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             var inputField = new MutableInputFieldDefinition(inputFieldName)
             {
                 Description = operation.RequestBody.Description,
-                Type = inputType,
+                Type = inputType
             };
 
             outputField.SetInputFieldName(inputFieldName);
@@ -382,7 +382,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             OpenApiFloat f => new FloatValueNode(f.Value),
             OpenApiLong l => new IntValueNode(l.Value),
             OpenApiString s => new StringValueNode(s.Value),
-            _ => null,
+            _ => null
         };
     }
 
@@ -396,7 +396,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             if (response.Content.Count is 0)
             {
                 // If no response content is defined, then use a (schemaless) JSON type.
-                typeMap.Add(httpStatusCode, _jsonType);
+                typeMap.Add(httpStatusCode, s_jsonType);
             }
             else
             {
@@ -459,7 +459,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             case JsonSchemaTypes.String:
                 var scalarType = new MutableScalarTypeDefinition(typeName)
                 {
-                    Description = openApiSchema.Description,
+                    Description = openApiSchema.Description
                 };
 
                 type = scalarType;
@@ -468,7 +468,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             case JsonSchemaTypes.Object when isInput:
                 var inputObjectType = new MutableInputObjectTypeDefinition(typeName)
                 {
-                    Description = openApiSchema.Description,
+                    Description = openApiSchema.Description
                 };
 
                 foreach (var (propertyName, propertySchema) in openApiSchema.Properties)
@@ -489,7 +489,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             case JsonSchemaTypes.Object when !isInput:
                 var objectType = new MutableObjectTypeDefinition(typeName)
                 {
-                    Description = openApiSchema.Description,
+                    Description = openApiSchema.Description
                 };
 
                 foreach (var (propertyName, propertySchema) in openApiSchema.Properties)
@@ -521,7 +521,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         var mergedSchema = new OpenApiSchema(openApiSchema)
         {
             AllOf = [],
-            Type = JsonSchemaTypes.Object,
+            Type = JsonSchemaTypes.Object
         };
 
         foreach (var allOfSchema in openApiSchema.AllOf)
@@ -553,7 +553,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             JsonSchemaTypes.String when openApiSchema.Format is "date" => ScalarNames.Date,
             JsonSchemaTypes.String when openApiSchema.Format is "date-time" => ScalarNames.DateTime,
             JsonSchemaTypes.String => ScalarNames.String,
-            _ => GraphQLNamingHelper.CreateTypeName(openApiSchema.Reference?.Id ?? schemaTitle),
+            _ => GraphQLNamingHelper.CreateTypeName(openApiSchema.Reference?.Id ?? schemaTitle)
         };
     }
 
@@ -571,7 +571,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             Type = CreateGraphQLTypeFromOpenApiSchema(
                 propertySchema,
                 propertySchema.Title ?? $"{schemaTitle} property {propertyName}",
-                required: required),
+                required: required)
         };
 
         field.SetPropertyName(propertyName);
@@ -592,7 +592,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             Type = CreateGraphQLTypeFromOpenApiSchema(
                 propertySchema,
                 propertySchema.Title ?? $"{schemaTitle} property {propertyName}",
-                required: required),
+                required: required)
         };
 
         field.SetPropertyName(propertyName);
@@ -639,7 +639,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                     var linkField = new MutableOutputFieldDefinition(linkName)
                     {
                         Description = openApiLink.Description,
-                        Type = graphQLType,
+                        Type = graphQLType
                     };
 
                     AddResolver(linkField, linkedOperationWrapper);

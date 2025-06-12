@@ -37,7 +37,6 @@ public sealed class DataLoaderModuleInspector : ISyntaxInspector
                 if (fullName.Equals(DataLoaderModuleAttribute, Ordinal) &&
                     attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
                 {
-
                     var nameExpr = attributeSyntax.ArgumentList.Arguments[0].Expression;
                     var name = context.SemanticModel.GetConstantValue(nameExpr).ToString();
                     syntaxInfo = new DataLoaderModuleInfo(

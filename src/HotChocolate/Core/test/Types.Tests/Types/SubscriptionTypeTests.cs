@@ -30,7 +30,7 @@ public class SubscriptionTypeTests : TypeTestBase
                                     .Field("test")
                                     .Type<StringType>()
                                     .Resolve(ctx => ctx.GetEventMessage<string>())
-                                    .Subscribe(_ => new List<string> { "a", "b", "c", }))
+                                    .Subscribe(_ => new List<string> { "a", "b", "c" }))
                             .ModifyOptions(t => t.StrictValidation = false)
                             .BuildRequestExecutorAsync(cancellationToken: ct);
 
@@ -66,7 +66,7 @@ public class SubscriptionTypeTests : TypeTestBase
                                     .Resolve(ctx => ctx.GetEventMessage<string>())
                                     .Subscribe(
                                         _ => Task.FromResult<IEnumerable<string>>(
-                                            new List<string> { "a", "b", "c", })))
+                                            new List<string> { "a", "b", "c" })))
                             .ModifyOptions(t => t.StrictValidation = false)
                             .BuildRequestExecutorAsync(cancellationToken: ct);
 
@@ -696,7 +696,7 @@ public class SubscriptionTypeTests : TypeTestBase
                 {
                     await Task.Delay(250);
 
-                    foreach (var s in new[] { "a", "b", "c", })
+                    foreach (var s in new[] { "a", "b", "c" })
                     {
                         observer.OnNext(s);
                     }
@@ -831,7 +831,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
     public class PureCodeFirstQueryable
     {
-        private readonly List<string> _strings = ["a", "b", "c",];
+        private readonly List<string> _strings = ["a", "b", "c"];
 
         [SubscribeAndResolve]
         public IQueryable<string?> OnSomething() => _strings.AsQueryable();
@@ -1046,7 +1046,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public ISourceStream SubscribeToOnExplicitNonGenericSync(
             [Service] ITopicEventReceiver eventReceiver) =>
-            default!;
+            null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitNonGenericSync))]
         public string OnExplicitNonGenericSync(
@@ -1055,7 +1055,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public ISourceStream<string> SubscribeToOnExplicitSync(
             [Service] ITopicEventReceiver eventReceiver) =>
-            default!;
+            null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
         public string OnExplicitSync(
@@ -1085,7 +1085,6 @@ public class SubscriptionTypeTests : TypeTestBase
             [EventMessage] string message) =>
             message;
     }
-
 
     public class SubscriptionWithDirective
     {

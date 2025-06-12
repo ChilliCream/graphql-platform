@@ -12,13 +12,13 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 
 public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true },
         new() { Bar = false }
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
         new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
@@ -41,7 +41,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
                 var collection =
                     _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
 
-                collection.InsertMany(_fooEntities);
+                collection.InsertMany(s_fooEntities);
                 return collection.AsExecutable();
             });
 
@@ -79,7 +79,7 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
                 var collection =
                     _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
-                collection.InsertMany(_barEntities);
+                collection.InsertMany(s_barEntities);
                 return collection.AsExecutable();
             });
 

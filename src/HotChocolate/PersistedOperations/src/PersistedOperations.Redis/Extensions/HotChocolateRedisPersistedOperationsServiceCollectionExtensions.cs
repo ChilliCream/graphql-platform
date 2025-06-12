@@ -28,15 +28,8 @@ public static class HotChocolateRedisPersistedOperationsServiceCollectionExtensi
         Func<IServiceProvider, IDatabase> databaseFactory,
         TimeSpan? queryExpiration = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (databaseFactory is null)
-        {
-            throw new ArgumentNullException(nameof(databaseFactory));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(databaseFactory);
 
         return services
             .RemoveService<IOperationDocumentStorage>()

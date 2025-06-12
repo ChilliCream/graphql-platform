@@ -13,7 +13,7 @@ public readonly record struct Result<TValue>
     /// <param name="value">The value.</param>
     public Result(TValue value) : this()
     {
-        Error = default;
+        Error = null;
         Value = value;
         Kind = ResultKind.Value;
     }

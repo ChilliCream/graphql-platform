@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -42,10 +43,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// </returns>
     public bool IsIncluded(IVariableValueCollection variables)
     {
-        if (variables is null)
-        {
-            throw new ArgumentNullException(nameof(variables));
-        }
+        ArgumentNullException.ThrowIfNull(variables);
 
         if (Skip is null || Include is null)
         {
@@ -60,7 +58,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
         }
         else if (Skip.Kind is SyntaxKind.Variable)
         {
-            skip = variables.GetVariable<bool>(((VariableNode)Skip).Name.Value);
+            skip = variables.GetVariable<bool>(Unsafe.As<VariableNode>(Skip).Name.Value);
         }
 
         var include = true;
@@ -71,7 +69,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
         }
         else if (Include.Kind is SyntaxKind.Variable)
         {
-            include = variables.GetVariable<bool>(((VariableNode)Include).Name.Value);
+            include = variables.GetVariable<bool>(Unsafe.As<VariableNode>(Include).Name.Value);
         }
 
         return !skip && include;
@@ -96,8 +94,8 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// The object to compare with the current instance.
     /// </param>
     /// <returns>
-    /// <see langword="true" /> if <paramref name="obj" /> and this instance are the same
-    /// type and represent the same value; otherwise, <see langword="false" />.
+    /// <see langword="true" /> if <paramref name="obj" /> and this instance is the same
+    /// type and represents the same value; otherwise, <see langword="false" />.
     /// </returns>
     public override bool Equals(object? obj)
         => obj is IncludeCondition other && Equals(other);
@@ -124,10 +122,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// </returns>
     public static IncludeCondition FromSelection(ISelectionNode selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         IValueNode? skip = null;
         IValueNode? include = null;
@@ -147,12 +142,12 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
                 continue;
             }
 
-            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Skip))
+            if (directive.Name.Value.EqualsOrdinal(DirectiveNames.Skip.Name))
             {
                 skip = directive.Arguments[0].Value;
             }
 
-            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Include))
+            if (directive.Name.Value.EqualsOrdinal(DirectiveNames.Include.Name))
             {
                 include = directive.Arguments[0].Value;
             }

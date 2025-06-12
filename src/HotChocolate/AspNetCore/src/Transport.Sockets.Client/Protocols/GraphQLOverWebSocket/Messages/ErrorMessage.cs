@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
@@ -23,7 +24,7 @@ internal sealed class ErrorMessage : IDataMessage
         // The ArrayWriter is used to copy the message because otherwise the buffer is reused and
         // causes problems. The ArrayWriter is passed to the OperationResult where it's stored as
         // the memory owner and disposed when the OperationResult is disposed.
-        var arrayWriter = new ArrayWriter();
+        var arrayWriter = new PooledArrayWriter();
         arrayWriter.Write(message);
 
         var document = JsonDocument.Parse(arrayWriter.GetWrittenMemory());

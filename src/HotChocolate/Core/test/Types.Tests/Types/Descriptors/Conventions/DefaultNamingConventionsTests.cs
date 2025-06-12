@@ -132,30 +132,18 @@ public class DefaultNamingConventionsTests
     {
         Bar,
 
-        [GraphQLDescription("Baz Desc")] Baz,
+        [GraphQLDescription("Baz Desc")] Baz
     }
 
-    private sealed class MyInputType : InputObjectType
-    {
-    }
+    private sealed class MyInputType : InputObjectType;
 
-    private sealed class MyType : InputObjectType
-    {
-    }
+    private sealed class MyType : InputObjectType;
 
-    private sealed class MyInput : InputObjectType
-    {
-    }
+    private sealed class MyInput : InputObjectType;
 
-    public class YourInputType
-    {
-    }
+    public class YourInputType;
 
-    public class YourInput
-    {
-    }
+    public class YourInput;
 
-    public class Your
-    {
-    }
+    public class Your;
 }

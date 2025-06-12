@@ -12,13 +12,13 @@ namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
-    private static readonly AcceptMediaType[] _mediaTypes =
+    private static readonly AcceptMediaType[] s_mediaTypes =
     [
         new AcceptMediaType(
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
-            default),
+            default)
     ];
 
     private readonly MiddlewareRoutingType _routing;
@@ -102,7 +102,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     TypeNameIsEmpty(),
-                    _mediaTypes,
+                    s_mediaTypes,
                     BadRequest);
                 return;
             }
@@ -117,11 +117,11 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     private async Task WriteTypesAsync(
         HttpContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         string typeNames,
         bool indent)
     {
-        var types = new List<INamedType>();
+        var types = new List<ITypeDefinition>();
 
         foreach (var typeName in typeNames.Split(','))
         {
@@ -132,17 +132,17 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     InvalidTypeName(typeName),
-                    _mediaTypes,
+                    s_mediaTypes,
                     BadRequest);
                 return;
             }
 
-            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out var type))
+            if (!schema.Types.TryGetType<ITypeDefinition>(coordinate.Value.Name, out var type))
             {
                 await WriteResultAsync(
                     context,
                     TypeNotFound(typeName),
-                    _mediaTypes,
+                    s_mediaTypes,
                     NotFound);
                 return;
             }
@@ -164,7 +164,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
             executor.Version,
             context.RequestAborted);
 
-    private string GetTypesFileName(List<INamedType> types)
+    private string GetTypesFileName(List<ITypeDefinition> types)
         => types.Count == 1
             ? $"{types[0].Name}.graphql"
             : "types.graphql";

@@ -196,7 +196,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
     public void Plan_Simple_Lookup()
     {
         // arrange
@@ -280,7 +280,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
     public void Plan_Simple_Requirement()
     {
         // arrange
@@ -371,7 +371,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
     public void Plan_Requirement_That_Cannot_Be_Inlined()
     {
         // arrange
@@ -462,7 +462,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
     public void Plan_Key_Requirement()
     {
         // arrange

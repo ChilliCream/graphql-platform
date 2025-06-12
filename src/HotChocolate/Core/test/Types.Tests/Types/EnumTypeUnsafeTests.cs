@@ -1,7 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -19,8 +19,8 @@ public class EnumTypeUnsafeTests
                 Values =
                 {
                     new("ONE", runtimeValue: "One"),
-                    new("TWO", runtimeValue: "Two"),
-                },
+                    new("TWO", runtimeValue: "Two")
+                }
             });
 
         var queryType = ObjectType.CreateUnsafe(
@@ -28,8 +28,8 @@ public class EnumTypeUnsafeTests
             {
                 Fields =
                 {
-                    new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One"),
-                },
+                    new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One")
+                }
             });
 
         // assert
@@ -51,8 +51,8 @@ public class EnumTypeUnsafeTests
                 Values =
                 {
                     new("ONE", runtimeValue: "One"),
-                    new("TWO", runtimeValue: "Two"),
-                },
+                    new("TWO", runtimeValue: "Two")
+                }
             });
 
         var queryType = ObjectType.CreateUnsafe(
@@ -60,8 +60,8 @@ public class EnumTypeUnsafeTests
             {
                 Fields =
                 {
-                    new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One"),
-                },
+                    new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One")
+                }
             });
 
         // assert

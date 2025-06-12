@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
@@ -7,18 +8,18 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 internal static class MessageUtilities
 {
     public static JsonWriterOptions WriterOptions { get; } =
-        new() { Indented = false, };
+        new() { Indented = false };
 
     public static JsonSerializerOptions SerializerOptions { get; } =
         new(JsonSerializerDefaults.Web);
 
     public static void SerializeMessage(
-        ArrayWriter arrayWriter,
+        PooledArrayWriter pooledArrayWriter,
         ReadOnlySpan<byte> type,
         IReadOnlyDictionary<string, object?>? payload = null,
         string? id = null)
     {
-        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        using var jsonWriter = new Utf8JsonWriter(pooledArrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
 
         if (id is not null)

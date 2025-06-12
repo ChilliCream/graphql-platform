@@ -11,8 +11,8 @@ namespace GreenDonut.Data.Cursors;
 /// </summary>
 public static class CursorParser
 {
-    private const byte _escape = (byte)'\\';
-    private const byte _separator = (byte)':';
+    private const byte Escape = (byte)'\\';
+    private const byte Separator = (byte)':';
 
     /// <summary>
     /// Parses the cursor into its key values.
@@ -34,10 +34,7 @@ public static class CursorParser
     /// </exception>
     public static Cursor Parse(string cursor, ReadOnlySpan<CursorKey> keys)
     {
-        if (cursor == null)
-        {
-            throw new ArgumentNullException(nameof(cursor));
-        }
+        ArgumentNullException.ThrowIfNull(cursor);
 
         if (keys.Length == 0)
         {
@@ -73,7 +70,7 @@ public static class CursorParser
                     throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor));
                 }
 
-                if (code == _separator)
+                if (code == Separator)
                 {
                     end--;
                 }
@@ -91,14 +88,14 @@ public static class CursorParser
 
         static bool CanParse(byte code, int pos, ReadOnlySpan<byte> buffer)
         {
-            if (code == _separator)
+            if (code == Separator)
             {
                 if (pos == 0)
                 {
                     return true;
                 }
 
-                if (buffer[pos - 1] != _escape)
+                if (buffer[pos - 1] != Escape)
                 {
                     return true;
                 }

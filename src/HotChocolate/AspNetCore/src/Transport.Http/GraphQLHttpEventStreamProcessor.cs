@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
@@ -54,8 +55,7 @@ internal static class GraphQLHttpEventStreamProcessor
                 break;
             }
 
-            // ReSharper disable once RedundantArgumentDefaultValue
-            var result = await writer.FlushAsync(default).ConfigureAwait(false);
+            var result = await writer.FlushAsync(CancellationToken.None).ConfigureAwait(false);
             if (result.IsCompleted || result.IsCanceled)
             {
                 break;
@@ -69,7 +69,7 @@ internal static class GraphQLHttpEventStreamProcessor
         PipeReader reader,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        using var message = new ArrayWriter();
+        using var message = new PooledArrayWriter();
 
         await using var tokenRegistration = ct.Register(
             static reader => ((PipeReader)reader!).CancelPendingRead(),
@@ -79,7 +79,7 @@ internal static class GraphQLHttpEventStreamProcessor
         while (true)
         {
             // ReSharper disable once RedundantArgumentDefaultValue
-            var result = await reader.ReadAsync(default).ConfigureAwait(false);
+            var result = await reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);
             if (result.IsCanceled)
             {
                 break;
@@ -125,7 +125,7 @@ internal static class GraphQLHttpEventStreamProcessor
         await reader.CompleteAsync().ConfigureAwait(false);
     }
 
-    private static void WriteToMessage(ArrayWriter message, ReadOnlySequence<byte> buffer)
+    private static void WriteToMessage(PooledArrayWriter message, ReadOnlySequence<byte> buffer)
     {
         if (buffer.IsSingleSegment)
         {
@@ -154,7 +154,7 @@ internal static class GraphQLHttpEventStreamProcessor
         message.Advance(1);
     }
 
-    private static bool IsMessageComplete(ArrayWriter message)
+    private static bool IsMessageComplete(PooledArrayWriter message)
     {
         var length = message.Length;
 
@@ -165,7 +165,7 @@ internal static class GraphQLHttpEventStreamProcessor
 
         if (length == 2)
         {
-            var span = message.GetWrittenSpan().Slice(0, 2);
+            var span = message.GetWrittenSpan()[..2];
 
             if (span[0] == (byte) '\n' && span[1] == (byte) '\n')
             {
@@ -176,7 +176,7 @@ internal static class GraphQLHttpEventStreamProcessor
 
         if (length == 3)
         {
-            var span = message.GetWrittenSpan().Slice(0, 3);
+            var span = message.GetWrittenSpan()[..3];
 
             if (span[0] == (byte) ':' && span[1] == (byte) '\n' && span[2] == (byte) '\n')
             {
@@ -250,9 +250,9 @@ internal static class GraphQLHttpEventStreamProcessor
 
     private static bool ExpectEvent(ref ReadOnlySpan<byte> span)
     {
-        if (span.Slice(0, 6).SequenceEqual(Event))
+        if (span[..6].SequenceEqual(Event))
         {
-            span = span.Slice(6);
+            span = span[6..];
             return true;
         }
 
@@ -263,12 +263,12 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         SkipWhitespaces(ref span);
 
-        if (!span.Slice(0, 5).SequenceEqual(Next))
+        if (!span[..5].SequenceEqual(Next))
         {
             return false;
         }
 
-        span = span.Slice(5);
+        span = span[5..];
 
         return true;
     }
@@ -277,21 +277,21 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         SkipWhitespaces(ref span);
 
-        if (!span.Slice(0, 9).SequenceEqual(Complete))
+        if (!span[..9].SequenceEqual(Complete))
         {
             return false;
         }
 
-        span = span.Slice(9);
+        span = span[9..];
 
         return true;
     }
 
     private static bool ExpectData(ref ReadOnlySpan<byte> span)
     {
-        if (span.Slice(0, 5).SequenceEqual(Data))
+        if (span[..5].SequenceEqual(Data))
         {
-            span = span.Slice(5);
+            span = span[5..];
             return true;
         }
 
@@ -307,8 +307,8 @@ internal static class GraphQLHttpEventStreamProcessor
             throw new InvalidOperationException("Invalid Message Format.");
         }
 
-        var data = span.Slice(0, linebreak);
-        span = span.Slice(linebreak + 1);
+        var data = span[..linebreak];
+        span = span[(linebreak + 1)..];
         return data;
     }
 
@@ -316,13 +316,13 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         while (span.Length > 0 && span[0] == (byte)' ')
         {
-            span = span.Slice(1);
+            span = span[1..];
         }
     }
 
     private enum EventType
     {
         Next,
-        Complete,
+        Complete
     }
 }

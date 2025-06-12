@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Sorting;

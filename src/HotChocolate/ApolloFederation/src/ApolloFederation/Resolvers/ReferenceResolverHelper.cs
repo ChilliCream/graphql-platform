@@ -26,12 +26,14 @@ internal static class ReferenceResolverHelper
         var representation = context.GetLocalStateOrDefault<IValueNode>(DataField)?.ToString() ?? "null";
 
         throw new GraphQLException(
-            new Error(
-                "The entity for the given representation could not be resolved.",
-                extensions: new Dictionary<string, object?>
+            new Error
+            {
+                Message = "The entity for the given representation could not be resolved.",
+                Extensions = new Dictionary<string, object?>
                 {
-                    { nameof(representation), representation },
-                }));
+                    { nameof(representation), representation }
+                }
+            });
     }
 
     public static void TrySetExternal<TValue>(

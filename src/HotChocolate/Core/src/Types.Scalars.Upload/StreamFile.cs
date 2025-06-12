@@ -37,12 +37,7 @@ public class StreamFile : IFile
         long? length = null,
         string? contentType = null)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentException(
-                UploadResources.StreamFile_Constructor_NameCannotBeNullOrEmpty,
-                nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         Name = name;
         _openReadStream = openReadStream ??

@@ -1,7 +1,7 @@
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -35,10 +35,7 @@ internal abstract class DependencyDescriptorBase
 
     protected void DependsOn(IExtendedType schemaType, bool mustBeNamedOrCompleted)
     {
-        if (schemaType is null)
-        {
-            throw new ArgumentNullException(nameof(schemaType));
-        }
+        ArgumentNullException.ThrowIfNull(schemaType);
 
         if (!schemaType.IsSchemaType)
         {
@@ -75,10 +72,7 @@ internal abstract class DependencyDescriptorBase
         TypeReference typeReference,
         bool mustBeNamedOrCompleted)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         var kind = mustBeNamedOrCompleted
             ? DependencyFulfilled

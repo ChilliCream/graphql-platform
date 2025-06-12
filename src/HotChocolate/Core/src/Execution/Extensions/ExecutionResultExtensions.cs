@@ -8,31 +8,24 @@ namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonResultFormatter _formatter = new(new() { Indented = false, });
-    private static readonly JsonResultFormatter _formatterIndented = new(new() { Indented = true, });
+    private static readonly JsonResultFormatter s_formatter = new(new() { Indented = false });
+    private static readonly JsonResultFormatter s_formatterIndented = new(new() { Indented = true });
 
     public static void WriteTo(
         this IOperationResult result,
         IBufferWriter<byte> writer,
         bool withIndentations = true)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (withIndentations)
         {
-            _formatterIndented.Format(result, writer);
+            s_formatterIndented.Format(result, writer);
         }
         else
         {
-            _formatter.Format(result, writer);
+            s_formatter.Format(result, writer);
         }
     }
 
@@ -56,16 +49,13 @@ public static class ExecutionResultExtensions
         this IExecutionResult result,
         bool withIndentations = true)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
         if (result is IOperationResult queryResult)
         {
             return withIndentations
-                ? _formatterIndented.Format(queryResult)
-                : _formatter.Format(queryResult);
+                ? s_formatterIndented.Format(queryResult)
+                : s_formatter.Format(queryResult);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

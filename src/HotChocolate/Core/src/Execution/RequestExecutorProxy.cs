@@ -19,10 +19,7 @@ public sealed class RequestExecutorProxy : IDisposable
 
     public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
     {
-        if (string.IsNullOrEmpty(schemaName))
-        {
-            throw new ArgumentNullException(nameof(schemaName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));
@@ -62,10 +59,7 @@ public sealed class RequestExecutorProxy : IDisposable
         IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         var executor =
             await GetRequestExecutorAsync(cancellationToken)
@@ -95,10 +89,7 @@ public sealed class RequestExecutorProxy : IDisposable
         OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
     {
-        if (requestBatch == null)
-        {
-            throw new ArgumentNullException(nameof(requestBatch));
-        }
+        ArgumentNullException.ThrowIfNull(requestBatch);
 
         var executor =
             await GetRequestExecutorAsync(cancellationToken)
@@ -121,7 +112,7 @@ public sealed class RequestExecutorProxy : IDisposable
     /// <returns>
     /// Returns the resolved schema.
     /// </returns>
-    public async ValueTask<ISchema> GetSchemaAsync(
+    public async ValueTask<Schema> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
         var executor =

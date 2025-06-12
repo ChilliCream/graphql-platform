@@ -84,21 +84,23 @@ internal sealed class OperationResolverMiddleware
 
     private static ObjectType? ResolveOperationType(
         OperationType operationType,
-        ISchema schema)
+        Schema schema)
         => operationType switch
         {
             OperationType.Query => schema.QueryType,
             OperationType.Mutation => schema.MutationType,
             OperationType.Subscription => schema.SubscriptionType,
-            _ => throw ThrowHelper.RootTypeNotSupported(operationType),
+            _ => throw ThrowHelper.RootTypeNotSupported(operationType)
         };
 
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
-            var optimizers = core.SchemaServices.GetRequiredService<OperationCompilerOptimizers>();
-            var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers);
-            return context => middleware.InvokeAsync(context);
-        };
+    public static RequestCoreMiddlewareConfiguration Create()
+        => new RequestCoreMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
+                var optimizers = core.SchemaServices.GetRequiredService<OperationCompilerOptimizers>();
+                var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(OperationResolverMiddleware));
 }

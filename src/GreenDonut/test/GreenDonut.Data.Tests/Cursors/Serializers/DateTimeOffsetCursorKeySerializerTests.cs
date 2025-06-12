@@ -2,7 +2,7 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 public class DateTimeOffsetCursorKeySerializerTests
 {
-    private static readonly DateTimeOffsetCursorKeySerializer Serializer = new();
+    private static readonly DateTimeOffsetCursorKeySerializer s_serializer = new();
 
     [Theory]
     [MemberData(nameof(Data))]
@@ -12,7 +12,7 @@ public class DateTimeOffsetCursorKeySerializerTests
         Span<byte> buffer = stackalloc byte[26];
 
         // act
-        var success = Serializer.TryFormat(dateTimeOffset, buffer, out var written);
+        var success = s_serializer.TryFormat(dateTimeOffset, buffer, out var written);
 
         // assert
         Assert.True(success);
@@ -25,7 +25,7 @@ public class DateTimeOffsetCursorKeySerializerTests
     public void Parse(DateTimeOffset result, byte[] formattedKey)
     {
         // arrange & act
-        var dateTimeOffset = (DateTimeOffset)Serializer.Parse(formattedKey);
+        var dateTimeOffset = (DateTimeOffset)s_serializer.Parse(formattedKey);
 
         // assert
         Assert.Equal(result, dateTimeOffset);

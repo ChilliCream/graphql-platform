@@ -1,4 +1,5 @@
-﻿using HotChocolate.Fusion.Types.Collections;
+﻿using HotChocolate.Features;
+using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
@@ -10,9 +11,8 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 {
-    private FusionDirectiveCollection _directives = default!;
-    private FusionInterfaceTypeDefinitionCollection _implements = default!;
-    private ISourceComplexTypeCollection<ISourceComplexType> _sources = default!;
+    private FusionDirectiveCollection _directives = null!;
+    private FusionInterfaceTypeDefinitionCollection _implements = null!;
     private bool _completed;
 
     protected FusionComplexTypeDefinition(
@@ -33,16 +33,14 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 
     public string? Description { get; }
 
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     public FusionDirectiveCollection Directives
     {
         get => _directives;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
             _directives = value;
         }
@@ -59,11 +57,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         get => _implements;
         private protected set
         {
-            if (_completed)
-            {
-                throw new NotSupportedException(
-                    "The type definition is sealed and cannot be modified.");
-            }
+            ThrowHelper.EnsureNotSealed(_completed);
 
             _implements = value;
         }
@@ -91,7 +85,18 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
     /// </value>
     public ISourceComplexTypeCollection<ISourceComplexType> Sources
     {
-        get => _sources;
+        get;
+        private protected set
+        {
+            ThrowHelper.EnsureNotSealed(_completed);
+
+            field = value;
+        }
+    } = null!;
+
+    public IFeatureCollection Features
+    {
+        get;
         private protected set
         {
             if (_completed)
@@ -100,17 +105,13 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
                     "The type definition is sealed and cannot be modified.");
             }
 
-            _sources = value;
+            field = value;
         }
-    }
+    } = FeatureCollection.Empty;
 
     private protected void Complete()
     {
-        if (_completed)
-        {
-            throw new NotSupportedException(
-                "The type definition is sealed and cannot be modified.");
-        }
+        ThrowHelper.EnsureNotSealed(_completed);
 
         _completed = true;
     }
@@ -123,6 +124,14 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
 
     /// <inheritdoc />
     public abstract bool IsAssignableFrom(ITypeDefinition type);
+
+    /// <inheritdoc />
+    public bool IsImplementing(string typeName)
+        => Implements.ContainsName(typeName);
+
+    /// <inheritdoc />
+    public bool IsImplementing(IInterfaceTypeDefinition interfaceType)
+        => Implements.ContainsName(interfaceType.Name);
 
     /// <summary>
     /// Gets the string representation of this instance.

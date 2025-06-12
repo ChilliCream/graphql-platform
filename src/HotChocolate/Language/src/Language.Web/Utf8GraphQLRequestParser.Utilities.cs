@@ -20,7 +20,6 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader.MoveNext();
                 return value;
 
-
             case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
                 _reader.MoveNext();
                 return null;
@@ -51,7 +50,7 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (_reader.Kind)
         {
             case TokenKind.LeftBrace:
-                return new[] { ParseVariablesObject(), };
+                return new[] { ParseVariablesObject() };
 
             case TokenKind.LeftBracket:
                 var list = new List<IReadOnlyDictionary<string, object?>>();
@@ -190,7 +189,7 @@ public ref partial struct Utf8GraphQLRequestParser
     {
         if (extensions is not null
             && hashProvider is not null
-            && extensions.TryGetValue(_persistedQuery, out var obj)
+            && extensions.TryGetValue(PersistedQuery, out var obj)
             && obj is IReadOnlyDictionary<string, object> persistedQuery
             && persistedQuery.TryGetValue(hashProvider.Name, out obj)
             && obj is string h)

@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Core/StrawberryShake.Core.csproj" />
+    <Project Path="src/Persistence.SQLite/StrawberryShake.Persistence.SQLite.csproj" />
+    <Project Path="src/Razor/StrawberryShake.Razor.csproj" />
+    <Project Path="src/Resources/StrawberryShake.Resources.csproj" />
+    <Project Path="src/Transport.Http/StrawberryShake.Transport.Http.csproj" />
+    <Project Path="src/Transport.InMemory/StrawberryShake.Transport.InMemory.csproj" />
+    <Project Path="src/Transport.WebSockets/StrawberryShake.Transport.WebSockets.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Core.Tests/StrawberryShake.Core.Tests.csproj" />
+    <Project Path="test/Persistence.SQLite.Tests/StrawberryShake.Persistence.SQLite.Tests.csproj" />
+    <Project Path="test/Transport.Http.Tests/StrawberryShake.Transport.Http.Tests.csproj" />
+    <Project Path="test/Transport.InMemory.Tests/StrawberryShake.Transport.InMemory.Tests.csproj" />
+    <Project Path="test/Transport.WebSocket.Tests/StrawberryShake.Transport.WebSocket.Tests.csproj" />
+  </Folder>
+</Solution>

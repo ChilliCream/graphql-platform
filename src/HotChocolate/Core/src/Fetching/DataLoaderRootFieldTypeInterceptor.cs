@@ -4,7 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,9 +12,9 @@ namespace HotChocolate.Fetching;
 
 internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 {
-    private IApplicationServiceProvider? _services;
+    private IServiceProvider? _services;
     private HashSet<Type>? _dataLoaderValueTypes;
-    private ObjectType _queryType = default!;
+    private ObjectType _queryType = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -23,7 +23,7 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
-        _services = context.Services.GetService<IApplicationServiceProvider>();
+        _services = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
     }
 
     public override bool IsEnabled(IDescriptorContext context)
@@ -90,8 +90,8 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
 
     private static bool IsUsableFieldConnection(ObjectFieldConfiguration field)
     {
-        var isConnection = (field.Flags & FieldFlags.Connection) == FieldFlags.Connection;
-        var usesProjection = (field.Flags & FieldFlags.UsesProjections) == FieldFlags.UsesProjections;
+        var isConnection = (field.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection;
+        var usesProjection = (field.Flags & CoreFieldFlags.UsesProjections) == CoreFieldFlags.UsesProjections;
 
         return isConnection
             && !usesProjection

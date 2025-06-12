@@ -13,7 +13,7 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 public sealed class OperationManager : IOperationManager
 {
     private readonly ReaderWriterLockSlim _lock = new();
-    private readonly Dictionary<string, IOperationSession> _subs = new();
+    private readonly Dictionary<string, IOperationSession> _subs = [];
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _cancellationToken;
     private readonly ISocketSession _socketSession;
@@ -55,22 +55,9 @@ public sealed class OperationManager : IOperationManager
     /// <inheritdoc />
     public bool Enqueue(string sessionId, GraphQLRequest request)
     {
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            throw new ArgumentException(
-                OperationManager_Register_SessionIdNullOrEmpty,
-                nameof(sessionId));
-        }
-
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationManager));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
+        ArgumentNullException.ThrowIfNull(request);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         IOperationSession? session = null;
         _lock.EnterWriteLock();
@@ -101,17 +88,8 @@ public sealed class OperationManager : IOperationManager
     /// <inheritdoc />
     public bool Complete(string sessionId)
     {
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            throw new ArgumentException(
-                OperationManager_Register_SessionIdNullOrEmpty,
-                nameof(sessionId));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationManager));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         _lock.EnterWriteLock();
 

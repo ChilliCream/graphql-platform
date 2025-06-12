@@ -83,7 +83,5 @@ public class SourceObjectConversionTests
         public string Qux { get; set; } = qux;
     }
 
-    public class BazType : ObjectType<Baz>
-    {
-    }
+    public class BazType : ObjectType<Baz>;
 }

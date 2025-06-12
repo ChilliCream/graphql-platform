@@ -21,14 +21,14 @@ public class InputObjectTypeExtensionNodeTests
         var c = new InputObjectTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -54,14 +54,14 @@ public class InputObjectTypeExtensionNodeTests
         var c = new InputObjectTypeExtensionNode(
             new Location(3, 3, 3, 3),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -87,12 +87,12 @@ public class InputObjectTypeExtensionNodeTests
         var c = new InputObjectTypeExtensionNode(
             new Location(1, 1, 1, 1),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
         var d = new InputObjectTypeExtensionNode(
             new Location(2, 2, 2, 2),
             new NameNode("aa"),
-            new List<DirectiveNode> { new("bb"), },
+            new List<DirectiveNode> { new("bb") },
             new List<InputValueDefinitionNode>(0));
 
         // act

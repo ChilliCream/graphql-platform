@@ -61,8 +61,8 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                         classSymbol.Name,
                         member,
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty,
-                        ImmutableArray<MemberBinding>.Empty);
+                        [],
+                        []);
                 }
             }
         }
@@ -77,7 +77,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             runtimeType,
             possibleType,
             i == 0
-                ? ImmutableArray<Resolver>.Empty
+                ? []
                 : [..resolvers]);
 
         if (diagnostics.Length > 0)
@@ -94,7 +94,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -151,6 +151,6 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverMethod,
             resolverMethod.GetResultKind(),
             [..resolverParameters],
-            ImmutableArray<MemberBinding>.Empty);
+            []);
     }
 }

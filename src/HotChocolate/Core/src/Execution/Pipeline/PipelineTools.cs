@@ -5,9 +5,9 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class PipelineTools
 {
-    private static readonly Dictionary<string, object?> _empty = new();
+    private static readonly Dictionary<string, object?> s_empty = [];
 
-    private static readonly IReadOnlyList<VariableValueCollection> _noVariables = [VariableValueCollection.Empty,];
+    private static readonly IReadOnlyList<VariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
     public static string CreateOperationId(string documentId, string? operationName)
         => operationName is null
@@ -43,8 +43,8 @@ internal static class PipelineTools
 
         if (variableDefinitions.Count == 0)
         {
-            context.Variables = _noVariables;
-            return _noVariables;
+            context.Variables = s_noVariables;
+            return s_noVariables;
         }
 
         if (context.Request is OperationRequest operationRequest)
@@ -56,10 +56,10 @@ internal static class PipelineTools
                 coercionHelper.CoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
-                    operationRequest.VariableValues ?? _empty,
+                    operationRequest.VariableValues ?? s_empty,
                     coercedValues);
 
-                context.Variables = new[] { new VariableValueCollection(coercedValues), };
+                context.Variables = new[] { new VariableValueCollection(coercedValues) };
                 return context.Variables;
             }
         }

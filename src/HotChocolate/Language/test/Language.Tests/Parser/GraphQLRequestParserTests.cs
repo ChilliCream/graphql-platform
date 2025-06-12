@@ -345,7 +345,7 @@ public class GraphQLRequestParserTests
                                 { "a", "b" },
                                 { "b", true },
                                 { "c", 1 },
-                                { "d", 1.1 },
+                                { "d", 1.1 }
                             }
                         },
                         {
@@ -354,10 +354,10 @@ public class GraphQLRequestParserTests
                             {
                                 new Dictionary<string, object>
                                 {
-                                    { "a", "b" },
-                                },
+                                    { "a", "b" }
+                                }
                             }
-                        },
+                        }
                     },
                     extensions: new Dictionary<string, object>
                     {
@@ -369,7 +369,7 @@ public class GraphQLRequestParserTests
                                 { "aa", "bb" },
                                 { "bb", true },
                                 { "cc", 1 },
-                                { "df", 1.1 },
+                                { "df", 1.1 }
                             }
                         },
                         {
@@ -380,10 +380,10 @@ public class GraphQLRequestParserTests
                                 {
                                     { "aa", "bb" },
                                     { "ab", null },
-                                    { "ac", false },
-                                },
+                                    { "ac", false }
+                                }
                             }
-                        },
+                        }
                     })).NormalizeLineBreaks());
 
         // act
@@ -427,7 +427,7 @@ public class GraphQLRequestParserTests
                                 { "a", "b" },
                                 { "b", true },
                                 { "c", 1 },
-                                { "d", 1.1 },
+                                { "d", 1.1 }
                             }
                         },
                         {
@@ -436,10 +436,10 @@ public class GraphQLRequestParserTests
                             {
                                 new Dictionary<string, object>
                                 {
-                                    { "a", "b" },
-                                },
+                                    { "a", "b" }
+                                }
                             }
-                        },
+                        }
                     },
                     extensions: new Dictionary<string, object>
                     {
@@ -451,7 +451,7 @@ public class GraphQLRequestParserTests
                                 { "aa", "bb" },
                                 { "bb", true },
                                 { "cc", 1 },
-                                { "df", 1.1 },
+                                { "df", 1.1 }
                             }
                         },
                         {
@@ -460,10 +460,10 @@ public class GraphQLRequestParserTests
                             {
                                 new Dictionary<string, object>
                                 {
-                                    { "aa", "bb" },
-                                },
+                                    { "aa", "bb" }
+                                }
                             }
-                        },
+                        }
                     })).NormalizeLineBreaks());
 
         // act
@@ -493,15 +493,15 @@ public class GraphQLRequestParserTests
                                         { "c" , 1},
                                         { "d" , 1.1},
                                         { "e" , false},
-                                        { "f" , null},
+                                        { "f" , null}
                                     }},
                                 { "c" , new List<object>
                                     {
                                         new Dictionary<string, object>
                                         {
-                                            { "a" , "b"},
-                                        },
-                                    }},
+                                            { "a" , "b"}
+                                        }
+                                    }}
                             }
                         },
                         {
@@ -511,7 +511,7 @@ public class GraphQLRequestParserTests
                         {
                             "id",
                             "bar"
-                        },
+                        }
                 }).NormalizeLineBreaks());
 
         // act
@@ -788,7 +788,7 @@ public class GraphQLRequestParserTests
 
     private sealed class DocumentCache : IDocumentCache
     {
-        private readonly Dictionary<string, CachedDocument> _cache = new();
+        private readonly Dictionary<string, CachedDocument> _cache = [];
 
         public int Capacity => int.MaxValue;
 

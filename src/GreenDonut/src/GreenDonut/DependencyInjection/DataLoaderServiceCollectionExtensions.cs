@@ -82,7 +82,7 @@ public static class DataLoaderServiceCollectionExtensions
                 {
                     0 => new DataLoaderDiagnosticEventListener(),
                     1 => listeners[0],
-                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners),
+                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners)
                 };
             });
 
@@ -95,7 +95,7 @@ public static class DataLoaderServiceCollectionExtensions
                 {
                     Cache = cacheOwner.Cache,
                     DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
-                    MaxBatchSize = 1024,
+                    MaxBatchSize = 1024
                 };
             });
 

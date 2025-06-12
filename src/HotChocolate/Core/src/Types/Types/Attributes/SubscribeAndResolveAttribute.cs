@@ -44,7 +44,7 @@ public sealed class SubscribeAndResolveAttribute
             }
 
             d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
-                member, d.SourceType!, d.ResolverType);
+                member, d.SourceType, d.ResolverType);
             d.Resolver = ctx => new ValueTask<object?>(
                 ctx.GetEventMessage<object>());
             d.Type = typeReference;

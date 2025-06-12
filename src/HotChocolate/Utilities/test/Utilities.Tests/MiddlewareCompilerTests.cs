@@ -17,7 +17,7 @@ public class MiddlewareCompilerTests
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
-                            new ServiceParameterHandler(services),
+                            new ServiceParameterHandler(services)
                         });
 
         // assert
@@ -36,7 +36,7 @@ public class MiddlewareCompilerTests
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
-                            new ServiceParameterHandler(services),
+                            new ServiceParameterHandler(services)
                         });
 
         var middleware = factory.Invoke(EmptyServiceProvider.Instance, _ => default);
@@ -47,7 +47,7 @@ public class MiddlewareCompilerTests
                 (_, _) =>
                     new List<IParameterHandler>
                     {
-                        new TypeParameterHandler(typeof(string), Expression.Constant("def")),
+                        new TypeParameterHandler(typeof(string), Expression.Constant("def"))
                     });
 
         // assert

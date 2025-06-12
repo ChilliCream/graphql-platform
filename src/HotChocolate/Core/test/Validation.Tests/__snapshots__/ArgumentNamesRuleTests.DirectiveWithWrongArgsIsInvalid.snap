@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The argument `if` does not exist.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 34
+        "Line": 2,
+        "Column": 16
       }
     ],
     "Extensions": {

@@ -21,10 +21,7 @@ public class BatchDispatcherResult
     /// </param>
     public BatchDispatcherResult(IReadOnlyList<Exception> exceptions)
     {
-        if (exceptions is null)
-        {
-            throw new ArgumentNullException(nameof(exceptions));
-        }
+        ArgumentNullException.ThrowIfNull(exceptions);
 
         if (exceptions.Count == 0)
         {

@@ -10,31 +10,25 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class RequestClassMiddlewareFactory
 {
-    private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
-
-    private static readonly PropertyInfo _getSchemaName =
+    private static readonly PropertyInfo s_getSchemaName =
         typeof(IRequestCoreMiddlewareContext)
             .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaName))!;
 
-    private static readonly PropertyInfo _requestServices =
+    private static readonly PropertyInfo s_requestServices =
         typeof(IRequestContext)
             .GetProperty(nameof(IRequestContext.Services))!;
 
-    private static readonly PropertyInfo _appServices =
+    private static readonly PropertyInfo s_appServices =
         typeof(IRequestCoreMiddlewareContext)
             .GetProperty(nameof(IRequestCoreMiddlewareContext.Services))!;
 
-    private static readonly PropertyInfo _schemaServices =
+    private static readonly PropertyInfo s_schemaServices =
         typeof(IRequestCoreMiddlewareContext)
             .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaServices))!;
 
-    private static readonly MethodInfo _getService =
+    private static readonly MethodInfo s_getService =
         typeof(IServiceProvider)
             .GetMethod(nameof(IServiceProvider.GetService))!;
-
-    private static readonly MethodInfo _createValidator =
-        typeof(IDocumentValidatorFactory)
-            .GetMethod(nameof(IDocumentValidatorFactory.CreateValidator))!;
 
     internal static RequestCoreMiddleware Create<TMiddleware>()
         where TMiddleware : class
@@ -61,25 +55,11 @@ internal static class RequestClassMiddlewareFactory
         IRequestExecutorOptionsAccessor options,
         Type middleware)
     {
-        Expression schemaName = Expression.Property(context, _getSchemaName);
-        Expression services = Expression.Property(context, _appServices);
-        Expression schemaServices = Expression.Property(context, _schemaServices);
+        Expression schemaName = Expression.Property(context, s_getSchemaName);
+        Expression services = Expression.Property(context, s_appServices);
+        Expression schemaServices = Expression.Property(context, s_schemaServices);
 
-        Expression validatorFactory =
-            Expression.Convert(
-                Expression.Call(
-                    services,
-                    _getService,
-                    Expression.Constant(_validatorFactory)),
-                _validatorFactory);
-
-        Expression getValidator =
-            Expression.Call(
-                validatorFactory,
-                _createValidator,
-                schemaName);
-
-        var list = new List<IParameterHandler> { new TypeParameterHandler(typeof(IDocumentValidator), getValidator) };
+        var list = new List<IParameterHandler>();
 
         var constructor = middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
@@ -92,6 +72,7 @@ internal static class RequestClassMiddlewareFactory
             }
         }
 
+        AddService<DocumentValidator>(list, schemaServices);
         AddService<IErrorHandler>(list, schemaServices);
         AddService<IExecutionDiagnosticEvents>(list, schemaServices);
         AddService<IOperationDocumentStorage>(list, schemaServices);
@@ -115,7 +96,7 @@ internal static class RequestClassMiddlewareFactory
         Type serviceType)
     {
         Expression serviceTypeConst = Expression.Constant(serviceType);
-        Expression getService = Expression.Call(service, _getService, serviceTypeConst);
+        Expression getService = Expression.Call(service, s_getService, serviceTypeConst);
         Expression castService = Expression.Convert(getService, serviceType);
         parameterHandlers.Add(new TypeParameterHandler(serviceType, castService));
     }
@@ -126,12 +107,12 @@ internal static class RequestClassMiddlewareFactory
     {
         var list = new List<IParameterHandler>();
         AddOptions(list, options);
-        list.Add(new ServiceParameterHandler(Expression.Property(context, _requestServices)));
+        list.Add(new ServiceParameterHandler(Expression.Property(context, s_requestServices)));
         return list;
     }
 
     private static void AddOptions(
-        IList<IParameterHandler> parameterHandlers,
+        List<IParameterHandler> parameterHandlers,
         IRequestExecutorOptionsAccessor options)
     {
         parameterHandlers.Add(new TypeParameterHandler(
@@ -145,23 +126,13 @@ internal static class RequestClassMiddlewareFactory
             Expression.Constant(options)));
     }
 
-    private sealed class SchemaNameParameterHandler : IParameterHandler
+    private sealed class SchemaNameParameterHandler(Expression schemaName) : IParameterHandler
     {
-        private readonly Expression _schemaName;
-
-        public SchemaNameParameterHandler(Expression schemaName)
-        {
-            _schemaName = schemaName;
-        }
-
         public bool CanHandle(ParameterInfo parameter)
-        {
-            return parameter.ParameterType == typeof(string) && parameter.Name == "schemaName";
-        }
+            => parameter.ParameterType == typeof(string)
+                && parameter.Name == "schemaName";
 
         public Expression CreateExpression(ParameterInfo parameter)
-        {
-            return _schemaName;
-        }
+            => schemaName;
     }
 }

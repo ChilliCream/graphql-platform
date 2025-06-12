@@ -38,10 +38,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddError(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         _errors ??= [];
         _errors.Add(error);
@@ -50,10 +47,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddErrors(IEnumerable<IError> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         _errors ??= [];
         _errors.AddRange(errors);
@@ -62,14 +56,14 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddExtension(string key, object? data)
     {
-        _extensionData ??= new ExtensionData();
+        _extensionData ??= [];
         _extensionData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetExtension(string key, object? data)
     {
-        _extensionData ??= new ExtensionData();
+        _extensionData ??= [];
         _extensionData[key] = data;
         return this;
     }
@@ -82,7 +76,7 @@ public sealed class OperationResultBuilder
         }
         else if (extensions is not null)
         {
-            _extensionData = new ExtensionData(extensions);
+            _extensionData = [.. extensions];
         }
         else
         {
@@ -93,14 +87,14 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddContextData(string key, object? data)
     {
-        _contextData ??= new ExtensionData();
+        _contextData ??= [];
         _contextData.Add(key, data);
         return this;
     }
 
     public OperationResultBuilder SetContextData(string key, object? data)
     {
-        _contextData ??= new ExtensionData();
+        _contextData ??= [];
         _contextData[key] = data;
         return this;
     }
@@ -113,7 +107,7 @@ public sealed class OperationResultBuilder
         }
         else if (contextData is not null)
         {
-            _contextData = new ExtensionData(contextData);
+            _contextData = [.. contextData];
         }
         else
         {
@@ -124,10 +118,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder AddPatch(IOperationResult patch)
     {
-        if (patch is null)
-        {
-            throw new ArgumentNullException(nameof(patch));
-        }
+        ArgumentNullException.ThrowIfNull(patch);
 
         _incremental ??= [];
         _incremental.Add(patch);
@@ -154,10 +145,7 @@ public sealed class OperationResultBuilder
 
     public OperationResultBuilder RegisterForCleanup(Func<ValueTask> clean)
     {
-        if (clean is null)
-        {
-            throw new ArgumentNullException(nameof(clean));
-        }
+        ArgumentNullException.ThrowIfNull(clean);
 
         var index = _cleanupTasks.Length;
         Array.Resize(ref _cleanupTasks, index + 1);
@@ -185,29 +173,29 @@ public sealed class OperationResultBuilder
 
     public static OperationResultBuilder FromResult(IOperationResult result)
     {
-        var builder = new OperationResultBuilder { _data = result.Data, };
+        var builder = new OperationResultBuilder { _data = result.Data };
 
         if (result.Errors is not null)
         {
-            builder._errors = [..result.Errors,];
+            builder._errors = [..result.Errors];
         }
 
         if (result.Extensions is ExtensionData ext)
         {
-            builder._extensionData = new ExtensionData(ext);
+            builder._extensionData = [.. ext];
         }
         else if (result.Extensions is not null)
         {
-            builder._extensionData = new ExtensionData(result.Extensions);
+            builder._extensionData = [.. result.Extensions];
         }
 
         if (result.ContextData is ExtensionData cd)
         {
-            builder._contextData = new ExtensionData(cd);
+            builder._contextData = [.. cd];
         }
         else if (result.ContextData is not null)
         {
-            builder._contextData = new ExtensionData(result.ContextData);
+            builder._contextData = [.. result.ContextData];
         }
 
         builder._label = result.Label;
@@ -225,7 +213,7 @@ public sealed class OperationResultBuilder
         IReadOnlyDictionary<string, object?>? contextData = null)
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
-            : new OperationResult(null, new List<IError> { error, }, contextData: contextData);
+            : new OperationResult(null, new List<IError> { error }, contextData: contextData);
 
     public static IOperationResult CreateError(
         IReadOnlyList<IError> errors,

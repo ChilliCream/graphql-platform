@@ -17,7 +17,7 @@ public class EntityTypeTests
                 .BuildSchemaAsync();
 
         // act/assert
-        Assert.False(schema.TryGetType<_EntityType>("_Entity", out _));
+        Assert.False(schema.Types.TryGetType<_EntityType>("_Entity", out _));
     }
 
     [Fact]
@@ -31,10 +31,10 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values, t => Assert.Equal("Review", t.Name));
+        Assert.Collection(entityType.Types, t => Assert.Equal("Review", t.Name));
     }
 
     [Fact]
@@ -48,11 +48,11 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
         Assert.Collection(
-            entityType.Types.Values,
+            entityType.Types,
             t => Assert.Equal("UserWithClassAttribute", t.Name),
             t => Assert.Equal("Review", t.Name));
     }
@@ -68,11 +68,11 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
         Assert.Collection(
-            entityType.Types.Values,
+            entityType.Types,
             t => Assert.Equal("UserWithPropertyAttributes", t.Name));
     }
 
@@ -87,10 +87,10 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values,
+        Assert.Collection(entityType.Types,
             t => Assert.Equal("UserWithNestedKeyClassAttribute", t.Name));
     }
 
@@ -103,8 +103,8 @@ public class EntityTypeTests
     public sealed class UserWithClassAttribute
     {
         public int Id { get; set; }
-        public string IdCode { get; set; } = default!;
-        public Review[] Reviews { get; set; } = default!;
+        public string IdCode { get; set; } = null!;
+        public Review[] Reviews { get; set; } = null!;
     }
 
     public sealed class UserWithPropertyAttributes
@@ -112,19 +112,19 @@ public class EntityTypeTests
         [Key]
         public int Id { get; set; }
         [Key]
-        public string IdCode { get; set; } = default!;
+        public string IdCode { get; set; } = null!;
     }
 
     [Key("id address { matchCode }")]
     public sealed class UserWithNestedKeyClassAttribute
     {
         public int Id { get; set; }
-        public Address Address { get; set; } = default!;
+        public Address Address { get; set; } = null!;
     }
 
     public sealed class Address
     {
-        public string MatchCode { get; set; } = default!;
+        public string MatchCode { get; set; } = null!;
     }
 
     [Key("id")]
