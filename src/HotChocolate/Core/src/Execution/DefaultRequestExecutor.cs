@@ -14,6 +14,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
     private readonly ObjectPool<PooledRequestContext> _contextPool;
     private readonly DefaultRequestContextAccessor _contextAccessor;
     private readonly IRequestContextEnricher[] _enricher;
+    private HashSet<Task>? _taskSet = null;
 
     public DefaultRequestExecutor(
         ISchemaDefinition schema,
@@ -52,10 +53,26 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
         }
     }
 
+    /// <summary>
+    /// Gets the schema definition that this request executor is configured for.
+    /// </summary>
     public ISchemaDefinition Schema { get; }
 
+    /// <summary>
+    /// Gets the version of the request executor.
+    /// </summary>
     public ulong Version { get; }
 
+    /// <summary>
+    /// Executes a single GraphQL <see cref="IOperationRequest"/> and returns the
+    /// <see cref="IExecutionResult"/> produced by the configured request pipeline.
+    /// </summary>
+    /// <param name="request">
+    /// The operation request to execute.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token used to cancel the execution.
+    /// </param>
     public Task<IExecutionResult> ExecuteAsync(
         IOperationRequest request,
         CancellationToken cancellationToken = default)
@@ -108,7 +125,8 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
             if (context.Result is null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    "The request pipeline is expected to produce an execution result.");
             }
 
             if (scope is null)
@@ -138,6 +156,9 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
         }
         finally
         {
+            // prevent stale request context from leaking after the pooled instance is returned.
+            _contextAccessor.RequestContext = null!;
+
             if (context is not null)
             {
                 _contextPool.Return(context);
@@ -154,6 +175,17 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
         }
     }
 
+    /// <summary>
+    /// Executes a batch of GraphQL operation requests and returns an
+    /// <see cref="IResponseStream"/> that yields each individual
+    /// <see cref="IOperationResult"/> as it becomes available.
+    /// </summary>
+    /// <param name="requestBatch">
+    /// The batch of operation requests.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token used to cancel the execution.
+    /// </param>
     public Task<IResponseStream> ExecuteBatchAsync(
         OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
@@ -171,29 +203,22 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         IServiceScope? scope = null;
+        var requestServices = requestBatch.Services;
 
-        if (requestBatch.Services is null)
+        if (requestServices is null)
         {
-            if (requestBatch.Features.TryGet(out IServiceScopeFactory? serviceScopeFactory))
-            {
-                scope = serviceScopeFactory.CreateScope();
-            }
-            else
-            {
-                scope = _applicationServices.CreateScope();
-            }
+            scope = requestBatch.Features.TryGet(out IServiceScopeFactory? serviceScopeFactory)
+                ? serviceScopeFactory.CreateScope()
+                : _applicationServices.CreateScope();
+            requestServices = scope.ServiceProvider;
         }
 
-        var services = scope is null
-            ? requestBatch.Services!
-            : scope.ServiceProvider;
-
         // we ensure that at the start of each execution, there is a fresh batching scope.
-        services.InitializeDataLoaderScope();
+        requestServices.InitializeDataLoaderScope();
 
         try
         {
-            await foreach (var result in ExecuteBatchStream(requestBatch, services, ct).ConfigureAwait(false))
+            await foreach (var result in ExecuteBatchStream(requestBatch, requestServices, ct).ConfigureAwait(false))
             {
                 yield return result;
             }
@@ -218,7 +243,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
     {
         var requests = requestBatch.Requests;
         var requestCount = requests.Count;
-        var tasks = new List<Task>(requestCount);
+        var tasks = Interlocked.Exchange(ref _taskSet, null) ?? new HashSet<Task>(requestCount);
 
         var completed = new ConcurrentStack<IOperationResult>();
 
@@ -227,47 +252,50 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
             tasks.Add(ExecuteBatchItemAsync(WithServices(requests[i], services), i, completed, ct));
         }
 
-        var buffer = new IOperationResult[8];
+        var buffer = new IOperationResult[Math.Min(16, requestCount)];
 
-        do
+        while (tasks.Count > 0 || !completed.IsEmpty)
         {
-            var resultCount = completed.TryPopRange(buffer);
+            var count = completed.TryPopRange(buffer);
 
-            for (var i = 0; i < resultCount; i++)
+            for (var i = 0; i < count; i++)
             {
                 yield return buffer[i];
             }
 
             if (completed.IsEmpty && tasks.Count > 0)
             {
-                var task = await Task.WhenAny(tasks);
+                var promise = await Task.WhenAny(tasks).ConfigureAwait(false);
 
-                // we await to throw if it's not successful.
-                if (task.Status is not TaskStatus.RanToCompletion)
+                if (promise.Status is not TaskStatus.RanToCompletion)
                 {
-                    await task;
+                    await promise.ConfigureAwait(false);
                 }
 
-                tasks.Remove(task);
+                tasks.Remove(promise);
             }
         }
-        while (tasks.Count > 0 || !completed.IsEmpty);
-    }
 
-    private static IOperationRequest WithServices(IOperationRequest request, IServiceProvider services)
-    {
-        switch (request)
+        // if our set is not overly large we try to reuse it
+        // for the next batch execution.
+        if (requestCount <= 1024)
         {
-            case OperationRequest operationRequest:
-                return operationRequest.WithServices(services);
-
-            case VariableBatchRequest variableBatchRequest:
-                return variableBatchRequest.WithServices(services);
-
-            default:
-                throw new InvalidOperationException("Unexpected request type.");
+            // The tasks HashSet is assumed be empty,
+            // otherwise we would not have exited the loop.
+            // So its safe to reuse it without clearing it.
+            Interlocked.CompareExchange(ref _taskSet, tasks, null);
         }
     }
+
+    private static IOperationRequest WithServices(
+        IOperationRequest request,
+        IServiceProvider services) =>
+        request switch
+        {
+            OperationRequest op => op.WithServices(services),
+            VariableBatchRequest vb => vb.WithServices(services),
+            _ => throw new InvalidOperationException("Unexpected request type.")
+        };
 
     private async Task ExecuteBatchItemAsync(
         IOperationRequest request,
@@ -324,7 +352,8 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
                 }
 
             default:
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    "The request pipeline is expected to produce an execution result.");
         }
     }
 
@@ -335,16 +364,9 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
             return;
         }
 
-        ref var start = ref MemoryMarshal.GetArrayDataReference(_enricher);
-        ref var end = ref Unsafe.Add(ref start, _enricher.Length);
-
-        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        foreach (var enricher in _enricher)
         {
-            start.Enrich(context);
-
-#pragma warning disable CS8619
-            start = ref Unsafe.Add(ref start, 1);
-#pragma warning restore CS8619
+            enricher?.Enrich(context);
         }
     }
 }

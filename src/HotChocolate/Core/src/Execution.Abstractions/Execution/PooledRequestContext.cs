@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Language;
 
@@ -107,8 +108,11 @@ public sealed class PooledRequestContext : RequestContext
         _schema = null!;
         _executorVersion = 0;
         _request = null!;
+        _requestIndex = -1;
         RequestServices = null!;
         RequestAborted = CancellationToken.None;
+        VariableValues = [];
+        Result = null;
         _features.Reset();
         ContextData.Clear();
     }

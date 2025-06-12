@@ -11,20 +11,15 @@ namespace HotChocolate.Execution.Serialization;
 /// The default GraphQL-SSE formatter for <see cref="IExecutionResult"/>.
 /// https://github.com/enisdenjo/graphql-sse/blob/master/PROTOCOL.md
 /// </summary>
-public sealed class EventStreamResultFormatter : IExecutionResultFormatter
+/// <remarks>
+/// Initializes a new instance of <see cref="EventStreamResultFormatter"/>.
+/// </remarks>
+/// <param name="options">
+/// The options to configure the JSON writer.
+/// </param>
+public sealed class EventStreamResultFormatter(JsonResultFormatterOptions options) : IExecutionResultFormatter
 {
-    private readonly JsonResultFormatter _payloadFormatter;
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="EventStreamResultFormatter"/>.
-    /// </summary>
-    /// <param name="options">
-    /// The options to configure the JSON writer.
-    /// </param>
-    public EventStreamResultFormatter(JsonResultFormatterOptions options)
-    {
-        _payloadFormatter = new JsonResultFormatter(options);
-    }
+    private readonly JsonResultFormatter _payloadFormatter = new(options);
 
     /// <summary>
     /// Formats an <see cref="IExecutionResult"/> into an SSE stream.
@@ -65,12 +60,12 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         var scope = Log.FormatOperationResultStart();
         try
         {
-            MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
-            MessageHelper.WriteCompleteMessage(buffer);
+            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
+            MessageHelper.FormatCompleteMessage(buffer);
 
             if (!ct.IsCancellationRequested)
             {
-                await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+                await outputStream.WriteAsync(buffer.GetWrittenMemory(), ct).ConfigureAwait(false);
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
         }
@@ -91,6 +86,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
+        using var semaphore = new SemaphoreSlim(1, 1);
         var writer = PipeWriter.Create(outputStream);
         PooledArrayWriter? buffer = null;
         KeepAliveJob? keepAlive = null;
@@ -107,14 +103,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                         try
                         {
                             buffer ??= new PooledArrayWriter();
-                            MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
-
-                            writer.Write(buffer.GetWrittenSpan());
-
-                            if (!ct.IsCancellationRequested)
-                            {
-                                await writer.FlushAsync(ct).ConfigureAwait(false);
-                            }
+                            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
+                            await writer.WriteAndFlushAsync(semaphore, buffer, ct).ConfigureAwait(false);
 
                             keepAlive?.Reset();
                             buffer.Reset();
@@ -133,9 +123,14 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                         break;
 
                     case IResponseStream responseStream:
-                        keepAlive ??= new KeepAliveJob(writer);
+                        keepAlive ??= new KeepAliveJob(writer, semaphore);
                         streams ??= [];
-                        var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
+                        var formatter = new StreamFormatter(
+                            _payloadFormatter,
+                            keepAlive,
+                            responseStream,
+                            writer,
+                            semaphore);
                         streams.Add(formatter.ProcessAsync(ct));
                         break;
 
@@ -147,13 +142,17 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         }
         finally
         {
+            if (streams?.Count > 0)
+            {
+                await Task.WhenAll(streams).ConfigureAwait(false);
+            }
             keepAlive?.Dispose();
             buffer?.Dispose();
         }
 
         if (!ct.IsCancellationRequested)
         {
-            MessageHelper.WriteCompleteMessage(writer);
+            MessageHelper.FormatCompleteMessage(writer);
             await writer.FlushAsync(ct).ConfigureAwait(false);
         }
     }
@@ -163,17 +162,18 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
+        using var semaphore = new SemaphoreSlim(1, 1);
         var writer = PipeWriter.Create(outputStream);
 
-        using (var keepAlive = new KeepAliveJob(writer))
+        using (var keepAlive = new KeepAliveJob(writer, semaphore))
         {
-            var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
+            var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer, semaphore);
             await formatter.ProcessAsync(ct).ConfigureAwait(false);
         }
 
         if (!ct.IsCancellationRequested)
         {
-            MessageHelper.WriteCompleteMessage(writer);
+            MessageHelper.FormatCompleteMessage(writer);
             await writer.FlushAsync(ct).ConfigureAwait(false);
         }
     }
@@ -182,7 +182,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         JsonResultFormatter payloadFormatter,
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
-        PipeWriter writer)
+        PipeWriter writer,
+        SemaphoreSlim semaphore)
     {
         public async Task ProcessAsync(CancellationToken ct)
         {
@@ -197,9 +198,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
                     try
                     {
-                        MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
-                        writer.Write(buffer.GetWrittenSpan());
-                        await writer.FlushAsync(ct).ConfigureAwait(false);
+                        MessageHelper.FormatNextMessage(payloadFormatter, result, buffer);
+                        await writer.WriteAndFlushAsync(semaphore, buffer, ct).ConfigureAwait(false);
                         keepAliveJob.Reset();
                         buffer.Reset();
                     }
@@ -207,6 +207,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                     {
                         scope?.AddError(ex);
                         Debug.WriteLine(ex);
+                        await writer.CompleteAsync(ex).ConfigureAwait(false);
                         return;
                     }
                     finally
@@ -234,13 +235,15 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         private static readonly TimeSpan s_timerPeriod = TimeSpan.FromSeconds(12);
         private static readonly TimeSpan s_keepAlivePeriod = TimeSpan.FromSeconds(8);
         private readonly PipeWriter _writer;
+        private readonly SemaphoreSlim _semaphore;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
         private bool _disposed;
 
-        public KeepAliveJob(PipeWriter writer)
+        public KeepAliveJob(PipeWriter writer, SemaphoreSlim semaphore)
         {
             _writer = writer;
+            _semaphore = semaphore;
             _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, s_timerPeriod, s_timerPeriod);
         }
 
@@ -248,19 +251,26 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
         private void EnsureKeepAlive()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (DateTime.UtcNow - _lastWriteTime >= s_keepAlivePeriod)
             {
                 WriteKeepAliveAsync().FireAndForget();
             }
 
-            return;
-
             async Task WriteKeepAliveAsync()
             {
                 try
                 {
-                    _writer.Write(MessageHelper.KeepAlive());
-                    await _writer.FlushAsync().ConfigureAwait(false);
+                    await _writer.WriteAndFlushAsync(
+                        _semaphore,
+                        MessageHelper.KeepAlive,
+                        CancellationToken.None)
+                        .ConfigureAwait(false);
+                    _lastWriteTime = DateTime.UtcNow;
                 }
                 catch
                 {
@@ -285,10 +295,9 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     {
         private static readonly byte[] s_nextEvent = "event: next\ndata: "u8.ToArray();
         private static readonly byte[] s_completeEvent = "event: complete\n\n"u8.ToArray();
-        private static readonly byte[] s_keepAlive = ":\n\n"u8.ToArray();
         private static readonly byte[] s_newLine2 = "\n\n"u8.ToArray();
 
-        public static void WriteNextMessage(
+        public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
             IOperationResult result,
             PooledArrayWriter writer)
@@ -307,7 +316,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             writer.Advance(s_newLine2.Length);
         }
 
-        public static void WriteCompleteMessage(
+        public static void FormatCompleteMessage(
             IBufferWriter<byte> writer)
         {
             var span = writer.GetSpan(s_completeEvent.Length);
@@ -315,6 +324,47 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             writer.Advance(s_completeEvent.Length);
         }
 
-        public static ReadOnlySpan<byte> KeepAlive() => s_keepAlive;
+        public static byte[] KeepAlive { get; } = ":\n\n"u8.ToArray();
+    }
+}
+
+file static class PipeWriterExtensions
+{
+    public static async ValueTask WriteAndFlushAsync(
+        this PipeWriter writer,
+        SemaphoreSlim semaphore,
+        PooledArrayWriter data,
+        CancellationToken cancellationToken)
+    {
+        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            writer.Write(data.GetWrittenSpan());
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    public static async ValueTask WriteAndFlushAsync(
+        this PipeWriter writer,
+        SemaphoreSlim semaphore,
+        byte[] data,
+        CancellationToken cancellationToken)
+    {
+        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            writer.Write(data);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 }

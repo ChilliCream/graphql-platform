@@ -140,7 +140,6 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// </param>
     void RetrievedOperationFromCache(RequestContext context);
 
-
     /// <summary>
     /// During execution, we allow components like the DataLoader to defer execution of data
     /// resolvers to be executed in batches. If the execution engine has nothing to execute anymore

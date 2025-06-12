@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using HotChocolate.Buffers;
@@ -26,36 +25,38 @@ internal static class GraphQLHttpEventStreamProcessor
 
     private static async Task ReadFromTransportAsync(Stream stream, PipeWriter writer, CancellationToken ct)
     {
-        const int bufferSize = 64;
+        const int bufferSize = 4096; // bigger buffer – fewer sys-calls
         var buffer = new byte[bufferSize];
         var bufferMemory = new Memory<byte>(buffer);
 
         await using var tokenRegistration = ct.Register(
-            static writer => ((PipeWriter)writer!).CancelPendingFlush(),
-            state: writer,
+            static w => ((PipeWriter)w!).CancelPendingFlush(),
+            writer,
             useSynchronizationContext: false);
 
         while (true)
         {
+            int bytesRead;
             try
             {
-                var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
-
-                if (bytesRead == 0)
-                {
-                    break;
-                }
-
-                var memory = writer.GetMemory(bytesRead);
-                buffer.AsSpan()[..bytesRead].CopyTo(memory.Span);
-                writer.Advance(bytesRead);
+                bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex)
+            {
+                await writer.CompleteAsync(ex).ConfigureAwait(false);
+                return;
+            }
+
+            if (bytesRead == 0)
             {
                 break;
             }
 
-            var result = await writer.FlushAsync(CancellationToken.None).ConfigureAwait(false);
+            var span = buffer.AsSpan(0, bytesRead);
+            NormalizeLineEndings(ref span);
+            WriteToPipe(writer, span);
+
+            var result = await writer.FlushAsync().ConfigureAwait(false);
             if (result.IsCompleted || result.IsCanceled)
             {
                 break;
@@ -65,6 +66,28 @@ internal static class GraphQLHttpEventStreamProcessor
         await writer.CompleteAsync().ConfigureAwait(false);
     }
 
+    private static void NormalizeLineEndings(ref Span<byte> span)
+    {
+        var normalized = span;
+
+        var j = 0;
+        for (var i = 0; i < span.Length; i++)
+        {
+            if (span[i] != (byte)'\r')
+            {
+                normalized[j++] = span[i];
+            }
+        }
+
+        span = normalized[..j];
+    }
+
+    private static void WriteToPipe(PipeWriter writer, ReadOnlySpan<byte> message)
+    {
+        message.CopyTo(writer.GetSpan(message.Length));
+        writer.Advance(message.Length);
+    }
+
     private static async IAsyncEnumerable<OperationResult> ReadMessagesPipeAsync(
         PipeReader reader,
         [EnumeratorCancellation] CancellationToken ct)
@@ -72,14 +95,13 @@ internal static class GraphQLHttpEventStreamProcessor
         using var message = new PooledArrayWriter();
 
         await using var tokenRegistration = ct.Register(
-            static reader => ((PipeReader)reader!).CancelPendingRead(),
-            state: reader,
+            static r => ((PipeReader)r!).CancelPendingRead(),
+            reader,
             useSynchronizationContext: false);
 
         while (true)
         {
-            // ReSharper disable once RedundantArgumentDefaultValue
-            var result = await reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);
+            var result = await reader.ReadAsync(ct).ConfigureAwait(false);
             if (result.IsCanceled)
             {
                 break;
@@ -90,32 +112,36 @@ internal static class GraphQLHttpEventStreamProcessor
 
             do
             {
-                position = buffer.PositionOf((byte) '\n');
-
-                if (position == null)
+                position = buffer.PositionOf((byte)'\n');
+                if (position is null)
                 {
                     continue;
                 }
 
-                WriteToMessage(message, buffer.Slice(0, position.Value));
+                WriteLineToMessage(message, buffer.Slice(0, position.Value));
 
                 if (IsMessageComplete(message))
                 {
-                    if (!TryReadMessage(message.GetWrittenMemory(), out var operationResult))
+                    var readState = TryReadResult(message.GetWrittenMemory(), out var operationResult);
+                    if (readState is not ReadState.Message)
                     {
                         await reader.CompleteAsync().ConfigureAwait(false);
-                        yield break;
+                        if (readState is ReadState.Complete)
+                        {
+                            // graceful completion
+                            yield break;
+                        }
+                        throw new InvalidOperationException("Malformed message received.");
                     }
 
                     message.Reset();
-                    yield return operationResult;
+                    yield return operationResult!;
                 }
 
                 buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
-            } while (position != null);
+            } while (position is not null);
 
             reader.AdvanceTo(buffer.Start, buffer.End);
-
             if (result.IsCompleted)
             {
                 break;
@@ -125,98 +151,58 @@ internal static class GraphQLHttpEventStreamProcessor
         await reader.CompleteAsync().ConfigureAwait(false);
     }
 
-    private static void WriteToMessage(PooledArrayWriter message, ReadOnlySequence<byte> buffer)
+    /// <summary>
+    /// Copies one logical line into <paramref name="message"/> while stripping an optional trailing CR.
+    /// </summary>
+    private static void WriteLineToMessage(PooledArrayWriter message, ReadOnlySequence<byte> buffer)
     {
         if (buffer.IsSingleSegment)
         {
-            var size = buffer.First.Span.Length;
-
-            if (size > 0)
+            var span = buffer.First.Span;
+            if (span.Length > 0 && span[^1] == (byte)'\r')
             {
-                var span = message.GetSpan(size);
-                buffer.First.Span.CopyTo(span);
-                message.Advance(size);
+                span = span[..^1];
             }
+            span.CopyTo(message.GetSpan(span.Length));
+            message.Advance(span.Length);
         }
         else
         {
             foreach (var segment in buffer)
             {
-                var size = segment.Span.Length;
-                var span = message.GetSpan(size);
-                segment.Span.CopyTo(span);
-                message.Advance(size);
+                var spanSegment = segment.Span;
+                spanSegment.CopyTo(message.GetSpan(spanSegment.Length));
+                message.Advance(spanSegment.Length);
             }
         }
 
-        var lineEnd = message.GetSpan(1);
-        lineEnd[0] = (byte) '\n';
+        // re-add unified line break (LF only)
+        message.GetSpan(1)[0] = (byte)'\n';
         message.Advance(1);
     }
 
     private static bool IsMessageComplete(PooledArrayWriter message)
     {
-        var length = message.Length;
-
-        if (length < 2)
-        {
-            return false;
-        }
-
-        if (length == 2)
-        {
-            var span = message.GetWrittenSpan()[..2];
-
-            if (span[0] == (byte) '\n' && span[1] == (byte) '\n')
-            {
-                message.Reset();
-            }
-            return false;
-        }
-
-        if (length == 3)
-        {
-            var span = message.GetWrittenSpan()[..3];
-
-            if (span[0] == (byte) ':' && span[1] == (byte) '\n' && span[2] == (byte) '\n')
-            {
-                message.Reset();
-                return false;
-            }
-
-            if (span[1] == (byte) '\n' && span[2] == (byte) '\n')
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        var last = message.GetWrittenSpan().Slice(length - 2, 2);
-
-        if (last[0] == (byte) '\n' && last[1] == (byte) '\n')
-        {
-            return true;
-        }
-
-        return false;
+        var len = message.Length;
+        return len >= 2 && message.GetWrittenSpan()[^1] == (byte)'\n' && message.GetWrittenSpan()[^2] == (byte)'\n';
     }
 
-    private static bool TryReadMessage(
-        ReadOnlyMemory<byte> message,
-        [NotNullWhen(true)] out OperationResult? result)
+    private static ReadState TryReadResult(ReadOnlyMemory<byte> message, out OperationResult? result)
     {
         var span = message.Span;
         var type = ParseEventType(ref span);
-
-        if(type is EventType.Next)
+        if (type is EventType.Next)
         {
             result = ParseData(ref span);
-            return true;
+            return ReadState.Message;
         }
-
+        if (type is EventType.Complete)
+        {
+            result = null;
+            return ReadState.Complete;
+        }
         result = null;
-        return false;
+        return ReadState.Malformed;
     }
 
     private static EventType ParseEventType(ref ReadOnlySpan<byte> span)
@@ -227,102 +213,122 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 return EventType.Next;
             }
-
             if (ExpectComplete(ref span))
             {
                 return EventType.Complete;
             }
         }
-
         throw new InvalidOperationException("Invalid Message Format.");
     }
 
+    /// <summary>
+    /// Collects <c>data:</c> lines until the blank-line separator and concatenates them with LF.
+    /// </summary>
     private static OperationResult ParseData(ref ReadOnlySpan<byte> span)
     {
-        if (ExpectData(ref span))
-        {
-            var data = ReadData(ref span);
-            return OperationResult.Parse(data);
-        }
-
-        throw new InvalidOperationException("Invalid Message Format.");
-    }
-
-    private static bool ExpectEvent(ref ReadOnlySpan<byte> span)
-    {
-        if (span[..6].SequenceEqual(Event))
-        {
-            span = span[6..];
-            return true;
-        }
-
-        return false;
-    }
-
-    private static bool ExpectNext(ref ReadOnlySpan<byte> span)
-    {
-        SkipWhitespaces(ref span);
-
-        if (!span[..5].SequenceEqual(Next))
-        {
-            return false;
-        }
-
-        span = span[5..];
-
-        return true;
-    }
-
-    private static bool ExpectComplete(ref ReadOnlySpan<byte> span)
-    {
-        SkipWhitespaces(ref span);
-
-        if (!span[..9].SequenceEqual(Complete))
-        {
-            return false;
-        }
-
-        span = span[9..];
-
-        return true;
-    }
-
-    private static bool ExpectData(ref ReadOnlySpan<byte> span)
-    {
-        if (span[..5].SequenceEqual(Data))
-        {
-            span = span[5..];
-            return true;
-        }
-
-        return false;
-    }
-
-    private static ReadOnlySpan<byte> ReadData(ref ReadOnlySpan<byte> span)
-    {
-        var linebreak = span.IndexOf((byte) '\n');
-
-        if (linebreak == -1)
+        if (!ExpectData(ref span))
         {
             throw new InvalidOperationException("Invalid Message Format.");
         }
 
-        var data = span[..linebreak];
-        span = span[(linebreak + 1)..];
-        return data;
+        SkipWhitespaces(ref span);
+
+        using var payload = new PooledArrayWriter();
+
+        while (true)
+        {
+            // read one logical line up to LF or end
+            var lineBreak = span.IndexOf((byte)'\n');
+            ReadOnlySpan<byte> line;
+            if (lineBreak == -1)
+            {
+                line = span;
+                span = default;
+            }
+            else
+            {
+                line = span[..lineBreak];
+                span = span[(lineBreak + 1)..];
+            }
+
+            // Remove optional leading space
+            SkipWhitespaces(ref line);
+
+            // append to buffer (insert LF between lines)
+            if (payload.Length > 0)
+            {
+                payload.GetSpan(1)[0] = (byte)'\n';
+                payload.Advance(1);
+            }
+            line.CopyTo(payload.GetSpan(line.Length));
+            payload.Advance(line.Length);
+
+            // if the next part does not start with another data: line we are done
+            if (span.Length < 5 || !span.StartsWith(Data))
+            {
+                break;
+            }
+
+            // consume next "data:" token & following whitespace
+            span = span[5..];
+            SkipWhitespaces(ref span);
+        }
+
+        return OperationResult.Parse(payload.GetWrittenSpan());
     }
+
+    #region Expect helpers
+
+    private static bool ExpectEvent(ref ReadOnlySpan<byte> span)
+        => ConsumeToken(ref span, Event);
+
+    private static bool ExpectNext(ref ReadOnlySpan<byte> span)
+        => ConsumeTokenWithOptionalWhitespace(ref span, Next);
+
+    private static bool ExpectComplete(ref ReadOnlySpan<byte> span)
+        => ConsumeTokenWithOptionalWhitespace(ref span, Complete);
+
+    private static bool ExpectData(ref ReadOnlySpan<byte> span)
+        => ConsumeToken(ref span, Data);
+
+    private static bool ConsumeToken(ref ReadOnlySpan<byte> span, ReadOnlySpan<byte> token)
+    {
+        if (span.Length < token.Length || !span.StartsWith(token))
+        {
+            return false;
+        }
+        span = span[token.Length..];
+        return true;
+    }
+
+    private static bool ConsumeTokenWithOptionalWhitespace(ref ReadOnlySpan<byte> span, ReadOnlySpan<byte> token)
+    {
+        SkipWhitespaces(ref span);
+        return ConsumeToken(ref span, token);
+    }
+
+    #endregion
 
     private static void SkipWhitespaces(ref ReadOnlySpan<byte> span)
     {
-        while (span.Length > 0 && span[0] == (byte)' ')
+        while (span.Length > 0 && IsWhitespace(span[0]))
         {
             span = span[1..];
         }
     }
 
+    private static bool IsWhitespace(byte b) => b is (byte)' ' or (byte)'\t';
+
     private enum EventType
     {
         Next,
         Complete
+    }
+
+    private enum ReadState
+    {
+        Message,
+        Complete,
+        Malformed
     }
 }

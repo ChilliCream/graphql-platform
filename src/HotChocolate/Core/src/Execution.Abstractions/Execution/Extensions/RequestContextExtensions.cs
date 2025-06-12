@@ -16,7 +16,6 @@ public static class RequestContextExtensions
         return context.OperationDocumentInfo.Id;
     }
 
-
     public static bool IsOperationDocumentValid(this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

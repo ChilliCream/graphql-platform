@@ -3,13 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-
 internal sealed class AutomaticPersistedOperationNotFoundMiddleware
 {
     private static readonly IOperationResult s_errorResult =
         OperationResultBuilder.CreateError(
             PersistedOperationNotFound(),
-            contextData: new Dictionary<string, object?>()
+            contextData: new Dictionary<string, object?>
             {
                 { ExecutionContextData.HttpStatusCode, 400 }
             });
