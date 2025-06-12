@@ -10,7 +10,6 @@ public sealed class FusionRequestExecutor : IRequestExecutor
     private readonly RequestDelegate _requestDelegate;
     private readonly ObjectPool<PooledRequestContext> _contextPool;
 
-
     public FusionRequestExecutor(
         ISchemaDefinition schema,
         IServiceProvider applicationServices,
@@ -102,7 +101,6 @@ public sealed class FusionRequestExecutor : IRequestExecutor
             }
 
             return context.Result;
-
         }
         finally
         {
