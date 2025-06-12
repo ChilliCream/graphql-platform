@@ -196,6 +196,7 @@ public class SortingContext : ISortingContext
             else
             {
                 context.Types.Pop();
+                context.Parents.Pop();
             }
 
             return base.Leave(node, context);
