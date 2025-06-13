@@ -16,6 +16,24 @@
         "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
         "rfc": "https://github.com/graphql/graphql-spec/pull/825"
       }
+    },
+    {
+      "message": "The variable `b` is not compatible with the type of the current location.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 38
+        }
+      ],
+      "path": [
+        "example"
+      ],
+      "extensions": {
+        "variable": "b",
+        "variableType": "Int",
+        "locationType": "Int",
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
+      }
     }
   ]
 }
