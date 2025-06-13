@@ -94,10 +94,10 @@ public interface ISchemaDefinition
     IEnumerable<INameProvider> GetAllDefinitions();
 
     /// <summary>
-    /// Returns a string that represents the current schema.
+    /// Returns the schema SDL representation of the current schema definition.
     /// </summary>
     /// <returns>
-    /// A string that represents the current schema.
+    /// Returns the schema SDL representation of the current schema definition.
     /// </returns>
     string ToString();
 
