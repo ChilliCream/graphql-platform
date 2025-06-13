@@ -11,7 +11,7 @@ using UnionTypeDefinition = HotChocolate.Types.Descriptors.Configurations.UnionT
 namespace HotChocolate.OpenApi.TypeInterceptors;
 
 /// <summary>
-/// Copies OpenAPI-related context data from the skimmed schema to the type definitions.
+/// Copies OpenAPI-related context data from the Mutable schema to the type definitions.
 /// </summary>
 public sealed class ContextDataTypeInterceptor(MutableSchemaDefinition schema) : TypeInterceptor
 {
