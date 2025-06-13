@@ -649,7 +649,7 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)
-            .SpecifiedBy("sec-OneOf-Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
             .Build();
 
     public static IError OneOfVariablesMustBeNonNull(
@@ -666,7 +666,7 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetFieldCoordinate(fieldCoordinate)
-            .SpecifiedBy("sec-OneOf–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
             .Build();
 
     public static IError SkipAndIncludeNotAllowedOnSubscriptionRootField(

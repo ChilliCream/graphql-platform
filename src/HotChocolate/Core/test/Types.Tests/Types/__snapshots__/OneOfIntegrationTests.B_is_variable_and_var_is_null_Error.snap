@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "fieldCoordinate": "ExampleInput.b",
-        "specifiedBy": "https://spec.graphql.org/draft/#sec-OneOf–Input-Objects-Have-Exactly-One-Field",
+        "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
         "rfc": "https://github.com/graphql/graphql-spec/pull/825"
       }
     }

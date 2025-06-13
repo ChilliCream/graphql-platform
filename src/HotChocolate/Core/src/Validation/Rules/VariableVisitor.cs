@@ -250,7 +250,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         if (context.Variables.TryGetValue(
                 node.Name.Value,
                 out var variableDefinition)
-            && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
+            && !IsVariableUsageAllowed(variableDefinition, context, defaultValue))
         {
             context.ReportError(context.VariableIsNotCompatible(node, variableDefinition));
         }
@@ -281,10 +281,12 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     // http://facebook.github.io/graphql/June2018/#IsVariableUsageAllowed()
     private bool IsVariableUsageAllowed(
         VariableDefinitionNode variableDefinition,
-        IType locationType,
+        DocumentValidatorContext context,
         IValueNode? locationDefault)
     {
-        if (locationType.IsNonNullType()
+        var locationType = context.Types.Peek();
+
+        if (IsNonNullPosition(locationType, context)
             && !variableDefinition.Type.IsNonNullType())
         {
             if (variableDefinition.DefaultValue.IsNull()
@@ -301,6 +303,23 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         return AreTypesCompatible(
             variableDefinition.Type,
             locationType);
+    }
+
+    private static bool IsNonNullPosition(IType locationType, DocumentValidatorContext context)
+    {
+        if (locationType.IsNonNullType())
+        {
+            return true;
+        }
+
+        if (context.Path.Peek() is ObjectFieldNode
+            && context.Types[^2].NullableType() is IInputObjectTypeDefinition inputObjectType
+            && inputObjectType.Directives.ContainsName(DirectiveNames.OneOf.Name))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     // http://facebook.github.io/graphql/June2018/#AreTypesCompatible()
