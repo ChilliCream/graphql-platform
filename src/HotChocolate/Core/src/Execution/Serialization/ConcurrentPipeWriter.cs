@@ -7,18 +7,19 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Serialization;
 
-internal sealed class ConcurrentPipeWriter : IDisposable
+internal sealed class ConcurrentStreamWriter : IAsyncDisposable
 {
     private readonly Channel<PooledArrayWriter> _backlog;
     private readonly ConcurrentStack<PooledArrayWriter> _pool = new();
     private readonly CancellationTokenSource _cts = new();
-    private readonly PipeWriter _writer;
+    private readonly Stream _stream;
     private bool _disposed;
 
-    public ConcurrentPipeWriter(PipeWriter writer, int backlogSize)
+    public ConcurrentStreamWriter(Stream stream, int backlogSize)
     {
-        ArgumentNullException.ThrowIfNull(writer);
-        _writer = writer;
+        ArgumentNullException.ThrowIfNull(stream);
+
+        _stream = stream;
         _backlog = Channel.CreateBounded<PooledArrayWriter>(
             new BoundedChannelOptions(backlogSize)
             {
@@ -34,7 +35,7 @@ internal sealed class ConcurrentPipeWriter : IDisposable
     {
         ArgumentNullException.ThrowIfNull(callback);
 
-        // We discard the task as the continuation will be executed synchronously
+        // We discard the task as the continuation will be executed synchronously,
         // which means its execution will be inlined.
         _ = _backlog.Reader.Completion.ContinueWith(
             static (t, state) =>
@@ -73,11 +74,12 @@ internal sealed class ConcurrentPipeWriter : IDisposable
 
     public Task WaitForCompletionAsync()
     {
-        if(_disposed)
+        if (_disposed)
         {
             return Task.CompletedTask;
         }
 
+        _backlog.Writer.TryComplete();
         return _backlog.Reader.Completion;
     }
 
@@ -87,7 +89,6 @@ internal sealed class ConcurrentPipeWriter : IDisposable
     private async Task ProcessBacklogAsync(CancellationToken ct)
     {
         const int maxCapacity = 1024 * 64;
-        Exception? exception = null;
         PooledArrayWriter? currentBuffer = null;
 
         try
@@ -97,8 +98,8 @@ internal sealed class ConcurrentPipeWriter : IDisposable
                 try
                 {
                     currentBuffer = message;
-                    _writer.Write(message.GetWrittenSpan());
-                    await _writer.FlushAsync(ct).ConfigureAwait(false);
+                    await _stream.WriteAsync(message.GetWrittenMemory(), ct).ConfigureAwait(false);
+                    await _stream.FlushAsync(ct).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -118,14 +119,12 @@ internal sealed class ConcurrentPipeWriter : IDisposable
         catch (Exception ex)
         {
             _backlog.Writer.TryComplete(ex);
-            exception = ex;
         }
 
         currentBuffer?.Dispose();
-        await _writer.CompleteAsync(exception).ConfigureAwait(false);
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -134,8 +133,10 @@ internal sealed class ConcurrentPipeWriter : IDisposable
 
         _disposed = true;
 
-        _cts.Cancel();
-        _backlog.Writer.Complete();
+        _backlog.Writer.TryComplete(new InvalidOperationException(
+            "The concurrent pipe writer has been disposed and can no longer be used."));
+
+        await _cts.CancelAsync().ConfigureAwait(false);
         _cts.Dispose();
 
         // drain leftovers and return pooled memory.

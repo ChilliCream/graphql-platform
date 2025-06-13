@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Diagnostics;
-using System.IO.Pipelines;
 using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonLinesResultFormatterEventSource;
@@ -38,8 +37,8 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         CancellationToken ct)
     {
         var buffer = new PooledArrayWriter();
-
         var scope = Log.FormatOperationResultStart();
+
         try
         {
             MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
@@ -67,19 +66,15 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         Stream outputStream,
         CancellationToken ct)
     {
-        using var writer = new ConcurrentPipeWriter(PipeWriter.Create(outputStream), MaxBacklogSize);
+        await using var writer = new ConcurrentStreamWriter(outputStream, MaxBacklogSize);
+
+        await using var tokenRegistration = ct.Register(
+            static w => ((ConcurrentStreamWriter)w!).DisposeAsync().FireAndForget(),
+            writer,
+            useSynchronizationContext: false);
+
         KeepAliveJob? keepAlive = null;
         List<Task>? streams = null;
-
-        ct.UnsafeRegister(
-            static (state, _) =>
-            {
-                if (state is ConcurrentPipeWriter w)
-                {
-                    w.Dispose();
-                }
-            },
-            writer);
 
         try
         {
@@ -140,7 +135,12 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         Stream outputStream,
         CancellationToken ct)
     {
-        using var writer = new ConcurrentPipeWriter(PipeWriter.Create(outputStream), MaxBacklogSize);
+        await using var writer = new ConcurrentStreamWriter(outputStream, MaxBacklogSize);
+
+        await using var tokenRegistration = ct.Register(
+            static w => ((ConcurrentStreamWriter)w!).DisposeAsync().FireAndForget(),
+            writer,
+            useSynchronizationContext: false);
 
         using (var keepAlive = new KeepAliveJob(writer))
         {
@@ -155,7 +155,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         JsonResultFormatter payloadFormatter,
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
-        ConcurrentPipeWriter writer)
+        ConcurrentStreamWriter writer)
     {
         public async Task ProcessAsync(CancellationToken ct)
         {
@@ -205,12 +205,12 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         private static readonly TimeSpan s_keepAlivePeriod = TimeSpan.FromSeconds(8);
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly CancellationToken _ct;
-        private readonly ConcurrentPipeWriter _writer;
+        private readonly ConcurrentStreamWriter _writer;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
         private bool _disposed;
 
-        public KeepAliveJob(ConcurrentPipeWriter writer)
+        public KeepAliveJob(ConcurrentStreamWriter writer)
         {
             _writer = writer;
             _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, s_timerPeriod, s_timerPeriod);

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -14,7 +14,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
     private readonly ObjectPool<PooledRequestContext> _contextPool;
     private readonly DefaultRequestContextAccessor _contextAccessor;
     private readonly IRequestContextEnricher[] _enricher;
-    private HashSet<Task>? _taskSet = null;
+    private List<Task>? _taskList;
 
     public DefaultRequestExecutor(
         ISchemaDefinition schema,
@@ -243,9 +243,9 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
     {
         var requests = requestBatch.Requests;
         var requestCount = requests.Count;
-        var tasks = Interlocked.Exchange(ref _taskSet, null) ?? new HashSet<Task>(requestCount);
+        var tasks = Interlocked.Exchange(ref _taskList, null) ?? new List<Task>(requestCount);
 
-        var completed = new ConcurrentStack<IOperationResult>();
+        var completed = new List<IOperationResult>();
 
         for (var i = 0; i < requestCount; i++)
         {
@@ -254,36 +254,45 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
         var buffer = new IOperationResult[Math.Min(16, requestCount)];
 
-        while (tasks.Count > 0 || !completed.IsEmpty)
+        while (tasks.Count > 0 || completed.Count > 0)
         {
-            var count = completed.TryPopRange(buffer);
+            var count = completed.TryDequeueRange(buffer);
 
             for (var i = 0; i < count; i++)
             {
                 yield return buffer[i];
             }
 
-            if (completed.IsEmpty && tasks.Count > 0)
+            if (completed.Count == 0 && tasks.Count > 0)
             {
-                var promise = await Task.WhenAny(tasks).ConfigureAwait(false);
+                await Task.WhenAny(tasks).ConfigureAwait(false);
 
-                if (promise.Status is not TaskStatus.RanToCompletion)
+                for (var i = tasks.Count - 1; i >= 0; i--)
                 {
-                    await promise.ConfigureAwait(false);
-                }
+                    var promise = tasks[i];
+                    if (!promise.IsCompleted)
+                    {
+                        continue;
+                    }
 
-                tasks.Remove(promise);
+                    if (!promise.IsCompletedSuccessfully)
+                    {
+                        await promise.ConfigureAwait(false);
+                    }
+
+                    tasks.RemoveAt(i);
+                }
             }
         }
 
-        // if our set is not overly large we try to reuse it
+        // if our set is not overly large, we try to reuse it
         // for the next batch execution.
         if (requestCount <= 1024)
         {
             // The tasks HashSet is assumed be empty,
             // otherwise we would not have exited the loop.
-            // So its safe to reuse it without clearing it.
-            Interlocked.CompareExchange(ref _taskSet, tasks, null);
+            // So it's safe to reuse it without clearing it.
+            Interlocked.CompareExchange(ref _taskList, tasks, null);
         }
     }
 
@@ -300,7 +309,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
     private async Task ExecuteBatchItemAsync(
         IOperationRequest request,
         int requestIndex,
-        ConcurrentStack<IOperationResult> completed,
+        List<IOperationResult> completed,
         CancellationToken cancellationToken)
     {
         var result = await ExecuteAsync(request, false, requestIndex, cancellationToken).ConfigureAwait(false);
@@ -309,47 +318,47 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
     private static async Task UnwrapBatchItemResultAsync(
         IExecutionResult result,
-        ConcurrentStack<IOperationResult> completed,
+        List<IOperationResult> completed,
         CancellationToken cancellationToken)
     {
         switch (result)
         {
             case OperationResult singleResult:
-                completed.Push(singleResult);
+                completed.Enqueue(singleResult);
                 break;
 
             case IResponseStream stream:
+            {
+                await foreach (var item in stream.ReadResultsAsync().WithCancellation(cancellationToken))
                 {
-                    await foreach (var item in stream.ReadResultsAsync().WithCancellation(cancellationToken))
-                    {
-                        completed.Push(item);
-                    }
-
-                    break;
+                    completed.Enqueue(item);
                 }
+
+                break;
+            }
 
             case OperationResultBatch resultBatch:
+            {
+                List<Task>? tasks = null;
+                foreach (var item in resultBatch.Results)
                 {
-                    List<Task>? tasks = null;
-                    foreach (var item in resultBatch.Results)
+                    if (item is OperationResult singleItem)
                     {
-                        if (item is OperationResult singleItem)
-                        {
-                            completed.Push(singleItem);
-                        }
-                        else
-                        {
-                            (tasks ??= []).Add(UnwrapBatchItemResultAsync(item, completed, cancellationToken));
-                        }
+                        completed.Enqueue(singleItem);
                     }
-
-                    if (tasks is not null)
+                    else
                     {
-                        await Task.WhenAll(tasks);
+                        (tasks ??= []).Add(UnwrapBatchItemResultAsync(item, completed, cancellationToken));
                     }
-
-                    break;
                 }
+
+                if (tasks is not null)
+                {
+                    await Task.WhenAll(tasks);
+                }
+
+                break;
+            }
 
             default:
                 throw new InvalidOperationException(
@@ -366,7 +375,35 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
         foreach (var enricher in _enricher)
         {
-            enricher?.Enrich(context);
+            enricher.Enrich(context);
+        }
+    }
+}
+
+file static class ListExtensions
+{
+    public static void Enqueue<T>(this List<T> queue, T item)
+    {
+        lock (queue)
+        {
+            queue.Insert(0, item);
+        }
+    }
+
+    public static int TryDequeueRange<T>(this List<T> queue, T[] buffer)
+    {
+        lock (queue)
+        {
+            var count = Math.Min(queue.Count, buffer.Length);
+            var j = 0;
+
+            for (var i = count - 1; i >= 0; i--)
+            {
+                buffer[j++] = queue[i];
+                queue.RemoveAt(i);
+            }
+
+            return count;
         }
     }
 }

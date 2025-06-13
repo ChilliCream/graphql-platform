@@ -653,13 +653,13 @@ public class GraphQLHttpClientTests : ServerTestBase
         mutationResponse.EnsureSuccessStatusCode();
 
         // assert
-        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             result.MatchInlineSnapshot(
                 """
                 Data: {"onReview":{"stars":5}}
                 """);
-            cts.Cancel();
+            break;
         }
     }
 
@@ -710,14 +710,24 @@ public class GraphQLHttpClientTests : ServerTestBase
         mutationResponse.EnsureSuccessStatusCode();
 
         // assert
-        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
+        var canceled = false;
+        try
         {
-            result.MatchInlineSnapshot(
-                """
-                Data: {"onReview":{"stars":5}}
-                """);
-            cts.Cancel();
+            await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync().WithCancellation(cts.Token))
+            {
+                result.MatchInlineSnapshot(
+                    """
+                    Data: {"onReview":{"stars":5}}
+                    """);
+                await cts.CancelAsync();
+            }
         }
+        catch (OperationCanceledException)
+        {
+            canceled = true;
+        }
+
+        Assert.True(canceled, "Cancellation was received.");
     }
 
     [Fact]
@@ -761,7 +771,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var subscriptionResponse = await client.PostAsync(subscriptionRequest, cts.Token);
 
         // assert
-        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             snapshot.Add(result);
         }
