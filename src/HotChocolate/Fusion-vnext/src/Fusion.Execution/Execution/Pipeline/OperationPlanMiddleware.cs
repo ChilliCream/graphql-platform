@@ -6,11 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public sealed class ExecutionPlanMiddleware
+public sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
 
-    public ExecutionPlanMiddleware(OperationPlanner planner)
+    public OperationPlanMiddleware(OperationPlanner planner)
     {
         _planner = planner ?? throw new ArgumentNullException(nameof(planner));
     }
@@ -61,7 +61,7 @@ public sealed class ExecutionPlanMiddleware
         return static (factoryContext, next) =>
         {
             var planner = factoryContext.Services.GetRequiredService<OperationPlanner>();
-            var middleware = new ExecutionPlanMiddleware(planner);
+            var middleware = new OperationPlanMiddleware(planner);
             return requestContext => middleware.InvokeAsync(requestContext, next);
         };
     }

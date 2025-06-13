@@ -1,6 +1,5 @@
-using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
-using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution.Pipeline;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -54,154 +53,122 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder.UseRequest(CommonMiddleware.Instrumentation);
     }
 
-    /// <summary>
-    /// Adds a middleware that will be used to cache the compiled
-    /// operation object that is used during the request execution.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseOperationCache(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseOperationPlanCache(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationCacheMiddleware.Create());
+        return builder.UseRequest(OperationPlanCacheMiddleware.Create());
     }
 
-    /// <summary>
-    /// Adds a middleware that will be used to execute the operation.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseOperationExecution(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseOperationPlan(
+        this IFusionGatewayBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(OperationPlanMiddleware.Create());
+    }
+
+    public static IFusionGatewayBuilder UseOperationExecution(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(OperationExecutionMiddleware.Create());
     }
 
-    /// <summary>
-    /// Adds a middleware that will be used to resolve the correct operation from the GraphQL operation document
-    /// and that compiles this operation definition into an executable operation.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseOperationResolver(
-        this IRequestExecutorBuilder builder)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        return builder.UseRequest(OperationResolverMiddleware.Create());
-    }
-
-    /// <summary>
-    /// Adds a middleware that will be used to coerce the operation variables into the correct types.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseOperationVariableCoercion(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseOperationVariableCoercion(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(OperationVariableCoercionMiddleware.Create());
     }
 
-    /// <summary>
-    /// Adds a middleware that will be used to skip the actual execution of warmup requests.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseSkipWarmupExecution(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseSkipWarmupExecution(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(CommonMiddleware.SkipWarmupExecution);
     }
 
-    /// <summary>
-    /// Adds a middleware that will be used to resolve a persisted operation from the persisted operation store.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder UseReadPersistedOperation(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseReadPersistedOperation(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(PersistedOperationMiddleware.ReadPersistedOperation);
     }
 
-    public static IRequestExecutorBuilder UseAutomaticPersistedOperationNotFound(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseAutomaticPersistedOperationNotFound(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
     }
 
-    public static IRequestExecutorBuilder UseWritePersistedOperation(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseWritePersistedOperation(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(PersistedOperationMiddleware.WritePersistedOperation);
     }
 
-    public static IRequestExecutorBuilder UsePersistedOperationNotFound(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UsePersistedOperationNotFound(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(PersistedOperationMiddleware.PersistedOperationNotFound);
     }
 
-    public static IRequestExecutorBuilder UseOnlyPersistedOperationAllowed(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseOnlyPersistedOperationAllowed(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseRequest(PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
     }
 
-    public static IRequestExecutorBuilder UseDefaultPipeline(
-        this IRequestExecutorBuilder builder)
+    /*
+            pipeline.Add(CommonMiddleware.Instrumentation);
+        pipeline.Add(CommonMiddleware.UnhandledExceptions);
+        pipeline.Add(TimeoutMiddleware.Create());
+        pipeline.Add(CommonMiddleware.DocumentCache);
+        pipeline.Add(CommonMiddleware.DocumentParser);
+        pipeline.Add(CommonMiddleware.DocumentValidation);
+        pipeline.Add(OperationCacheMiddleware.Create());
+        pipeline.Add(OperationResolverMiddleware.Create());
+        pipeline.Add(CommonMiddleware.SkipWarmupExecution);
+        pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(OperationExecutionMiddleware.Create());
+        */
+
+    public static IFusionGatewayBuilder UseDefaultPipeline(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return Configure(
-            builder,
-            options => options.PipelineModifiers.AddDefaultPipeline());
+        return builder
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseDocumentCache()
+            .UseDocumentParser()
+            .UseDocumentValidation()
+            .UseOperationPlanCache()
+            .UseOperationPlan()
+            .UseOperationExecution()
+            .UseSkipWarmupExecution()
+            .UseOperationVariableCoercion()
+            .UseOperationExecution();
     }
 
-    public static IRequestExecutorBuilder UsePersistedOperationPipeline(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UsePersistedOperationPipeline(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -215,15 +182,15 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
-            .UseOperationCache()
-            .UseOperationResolver()
+            .UseOperationPlanCache()
+            .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }
 
-    public static IRequestExecutorBuilder UseAutomaticPersistedOperationPipeline(
-        this IRequestExecutorBuilder builder)
+    public static IFusionGatewayBuilder UseAutomaticPersistedOperationPipeline(
+        this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -237,12 +204,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
-            .UseOperationCache()
-            .UseOperationResolver()
+            .UseOperationPlanCache()
+            .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }
-
-
 }

@@ -32,4 +32,5 @@ public sealed class FusionRequestOptions : ICloneable
     object ICloneable.Clone() => Clone();
 
     internal void MakeReadOnly()
-        => _isReadOnly = tr => Clone();
+        => _isReadOnly = true;
+}

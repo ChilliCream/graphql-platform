@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,11 +16,4 @@ public interface IFusionSchemaDocumentProvider
     /// Gets the latest available schema document.
     /// </summary>
     DocumentNode? SchemaDocument { get; }
-}
-
-public class FusionGatewaySetup
-{
-    public List<Action<IServiceProvider, IServiceCollection>> SchemaServices { get; } = [];
-
-    public List<Action<IList<RequestMiddlewareConfiguration>>> PipelineModifiers { get; } = [];
 }

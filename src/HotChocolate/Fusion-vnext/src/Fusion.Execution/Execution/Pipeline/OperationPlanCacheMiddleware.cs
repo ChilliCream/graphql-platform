@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public class ExecutionPlanCacheMiddleware(Cache<OperationPlan> cache)
+public class OperationPlanCacheMiddleware(Cache<OperationPlan> cache)
 {
     private readonly Cache<OperationPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
@@ -41,13 +41,13 @@ public class ExecutionPlanCacheMiddleware(Cache<OperationPlan> cache)
         }
     }
 
-    public static RequestMiddleware Create()
-    {
-        return static (factoryContext, next) =>
-        {
-            var cache = factoryContext.Services.GetRequiredService<Cache<OperationPlan>>();
-            var middleware = new ExecutionPlanCacheMiddleware(cache);
-            return requestContext => middleware.InvokeAsync(requestContext, next);
-        };
-    }
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
+            static (factoryContext, next) =>
+            {
+                var cache = factoryContext.Services.GetRequiredService<Cache<OperationPlan>>();
+                var middleware = new OperationPlanCacheMiddleware(cache);
+                return requestContext => middleware.InvokeAsync(requestContext, next);
+            },
+            nameof(OperationPlanCacheMiddleware));
 }

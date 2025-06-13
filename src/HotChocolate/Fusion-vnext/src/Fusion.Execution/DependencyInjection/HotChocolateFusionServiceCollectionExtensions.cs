@@ -15,7 +15,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
 
         services.Configure<FusionGatewaySetup>((o) =>
         {
-            o.SchemaServices.Add(
+            o.SchemaServiceModifiers.Add(
                 static (rs, ss) => ss.TryAddSingleton<IRootServiceProviderAccessor>(
                     new RootServiceProviderAccessor(rs)));
         });
