@@ -136,7 +136,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// <param name="defaults">
     /// The defaults for the feature collection.
     /// </param>
-    public void Initialize(IFeatureCollection? defaults = default)
+    public void Initialize(IFeatureCollection? defaults = null)
     {
         _defaults = defaults;
 
