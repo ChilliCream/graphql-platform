@@ -124,7 +124,6 @@ resharper_enforce_if_statement_braces_highlighting = error
 resharper_enforce_lock_statement_braces_highlighting = error
 resharper_enforce_using_statement_braces_highlighting = error
 resharper_enforce_while_statement_braces_highlighting = error
-resharper_prefer_concrete_value_over_default_highlighting = error
 
 # ReSharper properties
 resharper_align_multiline_binary_expressions_chain = false
