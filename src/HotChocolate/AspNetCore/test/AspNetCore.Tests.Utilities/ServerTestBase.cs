@@ -1,5 +1,6 @@
 using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.Execution;
+using HotChocolate.PersistedOperations;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -134,11 +135,12 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
-                        endpoints.MapGraphQL("/batching").WithOptions(new GraphQLServerOptions
-                        {
-                            // with defaults
-                            // EnableBatching = false
-                        });
+                        endpoints.MapGraphQL("/batching").WithOptions(
+                            new GraphQLServerOptions
+                            {
+                                // with defaults
+                                // EnableBatching = false
+                            });
                     }));
     }
 

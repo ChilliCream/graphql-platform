@@ -75,10 +75,10 @@ internal static class ErrorHelper
                     .Add("code", ErrorCodes.Server.MultiPartPreflightRequired)
             });
 
-    public static GraphQLRequestException InvalidQueryIdFormat()
+    public static GraphQLRequestException InvalidOperationIdFormat()
         => new GraphQLRequestException(
             ErrorBuilder.New()
-                .SetMessage("Invalid query id format.")
+                .SetMessage("The operation id has an invalid format.")
                 .Build());
 
     public static IExecutionResult OperationNameRequired()

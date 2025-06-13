@@ -74,9 +74,4 @@ public interface IOperationResult : IExecutionResult
     /// If <c>false</c> the data was not set (including null).
     /// </summary>
     bool IsDataSet { get; }
-
-    /// <summary>
-    /// Serializes this GraphQL result into a dictionary.
-    /// </summary>
-    IReadOnlyDictionary<string, object?> ToDictionary();
 }

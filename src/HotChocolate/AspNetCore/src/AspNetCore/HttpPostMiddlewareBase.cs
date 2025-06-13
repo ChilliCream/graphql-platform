@@ -6,7 +6,7 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
-using static HotChocolate.Execution.GraphQLRequestFlags;
+using static HotChocolate.Execution.RequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -17,12 +17,13 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, responseFormatter, schemaName)
+        : base(next, executorResolver, executorEvents, responseFormatter, schemaName)
     {
         RequestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
@@ -127,7 +128,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 result = OperationResultBuilder.CreateError(error);
                 DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
@@ -241,7 +242,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         catch (Exception ex)
         {
             statusCode = HttpStatusCode.InternalServerError;
-            var error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = ErrorBuilder.FromException(ex).Build();
             result = OperationResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
         }

@@ -9,6 +9,7 @@ using Microsoft.Net.Http.Headers;
 using static System.Net.Http.HttpCompletionOption;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.HttpTransportVersion;
+using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace HotChocolate.AspNetCore;
 
@@ -56,11 +57,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         AddAcceptHeader(request, acceptHeader);
 
         using var response = await client.SendAsync(request);
@@ -89,15 +87,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" }),
-            Headers =
-            {
-                { "Accept", acceptHeader }
-            }
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        request.Headers.Add("Accept", acceptHeader);
 
         using var response = await client.SendAsync(request);
 
@@ -138,16 +130,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new ByteArrayContent([])
         {
-            Content = new ByteArrayContent([])
+            Headers =
             {
-                Headers =
+                ContentType = new MediaTypeHeaderValue("application/json")
                 {
-                    ContentType = new("application/json")
-                    {
-                        CharSet = "utf-8"
-                    }
+                    CharSet = "utf-8"
                 }
             }
         };
@@ -187,11 +177,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typ$ename }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typ$ename }" });
         AddAcceptHeader(request, acceptHeader);
 
         using var response = await client.SendAsync(request);
@@ -230,11 +217,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = GetClient(transportVersion);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __type name }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __type name }" });
         AddAcceptHeader(request, acceptHeader);
 
         using var response = await client.SendAsync(request);
@@ -254,12 +238,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
-        };
-
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
 
         using var response = await client.SendAsync(request);
@@ -287,11 +267,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
 
         request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
 
@@ -325,11 +302,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ ... @defer { __typename } }" });
         AddAcceptHeader(request, acceptHeader);
 
         using var response = await client.SendAsync(request);
@@ -410,18 +384,15 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
-            Headers = { { "Accept", ContentType.GraphQLResponse } }
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ ... @defer { __typename } }" });
+        request.Headers.Add("Accept", ContentType.GraphQLResponse);
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
 
         // assert
         // we are rejecting the request since we have a streamed result and
-        // the user requests a json payload.
+        // the user requests a JSON payload.
         Snapshot
             .Create()
             .Add(response)

@@ -17,7 +17,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
     public HashFormat Format { get; }
 
-    public string ComputeHash(ReadOnlySpan<byte> document)
+    public OperationDocumentHash ComputeHash(ReadOnlySpan<byte> document)
     {
 #if NETSTANDARD2_0
         var rented = ArrayPool<byte>.Shared.Rent(document.Length);
@@ -26,14 +26,16 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         try
         {
             var hash = ComputeHash(rented, document.Length);
-            return FormatHash(hash, Format);
+            var formattedHash = FormatHash(hash, Format);
+            return new OperationDocumentHash(formattedHash, Name, Format);
         }
         finally
         {
             ArrayPool<byte>.Shared.Return(rented);
         }
 #else
-        return ComputeHash(document, Format);
+        var hash = ComputeHash(document, Format);
+        return new OperationDocumentHash(hash, Name, Format);
 #endif
     }
 

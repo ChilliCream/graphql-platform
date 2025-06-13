@@ -674,8 +674,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result =
-            await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
+        var result = await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
 
         // assert
         result.MatchSnapshot();
@@ -711,9 +710,9 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetStoreActivePersistedQueryAsync(
                 document.ToString(false),
                 "md5Hash",
-                hash);
+                hash.Value);
 
-        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash);
+        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash.Value);
 
         // assert
         new[]
@@ -739,9 +738,9 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetStoreActivePersistedQueryAsync(
                 query,
                 "md5Hash",
-                hash);
+                hash.Value);
 
-        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash);
+        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash.Value);
 
         // assert
         new[] { resultA, resultB }.MatchSnapshot();

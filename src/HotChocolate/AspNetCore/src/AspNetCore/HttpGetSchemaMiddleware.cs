@@ -27,13 +27,14 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName,
         PathString path,
         MiddlewareRoutingType routing)
-        : base(next, executorResolver, responseFormatter, schemaName)
+        : base(next, executorProvider, executorEvents, responseFormatter, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ?? throw new ArgumentNullException(nameof(diagnosticEvents));
         _path = path;

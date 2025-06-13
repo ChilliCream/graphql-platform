@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Language.Properties.LangWebResources;
 
@@ -5,12 +6,71 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLRequestParser
 {
+    private OperationDocumentId? ParseOperationId(Utf8GraphQLReader reader)
+    {
+        switch (_reader.Kind)
+        {
+            case TokenKind.String:
+                if (_reader.Value.Length == 0)
+                {
+                    _reader.MoveNext();
+                    return null;
+                }
+
+                byte[]? rawStringBuffer = null;
+                var length = _reader.Value.Length;
+
+                var rawString = length <= GraphQLConstants.StackallocThreshold
+                    ? stackalloc byte[length]
+                    : rawStringBuffer = ArrayPool<byte>.Shared.Rent(length);
+
+                try
+                {
+                    if (!Utf8GraphQLReader.TryGetRawString(_reader.Value, false, rawString, out var written))
+                    {
+                        throw new OperationIdFormatException(_reader);
+                    }
+
+                    if (written == 0)
+                    {
+                        _reader.MoveNext();
+                        return null;
+                    }
+
+                    rawString = rawString.Slice(0, written);
+
+                    if (!OperationDocumentId.IsValidId(rawString))
+                    {
+                        throw new OperationIdFormatException(_reader);
+                    }
+
+                    _reader.MoveNext();
+                    return new OperationDocumentId(Utf8GraphQLReader.GetString(rawString));
+                }
+                finally
+                {
+                    if (rawStringBuffer != null)
+                    {
+                        rawString.Clear();
+                        ArrayPool<byte>.Shared.Return(rawStringBuffer);
+                    }
+                }
+
+            case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                _reader.MoveNext();
+                return null;
+
+            default:
+                throw ThrowHelper.ExpectedStringOrNull(_reader);
+        }
+    }
+
     private string? ParseStringOrNull()
     {
         switch (_reader.Kind)
         {
             case TokenKind.String:
-                if(_reader.Value.Length == 0)
+                if (_reader.Value.Length == 0)
                 {
                     _reader.MoveNext();
                     return null;

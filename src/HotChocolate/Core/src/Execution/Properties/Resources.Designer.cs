@@ -96,33 +96,6 @@ namespace HotChocolate.Execution.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only persisted operations are allowed..
-        /// </summary>
-        internal static string ErrorHelper_OnlyPersistedOperationsAreAllowed {
-            get {
-                return ResourceManager.GetString("ErrorHelper_OnlyPersistedOperationsAreAllowed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The GraphQL request execution was canceled..
-        /// </summary>
-        internal static string ErrorHelper_OperationCanceled_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified persisted operation key is invalid..
-        /// </summary>
-        internal static string ErrorHelper_PersistedOperationNotFound {
-            get {
-                return ResourceManager.GetString("ErrorHelper_PersistedOperationNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The request exceeded the configured timeout of `{0}`..
         /// </summary>
         internal static string ErrorHelper_RequestTimeout {
@@ -137,15 +110,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string ErrorHelper_RootTypeNotFound_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_RootTypeNotFound_Message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The query request contains no document or no document id..
-        /// </summary>
-        internal static string ErrorHelper_StateInvalidForDocumentValidation_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForDocumentValidation_Message", resourceCulture);
             }
         }
         
@@ -506,15 +470,6 @@ namespace HotChocolate.Execution.Properties {
         internal static string ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message {
             get {
                 return ResourceManager.GetString("ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified query type is not supported..
-        /// </summary>
-        internal static string ThrowHelper_QueryTypeNotSupported_Message {
-            get {
-                return ResourceManager.GetString("ThrowHelper_QueryTypeNotSupported_Message", resourceCulture);
             }
         }
         

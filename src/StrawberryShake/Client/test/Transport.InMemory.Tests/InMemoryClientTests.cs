@@ -1,6 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate;
 using HotChocolate.Execution;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -120,6 +124,8 @@ public class InMemoryClientTests
 
     private sealed class StubExecutor : IRequestExecutor
     {
+        public ISchemaDefinition Schema => new StubSchema(Services);
+
         public IOperationRequest? Request { get; private set; }
 
         public ulong Version { get; }
@@ -137,8 +143,6 @@ public class InMemoryClientTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public Schema Schema => null!;
-
         public IServiceProvider Services { get; } =
             new ServiceCollection()
                 .AddSingleton<IRootServiceProviderAccessor>(
@@ -151,6 +155,46 @@ public class InMemoryClientTests
         private class StubRootServiceProviderAccessor : IRootServiceProviderAccessor
         {
             public required IServiceProvider ServiceProvider { get; set; }
+        }
+
+        private class StubSchema(IServiceProvider services) : ISchemaDefinition
+        {
+            public string Name => null!;
+            public string? Description  => null;
+            public IReadOnlyDirectiveCollection Directives  => null!;
+            public IFeatureCollection Features  => null!;
+            public ISyntaxNode ToSyntaxNode() => null!;
+
+            public IServiceProvider Services => services;
+            public IObjectTypeDefinition QueryType  => null!;
+            public IObjectTypeDefinition? MutationType => null;
+            public IObjectTypeDefinition? SubscriptionType  => null;
+            public IReadOnlyTypeDefinitionCollection Types  => null!;
+            public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions  => null!;
+            public IObjectTypeDefinition GetOperationType(OperationType operation)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool TryGetOperationType(OperationType operation, [NotNullWhen(true)] out IObjectTypeDefinition? type)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<IObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<INameProvider> GetAllDefinitions()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string ToString()
+            {
+                return Name;
+            }
         }
     }
 

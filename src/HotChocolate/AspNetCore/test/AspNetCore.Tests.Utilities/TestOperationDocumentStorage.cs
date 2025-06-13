@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -15,7 +16,7 @@ public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
 
         _cache.Add(
             "abc123",
-            Utf8GraphQLParser.Parse(@"query Test($if: Boolean) { hero { name @skip(if: $if) } }"));
+            Utf8GraphQLParser.Parse(@"query Test($if: Boolean!) { hero { name @skip(if: $if) } }"));
 
         _cache.Add(
             "a73defcdf38e5891e91b9ba532cf4c36",

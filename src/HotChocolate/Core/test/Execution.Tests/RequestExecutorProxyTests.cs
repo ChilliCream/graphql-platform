@@ -16,12 +16,12 @@ public class RequestExecutorProxyTests
                 .AddStarWarsTypes()
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>();
+                .GetRequiredService<RequestExecutorManager>();
 
         // act
-        var proxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
-        var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);
-        var b = await proxy.GetRequestExecutorAsync(CancellationToken.None);
+        var proxy = new RequestExecutorProxy(resolver, resolver, ISchemaDefinition.DefaultName);
+        var a = await proxy.GetExecutorAsync(CancellationToken.None);
+        var b = await proxy.GetExecutorAsync(CancellationToken.None);
 
         // assert
         Assert.Same(a, b);
@@ -40,11 +40,11 @@ public class RequestExecutorProxyTests
                 .AddStarWarsTypes()
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>();
+                .GetRequiredService<RequestExecutorManager>();
         var evicted = false;
         var updated = false;
 
-        var proxy = new RequestExecutorProxy(resolver, ISchemaDefinition.DefaultName);
+        var proxy = new RequestExecutorProxy(resolver, resolver, ISchemaDefinition.DefaultName);
         proxy.ExecutorEvicted += (_, _) =>
         {
             evicted = true;
@@ -53,10 +53,10 @@ public class RequestExecutorProxyTests
         proxy.ExecutorUpdated += (_, _) => updated = true;
 
         // act
-        var a = await proxy.GetRequestExecutorAsync(CancellationToken.None);
+        var a = await proxy.GetExecutorAsync(CancellationToken.None);
         resolver.EvictRequestExecutor();
         executorUpdatedResetEvent.Wait(cts.Token);
-        var b = await proxy.GetRequestExecutorAsync(CancellationToken.None);
+        var b = await proxy.GetExecutorAsync(CancellationToken.None);
 
         // assert
         Assert.NotSame(a, b);

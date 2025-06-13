@@ -31,6 +31,11 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
     public int Length => _start;
 
     /// <summary>
+    /// Gets the current internal capacity of the internal buffer.
+    /// </summary>
+    public int Capacity => _buffer.Length;
+
+    /// <summary>
     /// Gets the underlying buffer.
     /// </summary>
     /// <returns>

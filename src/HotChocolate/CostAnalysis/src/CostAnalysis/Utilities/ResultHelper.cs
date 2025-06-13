@@ -7,7 +7,7 @@ internal static class ResultHelper
 {
     private static readonly ImmutableDictionary<string, object?> s_validationError
         = ImmutableDictionary<string, object?>.Empty
-            .Add(WellKnownContextData.ValidationErrors, true);
+            .Add(ExecutionContextData.ValidationErrors, true);
     private static readonly ImmutableDictionary<string, object?> s_ok
         = ImmutableDictionary<string, object?>.Empty
             .Add(WellKnownContextData.HttpStatusCode, 200);
