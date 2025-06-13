@@ -17,7 +17,7 @@ internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
     ObjectPool<DocumentValidatorContext> contextPool,
-    ICostMetricsCache cache,
+    [SchemaService] ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
     public async ValueTask InvokeAsync(RequestContext context)
@@ -152,7 +152,7 @@ internal sealed class CostAnalyzerMiddleware(
                 // this needs to be a schema service
                 var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
                 var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
-                var cache = core.Services.GetRequiredService<ICostMetricsCache>();
+                var cache = core.SchemaServices.GetRequiredService<ICostMetricsCache>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 
                 var middleware = new CostAnalyzerMiddleware(

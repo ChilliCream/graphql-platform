@@ -28,13 +28,12 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services
-            .AddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
-
         return builder
             .ConfigureSchemaServices(
                 static services =>
                 {
+                    services.TryAddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
+
                     services.TryAddEnumerable(
                         Singleton<ISchemaDocumentFormatter, CostSchemaDocumentFormatter>());
 

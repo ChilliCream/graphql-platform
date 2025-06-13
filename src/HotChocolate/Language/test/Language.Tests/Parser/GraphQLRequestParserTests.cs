@@ -547,16 +547,14 @@ public class GraphQLRequestParserTests
         var batch = requestParser.Parse();
 
         // assert
-        Assert.Collection(batch,
-            r =>
-            {
-                Assert.Equal("MyQuery", r.OperationName);
-                Assert.Equal("hashOfQuery", r.DocumentId?.Value);
-                Assert.Null(r.Variables);
-                Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                Assert.Null(r.Document);
-                Assert.Null(r.DocumentHash);
-            });
+        var request = Assert.Single(batch);
+        Assert.Equal("MyQuery", request.OperationName);
+        Assert.Equal("hashOfQuery", request.DocumentId?.Value);
+        Assert.Null(request.Variables);
+        Assert.True(request.Extensions!.ContainsKey("persistedQuery"));
+        Assert.Null(request.Document);
+        Assert.Equal("hashOfQuery", request.DocumentHash?.Value);
+        Assert.Equal("sha256Hash", request.DocumentHash?.AlgorithmName);
     }
 
     [Fact]
@@ -585,7 +583,7 @@ public class GraphQLRequestParserTests
                 Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                 Assert.Null(r.Document);
-                Assert.Null(r.DocumentHash);
+                Assert.Equal("hashOfQuery", r.DocumentHash?.Value);
             });
     }
 
@@ -648,8 +646,7 @@ public class GraphQLRequestParserTests
             () =>
             {
                 // arrange
-                var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
-                .NormalizeLineBreaks());
+                var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}".NormalizeLineBreaks());
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,

@@ -193,7 +193,8 @@ public ref partial struct Utf8GraphQLRequestParser
             case Q:
                 if (fieldName.SequenceEqual(QueryProperty))
                 {
-                    request.ContainsDocument = !IsNullToken();
+                    var isNullOrEmpty = IsNullToken() || _reader.Value.Length == 0;
+                    request.ContainsDocument = !isNullOrEmpty;
 
                     if (request.ContainsDocument && _reader.Kind != TokenKind.String)
                     {
