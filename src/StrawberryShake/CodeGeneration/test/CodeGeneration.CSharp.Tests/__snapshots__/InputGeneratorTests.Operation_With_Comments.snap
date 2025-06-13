@@ -409,7 +409,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    /// query Test(
+    ///   $single: Bar!
+    ///   $list: [Bar!]!
+    ///   $nestedList: [[Bar!]]
+    /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -569,7 +573,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    /// query Test(
+    ///   $single: Bar!
+    ///   $list: [Bar!]!
+    ///   $nestedList: [[Bar!]]
+    /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>
@@ -718,7 +726,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    /// query Test(
+    ///   $single: Bar!
+    ///   $list: [Bar!]!
+    ///   $nestedList: [[Bar!]]
+    /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
     /// </code>

@@ -270,7 +270,9 @@ public class InlineFragmentOperationRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query($skip: Boolean!) {
+            query(
+              $skip: Boolean!
+            ) {
               productById(id: 1) {
                 id
                 name @include(if: $skip)
@@ -320,7 +322,9 @@ public class InlineFragmentOperationRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query($slug: String!) {
+            query(
+              $slug: String!
+            ) {
               productBySlug(slug: $slug) {
                 reviews {
                   nodes {
@@ -365,7 +369,9 @@ public class InlineFragmentOperationRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query($slug: String!) {
+            query(
+              $slug: String!
+            ) {
               productBySlug(slug: $slug) {
                 a: name
                 name

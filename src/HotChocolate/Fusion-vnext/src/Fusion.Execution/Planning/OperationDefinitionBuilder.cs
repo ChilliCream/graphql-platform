@@ -10,6 +10,7 @@ internal sealed class OperationDefinitionBuilder
 {
     private OperationType _type = OperationType.Query;
     private string? _name;
+    private string? _description;
     private Lookup? _lookup;
     private string? _requirementKey;
     private SelectionSetNode? _selectionSet;
@@ -30,6 +31,12 @@ internal sealed class OperationDefinitionBuilder
     public OperationDefinitionBuilder SetName(string? name)
     {
         _name = name;
+        return this;
+    }
+
+    public OperationDefinitionBuilder SetDescription(string? description)
+    {
+        _description = description;
         return this;
     }
 
@@ -84,6 +91,7 @@ internal sealed class OperationDefinitionBuilder
         var definition = new OperationDefinitionNode(
             null,
             string.IsNullOrEmpty(_name) ? null : new NameNode(_name),
+            string.IsNullOrEmpty(_description) ? null : new StringValueNode(_description),
             _type,
             [],
             [],

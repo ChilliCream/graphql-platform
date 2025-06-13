@@ -619,7 +619,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
-    /// mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+    /// mutation UpdateMembers(
+    ///   $input: UpdateProjectMembersInput!
+    /// ) {
     ///   project {
     ///     __typename
     ///     updateMembers(input: $input) {
@@ -801,7 +803,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
-    /// mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+    /// mutation UpdateMembers(
+    ///   $input: UpdateProjectMembersInput!
+    /// ) {
     ///   project {
     ///     __typename
     ///     updateMembers(input: $input) {
@@ -897,7 +901,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
-    /// mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+    /// mutation UpdateMembers(
+    ///   $input: UpdateProjectMembersInput!
+    /// ) {
     ///   project {
     ///     __typename
     ///     updateMembers(input: $input) {

@@ -30,6 +30,7 @@ AST
         "Column": 1
       },
       "Name": null,
+      "Description": null,
       "Operation": "Query",
       "VariableDefinitions": [],
       "Directives": [],

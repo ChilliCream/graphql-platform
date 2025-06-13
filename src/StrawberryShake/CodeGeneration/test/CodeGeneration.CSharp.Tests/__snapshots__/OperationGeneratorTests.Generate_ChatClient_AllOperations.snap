@@ -2991,7 +2991,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3504,7 +3506,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3636,7 +3640,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3697,7 +3703,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4152,7 +4160,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4278,7 +4288,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4333,7 +4345,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -4825,7 +4840,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -4962,7 +4980,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {

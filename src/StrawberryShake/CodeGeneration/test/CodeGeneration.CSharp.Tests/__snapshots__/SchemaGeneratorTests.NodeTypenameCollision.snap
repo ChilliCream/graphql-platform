@@ -177,7 +177,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Nodes GraphQL operation
     /// <code>
-    /// query Nodes($id: ID!) {
+    /// query Nodes(
+    ///   $id: ID!
+    /// ) {
     ///   node(id: $id) {
     ///     __typename
     ///     id
@@ -297,7 +299,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Nodes GraphQL operation
     /// <code>
-    /// query Nodes($id: ID!) {
+    /// query Nodes(
+    ///   $id: ID!
+    /// ) {
     ///   node(id: $id) {
     ///     __typename
     ///     id
@@ -393,7 +397,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Nodes GraphQL operation
     /// <code>
-    /// query Nodes($id: ID!) {
+    /// query Nodes(
+    ///   $id: ID!
+    /// ) {
     ///   node(id: $id) {
     ///     __typename
     ///     id

@@ -340,7 +340,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBars GraphQL operation
     /// <code>
-    /// query GetBars($a: String!, $b: String) {
+    /// query GetBars(
+    ///   $a: String!
+    ///   $b: String
+    /// ) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -482,7 +485,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBars GraphQL operation
     /// <code>
-    /// query GetBars($a: String!, $b: String) {
+    /// query GetBars(
+    ///   $a: String!
+    ///   $b: String
+    /// ) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -592,7 +598,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBars GraphQL operation
     /// <code>
-    /// query GetBars($a: String!, $b: String) {
+    /// query GetBars(
+    ///   $a: String!
+    ///   $b: String
+    /// ) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -618,7 +627,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SaveBars GraphQL operation
     /// <code>
-    /// mutation SaveBars($a: String!, $b: String) {
+    /// mutation SaveBars(
+    ///   $a: String!
+    ///   $b: String
+    /// ) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -767,7 +779,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SaveBars GraphQL operation
     /// <code>
-    /// mutation SaveBars($a: String!, $b: String) {
+    /// mutation SaveBars(
+    ///   $a: String!
+    ///   $b: String
+    /// ) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -877,7 +892,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SaveBars GraphQL operation
     /// <code>
-    /// mutation SaveBars($a: String!, $b: String) {
+    /// mutation SaveBars(
+    ///   $a: String!
+    ///   $b: String
+    /// ) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
     ///     id

@@ -12,7 +12,7 @@ public ref partial struct Utf8GraphQLParser
     /// <summary>
     /// Parses an operation definition.
     /// <see cref="OperationDefinitionNode" />:
-    /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
+    /// Description? OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
     /// </summary>
     private OperationDefinitionNode ParseOperationDefinition()
     {
@@ -28,6 +28,7 @@ public ref partial struct Utf8GraphQLParser
         return new OperationDefinitionNode(
             location,
             name,
+            TakeDescription(),
             operation,
             variableDefinitions,
             directives,
@@ -48,6 +49,7 @@ public ref partial struct Utf8GraphQLParser
         return new OperationDefinitionNode(
             location,
             name: null,
+            description: null,
             OperationType.Query,
             Array.Empty<VariableDefinitionNode>(),
             Array.Empty<DirectiveNode>(),
@@ -114,12 +116,13 @@ public ref partial struct Utf8GraphQLParser
     /// <summary>
     /// Parses a variable definition.
     /// <see cref="VariableDefinitionNode" />:
-    /// $variable : Type = DefaultValue?
+    /// Description? $variable : Type = DefaultValue?
     /// </summary>
     private VariableDefinitionNode ParseVariableDefinition()
     {
         var start = Start();
 
+        var description = ParseDescription();
         var variable = ParseVariable();
         ExpectColon();
         var type = ParseTypeReference();
@@ -134,6 +137,7 @@ public ref partial struct Utf8GraphQLParser
         return new VariableDefinitionNode(
             location,
             variable,
+            description,
             type,
             defaultValue,
             directives);

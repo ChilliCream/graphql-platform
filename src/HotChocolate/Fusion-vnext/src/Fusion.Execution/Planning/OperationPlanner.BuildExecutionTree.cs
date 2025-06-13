@@ -106,6 +106,7 @@ public sealed partial class OperationPlanner
                     new VariableDefinitionNode(
                         null,
                         new VariableNode(null, new NameNode(key)),
+                        description: null,
                         requirement.Type,
                         null,
                         []);

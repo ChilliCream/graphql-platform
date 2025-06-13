@@ -356,7 +356,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query GetSomething($bar: Bar) {
+    /// query GetSomething(
+    ///   $bar: Bar
+    /// ) {
     ///   foo(bar: $bar)
     /// }
     /// </code>
@@ -437,7 +439,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query GetSomething($bar: Bar) {
+    /// query GetSomething(
+    ///   $bar: Bar
+    /// ) {
     ///   foo(bar: $bar)
     /// }
     /// </code>
@@ -529,7 +533,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query GetSomething($bar: Bar) {
+    /// query GetSomething(
+    ///   $bar: Bar
+    /// ) {
     ///   foo(bar: $bar)
     /// }
     /// </code>

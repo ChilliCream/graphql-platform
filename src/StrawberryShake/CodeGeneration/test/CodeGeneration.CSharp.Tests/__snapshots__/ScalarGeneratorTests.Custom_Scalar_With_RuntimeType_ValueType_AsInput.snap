@@ -170,7 +170,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SetPerson GraphQL operation
     /// <code>
-    /// query SetPerson($email: Email!) {
+    /// query SetPerson(
+    ///   $email: Email!
+    /// ) {
     ///   person {
     ///     __typename
     ///     setEmail(email: $email)
@@ -287,7 +289,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SetPerson GraphQL operation
     /// <code>
-    /// query SetPerson($email: Email!) {
+    /// query SetPerson(
+    ///   $email: Email!
+    /// ) {
     ///   person {
     ///     __typename
     ///     setEmail(email: $email)
@@ -375,7 +379,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SetPerson GraphQL operation
     /// <code>
-    /// query SetPerson($email: Email!) {
+    /// query SetPerson(
+    ///   $email: Email!
+    /// ) {
     ///   person {
     ///     __typename
     ///     setEmail(email: $email)

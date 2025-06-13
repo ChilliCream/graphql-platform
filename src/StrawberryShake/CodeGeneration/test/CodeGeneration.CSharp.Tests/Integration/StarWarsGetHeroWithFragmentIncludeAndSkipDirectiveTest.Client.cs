@@ -651,7 +651,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -1300,7 +1303,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -1437,7 +1443,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment

@@ -2958,7 +2958,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBwr_TimeSeries GraphQL operation
     /// <code>
-    /// query GetBwr_TimeSeries($where: bwr_TimeSeriesFilterInput, $readDataInput: ReadDataInput!) {
+    /// query GetBwr_TimeSeries(
+    ///   $where: bwr_TimeSeriesFilterInput
+    ///   $readDataInput: ReadDataInput!
+    /// ) {
     ///   bwr_TimeSeries(where: $where) {
     ///     __typename
     ///     nodes {
@@ -3813,7 +3816,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBwr_TimeSeries GraphQL operation
     /// <code>
-    /// query GetBwr_TimeSeries($where: bwr_TimeSeriesFilterInput, $readDataInput: ReadDataInput!) {
+    /// query GetBwr_TimeSeries(
+    ///   $where: bwr_TimeSeriesFilterInput
+    ///   $readDataInput: ReadDataInput!
+    /// ) {
     ///   bwr_TimeSeries(where: $where) {
     ///     __typename
     ///     nodes {
@@ -3974,7 +3980,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBwr_TimeSeries GraphQL operation
     /// <code>
-    /// query GetBwr_TimeSeries($where: bwr_TimeSeriesFilterInput, $readDataInput: ReadDataInput!) {
+    /// query GetBwr_TimeSeries(
+    ///   $where: bwr_TimeSeriesFilterInput
+    ///   $readDataInput: ReadDataInput!
+    /// ) {
     ///   bwr_TimeSeries(where: $where) {
     ///     __typename
     ///     nodes {

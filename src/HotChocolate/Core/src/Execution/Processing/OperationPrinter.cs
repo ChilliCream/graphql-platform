@@ -46,6 +46,7 @@ internal static class OperationPrinter
         var operationDefinition = new OperationDefinitionNode(
             operation.Definition.Location,
             operation.Definition.Name,
+            operation.Definition.Description,
             operation.Definition.Operation,
             operation.Definition.VariableDefinitions,
             directives,
@@ -82,6 +83,7 @@ internal static class OperationPrinter
                         new FragmentDefinitionNode(
                             null,
                             new(fragmentName),
+                            description: null,
                             Array.Empty<VariableDefinitionNode>(),
                             new NamedTypeNode(typeContext.Name),
                             Array.Empty<DirectiveNode>(),

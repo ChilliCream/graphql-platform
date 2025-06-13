@@ -648,7 +648,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -1239,7 +1244,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -1415,7 +1425,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount

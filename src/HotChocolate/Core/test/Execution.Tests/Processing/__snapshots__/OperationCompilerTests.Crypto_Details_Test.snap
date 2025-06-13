@@ -1,4 +1,6 @@
-﻿query ViewerContainerQuery($symbol: String!) {
+query ViewerContainerQuery(
+  $symbol: String!
+) {
   assetBySymbol(symbol: $symbol) {
     ... ViewerHeaderFragment_asset
     ... ViewerSnapshotFragment_asset
@@ -68,7 +70,9 @@ fragment ViewerStatsFragment_asset on Asset {
 
 ---------------------------------------------------------
 
-query ViewerContainerQuery($symbol: String!) {
+query ViewerContainerQuery(
+  $symbol: String!
+) {
   ... on Query {
     assetBySymbol(symbol: $symbol) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
       ... on Asset {

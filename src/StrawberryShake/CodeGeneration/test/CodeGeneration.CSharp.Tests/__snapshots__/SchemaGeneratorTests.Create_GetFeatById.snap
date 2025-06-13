@@ -346,7 +346,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById($id: UUID!) {
+    /// query GetFeatById(
+    ///   $id: UUID!
+    /// ) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {
@@ -592,7 +594,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById($id: UUID!) {
+    /// query GetFeatById(
+    ///   $id: UUID!
+    /// ) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {
@@ -695,7 +699,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById($id: UUID!) {
+    /// query GetFeatById(
+    ///   $id: UUID!
+    /// ) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {

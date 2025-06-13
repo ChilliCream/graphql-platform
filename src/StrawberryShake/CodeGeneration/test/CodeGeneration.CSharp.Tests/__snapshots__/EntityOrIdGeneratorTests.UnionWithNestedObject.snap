@@ -522,7 +522,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the StoreUserSettingFor GraphQL operation
     /// <code>
-    /// mutation StoreUserSettingFor($userId: Int!, $customerId: Int!, $input: StoreUserSettingForInput!) {
+    /// mutation StoreUserSettingFor(
+    ///   $userId: Int!
+    ///   $customerId: Int!
+    ///   $input: StoreUserSettingForInput!
+    /// ) {
     ///   storeUserSettingFor(userId: $userId, customerId: $customerId, input: $input) {
     ///     __typename
     ///     ... on UserSettingSuccess {
@@ -892,7 +896,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the StoreUserSettingFor GraphQL operation
     /// <code>
-    /// mutation StoreUserSettingFor($userId: Int!, $customerId: Int!, $input: StoreUserSettingForInput!) {
+    /// mutation StoreUserSettingFor(
+    ///   $userId: Int!
+    ///   $customerId: Int!
+    ///   $input: StoreUserSettingForInput!
+    /// ) {
     ///   storeUserSettingFor(userId: $userId, customerId: $customerId, input: $input) {
     ///     __typename
     ///     ... on UserSettingSuccess {
@@ -1012,7 +1020,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the StoreUserSettingFor GraphQL operation
     /// <code>
-    /// mutation StoreUserSettingFor($userId: Int!, $customerId: Int!, $input: StoreUserSettingForInput!) {
+    /// mutation StoreUserSettingFor(
+    ///   $userId: Int!
+    ///   $customerId: Int!
+    ///   $input: StoreUserSettingForInput!
+    /// ) {
     ///   storeUserSettingFor(userId: $userId, customerId: $customerId, input: $input) {
     ///     __typename
     ///     ... on UserSettingSuccess {
