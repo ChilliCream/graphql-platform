@@ -1,50 +1,68 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationVariableCoercionMiddleware
 {
+    private static readonly Dictionary<string, object?> s_empty = [];
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
     public ValueTask InvokeAsync(
         RequestContext context,
         RequestDelegate next)
     {
-        return next(context);
+        // validate context
+
+        return TryCoerceVariables(
+            context,
+            new VariableCoercionHelper(),
+            context.Operation.VariableDefinitions,
+            context.DiagnosticEvents)
+            ? next(context)
+            : default;
     }
 
-    public static IReadOnlyList<IVariableValueCollection> CoerceVariables(
+    public static bool TryCoerceVariables(
         RequestContext context,
         VariableCoercionHelper coercionHelper,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
-        IExecutionDiagnosticEvents diagnosticEvents)
+        ICoreExecutionDiagnosticEvents diagnosticEvents)
     {
         if (context.VariableValues.Length > 0)
         {
-            return context.VariableValues;
+            return true;
         }
 
         if (variableDefinitions.Count == 0)
         {
             context.VariableValues = s_noVariables;
-            return s_noVariables;
+            return true;
         }
 
         if (context.Request is OperationRequest operationRequest)
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
-
-                coercionHelper.CoerceVariableValues(
+                if(coercionHelper.TryCoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
                     operationRequest.VariableValues ?? s_empty,
-                    coercedValues);
-
-                context.VariableValues = [new VariableValueCollection(coercedValues)];
-                return context.VariableValues;
+                    out var coercedValues,
+                    out var error))
+                {
+                    context.VariableValues = [new VariableValueCollection(coercedValues)];
+                    return true;
+                }
+                else
+                {
+                    context.Result = OperationResultBuilder.CreateError(error);
+                    return false;
+                }
             }
         }
 
@@ -59,19 +77,24 @@ internal sealed class OperationVariableCoercionMiddleware
 
                 for (var i = 0; i < variableSetCount; i++)
                 {
-                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
-
-                    coercionHelper.CoerceVariableValues(
-                        schema,
+                    if(coercionHelper.TryCoerceVariableValues(
+                        context.Schema,
                         variableDefinitions,
                         variableSetInput[i],
-                        coercedValues);
-
-                    variableSet[i] = new VariableValueCollection(coercedValues);
+                        out var coercedValues,
+                        out var error))
+                    {
+                        variableSet[i] = new VariableValueCollection(coercedValues);
+                    }
+                    else
+                    {
+                        context.Result = OperationResultBuilder.CreateError(error);
+                        return false;
+                    }
                 }
 
                 context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);
-                return context.VariableValues;
+                return true;
             }
         }
 

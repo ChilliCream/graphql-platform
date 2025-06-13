@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -6,25 +7,27 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class VariableCoercionHelper
 {
-    public void CoerceVariableValues(
+    public bool TryCoerceVariableValues(
         ISchemaDefinition schema,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
-        IReadOnlyDictionary<string, object?> values,
-        IDictionary<string, VariableValue> coercedValues)
+        IReadOnlyDictionary<string, object?> variableValues,
+        [NotNullWhen(true)] out Dictionary<string, VariableValue>? coercedVariableValues,
+        [NotNullWhen(false)] out IError? error)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(variableDefinitions);
-        ArgumentNullException.ThrowIfNull(values);
-        ArgumentNullException.ThrowIfNull(coercedValues);
+        ArgumentNullException.ThrowIfNull(variableValues);
+
+        coercedVariableValues = [];
+        error = null;
 
         for (var i = 0; i < variableDefinitions.Count; i++)
         {
             var variableDefinition = variableDefinitions[i];
             var variableName = variableDefinition.Variable.Name.Value;
             var variableType = AssertInputType(schema, variableDefinition);
-            VariableValue coercedVariable;
 
-            var hasValue = values.TryGetValue(variableName, out var value);
+            var hasValue = variableValues.TryGetValue(variableName, out var value);
 
             if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
             {
@@ -46,47 +49,49 @@ internal sealed class VariableCoercionHelper
                     continue;
                 }
 
-                coercedVariable = new(variableName, variableType, NullValueNode.Default);
+                coercedVariableValues[variableName]  = new(variableName, variableType, NullValueNode.Default);
             }
             else if (value is IValueNode valueLiteral)
             {
-                coercedVariable = CoerceVariableValue(variableDefinition, variableType, valueLiteral);
+                if (TryCoerceVariableValue(
+                    variableDefinition,
+                    variableType,
+                    valueLiteral,
+                    out var variableValue,
+                    out error))
+                {
+                    coercedVariableValues[variableName] = variableValue.Value;
+                }
+                else
+                {
+                    coercedVariableValues = null;
+                    return false;
+                }
             }
             else
             {
                 throw new NotSupportedException(
                     $"The variable value of type {value?.GetType().Name} is not supported.");
             }
-
-            coercedValues[variableName] = coercedVariable;
         }
     }
 
-    private VariableValue CoerceVariableValue(
+    private bool TryCoerceVariableValue(
         VariableDefinitionNode variableDefinition,
         IInputType variableType,
-        IValueNode value)
+        IValueNode value,
+        [NotNullWhen(true)] out VariableValue? variableValue,
+        [NotNullWhen(false)] out IError? error)
     {
         var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
 
-        try
-        {
-            // we are ensuring here that enum values are correctly specified.
-            value = Rewrite(variableType, value);
+        // we are ensuring here that enum values are correctly specified.
+        value = Rewrite(variableType, value);
 
-            return new VariableValue(
-                variableDefinition.Variable.Name.Value,
-                variableType,
-                value);
-        }
-        catch (GraphQLException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw ThrowHelper.VariableValueInvalidType(variableDefinition, ex);
-        }
+        return new VariableValue(
+            variableDefinition.Variable.Name.Value,
+            variableType,
+            value);
     }
 
     private static IInputType AssertInputType(
