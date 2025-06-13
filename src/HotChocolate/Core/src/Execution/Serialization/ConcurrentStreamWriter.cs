@@ -1,6 +1,4 @@
-using System.Buffers;
 using System.Collections.Concurrent;
-using System.IO.Pipelines;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
 using HotChocolate.Utilities;
@@ -13,6 +11,7 @@ internal sealed class ConcurrentStreamWriter : IAsyncDisposable
     private readonly ConcurrentStack<PooledArrayWriter> _pool = new();
     private readonly CancellationTokenSource _cts = new();
     private readonly Stream _stream;
+    private PooledArrayWriter? _firstBuffer;
     private bool _disposed;
 
     public ConcurrentStreamWriter(Stream stream, int backlogSize)
@@ -57,7 +56,14 @@ internal sealed class ConcurrentStreamWriter : IAsyncDisposable
 
     public PooledArrayWriter Begin()
     {
-        if (_pool.TryPop(out var buffer))
+        var buffer =  Interlocked.Exchange(ref _firstBuffer, null);
+
+        if( buffer is not null)
+        {
+            return buffer;
+        }
+
+        if (_pool.TryPop(out buffer))
         {
             return buffer;
         }
@@ -111,7 +117,11 @@ internal sealed class ConcurrentStreamWriter : IAsyncDisposable
                     else
                     {
                         message.Reset();
-                        _pool.Push(message);
+
+                        if (Interlocked.CompareExchange(ref _firstBuffer, message, null) is null)
+                        {
+                            _pool.Push(message);
+                        }
                     }
                 }
             }
@@ -148,6 +158,12 @@ internal sealed class ConcurrentStreamWriter : IAsyncDisposable
         while (_pool.TryPop(out var buffer))
         {
             buffer.Dispose();
+        }
+
+        if (_firstBuffer is not null)
+        {
+            _firstBuffer.Dispose();
+            _firstBuffer = null;
         }
     }
 }
