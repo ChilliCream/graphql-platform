@@ -61,8 +61,16 @@
       "FieldsCount": 1
     }
   },
-  "DocumentId": null,
-  "DocumentHash": null,
+  "DocumentId": {
+    "IsEmpty": true,
+    "Value": null
+  },
+  "DocumentHash": {
+    "Value": null,
+    "AlgorithmName": null,
+    "Format": "Base64",
+    "IsEmpty": true
+  },
   "OperationName": null,
   "VariableValues": null,
   "Extensions": null,

@@ -62,9 +62,17 @@ public readonly struct AcceptMediaType
             {
                 Kind = AcceptMediaTypeKind.ApplicationGraphQL;
             }
+            else if (SubType.EqualsOrdinal(ContentType.SubTypes.GraphQLResponseStream))
+            {
+                Kind = AcceptMediaTypeKind.ApplicationGraphQLStream;
+            }
             else if (SubType.EqualsOrdinal(ContentType.SubTypes.Json))
             {
                 Kind = AcceptMediaTypeKind.ApplicationJson;
+            }
+            else if (SubType.EqualsOrdinal(ContentType.SubTypes.JsonLines))
+            {
+                Kind = AcceptMediaTypeKind.ApplicationJsonLines;
             }
         }
         else if (Type.EqualsOrdinal(ContentType.Types.MultiPart))

@@ -15,6 +15,7 @@ public sealed class CompositeSchemaContext
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
 
     public CompositeSchemaContext(
+        IServiceProvider services,
         string queryType,
         string? mutationType,
         string? subscriptionType,
@@ -29,6 +30,7 @@ public sealed class CompositeSchemaContext
         _typeDefinitionNodeLookup = typeDefinitionNodeLookup;
         _directiveDefinitionNodeLookup = directiveDefinitionNodeLookup;
 
+        Services = services;
         QueryType = queryType;
         MutationType = mutationType;
         SubscriptionType = subscriptionType;
@@ -38,6 +40,8 @@ public sealed class CompositeSchemaContext
 
         AddSpecDirectives();
     }
+
+    public IServiceProvider Services { get; }
 
     public string QueryType { get; }
 

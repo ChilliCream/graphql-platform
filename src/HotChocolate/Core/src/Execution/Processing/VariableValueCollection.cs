@@ -1,17 +1,18 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
-internal class VariableValueCollection(
+internal sealed class VariableValueCollection(
     Dictionary<string, VariableValueOrLiteral> coercedValues)
     : IVariableValueCollection
 {
     public static VariableValueCollection Empty { get; } = new([]);
 
-    public T? GetVariable<T>(string name)
+    public T GetValue<T>(string name) where T : IValueNode
     {
-        if (TryGetVariable(name, out T? value))
+        if (TryGetValue(name, out T? value))
         {
             return value;
         }
@@ -24,52 +25,16 @@ internal class VariableValueCollection(
         throw ThrowHelper.VariableNotFound(name);
     }
 
-    public bool TryGetVariable<T>(string name, out T? value)
+    public bool TryGetValue<T>(string name, [NotNullWhen(true)] out T? value) where T : IValueNode
     {
-        ArgumentException.ThrowIfNullOrEmpty(name);
-
-        if (coercedValues.TryGetValue(name, out var variableValue))
+        if (coercedValues.TryGetValue(name, out var variableValue)
+            && variableValue.ValueLiteral is T casted)
         {
-            var requestedType = typeof(T);
-
-            if (requestedType == typeof(IValueNode))
-            {
-                value = (T)variableValue.ValueLiteral;
-                return true;
-            }
-
-            if (typeof(IValueNode).IsAssignableFrom(requestedType))
-            {
-                if (variableValue.ValueLiteral is T casted)
-                {
-                    value = casted;
-                    return true;
-                }
-
-                value = default!;
-                return false;
-            }
-
-            if (variableValue.Value is null)
-            {
-                value = default;
-                return true;
-            }
-
-            if (variableValue.Value.GetType() == requestedType)
-            {
-                value = (T)variableValue.Value;
-                return true;
-            }
-
-            if (variableValue.Value is T castedValue)
-            {
-                value = castedValue;
-                return true;
-            }
+            value = casted;
+            return true;
         }
 
-        value = default!;
+        value = default;
         return false;
     }
 

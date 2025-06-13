@@ -41,9 +41,9 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         try
         {
             enumerator = result
-                .ReadAsResultStreamAsync(cancellationToken)
-                .ConfigureAwait(false)
+                .ReadAsResultStreamAsync()
                 .WithCancellation(cancellationToken)
+                .ConfigureAwait(false)
                 .GetAsyncEnumerator();
         }
         catch (Exception ex)

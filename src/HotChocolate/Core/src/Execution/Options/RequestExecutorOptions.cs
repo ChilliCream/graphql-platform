@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using static HotChocolate.Execution.Options.PersistedOperationOptions;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Execution.Options;
 
@@ -65,8 +65,8 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
         get => _persistedOperations;
         set
         {
-            _persistedOperations = value
-                ?? throw new ArgumentNullException(nameof(PersistedOperations));
+            ArgumentNullException.ThrowIfNull(value, nameof(PersistedOperationOptions));
+            _persistedOperations = value;
         }
     }
 }
