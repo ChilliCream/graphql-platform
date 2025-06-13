@@ -89,7 +89,6 @@ public class IntegrationTests
     {
         // arrange
         var cacheDirectory = IO.Path.GetTempPath();
-        var documentId = Guid.NewGuid().ToString("N");
         const string documentHash = "hash";
 
         var executor =
@@ -115,7 +114,7 @@ public class IntegrationTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequest
-                .FromId(documentId)
+                .FromId(documentHash)
                 .WithDocument(new OperationDocument(Utf8GraphQLParser.Parse("{ __typename }")))
                 .WithDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
                 .WithExtensions(new Dictionary<string, object?>
