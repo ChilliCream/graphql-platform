@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Marten\GreenDonut.Data.Marten.csproj" />
   </ItemGroup>
 
 </Project>
