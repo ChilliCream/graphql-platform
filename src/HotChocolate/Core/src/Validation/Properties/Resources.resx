@@ -216,10 +216,10 @@
     <value>Introspection is not allowed for the current request.</value>
   </data>
   <data name="ErrorHelper_OneOfMustHaveExactlyOneField" xml:space="preserve">
-    <value>The Oneof Input Object `{0}` requires that exactly one field must be supplied and that field must not be `null`.</value>
+    <value>The OneOf Input Object `{0}` requires that exactly one field must be supplied and that field must not be `null`.</value>
   </data>
   <data name="ErrorHelper_OneOfVariablesMustBeNonNull" xml:space="preserve">
-    <value>The variable `${0}` assigned to the field `{1}` of the Oneof Input Object `{2}` must be non-null.</value>
+    <value>The variable `${0}` assigned to the field `{1}` of the OneOf Input Object `{2}` must be non-null.</value>
   </data>
   <data name="ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField" xml:space="preserve">
     <value>The skip and include directives are not allowed to be used on root fields of the subscription type.</value>
