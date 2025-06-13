@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
+using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -579,7 +580,7 @@ public partial class SchemaBuilder
         services.TryAddSingleton(static sp => sp.GetRequiredService<LazySchema>().Schema);
         services.TryAddSingleton<ISchemaDefinition>(sp => sp.GetRequiredService<LazySchema>().Schema);
 
-        // If there was now node id serializer registered we will register the default one as a fallback.
+        // If there was now node id serializer registered, we will register the default one as a fallback.
         services.TryAddSingleton<INodeIdSerializer>(static sp =>
         {
             var appServices = sp.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;

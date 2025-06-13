@@ -70,6 +70,5 @@ internal sealed class DefaultErrorHandler : IErrorHandler
         return builder;
     }
 
-    public static DefaultErrorHandler Default { get; } =
-        new DefaultErrorHandler();
+    public static DefaultErrorHandler Default { get; } = new();
 }

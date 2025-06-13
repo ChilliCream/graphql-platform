@@ -1,4 +1,7 @@
+using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -15,6 +18,8 @@ internal sealed partial class ResultBuilder
             return;
         }
 
+        var errorHandler = _context.Schema.Services.GetRequiredService<IErrorHandler>();
+
         while (violations.TryPop(out var violation))
         {
             if (fieldErrors.Contains(violation.Selection))
@@ -28,8 +33,8 @@ internal sealed partial class ResultBuilder
             }
 
             var error = NonNullOutputFieldViolation(violation.Path, violation.Selection.SyntaxNode);
-            error = _context.ErrorHandler.Handle(error);
-            _diagnosticEvents.ResolverError(_context, violation.Selection, error);
+            error =  errorHandler.Handle(error);
+            _diagnosticEvents.ExecutionError(_context, ErrorKind.FieldError, [error], null);
             errors.Add(error);
         }
     }

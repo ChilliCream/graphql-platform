@@ -717,6 +717,35 @@ public class SchemaSyntaxPrinterTests
     }
 
     [Fact]
+    public void Serialize_SchemaDefWithDescriptionAndOps_SchemaKeywordNotOmitted()
+    {
+        // arrange
+        var schema =
+            """
+            "Example schema"
+            schema {
+                query: Query
+                mutation: Mutation
+            }
+
+            type Query {
+                someField: String
+            }
+
+            type Mutation {
+                someMutation: String
+            }
+            """;
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString();
+
+        // assert
+        result.MatchInlineSnapshot(schema);
+    }
+
+    [Fact]
     public void Serialize_SchemaDefWithOpNoIndent_OutHasIndentation()
     {
         // arrange

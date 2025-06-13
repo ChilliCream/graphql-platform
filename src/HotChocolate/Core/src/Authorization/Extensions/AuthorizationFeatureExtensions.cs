@@ -102,16 +102,16 @@ internal static class AuthorizationFeatureExtensions
         return options?.AllowAnonymous ?? false;
     }
 
-    public static IRequestContext EnsureAuthorizationRequestDataExists(
-        this IRequestContext context)
+    public static RequestContext EnsureAuthorizationRequestDataExists(
+        this RequestContext context)
     {
         var data = context.Features.GetOrSet<AuthorizationRequestContext>();
-        data.Handler = context.Services.GetRequiredService<IAuthorizationHandler>();
+        data.Handler = context.RequestServices.GetRequiredService<IAuthorizationHandler>();
         return context;
     }
 
     public static IAuthorizationHandler GetAuthorizationHandler(
-        this IRequestContext context)
+        this RequestContext context)
     {
         var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         return data.Handler ?? throw new InvalidOperationException("Authorization handler not found.");
@@ -125,7 +125,7 @@ internal static class AuthorizationFeatureExtensions
     }
 
     public static ImmutableArray<AuthorizeDirective> GetAuthorizeDirectives(
-        this IRequestContext context)
+        this RequestContext context)
     {
         var data = context.Features.GetOrSet<AuthorizationRequestContext>();
         return data.Directives;
@@ -155,8 +155,8 @@ internal static class AuthorizationFeatureExtensions
         this ISchemaBuilder builder)
         => builder.Features.GetOrSet<AuthorizationOptions>();
 
-    public static IRequestContext TryCreateUserStateIfNotExists(
-        this IRequestContext context)
+    public static RequestContext TryCreateUserStateIfNotExists(
+        this RequestContext context)
     {
         var userState = context.Features.Get<UserState>();
 

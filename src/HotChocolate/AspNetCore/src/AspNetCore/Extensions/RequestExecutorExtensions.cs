@@ -7,7 +7,7 @@ internal static class RequestExecutorExtensions
     internal static T GetRequiredService<T>(
         this IRequestExecutor requestExecutor)
         where T : notnull =>
-        requestExecutor.Services.GetRequiredService<T>();
+        requestExecutor.Schema.Services.GetRequiredService<T>();
 
     internal static IErrorHandler GetErrorHandler(
         this IRequestExecutor requestExecutor) =>

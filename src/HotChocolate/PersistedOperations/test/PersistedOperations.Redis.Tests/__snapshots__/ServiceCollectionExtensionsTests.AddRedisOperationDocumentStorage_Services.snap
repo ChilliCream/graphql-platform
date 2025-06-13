@@ -1,6 +1,6 @@
-﻿[
+[
   {
-    "Key": "HotChocolate.Execution.IOperationDocumentStorage",
+    "Key": "HotChocolate.PersistedOperations.IOperationDocumentStorage",
     "Value": null
   }
 ]

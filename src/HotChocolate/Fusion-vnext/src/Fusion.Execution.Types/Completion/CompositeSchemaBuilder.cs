@@ -11,13 +11,13 @@ namespace HotChocolate.Fusion.Types.Completion;
 
 public static class CompositeSchemaBuilder
 {
-    public static FusionSchemaDefinition Create(DocumentNode documentNode)
+    public static FusionSchemaDefinition Create(DocumentNode documentNode, IServiceProvider? services = null)
     {
-        var context = CreateTypes(documentNode);
+        var context = CreateTypes(documentNode, services);
         return CompleteTypes(context);
     }
 
-    private static CompositeSchemaContext CreateTypes(DocumentNode schema)
+    private static CompositeSchemaContext CreateTypes(DocumentNode schema, IServiceProvider? services)
     {
         string? queryType = null;
         string? mutationType = null;
@@ -94,6 +94,7 @@ public static class CompositeSchemaBuilder
         }
 
         return new CompositeSchemaContext(
+            services ?? EmptyServiceProvider.Instance,
             queryType ?? "Query",
             mutationType,
             subscriptionType,
@@ -286,6 +287,7 @@ public static class CompositeSchemaBuilder
         return new FusionSchemaDefinition(
             "Default",
             null,
+            schemaContext.Services,
             schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.QueryType),
             schemaContext.MutationType is not null
                 ? schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.MutationType)
@@ -497,5 +499,12 @@ public static class CompositeSchemaBuilder
                 argumentDef,
                 schemaContext);
         }
+    }
+
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+
+        public static EmptyServiceProvider Instance { get; } = new();
     }
 }

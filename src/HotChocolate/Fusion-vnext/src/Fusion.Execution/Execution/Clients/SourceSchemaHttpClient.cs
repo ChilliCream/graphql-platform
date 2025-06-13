@@ -127,7 +127,7 @@ public class SourceSchemaHttpClient : ISourceSchemaClient
 
                 default:
                 {
-                    await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+                    await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
                     {
                         var index = result.VariableIndex!.Value;
                         var (path, _) = variables[index];

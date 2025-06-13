@@ -3,10 +3,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents a cached document.
 /// </summary>
-public sealed class CachedDocument(
-    DocumentNode body,
-    string? hash,
-    bool isPersisted)
+public sealed class CachedDocument(DocumentNode body, OperationDocumentHash hash, bool isPersisted)
 {
     /// <summary>
     /// Gets the actual GraphQL syntax tree.
@@ -16,7 +13,7 @@ public sealed class CachedDocument(
     /// <summary>
     /// Gets the hash of the document.
     /// </summary>
-    public string? Hash { get; } = hash;
+    public OperationDocumentHash Hash { get; } = hash;
 
     /// <summary>
     /// Defines if the document is a persisted document.

@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -73,8 +74,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
         }
         else
         {
-            var errorBuilder = _operationContext.ErrorHandler
-                .CreateUnexpectedError(exception)
+            var errorBuilder = ErrorBuilder
+                .FromException(exception)
                 .SetPath(Path)
                 .AddLocation(_selection.SyntaxNode);
 
@@ -110,14 +111,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 {
                     var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNode, Path);
                     _operationContext.Result.AddError(errorWithPath, _selection);
-                    _operationContext.DiagnosticEvents.ResolverError(this, errorWithPath);
+                    _operationContext.FieldError([errorWithPath], this);
                 }
             }
             else
             {
                 var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNode, Path);
                 _operationContext.Result.AddError(errorWithPath, _selection);
-                _operationContext.DiagnosticEvents.ResolverError(this, errorWithPath);
+                _operationContext.FieldError([errorWithPath], this);
             }
 
             HasErrors = true;

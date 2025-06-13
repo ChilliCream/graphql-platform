@@ -16,16 +16,6 @@ public static class WellKnownContextData
     public const string Subscription = "HotChocolate.Execution.Subscription";
 
     /// <summary>
-    /// The key for setting a flag the a document was saved to the persisted operation storage.
-    /// </summary>
-    public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
-
-    /// <summary>
-    /// The key for setting a flag that the execution had document validation errors.
-    /// </summary>
-    public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
-
-    /// <summary>
     /// The key allows users to override the status code behavior of the default
     /// HTTP response formatter.
     /// </summary>

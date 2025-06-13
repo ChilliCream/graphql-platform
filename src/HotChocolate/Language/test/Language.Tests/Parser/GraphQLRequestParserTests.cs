@@ -27,10 +27,10 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -123,10 +123,10 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -151,11 +151,11 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -178,11 +178,11 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Null(r.QueryId);
+                Assert.Null(r.DocumentId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                r.Query.MatchSnapshot();
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -213,7 +213,9 @@ public class GraphQLRequestParserTests
 
         var first = requestParser.Parse();
 
-        cache.TryAddDocument(first[0].QueryId!, new CachedDocument(first[0].Query!, null, false));
+        cache.TryAddDocument(
+            first[0].DocumentId?.Value!,
+            new CachedDocument(first[0].Document!, OperationDocumentHash.Empty, false));
 
         // act
         requestParser = new Utf8GraphQLRequestParser(
@@ -225,7 +227,7 @@ public class GraphQLRequestParserTests
         var second = requestParser.Parse();
 
         // assert
-        Assert.Equal(first[0].Query, second[0].Query);
+        Assert.Equal(first[0].Document, second[0].Document);
         Assert.Collection(second,
             r =>
             {
@@ -233,8 +235,8 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                Assert.Equal(expectedHash, r.QueryId);
-                r.Query.MatchSnapshot();
+                Assert.Equal(expectedHash, r.DocumentId?.Value);
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -276,8 +278,8 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                Assert.Equal(expectedHash, r.QueryId);
-                r.Query.MatchSnapshot();
+                Assert.Equal(expectedHash, r.DocumentId?.Value);
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -319,9 +321,9 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                Assert.Equal("FooBar", r.QueryId);
-                Assert.Equal(expectedHash, r.QueryHash);
-                r.Query.MatchSnapshot();
+                Assert.Equal("FooBar", r.DocumentId?.Value);
+                Assert.Equal(expectedHash, r.DocumentHash?.Value);
+                r.Document.MatchSnapshot();
             });
     }
 
@@ -397,12 +399,12 @@ public class GraphQLRequestParserTests
         Assert.Collection(batch,
             r =>
             {
-                Assert.Equal("ABC", r.QueryId);
+                Assert.Equal("ABC", r.DocumentId?.Value);
                 Assert.Equal("DEF", r.OperationName);
 
                 snapshot.Add(r.Variables, "Variables:");
                 snapshot.Add(r.Extensions, "Extensions:");
-                snapshot.Add(r.Query, "Query:");
+                snapshot.Add(r.Document, "Query:");
             });
         snapshot.Match();
     }
@@ -545,16 +547,14 @@ public class GraphQLRequestParserTests
         var batch = requestParser.Parse();
 
         // assert
-        Assert.Collection(batch,
-            r =>
-            {
-                Assert.Equal("MyQuery", r.OperationName);
-                Assert.Equal("hashOfQuery", r.QueryId);
-                Assert.Null(r.Variables);
-                Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                Assert.Null(r.Query);
-                Assert.Null(r.QueryHash);
-            });
+        var request = Assert.Single(batch);
+        Assert.Equal("MyQuery", request.OperationName);
+        Assert.Equal("hashOfQuery", request.DocumentId?.Value);
+        Assert.Null(request.Variables);
+        Assert.True(request.Extensions!.ContainsKey("persistedQuery"));
+        Assert.Null(request.Document);
+        Assert.Equal("hashOfQuery", request.DocumentHash?.Value);
+        Assert.Equal("sha256Hash", request.DocumentHash?.AlgorithmName);
     }
 
     [Fact]
@@ -579,11 +579,11 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Equal("hashOfQuery", r.QueryId);
+                Assert.Equal("hashOfQuery", r.DocumentId?.Value);
                 Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                Assert.Null(r.Query);
-                Assert.Null(r.QueryHash);
+                Assert.Null(r.Document);
+                Assert.Equal("hashOfQuery", r.DocumentHash?.Value);
             });
     }
 
@@ -611,14 +611,14 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.OperationName);
                 Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                Assert.NotNull(r.Query);
+                Assert.NotNull(r.Document);
 
                 if (r.Extensions.TryGetValue("persistedQuery", out var o)
                     && o is IReadOnlyDictionary<string, object> persistedQuery
                     && persistedQuery.TryGetValue("sha256Hash", out o)
                     && o is string hash)
                 {
-                    Assert.Equal(hash, r.QueryHash);
+                    Assert.Equal(hash, r.DocumentHash?.Value);
                 }
             });
     }
@@ -646,8 +646,7 @@ public class GraphQLRequestParserTests
             () =>
             {
                 // arrange
-                var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
-                .NormalizeLineBreaks());
+                var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}".NormalizeLineBreaks());
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,

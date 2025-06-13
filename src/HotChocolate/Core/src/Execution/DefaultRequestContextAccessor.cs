@@ -4,7 +4,7 @@ internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
 {
     private static readonly AsyncLocal<RequestContextHolder> s_requestContextCurrent = new();
 
-    public IRequestContext RequestContext
+    public RequestContext RequestContext
     {
         get
         {
@@ -27,6 +27,6 @@ internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
 
     private class RequestContextHolder
     {
-        public IRequestContext Context = null!;
+        public RequestContext Context = null!;
     }
 }

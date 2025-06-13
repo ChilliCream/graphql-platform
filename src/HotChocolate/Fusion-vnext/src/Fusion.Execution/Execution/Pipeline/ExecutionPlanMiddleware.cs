@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public class ExecutionPlanMiddleware
+public sealed class ExecutionPlanMiddleware
 {
     private readonly OperationPlanner _planner;
 
@@ -15,11 +15,11 @@ public class ExecutionPlanMiddleware
         _planner = planner ?? throw new ArgumentNullException(nameof(planner));
     }
 
-    public ValueTask InvokeAsync(GraphQLRequestContext context, GraphQLRequestDelegate next)
+    public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
-        var operationDocumentInfo = context.GetOperationDocumentInfo();
+        var operationDocumentInfo = context.OperationDocumentInfo;
 
-        if (operationDocumentInfo is null)
+        if (operationDocumentInfo.Document is null)
         {
             throw new InvalidOperationException(
                 "The operation document info is not available in the context.");
@@ -56,7 +56,7 @@ public class ExecutionPlanMiddleware
         }
     }
 
-    public static GraphQLRequestMiddleware Create()
+    public static RequestMiddleware Create()
     {
         return static (factoryContext, next) =>
         {

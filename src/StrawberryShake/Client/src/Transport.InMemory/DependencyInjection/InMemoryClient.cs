@@ -68,7 +68,7 @@ public class InMemoryClient : IInMemoryClient
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
         requestBuilder.SetGlobalState(request.GetContextDataOrNull());
 
-        var applicationService = Executor.Services.GetRootServiceProvider();
+        var applicationService = Executor.Schema.Services.GetRootServiceProvider();
         foreach (var interceptor in RequestInterceptors)
         {
             await interceptor

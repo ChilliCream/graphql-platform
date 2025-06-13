@@ -28,13 +28,12 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services
-            .AddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
-
         return builder
             .ConfigureSchemaServices(
                 static services =>
                 {
+                    services.TryAddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
+
                     services.TryAddEnumerable(
                         Singleton<ISchemaDocumentFormatter, CostSchemaDocumentFormatter>());
 
@@ -66,9 +65,8 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .TryAddTypeInterceptor<CostTypeInterceptor>()
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
             .AppendUseRequest(
-                after: nameof(DocumentValidationMiddleware),
-                middleware: CostAnalyzerMiddleware.Create(),
-                key: nameof(CostAnalyzerMiddleware),
+                after: CommonMiddleware.DocumentValidationKey,
+                configuration: CostAnalyzerMiddleware.Create(),
                 allowMultiple: false);
     }
 

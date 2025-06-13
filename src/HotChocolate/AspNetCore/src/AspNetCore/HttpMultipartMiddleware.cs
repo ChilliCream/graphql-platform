@@ -22,7 +22,8 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
@@ -30,7 +31,8 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         IOptions<FormOptions> formOptions)
         : base(
             next,
-            executorResolver,
+            executorProvider,
+            executorEvents,
             responseFormatter,
             requestParser,
             diagnosticEvents,
