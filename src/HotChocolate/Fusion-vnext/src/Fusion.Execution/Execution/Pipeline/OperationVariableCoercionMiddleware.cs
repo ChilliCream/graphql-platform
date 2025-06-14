@@ -20,7 +20,6 @@ internal sealed class OperationVariableCoercionMiddleware
 
         return TryCoerceVariables(
             context,
-            new VariableCoercionHelper(),
             context.Operation.VariableDefinitions,
             context.DiagnosticEvents)
             ? next(context)
@@ -29,7 +28,6 @@ internal sealed class OperationVariableCoercionMiddleware
 
     public static bool TryCoerceVariables(
         RequestContext context,
-        VariableCoercionHelper coercionHelper,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         ICoreExecutionDiagnosticEvents diagnosticEvents)
     {
@@ -48,7 +46,7 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                if(coercionHelper.TryCoerceVariableValues(
+                if(VariableCoercionHelper.TryCoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
                     operationRequest.VariableValues ?? s_empty,
@@ -77,7 +75,7 @@ internal sealed class OperationVariableCoercionMiddleware
 
                 for (var i = 0; i < variableSetCount; i++)
                 {
-                    if(coercionHelper.TryCoerceVariableValues(
+                    if(VariableCoercionHelper.TryCoerceVariableValues(
                         context.Schema,
                         variableDefinitions,
                         variableSetInput[i],

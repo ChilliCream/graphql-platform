@@ -12,10 +12,16 @@ public class OperationPlanCacheMiddleware(Cache<OperationPlan> cache)
     public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
         var documentInfo = context.OperationDocumentInfo;
+
+        if (documentInfo.Document is null)
+        {
+
+        }
+
         var planKey = $"{documentInfo.Hash}.{context.Request.OperationName ?? "Default"}";
         var isPlanCached = false;
 
-        if(_cache.TryGet(planKey, out var plan))
+        if (_cache.TryGet(planKey, out var plan))
         {
             context.SetExecutionPlan(plan);
             isPlanCached = true;

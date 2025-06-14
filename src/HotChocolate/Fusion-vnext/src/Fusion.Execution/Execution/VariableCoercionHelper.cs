@@ -5,9 +5,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class VariableCoercionHelper
+internal static class VariableCoercionHelper
 {
-    public bool TryCoerceVariableValues(
+    public static bool TryCoerceVariableValues(
         ISchemaDefinition schema,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         IReadOnlyDictionary<string, object?> variableValues,
