@@ -5,12 +5,12 @@ namespace HotChocolate.Execution;
 
 public static class FusionRequestContextExtensions
 {
-    public static OperationPlan? GetExecutionPlan(
+    public static OperationExecutionPlan? GetOperationExecutionPlan(
         this RequestContext context)
-        => context.Features.Get<OperationPlan>();
+        => context.Features.Get<OperationExecutionPlan>();
 
-    public static void SetExecutionPlan(
+    public static void SetOperationExecutionPlan(
         this RequestContext context,
-        OperationPlan plan)
+        OperationExecutionPlan plan)
         => context.Features.Set(plan);
 }

@@ -17,7 +17,7 @@ public sealed class OperationPlanContext
     private readonly ISourceSchemaClientScope _clientScope;
 
     public OperationPlanContext(
-        OperationPlan operationPlan,
+        OperationExecutionPlan operationPlan,
         IReadOnlyDictionary<string, IValueNode>? variables,
         RequestContext requestContext)
     {
@@ -27,7 +27,7 @@ public sealed class OperationPlanContext
         _clientScope = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScope>();
     }
 
-    public OperationPlan OperationPlan { get; }
+    public OperationExecutionPlan OperationPlan { get; }
 
     public IReadOnlyDictionary<string, IValueNode>? Variables { get; }
 

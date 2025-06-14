@@ -7,6 +7,10 @@
     <Description>Pipeline for Hot Chocolate persisted operations.</Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
   </ItemGroup>

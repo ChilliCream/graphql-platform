@@ -1,0 +1,112 @@
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
+
+namespace HotChocolate.Fusion.Execution.Pipeline;
+
+internal sealed class OperationVariableCoercionMiddleware
+{
+    private static readonly Dictionary<string, object?> s_empty = [];
+    private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
+
+    public ValueTask InvokeAsync(
+        RequestContext context,
+        RequestDelegate next)
+    {
+        // validate context
+
+        return TryCoerceVariables(
+            context,
+            context.Operation.VariableDefinitions,
+            context.DiagnosticEvents)
+            ? next(context)
+            : default;
+    }
+
+    public static bool TryCoerceVariables(
+        RequestContext context,
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        ICoreExecutionDiagnosticEvents diagnosticEvents)
+    {
+        if (context.VariableValues.Length > 0)
+        {
+            return true;
+        }
+
+        if (variableDefinitions.Count == 0)
+        {
+            context.VariableValues = s_noVariables;
+            return true;
+        }
+
+        if (context.Request is OperationRequest operationRequest)
+        {
+            using (diagnosticEvents.CoerceVariables(context))
+            {
+                if(VariableCoercionHelper.TryCoerceVariableValues(
+                    context.Schema,
+                    variableDefinitions,
+                    operationRequest.VariableValues ?? s_empty,
+                    out var coercedValues,
+                    out var error))
+                {
+                    context.VariableValues = [new VariableValueCollection(coercedValues)];
+                    return true;
+                }
+                else
+                {
+                    context.Result = OperationResultBuilder.CreateError(error);
+                    return false;
+                }
+            }
+        }
+
+        if (context.Request is VariableBatchRequest variableBatchRequest)
+        {
+            using (diagnosticEvents.CoerceVariables(context))
+            {
+                var schema = context.Schema;
+                var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
+                var variableSetInput = variableBatchRequest.VariableValues!;
+                var variableSet = new IVariableValueCollection[variableSetCount];
+
+                for (var i = 0; i < variableSetCount; i++)
+                {
+                    if(VariableCoercionHelper.TryCoerceVariableValues(
+                        context.Schema,
+                        variableDefinitions,
+                        variableSetInput[i],
+                        out var coercedValues,
+                        out var error))
+                    {
+                        variableSet[i] = new VariableValueCollection(coercedValues);
+                    }
+                    else
+                    {
+                        context.Result = OperationResultBuilder.CreateError(error);
+                        return false;
+                    }
+                }
+
+                context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);
+                return true;
+            }
+        }
+
+        throw new NotSupportedException("Request type not supported.");
+    }
+
+    public static RequestMiddlewareConfiguration Create()
+    {
+        return new RequestMiddlewareConfiguration(
+            (factoryContext, next) =>
+            {
+                var middleware = new OperationVariableCoercionMiddleware();
+                return requestContext => middleware.InvokeAsync(requestContext, next);
+            },
+            nameof(OperationVariableCoercionMiddleware));
+    }
+}

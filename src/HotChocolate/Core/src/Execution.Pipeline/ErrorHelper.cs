@@ -20,6 +20,6 @@ internal static class ErrorHelper
         => OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ExecutionPipelineResources.ErrorHelper_StateInvalidForDocumentValidation_Message)
-                .SetCode(ErrorCodes.Execution.QueryNotFound)
+                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
 }

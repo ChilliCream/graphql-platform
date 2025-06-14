@@ -52,7 +52,8 @@ public static class ErrorCodes
         public const string SemanticNonNullViolation = "HC0088";
         public const string MustBeInputType = "HC0017";
         public const string InvalidType = "HC0016";
-        public const string QueryNotFound = "HC0015";
+        public const string OperationDocumentNotFound = "HC0015";
+        public const string OperationDocumentHashNotFound = "HCXXXX";
 
         /// <summary>
         /// A persisted operation was not found when using the active persisted operation pipeline.
