@@ -5,17 +5,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public class OperationPlanCacheMiddleware(Cache<OperationPlan> cache)
+public class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
 {
-    private readonly Cache<OperationPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+    private readonly Cache<OperationExecutionPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
     public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
         var documentInfo = context.OperationDocumentInfo;
 
-        if (documentInfo.Document is null)
+        if (!documentInfo.Hash.IsEmpty)
         {
-
+            context.Result = ErrorHelper.StateInvalidForOperationPlanCache();
+            return;
         }
 
         var planKey = $"{documentInfo.Hash}.{context.Request.OperationName ?? "Default"}";
@@ -23,27 +24,24 @@ public class OperationPlanCacheMiddleware(Cache<OperationPlan> cache)
 
         if (_cache.TryGet(planKey, out var plan))
         {
-            context.SetExecutionPlan(plan);
+            context.SetOperationExecutionPlan(plan);
             isPlanCached = true;
         }
 
         await next(context);
 
-        // if the plan is already cache, we can exit early.
-        if (isPlanCached)
+        if (!isPlanCached)
         {
-            return;
-        }
+            // We retrieve the execution plan from the context.
+            // If there is no execution plan, we can exit early as something must have
+            // gone wrong in the pipeline. If we get, however, an execution plan,
+            // we try to cache it.
+            var executionPlan = context.GetOperationExecutionPlan();
 
-        // Otherwise we retrieve the execution plan from the context.
-        // If there is no execution plan, we can exit early as something must have
-        // gone wrong in the pipeline. If we get, however, an execution plan,
-        // we try to cache it.
-        var executionPlan = context.GetExecutionPlan();
-
-        if (executionPlan is not null)
-        {
-            _cache.TryAdd(planKey, executionPlan);
+            if (executionPlan is not null)
+            {
+                _cache.TryAdd(planKey, executionPlan);
+            }
         }
     }
 
@@ -51,7 +49,7 @@ public class OperationPlanCacheMiddleware(Cache<OperationPlan> cache)
         => new RequestMiddlewareConfiguration(
             static (factoryContext, next) =>
             {
-                var cache = factoryContext.Services.GetRequiredService<Cache<OperationPlan>>();
+                var cache = factoryContext.Services.GetRequiredService<Cache<OperationExecutionPlan>>();
                 var middleware = new OperationPlanCacheMiddleware(cache);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },

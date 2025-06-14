@@ -40,7 +40,7 @@ public abstract class FusionTestBase
         return CompositeSchemaBuilder.Create(compositeSchemaDoc);
     }
 
-     protected static OperationPlan PlanOperation(
+     protected static OperationExecutionPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {
@@ -55,7 +55,7 @@ public abstract class FusionTestBase
     }
 
     protected static void MatchInline(
-        OperationPlan plan,
+        OperationExecutionPlan plan,
         [StringSyntax("yaml")] string expected)
     {
         var formatter = new YamlExecutionPlanFormatter();

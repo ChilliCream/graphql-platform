@@ -197,6 +197,6 @@ internal static class ResultHelper
         OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("The query request contains no document or no document id.")
-                .SetCode(ErrorCodes.Execution.QueryNotFound)
+                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
 }

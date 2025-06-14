@@ -12,4 +12,11 @@ internal static class ErrorHelper
                 Message = string.Format("The request exceeded the configured timeout of `{0}`.", timeout),
                 Extensions = ImmutableOrderedDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Timeout)
             });
+
+    public static IOperationResult StateInvalidForOperationPlanCache()
+        => OperationResultBuilder.CreateError(
+            ErrorBuilder.New()
+                .SetMessage("The operation plan cache requires a operation document hash.")
+                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
+                .Build());
 }

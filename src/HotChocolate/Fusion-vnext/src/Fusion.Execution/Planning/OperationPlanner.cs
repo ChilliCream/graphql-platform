@@ -13,7 +13,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
     private readonly MergeSelectionSetRewriter _mergeRewriter = new(schema);
     private readonly SelectionSetPartitioner _partitioner = new(schema);
 
-    public OperationPlan CreatePlan(OperationDefinitionNode operationDefinition)
+    public OperationExecutionPlan CreatePlan(OperationDefinitionNode operationDefinition)
     {
         ArgumentNullException.ThrowIfNull(operationDefinition);
 

@@ -25,7 +25,7 @@ public sealed class OperationPlanMiddleware
                 "The operation document info is not available in the context.");
         }
 
-        if (context.GetExecutionPlan() is not null)
+        if (context.GetOperationExecutionPlan() is not null)
         {
             return next(context);
         }
@@ -37,7 +37,7 @@ public sealed class OperationPlanMiddleware
         var rewritten = rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
         var operation = GetOperation(rewritten);
         var executionPlan = _planner.CreatePlan(operation);
-        context.SetExecutionPlan(executionPlan);
+        context.SetOperationExecutionPlan(executionPlan);
 
         return next(context);
 
