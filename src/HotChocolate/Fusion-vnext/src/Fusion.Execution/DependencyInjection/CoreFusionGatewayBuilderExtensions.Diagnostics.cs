@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 
 namespace Microsoft.Extensions.DependencyInjection;

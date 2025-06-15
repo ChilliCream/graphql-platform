@@ -17,9 +17,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        services.Configure<FusionGatewaySetup>(
-            ISchemaDefinition.DefaultName,
-            static _ => { });
+        services.AddOptions();
 
         services.TryAddSingleton<FusionRequestExecutorManager>();
         services.TryAddSingleton<IRequestExecutorProvider>(
@@ -27,6 +25,10 @@ public static class HotChocolateFusionServiceCollectionExtensions
         services.TryAddSingleton<IRequestExecutorEvents>(
             sp => sp.GetRequiredService<FusionRequestExecutorManager>());
 
-        return new DefaultFusionGatewayBuilder(services, name);
+        var builder = new DefaultFusionGatewayBuilder(services, name);
+
+        builder.UseDefaultPipeline();
+
+        return builder;
     }
 }

@@ -1,4 +1,6 @@
-namespace Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace HotChocolate.Fusion.Configuration;
 
 internal sealed class DefaultFusionGatewayBuilder : IFusionGatewayBuilder
 {

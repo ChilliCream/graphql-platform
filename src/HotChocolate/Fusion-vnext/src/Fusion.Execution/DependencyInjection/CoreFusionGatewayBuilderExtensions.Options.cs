@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 
 namespace Microsoft.Extensions.DependencyInjection;

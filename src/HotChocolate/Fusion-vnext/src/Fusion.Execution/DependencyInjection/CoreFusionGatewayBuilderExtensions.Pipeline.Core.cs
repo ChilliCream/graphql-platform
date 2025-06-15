@@ -52,19 +52,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder,
         string after,
         RequestMiddleware middleware,
-        string? key = null,
-        bool allowMultiple = false)
+        string? key = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(after);
         ArgumentNullException.ThrowIfNull(middleware);
-
-        if (!allowMultiple && key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(key));
-        }
 
         return Configure(
             builder,
@@ -74,11 +66,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
-                    {
-                        return;
-                    }
-
                     var index = GetIndex(pipeline, after);
 
                     if (index == -1)
@@ -95,19 +82,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
     public static IFusionGatewayBuilder AppendUseRequest(
         this IFusionGatewayBuilder builder,
         string after,
-        RequestMiddlewareConfiguration configuration,
-        bool allowMultiple = false)
+        RequestMiddlewareConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(after);
         ArgumentNullException.ThrowIfNull(configuration);
-
-        if (!allowMultiple && configuration.Key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(configuration));
-        }
 
         return Configure(
             builder,
@@ -115,11 +94,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
             {
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
-                    {
-                        return;
-                    }
-
                     var index = GetIndex(pipeline, after);
 
                     if (index == -1)
@@ -136,19 +110,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder,
         string before,
         RequestMiddleware middleware,
-        string? key = null,
-        bool allowMultiple = false)
+        string? key = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(before);
         ArgumentNullException.ThrowIfNull(middleware);
-
-        if (!allowMultiple && key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(key));
-        }
 
         return Configure(
             builder,
@@ -158,11 +124,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, key!) != -1)
-                    {
-                        return;
-                    }
-
                     var index = GetIndex(pipeline, before);
 
                     if (index == -1)
@@ -179,19 +140,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
     public static IFusionGatewayBuilder InsertUseRequest(
         this IFusionGatewayBuilder builder,
         string before,
-        RequestMiddlewareConfiguration configuration,
-        bool allowMultiple = false)
+        RequestMiddlewareConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(before);
         ArgumentNullException.ThrowIfNull(configuration);
-
-        if (!allowMultiple && configuration.Key is null)
-        {
-            throw new ArgumentException(
-                "The key must be set if allowMultiple is false.",
-                nameof(configuration));
-        }
 
         return Configure(
             builder,
@@ -199,11 +152,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
             {
                 options.PipelineModifiers.Add(pipeline =>
                 {
-                    if (!allowMultiple && GetIndex(pipeline, configuration.Key!) != -1)
-                    {
-                        return;
-                    }
-
                     var index = GetIndex(pipeline, before);
 
                     if (index == -1)

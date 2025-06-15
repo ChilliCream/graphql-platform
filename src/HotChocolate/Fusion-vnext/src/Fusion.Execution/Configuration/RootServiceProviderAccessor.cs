@@ -1,6 +1,4 @@
-using HotChocolate;
-
-namespace Microsoft.Extensions.DependencyInjection;
+namespace HotChocolate.Fusion.Configuration;
 
 internal sealed class RootServiceProviderAccessor : IRootServiceProviderAccessor
 {

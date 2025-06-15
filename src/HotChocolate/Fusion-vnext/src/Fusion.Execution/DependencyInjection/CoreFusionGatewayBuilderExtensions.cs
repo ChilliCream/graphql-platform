@@ -5,7 +5,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class CoreFusionGatewayBuilderExtensions
 {
-    private static IFusionGatewayBuilder Configure(
+    internal static IFusionGatewayBuilder Configure(
         IFusionGatewayBuilder builder,
         Action<FusionGatewaySetup> configure)
     {

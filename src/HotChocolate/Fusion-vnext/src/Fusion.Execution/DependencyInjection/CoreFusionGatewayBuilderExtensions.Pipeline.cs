@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Pipeline;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Pipeline;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -94,63 +95,161 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     public static IFusionGatewayBuilder UseReadPersistedOperation(
-        this IFusionGatewayBuilder builder)
+        this IFusionGatewayBuilder builder,
+        string? after = null,
+        string? before = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if(after is not null && before is not null)
+        {
+            throw new ArgumentException(
+                "You cannot specify both 'after' and 'before' parameters.");
+        }
+
+        if (after is not null)
+        {
+            return builder.AppendUseRequest(
+                after,
+                PersistedOperationMiddleware.ReadPersistedOperation);
+        }
+
+        if (before is not null)
+        {
+            return builder.InsertUseRequest(
+                before,
+                PersistedOperationMiddleware.ReadPersistedOperation);
+        }
 
         return builder.UseRequest(PersistedOperationMiddleware.ReadPersistedOperation);
     }
 
     public static IFusionGatewayBuilder UseAutomaticPersistedOperationNotFound(
-        this IFusionGatewayBuilder builder)
+        this IFusionGatewayBuilder builder,
+        string? after = null,
+        string? before = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if(after is not null && before is not null)
+        {
+            throw new ArgumentException(
+                "You cannot specify both 'after' and 'before' parameters.");
+        }
+
+        if (after is not null)
+        {
+            return builder.AppendUseRequest(
+                after,
+                PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
+        }
+
+        if (before is not null)
+        {
+            return builder.InsertUseRequest(
+                before,
+                PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
+        }
 
         return builder.UseRequest(PersistedOperationMiddleware.AutomaticPersistedOperationNotFound);
     }
 
     public static IFusionGatewayBuilder UseWritePersistedOperation(
-        this IFusionGatewayBuilder builder)
+        this IFusionGatewayBuilder builder,
+        string? after = null,
+        string? before = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if(after is not null && before is not null)
+        {
+            throw new ArgumentException(
+                "You cannot specify both 'after' and 'before' parameters.");
+        }
+
+        if (after is not null)
+        {
+            return builder.AppendUseRequest(
+                after,
+                PersistedOperationMiddleware.WritePersistedOperation);
+        }
+
+        if (before is not null)
+        {
+            return builder.InsertUseRequest(
+                before,
+                PersistedOperationMiddleware.WritePersistedOperation);
+        }
 
         return builder.UseRequest(PersistedOperationMiddleware.WritePersistedOperation);
     }
 
     public static IFusionGatewayBuilder UsePersistedOperationNotFound(
-        this IFusionGatewayBuilder builder)
+        this IFusionGatewayBuilder builder,
+        string? after = null,
+        string? before = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if(after is not null && before is not null)
+        {
+            throw new ArgumentException(
+                "You cannot specify both 'after' and 'before' parameters.");
+        }
+
+        if (after is not null)
+        {
+            return builder.AppendUseRequest(
+                after,
+                PersistedOperationMiddleware.PersistedOperationNotFound);
+        }
+
+        if (before is not null)
+        {
+            return builder.InsertUseRequest(
+                before,
+                PersistedOperationMiddleware.PersistedOperationNotFound);
+        }
 
         return builder.UseRequest(PersistedOperationMiddleware.PersistedOperationNotFound);
     }
 
     public static IFusionGatewayBuilder UseOnlyPersistedOperationAllowed(
-        this IFusionGatewayBuilder builder)
+        this IFusionGatewayBuilder builder,
+        string? after = null,
+        string? before = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        if(after is not null && before is not null)
+        {
+            throw new ArgumentException(
+                "You cannot specify both 'after' and 'before' parameters.");
+        }
+
+        if (after is not null)
+        {
+            return builder.AppendUseRequest(
+                after,
+                PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
+        }
+
+        if (before is not null)
+        {
+            return builder.InsertUseRequest(
+                before,
+                PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
+        }
+
         return builder.UseRequest(PersistedOperationMiddleware.OnlyPersistedOperationsAllowed);
     }
-
-    /*
-            pipeline.Add(CommonMiddleware.Instrumentation);
-        pipeline.Add(CommonMiddleware.UnhandledExceptions);
-        pipeline.Add(TimeoutMiddleware.Create());
-        pipeline.Add(CommonMiddleware.DocumentCache);
-        pipeline.Add(CommonMiddleware.DocumentParser);
-        pipeline.Add(CommonMiddleware.DocumentValidation);
-        pipeline.Add(OperationCacheMiddleware.Create());
-        pipeline.Add(OperationResolverMiddleware.Create());
-        pipeline.Add(CommonMiddleware.SkipWarmupExecution);
-        pipeline.Add(OperationVariableCoercionMiddleware.Create());
-        pipeline.Add(OperationExecutionMiddleware.Create());
-        */
 
     public static IFusionGatewayBuilder UseDefaultPipeline(
         this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        FusionGatewayBuilderUtilities.ClearPipeline(builder);
 
         return builder
             .UseInstrumentation()
@@ -171,6 +270,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        FusionGatewayBuilderUtilities.ClearPipeline(builder);
 
         return builder
             .UseInstrumentation()
@@ -193,6 +294,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        FusionGatewayBuilderUtilities.ClearPipeline(builder);
 
         return builder
             .UseInstrumentation()
