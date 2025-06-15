@@ -49,7 +49,7 @@ public class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
         => new RequestMiddlewareConfiguration(
             static (fc, next) =>
             {
-                var cache = fc.Services.GetRequiredService<Cache<OperationExecutionPlan>>();
+                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationExecutionPlan>>();
                 var middleware = new OperationPlanCacheMiddleware(cache);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },

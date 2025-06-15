@@ -7,6 +7,10 @@
     <Description></Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />

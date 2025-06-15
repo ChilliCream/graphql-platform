@@ -14,14 +14,14 @@ public abstract class FusionTestBase
     protected static FusionSchemaDefinition CreateSchema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        return CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
     protected static FusionSchemaDefinition CreateSchema(
         [StringSyntax("graphql")] string schema)
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(schema);
-        return CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
     protected static FusionSchemaDefinition ComposeSchema(
@@ -37,7 +37,7 @@ public abstract class FusionTestBase
         }
 
         var compositeSchemaDoc = result.Value.ToSyntaxNode();
-        return CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
      protected static OperationExecutionPlan PlanOperation(

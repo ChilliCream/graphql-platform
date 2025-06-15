@@ -39,14 +39,23 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     }
 
     public static FusionSchemaDefinition Create(
+        DocumentNode document,
+        IServiceProvider? services = null,
+        IFeatureCollection? features = null)
+        => Create(
+            ISchemaDefinition.DefaultName,
+            document,
+            services,
+            features);
+
+    public static FusionSchemaDefinition Create(
         string name,
         DocumentNode document,
-        IServiceProvider services,
-        IFeatureCollection features)
+        IServiceProvider? services = null,
+        IFeatureCollection? features = null)
     {
+        ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(features);
 
         return CompositeSchemaBuilder.Create(name, document, services, features);
     }

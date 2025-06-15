@@ -12,7 +12,9 @@ public sealed class OperationPlanMiddleware
 
     public OperationPlanMiddleware(OperationPlanner planner)
     {
-        _planner = planner ?? throw new ArgumentNullException(nameof(planner));
+        ArgumentNullException.ThrowIfNull(planner);
+
+        _planner = planner;
     }
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
@@ -60,7 +62,7 @@ public sealed class OperationPlanMiddleware
     {
         return static (fc, next) =>
         {
-            var planner = fc.Services.GetRequiredService<OperationPlanner>();
+            var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
             var middleware = new OperationPlanMiddleware(planner);
             return requestContext => middleware.InvokeAsync(requestContext, next);
         };

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.IO.Pipelines;
+using System.Reactive.Disposables;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Utilities;

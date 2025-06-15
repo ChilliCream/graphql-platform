@@ -1,3 +1,5 @@
+using HotChocolate.Caching.Memory;
+
 namespace HotChocolate.Fusion.Execution;
 
 public sealed class FusionRequestOptions : ICloneable
@@ -21,6 +23,10 @@ public sealed class FusionRequestOptions : ICloneable
                 : value;
         }
     }
+
+    public int OperationExecutionPlanCacheSize { get; set; } = 256;
+
+    public  CacheDiagnostics? OperationExecutionPlanCacheDiagnostics { get; set; }
 
     public FusionRequestOptions Clone()
     {
