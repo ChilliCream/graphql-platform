@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Planning;
 
 public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
 {
-    public override string Format(OperationPlan plan)
+    public override string Format(OperationExecutionPlan plan)
     {
         var sb = new StringBuilder();
         var writer = new CodeWriter(sb);

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Validation.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -93,7 +94,7 @@ public sealed class DocumentValidatorBuilder
     /// <returns>
     /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
     /// </returns>
-    public DocumentValidatorBuilder AddRule<TRule>(
+    public DocumentValidatorBuilder AddRule<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRule>(
         Func<IServiceProvider, ValidationOptions, TRule>? factory = null,
         Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null)
         where TRule : class, IDocumentValidatorRule
@@ -142,7 +143,7 @@ public sealed class DocumentValidatorBuilder
     /// <returns>
     /// Returns the <see cref="DocumentValidatorBuilder"/> for configuration chaining.
     /// </returns>
-    public DocumentValidatorBuilder AddVisitor<TVisitor>(
+    public DocumentValidatorBuilder AddVisitor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TVisitor>(
         Func<IServiceProvider, ValidationOptions, TVisitor>? factory = null,
         Func<IServiceProvider, ValidationOptions, bool>? isEnabled = null,
         ushort priority = ushort.MaxValue,
@@ -228,7 +229,7 @@ public sealed class DocumentValidatorBuilder
     }
 
     private static T CreateInstance<T>(
-        Type type,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type,
         Func<IServiceProvider, ValidationOptions, object>? factory,
         IServiceProvider services,
         ValidationOptions options)
@@ -249,7 +250,7 @@ public sealed class DocumentValidatorBuilder
     private sealed class RuleConfiguration
     {
         private RuleConfiguration(
-            Type rule,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type rule,
             ushort? priority,
             bool? isCacheable,
             Func<IServiceProvider, ValidationOptions, bool>? isEnabled,
@@ -264,8 +265,8 @@ public sealed class DocumentValidatorBuilder
             Factory = factory;
         }
 
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         public readonly Type Rule;
-
         public readonly ushort? Priority;
 
         public readonly bool? IsCacheable;
@@ -276,7 +277,7 @@ public sealed class DocumentValidatorBuilder
 
         public readonly Func<IServiceProvider, ValidationOptions, object>? Factory;
 
-        public static RuleConfiguration CreateRule<TRule>(
+        public static RuleConfiguration CreateRule<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRule>(
             Func<IServiceProvider, ValidationOptions, bool>? isEnabled,
             Func<IServiceProvider, ValidationOptions, object>? factory)
             where TRule : IDocumentValidatorRule
@@ -287,7 +288,7 @@ public sealed class DocumentValidatorBuilder
                 isEnabled: isEnabled,
                 factory: factory);
 
-        public static RuleConfiguration CreateVisitor<TVisitor>(
+        public static RuleConfiguration CreateVisitor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TVisitor>(
             Func<IServiceProvider, ValidationOptions, bool>? isEnabled,
             Func<IServiceProvider, ValidationOptions, object>? factory,
             ushort priority = ushort.MaxValue,

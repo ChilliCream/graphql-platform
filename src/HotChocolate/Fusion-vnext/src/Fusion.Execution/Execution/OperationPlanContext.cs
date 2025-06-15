@@ -1,8 +1,4 @@
-using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -17,7 +13,7 @@ public sealed class OperationPlanContext
     private readonly ISourceSchemaClientScope _clientScope;
 
     public OperationPlanContext(
-        OperationPlan operationPlan,
+        OperationExecutionPlan operationPlan,
         IReadOnlyDictionary<string, IValueNode>? variables,
         RequestContext requestContext)
     {
@@ -27,7 +23,7 @@ public sealed class OperationPlanContext
         _clientScope = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScope>();
     }
 
-    public OperationPlan OperationPlan { get; }
+    public OperationExecutionPlan OperationPlan { get; }
 
     public IReadOnlyDictionary<string, IValueNode>? Variables { get; }
 

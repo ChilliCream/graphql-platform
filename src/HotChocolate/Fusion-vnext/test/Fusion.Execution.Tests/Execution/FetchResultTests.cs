@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Types;
 using Xunit;
 
-namespace HotChocolate.Fusion.Tests.Execution;
+namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
 /// Unit tests for <see cref="FetchResult"/>.
