@@ -49,7 +49,7 @@ internal static class VariableCoercionHelper
                     continue;
                 }
 
-                coercedVariableValues[variableName]  = new(variableName, variableType, NullValueNode.Default);
+                coercedVariableValues[variableName] = new(variableName, variableType, NullValueNode.Default);
             }
             else if (value is IValueNode valueLiteral)
             {
@@ -76,7 +76,7 @@ internal static class VariableCoercionHelper
         }
     }
 
-    private bool TryCoerceVariableValue(
+    private static bool TryCoerceVariableValue(
         VariableDefinitionNode variableDefinition,
         IInputType variableType,
         IValueNode value,
@@ -85,13 +85,148 @@ internal static class VariableCoercionHelper
     {
         var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
 
-        // we are ensuring here that enum values are correctly specified.
-        value = Rewrite(variableType, value);
+        if (!ValidateValue(variableType, value, root, out error))
+        {
+            variableValue = null;
+            return false;
+        }
 
-        return new VariableValue(
+        variableValue = new VariableValue(
             variableDefinition.Variable.Name.Value,
             variableType,
             value);
+        return true;
+    }
+
+    private static bool ValidateValue(IInputType type, IValueNode value, Path path, [NotNullWhen(false)] out IError? error)
+    {
+        if (type.Kind is TypeKind.NonNull)
+        {
+            if (value.Kind is SyntaxKind.NullValue)
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage("The value `{0}` is not a non-null value.", value)
+                    .SetExtension("variable", $"{path}")
+                    .Build();
+                return false;
+            }
+
+            type = (IInputType)type.InnerType();
+        }
+
+        if (value.Kind is SyntaxKind.NullValue)
+        {
+            error = null;
+            return true;
+        }
+
+        if (type.Kind is TypeKind.List)
+        {
+            if (value is not ListValueNode listValue)
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage("The value `{0}` is not a list value.", value)
+                    .SetExtension("variable", $"{path}")
+                    .Build();
+                return false;
+            }
+
+            var elementType = (IInputType)type.ListType().ElementType;
+
+            for (var i = 0; i < listValue.Items.Count; i++)
+            {
+                if (!ValidateValue(elementType, listValue.Items[i], path.Append(i), out error))
+                {
+                    return false;
+                }
+            }
+
+            error = null;
+            return true;
+        }
+
+        if (type.Kind is TypeKind.InputObject)
+        {
+            if (value is not ObjectValueNode objectValue)
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage("The value `{0}` is not an object value.", value)
+                    .SetExtension("variable", $"{path}")
+                    .Build();
+                return false;
+            }
+
+            var inputObjectType = (IInputObjectTypeDefinition)type;
+
+            for (var i = 0; i < objectValue.Fields.Count; i++)
+            {
+                var field = objectValue.Fields[i];
+                if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
+                {
+                    error = ErrorBuilder.New()
+                        .SetMessage(
+                            "The field `{0}` is not defined on the input object type `{1}`.",
+                            field.Name.Value,
+                            inputObjectType.Name)
+                        .SetExtension("variable", $"{path}")
+                        .Build();
+                    return false;
+                }
+
+                if (!ValidateValue(fieldDefinition.Type, field.Value, path.Append(field.Name.Value), out error))
+                {
+                    return false;
+                }
+            }
+
+            error = null;
+            return true;
+        }
+
+        if (type is IScalarTypeDefinition scalarType)
+        {
+            if (!scalarType.IsInstanceOfType(value))
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage(
+                        "The value `{0}` is not a valid value for the scalar type `{1}`.",
+                        value,
+                        scalarType.Name)
+                    .SetExtension("variable", $"{path}")
+                    .Build();
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
+        if (type is IEnumTypeDefinition enumType)
+        {
+            if (value is not StringValueNode stringValue)
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage("The value `{0}` is not an enum value.", value.Value ?? "null")
+                    .SetExtension("variable", $"{path}")
+                    .Build();
+                return false;
+            }
+
+            if (!enumType.Values.ContainsName(stringValue.Value))
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", value.Value ?? "null", enumType.Name)
+                    .SetExtension("variable", $"{path}")
+                    .Build();
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
+        throw new NotSupportedException(
+            $"The type `{type.FullTypeName()}` is not a valid input type.");
     }
 
     private static IInputType AssertInputType(
@@ -104,129 +239,5 @@ internal static class VariableCoercionHelper
         }
 
         throw ThrowHelper.VariableIsNotAnInputType(variableDefinition);
-    }
-
-    private static IValueNode Rewrite(
-        IType inputType,
-        IValueNode node)
-    {
-        switch (node)
-        {
-            case ObjectValueNode ov:
-                return Rewrite(inputType, ov);
-
-            case ListValueNode lv:
-                return Rewrite(inputType, lv);
-
-            case StringValueNode sv when inputType.IsEnumType():
-                return new EnumValueNode(sv.Location, sv.Value);
-
-            default:
-                return node;
-        }
-    }
-
-    private static ObjectValueNode Rewrite(
-        IType inputType,
-        ObjectValueNode node)
-    {
-        if (inputType.NamedType() is not InputObjectType inputObjectType)
-        {
-            // if the node type is not an input object, we will just return the node
-            // as if and the deserialization will produce a proper error.
-            return node;
-        }
-
-        List<ObjectFieldNode>? fields = null;
-
-        for (var i = 0; i < node.Fields.Count; i++)
-        {
-            var current = node.Fields[i];
-
-            if (!inputObjectType.Fields.TryGetField(current.Name.Value, out var field))
-            {
-                // if we do not find a field on the type we also skip this error and let
-                // the deserialization produce a proper error on this.
-                fields?.Add(current);
-                continue;
-            }
-
-            var rewritten = Rewrite(field.Type, current.Value);
-
-            // we try initially just to traverse the input graph, only if we detect a change
-            // will we create a new input object. In this case if the fields list is initialized
-            // we know that we have already collected at least one change. In this case
-            // all further field nodes have to be added as well even if they do not have
-            // a changed value since we need to produce a complete new input object value node.
-            if (fields is not null)
-            {
-                fields.Add(current.WithValue(rewritten));
-            }
-
-            // if we did not so far detect any rewritten field value we will compare if the
-            // field value node changed. Since, all syntax nodes are immutable we can just
-            // check if the reference is not the same.
-            else if (!ReferenceEquals(current.Value, rewritten))
-            {
-                // if we detect a reference change we will create the fields list
-                // that contains all previous field values plus the changed field value.
-                fields = [];
-
-                for (var j = 0; j < i; j++)
-                {
-                    fields.Add(node.Fields[j]);
-                }
-
-                fields.Add(current.WithValue(rewritten));
-            }
-        }
-
-        return fields is not null ? node.WithFields(fields) : node;
-    }
-
-    private static ListValueNode Rewrite(IType inputType, ListValueNode node)
-    {
-        if (!inputType.IsListType())
-        {
-            return node;
-        }
-
-        var elementType = inputType.ListType().ElementType;
-        List<IValueNode>? values = null;
-
-        for (var i = 0; i < node.Items.Count; i++)
-        {
-            var current = node.Items[i];
-            var value = Rewrite(elementType, current);
-
-            // we try initially just to traverse the list graph, only if we detect a change
-            // will we create a new list object. In this case if values list is initialized
-            // we know that we have already collected at least one change. In this case
-            // all further value nodes have to be added as well even if they do not have
-            // a changed value since we need to produce a complete new list value node.
-            if (values is not null)
-            {
-                values.Add(value);
-            }
-
-            // if we did not so far detect any rewritten value we will compare if the
-            // value node changed. Since, all syntax nodes are immutable we can just
-            // check if the reference is not the same.
-            else if (!ReferenceEquals(current, value))
-            {
-                // if we detect a reference change we will create the values list
-                // that contains all previous list values plus the changed list value.
-                values = [];
-
-                for (var j = 0; j < i; j++)
-                {
-                    values.Add(node.Items[j]);
-                }
-
-                values.Add(value);
-            }
-        }
-
-        return values is not null ? node.WithItems(values) : node;
     }
 }
