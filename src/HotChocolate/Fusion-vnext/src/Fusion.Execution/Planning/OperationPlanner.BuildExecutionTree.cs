@@ -34,6 +34,7 @@ public sealed partial class OperationPlanner
 
         return new OperationExecutionPlan
         {
+            Operation = originalOperation,
             RootNodes = rootNodes,
             AllNodes = allNodes
         };

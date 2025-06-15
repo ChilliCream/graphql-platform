@@ -14,7 +14,7 @@ internal sealed class OperationExecutionMiddleware
     public static RequestMiddlewareConfiguration Create()
     {
         return new RequestMiddlewareConfiguration(
-            (factoryContext, next) =>
+            (fc, next) =>
             {
                 var middleware = new OperationExecutionMiddleware();
                 return requestContext => middleware.InvokeAsync(requestContext, next);

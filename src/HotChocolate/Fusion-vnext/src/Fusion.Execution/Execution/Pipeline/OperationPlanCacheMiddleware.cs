@@ -47,9 +47,9 @@ public class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
 
     public static RequestMiddlewareConfiguration Create()
         => new RequestMiddlewareConfiguration(
-            static (factoryContext, next) =>
+            static (fc, next) =>
             {
-                var cache = factoryContext.Services.GetRequiredService<Cache<OperationExecutionPlan>>();
+                var cache = fc.Services.GetRequiredService<Cache<OperationExecutionPlan>>();
                 var middleware = new OperationPlanCacheMiddleware(cache);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },

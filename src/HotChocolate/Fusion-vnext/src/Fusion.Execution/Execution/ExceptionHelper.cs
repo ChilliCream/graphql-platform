@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Fusion.Execution;
 
 internal static class ExceptionHelper

@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
@@ -11,17 +12,32 @@ internal sealed class OperationVariableCoercionMiddleware
 {
     private static readonly Dictionary<string, object?> s_empty = [];
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
+    private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
+
+    public OperationVariableCoercionMiddleware(
+        ICoreExecutionDiagnosticEvents diagnosticEvents)
+    {
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+
+        _diagnosticEvents = diagnosticEvents;
+    }
 
     public ValueTask InvokeAsync(
         RequestContext context,
         RequestDelegate next)
     {
-        // validate context
+        var operationExecutionPlan = context.GetOperationExecutionPlan();
+
+        if (operationExecutionPlan is null)
+        {
+            context.Result = ErrorHelper.StateInvalidForVariableCoercion();
+            return default;
+        }
 
         return TryCoerceVariables(
             context,
-            context.Operation.VariableDefinitions,
-            context.DiagnosticEvents)
+            operationExecutionPlan.Operation.VariableDefinitions,
+            _diagnosticEvents)
             ? next(context)
             : default;
     }
@@ -102,9 +118,10 @@ internal sealed class OperationVariableCoercionMiddleware
     public static RequestMiddlewareConfiguration Create()
     {
         return new RequestMiddlewareConfiguration(
-            (factoryContext, next) =>
+            (fc, next) =>
             {
-                var middleware = new OperationVariableCoercionMiddleware();
+                var diagnosticEvents = fc.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
+                var middleware = new OperationVariableCoercionMiddleware(diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             nameof(OperationVariableCoercionMiddleware));

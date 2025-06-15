@@ -58,9 +58,9 @@ public sealed class OperationPlanMiddleware
 
     public static RequestMiddleware Create()
     {
-        return static (factoryContext, next) =>
+        return static (fc, next) =>
         {
-            var planner = factoryContext.Services.GetRequiredService<OperationPlanner>();
+            var planner = fc.Services.GetRequiredService<OperationPlanner>();
             var middleware = new OperationPlanMiddleware(planner);
             return requestContext => middleware.InvokeAsync(requestContext, next);
         };

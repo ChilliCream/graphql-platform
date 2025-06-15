@@ -83,9 +83,9 @@ internal sealed class TimeoutMiddleware
 
     public static RequestMiddlewareConfiguration Create()
         => new RequestMiddlewareConfiguration(
-            (core, next) =>
+            (fc, next) =>
             {
-                var options = core.SchemaServices.GetRequiredService<FusionRequestOptions>();
+                var options = fc.SchemaServices.GetRequiredService<FusionRequestOptions>();
                 var middleware = new TimeoutMiddleware(next, options);
                 return context => middleware.InvokeAsync(context);
             },

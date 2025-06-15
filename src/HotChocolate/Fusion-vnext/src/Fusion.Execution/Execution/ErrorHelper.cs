@@ -19,4 +19,10 @@ internal static class ErrorHelper
                 .SetMessage("The operation plan cache requires a operation document hash.")
                 .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
+
+    public static IOperationResult StateInvalidForVariableCoercion()
+        => OperationResultBuilder.CreateError(
+            ErrorBuilder.New()
+                .SetMessage("The variable coercion requires an operation execution plan.")
+                .Build());
 }
