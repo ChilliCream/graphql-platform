@@ -1,7 +1,4 @@
-using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Configuration;
 

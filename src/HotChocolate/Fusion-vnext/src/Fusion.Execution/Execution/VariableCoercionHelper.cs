@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution.Processing;
+namespace HotChocolate.Fusion.Execution;
 
 internal static class VariableCoercionHelper
 {
@@ -39,7 +39,7 @@ internal static class VariableCoercionHelper
             {
                 if (variableType.IsNonNullType())
                 {
-                    throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
+                    throw ExceptionHelper.NonNullVariableIsNull(variableDefinition);
                 }
 
                 // if we do not have any value we will not create an entry to the
@@ -74,6 +74,8 @@ internal static class VariableCoercionHelper
                     $"The variable value of type {value?.GetType().Name} is not supported.");
             }
         }
+
+        return true;
     }
 
     private static bool TryCoerceVariableValue(
@@ -238,6 +240,6 @@ internal static class VariableCoercionHelper
             return type;
         }
 
-        throw ThrowHelper.VariableIsNotAnInputType(variableDefinition);
+        throw ExceptionHelper.VariableIsNotAnInputType(variableDefinition);
     }
 }

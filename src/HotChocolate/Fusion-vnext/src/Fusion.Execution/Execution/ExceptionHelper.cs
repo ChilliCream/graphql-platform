@@ -22,32 +22,32 @@ internal static class ExceptionHelper
                 type.FullName ?? string.Empty)
             .Build());
 
-    public static GraphQLException VariableValueInvalidType(
-        VariableDefinitionNode variableDefinition,
-        Exception? exception = null)
+    public static GraphQLException NonNullVariableIsNull(
+        VariableDefinitionNode variableDefinition)
     {
-        var underlyingError = exception is SerializationException serializationException
-            ? serializationException.Message
-            : null;
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    "Variable `{0}` is required.",
+                    variableDefinition.Variable.Name.Value)
+                .SetCode(ErrorCodes.Execution.NonNullViolation)
+                .SetExtension("variable", variableDefinition.Variable.Name.Value)
+                .AddLocation(variableDefinition)
+                .Build());
+    }
 
-        var errorBuilder = ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_VariableValueInvalidType_Message,
-                variableDefinition.Variable.Name.Value)
-            .SetCode(ErrorCodes.Execution.InvalidType)
-            .SetExtension("variable", variableDefinition.Variable.Name.Value)
-            .AddLocation(variableDefinition);
-
-        if (exception is not null)
-        {
-            errorBuilder.SetException(exception);
-        }
-
-        if (underlyingError is not null)
-        {
-            errorBuilder.SetExtension(nameof(underlyingError), underlyingError);
-        }
-
-        return new GraphQLException(errorBuilder.Build());
+    public static GraphQLException VariableIsNotAnInputType(
+        VariableDefinitionNode variableDefinition)
+    {
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    "Variable `{0}` is not an input type.",
+                    variableDefinition.Variable.Name.Value)
+                .SetCode(ErrorCodes.Execution.MustBeInputType)
+                .SetExtension("variable", variableDefinition.Variable.Name.Value)
+                .SetExtension("type", variableDefinition.Type.ToString())
+                .AddLocation(variableDefinition)
+                .Build());
     }
 }

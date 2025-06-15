@@ -33,13 +33,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(fileName);
 
-        return ConfigureSchemaServices(
+        return Configure(
             builder,
-            (_, services) =>
-            {
-                services.RemoveAll<IFusionSchemaDocumentProvider>();
-                services.AddSingleton<IFusionSchemaDocumentProvider>(
-                    new FileSystemFusionConfigurationProvider(fileName));
-            });
+            setup => setup.DocumentProvider = _ => new FileSystemFusionConfigurationProvider(fileName));
     }
 }

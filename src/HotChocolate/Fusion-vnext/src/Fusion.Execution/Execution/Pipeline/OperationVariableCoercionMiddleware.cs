@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
