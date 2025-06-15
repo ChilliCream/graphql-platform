@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -40,7 +41,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentException">
     /// If the number of keys does not match the number of values.
     /// </exception>
-    public static (Expression<Func<T, bool>> WhereExpression, int Offset) BuildWhereExpression<T>(
+    public static Expression<Func<T, bool>> BuildWhereExpression<T>(
         ReadOnlySpan<CursorKey> keys,
         Cursor cursor,
         bool forward)
@@ -101,7 +102,7 @@ internal static class ExpressionHelpers
             }
         }
 
-        return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
+        return Expression.Lambda<Func<T, bool>>(expression!, parameter);
 
         static Expression BuildNullsFirstExpression(
             Expression previousExpr,
@@ -259,12 +260,6 @@ internal static class ExpressionHelpers
     /// <param name="keys">
     /// The key definitions that represent the cursor.
     /// </param>
-    /// <param name="orderExpressions">
-    /// The order expressions that are used to sort the dataset.
-    /// </param>
-    /// <param name="orderMethods">
-    /// The order methods that are used to sort the dataset.
-    /// </param>
     /// <param name="forward">
     /// Defines how the dataset is sorted.
     /// </param>
@@ -284,8 +279,6 @@ internal static class ExpressionHelpers
     public static BatchExpression<TK, TV> BuildBatchExpression<TK, TV>(
         PagingArguments arguments,
         ReadOnlySpan<CursorKey> keys,
-        ReadOnlySpan<LambdaExpression> orderExpressions,
-        ReadOnlySpan<string> orderMethods,
         bool forward,
         ref int requestedCount)
     {
@@ -296,32 +289,9 @@ internal static class ExpressionHelpers
                 nameof(keys));
         }
 
-        if (orderExpressions.Length != orderMethods.Length)
-        {
-            throw new ArgumentException(
-                "The number of order expressions must match the number of order methods.",
-                nameof(orderExpressions));
-        }
-
         var group = Expression.Parameter(typeof(IGrouping<TK, TV>), "g");
         var groupKey = Expression.Property(group, "Key");
         Expression source = group;
-
-        for (var i = 0; i < orderExpressions.Length; i++)
-        {
-            var methodName = forward ? orderMethods[i] : ReverseOrder(orderMethods[i]);
-            var orderExpression = orderExpressions[i];
-            var delegateType = typeof(Func<,>).MakeGenericType(typeof(TV), orderExpression.Body.Type);
-            var typedOrderExpression =
-                Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
-
-            var method = GetEnumerableMethod(methodName, typeof(TV), typedOrderExpression);
-
-            source = Expression.Call(
-                method,
-                source,
-                typedOrderExpression);
-        }
 
         var offset = 0;
         var usesRelativeCursors = false;
@@ -330,9 +300,8 @@ internal static class ExpressionHelpers
         if (arguments.After is not null)
         {
             cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: true);
-            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
-            offset = cursorOffset;
+            source = ApplyCursorPagination<TV>(source, keys, cursor, forward: true);
+            offset = cursor.Offset ?? 0;
 
             if (cursor.IsRelative)
             {
@@ -350,9 +319,8 @@ internal static class ExpressionHelpers
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: false);
-            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
-            offset = cursorOffset;
+            source = ApplyCursorPagination<TV>(source, keys, cursor, forward: false);
+            offset = cursor.Offset ?? 0;
         }
 
         if (arguments.First is not null)
@@ -425,22 +393,6 @@ internal static class ExpressionHelpers
             Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group),
             arguments.Last is not null,
             cursor);
-
-        static string ReverseOrder(string method)
-            => method switch
-            {
-                nameof(Queryable.OrderBy) => nameof(Queryable.OrderByDescending),
-                nameof(Queryable.OrderByDescending) => nameof(Queryable.OrderBy),
-                nameof(Queryable.ThenBy) => nameof(Queryable.ThenByDescending),
-                nameof(Queryable.ThenByDescending) => nameof(Queryable.ThenBy),
-                _ => method
-            };
-
-        static MethodInfo GetEnumerableMethod(string methodName, Type elementType, LambdaExpression keySelector)
-            => typeof(Enumerable)
-                .GetMethods(BindingFlags.Static | BindingFlags.Public)
-                .First(m => m.Name == methodName && m.GetParameters().Length == 2)
-                .MakeGenericMethod(elementType, keySelector.Body.Type);
     }
 
     /// <summary>
@@ -486,6 +438,110 @@ internal static class ExpressionHelpers
     {
         var visitor = new ReplaceParameterVisitor(expression.Parameters[0], replacement);
         return visitor.Visit(expression.Body);
+    }
+
+    public static IQueryable<T> CursorPaginate<T>(
+        this PrunedQuery<T> prunedQuery,
+        CursorKey[] keys,
+        Cursor cursor,
+        bool forward)
+    {
+        var cursorPaginatedExpression = ApplyCursorPagination<T>(prunedQuery.Expression, keys, cursor, forward);
+        return prunedQuery.Provider.CreateQuery<T>(cursorPaginatedExpression);
+    }
+
+    public static Expression ApplyCursorPagination<T>(
+        Expression expression,
+        ReadOnlySpan<CursorKey> keys,
+        Cursor cursor,
+        bool forward)
+    {
+        var whereExpr = BuildWhereExpression<T>(keys, cursor, forward);
+        expression = Expression.Call(typeof(Enumerable), "Where", [typeof(T)], expression, whereExpr);
+        return expression.ApplyCursorKeyOrdering<T>(keys, cursor.NullsFirst, forward);
+    }
+
+    public static Expression ApplyCursorKeyOrdering<T>(
+        this Expression expression,
+        ReadOnlySpan<CursorKey> keys,
+        bool nullFirst,
+        bool forward)
+    {
+        // TODO: This method is far from finished.
+        // Should rebuild the order conditions based on the keys.
+
+        if (keys.Length == 0)
+        {
+            return expression;
+        }
+
+        //static string ReverseOrder(string method) => method switch
+        //{
+        //    nameof(Queryable.OrderBy) => nameof(Queryable.OrderByDescending),
+        //    nameof(Queryable.OrderByDescending) => nameof(Queryable.OrderBy),
+        //    nameof(Queryable.ThenBy) => nameof(Queryable.ThenByDescending),
+        //    nameof(Queryable.ThenByDescending) => nameof(Queryable.ThenBy),
+        //    _ => method
+        //};
+
+        static MethodInfo GetEnumerableMethod(string methodName, Type elementType, LambdaExpression keySelector)
+            => typeof(Enumerable)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .First(m => m.Name == methodName && m.GetParameters().Length == 2)
+                .MakeGenericMethod(elementType, keySelector.Body.Type);
+
+        //for (var i = 0; i < orderExpressions.Length; i++)
+        //{
+        //    var methodName = forward ? orderMethods[i] : ReverseOrder(orderMethods[i]);
+        //    var orderExpression = orderExpressions[i];
+        //    var delegateType = typeof(Func<,>).MakeGenericType(typeof(TV), orderExpression.Body.Type);
+        //    var typedOrderExpression =
+        //        Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
+
+        //    var method = GetEnumerableMethod(methodName, typeof(TV), typedOrderExpression);
+
+        //    source = Expression.Call(
+        //        method,
+        //        source,
+        //        typedOrderExpression);
+        //}
+
+        Expression? orderedExpression = null;
+        var parameter = Expression.Parameter(typeof(T), "t");
+
+        foreach (var key in keys)
+        {
+            var body = Expression.Invoke(key.Expression, parameter);
+
+            if (key.IsNullable)
+            {
+                var nullCheck = Expression.Equal(body, Expression.Constant(null));
+                var nullCheckLambda = Expression.Lambda(nullCheck, parameter);
+
+                orderedExpression = orderedExpression == null
+                    ? Expression.Call(typeof(Queryable), "OrderBy", new Type[] { typeof(T), typeof(bool) }, expression, nullCheckLambda)
+                    : Expression.Call(typeof(Queryable), "ThenBy", new Type[] { typeof(T), typeof(bool) }, orderedExpression, nullCheckLambda);
+            }
+
+            var methodName = key.Direction == CursorKeyDirection.Ascending ? "OrderBy" : "OrderByDescending";
+
+            var delegateType = typeof(Func<,>).MakeGenericType(typeof(T), key.Expression.Body.Type);
+            var typedOrderExpression = Expression.Lambda(delegateType, key.Expression.Body, key.Expression.Parameters);
+            var method = GetEnumerableMethod(methodName, typeof(T), typedOrderExpression);
+
+            orderedExpression = orderedExpression == null
+                ? Expression.Call(method, expression, typedOrderExpression)
+                : Expression.Call(method, orderedExpression, typedOrderExpression);
+        }
+
+        return orderedExpression ?? expression;
+    }
+
+    public class PrunedQuery<T>(Expression expression, IQueryProvider provider)
+    {
+        public Expression Expression { get; } = expression;
+
+        public IQueryProvider Provider { get; } = provider;
     }
 
     private class ReplaceParameterVisitor(ParameterExpression parameter, Expression replacement)

@@ -20,7 +20,7 @@ namespace GreenDonut.Data.Cursors;
 /// The total number of items in the dataset, if known. Can be <c>null</c> if not available.
 /// </param>
 /// <param name="NullsFirst">
-/// Defines if null values should be considered first in the ordering.
+/// Determines whether null values should appear first in the sort order.
 /// </param>
 public record Cursor(
     ImmutableArray<object?> Values,

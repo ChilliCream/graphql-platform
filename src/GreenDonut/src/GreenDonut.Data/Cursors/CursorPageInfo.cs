@@ -8,7 +8,7 @@ public readonly ref struct CursorPageInfo
     /// <summary>
     /// Initializes a new instance of the <see cref="CursorPageInfo"/> struct.
     /// </summary>
-    /// <param name="nullsFirst">Defines if null values should be considered first in the ordering.</param>
+    /// <param name="nullsFirst">Determines whether null values should appear first in the sort order.</param>
     public CursorPageInfo(bool nullsFirst)
     {
         NullsFirst = nullsFirst;
@@ -17,7 +17,7 @@ public readonly ref struct CursorPageInfo
     /// <summary>
     /// Initializes a new instance of the <see cref="CursorPageInfo"/> struct.
     /// </summary>
-    /// <param name="nullsFirst">Defines if null values should be considered first in the ordering.</param>
+    /// <param name="nullsFirst">Determines whether null values should appear first in the sort order.</param>
     /// <param name="offset">Offset indicating the number of items/pages skipped.</param>
     /// <param name="pageIndex">The zero-based index of the current page.</param>
     /// <param name="totalCount">Total number of items available in the dataset.</param>
@@ -59,7 +59,7 @@ public readonly ref struct CursorPageInfo
     public int TotalCount { get; }
 
     /// <summary>
-    /// Defines if null values should be considered first in the ordering.
+    /// Determines whether null values should appear first in the sort order.
     /// </summary>
     public bool NullsFirst { get; }
 
