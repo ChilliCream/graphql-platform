@@ -13,13 +13,16 @@ public class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
     {
         var documentInfo = context.OperationDocumentInfo;
 
-        if (!documentInfo.Hash.IsEmpty)
+        if (documentInfo.Hash.IsEmpty)
         {
             context.Result = ErrorHelper.StateInvalidForOperationPlanCache();
             return;
         }
 
-        var planKey = $"{documentInfo.Hash}.{context.Request.OperationName ?? "Default"}";
+        var planKey = documentInfo.OperationCount == 1
+            ? documentInfo.Hash.Value
+            : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
+
         var isPlanCached = false;
 
         if (_cache.TryGet(planKey, out var plan))

@@ -7,7 +7,9 @@ public sealed record OperationExecutionPlan
 {
     public required OperationDefinitionNode Operation { get; init; }
 
-    public ImmutableArray<ExecutionNode> RootNodes { get; init; } = [];
+    public string? OperationName => Operation.Name?.Value;
 
-    public ImmutableArray<ExecutionNode> AllNodes { get; init; } = [];
+    public required ImmutableArray<ExecutionNode> RootNodes { get; init; }
+
+    public required ImmutableArray<ExecutionNode> AllNodes { get; init; }
 }
