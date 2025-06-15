@@ -13,21 +13,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Skimmed.Tests" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\SkimmedResources.resx">
+    <EmbeddedResource Update="Properties\MutableResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>SkimmedResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>MutableResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\SkimmedResources.Designer.cs">
+    <Compile Update="Properties\MutableResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>SkimmedResources.resx</DependentUpon>
+      <DependentUpon>MutableResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
