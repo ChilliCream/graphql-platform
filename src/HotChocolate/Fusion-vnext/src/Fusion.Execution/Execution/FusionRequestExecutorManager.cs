@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Channels;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
@@ -15,7 +16,6 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
@@ -108,7 +108,8 @@ internal sealed class FusionRequestExecutorManager
         var setup = _optionsMonitor.Get(schemaName);
 
         var requestOptions = CreateRequestOptions(setup);
-        var features = CreateSchemaFeatures(setup, requestOptions);
+        var parserOptions = CreateParserOptions(setup);
+        var features = CreateSchemaFeatures(setup, requestOptions, parserOptions);
         var schemaServices = CreateSchemaServices(setup);
 
         var schema = CreateSchema(schemaName, document, schemaServices, features);
@@ -147,16 +148,45 @@ internal sealed class FusionRequestExecutorManager
             configure.Invoke(options);
         }
 
+        if (options.OperationExecutionPlanCacheSize < 16)
+        {
+            options.OperationExecutionPlanCacheSize = 16;
+        }
+
+        if (options.OperationDocumentCacheSize < 16)
+        {
+            options.OperationDocumentCacheSize = 16;
+        }
+
         return options;
+    }
+
+    private static ParserOptions CreateParserOptions(FusionGatewaySetup setup)
+    {
+        var options = new FusionParserOptions();
+
+        foreach (var configure in setup.ParserOptionsModifiers)
+        {
+            configure.Invoke(options);
+        }
+
+        return new ParserOptions(
+            noLocations: options.NoLocations,
+            allowFragmentVariables: false,
+            maxAllowedNodes: options.MaxAllowedNodes,
+            maxAllowedTokens: options.MaxAllowedTokens,
+            maxAllowedFields: options.MaxAllowedFields);
     }
 
     private FeatureCollection CreateSchemaFeatures(
         FusionGatewaySetup setup,
-        FusionRequestOptions requestOptions)
+        FusionRequestOptions requestOptions,
+        ParserOptions parserOptions)
     {
         var features = new FeatureCollection();
 
         features.Set(requestOptions);
+        features.Set(parserOptions);
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
@@ -172,6 +202,8 @@ internal sealed class FusionRequestExecutorManager
         var schemaServices = new ServiceCollection();
 
         AddCoreServices(schemaServices);
+        AddOperationPlanner(schemaServices);
+        AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
         AddDiagnosticEvents(schemaServices);
 
@@ -183,62 +215,73 @@ internal sealed class FusionRequestExecutorManager
         return schemaServices.BuildServiceProvider();
     }
 
-    private void AddCoreServices(IServiceCollection schemaServices)
+    private void AddCoreServices(IServiceCollection services)
     {
-        schemaServices.AddSingleton<IRootServiceProviderAccessor>(
+        services.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
 
-        schemaServices.AddSingleton<RequestExecutorAccessor>();
-        schemaServices.AddSingleton(static sp => sp.GetRequiredService<RequestExecutorAccessor>().RequestExecutor);
-        schemaServices.AddSingleton<IRequestExecutor>(sp => sp.GetRequiredService<FusionRequestExecutor>());
+        services.AddSingleton(static _ => new RequestExecutorAccessor());
+        services.AddSingleton(static sp => sp.GetRequiredService<RequestExecutorAccessor>().RequestExecutor);
+        services.AddSingleton<IRequestExecutor>(sp => sp.GetRequiredService<FusionRequestExecutor>());
+        services.AddSingleton(static sp => sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions());
+        services.AddSingleton<IErrorHandler>(static sp => new DefaultErrorHandler(sp.GetServices<IErrorFilter>()));
 
-        schemaServices.AddSingleton<SchemaDefinitionAccessor>();
-        schemaServices.AddSingleton(static sp => sp.GetRequiredService<SchemaDefinitionAccessor>().Schema);
-        schemaServices.AddSingleton<ISchemaDefinition>(static sp => sp.GetRequiredService<FusionSchemaDefinition>());
+        services.AddSingleton(static _ => new SchemaDefinitionAccessor());
+        services.AddSingleton(static sp => sp.GetRequiredService<SchemaDefinitionAccessor>().Schema);
+        services.AddSingleton<ISchemaDefinition>(static sp => sp.GetRequiredService<FusionSchemaDefinition>());
 
-        schemaServices.AddSingleton<ObjectPool<PooledRequestContext>>(
-            new DefaultObjectPool<PooledRequestContext>(
+        services.AddSingleton<ObjectPool<PooledRequestContext>>(
+            static _ => new DefaultObjectPool<PooledRequestContext>(
                 new RequestContextPooledObjectPolicy()));
+    }
 
-        schemaServices.AddSingleton(
+    private static void AddOperationPlanner(IServiceCollection services)
+    {
+        services.AddSingleton(
             static sp =>
             {
-                var options = sp.GetRequiredService<ISchemaDefinition>().Features.GetRequired<FusionRequestOptions>();
-                var cacheSize = options.OperationExecutionPlanCacheSize;
-                var cacheDiagnostics = options.OperationExecutionPlanCacheDiagnostics;
-
-                if (cacheSize < 16)
-                {
-                    cacheSize = 16;
-                }
-
-                return new Cache<OperationExecutionPlan>(cacheSize, cacheDiagnostics);
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
+                return new Cache<OperationExecutionPlan>(
+                    options.OperationExecutionPlanCacheSize,
+                    options.OperationExecutionPlanCacheDiagnostics);
             });
 
-        schemaServices.AddSingleton<OperationPlanner>();
+        services.AddSingleton(static sp => new OperationPlanner(sp.GetRequiredService<FusionSchemaDefinition>()));
+    }
+
+    private static void AddParserServices(IServiceCollection services)
+    {
+        services.AddSingleton<IDocumentHashProvider>(static _ => new MD5DocumentHashProvider(HashFormat.Hex));
+        services.AddSingleton(static sp => sp.GetRequiredService<ISchemaDefinition>().GetParserOptions());
+        services.AddSingleton<IDocumentCache>(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
+                return new DefaultDocumentCache(options.OperationDocumentCacheSize);
+            });
     }
 
     private void AddDocumentValidator(
         FusionGatewaySetup setup,
-        IServiceCollection serviceCollection)
+        IServiceCollection services)
     {
         var builder =
             DocumentValidatorBuilder.New()
                 .SetServices(_applicationServices)
                 .AddDefaultRules();
 
-        foreach(var modifier in setup.DocumentValidatorBuilderModifiers)
+        foreach (var modifier in setup.DocumentValidatorBuilderModifiers)
         {
             modifier.Invoke(_applicationServices, builder);
         }
 
-        serviceCollection.AddSingleton(builder.Build());
+        services.AddSingleton(builder.Build());
     }
 
     private static void AddDiagnosticEvents(
-        IServiceCollection schemaServices)
+        IServiceCollection services)
     {
-        schemaServices.AddSingleton<IFusionExecutionDiagnosticEvents>(
+        services.AddSingleton<IFusionExecutionDiagnosticEvents>(
             static sp =>
             {
                 var listeners = sp.GetServices<IFusionExecutionDiagnosticEventListener>().ToArray();
@@ -251,7 +294,7 @@ internal sealed class FusionRequestExecutorManager
                 };
             });
 
-        schemaServices.AddSingleton<ICoreExecutionDiagnosticEvents>(
+        services.AddSingleton<ICoreExecutionDiagnosticEvents>(
             static sp => sp.GetRequiredService<IFusionExecutionDiagnosticEvents>());
     }
 
