@@ -14,7 +14,7 @@ public class SelectionSetPartitionerTests
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        var compositeSchema = FusionSchemaDefinition.Create(compositeSchemaDoc);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -79,7 +79,7 @@ public class SelectionSetPartitionerTests
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        var compositeSchema = FusionSchemaDefinition.Create(compositeSchemaDoc);
 
         var doc = Utf8GraphQLParser.Parse(
             """

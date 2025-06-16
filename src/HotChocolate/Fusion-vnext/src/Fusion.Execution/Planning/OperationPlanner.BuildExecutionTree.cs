@@ -10,7 +10,7 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
-    private static OperationPlan BuildExecutionPlan(
+    private static OperationExecutionPlan BuildExecutionPlan(
         ImmutableList<OperationPlanStep> planSteps,
         OperationDefinitionNode originalOperation)
     {
@@ -32,8 +32,9 @@ public sealed partial class OperationPlanner
             .Select(t => t.Value)
             .ToImmutableArray();
 
-        return new OperationPlan
+        return new OperationExecutionPlan
         {
+            Operation = originalOperation,
             RootNodes = rootNodes,
             AllNodes = allNodes
         };

@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -501,7 +502,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
         if (type is ITypeDefinition namedType)
         {
-            if(buffer.Length < namedType.Name.Length)
+            if (buffer.Length < namedType.Name.Length)
             {
                 written = 0;
                 return false;
@@ -514,7 +515,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
         if (type is ListType listType)
         {
-            if(!FullTypeName(listType.ElementType, currentDepth + 1, buffer, out written))
+            if (!FullTypeName(listType.ElementType, currentDepth + 1, buffer, out written))
             {
                 return false;
             }
@@ -534,7 +535,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
         if (type is NonNullType nonNullType)
         {
-            if(!FullTypeName(nonNullType.NullableType, currentDepth + 1, buffer, out written))
+            if (!FullTypeName(nonNullType.NullableType, currentDepth + 1, buffer, out written))
             {
                 return false;
             }

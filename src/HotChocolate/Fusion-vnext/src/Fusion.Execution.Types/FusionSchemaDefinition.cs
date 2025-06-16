@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
@@ -13,7 +14,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 {
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
 
-    public FusionSchemaDefinition(
+    internal FusionSchemaDefinition(
         string name,
         string? description,
         IServiceProvider services,
@@ -22,7 +23,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         FusionObjectTypeDefinition? subscriptionType,
         FusionDirectiveCollection directives,
         FusionTypeDefinitionCollection types,
-        FusionDirectiveDefinitionCollection directiveDefinitions)
+        FusionDirectiveDefinitionCollection directiveDefinitions,
+        IFeatureCollection features)
     {
         Name = name;
         Description = description;
@@ -33,6 +35,29 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         Directives = directives;
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
+        Features = features;
+    }
+
+    public static FusionSchemaDefinition Create(
+        DocumentNode document,
+        IServiceProvider? services = null,
+        IFeatureCollection? features = null)
+        => Create(
+            ISchemaDefinition.DefaultName,
+            document,
+            services,
+            features);
+
+    public static FusionSchemaDefinition Create(
+        string name,
+        DocumentNode document,
+        IServiceProvider? services = null,
+        IFeatureCollection? features = null)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        ArgumentNullException.ThrowIfNull(document);
+
+        return CompositeSchemaBuilder.Create(name, document, services, features);
     }
 
     /// <summary>
@@ -95,7 +120,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
-    public IFeatureCollection Features => throw new NotImplementedException();
+    public IFeatureCollection Features { get; }
 
     public FusionObjectTypeDefinition GetOperationType(OperationType operation)
     {

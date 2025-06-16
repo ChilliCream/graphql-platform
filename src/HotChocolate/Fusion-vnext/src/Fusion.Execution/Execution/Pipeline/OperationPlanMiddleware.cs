@@ -6,13 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public sealed class ExecutionPlanMiddleware
+public sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
 
-    public ExecutionPlanMiddleware(OperationPlanner planner)
+    public OperationPlanMiddleware(OperationPlanner planner)
     {
-        _planner = planner ?? throw new ArgumentNullException(nameof(planner));
+        ArgumentNullException.ThrowIfNull(planner);
+
+        _planner = planner;
     }
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
@@ -25,7 +27,7 @@ public sealed class ExecutionPlanMiddleware
                 "The operation document info is not available in the context.");
         }
 
-        if (context.GetExecutionPlan() is not null)
+        if (context.GetOperationExecutionPlan() is not null)
         {
             return next(context);
         }
@@ -37,7 +39,7 @@ public sealed class ExecutionPlanMiddleware
         var rewritten = rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
         var operation = GetOperation(rewritten);
         var executionPlan = _planner.CreatePlan(operation);
-        context.SetExecutionPlan(executionPlan);
+        context.SetOperationExecutionPlan(executionPlan);
 
         return next(context);
 
@@ -58,10 +60,10 @@ public sealed class ExecutionPlanMiddleware
 
     public static RequestMiddleware Create()
     {
-        return static (factoryContext, next) =>
+        return static (fc, next) =>
         {
-            var planner = factoryContext.Services.GetRequiredService<OperationPlanner>();
-            var middleware = new ExecutionPlanMiddleware(planner);
+            var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
+            var middleware = new OperationPlanMiddleware(planner);
             return requestContext => middleware.InvokeAsync(requestContext, next);
         };
     }

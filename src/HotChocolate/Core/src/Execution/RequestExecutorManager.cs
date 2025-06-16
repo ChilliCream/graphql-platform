@@ -10,6 +10,7 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -300,6 +301,12 @@ internal sealed partial class RequestExecutorManager
             sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentHashProvider>());
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentCache>());
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();

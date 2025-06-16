@@ -1,10 +1,15 @@
 using System.Collections.Immutable;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed record OperationPlan
+public sealed record OperationExecutionPlan
 {
-    public ImmutableArray<ExecutionNode> RootNodes { get; init; } = [];
+    public required OperationDefinitionNode Operation { get; init; }
 
-    public ImmutableArray<ExecutionNode> AllNodes { get; init; } = [];
+    public string? OperationName => Operation.Name?.Value;
+
+    public required ImmutableArray<ExecutionNode> RootNodes { get; init; }
+
+    public required ImmutableArray<ExecutionNode> AllNodes { get; init; }
 }
