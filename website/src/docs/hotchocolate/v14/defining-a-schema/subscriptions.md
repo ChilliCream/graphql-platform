@@ -348,24 +348,30 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
 
 ## Core Concepts
 
-1. **Stub (or "Skip") Authentication Scheme**  
+1. **Stub (or "Skip") Authentication Scheme**
+
    The initial WebSocket upgrade request is directed to a "stub" authentication scheme that simply indicates "no authentication result" for upgrade requests. This prevents the request from failing before you can intercept and handle the token manually.
 
-2. **Forwarding the Default Scheme**  
+2. **Forwarding the Default Scheme**
+
    In standard HTTP scenarios, the default scheme (e.g., JWT bearer) is used to authenticate. However, if the request is recognized as a WebSocket upgrade, the framework forwards it to the "stub" scheme first. That way, you don’t attempt to validate a token at the moment of the upgrade handshake.
 
-3. **Intercepting `connection_init`**  
+3. **Intercepting `connection_init`**
+
    Once the WebSocket is established, the client sends `connection_init` containing authentication data. A custom `SocketSessionInterceptor` (or similar) reads the token from `connection_init` (e.g., under a key like `authorization`), stores it in the `HttpContext`, and triggers a fresh authentication attempt—this time using the real JWT bearer scheme.
 
-4. **Hot Chocolate Integration**  
+4. **Hot Chocolate Integration**
+
    Hot Chocolate's subscription middleware allows you to plug into the subscription lifecycle. By customizing the session interceptor (`OnConnectAsync`), you can decide whether to accept or reject the connection based on successful authentication.
 
 ## Testing the Flow
 
-1. **Open Nitro**  
+1. **Open Nitro**
+
    Use a local instance of Nitro (e.g., `https://localhost:5095/graphql`) to send GraphQL queries and subscriptions.
 
-2. **Retrieve an Access Token**  
+2. **Retrieve an Access Token**
+
    Request a token from your `/token` endpoint. This endpoint should return a valid JWT that is trusted by your API.
 
 3. **Configure Nitro**
@@ -374,7 +380,8 @@ An example implementation of this approach can be found in the [Hot Chocolate Ex
    - Under **Authentication**, choose **Bearer Token** and paste your JWT.
    - Nitro will automatically include the token in the `connection_init` message under an `authorization` parameter when opening a WebSocket connection.
 
-4. **Run Your Subscription**  
+4. **Run Your Subscription**
+
    Execute the subscription query of your choice. For example:
 
    ```graphql
