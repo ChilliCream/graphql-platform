@@ -1,7 +1,7 @@
 ﻿[
   {
     "Exception": null,
-    "message": "The specified directive is not valid the current location.",
+    "message": "The specified directive is not valid in the current location.",
     "locations": [
       {
         "Line": 2,
