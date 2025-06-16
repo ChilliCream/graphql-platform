@@ -8,9 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class OperationPlanContext
+public sealed class OperationPlanContext : IAsyncDisposable
 {
     private readonly ISourceSchemaClientScope _clientScope;
+    private bool _disposed;
 
     public OperationPlanContext(
         OperationExecutionPlan operationPlan,
@@ -20,7 +21,10 @@ public sealed class OperationPlanContext
         OperationPlan = operationPlan;
         RequestContext = requestContext;
         Variables = variables;
-        _clientScope = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScope>();
+
+        // create a client scope for the current request context.
+        var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
+        _clientScope = clientScopeFactory.CreateScope(requestContext.Schema);
     }
 
     public OperationExecutionPlan OperationPlan { get; }
@@ -33,13 +37,15 @@ public sealed class OperationPlanContext
 
     public FetchResultStore ResultStore { get; } = new();
 
+    public ISourceSchemaClientScope ClientScope => _clientScope;
+
     // NOTE: this version is too simple, we will rewrite it once we have implemented the SelectionSetMap.
     public ImmutableArray<VariableValues>? TryCreateVariables(
         SelectionPath currentPath,
         ImmutableArray<string> variables,
         ImmutableArray<OperationRequirement> requirements)
     {
-        if(variables.Length == 0 && requirements.Length == 0)
+        if (variables.Length == 0 && requirements.Length == 0)
         {
             return ImmutableArray<VariableValues>.Empty;
         }
@@ -50,7 +56,7 @@ public sealed class OperationPlanContext
         {
             ImmutableArray<VariableValues>.Builder? builder = null;
 
-            foreach (var (path, variableValues) in ResultStore.GetValues(currentPath, [..requirements.Select(t => (t.Key, t.Map))]))
+            foreach (var (path, variableValues) in ResultStore.GetValues(currentPath, [.. requirements.Select(t => (t.Key, t.Map))]))
             {
                 variableValues.AddRange(pathThroughVariables);
                 builder ??= ImmutableArray.CreateBuilder<VariableValues>(requirements.Length);
@@ -90,6 +96,19 @@ public sealed class OperationPlanContext
         return variables;
     }
 
-    public ISourceSchemaClient GetClient(string schemaName)
-        => _clientScope.GetClient(schemaName);
+    public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
+
+        return _clientScope.GetClient(schemaName, operationType);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+            await _clientScope.DisposeAsync().ConfigureAwait(false);
+        }
+    }
 }
