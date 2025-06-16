@@ -191,4 +191,28 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
           }
         ");
     }
+
+    [Fact]
+    public void AcceptArgumentWithCompatibleDefaultValue()
+    {
+        ExpectValid(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: Int! = 123): String
+          }
+        ");
+    }
+
+    [Fact]
+    public void RejectArgumentWithIncompatibleDefaultValue()
+    {
+        ExpectError(@"
+          type Query { stub: String }
+
+          type Foo {
+              field(arg: Int! = { a: 1 }): String
+          }
+        ");
+    }
 }

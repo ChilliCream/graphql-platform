@@ -773,6 +773,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument {0} must have a compatible default value..
+        /// </summary>
+        internal static string ErrorHelper_ArgumentDefaultValueMustBeCompatible {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentDefaultValueMustBeCompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument `{0}` of the implemented field `{1}` must be defined. The field `{2}` must include an argument of the same name for every argument defined on the implemented field of the interface type `{3}`..
         /// </summary>
         internal static string ErrorHelper_ArgumentNotImplemented {

@@ -229,6 +229,20 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.Directive, rfc: 805)
             .Build();
 
+    public static ISchemaError ArgumentDefaultValueMustBeCompatible(
+        IComplexTypeDefinition type,
+        IOutputFieldDefinition field,
+        IInputValueDefinition argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_ArgumentDefaultValueMustBeCompatible,
+                argument.Coordinate.ToString())
+            .SetType(type)
+            .SetField(field)
+            .SetArgument(argument)
+            .SetSpecifiedBy(type.Kind, rfc: 793)
+            .Build();
+
     public static ISchemaError RequiredFieldCannotBeDeprecated(
         IInputObjectTypeDefinition type,
         IInputValueDefinition field)

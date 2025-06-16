@@ -44,6 +44,7 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
                     EnsureFieldNamesAreValid(objectType, errors);
                     EnsureInterfacesAreCorrectlyImplemented(objectType, errors);
                     EnsureArgumentDeprecationIsValid(objectType, errors);
+                    EnsureArgumentDefaultValuesAreCompatible(objectType, errors);
 
                     if (nodeType is not null && nodeType.IsAssignableFrom(objectType))
                     {

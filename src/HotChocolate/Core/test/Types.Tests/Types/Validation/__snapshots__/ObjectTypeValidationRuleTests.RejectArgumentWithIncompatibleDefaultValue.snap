@@ -1,0 +1,11 @@
+{
+  "message": "Argument Foo.field(arg:) must have a compatible default value.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "arg",
+    "field": "field",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/793",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+  }
+}
+
