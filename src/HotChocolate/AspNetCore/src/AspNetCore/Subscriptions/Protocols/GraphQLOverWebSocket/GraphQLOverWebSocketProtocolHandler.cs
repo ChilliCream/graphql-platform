@@ -129,7 +129,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         }
 
         // if we have not received a connection init and connection was successfully accepted
-        // then we will close the connection with a unauthorized error.
+        // then we will close the connection with an unauthorized error.
         if (!connected)
         {
             await connection.CloseUnauthorizedAsync(cancellationToken);

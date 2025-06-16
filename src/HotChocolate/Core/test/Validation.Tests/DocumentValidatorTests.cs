@@ -292,19 +292,19 @@ public class DocumentValidatorTests
                 }
                 """,
             t => Assert.Equal(
-                "Operation `takesCat` has a empty selection set. Root types without " +
+                "Operation `takesCat` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesDogBang` has a empty selection set. Root types without " +
+                "Operation `takesDogBang` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesListOfPet` has a empty selection set. Root types without " +
+                "Operation `takesListOfPet` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesCatOrDog` has a empty selection set. Root types without " +
+                "Operation `takesCatOrDog` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(

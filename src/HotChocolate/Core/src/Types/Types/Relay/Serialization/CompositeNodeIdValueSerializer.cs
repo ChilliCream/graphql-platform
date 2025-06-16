@@ -197,7 +197,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
     }
 
     /// <summary>
-    /// Tries to format a int value into the buffer.
+    /// Tries to format an int value into the buffer.
     /// </summary>
     /// <param name="buffer">
     /// The buffer to write the value into.
@@ -452,7 +452,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
     }
 
     /// <summary>
-    /// Tries to parse a int value from the buffer.
+    /// Tries to parse an int value from the buffer.
     /// </summary>
     /// <param name="buffer">
     /// The buffer to read the value from.

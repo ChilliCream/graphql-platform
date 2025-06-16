@@ -6,7 +6,7 @@ using StrawberryShake.Transport.WebSockets.Messages;
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
 /// <summary>
-/// A implementation of <see cref="ISocketProtocol"/> that uses graphql-ws protocol to
+/// An implementation of <see cref="ISocketProtocol"/> that uses graphql-ws protocol to
 /// communicate with the server
 /// </summary>
 public sealed class GraphQLWebSocketProtocol : SocketProtocolBase

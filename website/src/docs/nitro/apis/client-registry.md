@@ -14,7 +14,7 @@ A client, in the context of a GraphQL API, is an entity that interacts with the 
 
 ## What is a Persisted Operation?
 
-A persisted operation is a GraphQL operation that has been sent to the server, stored, and assigned an unique identifier (hash). Instead of sending the full text of a GraphQL operation to the server for execution, clients can send the hash of the operation, reducing the amount of data transmitted over the network. This practice is particularly beneficial for mobile clients operating in environments with limited network capacity.
+A persisted operation is a GraphQL operation that has been sent to the server, stored, and assigned a unique identifier (hash). Instead of sending the full text of a GraphQL operation to the server for execution, clients can send the hash of the operation, reducing the amount of data transmitted over the network. This practice is particularly beneficial for mobile clients operating in environments with limited network capacity.
 
 Persisted operations also add an extra layer of security as the server can be configured to only execute operations that have been previously stored, which prevents malicious queries. This is the cheapest and most effective way to secure your GraphQL API from potential attacks.
 

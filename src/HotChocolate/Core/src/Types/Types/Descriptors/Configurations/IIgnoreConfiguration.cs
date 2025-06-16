@@ -1,7 +1,7 @@
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
-/// Represents definitions that carry a ignore flag.
+/// Represents definitions that carry an ignore flag.
 /// </summary>
 public interface IIgnoreConfiguration
 {

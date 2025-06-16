@@ -241,7 +241,7 @@ services
   .AddGraphQLServer()
   .AddQueryType<Query>() // every GraphQL server needs a query
   .AddSubscriptionType<Subscriptions>()
-  .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
+  .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create your connection*/);
 ```
 
 ### Options

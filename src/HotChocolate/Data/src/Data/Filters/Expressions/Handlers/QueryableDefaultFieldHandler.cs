@@ -122,9 +122,9 @@ public class QueryableDefaultFieldHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        // when we are in a in-memory context, it is possible that we have null reference exceptions
-        // To avoid these exceptions, we need to add null checks to the chain. We always wrap the
-        // field before in a null check.
+        // When we are in an in-memory context, it is possible that we have null reference
+        // exceptions. To avoid these exceptions, we need to add null checks to the chain. We always
+        // wrap the field before in a null check.
         //
         // reference types:
         //    previous.current > 10   ==>    previous is not null && previous.current > 10

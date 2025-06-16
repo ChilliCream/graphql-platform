@@ -457,7 +457,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        // if the type is a ITypeDefinition, we shortcut the type traversal
+        // if the type is an ITypeDefinition, we shortcut the type traversal
         // and simply return the name of the type.
         if (type is ITypeDefinition namedType)
         {

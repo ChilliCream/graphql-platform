@@ -105,7 +105,7 @@ public abstract partial class ScalarType
 
     /// <summary>
     /// Defines if the specified <paramref name="runtimeValue" />
-    /// is a instance of this type.
+    /// is an instance of this type.
     /// </summary>
     /// <param name="runtimeValue">
     /// A value representation of this type.

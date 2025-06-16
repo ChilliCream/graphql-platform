@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `IPv6` scalar type represents a valid a IPv6 address as defined in
+/// The `IPv6` scalar type represents a valid IPv6 address as defined in
 /// <a href="https://tools.ietf.org/html/rfc8064">RFC8064</a>
 /// </summary>
 public partial class IPv6Type : RegexType

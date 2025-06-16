@@ -67,7 +67,7 @@ public interface IServerDiagnosticEvents
 
     /// <summary>
     /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals
-    /// that a error occurred while processing the GraphQL over HTTP request.
+    /// that an error occurred while processing the GraphQL over HTTP request.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
@@ -79,7 +79,7 @@ public interface IServerDiagnosticEvents
 
     /// <summary>
     /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals
-    /// that a error occurred while processing the GraphQL over HTTP request.
+    /// that an error occurred while processing the GraphQL over HTTP request.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
@@ -102,7 +102,7 @@ public interface IServerDiagnosticEvents
 
     /// <summary>
     /// Called within the <see cref="ParseHttpRequest"/> scope and signals
-    /// that a error occurred while parsing the GraphQL request.
+    /// that an error occurred while parsing the GraphQL request.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
@@ -140,7 +140,7 @@ public interface IServerDiagnosticEvents
 
     /// <summary>
     /// Called within the <see cref="WebSocketSession"/> scope and signals
-    /// that a error occurred that terminated the session.
+    /// that an error occurred that terminated the session.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.

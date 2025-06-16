@@ -1,7 +1,7 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a operation result object.
+/// Represents an operation result object.
 /// </summary>
 public sealed class OperationResult : ExecutionResult, IOperationResult
 {

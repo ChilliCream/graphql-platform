@@ -96,7 +96,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         WriteProperty(writer, "data", result.Data);
 
         // in case we have just a "Internal Execution Error" we will not write the errors as this
-        // is a internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
+        // is an internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
         // handle the transport errors our self.
         // Strawberry Shake only outputs the exceptions though if there is no error in the errors
         // field

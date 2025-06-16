@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Relay;
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User
@@ -73,7 +73,7 @@ public class IDAttribute : DescriptorAttribute
     /// </summary>
     /// <example>
     /// <para>
-    /// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+    /// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
     /// </para>
     /// <code>
     /// public class UserQuery
@@ -82,7 +82,7 @@ public class IDAttribute : DescriptorAttribute
     /// }
     /// </code>
     /// <para>
-    /// The argument is rewritten to <c>ID</c> and expect a id of type User.
+    /// The argument is rewritten to <c>ID</c> and expect an ID of type User.
     /// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
     /// </para>
     /// </example>
@@ -127,7 +127,7 @@ public class IDAttribute : DescriptorAttribute
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User
@@ -180,7 +180,7 @@ public class IDAttribute<T> : DescriptorAttribute
     /// </summary>
     /// <example>
     /// <para>
-    /// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+    /// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
     /// </para>
     /// <code>
     /// public class UserQuery
@@ -189,7 +189,7 @@ public class IDAttribute<T> : DescriptorAttribute
     /// }
     /// </code>
     /// <para>
-    /// The argument is rewritten to <c>ID</c> and expect a id of type User.
+    /// The argument is rewritten to <c>ID</c> and expect an ID of type User.
     /// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
     /// </para>
     /// </example>
