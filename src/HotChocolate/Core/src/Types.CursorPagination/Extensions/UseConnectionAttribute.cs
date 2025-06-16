@@ -23,7 +23,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
     private bool? _enableRelativeCursors;
 
     /// <summary>
-    /// Overrides the global paging options for the annotated  field.
+    /// Overrides the global paging options for the annotated field.
     /// </summary>
     /// <param name="order">
     /// The explicit order priority for this attribute.

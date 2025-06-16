@@ -1,7 +1,7 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Provides the base implementation for a executable task.
+/// Provides the base implementation for an executable task.
 /// </summary>
 /// <remarks>
 /// The task is by default a parallel execution task.

@@ -203,7 +203,7 @@ public ref partial struct Utf8GraphQLParser
     }
 
     /// <summary>
-    /// Parses a interface type or object type field definition.
+    /// Parses an interface type or object type field definition.
     /// <see cref="FieldDefinitionNode" />:
     /// Description?
     /// Name ArgumentsDefinition? : Type Directives[isConstant=true]?
@@ -323,7 +323,7 @@ public ref partial struct Utf8GraphQLParser
     }
 
     /// <summary>
-    /// Parses an union type definition.
+    /// Parses a union type definition.
     /// <see cref="UnionTypeDefinitionNode" />:
     /// Description? union Name Directives[isConstant=true]?
     /// UnionMemberTypes?

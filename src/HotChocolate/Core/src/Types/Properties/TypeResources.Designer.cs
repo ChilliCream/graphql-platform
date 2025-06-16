@@ -1349,7 +1349,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
+        ///   Looks up a localized string similar to The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
         /// </summary>
         internal static string LocalDateType_Description {
             get {
@@ -2904,7 +2904,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The union type extension can only be merged with an union type..
+        ///   Looks up a localized string similar to The union type extension can only be merged with a union type..
         /// </summary>
         internal static string UnionTypeExtension_CannotMerge {
             get {

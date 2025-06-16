@@ -65,7 +65,7 @@ public Task<string> MyResolver([State("Foo")]Foo foo)
 
 # Scoped Context Data
 
-The scoped context data is a immutable dictionary and is only available through the `IResolverContext`.
+The scoped context data is an immutable dictionary and is only available through the `IResolverContext`.
 
 Scoped state allows us to aggregate state for our child field resolvers.
 

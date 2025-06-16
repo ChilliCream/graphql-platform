@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User

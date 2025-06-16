@@ -176,7 +176,7 @@ public class LeafFieldSelectionsRuleTests()
             { }
             """,
             t => Assert.Equal(
-                "Operation `Unnamed` has a empty selection set. Root types without " +
+                "Operation `Unnamed` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message));
     }
@@ -189,7 +189,7 @@ public class LeafFieldSelectionsRuleTests()
             query Foo { }
             """,
             t => Assert.Equal(
-                "Operation `Foo` has a empty selection set. Root types without " +
+                "Operation `Foo` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message));
     }
@@ -202,7 +202,7 @@ public class LeafFieldSelectionsRuleTests()
             mutation { }
             """,
             t => Assert.Equal(
-                "Operation `Unnamed` has a empty selection set. Root types without " +
+                "Operation `Unnamed` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message));
     }
@@ -215,7 +215,7 @@ public class LeafFieldSelectionsRuleTests()
             mutation Foo { }
             """,
             t => Assert.Equal(
-                "Operation `Foo` has a empty selection set. Root types without " +
+                "Operation `Foo` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message));
     }
@@ -228,7 +228,7 @@ public class LeafFieldSelectionsRuleTests()
             subscription { }
             """,
             t => Assert.Equal(
-                "Operation `Unnamed` has a empty selection set. Root types without " +
+                "Operation `Unnamed` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message));
     }
@@ -241,7 +241,7 @@ public class LeafFieldSelectionsRuleTests()
             subscription Foo { }
             """,
             t => Assert.Equal(
-                "Operation `Foo` has a empty selection set. Root types without " +
+                "Operation `Foo` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message));
     }

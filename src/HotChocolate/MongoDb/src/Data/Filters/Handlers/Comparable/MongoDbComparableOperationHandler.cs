@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb.Filters;
 /// <summary>
 /// The base of a mongodb operation handler specific for
 /// <see cref="IComparableOperationFilterInputType "/>
-/// If the <see cref="FilterTypeInterceptor"/> encounters a operation field that implements
+/// If the <see cref="FilterTypeInterceptor"/> encounters an operation field that implements
 /// <see cref="IComparableOperationFilterInputType "/> and matches the operation identifier
 /// defined in <see cref="MongoDbComparableOperationHandler.Operation"/> the handler is bound to
 /// the field

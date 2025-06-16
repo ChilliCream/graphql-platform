@@ -43,12 +43,12 @@ public interface ISelectedField
     IOutputFieldDefinition Field { get; }
 
     /// <summary>
-    /// Gets the  type of the field.
+    /// Gets the type of the field.
     /// </summary>
     IType Type { get; }
 
     /// <summary>
-    /// Is true if the type of the selected field is a abstract type.
+    /// Is true if the type of the selected field is an abstract type.
     /// Equivalent to <c>Type.IsAbstractType()</c>.
     /// </summary>
     bool IsAbstractType { get; }

@@ -463,7 +463,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// The <see cref="IResolverCompiler"/>.
     /// </param>
     /// <param name="expression">
-    /// A expression that resolves the data for the custom parameter.
+    /// An expression that resolves the data for the custom parameter.
     /// </param>
     /// <param name="canHandle">
     /// A predicate that can be used to specify to which parameter the
