@@ -237,13 +237,7 @@ internal ref struct FieldSelectionMapReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void NewLine(int lines)
     {
-        if (lines < 1)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(lines),
-                lines,
-                NewLineMustBeGreaterThanOrEqualToOne);
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(lines, 1);
 
         Line += lines;
         LineStart = Position;
@@ -294,7 +288,7 @@ internal ref struct FieldSelectionMapReader
         TokenKind = TokenKind.Name;
         Start = start;
         End = position;
-        Value = _sourceText.Slice(start, position - start);
+        Value = _sourceText[start..position];
         Position = position;
     }
 

@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // StarWarsIntrospectionClient
 
@@ -4274,7 +4275,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_MutationType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_MutationType___Type(data.Name);
             }
@@ -4294,7 +4295,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_SubscriptionType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_SubscriptionType___Type(data.Name);
             }
@@ -4422,7 +4423,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name, MapIIntrospectionQuery___schema_Types_Interfaces_OfType_OfType(data.OfType, snapshot));
             }
@@ -4442,7 +4443,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name, MapIIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType(data.OfType, snapshot));
             }
@@ -4462,7 +4463,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name);
             }

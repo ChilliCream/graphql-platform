@@ -84,13 +84,11 @@ public class GeometryFilterInputTypeTest
         schema.MatchSnapshot();
     }
 
-    public class FooDirective
-    {
-    }
+    public class FooDirective;
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class Query
@@ -104,13 +102,13 @@ public class GeometryFilterInputTypeTest
         public int Id { get; set; }
 
         [GraphQLNonNullType]
-        public string Title { get; set; } = default!;
+        public string Title { get; set; } = null!;
 
         public int Pages { get; set; }
         public int Chapters { get; set; }
 
         [GraphQLNonNullType]
-        public Author Author { get; set; } = default!;
+        public Author Author { get; set; } = null!;
     }
 
     public class Author
@@ -119,6 +117,6 @@ public class GeometryFilterInputTypeTest
         public int Id { get; set; }
 
         [GraphQLNonNullType]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

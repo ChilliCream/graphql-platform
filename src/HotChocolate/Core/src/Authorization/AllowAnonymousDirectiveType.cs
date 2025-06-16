@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Authorization;
@@ -30,11 +30,11 @@ internal sealed class AllowAnonymousDirectiveType
         ITypeSystemConfiguration definition,
         Stack<ITypeSystemConfiguration> path)
     {
-        ((IDirectiveConfigurationProvider)definition).Directives.Add(new(directiveNode));
+        ((IDirectiveConfigurationProvider)definition).Directives.Add(new DirectiveConfiguration(directiveNode));
 
         if (definition is ObjectFieldConfiguration fieldDef)
         {
-            fieldDef.ContextData[WellKnownContextData.AllowAnonymous] = true;
+            fieldDef.ModifyAuthorizationFieldOptions(o => o with { AllowAnonymous = true });
         }
     }
 

@@ -7,9 +7,9 @@ namespace GreenDonut.Data.Cursors;
 /// </summary>
 public static class CursorKeySerializerRegistration
 {
-    private static readonly object _sync = new();
+    private static readonly object s_sync = new();
 
-    private static ICursorKeySerializer[] _serializers =
+    private static ICursorKeySerializer[] s_serializers =
     [
         new IntCursorKeySerializer(),
         new GuidCursorKeySerializer(),
@@ -52,7 +52,7 @@ public static class CursorKeySerializerRegistration
     public static ICursorKeySerializer Find(Type keyType)
     {
         // ReSharper disable once InconsistentlySynchronizedField
-        var serializers = _serializers.AsSpan();
+        var serializers = s_serializers.AsSpan();
         foreach (var serializer in serializers)
         {
             if (serializer.IsSupported(keyType))
@@ -72,12 +72,12 @@ public static class CursorKeySerializerRegistration
     /// </param>
     public static void Register(ICursorKeySerializer serializer)
     {
-        lock (_sync)
+        lock (s_sync)
         {
-            var buffer = new ICursorKeySerializer[_serializers.Length + 1];
-            Array.Copy(_serializers, 0, buffer, 0, _serializers.Length);
-            buffer[_serializers.Length] = serializer;
-            _serializers = buffer;
+            var buffer = new ICursorKeySerializer[s_serializers.Length + 1];
+            Array.Copy(s_serializers, 0, buffer, 0, s_serializers.Length);
+            buffer[s_serializers.Length] = serializer;
+            s_serializers = buffer;
         }
     }
 
@@ -94,12 +94,12 @@ public static class CursorKeySerializerRegistration
             return;
         }
 
-        lock (_sync)
+        lock (s_sync)
         {
-            var buffer = new ICursorKeySerializer[_serializers.Length + serializers.Length];
-            Array.Copy(_serializers, 0, buffer, 0, _serializers.Length);
-            Array.Copy(serializers, 0, buffer, _serializers.Length, serializers.Length);
-            _serializers = buffer;
+            var buffer = new ICursorKeySerializer[s_serializers.Length + serializers.Length];
+            Array.Copy(s_serializers, 0, buffer, 0, s_serializers.Length);
+            Array.Copy(serializers, 0, buffer, s_serializers.Length, serializers.Length);
+            s_serializers = buffer;
         }
     }
 }

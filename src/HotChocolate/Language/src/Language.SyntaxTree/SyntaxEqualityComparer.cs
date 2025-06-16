@@ -964,7 +964,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxKind.ListValue => GetHashCode((ListValueNode)node),
             SyntaxKind.NullValue => GetHashCode((NullValueNode)node),
             SyntaxKind.Variable => GetHashCode((VariableNode)node),
-            _ => throw new ArgumentOutOfRangeException(),
+            _ => throw new ArgumentOutOfRangeException()
         };
     }
 

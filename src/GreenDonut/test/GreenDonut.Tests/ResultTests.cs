@@ -242,7 +242,7 @@ public class ResultTests
     public void ExplicitResolveList()
     {
         // arrange
-        var value = new[] { "Foo", "Bar", "Baz", };
+        var value = new[] { "Foo", "Bar", "Baz" };
 
         // act
         var result = Result<IReadOnlyCollection<string>>.Resolve(value);

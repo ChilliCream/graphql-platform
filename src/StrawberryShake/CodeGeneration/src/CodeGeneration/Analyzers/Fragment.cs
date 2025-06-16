@@ -8,7 +8,7 @@ public class Fragment
     public Fragment(
         string name,
         FragmentKind kind,
-        INamedType typeCondition,
+        ITypeDefinition typeCondition,
         SelectionSetNode selectionSet)
     {
         Name = name;
@@ -21,18 +21,13 @@ public class Fragment
 
     public FragmentKind Kind { get; }
 
-    public INamedType TypeCondition { get; }
+    public ITypeDefinition TypeCondition { get; }
 
     public SelectionSetNode SelectionSet { get; }
 
     public Fragment WithName(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentException(
-                $"'{nameof(name)}' cannot be null or empty",
-                nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return new Fragment(name,Kind, TypeCondition, SelectionSet);
     }

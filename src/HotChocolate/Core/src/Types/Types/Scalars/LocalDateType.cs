@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class LocalDateType : ScalarType<DateOnly, StringValueNode>
 {
-    private const string _localFormat = "yyyy-MM-dd";
+    private const string LocalFormat = "yyyy-MM-dd";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateType"/> class.
@@ -119,7 +119,7 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
 
     private static string Serialize(IFormattable value)
     {
-        return value.ToString(_localFormat, CultureInfo.InvariantCulture);
+        return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
     }
 
     private static bool TryDeserializeFromString(
@@ -129,7 +129,7 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
         if (serialized is not null
             && DateOnly.TryParseExact(
                 serialized,
-                _localFormat,
+                LocalFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var date))

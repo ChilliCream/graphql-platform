@@ -7,10 +7,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         object key,
         CancellationToken cancellationToken)
     {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
+        ArgumentNullException.ThrowIfNull(key);
 
         return Load();
 
@@ -23,10 +20,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         IReadOnlyCollection<object> keys,
         CancellationToken cancellationToken)
     {
-        if (keys is null)
-        {
-            throw new ArgumentNullException(nameof(keys));
-        }
+        ArgumentNullException.ThrowIfNull(keys);
 
         return Load();
 
@@ -41,15 +35,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// <inheritdoc />
     void IDataLoader.SetCacheEntry(object key, Task<object?> value)
     {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(value);
 
         SetCacheEntry((TKey)key, AwaitValue());
 
@@ -59,10 +46,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// <inheritdoc />
     void IDataLoader.RemoveCacheEntry(object key)
     {
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
+        ArgumentNullException.ThrowIfNull(key);
 
         RemoveCacheEntry((TKey)key);
     }

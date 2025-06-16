@@ -1,0 +1,18 @@
+[
+  {
+    "Message": "The skip and include directives are not allowed to be used on root fields of the subscription type.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "specifiedBy": "https://spec.graphql.org/draft/#sec-Single-Root-Field",
+      "rfc": "https://github.com/graphql/graphql-spec/pull/860"
+    },
+    "Exception": null
+  }
+]

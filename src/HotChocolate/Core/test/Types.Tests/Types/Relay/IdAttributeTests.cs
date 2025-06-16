@@ -4,7 +4,7 @@ using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -165,7 +165,7 @@ public class IdAttributeTests
         {
             result = result.ToJson(),
             someId,
-            someIntId,
+            someIntId
         }.MatchSnapshot();
     }
 
@@ -225,7 +225,7 @@ public class IdAttributeTests
         {
             result = result.ToJson(),
             someId,
-            someIntId,
+            someIntId
         }.MatchSnapshot();
     }
 
@@ -265,7 +265,7 @@ public class IdAttributeTests
                         new Dictionary<string, object?>
                         {
                             {"someId", someId },
-                            {"someIntId", someIntId},
+                            {"someIntId", someIntId}
                         })
                     .Build());
 
@@ -299,14 +299,14 @@ public class IdAttributeTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId }, })
+                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId } })
                         .Build());
 
         // assert
         new
         {
             result = result.ToJson(),
-            someId,
+            someId
         }.MatchSnapshot();
     }
 
@@ -336,14 +336,14 @@ public class IdAttributeTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId}, })
+                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId} })
                         .Build());
 
         // assert
         new
         {
             result = result.ToJson(),
-            someId,
+            someId
         }.MatchSnapshot();
     }
 
@@ -377,7 +377,7 @@ public class IdAttributeTests
                         .SetVariableValues(new Dictionary<string, object?>
                         {
                             {"someId", legacySomeStringId},
-                            {"someIntId", legacySomeIntId},
+                            {"someIntId", legacySomeIntId}
                         })
                         .Build());
 
@@ -417,14 +417,14 @@ public class IdAttributeTests
                             """)
                         .SetVariableValues(new Dictionary<string, object?>
                         {
-                            {"customId", legacyStronglyTypedId},
+                            {"customId", legacyStronglyTypedId}
                         })
                         .Build());
 
         // assert
         new
         {
-            result = result.ToJson(), legacySomeStronglyTypedId = legacyStronglyTypedId,
+            result = result.ToJson(), legacySomeStronglyTypedId = legacyStronglyTypedId
         }.MatchSnapshot();
     }
 
@@ -705,7 +705,7 @@ public class IdAttributeTests
                 return originalValue switch
                 {
                     IEnumerable<string> list => list.Select(x => new NodeId(typeName, int.Parse(x))).ToArray(),
-                    _ => new NodeId(typeName, int.Parse((string)originalValue!)),
+                    _ => new NodeId(typeName, int.Parse((string)originalValue!))
                 };
             }
         }

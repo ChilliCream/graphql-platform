@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Data.Filters.FilterInputTypeDescriptor;
 using static HotChocolate.Data.ThrowHelper;
@@ -11,13 +11,13 @@ namespace HotChocolate.Data.Filters;
 
 public sealed class FilterTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, IFilterConvention> _conventions = new();
+    private readonly Dictionary<string, IFilterConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }
@@ -71,7 +71,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }

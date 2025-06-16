@@ -8,9 +8,9 @@ namespace HotChocolate.Utilities;
 
 internal readonly struct NullableHelper
 {
-    private const string _nullableContextAttributeName =
+    private const string NullableContextAttributeName =
         "System.Runtime.CompilerServices.NullableContextAttribute";
-    private const string _nullableAttributeName =
+    private const string NullableAttributeName =
         "System.Runtime.CompilerServices.NullableAttribute";
 
     private readonly bool? _context;
@@ -118,7 +118,7 @@ internal readonly struct NullableHelper
         IList<CustomAttributeData> attributes)
     {
         var data = attributes.FirstOrDefault(t =>
-            t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
+            t.AttributeType.FullName.EqualsOrdinal(NullableContextAttributeName));
 
         if (data is not null)
         {
@@ -134,7 +134,7 @@ internal readonly struct NullableHelper
     {
         var attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
         var attribute = attributes.FirstOrDefault(t =>
-            t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
+            t.GetType().FullName.EqualsOrdinal(NullableAttributeName));
 
         if (attribute is null)
         {
@@ -166,7 +166,7 @@ internal readonly struct NullableHelper
         IList<CustomAttributeData> attributes)
     {
         var data = attributes.FirstOrDefault(t =>
-            t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
+            t.AttributeType.FullName.EqualsOrdinal(NullableAttributeName));
 
         if (data is not null)
         {

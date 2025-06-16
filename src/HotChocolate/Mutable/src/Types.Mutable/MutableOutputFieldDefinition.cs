@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL output field definition.
 /// </summary>
-public class MutableOutputFieldDefinition
+public class MutableOutputFieldDefinition(string name, IOutputType? type = null)
     : INamedTypeSystemMemberDefinition<MutableOutputFieldDefinition>
     , IOutputFieldDefinition
     , IMutableFieldDefinition
@@ -19,23 +19,40 @@ public class MutableOutputFieldDefinition
     private string? _deprecationReason;
     private DirectiveCollection? _directives;
     private InputFieldDefinitionCollection? _arguments;
-    private IType _type;
-
-    public MutableOutputFieldDefinition(string name, IType? type = null)
-    {
-        Name = name;
-        _type = type ?? NotSetType.Default;
-    }
 
     /// <inheritdoc cref="IMutableFieldDefinition.Name" />
     public string Name
     {
-        get => field;
+        get;
         set => field = value.EnsureGraphQLName();
-    }
+    } = name;
 
     /// <inheritdoc cref="IMutableFieldDefinition.Description" />
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Gets or sets the declaring member of the field.
+    /// </summary>
+    public IComplexTypeDefinition? DeclaringMember { get; set; }
+
+    IComplexTypeDefinition IOutputFieldDefinition.DeclaringType
+        => DeclaringMember ?? throw new InvalidOperationException("The declaring type is not set.");
+
+    ITypeSystemMember IFieldDefinition.DeclaringMember
+        => DeclaringMember ?? throw new InvalidOperationException("The declaring type is not set.");
+
+    public SchemaCoordinate Coordinate
+    {
+        get
+        {
+            if (DeclaringMember is null)
+            {
+                throw new InvalidOperationException("The declaring type is not set.");
+            }
+
+            return new SchemaCoordinate(DeclaringMember.Name, Name, ofDirective: false);
+        }
+    }
 
     /// <inheritdoc cref="IMutableFieldDefinition.IsDeprecated" />
     public bool IsDeprecated
@@ -77,7 +94,7 @@ public class MutableOutputFieldDefinition
     /// Gets the arguments that are accepted by this field.
     /// </summary>
     public InputFieldDefinitionCollection Arguments
-        => _arguments ??= new InputFieldDefinitionCollection();
+        => _arguments ??= new InputFieldDefinitionCollection(this);
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IOutputFieldDefinition.Arguments
         => _arguments ?? EmptyCollections.InputFieldDefinitions;
@@ -88,11 +105,21 @@ public class MutableOutputFieldDefinition
     /// <value>
     /// The type of the field.
     /// </value>
-    public IType Type
+    public IOutputType Type
     {
-        get => _type;
-        set => _type = value.ExpectOutputType();
+        get;
+        set => field = value.ExpectOutputType();
+    } = type ?? NotSetType.Default;
+
+    public FieldFlags Flags { get; set; }
+
+    IType IMutableFieldDefinition.Type
+    {
+        get => Type;
+        set => Type = value.ExpectOutputType();
     }
+
+    IType IFieldDefinition.Type => Type;
 
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]

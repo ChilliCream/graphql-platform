@@ -4,7 +4,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    private static readonly ImmutableDictionary<string, object?> _emptyLocalContextData =
+    private static readonly ImmutableDictionary<string, object?> s_emptyLocalContextData =
         ImmutableDictionary<string, object?>.Empty;
 
     public MiddlewareContext()
@@ -31,7 +31,7 @@ internal partial class MiddlewareContext
         _parent = parent;
         _parser = operationContext.InputParser;
         ScopedContextData = scopedContextData;
-        LocalContextData = _emptyLocalContextData;
+        LocalContextData = s_emptyLocalContextData;
         Arguments = _selection.Arguments;
         RequestAborted = _operationContext.RequestAborted;
     }
@@ -40,25 +40,25 @@ internal partial class MiddlewareContext
     {
         _childContext.Clear();
         _cleanupTasks.Clear();
-        _operationContext = default!;
-        _services = default!;
-        _selection = default!;
-        _parent = default;
-        _resolverResult = default;
+        _operationContext = null!;
+        _services = null!;
+        _selection = null!;
+        _parent = null;
+        _resolverResult = null;
         _hasResolverResult = false;
-        _result = default;
-        _parser = default!;
-        _path = default;
-        _operationResultBuilder.Context = default!;
+        _result = null;
+        _parser = null!;
+        _path = null;
+        _operationResultBuilder.Context = null!;
 
-        ScopedContextData = default!;
-        LocalContextData = default!;
+        ScopedContextData = null!;
+        LocalContextData = null!;
         IsResultModified = false;
         ValueType = null;
-        ResponseIndex = default;
-        ParentResult = default!;
+        ResponseIndex = 0;
+        ParentResult = null!;
         HasErrors = false;
-        Arguments = default!;
-        RequestAborted = default!;
+        Arguments = null!;
+        RequestAborted = CancellationToken.None;
     }
 }

@@ -18,10 +18,7 @@ public readonly ref struct TypeDiscoveryInfo
     /// </summary>
     public TypeDiscoveryInfo(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         IExtendedType extendedType;
 

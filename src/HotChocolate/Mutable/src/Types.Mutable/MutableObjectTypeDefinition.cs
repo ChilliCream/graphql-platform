@@ -36,10 +36,7 @@ public class MutableObjectTypeDefinition(string name)
     /// <inheritdoc />
     public override bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.Object)
         {

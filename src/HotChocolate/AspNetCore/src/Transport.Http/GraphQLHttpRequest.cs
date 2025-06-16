@@ -102,7 +102,7 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(OperationBatchRequest body, Uri? requestUri = null)
     {
-        if (body.Requests is { Count: 0, })
+        if (body.Requests is { Count: 0 })
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_RequiresOneOrMoreRequests,

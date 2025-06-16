@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Defines the properties of a GraphQL union type.
@@ -35,5 +35,5 @@ public class UnionTypeConfiguration : TypeConfiguration
     /// <summary>
     /// The types that make up the union type set.
     /// </summary>
-    public IList<TypeReference> Types { get; } = new List<TypeReference>();
+    public IList<TypeReference> Types { get; } = [];
 }

@@ -46,10 +46,7 @@ public class BsonType : ScalarType
     /// <inheritdoc />
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         switch (valueSyntax)
         {
@@ -101,7 +98,7 @@ public class BsonType : ScalarType
                 return new BsonArray(values);
 
             case ObjectValueNode ovn:
-                BsonDocument document = new();
+                BsonDocument document = [];
                 foreach (var field in ovn.Fields)
                 {
                     document.Add(field.Name.Value, ParseLiteralToBson(field.Value));
@@ -238,7 +235,7 @@ public class BsonType : ScalarType
                 return true;
 
             case BsonDocument doc:
-                Dictionary<string, object?> docRes = new();
+                Dictionary<string, object?> docRes = [];
                 foreach (var element in doc)
                 {
                     if (!TrySerialize(element.Value, out var s))

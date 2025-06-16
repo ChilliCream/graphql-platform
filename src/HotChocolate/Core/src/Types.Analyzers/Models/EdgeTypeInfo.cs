@@ -136,7 +136,7 @@ public sealed class EdgeTypeInfo
                             edgeName,
                             property,
                             ResolverResultKind.Pure,
-                            ImmutableArray<ResolverParameter>.Empty,
+                            [],
                             ObjectTypeInspector.GetMemberBindings(member),
                             flags: FieldFlags.None));
                     break;

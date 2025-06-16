@@ -3,7 +3,7 @@ namespace GreenDonut;
 internal class Batch<TKey> where TKey : notnull
 {
     private readonly List<TKey> _keys = [];
-    private readonly Dictionary<TKey, IPromise> _items = new();
+    private readonly Dictionary<TKey, IPromise> _items = [];
 
     public bool IsScheduled { get; set; }
 

@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Types.Pagination;
@@ -12,8 +12,8 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public static class ConnectionFlagsHelper
 {
-    private const string _keyFormat = "HotChocolate.Types.Pagination.ConnectionFlags_{0}";
-    private static readonly ConcurrentDictionary<string, SelectionSetNode> _parsedSelectionSets = new();
+    private const string KeyFormat = "HotChocolate.Types.Pagination.ConnectionFlags_{0}";
+    private static readonly ConcurrentDictionary<string, SelectionSetNode> s_parsedSelectionSets = new();
 
     /// <summary>
     /// Gets the connection flags from the current resolver context.
@@ -21,11 +21,11 @@ public static class ConnectionFlagsHelper
     public static ConnectionFlags GetConnectionFlags(IResolverContext context)
     {
         return context.Operation.GetOrAddState(
-            string.Format(_keyFormat, context.Selection.Id),
+            string.Format(KeyFormat, context.Selection.Id),
             static (_, ctx) =>
             {
                 if (ctx.Selection.Field is ObjectField field
-                    && !field.Flags.HasFlag(FieldFlags.Connection))
+                    && !field.Flags.HasFlag(CoreFieldFlags.Connection))
                 {
                     return ConnectionFlags.None;
                 }
@@ -111,5 +111,5 @@ public static class ConnectionFlagsHelper
     }
 
     private static SelectionSetNode ParsePattern(string selectionSet)
-        => _parsedSelectionSets.GetOrAdd(selectionSet, static s => ParseSelectionSet($"{{ {s} }}"));
+        => s_parsedSelectionSets.GetOrAdd(selectionSet, static s => ParseSelectionSet($"{{ {s} }}"));
 }

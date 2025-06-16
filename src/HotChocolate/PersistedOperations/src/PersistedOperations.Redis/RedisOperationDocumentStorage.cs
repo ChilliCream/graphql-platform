@@ -55,10 +55,7 @@ public class RedisOperationDocumentStorage : IOperationDocumentStorage
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         return SaveInternalAsync(documentId, document);
     }

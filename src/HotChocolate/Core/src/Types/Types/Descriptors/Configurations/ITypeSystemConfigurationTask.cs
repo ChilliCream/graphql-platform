@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A configuration object that is applied to a type system member at a certain event

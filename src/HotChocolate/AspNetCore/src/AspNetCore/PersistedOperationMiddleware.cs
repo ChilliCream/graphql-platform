@@ -77,7 +77,7 @@ internal static class PersistedOperationMiddleware
 
         // next we parse the GraphQL request.
         var executor = state.CurrentExecutor
-            ?? await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
+            ?? await state.GetExecutorAsync(services);
         var errorHandler = executor.GetErrorHandler();
 
         var parserResult =
@@ -161,8 +161,7 @@ internal static class PersistedOperationMiddleware
         }
 
         // next we parse the GraphQL request.
-        var executor = state.CurrentExecutor
-            ?? await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
+        var executor = state.CurrentExecutor ?? await state.GetExecutorAsync(services);
         var errorHandler = executor.GetErrorHandler();
 
         var parserResult =
@@ -205,14 +204,17 @@ internal static class PersistedOperationMiddleware
 
     private sealed class Services(
         HttpContext context,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents)
     {
         public HttpContext Context { get; } = context;
 
-        public IRequestExecutorResolver ExecutorResolver { get; } = executorResolver;
+        public IRequestExecutorProvider ExecutorProvider { get; } = executorProvider;
+
+        public IRequestExecutorEvents ExecutorEvents { get; } = executorEvents;
 
         public IHttpResponseFormatter ResponseFormatter { get; } = responseFormatter;
 
@@ -223,19 +225,17 @@ internal static class PersistedOperationMiddleware
         public CancellationToken RequestAborted => Context.RequestAborted;
     }
 
-    private class State(string schemaName)
+    private sealed class State(string schemaName)
     {
         private RequestExecutorProxy? _proxy;
         private GraphQLServerOptions? _options;
 
         public IRequestExecutor? CurrentExecutor => _proxy?.CurrentExecutor;
 
-        public ValueTask<IRequestExecutor> GetExecutorAsync(
-            IRequestExecutorResolver resolver,
-            CancellationToken cancellationToken)
+        public ValueTask<IRequestExecutor> GetExecutorAsync(Services services)
         {
-            _proxy ??= new RequestExecutorProxy(resolver, schemaName);
-            return _proxy.GetRequestExecutorAsync(cancellationToken);
+            _proxy ??= new RequestExecutorProxy(services.ExecutorProvider, services.ExecutorEvents, schemaName);
+            return _proxy.GetExecutorAsync(services.RequestAborted);
         }
 
         public GraphQLServerOptions GetOptions(HttpContext context)

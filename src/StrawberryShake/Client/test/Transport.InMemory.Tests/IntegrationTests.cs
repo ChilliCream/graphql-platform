@@ -112,7 +112,7 @@ public class IntegrationTests : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         var serviceCollection = new ServiceCollection();
 
-        string? result = null!;
+        string? result = null;
         serviceCollection
             .AddGraphQLServer()
             .AddStarWarsTypes()

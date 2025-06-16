@@ -33,10 +33,7 @@ public class GraphQLTypeAttribute : Attribute
     /// </exception>
     public GraphQLTypeAttribute(string typeSyntax)
     {
-        if (typeSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(typeSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(typeSyntax);
 
         TypeSyntax = Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax);
     }

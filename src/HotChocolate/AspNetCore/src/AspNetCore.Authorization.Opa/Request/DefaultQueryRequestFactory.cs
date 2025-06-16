@@ -42,7 +42,11 @@ internal sealed class DefaultQueryRequestFactory : IOpaQueryRequestFactory
 
         var originalRequest = new OriginalRequest(
             httpContext.Request.Headers,
+#if NET8_0
+            httpContext.Request.Host.Value,
+#else
             httpContext.Request.Host.Value ?? string.Empty,
+#endif
             httpContext.Request.Method,
             httpContext.Request.Path.Value!,
             httpContext.Request.Query,

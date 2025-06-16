@@ -5,7 +5,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Interceptors;
@@ -13,12 +13,12 @@ namespace HotChocolate.Types.Interceptors;
 
 public class FlagsEnumInterceptor : TypeInterceptor
 {
-    private const string _flagNameAddition = "Flags";
+    private const string FlagNameAddition = "Flags";
 
-    private readonly Dictionary<Type, string> _outputTypeCache = new();
-    private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = new();
-    private INamingConventions _namingConventions = default!;
-    private TypeInitializer _typeInitializer = default!;
+    private readonly Dictionary<Type, string> _outputTypeCache = [];
+    private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = [];
+    private INamingConventions _namingConventions = null!;
+    private TypeInitializer _typeInitializer = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -99,7 +99,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void RegisterType(TypeSystemObjectBase type)
+    private void RegisterType(TypeSystemObject type)
     {
         _typeInitializer.InitializeType(type);
     }
@@ -111,7 +111,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return outputType;
         }
 
-        var typeName = _namingConventions.GetTypeName(type) + _flagNameAddition;
+        var typeName = _namingConventions.GetTypeName(type) + FlagNameAddition;
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new ObjectTypeConfiguration(typeName, desc)
         {
@@ -142,7 +142,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return result;
         }
 
-        var typeName = $"{_namingConventions.GetTypeName(type)}{_flagNameAddition}Input";
+        var typeName = $"{_namingConventions.GetTypeName(type)}{FlagNameAddition}Input";
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new InputObjectTypeConfiguration(typeName, desc)
         {
@@ -202,7 +202,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             throw ThrowHelper.Flags_IllegalFlagEnumName(type, valueName);
         }
 
-        return $"is{char.ToUpper(valueName[0])}{valueName.Substring(1)}";
+        return $"is{char.ToUpper(valueName[0])}{valueName[1..]}";
     }
 
     private static TypeReference? CreateTypeReference(TypeReference? reference, string typeName)

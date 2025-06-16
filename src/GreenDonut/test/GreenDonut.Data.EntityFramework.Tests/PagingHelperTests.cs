@@ -215,7 +215,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -244,7 +245,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -273,7 +275,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -302,7 +305,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Assert
-        CreateSnapshot()
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(interceptor.Queries)
             .MatchMarkdown();
     }
@@ -323,7 +327,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = arguments with { Before = page.CreateCursor(page.First!), };
+        arguments = arguments with { Before = page.CreateCursor(page.First!) };
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -455,7 +459,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
         await context.Database.EnsureCreatedAsync();
 
-        var type = new ProductType { Name = "T-Shirt", };
+        var type = new ProductType { Name = "T-Shirt" };
         context.ProductTypes.Add(type);
 
         for (var i = 0; i < 100; i++)
@@ -474,7 +478,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
                 {
                     Name = $"Product {i}-{j}",
                     Type = type,
-                    Brand = brand,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }
@@ -524,14 +528,5 @@ public class PagingHelperTests(PostgreSqlResource resource)
         }
 
         await context.SaveChangesAsync();
-    }
-
-    private static Snapshot CreateSnapshot()
-    {
-#if NET9_0_OR_GREATER
-        return Snapshot.Create();
-#else
-        return Snapshot.Create("NET8_0");
-#endif
     }
 }

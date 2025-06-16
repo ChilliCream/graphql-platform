@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Transport.Sockets;
@@ -14,11 +15,11 @@ namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
 public static class WebSocketExtensions
 {
-    private static readonly JsonSerializerSettings _settings =
+    private static readonly JsonSerializerSettings s_settings =
         new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
         };
 
     public static Task SendConnectionInitializeAsync(
@@ -34,7 +35,7 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -43,7 +44,7 @@ public static class WebSocketExtensions
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionTerminate);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -65,7 +66,7 @@ public static class WebSocketExtensions
         string subscriptionId,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Stop, id: subscriptionId);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -115,13 +116,13 @@ public static class WebSocketExtensions
     {
         if (message is DataStartMessage dataStart)
         {
-            var query = dataStart.Payload.Query!.Print();
+            var query = dataStart.Payload.Document!.Print();
 
-            var payload = new Dictionary<string, object> { { "query", query }, };
+            var payload = new Dictionary<string, object> { { "query", query } };
 
-            if (dataStart.Payload.QueryId != null)
+            if (dataStart.Payload.DocumentId != null)
             {
-                payload["namedQuery"] = dataStart.Payload.QueryId;
+                payload["namedQuery"] = dataStart.Payload.DocumentId.Value;
             }
 
             if (dataStart.Payload.OperationName != null)
@@ -138,11 +139,12 @@ public static class WebSocketExtensions
                 dataStart.Type, dataStart.Id, payload);
         }
 
-        var json = JsonConvert.SerializeObject(message, _settings);
+        var json = JsonConvert.SerializeObject(message, s_settings);
         if (largeMessage)
         {
             json += new string(' ', 1024 * 16);
         }
+
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 

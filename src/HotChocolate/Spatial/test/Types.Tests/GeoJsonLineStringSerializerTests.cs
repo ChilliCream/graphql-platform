@@ -22,16 +22,16 @@ public class GeoJsonLineStringSerializerTests
     [
         new Coordinate(30, 10),
             new Coordinate(10, 30),
-            new Coordinate(40, 40),
+            new Coordinate(40, 40)
     ]);
 
     private readonly string _geometryType = "LineString";
 
     private readonly object _geometryParsed = new[]
     {
-        [30.0, 10.0,],
-        [10.0, 30.0,],
-            new[] { 40.0, 40.0, },
+        [30.0, 10.0],
+        [10.0, 30.0],
+            new[] { 40.0, 40.0 }
     };
 
     [Theory]
@@ -118,7 +118,7 @@ public class GeoJsonLineStringSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    [new Point(1, 2),])));
+                    [new Point(1, 2)])));
     }
 
     [Theory]
@@ -423,7 +423,7 @@ public class GeoJsonLineStringSerializerTests
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 },
+                { WellKnownFields.CrsFieldName, 26912 }
             };
 
         // act
@@ -444,7 +444,7 @@ public class GeoJsonLineStringSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
+                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
             };
 
         // act
@@ -465,7 +465,7 @@ public class GeoJsonLineStringSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -485,7 +485,7 @@ public class GeoJsonLineStringSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -516,7 +516,7 @@ public class GeoJsonLineStringSerializerTests
             () => inputParser.ParseLiteral(valueNode, type));
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddSpatialTypes()
         .AddQueryType(d => d
             .Name("Query")
@@ -541,13 +541,13 @@ public class GeoJsonLineStringSerializerTests
         }
     }
 
-    private INamedInputType CreateInputType(string typeName)
+    private IInputTypeDefinition CreateInputType(string typeName)
     {
-        return CreateSchema().GetType<INamedInputType>(typeName);
+        return CreateSchema().Types.GetType<IInputTypeDefinition>(typeName);
     }
 
     private ILeafType CreateLeafType(string typeName)
     {
-        return CreateSchema().GetType<ILeafType>(typeName);
+        return CreateSchema().Types.GetType<ILeafType>(typeName);
     }
 }

@@ -1,196 +1,163 @@
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Validation.Options;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation;
 
 /// <summary>
-/// The default document validator implementation.
+/// The <see cref="DocumentValidator"/> is used to validate if a GraphQL operation document
+/// is valid and can be executed.
 /// </summary>
-public sealed class DocumentValidator : IDocumentValidator
+public sealed class DocumentValidator
 {
-    private readonly DocumentValidatorContextPool _contextPool;
+    private readonly ObjectPool<DocumentValidatorContext> _contextPool;
     private readonly IDocumentValidatorRule[] _allRules;
     private readonly IDocumentValidatorRule[] _nonCacheableRules;
-    private readonly IValidationResultAggregator[] _aggregators;
     private readonly int _maxAllowedErrors;
 
     /// <summary>
-    /// Creates a new instance of <see cref="DocumentValidator"/>.
+    /// Initializes a new instance of <see cref="DocumentValidator"/>.
     /// </summary>
     /// <param name="contextPool">
-    /// The document validator context pool.
+    /// The context pool.
     /// </param>
     /// <param name="rules">
-    /// The validation rules.
+    /// All registered validation rules.
     /// </param>
-    /// <param name="resultAggregators">
-    /// The result aggregators.
+    /// <param name="maxAllowedErrors">
+    /// The maximum number of errors that are allowed to be reported.
     /// </param>
-    /// <param name="errorOptions">
-    /// The error options.
-    /// </param>
-    public DocumentValidator(
-        DocumentValidatorContextPool contextPool,
-        IEnumerable<IDocumentValidatorRule> rules,
-        IEnumerable<IValidationResultAggregator> resultAggregators,
-        IErrorOptionsAccessor errorOptions)
+    internal DocumentValidator(
+        ObjectPool<DocumentValidatorContext> contextPool,
+        IDocumentValidatorRule[] rules,
+        int maxAllowedErrors)
     {
-        if (rules is null)
-        {
-            throw new ArgumentNullException(nameof(rules));
-        }
+        ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(contextPool);
+        ArgumentOutOfRangeException.ThrowIfNegative(maxAllowedErrors);
 
-        if (errorOptions is null)
-        {
-            throw new ArgumentNullException(nameof(errorOptions));
-        }
-
-        _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
-        _allRules = rules.ToArray();
-        _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
-        _aggregators = resultAggregators.ToArray();
-        _maxAllowedErrors = errorOptions.MaxAllowedErrors;
-
-        Array.Sort(_allRules, (a, b) => a.Priority.CompareTo(b.Priority));
-        Array.Sort(_nonCacheableRules, (a, b) => a.Priority.CompareTo(b.Priority));
+        _contextPool = contextPool;
+        _allRules = rules;
+        _nonCacheableRules = [.. rules.Where(rule => !rule.IsCacheable)];
+        _maxAllowedErrors = maxAllowedErrors > 0 ? maxAllowedErrors : 1;
     }
 
-    /// <inheritdoc />
-    public bool HasDynamicRules => _nonCacheableRules.Length > 0 || _aggregators.Length > 0;
+    /// <summary>
+    /// Gets the rules that are used to validate the GraphQL operation document.
+    /// </summary>
+    public ImmutableArray<IDocumentValidatorRule> Rules => ImmutableCollectionsMarshal.AsImmutableArray(_allRules);
 
-    /// <inheritdoc />
-    public ValueTask<DocumentValidatorResult> ValidateAsync(
-        ISchema schema,
-        DocumentNode document,
+    /// <summary>
+    /// Gets a value indicating whether the document validator has non-cacheable rules.
+    /// </summary>
+    public bool HasNonCacheableRules => _nonCacheableRules.Length > 0;
+
+    /// <summary>
+    /// Validates the GraphQL operation <paramref name="document"/> against the given <paramref name="schema"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="document">
+    /// The GraphQL operation document that shall be validated.
+    /// </param>
+    /// <returns>
+    /// The result of the validation.
+    /// </returns>
+    public DocumentValidatorResult Validate(
+        ISchemaDefinition schema,
+        DocumentNode document)
+        => Validate(schema, default, document, null);
+
+    /// <summary>
+    /// Validates the GraphQL operation <paramref name="document"/> against the given <paramref name="schema"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="documentId">
+    /// The unique identifier of the document.
+    /// </param>
+    /// <param name="document">
+    /// The GraphQL operation document that shall be validated.
+    /// </param>
+    /// <param name="features">
+    /// A collection of features that are used to extend the validation context.
+    /// </param>
+    /// <param name="onlyNonCacheable">
+    /// If set to <c>true</c> only non-cacheable rules will be executed.
+    /// </param>
+    /// <returns>
+    /// The result of the validation.
+    /// </returns>
+    public DocumentValidatorResult Validate(
+        ISchemaDefinition schema,
         OperationDocumentId documentId,
-        IDictionary<string, object?> contextData,
-        bool onlyNonCacheable,
-        CancellationToken cancellationToken = default)
+        DocumentNode document,
+        IFeatureCollection? features = null,
+        bool onlyNonCacheable = false)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(document);
 
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (documentId.IsEmpty)
-        {
-            throw new ArgumentNullException(nameof(documentId));
-        }
-
-        if (onlyNonCacheable && _nonCacheableRules.Length == 0 && _aggregators.Length == 0)
-        {
-            return new(DocumentValidatorResult.Ok);
-        }
-
-        var context = _contextPool.Get();
         var rules = onlyNonCacheable ? _nonCacheableRules : _allRules;
-        var handleCleanup = true;
+
+        if (rules.Length == 0)
+        {
+            return DocumentValidatorResult.OK;
+        }
+
+        var context = RentContext(schema, documentId, document, features);
 
         try
         {
-            PrepareContext(schema, document, documentId, context, contextData);
-
-            var length = rules.Length;
             ref var start = ref MemoryMarshal.GetArrayDataReference(rules);
+            ref var end = ref Unsafe.Add(ref start, rules.Length);
 
-            for (var i = 0; i < length; i++)
+            while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                Unsafe.Add(ref start, i).Validate(context, document);
+                start.Validate(context, document);
 
                 if (context.FatalErrorDetected)
                 {
                     break;
                 }
+
+                start = ref Unsafe.Add(ref start, 1)!;
             }
 
-            if (_aggregators.Length == 0)
-            {
-                return new(
-                    context.Errors.Count > 0
-                        ? new DocumentValidatorResult(context.Errors)
-                        : DocumentValidatorResult.Ok);
-            }
-            else
-            {
-                handleCleanup = false;
-                return RunResultAggregators(context, document, cancellationToken);
-            }
+            return context.Errors.Count == 0
+                ? DocumentValidatorResult.OK
+                : new DocumentValidatorResult(context.Errors);
         }
         catch (MaxValidationErrorsException)
         {
-            Debug.Assert(context.Errors.Count > 0, "There must be at least 1 validation error.");
-            return new(new DocumentValidatorResult(context.Errors));
-        }
-        finally
-        {
-            if (handleCleanup)
-            {
-                _contextPool.Return(context);
-            }
-        }
-    }
-
-    private async ValueTask<DocumentValidatorResult> RunResultAggregators(
-        DocumentValidatorContext context,
-        DocumentNode document,
-        CancellationToken ct)
-    {
-        var aggregators = _aggregators;
-        var length = aggregators.Length;
-
-        try
-        {
-            for (var i = 0; i < length; i++)
-            {
-                await aggregators[i].AggregateAsync(context, document, ct).ConfigureAwait(false);
-            }
-
-            return context.Errors.Count > 0
-                ? new DocumentValidatorResult(context.Errors)
-                : DocumentValidatorResult.Ok;
-        }
-        catch (MaxValidationErrorsException)
-        {
-            Debug.Assert(context.Errors.Count > 0, "There must be at least 1 validation error.");
             return new DocumentValidatorResult(context.Errors);
         }
         finally
         {
-            _contextPool.Return(context);
+            ReturnContext(context);
         }
     }
 
-    private void PrepareContext(
-        ISchema schema,
-        DocumentNode document,
+    private DocumentValidatorContext RentContext(
+        ISchemaDefinition schema,
         OperationDocumentId documentId,
-        DocumentValidatorContext context,
-        IDictionary<string, object?> contextData)
+        DocumentNode document,
+        IFeatureCollection? features)
     {
-        context.Schema = schema;
-        context.DocumentId = documentId;
+        var context = _contextPool.Get();
+        context.Initialize(schema, documentId, document, _maxAllowedErrors, features);
+        return context;
+    }
 
-        for (var i = 0; i < document.Definitions.Count; i++)
-        {
-            var definitionNode = document.Definitions[i];
-
-            if (definitionNode.Kind is SyntaxKind.FragmentDefinition)
-            {
-                var fragmentDefinition = (FragmentDefinitionNode)definitionNode;
-                context.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
-            }
-        }
-
-        context.MaxAllowedErrors = _maxAllowedErrors;
-        context.ContextData = contextData;
+    private void ReturnContext(DocumentValidatorContext context)
+    {
+        context.Clear();
+        _contextPool.Return(context);
     }
 }

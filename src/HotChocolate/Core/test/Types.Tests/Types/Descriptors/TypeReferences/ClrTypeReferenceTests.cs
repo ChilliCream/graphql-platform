@@ -382,7 +382,7 @@ public class ClrTypeReferenceTests
             scope: "foo");
 
         // act
-        Action action = () => typeReference1.WithType(default!);
+        Action action = () => typeReference1.WithType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

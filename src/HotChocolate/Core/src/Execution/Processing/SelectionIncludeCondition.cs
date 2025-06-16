@@ -66,7 +66,7 @@ public sealed class SelectionIncludeCondition
 
         if (value is VariableNode v)
         {
-            return variables.GetVariable<bool>(v.Name.Value);
+            return variables.GetValue<BooleanValueNode>(v.Name.Value).Value;
         }
 
         throw FieldVisibility_ValueNotSupported(value);

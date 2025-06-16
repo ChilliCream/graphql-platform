@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
@@ -35,4 +36,22 @@ internal sealed partial class OperationContext
     /// </summary>
     /// <value></value>
     public ITypeConverter Converter { get; }
+
+    /// <summary>
+    /// Reports a field error.
+    /// </summary>
+    /// <param name="errors">
+    /// The errors to report.
+    /// </param>
+    /// <param name="context">
+    /// The middleware context that is associated with the field error.
+    /// </param>
+    public void FieldError(IReadOnlyList<IError> errors, IMiddlewareContext context)
+    {
+        DiagnosticEvents.ExecutionError(
+            _requestContext,
+            ErrorKind.FieldError,
+            errors,
+            context);
+    }
 }

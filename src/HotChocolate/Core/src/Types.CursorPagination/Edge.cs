@@ -26,10 +26,7 @@ public class Edge<T> : IEdge<T>
     /// </exception>
     public Edge(T node, string cursor)
     {
-        if (string.IsNullOrEmpty(cursor))
-        {
-            throw new ArgumentNullException(nameof(cursor));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(cursor);
 
         Node = node;
         _cursor = cursor;
@@ -49,10 +46,7 @@ public class Edge<T> : IEdge<T>
     /// </exception>
     public Edge(T node, Func<T, string> resolveCursor)
     {
-        if (resolveCursor is null)
-        {
-            throw new ArgumentNullException(nameof(resolveCursor));
-        }
+        ArgumentNullException.ThrowIfNull(resolveCursor);
 
         Node = node;
         _resolveCursor = edge => resolveCursor(edge.Node);
@@ -72,10 +66,7 @@ public class Edge<T> : IEdge<T>
     /// </exception>
     public Edge(T node, Func<Edge<T>, string> resolveCursor)
     {
-        if (resolveCursor is null)
-        {
-            throw new ArgumentNullException(nameof(resolveCursor));
-        }
+        ArgumentNullException.ThrowIfNull(resolveCursor);
 
         Node = node;
         _resolveCursor = resolveCursor;

@@ -161,7 +161,7 @@ public class FragmentHelperTests
 
         // assert
         Assert.NotNull(returnTypeFragment);
-        Assert.Equal("Hero", returnTypeFragment?.Fragment.Name);
+        Assert.Equal("Hero", returnTypeFragment.Fragment.Name);
     }
 
     [Fact]
@@ -210,7 +210,7 @@ public class FragmentHelperTests
                 context,
                 returnTypeFragment,
                 fieldSelection.Path,
-                new []{ list[0], });
+                [list[0]]);
 
             var @class = FragmentHelper.CreateClass(
                 context,
@@ -341,7 +341,7 @@ public class FragmentHelperTests
                 context,
                 returnTypeFragment,
                 fieldSelection.Path,
-                new []{ list[0], });
+                [list[0]]);
 
             var @class = FragmentHelper.CreateClass(
                 context,
@@ -488,7 +488,7 @@ public class FragmentHelperTests
                 context,
                 returnTypeFragment,
                 fieldSelection.Path,
-                new []{ list[0], });
+                [list[0]]);
 
             var @class = FragmentHelper.CreateClass(
                 context,

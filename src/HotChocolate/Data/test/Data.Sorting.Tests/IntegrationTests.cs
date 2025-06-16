@@ -65,12 +65,12 @@ public class IntegrationTests
 public class Query
 {
     [UseSorting]
-    public IEnumerable<Foo> Foos() => new[]
-    {
-        new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1), },
-        new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1), },
-        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1), },
-    };
+    public IEnumerable<Foo> Foos() =>
+    [
+        new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1) },
+        new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
+        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
+    ];
 
     [UseSorting]
     public IEnumerable<Book> GetBooks(QueryContext<Book> queryContext)
@@ -78,7 +78,7 @@ public class Query
             {
                 new Book { Title = "Book5", Author = new Author { Name = "Author6" } },
                 new Book { Title = "Book7", Author = new Author { Name = "Author17" } },
-                new Book { Title = "Book1", Author = new Author { Name = "Author5" } },
+                new Book { Title = "Book1", Author = new Author { Name = "Author5" } }
             }
             .AsQueryable()
             .With(queryContext);
@@ -95,7 +95,7 @@ public class Author
     public string Name { get; set; } = string.Empty;
 
     [UseSorting]
-    public Book[] Books { get; set; } = Array.Empty<Book>();
+    public Book[] Books { get; set; } = [];
 }
 
 public class Book

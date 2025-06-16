@@ -11,7 +11,7 @@ public class GraphQlWsProtocolTests
     public async Task Constructor_AllArgs_SubscribeToChanges()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
 
         // act
         var protocol = new GraphQLWebSocketProtocol(socketClient);
@@ -19,7 +19,9 @@ public class GraphQlWsProtocolTests
         await protocol.DisposeAsync();
 
         // assert
-        Assert.Equal(1, socketClient.GetCallCount(x => x.ReceiveAsync(default!, default!)));
+        Assert.Equal(
+            1,
+            socketClient.GetCallCount(x => x.ReceiveAsync(null!, CancellationToken.None)));
     }
 
     [Fact]
@@ -40,7 +42,7 @@ public class GraphQlWsProtocolTests
     public async Task InitializeAsync_SocketIsClosed_ThrowException()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = true, };
+        var socketClient = new SocketClientStub { IsClosed = true };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
 
         // act
@@ -55,7 +57,7 @@ public class GraphQlWsProtocolTests
     public async Task InitializeAsync_SocketIsOpen_SendInitializeMessage()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
 
         // act
@@ -81,7 +83,7 @@ public class GraphQlWsProtocolTests
         var socketClient = new SocketClientStub
         {
             IsClosed = false,
-            ConnectionInterceptor = connectionInterceptorMock.Object,
+            ConnectionInterceptor = connectionInterceptorMock.Object
         };
 
         var protocol = new GraphQLWebSocketProtocol(socketClient);
@@ -98,7 +100,7 @@ public class GraphQlWsProtocolTests
     public async Task TerminateAsync_ConnectionOpen_SendTerminationMessage()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
 
         // act
@@ -113,7 +115,7 @@ public class GraphQlWsProtocolTests
     public async Task TerminateAsync_ConnectionClosed_SendTerminationMessage()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
 
         // act
@@ -128,7 +130,7 @@ public class GraphQlWsProtocolTests
     public async Task StartOperationAsync_SocketIsClosed_ThrowException()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = true, };
+        var socketClient = new SocketClientStub { IsClosed = true };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
 
         // act
@@ -143,7 +145,7 @@ public class GraphQlWsProtocolTests
     public async Task StartOperationAsync_SocketIsOpen_SendMessage()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
@@ -165,7 +167,7 @@ public class GraphQlWsProtocolTests
     public async Task StopOperationAsync_SocketIsOpen_SendMessage()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
@@ -181,7 +183,7 @@ public class GraphQlWsProtocolTests
     public async Task StopOperationAsync_SocketIsClosed_NotSendMessage()
     {
         // arrange
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
@@ -199,7 +201,7 @@ public class GraphQlWsProtocolTests
     {
         // arrange
         var message = @"{""type:""}";
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         socketClient.MessagesReceive.Enqueue(message);
 
@@ -218,7 +220,7 @@ public class GraphQlWsProtocolTests
     {
         // arrange
         var message = @"{""type"":""Start""}";
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         socketClient.MessagesReceive.Enqueue(message);
 
@@ -237,7 +239,7 @@ public class GraphQlWsProtocolTests
     {
         // arrange
         var message = @"{""type"":""Start""}";
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         socketClient.MessagesReceive.Enqueue(message);
         protocol.Subscribe((_, _, _) => throw new InvalidOperationException());
@@ -260,7 +262,7 @@ public class GraphQlWsProtocolTests
         string? id = null;
         string? payload = null;
         var message = @"{""type"":""data"", ""payload"":""Foo"", ""id"":""123""}";
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((operationId, operationMessage, _) =>
         {
@@ -291,7 +293,7 @@ public class GraphQlWsProtocolTests
         SemaphoreSlim semaphoreSlim = new(0);
         var received = false;
         var message = @"{""type"":""complete"", ""id"":""123""}";
-        var socketClient = new SocketClientStub { IsClosed = false, };
+        var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>
         {
@@ -326,7 +328,7 @@ public class GraphQlWsProtocolTests
                 ""message"": ""test message""
             }
         }";
-        var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false, };
+        var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>
         {
@@ -355,7 +357,7 @@ public class GraphQlWsProtocolTests
         SemaphoreSlim semaphoreSlim = new(0);
         string? error = null;
         var message = @"{""type"":""connection_error"", ""id"":""123""}";
-        var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false, };
+        var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>
         {
@@ -379,7 +381,7 @@ public class GraphQlWsProtocolTests
 
     private sealed class GetHeroQueryDocument : IDocument
     {
-        private const string _bodyString =
+        private const string BodyString =
             @"query GetHero {
                 hero {
                     __typename
@@ -397,17 +399,17 @@ public class GraphQlWsProtocolTests
                 version
             }";
 
-        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] s_body = Encoding.UTF8.GetBytes(BodyString);
 
         private GetHeroQueryDocument() { }
 
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => _body;
+        public ReadOnlySpan<byte> Body => s_body;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
 
-        public override string ToString() => _bodyString;
+        public override string ToString() => BodyString;
 
         public static GetHeroQueryDocument Instance { get; } = new();
     }

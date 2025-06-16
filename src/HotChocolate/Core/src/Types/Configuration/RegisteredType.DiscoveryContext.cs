@@ -1,7 +1,8 @@
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -15,7 +16,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     public IDescriptorContext DescriptorContext { get; }
 
-    public IDictionary<string, object?> ContextData => DescriptorContext.ContextData;
+    public IFeatureCollection Features => DescriptorContext.Features;
 
     public IServiceProvider Services => DescriptorContext.Services;
 
@@ -25,14 +26,9 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     IList<TypeDependency> ITypeDiscoveryContext.Dependencies => Dependencies;
 
-    ITypeSystemObject ITypeSystemObjectContext.Type => Type;
-
     public void ReportError(ISchemaError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Errors.Add(error);
     }
@@ -44,8 +40,8 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
         {
             switch (registeredType.Type)
             {
-                case INamedType namedType:
-                    kind = namedType.Kind;
+                case ITypeDefinition type:
+                    kind = type.Kind;
                     return true;
 
                 case DirectiveType:

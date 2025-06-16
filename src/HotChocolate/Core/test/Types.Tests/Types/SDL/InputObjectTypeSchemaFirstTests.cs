@@ -21,7 +21,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -48,7 +48,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -77,7 +77,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -104,7 +104,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

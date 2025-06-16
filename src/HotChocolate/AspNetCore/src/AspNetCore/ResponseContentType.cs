@@ -26,7 +26,17 @@ public enum ResponseContentType
     GraphQLResponse,
 
     /// <summary>
+    /// application/graphql-response+jsonl
+    /// </summary>
+    GraphQLResponseStream,
+
+    /// <summary>
     /// text/event-stream
     /// </summary>
     EventStream,
+
+    /// <summary>
+    /// application/jsonl
+    /// </summary>
+    JsonLines
 }

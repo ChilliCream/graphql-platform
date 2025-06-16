@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -60,7 +60,5 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     }
 
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }

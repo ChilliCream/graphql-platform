@@ -5,10 +5,10 @@ namespace HotChocolate.CostAnalysis.Utilities;
 
 internal static class ResultHelper
 {
-    private static readonly ImmutableDictionary<string, object?> _validationError
+    private static readonly ImmutableDictionary<string, object?> s_validationError
         = ImmutableDictionary<string, object?>.Empty
-            .Add(WellKnownContextData.ValidationErrors, true);
-    private static readonly ImmutableDictionary<string, object?> _ok
+            .Add(ExecutionContextData.ValidationErrors, true);
+    private static readonly ImmutableDictionary<string, object?> s_ok
         = ImmutableDictionary<string, object?>.Empty
             .Add(WellKnownContextData.HttpStatusCode, 200);
 
@@ -26,7 +26,7 @@ internal static class ResultHelper
                 null,
                 ImmutableArray.Create(error),
                 extensions: extensions,
-                contextData: _validationError);
+                contextData: s_validationError);
     }
 
     public static IExecutionResult CreateError(IReadOnlyList<IError> errors, CostMetrics? costMetrics)
@@ -41,7 +41,7 @@ internal static class ResultHelper
             null,
             errors,
             extensions: extensions,
-            contextData: _validationError);
+            contextData: s_validationError);
     }
 
     public static IExecutionResult CreateResult(this CostMetrics costMetrics)
@@ -52,7 +52,7 @@ internal static class ResultHelper
             data: null,
             errors: null,
             extensions: extensions,
-            contextData: _ok,
+            contextData: s_ok,
             items: null,
             incremental: null,
             label: null,
@@ -197,6 +197,6 @@ internal static class ResultHelper
         OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("The query request contains no document or no document id.")
-                .SetCode(ErrorCodes.Execution.QueryNotFound)
+                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
 }

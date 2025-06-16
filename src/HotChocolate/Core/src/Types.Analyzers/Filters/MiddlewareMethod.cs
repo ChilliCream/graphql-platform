@@ -14,8 +14,8 @@ internal sealed class MiddlewareMethod : ISyntaxFilter
             {
                 Expression: MemberAccessExpressionSyntax
                 {
-                    Name.Identifier.ValueText: var method,
-                },
+                    Name.Identifier.ValueText: var method
+                }
             } &&
             (method.Equals("UseRequest") || method.Equals("UseField") || method.Equals("Use"));
 }

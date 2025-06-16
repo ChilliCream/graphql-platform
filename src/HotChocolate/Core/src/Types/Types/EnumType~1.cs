@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -25,7 +25,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public class EnumType<T> : EnumType, IEnumType<T>
+public class EnumType<T> : EnumType
 {
     private Action<IEnumTypeDescriptor<T>>? _configure;
 
@@ -79,8 +79,7 @@ public class EnumType<T> : EnumType, IEnumType<T>
     protected override EnumTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
-        var descriptor =
-            EnumTypeDescriptor.New<T>(context.DescriptorContext);
+        var descriptor = EnumTypeDescriptor.New<T>(context.DescriptorContext);
 
         _configure!(descriptor);
         _configure = null;

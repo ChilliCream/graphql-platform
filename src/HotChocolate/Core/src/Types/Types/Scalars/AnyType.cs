@@ -3,7 +3,7 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -13,7 +13,7 @@ namespace HotChocolate.Types;
 public class AnyType : ScalarType
 {
     private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
-    private ObjectToDictionaryConverter _objectToDictConverter = default!;
+    private ObjectToDictionaryConverter _objectToDictConverter = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.
@@ -47,10 +47,7 @@ public class AnyType : ScalarType
 
     public override bool IsInstanceOfType(IValueNode literal)
     {
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(literal);
 
         switch (literal)
         {

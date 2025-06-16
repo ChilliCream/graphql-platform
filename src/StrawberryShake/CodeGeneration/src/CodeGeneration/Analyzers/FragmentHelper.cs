@@ -24,8 +24,8 @@ public static class FragmentHelper
             directive.Arguments.Count == 1 &&
             directive.Arguments[0] is
             {
-                Name: { Value: "fragment", },
-                Value: StringValueNode { Value: { Length: > 0, }, } sv,
+                Name: { Value: "fragment" },
+                Value: StringValueNode { Value: { Length: > 0 } } sv
             })
         {
             return sv.Value;
@@ -124,7 +124,7 @@ public static class FragmentHelper
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
-            new[] { @interface, },
+            [@interface],
             AggregateDeferMap(@interface));
         context.RegisterModel(name, typeModel);
 
@@ -157,7 +157,7 @@ public static class FragmentHelper
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
-            new[] { @interface, },
+            [@interface],
             AggregateDeferMap(@interface));
         context.RegisterModel(name, typeModel);
 
@@ -277,7 +277,7 @@ public static class FragmentHelper
         Path path)
     {
         // the fragment type is a complex type we will generate a interface with fields.
-        if (fragmentNode.Fragment.TypeCondition is INamedOutputType type &&
+        if (fragmentNode.Fragment.TypeCondition is IOutputTypeDefinition type &&
             type.IsCompositeType())
         {
             var fieldMap = new OrderedDictionary<string, FieldSelection>();
@@ -314,7 +314,7 @@ public static class FragmentHelper
 
     private static void CollectFields(
         FragmentNode fragmentNode,
-        INamedOutputType outputType,
+        IOutputTypeDefinition outputType,
         IDictionary<string, FieldSelection> fields,
         Path path)
     {
@@ -497,7 +497,7 @@ public static class FragmentHelper
             var @class = CreateClassFromInterface(context, child, @interface);
             var model = new DeferredFragmentModel(label, @interface, @class);
 
-            (deferred ??= new()).Add(label, model);
+            (deferred ??= []).Add(label, model);
         }
 
         return deferred;
@@ -522,7 +522,7 @@ public static class FragmentHelper
 
             if (current.Deferred.Count > 0)
             {
-                var map = deferMap ??= new();
+                var map = deferMap ??= [];
 
                 foreach ((var key, var value) in current.Deferred)
                 {
@@ -559,7 +559,7 @@ public static class FragmentHelper
     }
 
     public static FragmentNode CreateFragmentNode(
-        INamedType namedType,
+        ITypeDefinition namedType,
         Path selectionPath,
         SelectionSet selectionSet,
         bool appendTypeName = false)
@@ -610,9 +610,9 @@ public static class FragmentHelper
     private static string GetDeferLabel(DirectiveNode directive)
     {
         var argument = directive.Arguments.FirstOrDefault(
-            t => t.Name.Value.EqualsOrdinal(WellKnownDirectives.LabelArgument));
+            t => t.Name.Value.EqualsOrdinal(DirectiveNames.Defer.Arguments.Label));
 
-        if (argument?.Value is not StringValueNode { Value.Length: > 0, } sv)
+        if (argument?.Value is not StringValueNode { Value.Length: > 0 } sv)
         {
             throw new GraphQLException("A defer directive label must always expose a label.");
         }

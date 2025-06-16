@@ -37,10 +37,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IServiceCollection services,
         int maxAllowedRequestSize = MaxAllowedRequestSize)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
@@ -60,7 +57,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             {
                 0 => new NoopServerDiagnosticEventListener(),
                 1 => listeners[0],
-                _ => new AggregateServerDiagnosticEventListener(listeners),
+                _ => new AggregateServerDiagnosticEventListener(listeners)
             };
         });
 
@@ -102,10 +99,12 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IServiceCollection services,
-        string? schemaName = default,
+        string? schemaName = null,
         int maxAllowedRequestSize = MaxAllowedRequestSize,
         bool disableDefaultSecurity = false)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         var builder = services
             .AddGraphQLServerCore(maxAllowedRequestSize)
             .AddGraphQL(schemaName)
@@ -149,9 +148,13 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default,
+        string? schemaName = null,
         bool disableDefaultSecurity = false)
-        => builder.Services.AddGraphQLServer(schemaName, disableDefaultSecurity: disableDefaultSecurity);
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.Services.AddGraphQLServer(schemaName, disableDefaultSecurity: disableDefaultSecurity);
+    }
 
     /// <summary>
     /// Registers the GraphQL Upload Scalar.
@@ -165,10 +168,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IRequestExecutorBuilder AddUploadType(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddType<UploadType>();
         return builder;

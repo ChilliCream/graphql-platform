@@ -16,11 +16,11 @@ public class RavenAsyncDocumentQueryTests
 {
     private readonly List<Foo> foos =
     [
-        new Foo { Bar = "a", },
-        new Foo { Bar = "b", },
-        new Foo { Bar = "d", },
-        new Foo { Bar = "e", },
-        new Foo { Bar = "f", },
+        new Foo { Bar = "a" },
+        new Foo { Bar = "b" },
+        new Foo { Bar = "d" },
+        new Foo { Bar = "e" },
+        new Foo { Bar = "f" }
     ];
 
     private readonly SchemaCache _resource;
@@ -341,7 +341,7 @@ public class RavenAsyncDocumentQueryTests
     {
         public string? Id { get; set; }
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, IAsyncDocumentQuery<TResult>> BuildResolver<TResult>(
@@ -399,7 +399,7 @@ public class RavenAsyncDocumentQueryTests
                                 }
                             })
                         .UsePaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true, });
+                            options: new PagingOptions { IncludeTotalCount = true });
 
                     descriptor
                         .Field("foosOffset")
@@ -425,10 +425,10 @@ public class RavenAsyncDocumentQueryTests
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true, });
+                            options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -444,7 +444,7 @@ public class RavenAsyncDocumentQueryTests
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 }

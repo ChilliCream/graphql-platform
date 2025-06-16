@@ -121,7 +121,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         Assert.Collection(
-            schema.GetType<ObjectType>("Bar").Directives,
+            schema.Types.GetType<ObjectType>("Bar").Directives,
             t =>
             {
                 Assert.Equal("foo", t.Type.Name);
@@ -200,7 +200,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         IReadOnlyCollection<Directive> collection =
-            schema.GetType<ObjectType>("Bar")
+            schema.Types.GetType<ObjectType>("Bar")
                 .Fields["foo"].Directives
                 .Where(t => t.Type.Middleware is not null)
                 .ToList();
@@ -289,7 +289,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -326,7 +326,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
 
         await schema.MakeExecutable().ExecuteAsync("{ foo }");
@@ -359,7 +359,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -385,7 +385,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -435,7 +435,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -461,7 +461,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -487,7 +487,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -547,7 +547,7 @@ public class DirectiveTypeTests : TypeTestBase
             .AddDirectiveType<DirectiveWithSyntaxTypeArg>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -578,7 +578,7 @@ public class DirectiveTypeTests : TypeTestBase
     {
         // arrange
         // act
-        static async Task call() =>
+        static async Task Call() =>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(
@@ -593,7 +593,7 @@ public class DirectiveTypeTests : TypeTestBase
                 .BuildRequestExecutorAsync();
 
         // assert
-        var exception = await Assert.ThrowsAsync<SchemaException>(call);
+        var exception = await Assert.ThrowsAsync<SchemaException>(Call);
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 
@@ -909,13 +909,13 @@ public class DirectiveTypeTests : TypeTestBase
     public class DirectiveMiddleware1
     {
         private readonly FieldDelegate _next;
-        private static int _instances;
+        private static int s_instances;
         private readonly int _count;
 
         public DirectiveMiddleware1(FieldDelegate next)
         {
             _next = next;
-            _count = Interlocked.Increment(ref _instances);
+            _count = Interlocked.Increment(ref s_instances);
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)

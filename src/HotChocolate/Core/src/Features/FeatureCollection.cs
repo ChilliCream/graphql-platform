@@ -2,15 +2,16 @@
 
 // ReSharper disable NonAtomicCompoundOperator
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Features;
 
 /// <summary>
 /// Default implementation for <see cref="IFeatureCollection"/>.
 /// </summary>
-public class FeatureCollection : IFeatureCollection
+public sealed class FeatureCollection : IFeatureCollection
 {
-    private static readonly KeyComparer _featureKeyComparer = new();
+    private static readonly KeyComparer s_featureKeyComparer = new();
     private readonly IFeatureCollection? _defaults;
     private readonly int _initialCapacity;
     private Dictionary<Type, object>? _features;
@@ -34,10 +35,7 @@ public class FeatureCollection : IFeatureCollection
     /// </exception>
     public FeatureCollection(int initialCapacity)
     {
-        if (initialCapacity < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(initialCapacity));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(initialCapacity);
 
         _initialCapacity = initialCapacity;
     }
@@ -54,74 +52,56 @@ public class FeatureCollection : IFeatureCollection
     }
 
     /// <inheritdoc />
-    public virtual int Revision
+    public bool IsReadOnly => false;
+
+    /// <inheritdoc />
+    public bool IsEmpty
     {
-        get { return _containerRevision + (_defaults?.Revision ?? 0); }
+        get
+        {
+            if (_features is not null)
+            {
+                return _features.Count == 0
+                    || _features.Values.All(f => f is null);
+            }
+
+            if (_defaults is not null)
+            {
+                return _defaults.IsEmpty;
+            }
+
+            return true;
+        }
     }
 
     /// <inheritdoc />
-    public bool IsReadOnly { get { return false; } }
+    public int Revision => _containerRevision + (_defaults?.Revision ?? 0);
 
     /// <inheritdoc />
     public object? this[Type key]
     {
         get
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            ArgumentNullException.ThrowIfNull(key);
 
             return _features != null && _features.TryGetValue(key, out var result) ? result : _defaults?[key];
         }
         set
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            ArgumentNullException.ThrowIfNull(key);
 
             if (value == null)
             {
-                if (_features != null && _features.Remove(key))
+                if (_features?.Remove(key) == true)
                 {
                     _containerRevision++;
                 }
                 return;
             }
 
-            if (_features == null)
-            {
-                _features = new Dictionary<Type, object>(_initialCapacity);
-            }
+            _features ??= new Dictionary<Type, object>(_initialCapacity);
             _features[key] = value;
             _containerRevision++;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
-    /// <inheritdoc />
-    public IEnumerator<KeyValuePair<Type, object>> GetEnumerator()
-    {
-        if (_features != null)
-        {
-            foreach (var pair in _features)
-            {
-                yield return pair;
-            }
-        }
-
-        if (_defaults != null)
-        {
-            // Don't return features masked by the wrapper.
-            foreach (var pair in _features == null ? _defaults : _defaults.Except(_features, _featureKeyComparer))
-            {
-                yield return pair;
-            }
         }
     }
 
@@ -141,7 +121,32 @@ public class FeatureCollection : IFeatureCollection
             }
             return (TFeature?)feature;
         }
+
         return (TFeature?)this[typeof(TFeature)];
+    }
+
+    /// <inheritdoc />
+    public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
+    {
+        if (_features is not null && _features.TryGetValue(typeof(TFeature), out var result))
+        {
+            if (result is TFeature f)
+            {
+                feature = f;
+                return true;
+            }
+
+            feature = default;
+            return false;
+        }
+
+        if (_defaults is not null && _defaults.TryGet(out feature))
+        {
+            return true;
+        }
+
+        feature = default;
+        return false;
     }
 
     /// <inheritdoc />
@@ -149,6 +154,29 @@ public class FeatureCollection : IFeatureCollection
     {
         this[typeof(TFeature)] = instance;
     }
+
+    /// <inheritdoc />
+    public IEnumerator<KeyValuePair<Type, object>> GetEnumerator()
+    {
+        if (_features != null)
+        {
+            foreach (var pair in _features)
+            {
+                yield return pair;
+            }
+        }
+
+        if (_defaults != null)
+        {
+            // Don't return features masked by the wrapper.
+            foreach (var pair in _features == null ? _defaults : _defaults.Except(_features, s_featureKeyComparer))
+            {
+                yield return pair;
+            }
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     private sealed class KeyComparer : IEqualityComparer<KeyValuePair<Type, object>>
     {
@@ -158,4 +186,9 @@ public class FeatureCollection : IFeatureCollection
         public int GetHashCode(KeyValuePair<Type, object> obj) =>
             obj.Key.GetHashCode();
     }
+
+    /// <summary>
+    /// Gets an empty feature collection.
+    /// </summary>
+    public static IFeatureCollection Empty => EmptyFeatureCollection.Default;
 }

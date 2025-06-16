@@ -1,11 +1,10 @@
 using System.Collections.Frozen;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 #nullable enable
@@ -14,10 +13,9 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private FrozenDictionary<string, EnumValue> _nameLookup = default!;
-    private FrozenDictionary<object, EnumValue> _valueLookup = default!;
-    private ImmutableArray<EnumValue> _values;
-    private INamingConventions _naming = default!;
+    private FrozenDictionary<object, EnumValue> _valueLookup = null!;
+    private EnumValueCollection _values = null!;
+    private INamingConventions _naming = null!;
     private Action<IEnumTypeDescriptor>? _configure;
 
     /// <summary>
@@ -98,8 +96,7 @@ public partial class EnumType
     {
         base.OnCompleteType(context, configuration);
 
-        var builder = ImmutableArray.CreateBuilder<EnumValue>(configuration.Values.Count);
-        var nameLookupBuilder = new Dictionary<string, EnumValue>(configuration.NameComparer);
+        var builder = new List<EnumValue>(configuration.Values.Count);
         var valueLookupBuilder = new Dictionary<object, EnumValue>(configuration.ValueComparer);
         _naming = context.DescriptorContext.Naming;
 
@@ -112,7 +109,6 @@ public partial class EnumType
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
-                nameLookupBuilder[enumValue.Name] = enumValue;
                 valueLookupBuilder[enumValue.Value] = enumValue;
                 builder.Add(enumValue);
             }
@@ -128,8 +124,7 @@ public partial class EnumType
                     .Build());
         }
 
-        _values = builder.ToImmutable();
-        _nameLookup = nameLookupBuilder.ToFrozenDictionary(configuration.NameComparer);
+        _values = new EnumValueCollection([.. builder], configuration.NameComparer);
         _valueLookup = valueLookupBuilder.ToFrozenDictionary(configuration.ValueComparer);
     }
 

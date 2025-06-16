@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -88,7 +88,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is InputObjectType inputObjectType)
         {
@@ -97,13 +97,13 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
             AssertMutable();
             inputObjectType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
+            TypeExtensionHelper.MergeFeatures(
                 Configuration!,
                 inputObjectType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Configuration!.Directives!,
+                Configuration!.Directives,
                 inputObjectType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeInputObjectFields(
